@@ -109,13 +109,14 @@ class NoTutorCourseOnDay(NoCourseOnDay):
             tutors = set(ttmodel.wdb.instructors)
         if self.tutor_status is not None:
             tutors = set(t for t in tutors if t.status == self.tutor_status)
+            print(tutors)
         return tutors
 
     def considered_sum(self, ttmodel, week):
         return ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
-                           for i in self.considered_tutors()
+                           for i in self.considered_tutors(ttmodel)
                            for c in ttmodel.wdb.possible_courses[i]
-                           for sl in self.considered_slots() & ttmodel.wdb.compatible_slots[c])
+                           for sl in self.considered_slots(ttmodel, week) & ttmodel.wdb.compatible_slots[c])
 
     def one_line_description(self):
         text = f"Aucun cours le {self.weekday}"
