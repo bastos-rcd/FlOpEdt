@@ -39,7 +39,8 @@ from TTapp.models import \
     CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectBoundPerDay,\
     AvoidBothTimes, LimitedRoomChoices, LimitedStartTimeChoices, \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, GroupsLunchBreak, BreakAroundCourseType, \
-    NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, NoCourseOnDay, \
+    NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
+    NoTutorCourseOnDay, NoGroupCourseOnDay, \
     ConsiderDepencies
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
@@ -400,7 +401,6 @@ class NoCourseOnDayAdmin(DepartmentModelAdmin):
     list_filter = (('week', DropdownFilterAll),
                    ('year', DropdownFilterAll),
                    ('train_progs', DropdownFilterRel),
-                   ('groups', DropdownFilterRel),
                    )
 
 
@@ -439,7 +439,8 @@ admin.site.register(LowerBoundBusyDays, LowerBoundBusyDaysAdmin)
 admin.site.register(GroupsLunchBreak, GroupsLunchBreakAdmin)
 admin.site.register(TutorsLunchBreak, TutorsLunchBreakAdmin)
 admin.site.register(BreakAroundCourseType, BreakAroundCourseTypeAdmin)
-admin.site.register(NoCourseOnDay, NoCourseOnDayAdmin)
+admin.site.register(NoGroupCourseOnDay, NoCourseOnDayAdmin)
+admin.site.register(NoTutorCourseOnDay, NoCourseOnDayAdmin)
 
 if settings.VISIO_MODE:
     admin.site.register(NoVisio, NoVisioAdmin)
