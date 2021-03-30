@@ -1274,7 +1274,7 @@ function go_regen(s) {
   if (s != null) {
     total_regen = false;
     var txt = "";
-    var elements = s.split(/,| /);
+    var elements = s.split(/,/);
     var regen_id = elements[elements.length - 1];
     if (elements[0] == 'N') {
       txt = gettext('No planned re-generation');
