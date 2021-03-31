@@ -109,7 +109,6 @@ class NoTutorCourseOnDay(NoCourseOnDay):
             tutors = set(ttmodel.wdb.instructors)
         if self.tutor_status is not None:
             tutors = set(t for t in tutors if t.status == self.tutor_status)
-            print(tutors)
         return tutors
 
     def considered_sum(self, ttmodel, week):
