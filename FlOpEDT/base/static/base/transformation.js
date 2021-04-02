@@ -1424,3 +1424,14 @@ function pref_mode_but_cls(d) {
     return "select-standard";
   }
 }
+
+
+function constraint_y(d) {
+  return cours_y({
+    'start': d,
+    'promo': root_gp.findIndex(function(g) {
+      return g.row == 0 ;
+    }),
+    'duration': 0
+  });
+}

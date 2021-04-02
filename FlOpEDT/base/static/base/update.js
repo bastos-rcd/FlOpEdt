@@ -628,6 +628,27 @@ function go_grid(quick) {
     .attr("width", grid_width());
 
 
+  if (plot_constraint_lines) {
+    let constraint_d = svg.get_dom("edt-fg").selectAll(".cst")
+      .data(
+        Object.keys(rev_constraints).map(function(c){return +c ;})
+      );
+    
+    let constraint_g = constraint_d
+      .enter()
+      .append("line")
+      .attr("class", "cst");
+    
+    constraint_g
+      .merge(constraint_d)
+      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+      .attr("x1", 0)
+      .attr("y1", constraint_y)
+      .attr("x2", grid_width())
+      .attr("y2", constraint_y);
+  }
+
 
   var grid = fg.selectAll(".grids")
     .data(

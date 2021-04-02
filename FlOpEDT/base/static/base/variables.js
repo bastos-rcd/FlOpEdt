@@ -172,6 +172,9 @@ file_fetch.department.callback = function () {
 // do we have slots
 var slot_case = false; //true ;
 
+// horizontal lines where a course may start
+var plot_constraint_lines = true ;
+
 // current number of rows
 var nbRows = 1;
 // last positive number of rows (when filtering by group)
