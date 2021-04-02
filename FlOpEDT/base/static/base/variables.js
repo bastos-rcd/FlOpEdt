@@ -173,7 +173,7 @@ file_fetch.department.callback = function () {
 var slot_case = false; //true ;
 
 // horizontal lines where a course may start
-var plot_constraint_lines = true ;
+var plot_constraint_lines = false ;
 
 // current number of rows
 var nbRows = 1;
