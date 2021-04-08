@@ -885,7 +885,7 @@ function go_gp_buttons() {
   for (var p = 0; p < set_promos.length; p++) {
     var cont = svg.get_dom("selg")
       .select(".sel-pop-g#" + popup_type_id("group"))
-      .selectAll(".gp-but-" + set_promos[p] + "P")
+      .selectAll("[train_prog=" + set_promos[p] + "]")
       .data(Object.keys(groups[p]).map(function (k) {
         return groups[p][k];
       }));
@@ -893,7 +893,7 @@ function go_gp_buttons() {
     var contg = cont
       .enter()
       .append("g")
-      .attr("class", "gp-but-" + set_promos[p] + "P")
+      .attr("train_prog", set_promos[p])
       .attr("transform", function (gp) {
         return "translate(" + (root_gp[gp.promo].butx) + ","
           + (root_gp[gp.promo].buty) + ")";
