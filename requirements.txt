@@ -18,8 +18,13 @@ isoweek~=1.3.3
 django-ical~=1.7.0
 ipython
 openpyxl
+djangorestframework
+djangorestframework-csv
+django-rest-auth
+django-rest-swagger
+Markdown~=3.1.1
 django-debug-toolbar
-#djangorestframework
-#markdown
-#django-filter
-#django-rosetta
+django-debug-toolbar-request-history
+django-filter
+drf-yasg
+django-cors-headers

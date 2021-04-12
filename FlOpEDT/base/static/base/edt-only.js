@@ -43,8 +43,8 @@ dsp_svg.margin = {
 dsp_svg.h = tv_svg_h - dsp_svg.margin.top - dsp_svg.margin.bot;
 dsp_svg.w = tv_svg_w - dsp_svg.margin.left - dsp_svg.margin.right;
 
-var week = week_init;
-var year = year_init;
+let week = week_init;
+let year = year_init;
 
 // filter the right bknews
 
@@ -130,7 +130,7 @@ file_fetch.groups.callback = function () {
   fetch_cours_light();
   fetch_bknews_light();
   //adapt_labgp(true);
-  fetch.groups_ok = true;
+  fetch_status.groups_ok = true;
   //go_edt(true);
   create_grid_data();
 
@@ -141,7 +141,7 @@ file_fetch.groups.callback = function () {
       Object.keys(rev_constraints).map(function(r){
         return +r + rev_constraints[r];
       }));
-    let t = time_settings.time ;
+    let t = department_settings.time ;
     hours_header.hours.add_times([
       t.day_start_time,
       t.lunch_break_start_time,
@@ -155,10 +155,10 @@ file_fetch.groups.callback = function () {
 
 
 function fetch_cours_light() {
-  fetch.ongoing_cours_pl = true;
-  fetch.cours_ok = false;
+  fetch_status.ongoing_cours_pl = true;
+  fetch_status.cours_ok = false;
 
-  fetch.done = false;
+  fetch_status.done = false;
   ack.edt = "";
 
   var week_att = week;
@@ -167,24 +167,30 @@ function fetch_cours_light() {
   $.ajax({
     type: "GET", //rest Type
     dataType: 'text',
-    url: url_cours_pl + year_att + "/" + week_att + "/0",
+    accepts: {
+      text: 'application/json'
+    },
+    url: build_url(
+      url_cours_pl,
+      context_dept,
+      {'week': week, 'year': year, 'work_copy': 0}
+    ),
     async: false,
     contentType: "text/csv",
     success: function (msg, ts, req) {
-      days = JSON.parse(req.getResponseHeader('days').replace(/'/g, '"'));
+
+      const parsed_msg = JSON.parse(msg);
 
       tutors.pl = [];
       modules.pl = [];
       salles.pl = [];
 
       cours_pl = [] ;
-      d3.csvParse(
-        msg,
-        function(d) {
-          translate_cours_pl_from_csv(d, cours_pl) ;
-        });
+      parsed_msg.forEach(function(sched_course) {
+        translate_cours_pl_from_json(sched_course, cours_pl);
+      });
 
-      fetch.ongoing_cours_pl = false;
+      fetch_status.ongoing_cours_pl = false;
       fetch_ended(true);
     },
     error: function (msg) {
@@ -196,13 +202,15 @@ function fetch_cours_light() {
 }
 
 function fetch_bknews_light(first) {
-  fetch.ongoing_bknews = true;
+  fetch_status.ongoing_bknews = true;
   var exp_week = new Week(year, week);
+  let context = {dept: department};
+  exp_week.add_to_context(context);
 
   $.ajax({
     type: "GET", //rest Type
     dataType: 'text',
-    url: url_bknews + year_att + "/" + week_att,
+    url: build_url(url_bknews, context),
     async: true,
     contentType: "text/json",
     success: function (msg) {
@@ -220,7 +228,7 @@ function fetch_bknews_light(first) {
         }
         bknews.nb_rows = max_y + 1;
 
-        fetch.ongoing_bknews = false;
+        fetch_status.ongoing_bknews = false;
         fetch_ended(true);
       }
 
@@ -234,15 +242,12 @@ function fetch_bknews_light(first) {
 
 }
 
-d3.json(rooms_fi,
+d3.json(build_url(rooms_fi, context_dept),
   function (d) { main('rooms', d); });
 
-d3.json(constraints_fi,
+d3.json(build_url(constraints_fi, context_dept),
   function (d) { main('constraints', d); });
 
-d3.json(departments_fi,
-  function (d) { main('department', d); });
-
-d3.json(groupes_fi,
+d3.json(build_url(groupes_fi, context_dept),
   function (d) { main('groups', d); });
 

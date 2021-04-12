@@ -83,7 +83,7 @@ function apply_change_simple_pref(d) {
         d.value = Math.floor(d.value / (par_dispos.nmax / 2)) * par_dispos.nmax / 2;
       }
       d.value = (d.value + par_dispos.nmax / 2) % (3 * par_dispos.nmax / 2);
-      if (cosmo && d.value == 0) {
+      if (department_settings.mode.cosmo && d.value == 0) {
         d.value++;
       }
       update_pref_interval(user.name, d.day, d.start_time, d.duration, d.value);
@@ -310,12 +310,15 @@ function fetch_all_tutors() {
     $.ajax({
       type: "GET",
       dataType: 'json',
-      url: url_all_tutors,
+      url: build_url(url_all_tutors, {dept: department}),
       async: false,
       success: function (data) {
-        all_tutors = data.filter(function (d) {
-          return d > 'A';
-        });
+        
+        all_tutors = data
+          .map(function(d) { return d.username; })
+          .filter(function (d) {
+            return d > 'A';
+          });
         all_tutors.sort();
         show_loader(false);
       },
@@ -625,7 +628,7 @@ function set_all_groups_display(isDisplayed) {
 // start == true iff a particular group is chosen by a GET request
 // go_button == true iff the group buttons are to be updated
 function apply_gp_display(gp, start, go_button) {
-  if (fetch.done || start) {
+  if (fetch_status.done || start) {
     if (is_no_hidden_grp) {
       set_all_groups_display(false);
       gp.display = true;
@@ -644,7 +647,7 @@ function apply_gp_display(gp, start, go_button) {
       go_gp_buttons();
     }
   }
-  if (fetch.done) {
+  if (fetch_status.done) {
     go_edt();
   }
 }
@@ -690,7 +693,7 @@ function propagate_display_up(gp, b) {
 
 // apply the updates resulting from a change in a checkbox
 function apply_ckbox(dk) {
-  if (ckbox[dk].en && fetch.done) {
+  if (ckbox[dk].en && fetch_status.done) {
 
     if (ckbox[dk].cked) {
       ckbox[dk].cked = false;
@@ -738,11 +741,11 @@ function apply_ckbox(dk) {
           "lunch_break_start_time", "lunch_break_finish_time"
         ] ;
         for (let i = 0 ; i < bus.length ; i ++) {
-          if (typeof time_settings.time.bu[bus[i]] !== 'undefined') {
-            time_settings.time[bus[i]] = time_settings.time.bu[bus[i]] ;
+          if (typeof department_settings.time.bu[bus[i]] !== 'undefined') {
+            department_settings.time[bus[i]] = department_settings.time.bu[bus[i]] ;
           }
         }
-        time_settings.time.bu = {} ;
+        department_settings.time.bu = {} ;
         
         user.dispos = [];
         //ckbox["dis-mod"].disp = false;
@@ -1328,7 +1331,7 @@ function confirm_change() {
     ack.more = "Rien à signaler.";
     go_ack_msg();
   } else {
-    if (!cosmo) {
+    if (!department_settings.mode.cosmo) {
       confirm_contact_all(changes, conc_tutors, gps);
     } else {
       confirm_law_constraints(changes, conc_tutors, gps);
@@ -2068,7 +2071,7 @@ function remove_details() {
 }
 
 function apply_selection_display(choice) {
-  if (fetch.done) {
+  if (fetch_status.done) {
 
     var sel_list = choice.panel.list;
 
@@ -2121,7 +2124,7 @@ function apply_selection_display_all(p) {
   var sel_list = [];
 
   if (p.type != "tutor"
-    || (fetch.done
+    || (fetch_status.done
       && (!logged_usr.dispo_all_change
         || !ckbox["dis-mod"].cked))) {
     p.list.forEach(function (d) {

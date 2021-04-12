@@ -329,7 +329,7 @@ function WeekDayMix(par, days, header) {
     return 0;
   };
   this.grid_day_am_height = function () {
-    var t = time_settings.time;
+    var t = department_settings.time;
     return scale * nbRows * (t.lunch_break_start_time - t.day_start_time);
   };
   this.grid_day_am_width = function () {
@@ -339,12 +339,12 @@ function WeekDayMix(par, days, header) {
     return this.grid_day_am_x(d);
   };
   this.grid_day_pm_y = function () {
-    var t = time_settings.time;
+    var t = department_settings.time;
     return this.grid_day_am_y() + this.grid_day_am_height()
       + bknews_h();
   };
   this.grid_day_pm_height = function () {
-    var t = time_settings.time;
+    var t = department_settings.time;
     return scale * nbRows * (t.day_finish_time - t.lunch_break_finish_time);
   };
   this.grid_day_pm_width = function () {

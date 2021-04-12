@@ -84,7 +84,9 @@ urlpatterns += i18n_patterns(
     re_path(r'^ttapp/(?P<department>[a-zA-Z]\w{0,6})/', include('TTapp.urls')),
     re_path(r'^game/', include('easter_egg.urls')),
     re_path(r'^flopeditor/', include('flopeditor.urls')),
-    re_path(r'^display/(?P<department>[a-zA-Z]\w{0,6})/', include('displayweb.urls'))
+    re_path(r'^display/(?P<department>[a-zA-Z]\w{0,6})/', include('displayweb.urls')),
+    path('api/', include('api.urls')),
+
 )
 
 if settings.DEBUG:

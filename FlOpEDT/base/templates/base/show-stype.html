@@ -35,16 +35,11 @@
   <script src="{% static 'base/d3.v4.min.js' %}"></script>
   <!-- script src="https://d3js.org/d3.v4.min.js"></script -->
   <script>
-    var cosmo = JSON.parse("{{ cosmo | lower }}") ;
-
-    var url_fetch_user_dweek = "{% url 'base:fetch_user_dweek' department '.' %}";
-    url_fetch_user_dweek = url_fetch_user_dweek.slice(0, -1);
-    var url_fetch_course_dweek = "{% url 'base:fetch_course_dweek' department '.' '.' %}";
-    url_fetch_course_dweek = url_fetch_course_dweek.slice(0, -3);
-    var url_fetch_room_dweek = "{% url 'base:fetch_room_dweek' department '.' %}";
-    url_fetch_room_dweek = url_fetch_room_dweek.slice(0, -1);
+    var url_user_pref_default = "{% url 'api:user-def-list' %}";
+    var url_fetch_course_dweek = "{% url 'api:fetch:coursedefweek-list' %}";
+    var url_fetch_room_dweek = "{% url 'api:room-def-list' %}";
     
-    var url_user_pref_changes = "{% url "base:user_pref_changes" department 0 0 '.' %}";
+    var url_user_pref_changes = "{% url 'base:user_pref_changes' department 0 0 '.' %}";
     url_user_pref_changes = url_user_pref_changes.slice(0, -5);
 
     var url_course_pref_changes = "{% url 'base:course_pref_changes' department 0 0 '.' '.' %}";
@@ -53,21 +48,26 @@
     var url_room_pref_changes = "{% url 'base:room_pref_changes' department 0 0 '.' %}";
     url_room_pref_changes = url_room_pref_changes.slice(0, -5);
 
-    var url_course_types = "{% url "base:fetch_course_types" department %}";
-    var url_training_programmes = "{% url "base:fetch_training_programmes" department %}";
-    var url_all_tutors = "{% url 'base:fetch_all_tutors' department %}";
+    var url_course_types = "{% url 'api:course:type-name-list' %}";
+    var url_training_programmes = "{% url 'api:base:trainingprogramme-name-list' %}";
+    var url_all_tutors = "{% url 'api:tutor_username-list' %}";
     var url_rooms = "{% url 'base:fetch_flat_rooms' department %}";
 
     var url_fetch_perfect_day = "{% url 'base:fetch_perfect_day' department '.' %}";
     url_fetch_perfect_day = url_fetch_perfect_day.slice(0, -1);
 
+    var department = "{{department}}" ;
     
     var logged_usr = {name:"{{ name_usr }}", rights: -1};
     var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
     var url_login = "{% url 'people:login' %}";
     var current_year = "{{ current_year }}" ;
-    var time_settings = {{ time_settings | safe }} ;
-    time_settings.time.bu = {} ;
+  var department_settings = {{ department_settings | safe }} ;
+  let k_dept_mode = Object.keys(department_settings.mode) ;
+  for(let i = 0 ; i < k_dept_mode.length ; i ++ ) {
+    department_settings.mode[k_dept_mode[i]]=department_settings.mode[k_dept_mode[i]]=='True'?true:false;
+  }
+  department_settings.time.bu = {} ;
     var days = {{ days | safe }} ;
     var csrftoken = '{{ csrf_token }}';
 

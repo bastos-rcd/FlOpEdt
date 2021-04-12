@@ -8,8 +8,6 @@ from base.models import Module
 from people.models import Tutor
 from displayweb.models import BreakingNews, TutorDisplay, ModuleDisplay
 
-from FlOpEDT.settings.base import COSMO_MODE
-
 class BreakingNewsResource(resources.ModelResource):
     class Meta:
         model = BreakingNews
@@ -53,7 +51,5 @@ class TutorDisplayAdmin(DepartmentModelAdmin):
 
     
 admin.site.register(BreakingNews, BreakingNewsAdmin)
-if COSMO_MODE:
-    admin.site.register(TutorDisplay, TutorDisplayAdmin)
-else:
-    admin.site.register(ModuleDisplay, ModuleDisplayAdmin)
+admin.site.register(TutorDisplay, TutorDisplayAdmin)
+admin.site.register(ModuleDisplay, ModuleDisplayAdmin)

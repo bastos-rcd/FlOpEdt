@@ -244,9 +244,9 @@ def get_room_types_groups(department_abbrev):
 
     return {'roomtypes': {str(rt): list(set(
         [room.name for room in rt.members.all()]
-    )) for rt in RoomType.objects.filter(department=dept)},
+    )) for rt in RoomType.objects.prefetch_related('members').filter(department=dept)},
             'roomgroups': {room.name: [sub.name for sub in room.and_subrooms()] \
-                           for room in Room.objects.filter(departments=dept)}
+                           for room in Room.objects.prefetch_related('subrooms', 'subrooms__subrooms').filter(departments=dept)}
             }
 
 
@@ -294,19 +294,25 @@ def get_coursetype_constraints(department_abbrev):
     return dic
 
 
-def get_time_settings(dept):
+def get_department_settings(dept):
     """
     :return: time general settings
     """
-    ts = TimeGeneralSettings.objects.get(department=dept)
-    time_settings = {'time':
-                     {'day_start_time': ts.day_start_time,
-                      'day_finish_time': ts.day_finish_time,
-                      'lunch_break_start_time': ts.lunch_break_start_time,
-                      'lunch_break_finish_time': ts.lunch_break_finish_time,
-                      'def_pref_duration':ts.default_preference_duration},
-                     'days': ts.days}
-    return time_settings
+    ts = dept.timegeneralsettings
+    mode = dept.mode
+    department_settings = \
+        {'time':
+         {'day_start_time': ts.day_start_time,
+          'day_finish_time': ts.day_finish_time,
+          'lunch_break_start_time': ts.lunch_break_start_time,
+          'lunch_break_finish_time': ts.lunch_break_finish_time,
+          'def_pref_duration': ts.default_preference_duration},
+         'days': ts.days,
+         'mode':
+         {'cosmo': str(mode.cosmo),
+          'visio': str(mode.visio)}
+        }
+    return department_settings
 
 
 def get_departments():

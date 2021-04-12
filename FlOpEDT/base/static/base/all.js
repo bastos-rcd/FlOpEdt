@@ -168,11 +168,11 @@ file_fetch.groups.callback = function () {
 
   go_promo_gp_init();
 
-  fetch.course_saved = false;
+  fetch_status.course_saved = false;
   fetch_all(true, false);
 
 
-  fetch.groups_ok = true;
+  fetch_status.groups_ok = true;
   create_grid_data();
 
   if (nbRows > 1) {
@@ -182,7 +182,7 @@ file_fetch.groups.callback = function () {
       Object.keys(rev_constraints).map(function(r){
         return +r + rev_constraints[r];
       }));
-    let t = time_settings.time ;
+    let t = department_settings.time ;
     hours_header.hours.add_times([
       t.day_start_time,
       t.lunch_break_start_time,
@@ -228,16 +228,13 @@ fetch_dispos_type();
 fetch_preferred_links();
 
 
-d3.json(rooms_fi,
+d3.json(build_url(rooms_fi, context_dept),
   function (d) { main('rooms', d); });
 
-d3.json(constraints_fi,
+d3.json(build_url(constraints_fi, context_dept),
   function (d) { main('constraints', d); });
 
-d3.json(departments_fi,
-  function (d) { main('department', d); });
-
-d3.json(groupes_fi,
+d3.json(build_url(groupes_fi, context_dept),
   function (d) { main('groups', d); });
 
 

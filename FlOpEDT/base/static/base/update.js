@@ -766,7 +766,7 @@ function go_grid(quick) {
 // display day names, and a rectangle per half day
 // if half_day_rect is true
 // layer: fg
-// data: days, time_settings.time, side_time
+// data: days, department_settings.time, side_time
 // class: gridsckd, txt_scl, day_am,
 //        gridsckhb, gridsckhlam, gridsckhlpm
 //        gridsckh, gridsckhl
@@ -885,7 +885,7 @@ function go_gp_buttons() {
   for (var p = 0; p < set_promos.length; p++) {
     var cont = svg.get_dom("selg")
       .select(".sel-pop-g#" + popup_type_id("group"))
-      .selectAll("[train_prog=" + set_promos[p] + "]")
+      .selectAll('[train_prog="' + set_promos[p] + '"]')
       .data(Object.keys(groups[p]).map(function (k) {
         return groups[p][k];
       }));
@@ -1070,7 +1070,7 @@ function update_active() {
 
   sel_popup.active_filter = tut_av.active || mod_av.active;
 
-  if (!cosmo) {
+  if (!department_settings.mode.cosmo) {
     var room_av = sel_popup.get_available("room");
     room_av.active = rooms_sel.all.filter(function (d) {
       return d.display;
@@ -1109,13 +1109,13 @@ function go_courses(quick) {
     .on("contextmenu", function (d) {
       if (ckbox["edt-mod"].cked) {
         d3.event.preventDefault();
-        if (!cosmo) {
+        if (!department_settings.mode.cosmo) {
           room_tutor_change.cm_settings = entry_cm_settings;
         }
         pending.prepare_modif(d);
         compute_cm_room_tutor_direction();
         //select_room_change(d);
-        if (!cosmo) {
+        if (!department_settings.mode.cosmo) {
           select_entry_cm();
         } else {
           salarie_cm_level = 0;
@@ -1201,7 +1201,7 @@ function go_courses(quick) {
     .text(cours_txt_mid_txt);
 
 
-  if (!cosmo) {
+  if (!department_settings.mode.cosmo) {
     incg
       .append("text")
       .attr("st", "m")

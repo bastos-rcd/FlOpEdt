@@ -48,17 +48,19 @@
 function fetch_tutor_preferences() {
 
 
-  fetch.ongoing_dispos = true;
+  fetch_status.ongoing_dispos = true;
 
   var exp_week = wdw_weeks.get_selected();
+  let context = {dept: department};
+  exp_week.add_to_context(context);
 
   show_loader(true);
   $.ajax({
     type: "GET", //rest Type
+    headers: {Accept: 'text/csv'},
     dataType: 'text',
-    url: url_dispos + exp_week.url(),
+    url: build_url(url_user_pref, context),
     async: true,
-    contentType: "text/csv",
     success: function (msg) {
       var sel_week = wdw_weeks.get_selected();
       if (Week.compare(exp_week, sel_week) == 0) {
@@ -66,8 +68,8 @@ function fetch_tutor_preferences() {
         //user.dispos = [];
         d3.csvParse(msg, translate_dispos_from_csv);
         sort_preferences(dispos);
-        fetch.ongoing_dispos = false;
-        fetch.pref_saved = true;
+        fetch_status.ongoing_dispos = false;
+        fetch_status.pref_saved = true;
         if (ckbox["dis-mod"].cked) {
           create_dispos_user_data();
           open_lunch() ;
@@ -95,13 +97,13 @@ function fetch_tutor_preferences() {
 
 
 function translate_dispos_from_csv(d) {
-  if (Object.keys(dispos).indexOf(d.prof) == -1) {
-    dispos[d.prof] = {};
+  if (Object.keys(dispos).indexOf(d.user) == -1) {
+    dispos[d.user] = {};
     week_days.forEach(function (day) {
-      dispos[d.prof][day.ref] = [];
+      dispos[d.user][day.ref] = [];
     });
   }
-  dispos[d.prof][d.day].push({
+  dispos[d.user][d.day].push({
     start_time: +d.start_time,
     duration: +d.duration,
     value: +d.value
@@ -111,7 +113,7 @@ function translate_dispos_from_csv(d) {
 
 // if there exist tutor preferences that would be cut 
 function open_lunch() {
-  let t = time_settings.time ;
+  let t = department_settings.time ;
   if (Object.keys(t.bu).length > 0) {
     return ;
   }
@@ -149,13 +151,15 @@ function open_lunch() {
 // fetch the moments where a tutor teaches in another departement
 function fetch_tutor_extra_unavailability() {
 
-  var exp_week = wdw_weeks.get_selected();
+  let exp_week = wdw_weeks.get_selected();
 
   show_loader(true);
   $.ajax({
     type: "GET", //rest Type
     dataType: 'text',
-    url: url_fetch_extra_sched + exp_week.url(),
+    url: build_url(
+      url_fetch_extra_sched, context_dept, exp_week.as_context(),
+      {'username': user.name}),
     async: true,
     contentType: "text/csv",
     success: function (msg) {
@@ -225,7 +229,7 @@ function sort_preferences(pref) {
 // pref: {start_time, duration, value}
 // list: list of pref
 function insert_interval(pref, list) {
-  var ts = time_settings.time;
+  var ts = department_settings.time;
 
   // starts too early or finishes too late
   if (pref.start_time < ts.day_start_time) {
@@ -327,7 +331,7 @@ function fill_missing_preferences(tutor, ts) {
 function create_dispos_user_data() {
 
   var d, j, k, d2p, pref_list;
-  var ts = time_settings.time;
+  var ts = department_settings.time;
 
   user.dispos = [];
   user.dispos_bu = [];
@@ -421,7 +425,7 @@ function fetch_colors() {
         colors = {} ;
         d3.csvParse(msg, translate_colors_from_csv);
 
-        fetch.ongoing_colors = false;
+        fetch_status.ongoing_colors = false;
         fetch_ended(false);
       }
       show_loader(false);
@@ -452,20 +456,24 @@ function ping_colors() {
   ------ BKNEWS -------
   --------------------*/
 function fetch_bknews(first) {
-  fetch.ongoing_bknews = true;
+  fetch_status.ongoing_bknews = true;
 
   var exp_week = wdw_weeks.get_selected();
+  let context = {dept: department};
+  exp_week.add_to_context(context);
 
   show_loader(true);
   $.ajax({
     type: "GET", //rest Type
     dataType: 'text',
-    url: url_bknews + exp_week.url(),
+    url: build_url(url_bknews, context),
     async: true,
     contentType: "text/csv",
     success: function (msg) {
-      bknews.cont = d3.csvParse(msg,
-        translate_bknews_from_csv);
+      bknews.cont = d3.csvParse(
+        msg,
+        translate_bknews_from_csv
+      );
 
       var sel_week = wdw_weeks.get_selected();
       if (Week.compare(exp_week, sel_week) == 0) {
@@ -504,7 +512,7 @@ function fetch_bknews(first) {
 
 
 
-        fetch.ongoing_bknews = false;
+        fetch_status.ongoing_bknews = false;
         fetch_ended(false);
       }
       show_loader(false);
@@ -514,7 +522,6 @@ function fetch_bknews(first) {
       show_loader(false);
     }
   });
-
 
 }
 
@@ -571,10 +578,10 @@ function adapt_labgp(first) {
   --------------------*/
 
 function fetch_cours() {
-  fetch.ongoing_cours_pp = true;
-  fetch.ongoing_cours_pl = true;
+  fetch_status.ongoing_cours_pp = true;
+  fetch_status.ongoing_cours_pl = true;
 
-  fetch.course_saved = false;
+  fetch_status.course_saved = false;
 
   var garbage_plot;
 
@@ -585,13 +592,40 @@ function fetch_cours() {
   cours_bouge = {};
 
   show_loader(true);
+
+  // Week days
+  $.ajax({
+    type: "GET",
+    dataType: 'text',
+    url: build_url(url_weekdays, context_dept, exp_week.as_context()),
+    async: true,
+    contentType: "application/json",
+    success: function(msg, ts, req) {
+      var sel_week = wdw_weeks.get_selected();
+      if (Week.compare(exp_week, sel_week) === 0) {
+        week_days = new WeekDays(JSON.parse(msg));
+        days_header.mix.days = week_days;
+        days_header.fetch_physical_presence() ;
+      }
+    }
+  });
+
   $.ajax({
     type: "GET", //rest Type
     dataType: 'text',
-    url: url_cours_pl + exp_week.url() + "/" + num_copie,
+    accepts: {
+      text: 'application/json'
+    },
+    url: build_url(
+      url_cours_pl,
+      context_dept,
+      exp_week.as_context(),
+      {'work_copy': num_copie}
+    ),
     async: true,
-    contentType: "text/csv",
     success: function (msg, ts, req) {
+
+      const parsed_msg = JSON.parse(msg);
 
       go_regen(null);
       go_alarm_pref();
@@ -599,25 +633,17 @@ function fetch_cours() {
       var sel_week = wdw_weeks.get_selected();
       if (Week.compare(exp_week, sel_week) == 0) {
 
-        week_days = new WeekDays(JSON.parse(req.getResponseHeader('days').replace(/'/g, '"')));
-        days_header.mix.days = week_days;
-        days_header.fetch_physical_presence() ;
-
-
         tutors.pl = [];
         modules.pl = [];
         salles.pl = [];
 
         cours_pl = [] ;
-        d3.csvParse(
-          msg,
-          function(d) {
-            translate_cours_pl_from_csv(d, cours_pl);
-          }
-        );
 
+        parsed_msg.forEach(function(sched_course) {
+          translate_cours_pl_from_json(sched_course, cours_pl);
+        });
 
-        fetch.ongoing_cours_pl = false;
+        fetch_status.ongoing_cours_pl = false;
         fetch_ended(false);
       }
       show_loader(false);
@@ -641,11 +667,18 @@ function fetch_cours() {
   $.ajax({
     type: "GET", //rest Type
     dataType: 'text',
-    url: url_cours_pp + exp_week.url() + "/" + num_copie,
+    accepts: {
+      text: 'application/json'
+    },
+    url: build_url(
+      url_cours_pp,
+      context_dept,
+      exp_week.as_context(),
+      {'work_copy': num_copie}
+    ),
     async: true,
-    contentType: "text/csv",
     success: function (msg, ts, req) {
-      console.log(msg);
+      msg = JSON.parse(msg) ;
 
       var sel_week = wdw_weeks.get_selected();
       if (Week.compare(exp_week, sel_week) == 0) {
@@ -657,16 +690,14 @@ function fetch_cours() {
         // console.log(exp_week,num_copie);
 
         cours_pp = [] ;
-        d3.csvParse(
-          msg,
-          function(d) {
-            translate_cours_pp_from_csv(d, cours_pp);
-          }
-        );
+        msg.forEach(function(sched_course) {
+          translate_cours_pp_from_json(sched_course, cours_pp);
+        });
+
 
         go_grid(true);
 
-        fetch.ongoing_cours_pp = false;
+        fetch_status.ongoing_cours_pp = false;
         fetch_ended(false);
         show_loader(false);
       }
@@ -679,83 +710,89 @@ function fetch_cours() {
 
 }
 
-
-function translate_cours_pl_from_csv(d, result) {
-  var ind = tutors.pl.indexOf(d.prof_name);
-  if (ind == -1) {
-    tutors.pl.push(d.prof_name);
+function translate_cours_pl_from_json(d, result) {
+  if (modules.pl.indexOf(d.course.module.abbrev) === -1) {
+    modules.pl.push(d.course.module.abbrev);
   }
-  if (modules.pl.indexOf(d.module) == -1) {
-    modules.pl.push(d.module);
-  }
-  if (salles.pl.indexOf(d.room) == -1) {
+  if (salles.pl.indexOf(d.room) === -1) {
     salles.pl.push(d.room);
   }
-
-  // multiple groups
-  let groups = d.gpe_name.split("|");
-
-  for (let i = 0 ; i < groups.length ; i++) {
-    result.push({
-      id_course: +d.id_course,
-      no_course: +d.num_course,
-      prof: d.prof_name,
+  for (let i = 0 ; i < d.course.groups.length ; i++)
+  {
+    let new_course = {
+      id_course: +d.course.id,
+      no_course: +d.course.id,
       //        prof_full_name: d.prof_first_name + " " + d.prof_last_name,
-      group: translate_gp_name(groups[i]),
-      promo: set_promos.indexOf(d.gpe_promo),
-      mod: d.module,
-      c_type: d.coursetype,
+      group: translate_gp_name(d.course.groups[i].name),
+      promo: set_promos.indexOf(d.course.groups[i].train_prog),
+      mod: d.course.module.abbrev,
+      c_type: d.course.type,
       day: d.day,
       start: +d.start_time,
-      duration: constraints[d.coursetype].duration,
+      duration: constraints[d.course.type].duration,
       room: d.room,
-      room_type: d.room_type,
-      color_bg: d.color_bg,
-      color_txt: d.color_txt,
+      room_type: d.course.room_type,
       display: true,
       id_visio: d.room==''?(d.id_visio==''?-1:+d.id_visio):-1,
-      comment: d.comment,
-      graded: (d.graded=='' || d.graded=='False' || d.graded=='false')?false:true
-    });
+    } ;
+
+    new_course.color_bg = 'white' ;
+    new_course.color_txt = 'black' ;
+    new_course.prof = '?' ;
+
+    if (!department_settings.mode.cosmo) {
+      new_course.prof = d.tutor ;
+      if(d.course.module !== null && d.course.module.display !== null) {
+        new_course.color_bg = d.course.module.display.color_bg ;
+        new_course.color_txt = d.course.module.display.color_txt ;
+      }
+    } else {
+      if(d.tutor !== null && d.tutor.display !== null) {
+        new_course.prof = d.tutor.username ;
+        new_course.color_bg = d.tutor.display.color_bg ;
+        new_course.color_txt = d.tutor.display.color_txt ;
+      }
+    }
+
+    if (new_course.prof != '?' &&
+        tutors.pl.indexOf(new_course.prof) === -1) {
+      tutors.pl.push(new_course.prof);
+    }
+    result.push(new_course);
   }
 }
 
-
-function translate_cours_pp_from_csv(d, result) {
-  if (tutors.pp.indexOf(d.prof) == -1) {
-    tutors.pp.push(d.prof);
+function translate_cours_pp_from_json(d, result) {
+  if (tutors.pp.indexOf(d.tutor) === -1) {
+    tutors.pp.push(d.tutor);
   }
-  if (modules.pp.indexOf(d.module) == -1) {
-    modules.pp.push(d.module);
+  if (modules.pp.indexOf(d.module.abbrev) === -1) {
+    modules.pp.push(d.module.abbrev);
   }
-  if (salles.pp.indexOf(d.room) == -1) {
+  if (salles.pp.indexOf(d.room) === -1) {
     salles.pp.push(d.room);
   }
-
-  // multiple groups
-  let groups = d.groups.split("|");
-
-  for (let i = 0 ; i < groups.length ; i++) {
+  for (let i = 0 ; i < d.groups.length ; i++)
+  {
     result.push({
       id_course: +d.id,
       no_course: +d.no,
-      prof: d.prof,
-      group: translate_gp_name(groups[i]),
-      promo: set_promos.indexOf(d.promo),
-      mod: d.module,
-      c_type: d.coursetype,
+      prof: d.tutor,
+      group: translate_gp_name(d.groups[i].name),
+      promo: set_promos.indexOf(d.groups[i].train_prog),
+      mod: d.module.abbrev,
+      c_type: d.type.name,
       day: garbage.day,
       start: garbage.start,
-      duration: constraints[d.coursetype].duration,
+      duration: constraints[d.type.name].duration,
       room: "",
       room_type: d.room_type,
-      color_bg: d.color_bg,
-      color_txt: d.color_txt,
+      color_bg: d.module.display.color_bg,
+      color_txt: d.module.display.color_txt,
       display: true
     });
   }
 }
-
 
 
 // insert the given week in the side weeks
@@ -856,14 +893,20 @@ function side_week_rcv(side_week) {
 // fetches courses of the weeks before and after the current week
 function fetch_side_weeks() {
 
-  var needed_weeks = which_side_weeks();
+  // shunt it for now
+  var needed_weeks = [] ; // which_side_weeks();
 
   for (var i = 0; i < needed_weeks.data.length; i++) {
     console.log(url_cours_pl + needed_weeks.data[i].url() + "/" + 0);
     $.ajax({
       type: "GET", //rest Type
       dataType: 'text',
-      url: url_cours_pl + needed_weeks.data[i].url() + "/" + 0,
+      url: build_url(
+        url_cours_pl,
+        context_dept,
+        needed_weeks.data[i].as_context(),
+        {'work_copy': num_copie}
+      ),
       async: true,
       contentType: "text/csv",
       success: side_week_rcv(needed_weeks.data[i]),
@@ -1003,7 +1046,7 @@ function fetch_room_preferences_unavailability() {
 
 // fetch room preferences
 function fetch_room_preferences() {
-  fetch.ongoing_un_rooms = true;
+  fetch_status.ongoing_un_rooms = true;
 
   var exp_week = wdw_weeks.get_selected();
 
@@ -1011,7 +1054,7 @@ function fetch_room_preferences() {
   $.ajax({
     type: "GET", //rest Type
     dataType: 'text',
-    url: url_unavailable_rooms + exp_week.url(),
+    url: build_url(url_unavailable_rooms, context_dept, exp_week.as_context()),
     async: true,
     contentType: "text/csv",
     success: function (msg, ts, req) {
@@ -1021,7 +1064,7 @@ function fetch_room_preferences() {
         d3.csvParse(msg, translate_unavailable_rooms);
       }
       show_loader(false);
-      fetch.ongoing_un_rooms = false;
+      fetch_status.ongoing_un_rooms = false;
       fetch_ended(false);
     },
     error: function (msg) {
@@ -1109,32 +1152,39 @@ function translate_extra_pref_room_from_csv(d) {
    --------------------*/
 
 function fetch_all(first, fetch_work_copies) {
-  fetch.done = false;
 
-  if (!fetch.course_saved) {
-    fetch.ongoing_cours_pp = true;
-    fetch.ongoing_cours_pl = true;
-    fetch.ongoing_bknews = true;
+  if (is_side_panel_open && fetch_work_copies) {
+    fetch_work_copy_numbers(true, first);
+    return ;
+  }
+
+
+  fetch_status.done = false;
+
+  if (!fetch_status.course_saved) {
+    fetch_status.ongoing_cours_pp = true;
+    fetch_status.ongoing_cours_pl = true;
+    fetch_status.ongoing_bknews = true;
     fetch_ongoing_colors = true;
   }
-  if (!fetch.pref_saved &&
+  if (!fetch_status.pref_saved &&
     (ckbox["dis-mod"].cked
       || ckbox["edt-mod"].cked)) {
-    fetch.ongoing_dispos = true;
+    fetch_status.ongoing_dispos = true;
   }
   if (ckbox["edt-mod"].cked) {
-    fetch.ongoing_un_rooms = true;
+    fetch_status.ongoing_un_rooms = true;
   }
 
   fetch_version();
 
-  if (!fetch.course_saved) {
+  if (!fetch_status.course_saved) {
     fetch_module();
     fetch_tutor();
     fetch_cours();
     fetch_colors();
   }
-  if (!fetch.pref_saved &&
+  if (!fetch_status.pref_saved &&
     (ckbox["dis-mod"].cked
       || ckbox["edt-mod"].cked)) {
     fetch_tutor_preferences();
@@ -1142,31 +1192,28 @@ function fetch_all(first, fetch_work_copies) {
   if (ckbox["edt-mod"].cked) {
     fetch_tutor_extra_unavailability();
     fetch_room_preferences_unavailability();
-    if (cosmo) {
+    if (department_settings.mode.cosmo) {
       fetch_side_weeks();
     }
   }
   fetch_bknews(first);
 
-  if (is_side_panel_open && fetch_work_copies) {
-    fetch_work_copy_numbers();
-  }
 }
 
 
 function fetch_version() {
   var exp_week = wdw_weeks.get_selected();
+  let context = {dept: department};
+  exp_week.add_to_context(context);
 
   show_loader(true);
   $.ajax({
     type: "GET", //rest Type
     dataType: 'text',
-    url: url_week_infos + exp_week.url(),
+    url: build_url(url_week_infos, context),
     async: true,
-    contentType: "text/json",
     success: function (msg) {
       var parsed = JSON.parse(msg);
-
       var sel_week = wdw_weeks.get_selected();
       if (Week.compare(exp_week, sel_week) == 0) {
         version = parsed.version;
@@ -1191,11 +1238,11 @@ function translate_version_from_csv(d) {
 
 
 function fetch_ended(light) {
-  if (!fetch.ongoing_cours_pl &&
-    !fetch.ongoing_cours_pp &&
-    !fetch.course_saved) {
+  if (!fetch_status.ongoing_cours_pl &&
+    !fetch_status.ongoing_cours_pp &&
+    !fetch_status.course_saved) {
 
-    fetch.course_saved = true;
+    fetch_status.course_saved = true;
 
     cours = cours_pl.concat(cours_pp);
 
@@ -1231,13 +1278,13 @@ function fetch_ended(light) {
     clean_prof_displayed(light);
   }
 
-  if (fetch.course_saved &&
-    !fetch.ongoing_dispos &&
-    !fetch.ongoing_un_rooms &&
-    !fetch.ongoing_bknews &&
-    !fetch.ongoing_colors) {
+  if (fetch_status.course_saved &&
+    !fetch_status.ongoing_dispos &&
+    !fetch_status.ongoing_un_rooms &&
+    !fetch_status.ongoing_bknews &&
+    !fetch_status.ongoing_colors) {
     ping_colors();
-    fetch.done = true;
+    fetch_status.done = true;
     go_edt(false);
 
   }
@@ -1281,14 +1328,16 @@ function swap_data(fetched, current, type) {
 // Get all the information of the module present in the week and stored him in a dictionary of Module_info
 function fetch_module() {
   var exp_week = wdw_weeks.get_selected();
-
+  let context = {dept: department};
+  exp_week.add_to_context(context);
+  
   show_loader(true);
   $.ajax({
     type: "GET",
     dataType: 'text',
-    url: url_module + exp_week.url(),
+    headers: {Accept: 'text/csv'},
+    url: build_url(url_module, context),
     async: true,
-    contentType: "text/csv",
     success: function (msg, ts, req) {
       var sel_week = wdw_weeks.get_selected();
       if (Week.compare(exp_week, sel_week) == 0) {
@@ -1304,10 +1353,10 @@ function fetch_module() {
 }
 function translate_module_from_csv(d) {
   //console.log(d);
-  if (Object.keys(modules_info).indexOf(d.module__abbrev) == -1) {
-    modules_info[d.module__abbrev] = {
-      name: d.module__name,
-      url: d.module__url
+  if (Object.keys(modules_info).indexOf(d.abbrev) == -1) {
+    modules_info[d.abbrev] = {
+      name: d.name,
+      url: d.url
     };
   }
 }
@@ -1318,14 +1367,16 @@ function translate_module_from_csv(d) {
 // Get all the information of the Tutor present in the week and stored him in a dictionary of Tutor_info
 function fetch_tutor() {
   var exp_week = wdw_weeks.get_selected();
+  let context = {dept: department};
+  exp_week.add_to_context(context);
 
   show_loader(true);
   $.ajax({
     type: "GET",
+    headers: {Accept: 'text/csv'},
     dataType: 'text',
-    url: url_tutor + exp_week.url(),
+    url: build_url(url_tutor, context),
     async: true,
-    contentType: "text/csv",
     success: function (msg, ts, req) {
       var sel_week = wdw_weeks.get_selected();
       if (Week.compare(exp_week, sel_week) == 0) {
@@ -1333,18 +1384,18 @@ function fetch_tutor() {
       }
       show_loader(false);
     },
-    error: function (msg) {
+    error: function (xhr, status, msg) {
       console.log("error");
+      console.log(msg);
       show_loader(false);
     }
   });
 }
 function translate_tutor_from_csv(d) {
-  //console.log(d);
-  if (Object.keys(tutors_info).indexOf(d.tutor__username) == -1) {
-    tutors_info[d.tutor__username] = {
-      full_name: d.tutor__first_name + " " + d.tutor__last_name,
-      email: d.tutor__email
+  if (Object.keys(tutors_info).indexOf(d.username) == -1) {
+    tutors_info[d.username] = {
+      full_name: d.first_name + " " + d.last_name,
+      email: d.email
     };
   }
 }

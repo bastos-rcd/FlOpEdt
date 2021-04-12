@@ -428,7 +428,7 @@ msgstr "Choisir mes salles préférées"
 
 #: base/templates/base/show-stype.html:170
 msgid "Teachers"
-msgstr "Enseignant·e⋅s permanent·e⋅s"
+msgstr "Enseignant·e⋅s"
 
 #: base/templates/base/show-stype.html:171
 #: base/templates/base/show-stype.html:191

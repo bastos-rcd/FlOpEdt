@@ -35,6 +35,16 @@ function Week(year, week) {
 Week.prototype.url = function () {
   return this.year + "/" + this.week;
 };
+Week.prototype.add_to_context = function(context) {
+  context['week'] = this.week ;
+  context['year'] = this.year ;
+};
+Week.prototype.as_context = function() {
+  return {
+    'week': this.week,
+    'year': this.year
+  };
+};
 
 // comparison function
 Week.compare = function (week_a, week_b) {
@@ -394,13 +404,13 @@ WeekBanner.prototype.week_right = function () {
 
 // go to selected week
 // Not sure ok even if user is quick (cf fetch_cours)
-WeekBanner.prototype.apply_wk_change = function (d, i) { //if(fetch.done) {
+WeekBanner.prototype.apply_wk_change = function (d, i) { //if(fetch_status.done) {
   this.mix.weeks.change_selection(i);
   dispos = {};
   user.dispos = [];
 
-  fetch.course_saved = false;
-  fetch.pref_saved = false;
+  fetch_status.course_saved = false;
+  fetch_status.pref_saved = false;
   fetch_all(false, true);
 
   this.update(false);

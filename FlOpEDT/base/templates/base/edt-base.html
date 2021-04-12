@@ -33,38 +33,37 @@
 <link rel="stylesheet" href="{% static 'base/better.css' %}?7" />
 <script src="{% static 'base/d3.v4.min.js' %}"></script>
 <script>
-    var groupes_fi = "{% url "base:fetch_groups" department %}";
-    var rooms_fi = "{% url "base:fetch_rooms" department %}";
-    var constraints_fi = "{% url "base:fetch_constraints" department %}";
-    var departments_fi = "{% url "base:fetch_departments" department %}";
+  var groupes_fi = "{% url 'api:groups:group-tree' %}";
+  var rooms_fi = "{% url 'api:rooms:all-list' %}";
+  var constraints_fi = "{% url 'api:fetch:constraints-list' %}";
     
-    var url_contact = "{% url "base:contact" department %}";
-    var url_module = "{% url "base:fetch_module" department 0 0 %}";
-    url_module = url_module.slice(0, -3);
-    var url_tutor = "{% url "base:fetch_tutor" department 0 0 %}";
-    url_tutor = url_tutor.slice(0, -3);
+    var url_module = "{% url 'api:course:module-list' %}";
+    var url_tutor = "{% url 'api:tutor-list' %}";
+    var url_all_tutors = "{% url 'api:tutor_username-list' %}";
+    var url_user_pref = "{% url 'api:user-actual-list' %}";
+    var url_user_pref_default = "{% url 'api:user-def-list' %}";
 
-    var url_cours_pl = "{% url "base:fetch_cours_pl" department 0 0 0 %}";
-    url_cours_pl = url_cours_pl.slice(0, -5);
-    var url_cours_pp = "{% url "base:fetch_cours_pp" department 0 0 0 %}";
-    url_cours_pp = url_cours_pp.slice(0, -5);
-    var url_dispos = "{% url "base:fetch_dispos" department 0 0 %}";
-    url_dispos = url_dispos.slice(0, -3);
-    var url_unavailable_rooms = "{% url "base:fetch_unavailable_rooms" department 0 0 %}";
-    url_unavailable_rooms = url_unavailable_rooms.slice(0,-3);
-    var url_all_tutors = "{% url "base:fetch_all_tutors" department %}";
+    var url_bknews = "{% url 'api:extra:bknews-list' %}";
+    var url_quote = "{% url 'api:extra:random-quote-list' %}";
+
+  var url_cours_pp = "{% url 'api:fetch:unscheduledcourses-list' %}";
+
+  var url_weekdays = "{% url 'api:fetch:weekdays-list' %}";
+  
+    var url_contact = "{% url "base:contact" department %}";
     var url_login = "{% url "people:login" %}";
     var url_edt = "{% url "base:edt" department %}";
+
+  var url_cours_pl = "{% url 'api:fetch:scheduledcourses-list' %}";
+
+    var url_unavailable_rooms = "{% url 'api:fetch:unavailablerooms-list' %}";
+
     var url_edt_changes = "{% url "base:edt_changes" department %}";
     var url_user_pref_changes = "{% url "base:user_pref_changes" department 0 0 '.' %}";
     url_user_pref_changes = url_user_pref_changes.slice(0, -5);
-    var url_fetch_user_dweek = "{% url "base:fetch_user_dweek" department '.' %}";
-    url_fetch_user_dweek = url_fetch_user_dweek.slice(0, -1);
-    var url_bknews = "{% url "base:fetch_bknews" department 0 0 %}";
-    url_bknews = url_bknews.slice(0, -3);
-    var url_quote = "{% url "quote:fetch_quote" %}";
-    var url_week_infos = "{% url "base:fetch_week_infos" department 0 0 %}";
-    url_week_infos = url_week_infos.slice(0, -3);
+
+    var url_week_infos = "{% url 'api:extra:week-infos-list' %}";
+
     var url_work_copies = "{% url "TTapp:available_work_copies" department 0 0 %}" ;
     url_work_copies = url_work_copies.slice(0, -3);
     var url_check_swap = "{% url 'TTapp:check_swap' department 0 0 0 %}" ;
@@ -79,8 +78,8 @@
     url_swap = url_swap.slice(0, -5) ;
     var url_reassign_rooms = "{% url 'TTapp:reassign_rooms' department 0 0 0 %}" ;
     url_reassign_rooms = url_reassign_rooms.slice(0, -5) ;
-    var url_fetch_extra_sched = "{% url 'base:fetch_extra_sched' department 0 0 %}" ;
-    url_fetch_extra_sched = url_fetch_extra_sched.slice(0, -3) ;
+    var url_fetch_extra_sched = "{% url 'api:fetch:extrasched-list' %}" ;
+    {% comment %} url_fetch_extra_sched = url_fetch_extra_sched.slice(0, -3) ; {% endcomment %}
     var url_fetch_shared_rooms = "{% url 'base:fetch_shared_rooms' department 0 0 %}" ;
     url_fetch_shared_rooms = url_fetch_shared_rooms.slice(0, -3) ;
     var url_mail_auto = "{% url "base:email-proposal" department %}";
@@ -99,8 +98,12 @@
     var week_year_list = {{ all_weeks| safe }};
     var week_init = +"{{ week }}";
     var year_init = +"{{ year }}";
-  var time_settings = {{ time_settings | safe }} ;
-  time_settings.time.bu = {} ;
+  var department_settings = {{ department_settings | safe }} ;
+  let k_dept_mode = Object.keys(department_settings.mode) ;
+  for(let i = 0 ; i < k_dept_mode.length ; i ++ ) {
+    department_settings.mode[k_dept_mode[i]]=department_settings.mode[k_dept_mode[i]]=='True'?true:false;
+  }
+  department_settings.time.bu = {} ;
     var days = {{ days | safe }} ;
   var csrftoken = '{{ csrf_token }}';
   if(!jQuery.fn.jquery.startsWith("1")){

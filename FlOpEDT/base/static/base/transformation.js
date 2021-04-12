@@ -46,14 +46,14 @@
   ------------------------*/
 
 function bknews_top_y() {
-  var t = time_settings.time;
+  var t = department_settings.time;
   return nbRows * scale * (t.lunch_break_start_time - t.day_start_time);
 }
 function bknews_bot_y() {
   return bknews_top_y() + bknews_h();
 }
 function bknews_h() {
-  var t = time_settings.time;
+  var t = department_settings.time;
   if (t.lunch_break_finish_time == t.lunch_break_start_time
      && bknews.nb_rows == 0) {
     return 0;
@@ -130,7 +130,7 @@ function dispo_x(d) {
 // --  begin  --
 // TO BE IMPROVED for multi-line, and lunch break
 function dispo_y(d) {
-  var t = time_settings.time;
+  var t = department_settings.time;
   var ret = (d.start_time - t.day_start_time) * nbRows * scale;
   //	+ row_gp[root_gp[c.promo].row].y * rev_constraints[c.start.toString()] * scale ;
   if (d.start_time >= t.lunch_break_finish_time) {
@@ -223,7 +223,7 @@ function dispo_all_h(d) {
 }
 
 function dispo_all_y(d) {
-  var ts = time_settings.time;
+  var ts = department_settings.time;
   if (d.start_time < ts.lunch_break_start_time) {
     return dispo_more_y(d) + d.off * dispo_all_h(d);
   } else {
@@ -518,7 +518,7 @@ function gscp_x(datum) {
 }
 
 function gscp_y(d) {
-  var t = time_settings.time;
+  var t = department_settings.time;
   var ret = (d.start - t.day_start_time) * nbRows * scale
     + row_gp[d.row].y * rev_constraints[d.start.toString()] * scale;
   if (d.start >= t.lunch_break_finish_time) {
@@ -538,7 +538,7 @@ function grid_height() {
 }
 
 function nb_minutes_in_grid() {
-  var t = time_settings.time;
+  var t = department_settings.time;
   var minutes = bknews.nb_rows * bknews.time_height
     + nbRows * (t.lunch_break_start_time - t.day_start_time
       + t.day_finish_time - t.lunch_break_finish_time);
@@ -711,7 +711,7 @@ function cours_x(c) {
 }
 
 function cours_y(c) {
-  var t = time_settings.time;
+  var t = department_settings.time;
   var ret = (c.start - t.day_start_time) * nbRows * scale
     + row_gp[root_gp[c.promo].row].y * c.duration * scale;
   if (c.start >= t.lunch_break_finish_time) {
@@ -721,7 +721,7 @@ function cours_y(c) {
 }
 
 function cours_reverse_y(y) {
-  let t = time_settings.time;
+  let t = department_settings.time;
   let break_start = (t.lunch_break_start_time - t.day_start_time)
     * (nbRows * scale) ;
   let i = 0 ;
@@ -795,7 +795,7 @@ function cours_txt_x(c) {
 }
 function get_color(c){
 //  console.log(c);
-  let key = cosmo?c.prof:c.mod;
+  let key = department_settings.mode.cosmo?c.prof:c.mod;
   return colors[key];
 }
 function cours_txt_fill(c) {
@@ -1114,7 +1114,7 @@ function dispot_x(d) {
 }
 
 function dispot_y(d) {
-  var ts = time_settings.time;
+  var ts = department_settings.time;
   var ret = 1.25 * valid.h
     + (d.start_time - ts.day_start_time) * did.scale;
   if (d.start_time >= ts.lunch_break_finish_time) {
@@ -1165,7 +1165,7 @@ function dispot_all_w(d) {
 function gsclbt_y() {
   return dispot_y({
     start_time:
-      time_settings.time.lunch_break_start_time
+      department_settings.time.lunch_break_start_time
   });
 }
 

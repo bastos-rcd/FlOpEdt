@@ -32,8 +32,6 @@ from django.db.models.fields import related as related_fields
 from django.contrib import admin
 import django.contrib.auth as auth
 
-from FlOpEDT.settings.base import COSMO_MODE
-
 from people.models import Tutor, User
 from base.models import Day, Room, Module, Course, Group, \
     UserPreference, Time, ScheduledCourse, EdtVersion, CourseModification, \

@@ -139,7 +139,7 @@ function add_slot_grid_data(c) {
 
 
 function create_grid_data() {
-  if (fetch.constraints_ok && fetch.groups_ok) {
+  if (fetch_status.constraints_ok && fetch_status.groups_ok) {
     for (let p = 0; p < set_promos.length; p++) {
       compute_promo_leaves(root_gp[p].gp);
     }
@@ -149,7 +149,7 @@ function create_grid_data() {
       for (let s = 0; s < Object.keys(rev_constraints).length; s++) {
         for (let r = 0; r < set_rows.length; r++) {
           var start = Object.keys(rev_constraints)[s];
-          if (start < time_settings.time.day_finish_time) {
+          if (start < department_settings.time.day_finish_time) {
             var gscp = {
               row: r,
               start: start,
@@ -225,7 +225,7 @@ function create_but_scale() {
 function def_drag_sca() {
   drag_listener_hs = d3.drag()
     .on("start", function (c) {
-      if (fetch.done) {
+      if (fetch_status.done) {
         drag.sel = d3.select(this);
         drag.x = 0;
         drag.y = 0;
@@ -250,7 +250,7 @@ function def_drag_sca() {
       }
     })
     .on("drag", function (c) {
-      if (fetch.done) {
+      if (fetch_status.done) {
         drag.x += d3.event.dx;
         if (drag.x + drag.init > 0) {
           drag.sel.attr("transform", "translate(" + drag.x + "," + drag.y + ")");
@@ -261,7 +261,7 @@ function def_drag_sca() {
       }
     })
     .on("end", function (c) {
-      if (fetch.done) {
+      if (fetch_status.done) {
         if (drag.x + drag.init <= 0) {
           drag.x = -drag.init;
         }
@@ -280,7 +280,7 @@ function def_drag_sca() {
 
   drag_listener_vs = d3.drag()
     .on("start", function (c) {
-      if (fetch.done) {
+      if (fetch_status.done) {
         drag.sel = d3.select(this);
         drag.x = 0;
         drag.y = 0;
@@ -304,7 +304,7 @@ function def_drag_sca() {
       }
     })
     .on("drag", function (c) {
-      if (fetch.done) {
+      if (fetch_status.done) {
         drag.y += d3.event.dy;
         if (drag.init + drag.y >= 0) {
           drag.sel.attr("transform",
@@ -314,7 +314,7 @@ function def_drag_sca() {
       }
     })
     .on("end", function (c) {
-      if (fetch.done) {
+      if (fetch_status.done) {
         if (drag.init + drag.y < 0) {
           drag.y = -(drag.init);
         }
@@ -884,20 +884,11 @@ function create_quote() {
     dataType: 'text',
     url: url_quote,
     async: true,
-    contentType: "text/csv",
     success: function (msg) {
-      // console.log(msg);
-
-      var quotes = d3.csvParse(msg, translate_quote_from_csv);
-      if (quotes.length > 0) {
-        quote = quotes[0];
-      } else {
-        quote = '';
-      }
+      var quote = msg.slice(1,-1) ;
 
       svg.get_dom("vg").select(".quote").select("text")
         .text(quote);
-
 
       show_loader(false);
 
@@ -920,7 +911,7 @@ function translate_quote_from_csv(d) {
   ----------------------*/
 
 function run_course_drag(d) {
-  if (ckbox["edt-mod"].cked && fetch.done) {
+  if (ckbox["edt-mod"].cked && fetch_status.done) {
 
     // get the time interval, whatever the group
     cur_over = which_slot(
@@ -954,7 +945,7 @@ function def_drag() {
     .on("start", function (c) {
       cancel_cm_adv_preferences();
       cancel_cm_room_tutor_change();
-      if (ckbox["edt-mod"].cked && fetch.done) {
+      if (ckbox["edt-mod"].cked && fetch_status.done) {
 
         // compute available slots for this course
         pending.prepare_modif(c);
@@ -993,7 +984,7 @@ function def_drag() {
           svg.get_dom("edt-mg").node().appendChild(n);
         });
 
-        if (cur_over != null && ckbox["edt-mod"].cked && fetch.done) {
+        if (cur_over != null && ckbox["edt-mod"].cked && fetch_status.done) {
 
           data_slot_grid = [];
 
@@ -1284,7 +1275,7 @@ function check_course() {
     return ret;
   }
 
-  if (cosmo) {
+  if (department_settings.mode.cosmo) {
     pending.pass.room = true;
   }
 
@@ -1659,7 +1650,7 @@ function which_slot(x, y, c) {
 
 // date {day, start_time}
 function is_garbage(date) {
-  var t = time_settings.time;
+  var t = department_settings.time;
   return (date.start_time < t.day_start_time
     || date.start_time >= t.day_finish_time);
 }
@@ -1685,7 +1676,7 @@ function indexOf_constraints(c, y) {
       };
     }
   );
-  var t = time_settings.time;
+  var t = department_settings.time;
 
   var after = false;
   var i = 0;
@@ -1933,11 +1924,11 @@ function fetch_dispos_type() {
   if (user.name != "") {
     show_loader(true);
     $.ajax({
-      type: "GET", //rest Type
+      type: "GET",
+      headers: {Accept: 'text/csv'},
       dataType: 'text',
-      url: url_fetch_user_dweek + logged_usr.name,
+      url: build_url(url_user_pref_default, {user: user.name}),
       async: true,
-      contentType: "text/csv",
       success: function (msg) {
         //console.log(msg);
         user.dispos_type = [];
@@ -2455,37 +2446,4 @@ function go_selection_popup() {
 
   go_selection_buttons();
 
-}
-
-
-// create buttons for department redirection
-function create_dept_redirection() {
-  var avg = svg.get_dom("catg")
-    .selectAll(".dept-selection")
-    .data(departments.data);
-
-  var contg = avg
-    .enter()
-    .append("g")
-    .attr("class", "dept-selection")
-    .attr("transform", depts_trans)
-    .attr("cursor", "pointer")
-    .on("click", redirect_dept);
-
-  contg
-    .append("rect")
-    .attr("class", "select-highlight")
-    .attr("width", departments.w)
-    .attr("height", departments.h)
-    .attr("rx", 5)
-    .attr("ry", 10)
-    .attr("fill", "forestgreen")
-    .attr("x", 0)
-    .attr("y", 0);
-
-  contg
-    .append("text")
-    .text(dept_txt)
-    .attr("x", .5 * departments.w)
-    .attr("y", .5 * departments.h);
 }

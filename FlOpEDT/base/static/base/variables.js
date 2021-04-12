@@ -58,6 +58,16 @@
           ----------           
            \     */
 
+
+
+/*--------------------------
+  ------- API CONTEXT ------
+  --------------------------*/
+
+const context_dept = {dept: department} ;
+
+
+
 /*--------------------------
   ------- TIME ------
   --------------------------*/
@@ -66,7 +76,7 @@
 var week_days = new WeekDays(days);
 
 // for y-axis
-var hours = new Hours(time_settings.time);
+var hours = new Hours(department_settings.time);
 
 
 /*-------------------------
@@ -110,18 +120,16 @@ var file_fetch =
 {
   groups: { done: false, data: null, callback: null },
   constraints: { done: false, data: null, callback: null },
-  rooms: { done: false, data: null, callback: null },
-  department: { done: false, data: null, callback: null },
+  rooms: { done: false, data: null, callback: null }
 };
 
 function main(name, data) {
   file_fetch[name].data = data;
   file_fetch[name].done = true;
   if (file_fetch.groups.done && file_fetch.constraints.done
-    && file_fetch.rooms.done && file_fetch.department.done) {
+    && file_fetch.rooms.done) {
     file_fetch.constraints.callback();
     file_fetch.rooms.callback();
-    file_fetch.department.callback();
     file_fetch.groups.callback();
   }
 }
@@ -154,13 +162,8 @@ file_fetch.constraints.callback = function () {
   rev_constraints[garbage.start.toString()] = garbage.duration;
 
 
-  fetch.constraints_ok = true;
+  fetch_status.constraints_ok = true;
   create_grid_data();
-};
-
-file_fetch.department.callback = function () {
-  departments.data = this.data;
-  //create_dept_redirection();
 };
 
 
@@ -190,7 +193,7 @@ var opac = .4;
 
 
 // status of fetching (cours_pl : cours placés, cours_pp : cours pas placés)
-var fetch = {
+var fetch_status = {
   ongoing_cours_pl: false,
   ongoing_dispos: false,
   ongoing_cours_pp: false,
@@ -386,7 +389,7 @@ var data_grid_scale_row = [];
 
 // Garbage parameters
 var garbage = {
-  start: time_settings.time.day_finish_time,
+  start: department_settings.time.day_finish_time,
   duration: 90,
   day: week_days.day_by_num(week_days.nb_days() - 2).ref
 };
@@ -577,7 +580,7 @@ var sel_popup = {
   but: [],
   active_filter: false
 };
-if (cosmo) {
+if (department_settings.mode.cosmo) {
   sel_popup.available = [{
     type: "group",
     buttxt: gettext('Filters')
@@ -806,10 +809,10 @@ var did = {
   tly: -180,
   shift_s: 20
 };
-did.scale = did.h / (time_settings.time.day_finish_time
-  - time_settings.time.lunch_break_finish_time
-  + time_settings.time.lunch_break_start_time
-  - time_settings.time.day_start_time);
+did.scale = did.h / (department_settings.time.day_finish_time
+  - department_settings.time.lunch_break_finish_time
+  + department_settings.time.lunch_break_start_time
+  - department_settings.time.day_start_time);
 var stbut = {
   w: 104,
   h: 60
@@ -818,15 +821,6 @@ var stbut = {
 /*--------------------
    ------ ALL -------
   --------------------*/
-
-var departments = {
-  data: [],
-  marh: 10,
-  topx: sel_popup.selx + sel_popup.selw + 50,
-  topy: sel_popup.sely - sel_popup.selh - sel_popup.selmy,
-  w: 35,
-  h: sel_popup.selh
-};
 
 // version number of the schedule
 var version;

@@ -39,17 +39,17 @@ function openNav() {
 
   // add event listener
   $('#dd_work_copy').on('change', function (e) {
-    num_copie = this.value;
-    fetch.course_saved = false;
+    num_copie = +this.value;
+    fetch_status.course_saved = false;
     fetch_all(false, false);
   });
 
   // fetch the copy numbers
-  fetch_work_copy_numbers();
+  fetch_work_copy_numbers(false);
 }
 
 // Fetch the available work copy numbers for the current week
-function fetch_work_copy_numbers() {
+function fetch_work_copy_numbers(fetch_all_callback, fetch_all_callback_arg) {
   var cur_week = wdw_weeks.get_selected();
 
   $.ajax({
@@ -60,6 +60,9 @@ function fetch_work_copy_numbers() {
     contentType: "application/json; charset=utf-8",
     success: function (msg) {
       update_work_copy_numbers(msg.copies);
+      if (fetch_all_callback) {
+        fetch_all(fetch_all_callback_arg, false);
+      }
     },
     error: function (msg) {
       console.log("error");
@@ -82,6 +85,18 @@ function update_work_copy_numbers(copies) {
     option = { value: copies[i], text: copies[i] };
     $('#dd_work_copy').append($('<option>', option));
   }
+
+  if (copies.length == 0) {
+      num_copie = 0 ;
+  } else {
+    let inum_copie = copies.indexOf(num_copie) ;
+    if (inum_copie == -1) {
+      inum_copie ++ ;
+    }
+    num_copie = copies[inum_copie] ;
+    $('#dd_work_copy').val(num_copie) ;
+  }
+  
 }
 
 // close the side panel

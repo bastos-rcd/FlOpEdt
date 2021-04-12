@@ -56,6 +56,10 @@ Deux exemples de configuration sont disponibles pour exécuter l'application ave
 ## Installation et lancement de l'application sans docker
 Voir [ici](./FlOpEDT/misc/conf/README.md)
 
+
+## Interface de programmation (API) REST
+Voir [la documentation dédiée](./FlOpEDT/api/README.md)
+
 ## Contributions
 - [Discuter](https://framateam.org/flopedt/)
 - [Soulever une issue](https://framagit.org/FlOpEDT/FlOpEDT/issues)

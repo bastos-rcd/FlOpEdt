@@ -53,7 +53,7 @@ class GroupsLunchBreak(TTConstraint):
     lunch_length = models.PositiveSmallIntegerField()
     groups = models.ManyToManyField('base.Group', blank=True, related_name='lunch_breaks_constraints')
 
-    def enrich_model(self, ttmodel, week, ponderation=1000000):
+    def enrich_model(self, ttmodel, week, ponderation=100):
         considered_groups = considered_basic_groups(self, ttmodel)
         days = days_filter(ttmodel.wdb.days, week=week)
         if self.weekdays:
@@ -126,7 +126,7 @@ class TutorsLunchBreak(TTConstraint):
     lunch_length = models.PositiveSmallIntegerField()
     tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints')
 
-    def enrich_model(self, ttmodel, week, ponderation=1000000):
+    def enrich_model(self, ttmodel, week, ponderation=100):
         considered_tutors = set(ttmodel.wdb.instructors)
         if self.tutors.exists():
             considered_tutors &= set(self.tutors.all())

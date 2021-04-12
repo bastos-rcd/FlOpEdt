@@ -135,13 +135,18 @@ function create_lunchbar() {
 function fetch_url() {
   switch (mode) {
   case 'tutor':
-    return url_fetch_user_dweek + user.name;
+    return build_url(url_user_pref_default, {user: user.name});
   case 'course':
-    return url_fetch_course_dweek
-      + dd_selections['prog'].value
-      + '/' + dd_selections['type'].value;
+    return build_url(
+      url_fetch_course_dweek,
+      {
+        dept: department,
+        train_prog: dd_selections['prog'].value,
+        course_type: dd_selections['type'].value
+      }
+    );
   case 'room':
-    return url_fetch_room_dweek + user.name;
+    return build_url(url_fetch_room_dweek, {room: user.name});
   }
 }
 
@@ -152,7 +157,8 @@ function course_type_prog_name(prog, ctype) {
 
 
 function translate_course_preferences_from_csv(d) {
-  var pseudo_tutor = course_type_prog_name(d.train_prog, d.type_name);
+  var pseudo_tutor = course_type_prog_name(d.train_prog, d.course_type);
+
   if (Object.keys(dispos).indexOf(pseudo_tutor) == -1) {
     dispos[pseudo_tutor] = {};
     week_days.forEach(function (day) {
@@ -199,11 +205,11 @@ function translate_pref_from_csv(d) {
 function fetch_pref_only() {
   show_loader(true);
   $.ajax({
-    type: "GET", //rest Type
+    type: "GET",
+    headers: {Accept: 'text/csv'},
     dataType: 'text',
     url: fetch_url(),
     async: false,
-    contentType: "text/csv",
     success: function (msg) {
       console.log(msg);
 
@@ -234,7 +240,7 @@ function arrange_stype_layout() {
   open_lunch() ;
   hours_header.update() ;
   svg.get_dom('pmg').attr("transform", "translate(" + pmg_x() + ", 0)") ;
-  let max_time = time_settings.time.day_finish_time ;
+  let max_time = department_settings.time.day_finish_time ;
   user.dispos.forEach(function(d) {
     let end = d.start_time + d.duration ;
     if (end > max_time) {
@@ -283,7 +289,7 @@ function dispo_h(d) {
 function gsclb_y() {
   return dispo_y({
     start_time:
-      time_settings.time.lunch_break_start_time
+      department_settings.time.lunch_break_start_time
   });
 }
 function gsclb_x() {

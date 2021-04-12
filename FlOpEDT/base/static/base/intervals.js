@@ -49,7 +49,7 @@ function index_in_pref(list, instant) {
 // assumes well-formed (consecutive) intervals
 function get_preference(pref, start_time, duration) {
   var after = false;
-  var t = time_settings.time;
+  var t = department_settings.time;
 
 
   if (pref.length == 0) {

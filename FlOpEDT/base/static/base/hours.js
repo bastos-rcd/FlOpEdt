@@ -96,7 +96,7 @@ HourHeader.prototype.update = function (quick) {
 
   var hour_bar = this.layout
     .selectAll(".gridsckhb")
-    .data([time_settings.time]);
+    .data([department_settings.time]);
 
   var hourbar_g = hour_bar
     .enter()

@@ -45,7 +45,6 @@ from django.views.decorators.cache import cache_page
 from django.views.generic import RedirectView
 
 from FlOpEDT.decorators import dept_admin_required, tutor_required
-from FlOpEDT.settings.base import COSMO_MODE
 
 from people.models import Tutor, UserDepartmentSettings, User, \
     NotificationsPreferences, UserPreferredLinks
@@ -58,9 +57,7 @@ from base.admin import CoursResource, DispoResource, VersionResource, \
     CoursePreferenceResource, MultiDepartmentTutorResource, \
     SharedRoomsResource, RoomPreferenceResource, ModuleRessource, \
     TutorRessource, ModuleDescriptionResource, AllDispoResource, \
-    GroupPreferredLinksResource
-if COSMO_MODE:
-    from base.admin import CoursPlaceResourceCosmo
+    GroupPreferredLinksResource, CoursPlaceResourceCosmo
 from base.forms import ContactForm, PerfectDayForm, ModuleDescriptionForm, \
     EnrichedLinkForm
 from base.models import Course, UserPreference, ScheduledCourse, EdtVersion, \
@@ -158,10 +155,9 @@ def edt(req, year=None, week=None, splash_id=0, **kwargs):
                                 'name_usr': name_usr,
                                 'rights_usr': rights_usr,
                                 'splash_id': splash_id,
-                                'time_settings': queries.get_time_settings(req.department),
+                                'department_settings': queries.get_department_settings(req.department),
                                 'days': num_all_days(year, week, req.department),
                                 'dept': req.department.abbrev,
-                                'cosmo': COSMO_MODE,
                             })
 
 
@@ -200,7 +196,7 @@ def edt_light(req, year=None, week=None, **kwargs):
                                 'name_usr': '',
                                 'rights_usr': 0,
                                 'splash_id': 0,
-                                'time_settings': queries.get_time_settings(req.department),
+                                'department_settings': queries.get_department_settings(req.department),
                                 'days': num_all_days(year, week, req.department),
                                 'dept': req.department.abbrev,
                                 'tv_svg_h': svg_h,
@@ -208,7 +204,6 @@ def edt_light(req, year=None, week=None, **kwargs):
                                 'tv_gp_s': gp_s,
                                 'tv_gp_w': gp_w,
                                 'tv_svg_top_m': svg_top_m,
-                                'cosmo': COSMO_MODE,
                             })
 
 
@@ -237,9 +232,8 @@ def stype(req, *args, **kwargs):
                                  'user_notifications_pref': user_notifications_pref,
                                  'err': err,
                                  'current_year': current_year,
-                                 'time_settings': queries.get_time_settings(req.department),
+                                 'department_settings': queries.get_department_settings(req.department),
                                  'days': num_all_days(1, 1, req.department),
-                                 'cosmo': COSMO_MODE,
                                  })
     elif req.method == 'POST':
         if 'apply' in list(req.POST.keys()):
@@ -273,7 +267,7 @@ def stype(req, *args, **kwargs):
                                  'user_notifications_pref': user_notifications_pref,
                                  'err': err,
                                  'current_year': current_year,
-                                 'time_settings': queries.get_time_settings(req.department),
+                                 'department_settings': queries.get_department_settings(req.department),
                                  'days': num_all_days(1, 1, req.department)
                                  })
 
@@ -457,7 +451,7 @@ def fetch_cours_pl(req, year, week, num_copy, **kwargs):
             version = queries.get_edt_version(department=department,
                                               week=week,
                                               year=year, create=True)
-        if COSMO_MODE:
+        if department.mode.cosmo:
             dataset = CoursPlaceResourceCosmo()
         else:
             dataset = CoursPlaceResource()
@@ -509,6 +503,7 @@ def fetch_cours_pp(req, week, year, num_copy, **kwargs):
         .export(
             queries.get_unscheduled_courses(department, week, year, num_copy)
         )
+
 
     response = HttpResponse(dataset.csv, content_type='text/csv')
     response['week'] = week
@@ -568,7 +563,7 @@ def fetch_dispos(req, year, week, **kwargs):
         .distinct('tutor') \
         .values_list('tutor')
 
-    if COSMO_MODE:
+    if department.mode.cosmo:
         busy_inst_after = ScheduledCourse.objects.filter(course__week=week,
                                                          course__year=year,
                                                          course__module__train_prog__department=department) \
@@ -861,63 +856,6 @@ def fetch_all_versions(req, **kwargs):
     return response
 
 
-def fetch_week_infos(req, year, week, **kwargs):
-    """
-    Export aggregated infos of a given week:
-    version number, required number of available slots,
-    proposed number of available slots
-    (not cached)
-    """
-    version = 0
-    for dept in Department.objects.all():
-        version += queries.get_edt_version(dept, week, year, create=True)
-
-    proposed_pref, required_pref = \
-        pref_requirements(req.department, req.user, year, week) if req.user.is_authenticated \
-            else (-1, -1)
-
-    try:
-        regen = str(Regen.objects.get(department=req.department, week=week, year=year))
-    except ObjectDoesNotExist:
-        regen = 'I'
-
-    response = JsonResponse({'version': version,
-                             'proposed_pref': proposed_pref,
-                             'required_pref': required_pref,
-                             'regen': regen})
-    return response
-
-
-def pref_requirements(department, tutor, year, week):
-    """
-    Return a pair (filled, required): total time of preferences
-    that have been proposed VS total course time that has to be done
-    """
-    courses = Course.objects.filter(tutor=tutor,
-                                       week=week,
-                                       year=year)
-    total_course_time = sum(c.type.duration for c in courses)
-    week_av = UserPreference \
-        .objects \
-        .filter(user=tutor,
-                week=week,
-                year=year,
-                day__in=queries.get_working_days(department))
-    if not week_av.exists():
-        filled = UserPreference \
-            .objects \
-            .filter(user=tutor,
-                    week=None,
-                    value__gte=1,
-                    day__in=queries.get_working_days(department))
-    else:
-        filled = week_av \
-            .filter(value__gte=1,
-                    day__in=queries.get_working_days(department))
-    filled_total_time = sum(f.duration for f in filled)
-    return filled_total_time, total_course_time
-
-
 @cache_page(15 * 60)
 def fetch_groups(req, **kwargs):
     """
@@ -940,7 +878,7 @@ def fetch_flat_rooms(req, **kwargs):
     """
     Return rooms for a given department
     """
-    return JsonResponse([room.name for room in queries.get_rooms(req.department.abbrev, basic=True)],
+    return JsonResponse([{'room':room.name} for room in queries.get_rooms(req.department.abbrev, basic=True)],
                         safe=False)
 
 
@@ -1019,7 +957,7 @@ def fetch_extra_sched(req, year, week, **kwargs):
 def fetch_shared_rooms(req, year, week, **kwargs):
     # which room groups are shared among departments
     shared_rooms = []
-    for rg in Room.objects.all():
+    for rg in Room.objects.all().prefetch_related('types__department'):
         depts = set() 
         for rt in rg.types.all(): 
             depts.add(rt.department) 
@@ -1034,14 +972,18 @@ def fetch_shared_rooms(req, year, week, **kwargs):
                     work_copy=0,
                     room__in=shared_rooms,
                 ) \
+                .select_related('course__room_type__department', 'room',
+                                'course__type__department')\
                 .exclude(course__room_type__department=req.department)
     dataset = SharedRoomsResource().export(courses)
     return HttpResponse(dataset.csv, content_type='text/csv')
 
 
 def fetch_all_modules_with_desc(req, **kwargs):
-    data = Module.objects.filter(period__department=req.department)
-    res = ModuleDescriptionResource().export(data)
+    data = Module.objects.filter(period__department=req.department)\
+        .select_related('period__department')
+    res = ModuleDescriptionResource().export(
+        data.select_related('head', 'display', 'train_prog'))
     return HttpResponse(res.json, content_type='application/json')
 
 
