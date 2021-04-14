@@ -93,11 +93,12 @@ class ScheduledCoursesSerializer(serializers.Serializer):
     day = serializers.CharField()
     course = Course_SC_Serializer()
     tutor = serializers.CharField(source='tutor.username', allow_null=True)
+    id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
 
     # Mise en forme des données
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['id', 'tutor', 'room', 'start_time', 'day', 'course']
+        fields = ['id', 'tutor', 'room', 'start_time', 'day', 'course', 'id_visio']
 
 
 

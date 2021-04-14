@@ -504,10 +504,8 @@ function gscg_y(datum) {
 }
 
 function gscg_txt(datum) {
-  if (datum.gp.name == "fLP1") {
-    return "LP";
-  } else if (datum.gp.name == "fLP2") {
-    return "";
+  if (datum.gp.buttxt !== null) {
+    return datum.gp.buttxt;
   } else {
     return datum.gp.name;
   }
