@@ -733,7 +733,7 @@ function translate_cours_pl_from_json(d, result) {
       room: d.room,
       room_type: d.course.room_type,
       display: true,
-      id_visio: d.room==''?(d.id_visio==''?-1:+d.id_visio):-1,
+      id_visio: d.room===null?(d.id_visio===null?-1:+d.id_visio):-1,
     } ;
 
     new_course.color_bg = 'white' ;
