@@ -1029,7 +1029,7 @@ function update_selection() {
     });
     var roo = rooms_sel.all.find(function(d) {
       // visio room
-      if (c.room == '') {
+      if (c.room === null) {
         return true ;
       }
       // physical room
