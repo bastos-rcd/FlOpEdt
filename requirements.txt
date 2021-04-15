@@ -28,3 +28,5 @@ django-debug-toolbar-request-history
 django-filter
 drf-yasg
 django-cors-headers
+pyprof2calltree
+

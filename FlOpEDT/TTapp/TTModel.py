@@ -113,6 +113,7 @@ class TTModel(object):
         self.weeks = weeks
         self.year = year
 
+        # Create the PuLP model, giving the name of the lp file
         self.model = LpProblem(self.solution_files_prefix(), LpMinimize)
         self.min_ups_i = min_nps_i
         self.min_bhd_g = min_bhd_g
@@ -176,9 +177,6 @@ class TTModel(object):
             print("Relevant warnings :")
             for key, key_warnings in self.warnings.items():
                 print("%s : %s" % (key, ", ".join([str(x) for x in key_warnings])))
-
-        if settings.DEBUG:
-            self.model.writeLP('FlOpEDT.lp')
 
         if self.send_mails:
             self.send_lack_of_availability_mail()
