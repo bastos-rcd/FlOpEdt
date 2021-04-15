@@ -165,6 +165,7 @@ class UserPreferenceActualViewSet(UserPreferenceViewSet):
 
     def get_queryset(self):
         # set initial parameters
+        self.set_common_params()
         self.set_singular_params()
         teach_only = self.request.query_params.get('teach-only', None)
         teach_only = True if teach_only is None else strtobool(teach_only)
@@ -176,10 +177,13 @@ class UserPreferenceActualViewSet(UserPreferenceViewSet):
             sched_params['course__year'] = self.params['year']
             if 'user__departments__abbrev' in self.params:
                 sched_params['course__module__train_prog__department__abbrev'] = \
-                    self.params.pop('user__departments__abbrev')
+                    self.params['user__departments__abbrev']
             teaching_ids = bm.ScheduledCourse.objects.filter(**sched_params) \
                 .distinct('tutor') \
-                .values_list('tutor__id')
+                .values_list('tutor__id', flat=True)
+            if self.request.user.is_authenticated:
+                teaching_ids = list(teaching_ids)
+                teaching_ids.append(self.request.user.id)
             self.params['user__id__in'] = teaching_ids
 
         # get preferences in singular week
@@ -191,19 +195,19 @@ class UserPreferenceActualViewSet(UserPreferenceViewSet):
         else:
             filter_user = {}
             if 'user__username' in self.params:
-                filter_user['username'] = self.params.pop('user__username')
+                filter_user['username'] = self.params['user__username']
             if 'user__departments__abbrev' in self.params:
                 filter_user['departments__abbrev'] = \
-                    self.params.pop('user__departments__abbrev')
-            users = pm.User.objects.filter(**filter_user).values_list('id')
+                    self.params['user__departments__abbrev']
+            users = pm.User.objects.filter(**filter_user).values_list('id', flat=True)
 
         # get users with no singular week
-        singular_users = qs.distinct('user__username').values_list('user__id')
-        users = users.difference(singular_users)
+        singular_users = qs.distinct('user__username').values_list('user__id', flat=True)
+        users = set(users).difference(set(singular_users))
 
         # get remaining preferences in default week
         if len(users) != 0:
-            self.params['user__id__in'] = users
+            self.params['user__id__in'] = list(users)
             self.set_default_params()
             qs = list(qs) + list(super().get_queryset())
 
