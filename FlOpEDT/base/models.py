@@ -202,7 +202,7 @@ def create_department_related(sender, instance, created, raw, **kwargs):
     Mode.objects.create(department=instance)
     TimeGeneralSettings.objects.create(
         department=instance,
-        day_start_time=6*60,
+        day_start_time=8*60,
         day_finish_time=20*60,
         lunch_break_start_time=13*60,
         lunch_break_finish_time=13*60, 
@@ -594,6 +594,7 @@ class CourseModification(models.Model):
     old_year = models.PositiveSmallIntegerField(null=True)
     room_old = models.ForeignKey(
         'Room', blank=True, null=True, on_delete=models.CASCADE)
+    room_old_is_visio = models.BooleanField(default=False)
     day_old = models.CharField(
         max_length=2, choices=Day.CHOICES, default=None, null=True)
     start_time_old = models.PositiveSmallIntegerField(default=None, null=True)
@@ -624,11 +625,24 @@ class CourseModification(models.Model):
             cur_tutor_name = sched_course.tutor.username if sched_course.tutor is not None else "personne"
             changed += al + f'Prof : {tutor_old_name} -> {cur_tutor_name}'
 
-        room_old_name = self.room_old.name if self.room_old is not None else "nulle part"
+        if self.room_old is None:
+            if self.room_old_is_visio:
+                room_old_name = "visio"
+            else:
+                room_old_name = "nulle part"
+        else:
+            room_old_name = self.room_old.name
+
         if sched_course.room == self.room_old:
             same += f', en {room_old_name}'
         else:
-            cur_room_name = sched_course.room.name if sched_course.room.name is not None else "nulle part"
+            if sched_course.room is None:
+                if ScheduledCourseAdditional.objects.filter(scheduled_course=sched_course).exists():
+                    cur_room_name = "visio"
+                else:
+                    cur_room_name = "nulle part"
+            else:
+                cur_room_name = sched_course.room.name
             changed += al + f'Salle : {room_old_name} -> {cur_room_name}'
 
         day_list = base.weeks.num_all_days(

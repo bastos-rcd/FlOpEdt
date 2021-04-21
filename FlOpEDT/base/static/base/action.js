@@ -1915,7 +1915,7 @@ function select_pref_links_change() {
 function confirm_pref_links_change(d) {
   Object.assign(
     pending.wanted_course,
-    { id_visio: d.id, room: '' }
+    { id_visio: d.id, room: null }
   );
 
   room_tutor_change.proposal = [];

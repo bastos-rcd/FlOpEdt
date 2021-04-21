@@ -74,16 +74,7 @@ def create_first_department():
 
     for type in types:
         type.objects.all().update(department=department)
-
-    # Init TimeGeneralSettings with default values
-    TimeGeneralSettings.objects.create(
-                        department=department,
-                        day_start_time=8*60,
-                        day_finish_time=18*60+45,
-                        lunch_break_start_time=12*60+30,
-                        lunch_break_finish_time=14*60,
-                        days=["m", "tu", "w", "th", "f"])
-
+        
     return department
 
 

@@ -1010,11 +1010,18 @@ def clean_change(year, week, old_version, change, work_copy=0, initiator=None, a
     if tutor_old is None:
         tutor_old = sched_course.course.tutor
         sched_course.tutor = tutor_old
+
+
+    if scheduled_before and ScheduledCourseAdditional.objects.filter(scheduled_course=sched_course).exists():
+        room_old_is_visio = True
+    else:
+        room_old_is_visio = False
         
     course_log = CourseModification(course=course,
                                     old_week=week,
                                     old_year=year,
                                     room_old=sched_course.room if scheduled_before else None,
+                                    room_old_is_visio=room_old_is_visio,
                                     day_old=sched_course.day if scheduled_before else None,
                                     start_time_old=sched_course.start_time if scheduled_before else None,
                                     tutor_old=tutor_old,
@@ -1028,7 +1035,7 @@ def clean_change(year, week, old_version, change, work_copy=0, initiator=None, a
     # Rooms
     try:
         new_room = Room.objects.get(name=change['room']) \
-            if change['room'] != '' else None
+            if change['room'] is not None else None
         ret['sched'].room = new_room
     except Room.DoesNotExist:
         raise Exception(f"Problème : salle {change['room']} inconnue")

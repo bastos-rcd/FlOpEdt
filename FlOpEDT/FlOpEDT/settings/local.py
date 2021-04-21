@@ -75,9 +75,9 @@ CHANNEL_LAYERS = {
     },
 }
 
-INSTALLED_APPS = INSTALLED_APPS + ['debug_toolbar']
+# INSTALLED_APPS = INSTALLED_APPS + ['debug_toolbar']
 
-MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware']
+# MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware']
 
 DEBUG_TOOLBAR_PANELS = [
     'ddt_request_history.panels.request_history.RequestHistoryPanel',  # Here it is 
