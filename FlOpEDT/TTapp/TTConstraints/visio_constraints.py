@@ -242,7 +242,7 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
         else:
             for g in considered_groups:
                 cost = ponderation * self.local_weight() * \
-                       (ttmodel.UN - ttmodel.add_floor(physical_presence_half_days_number[g],
+                       (ttmodel.one_var - ttmodel.add_floor(physical_presence_half_days_number[g],
                                                        self.nb_min, total_nb_half_days)
                         + ttmodel.add_floor(physical_presence_half_days_number[g],
                                             self.nb_max, total_nb_half_days))
