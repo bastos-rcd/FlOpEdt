@@ -103,11 +103,13 @@ function translate_dispos_from_csv(d) {
       dispos[d.user][day.ref] = [];
     });
   }
-  dispos[d.user][d.day].push({
-    start_time: +d.start_time,
-    duration: +d.duration,
-    value: +d.value
-  });
+  if(typeof week_days.day_by_ref(d.day) !== 'undefined') {
+    dispos[d.user][d.day].push({
+      start_time: +d.start_time,
+      duration: +d.duration,
+      value: +d.value
+    });
+  }
 }
 
 

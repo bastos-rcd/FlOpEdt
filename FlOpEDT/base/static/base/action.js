@@ -704,6 +704,11 @@ function apply_ckbox(dk) {
     if (dk == "dis-mod") {
 
       if (ckbox[dk].cked) {
+
+        if(user.name == '') {
+          window.location.href = $('#sign_in').attr('href');
+        }
+        
         //create_dispos_user_data();
         //ckbox["dis-mod"].disp = true;
         svg.get_dom("stg").attr("visibility", "visible");
