@@ -340,18 +340,20 @@ function def_drag_sca() {
   ------- GROUPS -------
   ----------------------*/
 
-// Only for the current case
+// set dimensions and locations of/inside group selection popup
 function set_butgp() {
-  var topx = 0;//615 + 4*30;
+  const topx = 0;//615 + 4*30;
 
-  var cur_buty = 0;
-  var cur_rootgp;
-  for (var nrow = 0; nrow < set_rows.length; nrow++) {
-    var cur_maxby = 0;
-    var tot_row_gp = 0;
-    var cur_butx = topx;
+  let cur_buty = 0;
+  let cur_rootgp;
 
-    for (var npro = 0; npro < row_gp[nrow].promos.length; npro++) {
+  // set the coordinates of the root groups in the group selection popup
+  for (let nrow = 0 ; nrow < set_rows.length ; nrow++) {
+    let cur_maxby = 0;
+    let tot_row_gp = 0;
+    let cur_butx = topx;
+
+    for (let npro = 0 ; npro < row_gp[nrow].promos.length ; npro++) {
       cur_rootgp = root_gp[row_gp[nrow].promos[npro]];
       cur_rootgp.buty = cur_buty;
       if (cur_rootgp.maxby > cur_maxby) {
@@ -369,9 +371,9 @@ function set_butgp() {
 
   // Compute dimensions of the group selection popup
 
-  var minx, maxx, miny, maxy, curminx, curmaxx, curminy, curmaxy, curp;
+  let minx, maxx, miny, maxy, curminx, curmaxx, curminy, curmaxy, curp;
 
-  for (var p = 0; p < set_promos.length; p++) {
+  for (let p = 0; p < set_promos.length; p++) {
     curp = root_gp[p];
     curminx = curp.butx;
     curminy = curp.buty;
@@ -400,7 +402,7 @@ function set_butgp() {
 
 function indexOf_promo(promo) {
   for (var p = 0; p < set_promos.length; p++) {
-    if (set_promos[p] == promo_init) {
+    if (set_promos[p] == promo) {
       return p;
     }
   }
@@ -464,6 +466,8 @@ function extract_all_groups_structure(r) {
   for (let npro = 0; npro < init_nbPromos; npro++) {
     extract_groups_structure(r[npro], -1, -1);
   }
+
+  // sort rows
   var sorted_rows = set_rows.sort();
   for (let npro = 0; npro < set_promos.length; npro++) {
     root_gp[npro].row = sorted_rows.indexOf(set_rows[root_gp[npro].row]);
@@ -471,6 +475,7 @@ function extract_all_groups_structure(r) {
   set_rows = sorted_rows;
 }
 
+// set group hierarchy and promos
 function extract_groups_structure(r, npro, nrow) {
   var gr = {
     name: r.name,
@@ -547,7 +552,7 @@ function extract_groups_structure(r, npro, nrow) {
 }
 
 
-
+// set button height parameters for group selection popup
 function create_static_att_groups(node) {
   var child;
 

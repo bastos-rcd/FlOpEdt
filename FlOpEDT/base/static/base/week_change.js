@@ -469,6 +469,7 @@ function fetch_bknews(first) {
     url: build_url(url_bknews, context),
     async: true,
     contentType: "text/csv",
+    headers: {Accept: 'text/csv'},
     success: function (msg) {
       bknews.cont = d3.csvParse(
         msg,
