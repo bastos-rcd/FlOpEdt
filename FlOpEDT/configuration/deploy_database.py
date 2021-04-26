@@ -363,5 +363,6 @@ def settings_extract(department, settings):
     params = copy(settings)
     del params['periods']
     logger.info(f'TimeGeneralSettings : {params}')
-    TimeGeneralSettings.objects.get_or_create(department=department, **params)
+    TimeGeneralSettings.objects.filter(department=department).delete() # FIXME: get and modify
+    TimeGeneralSettings.objects.create(department=department, **params)
     logger.info('Settings extraction : finish')

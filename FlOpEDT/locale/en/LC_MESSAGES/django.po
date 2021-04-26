@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-17 20:16+0100\n"
+"POT-Creation-Date: 2021-04-26 19:59+0200\n"
 "PO-Revision-Date: 2020-04-05 18:44+0200\n"
 "Last-Translator: Benoît Roche (benoit.roche@esrf.fr)\n"
 "Language-Team: none\n"
@@ -18,79 +18,79 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: FlOpEDT/settings/base.py:150
+#: FlOpEDT/settings/base.py:157
 msgid "French"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:151
+#: FlOpEDT/settings/base.py:158
 msgid "English"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:152
+#: FlOpEDT/settings/base.py:159
 msgid "Spanish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:153
+#: FlOpEDT/settings/base.py:160
 msgid "Arabic"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:154
+#: FlOpEDT/settings/base.py:161
 msgid "Basque"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:155
+#: FlOpEDT/settings/base.py:162
 msgid "Breton"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:156
+#: FlOpEDT/settings/base.py:163
 msgid "Catalan"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:157
+#: FlOpEDT/settings/base.py:164
 msgid "Corsican"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:158
+#: FlOpEDT/settings/base.py:165
 msgid "Danish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:159
+#: FlOpEDT/settings/base.py:166
 msgid "German"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:160
+#: FlOpEDT/settings/base.py:167
 msgid "Dutch"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:161
+#: FlOpEDT/settings/base.py:168
 msgid "Greek"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:162
+#: FlOpEDT/settings/base.py:169
 msgid "Italian"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:163
+#: FlOpEDT/settings/base.py:170
 msgid "Latin"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:164
+#: FlOpEDT/settings/base.py:171
 msgid "Norwegian"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:165
+#: FlOpEDT/settings/base.py:172
 msgid "Portuguese"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:166
+#: FlOpEDT/settings/base.py:173
 msgid "Swedish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:167
+#: FlOpEDT/settings/base.py:174
 msgid "Chinese"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:168
+#: FlOpEDT/settings/base.py:175
 msgid "Smurf"
 msgstr ""
 
@@ -130,51 +130,51 @@ msgstr ""
 msgid "Maximum"
 msgstr ""
 
-#: base/models.py:80
+#: base/models.py:82
 msgid "Basic group?"
 msgstr ""
 
-#: base/models.py:147
+#: base/models.py:149
 msgid "Half day"
 msgstr ""
 
-#: base/models.py:271
+#: base/models.py:296
 msgid "Abbreviation"
 msgstr ""
 
-#: base/models.py:318
+#: base/models.py:344
 msgid "graded?"
 msgstr ""
 
-#: base/models.py:346
+#: base/models.py:372
 msgid "Suspens?"
 msgstr ""
 
-#: base/models.py:375
+#: base/models.py:404
 msgid "Graded?"
 msgstr ""
 
-#: base/models.py:699
+#: base/models.py:728
 msgid "Successives?"
 msgstr ""
 
-#: base/models.py:700
+#: base/models.py:729
 msgid "On different days"
 msgstr ""
 
-#: base/models.py:720
+#: base/models.py:749
 msgid "Full"
 msgstr ""
 
-#: base/models.py:722
+#: base/models.py:751
 msgid "Full generation date"
 msgstr ""
 
-#: base/models.py:723
+#: base/models.py:752
 msgid "Stabilized"
 msgstr ""
 
-#: base/models.py:725
+#: base/models.py:754
 msgid "Partial generation date"
 msgstr ""
 
@@ -323,27 +323,27 @@ msgstr ""
 msgid " How ?"
 msgstr ""
 
-#: base/templates/base/show-edt.html:50
+#: base/templates/base/show-edt.html:49
 msgid "Check election"
 msgstr ""
 
-#: base/templates/base/show-edt.html:54
+#: base/templates/base/show-edt.html:53
 msgid "Elect this copy"
 msgstr ""
 
-#: base/templates/base/show-edt.html:58
+#: base/templates/base/show-edt.html:57
 msgid "Duplicate this copy"
 msgstr ""
 
-#: base/templates/base/show-edt.html:62
+#: base/templates/base/show-edt.html:61
 msgid "Delete this copy"
 msgstr ""
 
-#: base/templates/base/show-edt.html:66
+#: base/templates/base/show-edt.html:65
 msgid "Delete all copies except the 0"
 msgstr ""
 
-#: base/templates/base/show-edt.html:69
+#: base/templates/base/show-edt.html:68
 msgid "Reassign rooms"
 msgstr ""
 
@@ -449,23 +449,23 @@ msgstr ""
 msgid "Create or modify a link"
 msgstr ""
 
-#: base/views.py:1751
+#: base/views.py:1700
 msgid "Not authorized. New link then."
 msgstr ""
 
-#: base/views.py:1754
+#: base/views.py:1703
 msgid "Unknown link. New link then."
 msgstr ""
 
-#: base/views.py:1766
+#: base/views.py:1715
 msgid "Created"
 msgstr ""
 
-#: base/views.py:1766
+#: base/views.py:1715
 msgid "Modified"
 msgstr ""
 
-#: base/views.py:1769
+#: base/views.py:1718
 msgid "Tutor does not exist"
 msgstr ""
 

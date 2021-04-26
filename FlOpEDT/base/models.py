@@ -55,7 +55,7 @@ class Department(models.Model):
 
 class TrainingProgramme(models.Model):
     name = models.CharField(max_length=50)
-    abbrev = models.CharField(max_length=5)
+    abbrev = models.CharField(max_length=50)
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, null=True)
 
@@ -74,10 +74,10 @@ class GroupType(models.Model):
 
 class Group(models.Model):
     # should not include "-" nor "|"
-    name = models.CharField(max_length=10)
+    name = models.CharField(max_length=100)
     train_prog = models.ForeignKey(
         'TrainingProgramme', on_delete=models.CASCADE)
-    type = models.ForeignKey('GroupType', on_delete=models.CASCADE)
+    type = models.ForeignKey('GroupType', on_delete=models.CASCADE, null=True)
     size = models.PositiveSmallIntegerField()
     basic = models.BooleanField(verbose_name=_('Basic group?'), default=False)
     parent_groups = models.ManyToManyField('self', symmetrical=False,
@@ -202,7 +202,7 @@ def create_department_related(sender, instance, created, raw, **kwargs):
     Mode.objects.create(department=instance)
     TimeGeneralSettings.objects.create(
         department=instance,
-        day_start_time=8*60,
+        day_start_time=6*60,
         day_finish_time=20*60,
         lunch_break_start_time=13*60,
         lunch_break_finish_time=13*60, 
@@ -227,7 +227,7 @@ class RoomType(models.Model):
 
 
 class Room(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=50)
     types = models.ManyToManyField(RoomType,
                                    blank=True,
                                    related_name="members")
@@ -293,7 +293,7 @@ class RoomSort(models.Model):
 
 class Module(models.Model):
     name = models.CharField(max_length=100, null=True)
-    abbrev = models.CharField(max_length=10, verbose_name=_('Abbreviation'))
+    abbrev = models.CharField(max_length=100, verbose_name=_('Abbreviation'))
     head = models.ForeignKey('people.Tutor',
                              null=True,
                              default=None,
@@ -594,7 +594,6 @@ class CourseModification(models.Model):
     old_year = models.PositiveSmallIntegerField(null=True)
     room_old = models.ForeignKey(
         'Room', blank=True, null=True, on_delete=models.CASCADE)
-    room_old_is_visio = models.BooleanField(default=False)
     day_old = models.CharField(
         max_length=2, choices=Day.CHOICES, default=None, null=True)
     start_time_old = models.PositiveSmallIntegerField(default=None, null=True)
@@ -625,24 +624,11 @@ class CourseModification(models.Model):
             cur_tutor_name = sched_course.tutor.username if sched_course.tutor is not None else "personne"
             changed += al + f'Prof : {tutor_old_name} -> {cur_tutor_name}'
 
-        if self.room_old is None:
-            if self.room_old_is_visio:
-                room_old_name = "visio"
-            else:
-                room_old_name = "nulle part"
-        else:
-            room_old_name = self.room_old.name
-
+        room_old_name = self.room_old.name if self.room_old is not None else "nulle part"
         if sched_course.room == self.room_old:
             same += f', en {room_old_name}'
         else:
-            if sched_course.room is None:
-                if ScheduledCourseAdditional.objects.filter(scheduled_course=sched_course).exists():
-                    cur_room_name = "visio"
-                else:
-                    cur_room_name = "nulle part"
-            else:
-                cur_room_name = sched_course.room.name
+            cur_room_name = sched_course.room.name if sched_course.room.name is not None else "nulle part"
             changed += al + f'Salle : {room_old_name} -> {cur_room_name}'
 
         day_list = base.weeks.num_all_days(

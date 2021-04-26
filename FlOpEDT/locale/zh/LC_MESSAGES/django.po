@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-17 20:16+0100\n"
+"POT-Creation-Date: 2021-04-26 19:59+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,177 +17,177 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: FlOpEDT/settings/base.py:150
-msgid "French"
-msgstr ""
-
-#: FlOpEDT/settings/base.py:151
-msgid "English"
-msgstr ""
-
-#: FlOpEDT/settings/base.py:152
-msgid "Spanish"
-msgstr ""
-
-#: FlOpEDT/settings/base.py:153
-msgid "Arabic"
-msgstr ""
-
-#: FlOpEDT/settings/base.py:154
-msgid "Basque"
-msgstr ""
-
-#: FlOpEDT/settings/base.py:155
-msgid "Breton"
-msgstr ""
-
-#: FlOpEDT/settings/base.py:156
-msgid "Catalan"
-msgstr ""
-
 #: FlOpEDT/settings/base.py:157
-msgid "Corsican"
-msgstr ""
+msgid "French"
+msgstr "法语"
 
 #: FlOpEDT/settings/base.py:158
-msgid "Danish"
-msgstr ""
+msgid "English"
+msgstr "英语"
 
 #: FlOpEDT/settings/base.py:159
-msgid "German"
-msgstr ""
+msgid "Spanish"
+msgstr "西班牙语"
 
 #: FlOpEDT/settings/base.py:160
-msgid "Dutch"
-msgstr ""
+msgid "Arabic"
+msgstr "阿拉伯语"
 
 #: FlOpEDT/settings/base.py:161
-msgid "Greek"
-msgstr ""
+msgid "Basque"
+msgstr "巴斯克语"
 
 #: FlOpEDT/settings/base.py:162
-msgid "Italian"
-msgstr ""
+msgid "Breton"
+msgstr "布列塔尼语"
 
 #: FlOpEDT/settings/base.py:163
-msgid "Latin"
-msgstr ""
+msgid "Catalan"
+msgstr "加泰罗尼亚语"
 
 #: FlOpEDT/settings/base.py:164
-msgid "Norwegian"
-msgstr ""
+msgid "Corsican"
+msgstr "科西嘉语"
 
 #: FlOpEDT/settings/base.py:165
-msgid "Portuguese"
-msgstr ""
+msgid "Danish"
+msgstr "丹麦语"
 
 #: FlOpEDT/settings/base.py:166
-msgid "Swedish"
-msgstr ""
+msgid "German"
+msgstr "德语"
 
 #: FlOpEDT/settings/base.py:167
-msgid "Chinese"
-msgstr ""
+msgid "Dutch"
+msgstr "荷兰语"
 
 #: FlOpEDT/settings/base.py:168
+msgid "Greek"
+msgstr "希腊语"
+
+#: FlOpEDT/settings/base.py:169
+msgid "Italian"
+msgstr "意大利语"
+
+#: FlOpEDT/settings/base.py:170
+msgid "Latin"
+msgstr "拉丁文"
+
+#: FlOpEDT/settings/base.py:171
+msgid "Norwegian"
+msgstr "挪威语"
+
+#: FlOpEDT/settings/base.py:172
+msgid "Portuguese"
+msgstr "葡萄牙语"
+
+#: FlOpEDT/settings/base.py:173
+msgid "Swedish"
+msgstr "瑞典语"
+
+#: FlOpEDT/settings/base.py:174
+msgid "Chinese"
+msgstr "中文"
+
+#: FlOpEDT/settings/base.py:175
 msgid "Smurf"
-msgstr ""
+msgstr "蓝精灵语"
 
 #: base/forms.py:33
 msgid "Your e-mail address :"
-msgstr ""
+msgstr "您的邮箱是："
 
 #: base/forms.py:36
 msgid "Recipient :"
-msgstr ""
+msgstr "收件人： "
 
 #: base/forms.py:38
 msgid "Pseudo : 4 characters max"
-msgstr ""
+msgstr "昵称：最多4个字符"
 
 #: base/forms.py:40
 msgid "Subject of the e-mail :"
-msgstr ""
+msgstr "邮件主题: "
 
 #: base/forms.py:42
 msgid "100 characters max"
-msgstr ""
+msgstr "最多100个字符"
 
 #: base/forms.py:43
 msgid "Body of the message :"
-msgstr ""
+msgstr "邮件正文： "
 
 #: base/forms.py:50
 msgid "This person doesn't exist."
-msgstr ""
+msgstr "此人不存在"
 
 #: base/forms.py:58
 msgid "Ideally"
-msgstr ""
+msgstr "理想地"
 
 #: base/forms.py:64 base/templates/base/show-stype.html:134
 msgid "Maximum"
-msgstr ""
+msgstr "最大限度"
 
-#: base/models.py:80
+#: base/models.py:82
 msgid "Basic group?"
-msgstr ""
+msgstr "基本组？"
 
-#: base/models.py:147
+#: base/models.py:149
 msgid "Half day"
-msgstr ""
+msgstr "半天"
 
-#: base/models.py:271
+#: base/models.py:296
 msgid "Abbreviation"
-msgstr ""
+msgstr "缩写"
 
-#: base/models.py:318
+#: base/models.py:344
 msgid "graded?"
-msgstr ""
+msgstr "评分的？"
 
-#: base/models.py:346
+#: base/models.py:372
 msgid "Suspens?"
-msgstr ""
+msgstr "未解决的？"
 
-#: base/models.py:375
+#: base/models.py:404
 msgid "Graded?"
-msgstr ""
+msgstr "评分的？"
 
-#: base/models.py:699
+#: base/models.py:728
 msgid "Successives?"
-msgstr ""
+msgstr "连续的？"
 
-#: base/models.py:700
+#: base/models.py:729
 msgid "On different days"
-msgstr ""
+msgstr "在不同的日子"
 
-#: base/models.py:720
+#: base/models.py:749
 msgid "Full"
-msgstr ""
+msgstr "满"
 
-#: base/models.py:722
+#: base/models.py:751
 msgid "Full generation date"
-msgstr ""
+msgstr "完整的生成日期"
 
-#: base/models.py:723
+#: base/models.py:752
 msgid "Stabilized"
-msgstr ""
+msgstr "稳定的"
 
-#: base/models.py:725
+#: base/models.py:754
 msgid "Partial generation date"
-msgstr ""
+msgstr "部分的生成日期"
 
 #: base/templates/base/contact.html:34 base/templates/base/visio.html:38
 msgid "Send"
-msgstr ""
+msgstr "发送"
 
 #: base/templates/base/departments.html:15
 msgid "Please choose your department : "
-msgstr ""
+msgstr "请选择您所在的部门："
 
 #: base/templates/base/help.html:34
 msgid "Room modification"
-msgstr ""
+msgstr "教室的修改"
 
 #: base/templates/base/help.html:35
 msgid ""
@@ -195,509 +195,513 @@ msgid ""
 "+ to choose a room that is not available for this course. Don't forget to "
 "validate any changes."
 msgstr ""
+"右键单击有问题的课程，将显示可用的教室。单击+选择该课程未使用的教室。不要忘记"
+"保存所有更改。"
 
 #: base/templates/base/help.html:38
 msgid "Create an account"
-msgstr ""
+msgstr "创建一个帐户"
 
 #: base/templates/base/help.html:39
 msgid "Here"
-msgstr ""
+msgstr "这里"
 
 #: base/templates/base/help.html:42
 msgid "Modification of an account"
-msgstr ""
+msgstr "帐户修改"
 
 #: base/templates/base/help.html:43
 msgid "Click on his nickname (his initials) at the top right of the page."
-msgstr ""
+msgstr "单击页面右上角他的昵称（他的名字缩写）"
 
 #: base/templates/base/help.html:45
 msgid "Change password"
-msgstr ""
+msgstr "更改密码"
 
 #: base/templates/base/help.html:46 base/templates/base/help.html:49
 msgid "Click on"
-msgstr ""
+msgstr "点击"
 
 #: base/templates/base/help.html:46 base/templates/base/help.html:49
 msgid "this link"
-msgstr ""
+msgstr "此链接"
 
 #: base/templates/base/help.html:46
 msgid "to change your password."
-msgstr ""
+msgstr "来更改您的密码"
 
 #: base/templates/base/help.html:48
 msgid "Password reminder"
-msgstr ""
+msgstr "密码提醒"
 
 #: base/templates/base/help.html:49
 msgid "for a password reminder, or via 'Login' at the top of the page."
-msgstr ""
+msgstr "以提示密码，或通过页面顶部的'登录'"
 
 #: base/templates/base/help.html:51
 msgid "Direct link to a particular group"
-msgstr ""
+msgstr "直接链接到特定组"
 
 #: base/templates/base/help.html:52
 msgid "Add \"?promo=INFO1&gp=1A\" at the end of the url, for example "
-msgstr ""
+msgstr "例如，在网址末尾添加 \"?promo=INFO1&gp=1A\"  "
 
 #: base/templates/base/help.html:54
 msgid "How availability entry work"
-msgstr ""
+msgstr "可用性输入的工作原理"
 
 #: base/templates/base/help.html:55
 msgid ""
 "When generating the schedule for a given week, if no availability is entered "
 "for that week, the typical week defines the availability."
 msgstr ""
+" 当生成给定一周的时间表时， 如果该周没有输入任何可用性，则典型的一周定义了可"
+"用性。"
 
 #: base/templates/base/help.html:57
 msgid "Some Tutorial Videos"
-msgstr ""
+msgstr "一些教程视频"
 
 #: base/templates/base/module_description.html:35
 msgid "Modification of the module description."
-msgstr ""
+msgstr "修改模块说明。"
 
 #: base/templates/base/module_description.html:41
 msgid "Modify"
-msgstr ""
+msgstr "修改"
 
 #: base/templates/base/notification.html:29
 msgid "I wish to be notified of changes for the"
-msgstr ""
+msgstr "我希望收到有关更改的通知在"
 
 #: base/templates/base/notification.html:32
 msgid "next weeks."
-msgstr ""
+msgstr "接下来的几周。"
 
 #: base/templates/base/notification.html:33
 msgid "(0 if no notification, 1 for the next 7 days, etc.)"
-msgstr ""
+msgstr "（如果没有通知，则为0，接下来的7天则为1，依此类推）"
 
 #: base/templates/base/notification.html:36
 msgid "Save"
-msgstr ""
+msgstr "保存"
 
 #: base/templates/base/room_preference.html:14
 msgid "Favorite room"
-msgstr ""
+msgstr "教室偏好"
 
 #: base/templates/base/room_preference.html:15
 msgid "(Ranking your favorite rooms, which may contain ties.)"
-msgstr ""
+msgstr "（对您最喜欢的教室中进行排名，其中可能包含联系。）"
 
 #: base/templates/base/show-decale.html:79
 msgid "When ?"
-msgstr ""
+msgstr "什么时候？"
 
 #: base/templates/base/show-decale.html:81
 msgid "Cancelled class"
-msgstr ""
+msgstr "已取消课程"
 
 #: base/templates/base/show-decale.html:82
 msgid "Pending classes"
-msgstr ""
+msgstr "待定课程"
 
 #: base/templates/base/show-decale.html:83
 msgid "Course scheduled on week"
-msgstr ""
+msgstr "一周安排的课程"
 
 #: base/templates/base/show-decale.html:89
 msgid "Why ?"
-msgstr ""
+msgstr "为什么？"
 
 #: base/templates/base/show-decale.html:90
 msgid "(Please fill in the date information)"
-msgstr ""
+msgstr "（请填写日期信息）"
 
 #: base/templates/base/show-decale.html:98
 msgid " Proposals"
-msgstr ""
+msgstr " 提议"
 
 #: base/templates/base/show-decale.html:104
 msgid " How ?"
-msgstr ""
+msgstr "如何 ？"
 
-#: base/templates/base/show-edt.html:50
+#: base/templates/base/show-edt.html:49
 msgid "Check election"
-msgstr ""
+msgstr "检查选举"
 
-#: base/templates/base/show-edt.html:54
+#: base/templates/base/show-edt.html:53
 msgid "Elect this copy"
-msgstr ""
+msgstr "选择此副本"
 
-#: base/templates/base/show-edt.html:58
+#: base/templates/base/show-edt.html:57
 msgid "Duplicate this copy"
-msgstr ""
+msgstr "复制此副本"
 
-#: base/templates/base/show-edt.html:62
+#: base/templates/base/show-edt.html:61
 msgid "Delete this copy"
-msgstr ""
+msgstr "删除此副本"
 
-#: base/templates/base/show-edt.html:66
+#: base/templates/base/show-edt.html:65
 msgid "Delete all copies except the 0"
-msgstr ""
+msgstr "删除除0以外的所有副本"
 
-#: base/templates/base/show-edt.html:69
+#: base/templates/base/show-edt.html:68
 msgid "Reassign rooms"
-msgstr ""
+msgstr "重新分配教室"
 
 #: base/templates/base/show-stype.html:95
 msgid "Weeks"
-msgstr ""
+msgstr "周"
 
 #: base/templates/base/show-stype.html:96
 msgid "Set default week"
-msgstr ""
+msgstr "设置默认周"
 
 #: base/templates/base/show-stype.html:97
 msgid "from week"
-msgstr ""
+msgstr "从周开始"
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
 msgid "year"
-msgstr ""
+msgstr "年"
 
 #: base/templates/base/show-stype.html:100
 msgid "until week"
-msgstr ""
+msgstr "到周"
 
 #: base/templates/base/show-stype.html:103
 msgid "button_apply"
-msgstr ""
+msgstr "应用键"
 
 #: base/templates/base/show-stype.html:108
 msgid "Default week"
-msgstr ""
+msgstr "默认周"
 
 #: base/templates/base/show-stype.html:110
 msgid "Update my default week"
-msgstr ""
+msgstr "更新我的默认周"
 
 #: base/templates/base/show-stype.html:112
 #: base/templates/base/show-stype.html:137
 msgid "button_save"
-msgstr ""
+msgstr "保存键"
 
 #: base/templates/base/show-stype.html:121
 msgid "My videoconf links"
-msgstr ""
+msgstr "我的视频会议链接"
 
 #: base/templates/base/show-stype.html:122
 msgid "Create a link"
-msgstr ""
+msgstr "创建链接"
 
 #: base/templates/base/show-stype.html:124
 #: base/templates/base/show-stype.html:147
 msgid "button_change"
-msgstr ""
+msgstr "修改键"
 
 #: base/templates/base/show-stype.html:127
 msgid "My ideal day"
-msgstr ""
+msgstr "我理想的一天"
 
 #: base/templates/base/show-stype.html:130
 msgid ""
 "This is the total number of teaching hours I would like to give every day:"
-msgstr ""
+msgstr "这是我每天想要提供的总教学时间："
 
 #: base/templates/base/show-stype.html:132
 msgid "Preferred"
-msgstr ""
+msgstr "优先的"
 
 #: base/templates/base/show-stype.html:144
 msgid "My favorite rooms"
-msgstr ""
+msgstr "我最喜欢的教室"
 
 #: base/templates/base/show-stype.html:145
 msgid "Select my favorite rooms"
-msgstr ""
+msgstr "选择我最喜欢的教室"
 
 #: base/templates/base/show-stype.html:170
 msgid "Teachers"
-msgstr ""
+msgstr "老师"
 
 #: base/templates/base/show-stype.html:171
 #: base/templates/base/show-stype.html:191
 msgid "Transformation in : "
-msgstr ""
+msgstr "转换为："
 
 #: base/templates/base/show-stype.html:177
 #: base/templates/base/show-stype.html:183
 msgid "Types of classes"
-msgstr ""
+msgstr "课程类型"
 
 #: base/templates/base/show-stype.html:190 ics/templates/ics/index.html:68
 msgid "Rooms"
-msgstr ""
+msgstr "教室"
 
 #: base/templates/base/statistics.html:105
 msgid "Number of days of innocuousness per room"
-msgstr ""
+msgstr "每间教室的闲置天数"
 
 #: base/templates/base/statistics.html:106
 msgid "Number of classes given per teacher"
-msgstr ""
+msgstr "每位老师开设的课程数量"
 
 #: base/templates/base/visio.html:31
 msgid "Create or modify a link"
-msgstr ""
+msgstr "创建或修改链接"
 
-#: base/views.py:1751
+#: base/views.py:1700
 msgid "Not authorized. New link then."
-msgstr ""
+msgstr "未经授权。创建一个新的链接。"
 
-#: base/views.py:1754
+#: base/views.py:1703
 msgid "Unknown link. New link then."
-msgstr ""
+msgstr "未知链接。创建一个新的链接。"
 
-#: base/views.py:1766
+#: base/views.py:1715
 msgid "Created"
-msgstr ""
+msgstr "已创建"
 
-#: base/views.py:1766
+#: base/views.py:1715
 msgid "Modified"
-msgstr ""
+msgstr "已修改"
 
-#: base/views.py:1769
+#: base/views.py:1718
 msgid "Tutor does not exist"
-msgstr ""
+msgstr "该教师不存在"
 
 #: base/weeks.py:34
 msgid "Mon."
-msgstr ""
+msgstr "周一"
 
 #: base/weeks.py:35
 msgid "Tue."
-msgstr ""
+msgstr "周二"
 
 #: base/weeks.py:36
 msgid "Wed."
-msgstr ""
+msgstr "周三"
 
 #: base/weeks.py:37
 msgid "Thu."
-msgstr ""
+msgstr "周四"
 
 #: base/weeks.py:38
 msgid "Fri."
-msgstr ""
+msgstr "周五"
 
 #: base/weeks.py:39
 msgid "Sat."
-msgstr ""
+msgstr "周六"
 
 #: base/weeks.py:40
 msgid "Sun."
-msgstr ""
+msgstr "周日"
 
 #: configuration/templates/configuration/configuration.html:11
 msgid ""
 "Step 1 - Database configuration (teachers, groups, rooms, course types, etc.)"
-msgstr ""
+msgstr "第1步-数据库配置（教师，小组，教室，课程类型等）"
 
 #: configuration/templates/configuration/configuration.html:12
 msgid "Option A: Using a spreadsheet file"
-msgstr ""
+msgstr "选项A：使用电子表格文件"
 
 #: configuration/templates/configuration/configuration.html:14
 msgid "Configuration file canvas"
-msgstr ""
+msgstr "配置文件大纲"
 
 #: configuration/templates/configuration/configuration.html:15
 #: configuration/templates/configuration/configuration.html:50
 msgid "Download and then complete the file below."
-msgstr ""
+msgstr "下载并完成以下文件"
 
 #: configuration/templates/configuration/configuration.html:16
 msgid "Click to download the configuration file"
-msgstr ""
+msgstr "点击下载配置文件"
 
 #: configuration/templates/configuration/configuration.html:17
 #: configuration/templates/configuration/configuration.html:58
 msgid "Download"
-msgstr ""
+msgstr "下载"
 
 #: configuration/templates/configuration/configuration.html:21
 msgid "Configuration file completed"
-msgstr ""
+msgstr "配置文件完成"
 
 #: configuration/templates/configuration/configuration.html:22
 msgid "Upload the completed configuration file."
-msgstr ""
+msgstr "上传完成的配置文件"
 
 #: configuration/templates/configuration/configuration.html:23
 #: configuration/templates/configuration/configuration.html:65
 msgid "Only xlsx format is accepted."
-msgstr ""
+msgstr "仅接受xlsx格式。"
 
 #: configuration/templates/configuration/configuration.html:27
 #: ics/templates/ics/index.html:84
 msgid "Department"
-msgstr ""
+msgstr "部门"
 
 #: configuration/templates/configuration/configuration.html:28
 #: people/templates/people/login.html:86
 msgid "Create"
-msgstr ""
+msgstr "创建"
 
 #: configuration/templates/configuration/configuration.html:29
 msgid "Edit"
-msgstr ""
+msgstr "编辑"
 
 #: configuration/templates/configuration/configuration.html:32
 #: configuration/templates/configuration/configuration.html:76
 #: templates/base.html:94
 msgid "Import"
-msgstr ""
+msgstr "输入"
 
 #: configuration/templates/configuration/configuration.html:37
 #: configuration/templates/configuration/configuration.html:79
 msgid "Verdict :"
-msgstr ""
+msgstr "定论："
 
 #: configuration/templates/configuration/configuration.html:41
 msgid "Option B: With Flopeditor"
-msgstr ""
+msgstr "选项B：使用Flopeditor"
 
 #: configuration/templates/configuration/configuration.html:43
 msgid "Click here"
-msgstr ""
+msgstr "点击这里"
 
 #: configuration/templates/configuration/configuration.html:43
 msgid " to go to Flopeditor."
-msgstr ""
+msgstr "跳转至Flopeditor"
 
 #: configuration/templates/configuration/configuration.html:44
 msgid "If you need help, you can consult the Flopeditor documentation on "
-msgstr ""
+msgstr "如果需要帮助，可以查阅Flopeditor文档在"
 
 #: configuration/templates/configuration/configuration.html:44
 msgid "this page."
-msgstr ""
+msgstr "此页面"
 
 #: configuration/templates/configuration/configuration.html:47
 msgid ""
 "Step 2 - Plan the lessons (which lesson in which week, which teacher gives "
 "which lesson)"
-msgstr ""
+msgstr "第2步-计划课程（在哪一周的哪门课程，哪位老师教哪门课程）"
 
 #: configuration/templates/configuration/configuration.html:49
 msgid "Template for the planning file from the configuration file"
-msgstr ""
+msgstr "配置文件中计划文件的模板"
 
 #: configuration/templates/configuration/configuration.html:51
 msgid "Click to download the planning file outline"
-msgstr ""
+msgstr "点击下载计划文件大纲"
 
 #: configuration/templates/configuration/configuration.html:63
 msgid "Completed planning file"
-msgstr ""
+msgstr "完成的计划文件"
 
 #: configuration/templates/configuration/configuration.html:64
 msgid "Upload the completed planning file."
-msgstr ""
+msgstr "上传完成的计划文件。"
 
 #: configuration/templates/configuration/configuration.html:75
 msgid "Stabilization ?"
-msgstr ""
+msgstr "稳定？"
 
 #: ics/templates/ics/index.html:35
 msgid "iCal Subscription"
-msgstr ""
+msgstr "订阅iCal"
 
 #: ics/templates/ics/index.html:36
 msgid ""
 "Copy the corresponding link of the calendar you would like to add to your "
 "calendar manager."
-msgstr ""
+msgstr "将您要添加的日历的相应链接复制到日历管理器中。"
 
 #: ics/templates/ics/index.html:38
 msgid "Groups"
-msgstr ""
+msgstr "组"
 
 #: ics/templates/ics/index.html:41
 msgid "Training program"
-msgstr ""
+msgstr "培训项目"
 
 #: ics/templates/ics/index.html:41
 msgid "Group"
-msgstr ""
+msgstr "组"
 
 #: ics/templates/ics/index.html:46 ics/templates/ics/index.html:62
 #: ics/templates/ics/index.html:75 ics/templates/ics/index.html:88
 msgid "Copy this link"
-msgstr ""
+msgstr "复制此链接"
 
 #: ics/templates/ics/index.html:52
 msgid "Tutors"
-msgstr ""
+msgstr "教师"
 
 #: ics/templates/ics/index.html:55
 msgid "Pseudo"
-msgstr ""
+msgstr "昵称"
 
 #: ics/templates/ics/index.html:55
 msgid "First name"
-msgstr ""
+msgstr "名"
 
 #: ics/templates/ics/index.html:55
 msgid "Last lame"
-msgstr ""
+msgstr "姓"
 
 #: ics/templates/ics/index.html:55
 msgid "Department(s)"
-msgstr ""
+msgstr "部门"
 
 #: ics/templates/ics/index.html:55 ics/templates/ics/index.html:71
 #: ics/templates/ics/index.html:84
 msgid "Address"
-msgstr ""
+msgstr "地址"
 
 #: ics/templates/ics/index.html:71
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: ics/templates/ics/index.html:81
 msgid "Planned generations"
-msgstr ""
+msgstr "计划好的生成"
 
 #: people/templates/people/login.html:55
 msgid "Forgot password?"
-msgstr ""
+msgstr "忘记密码？"
 
 #: people/templates/people/login.html:58 templates/base.html:108
 msgid "Sign in"
-msgstr ""
+msgstr "登入"
 
 #: people/templates/people/login.html:79
 msgid "Sign up"
-msgstr ""
+msgstr "注册"
 
 #: people/templates/people/login.html:80
 msgid "I am"
-msgstr ""
+msgstr "我是"
 
 #: people/templates/people/login.html:82
 msgid "A student"
-msgstr ""
+msgstr "学生"
 
 #: people/templates/people/login.html:83
 msgid "A teacher"
-msgstr ""
+msgstr "老师"
 
 #: people/templates/people/login.html:84
 msgid "A temporary teacher"
-msgstr ""
+msgstr "临时老师"
 
 #: people/templates/people/login.html:85
 msgid "A tech or administrative staff"
-msgstr ""
+msgstr "技术人员或行政人员"
 
 #: people/templates/people/studentPreferencesSelection.html:34
 msgid "Student Preferences"
@@ -725,139 +729,139 @@ msgstr ""
 
 #: people/views.py:237
 msgid "Not allowed"
-msgstr ""
+msgstr "未经允许"
 
 #: people/views.py:243
 #, python-brace-format
 msgid "No such user as {user}"
-msgstr ""
+msgstr "没有 {user} 这样的用户"
 
 #: quote/forms.py:41
 msgid "Quote "
-msgstr ""
+msgstr "引用 "
 
 #: quote/forms.py:42
 msgid "Last name "
-msgstr ""
+msgstr "姓 "
 
 #: quote/forms.py:43
 msgid "First name "
-msgstr ""
+msgstr "名 "
 
 #: quote/forms.py:44
 msgid "Nickname "
-msgstr ""
+msgstr "昵称 "
 
 #: quote/forms.py:45
 msgid "Author description "
-msgstr ""
+msgstr "作者描述 "
 
 #: quote/forms.py:46
 msgid "Date "
-msgstr ""
+msgstr "日期 "
 
 #: quote/forms.py:47
 msgid "Header "
-msgstr ""
+msgstr "标题 "
 
 #: quote/forms.py:48
 msgid "Category "
-msgstr ""
+msgstr "类别 "
 
 #: solve_board/templates/solve_board/main-board.html:32
 msgid "Schedule Generation"
-msgstr ""
+msgstr "时间表生成"
 
 #: solve_board/templates/solve_board/main-board.html:60
 msgid "Constraints"
-msgstr ""
+msgstr "约束条件"
 
 #: solve_board/templates/solve_board/main-board.html:61
 msgid ""
 "All constraints appearing in bolded - with no weight - will be considered "
 "mandatory, the other ones will considered as preferences."
-msgstr ""
+msgstr "所有以粗体显示的约束-不带权重-将被视为强制性的，其他的将被视为首选。"
 
 #: solve_board/templates/solve_board/main-board.html:66
 msgid "Configuration"
-msgstr ""
+msgstr "配置"
 
 #: solve_board/templates/solve_board/main-board.html:70
 msgid "Week⋅s"
-msgstr ""
+msgstr "星期"
 
 #: solve_board/templates/solve_board/main-board.html:74
 msgid "Training Program"
-msgstr ""
+msgstr "培训项目"
 
 #: solve_board/templates/solve_board/main-board.html:78
 msgid "Stabilization"
-msgstr ""
+msgstr "稳定"
 
 #: solve_board/templates/solve_board/main-board.html:83
 msgid "Solver"
-msgstr ""
+msgstr "求解器"
 
 #: solve_board/templates/solve_board/main-board.html:94
 msgid "Maximum time limit for resolution (minuts)"
-msgstr ""
+msgstr "解析的最大时间限制（分钟）"
 
 #: solve_board/templates/solve_board/main-board.html:100
 msgid "Unlimited"
-msgstr ""
+msgstr "无限"
 
 #: templates/base.html:53
 msgid "Schedule_title"
-msgstr ""
+msgstr "日程表_标题"
 
 #: templates/base.html:66
 msgid "<span id=flopGreen >flop</span>!<span id=EDTRed >Scheduler</span>"
-msgstr ""
+msgstr "<span id=flopGreen >flop</span>!<span id=EDTRed >日程表</span>"
 
 #: templates/base.html:82
 msgid "Schedule_banner"
-msgstr ""
+msgstr "横幅"
 
 #: templates/base.html:84
 msgid "Move/Cancel"
-msgstr ""
+msgstr "移动/取消"
 
 #: templates/base.html:86
 msgid "Preferences"
-msgstr ""
+msgstr "首选项"
 
 #: templates/base.html:87
 msgid "iCal"
-msgstr ""
+msgstr "iCal"
 
 #: templates/base.html:88
 msgid "Help"
-msgstr ""
+msgstr "帮助"
 
 #: templates/base.html:89
 msgid "Messages"
-msgstr ""
+msgstr "留言"
 
 #: templates/base.html:90
 msgid "Modules"
-msgstr ""
+msgstr "模块"
 
 #: templates/base.html:92
 msgid "Generate"
-msgstr ""
+msgstr "生成"
 
 #: templates/base.html:93
 msgid "Statistics"
-msgstr ""
+msgstr "统计数据"
 
 #: templates/base.html:95
 msgid "Admin"
-msgstr ""
+msgstr "管理"
 
 #: templates/base.html:101 templates/base.html:103 templates/base.html:105
 msgid "Sign out"
-msgstr ""
+msgstr "登出"
 
 #: templates/base.html:112
 msgid "Signed in as "
-msgstr ""
+msgstr "登入为"
