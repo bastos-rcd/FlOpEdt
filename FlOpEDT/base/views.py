@@ -1011,17 +1011,10 @@ def clean_change(year, week, old_version, change, work_copy=0, initiator=None, a
         tutor_old = sched_course.course.tutor
         sched_course.tutor = tutor_old
 
-
-    if scheduled_before and ScheduledCourseAdditional.objects.filter(scheduled_course=sched_course).exists():
-        room_old_is_visio = True
-    else:
-        room_old_is_visio = False
-        
     course_log = CourseModification(course=course,
                                     old_week=week,
                                     old_year=year,
                                     room_old=sched_course.room if scheduled_before else None,
-                                    room_old_is_visio=room_old_is_visio,
                                     day_old=sched_course.day if scheduled_before else None,
                                     start_time_old=sched_course.start_time if scheduled_before else None,
                                     tutor_old=tutor_old,

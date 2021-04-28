@@ -103,7 +103,7 @@ function translate_dispos_from_csv(d) {
       dispos[d.user][day.ref] = [];
     });
   }
-  if(typeof week_days.day_by_ref(d.day) !== 'undefined') {
+  if(Object.keys(week_days.day_dict).includes(d.day)) {
     dispos[d.user][d.day].push({
       start_time: +d.start_time,
       duration: +d.duration,

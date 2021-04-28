@@ -1939,6 +1939,11 @@ function fetch_dispos_type() {
         user.dispos_type = [];
 
         user.dispos_type = d3.csvParse(msg, translate_dispos_type_from_csv);
+
+        user.dispos_type = user.dispos_type.filter(function(p) {
+          return Object.keys(week_days.day_dict).includes(p.day) ;
+        });
+
         create_stype();
         show_loader(false);
       },
