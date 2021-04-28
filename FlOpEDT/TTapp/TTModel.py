@@ -340,10 +340,10 @@ class TTModel(object):
                                   for r in self.wdb.course_rg_compat[c] - {None}
                                   for sl in slots_filter(self.wdb.compatible_slots[c], day=d, apm=apm))
                 self.add_constraint(expr, '<=', 999,
-                                    Constraint(constraint_type=ConstraintType.PHYSICAL_PRESENCE, groups=g,
+                                    Constraint(constraint_type=ConstraintType.PHYSICAL_PRESENCE_SUP, groups=g,
                                                days=d, apm=apm))
                 self.add_constraint(expr, '>=', 0,
-                                    Constraint(constraint_type=ConstraintType.PHYSICAL_PRESENCE, groups=g,
+                                    Constraint(constraint_type=ConstraintType.PHYSICAL_PRESENCE_INF, groups=g,
                                                days=d, apm=apm))
 
         has_visio = {g: {(d, apm): self.add_var()
