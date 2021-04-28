@@ -201,7 +201,7 @@ function select_room_change() {
     var occupied_rooms = [];
     for (let i = 0; i < concurrent_courses.length; i++) {
       // for real rooms
-      if (concurrent_courses[i].room != '') {
+      if (concurrent_courses[i].room != null) {
         busy_rooms = rooms.roomgroups[concurrent_courses[i].room];
         for (j = 0; j < busy_rooms.length; j++) {
           if (occupied_rooms.indexOf(busy_rooms[j]) == -1) {
