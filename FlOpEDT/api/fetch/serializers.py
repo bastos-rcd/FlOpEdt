@@ -79,10 +79,12 @@ class Course_SC_Serializer(serializers.Serializer):
     year = serializers.IntegerField()
     groups = Group_SC_Serializer(many=True)
     module = Module_SC_Serializer()
+    is_graded = serializers.BooleanField()
 
     class Meta:
         model = bm.Course
-        fields = ['id', 'type', 'room_type', 'week', 'year', 'module', 'groups', ]
+        fields = ['id', 'type', 'room_type', 'week', 'year', 'module', 'groups',
+                  'is_graded']
 
 
 class ScheduledCoursesSerializer(serializers.Serializer):
@@ -203,10 +205,11 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
     module = ModuleCours_PP_Serializer()
     groups = Group_PP_Serializer(many=True)
     type = CourseType_PP_Serializer()
-
+    is_graded = serializers.BooleanField()
+    
     class Meta:
         model = bm.Course
-        fields = ['id', 'tutor', 'room_type', 'module', 'groups', ]
+        fields = ['id', 'tutor', 'room_type', 'module', 'groups', 'is_graded']
 
 
 #                                ---------------------------                            #

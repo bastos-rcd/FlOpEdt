@@ -737,6 +737,7 @@ function translate_cours_pl_from_json(d, result) {
       room_type: d.course.room_type,
       display: true,
       id_visio: d.room===null?(d.id_visio===null?-1:+d.id_visio):-1,
+      graded: d.course.is_graded
     } ;
 
     new_course.color_bg = 'white' ;
@@ -792,7 +793,8 @@ function translate_cours_pp_from_json(d, result) {
       room_type: d.room_type,
       color_bg: d.module.display.color_bg,
       color_txt: d.module.display.color_txt,
-      display: true
+      display: true,
+      graded: d.is_graded
     });
   }
 }
