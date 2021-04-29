@@ -9,6 +9,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from base.models import ScheduledCourse, Room, Group, Day, Department, Regen
 from people.models import Tutor
 
+from django.http import HttpResponse, Http404
+from django.utils.http import http_date
+from calendar import timegm
 
 def str_groups(c):
     groups = c.groups.all()
@@ -25,6 +28,33 @@ class EventFeed(ICalFeed):
     product_id = 'flop'
     timezone = 'Europe/Paris'
     days = [abbrev for abbrev,_ in Day.CHOICES]
+
+    def __call__(self, request, *args, **kwargs):
+        """
+        Copied from django.contrib.syndication.views.Feed
+        Supports file_name as a dynamic attr.
+        """
+        try:
+            obj = self.get_object(request, *args, **kwargs)
+        except ObjectDoesNotExist:
+            raise Http404("Feed object does not exist.")
+        feedgen = self.get_feed(obj, request)
+        response = HttpResponse(
+            content_type="text/calendar; text/x-vcalendar; application/hbs-vcs"
+        )
+        if hasattr(self, "item_pubdate") or hasattr(self, "item_updateddate"):
+            # if item_pubdate or item_updateddate is defined for the feed, set
+            # header so as ConditionalGetMiddleware is able to send 304 NOT MODIFIED
+            response["Last-Modified"] = http_date(
+                timegm(feedgen.latest_post_date().utctimetuple())
+            )
+        feedgen.write(response, "utf-8")
+
+        filename = self._get_dynamic_attr("file_name", obj)
+        if filename:
+            response["Content-Disposition"] = 'attachment; filename="%s"' % filename
+
+        return response
 
     def item_title(self, scourse):
         course = scourse.course
