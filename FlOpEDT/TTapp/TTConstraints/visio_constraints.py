@@ -31,7 +31,7 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TTConstraint import TTConstraint
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
-from base.timing import Day, Time
+from base.timing import Day, Time, min_to_str
 from django.contrib.postgres.fields import ArrayField
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -259,3 +259,37 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
         else:
             text += " de toutes les promos."
         return text
+
+
+class Curfew(TTConstraint):
+    """
+        Defines a curfew (after which only Visio courses are allowed)
+    """
+    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
+    curfew_time = models.PositiveSmallIntegerField(validators=[MaxValueValidator(24*60)])
+
+    def one_line_description(self):
+        text = f"Curfew after {min_to_str(self.curfew_time)}"
+
+    def enrich_model(self, ttmodel, week, ponderation=2):
+        if not self.department.mode.visio:
+            print("Visio Mode is not activated : ignore Curfew constraint")
+            return
+        days = days_filter(ttmodel.wdb.days, week=week)
+        if self.weekdays:
+            days = days_filter(days, day_in=self.weekdays)
+
+        relevant_sum = ttmodel.sum(ttmodel.TTrooms[sl, c, r]
+                                   for c in ttmodel.wdb.courses
+                                   for r in ttmodel.wdb.course_rg_compat[c] - {None}
+                                   for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                          ends_after=self.curfew_time,
+                                                          day_in=days,
+                                                          week=week))
+        if self.weight is None:
+            ttmodel.add_constraint(relevant_sum,
+                                   '==',
+                                   0,
+                                   Constraint(constraint_type=ConstraintType.CURFEW))
+        else:
+            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum)

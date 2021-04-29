@@ -41,7 +41,8 @@ from TTapp.models import \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, GroupsLunchBreak, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
     NoTutorCourseOnDay, NoGroupCourseOnDay, \
-    ConsiderDepencies
+    ConsiderDepencies, Curfew
+
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
 
@@ -344,6 +345,17 @@ class NoVisioAdmin(DepartmentModelAdmin):
                    )
 
 
+class CurfewAdmin(DepartmentModelAdmin):
+    list_display = ('week', 'year', 'comment',
+                    'weight',
+                    'is_active')
+    ordering = ()
+    list_filter = (('week', DropdownFilterAll),
+                   ('year', DropdownFilterAll),
+                   ('train_progs', DropdownFilterRel),
+                   )
+
+
 class VisioOnlyAdmin(DepartmentModelAdmin):
     list_display = ('week', 'year', 'comment',
                     'weight',
@@ -441,7 +453,7 @@ admin.site.register(TutorsLunchBreak, TutorsLunchBreakAdmin)
 admin.site.register(BreakAroundCourseType, BreakAroundCourseTypeAdmin)
 admin.site.register(NoGroupCourseOnDay, NoCourseOnDayAdmin)
 admin.site.register(NoTutorCourseOnDay, NoCourseOnDayAdmin)
-
+admin.site.register(Curfew, CurfewAdmin)
 admin.site.register(NoVisio, NoVisioAdmin)
 admin.site.register(VisioOnly, VisioOnlyAdmin)
 admin.site.register(BoundPhysicalPresenceHalfDays, BoundPhysicalPresenceHalfDaysAdmin)
