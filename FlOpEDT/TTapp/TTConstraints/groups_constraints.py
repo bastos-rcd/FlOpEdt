@@ -36,6 +36,8 @@ from people.models import GroupPreferences
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 
+from django.utils.translation import gettext as _
+
 
 def considered_basic_groups(group_ttconstraint, ttmodel):
     if group_ttconstraint.train_progs.exists():
@@ -89,6 +91,9 @@ class MinGroupsHalfDays(TTConstraint):
 
         return text
 
+    def __str__(self):
+        return _("Minimize groups half-days")
+
 
 class MinNonPreferedTrainProgsSlot(TTConstraint):
     """
@@ -133,3 +138,6 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
         else:
             text += ' de toutes les promos.'
         return text
+
+    def __str__(self):
+        return _("Minimize groups non-preferred slots")

@@ -30,30 +30,8 @@ class EventFeed(ICalFeed):
     days = [abbrev for abbrev,_ in Day.CHOICES]
 
     def __call__(self, request, *args, **kwargs):
-        """
-        Copied from django.contrib.syndication.views.Feed
-        Supports file_name as a dynamic attr.
-        """
-        try:
-            obj = self.get_object(request, *args, **kwargs)
-        except ObjectDoesNotExist:
-            raise Http404("Feed object does not exist.")
-        feedgen = self.get_feed(obj, request)
-        response = HttpResponse(
-            content_type="text/calendar"
-        )
-        if hasattr(self, "item_pubdate") or hasattr(self, "item_updateddate"):
-            # if item_pubdate or item_updateddate is defined for the feed, set
-            # header so as ConditionalGetMiddleware is able to send 304 NOT MODIFIED
-            response["Last-Modified"] = http_date(
-                timegm(feedgen.latest_post_date().utctimetuple())
-            )
-        feedgen.write(response, "utf-8")
-
-        filename = self._get_dynamic_attr("file_name", obj)
-        if filename:
-            response["Content-Disposition"] = 'attachment; filename="%s"' % filename
-
+        response = super().__call__(self, request, *args, **kwargs)
+        response["content_type"] = "text/calendar"
         return response
 
     def item_title(self, scourse):

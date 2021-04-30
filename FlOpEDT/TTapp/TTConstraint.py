@@ -25,6 +25,8 @@
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+from django.utils.translation import gettext_lazy as _
+
 from django.db import models
 max_weight = 8
 
@@ -60,7 +62,7 @@ class TTConstraint(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
         null=True, default=None, blank=True)
     comment = models.CharField(max_length=100, null=True, default=None, blank=True)
-    is_active = models.BooleanField(verbose_name='Contrainte active?', default=True)
+    is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
 
     def local_weight(self):
         return float(self.weight) / max_weight

@@ -35,6 +35,8 @@ from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
 
 from MyFlOp import MyTTUtils
 
+from django.utils.translation import gettext as _
+
             
 def available_work_copies(req, department, year, week):
     '''
