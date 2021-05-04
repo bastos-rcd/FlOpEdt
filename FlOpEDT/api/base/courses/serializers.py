@@ -105,14 +105,14 @@ class CoursesSerializer(serializers.Serializer):
     room_type = RoomType_C_Serializer()
     tutor = serializers.CharField()
     supp_tutor = serializers.CharField()
-    group = Group_C_Serializer()
+    groups = Group_C_Serializer(many=True)
     module = Module_C_Serializer()
     modulesupp = Module_C_Serializer()
 
     class Meta:
         model = bm.Course
         fields = ['id', 'week', 'year', 'no', 'department', 'type',
-                  'room_type', 'tutor', 'supp_tutor', 'group', 'module', 'modulesupp']
+                  'room_type', 'tutor', 'supp_tutor', 'groups', 'module', 'modulesupp']
 
 
 

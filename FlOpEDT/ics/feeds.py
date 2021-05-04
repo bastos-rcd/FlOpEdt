@@ -29,11 +29,6 @@ class EventFeed(ICalFeed):
     timezone = 'Europe/Paris'
     days = [abbrev for abbrev,_ in Day.CHOICES]
 
-    def __call__(self, request, *args, **kwargs):
-        response = super().__call__(self, request, *args, **kwargs)
-        response["content_type"] = "text/calendar"
-        return response
-
     def item_title(self, scourse):
         course = scourse.course
         gp_str, plural = str_groups(course)
