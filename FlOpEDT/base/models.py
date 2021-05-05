@@ -455,9 +455,12 @@ class ScheduledCourseAdditional(models.Model):
         null=True, default=None, blank=True)
 
     def __str__(self):
-        return '{' + str(self.scheduled_course) + '}' \
-            + '[' + str(self.link.description) + ']' \
-            + '(' + str(self.comment) + ')'
+        resp = '{' + str(self.scheduled_course) + '}'
+        if self.link.description:
+            resp += '[' + str(self.link.description) + ']'
+        if self.comment:
+            resp += '(' + str(self.comment) + ')'
+        return resp
 
 
 class EnrichedLink(models.Model):

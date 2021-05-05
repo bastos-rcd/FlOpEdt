@@ -39,7 +39,7 @@ from base.models import Group, \
     Department, Module, TrainingProgramme, CourseType, \
     Dependency, TutorCost, GroupFreeHalfDay, GroupCost, Holiday, TrainingHalfDay, \
     CourseStartTimeConstraint, TimeGeneralSettings, ModulePossibleTutors, CoursePossibleTutors, \
-    ModuleTutorRepartition
+    ModuleTutorRepartition, ScheduledCourseAdditional
 
 from base.timing import Time
 
@@ -1080,6 +1080,11 @@ class TTModel(object):
                                  room=fc.room,
                                  work_copy=target_work_copy,
                                  tutor=fc.tutor)
+            if ScheduledCourseAdditional.objects.filter(scheduled_course__id=fc.id).exists():
+                sca = fc.additional
+                sca.pk = None
+                sca.scheduled_course = cp
+                sca.save()
             cp.save()
 
         # # On enregistre les coûts dans la BDD
