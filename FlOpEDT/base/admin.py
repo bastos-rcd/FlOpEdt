@@ -65,7 +65,6 @@ logger = logging.getLogger('admin')
 # -- PREFERENCES --
 # -----------------
 
-
 class CoursPlaceResource(resources.ModelResource):
     id = fields.Field(column_name='id_course',
                       attribute='course',
@@ -520,11 +519,15 @@ class DepartmentModelAdminMixin():
         return queryset
 
 
-class DepartmentModelAdmin(DepartmentModelAdminMixin, admin.ModelAdmin):
+class MyModelAdmin(admin.ModelAdmin):
+    save_as = True
+
+
+class DepartmentModelAdmin(DepartmentModelAdminMixin, MyModelAdmin):
     pass
 
 
-class HolidayAdmin(admin.ModelAdmin):
+class HolidayAdmin(MyModelAdmin):
     list_display = ('day', 'week', 'year')
     ordering = ('-year', '-week', 'day')
     list_filter = (
@@ -692,12 +695,12 @@ class RegenAdmin(DepartmentModelAdmin):
     ordering = ('-year', '-week')
 
 
-class EnrichedLinkAdmin(admin.ModelAdmin):
+class EnrichedLinkAdmin(MyModelAdmin):
     list_display = ('url', 'description',)
     ordering = ('description',)
 
 
-class GroupPreferredLinksAdmin(admin.ModelAdmin):
+class GroupPreferredLinksAdmin(MyModelAdmin):
     pass
 
 # </editor-fold desc="ADMIN_MENU">

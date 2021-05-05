@@ -33,7 +33,7 @@ from django.db.models import Max
 from FlOpEDT.filters import DropdownFilterAll, DropdownFilterRel, DropdownFilterCho
 
 from import_export import resources, fields
-
+from base.admin import MyModelAdmin
 
 class QuoteResource(resources.ModelResource):
     txt = fields.Field()
@@ -65,7 +65,7 @@ def reject(modeladmin, request, queryset):
 reject.short_description = 'Reject selected quotes'
 
 
-class QuoteAdmin(admin.ModelAdmin):
+class QuoteAdmin(MyModelAdmin):
     def strquote(o):
         return str(o)
 
@@ -79,7 +79,7 @@ class QuoteAdmin(admin.ModelAdmin):
                    ('status', DropdownFilterCho))
 
 
-class QuoteTypeAdmin(admin.ModelAdmin):
+class QuoteTypeAdmin(MyModelAdmin):
     list_display = ('name', 'abbrev')
 
 
