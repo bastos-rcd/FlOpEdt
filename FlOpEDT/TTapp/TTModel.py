@@ -518,18 +518,6 @@ class TTModel(object):
 
         print("adding core constraints")
 
-        # This constraint is superfleous because of slot compatibility definition
-        # print('Slot_type constraints')
-        # for c in self.wdb.courses:
-        #     name = 'slot_type_' + str(c)
-        #     self.add_constraint(
-        #         self.sum([self.TT[(sl, c)] for ct in self.wdb.course_types.exclude(id=c.type.id)
-        #                   for sl in filter(self.wdb.slots, course_type=ct)])
-        #         + self.sum([self.TT[(sl, c)] for sl in self.wdb.slots if sl.duration != c.type.duration]),
-        #         '==',
-        #         0,
-        #        name=name)
-
         # constraint : only one course on simultaneous slots
         print('Simultaneous slots constraints for groups')
         for sl in self.wdb.availability_slots:
@@ -546,21 +534,21 @@ class TTModel(object):
             self.add_constraint(self.sum([self.TT[(sl, c)] for sl in self.wdb.compatible_slots[c]]), '==', 1,
                                 CourseConstraint(c))
 
-        # Training half day
-        for training_half_day in self.wdb.training_half_days:
-            training_slots = slots_filter(self.wdb.courses_slots, week_day=training_half_day.day, week=training_half_day.week)
-            if training_half_day.apm is not None:
-                training_slots = slots_filter(training_slots, apm=training_half_day.apm)
-            training_progs = self.train_prog
-            if training_half_day.train_prog is not None:
-                training_progs = [training_half_day.train_prog]
-            # , "no_course_on_%s_%s_%g" % (training_half_day.day, training_half_day.apm, self.constraint_nb)
-            self.add_constraint(self.sum(self.TT[(sl, c)] for sl in training_slots
-                                         for c in self.wdb.compatible_courses[sl]
-                                         & set(self.wdb.courses.filter(module__train_prog__in=training_progs))),
-                                '==', 0,
-                                Constraint(constraint_type=ConstraintType.PAS_DE_COURS_DE_DEMI_JOURNEE,
-                                days=training_half_day.day, apm=training_half_day.apm))
+        # # Training half day TODO: Delete usage because redundant with NoCourseOnDay ?
+        # for training_half_day in self.wdb.training_half_days:
+        #     training_slots = slots_filter(self.wdb.courses_slots, week_day=training_half_day.day, week=training_half_day.week)
+        #     if training_half_day.apm is not None:
+        #         training_slots = slots_filter(training_slots, apm=training_half_day.apm)
+        #     training_progs = self.train_prog
+        #     if training_half_day.train_prog is not None:
+        #         training_progs = [training_half_day.train_prog]
+        #     # , "no_course_on_%s_%s_%g" % (training_half_day.day, training_half_day.apm, self.constraint_nb)
+        #     self.add_constraint(self.sum(self.TT[(sl, c)] for sl in training_slots
+        #                                  for c in self.wdb.compatible_courses[sl]
+        #                                  & set(self.wdb.courses.filter(module__train_prog__in=training_progs))),
+        #                         '==', 0,
+        #                         Constraint(constraint_type=ConstraintType.PAS_DE_COURS_DE_DEMI_JOURNEE,
+        #                         days=training_half_day.day, apm=training_half_day.apm))
 
     def add_instructors_constraints(self):
         print("adding instructors constraints")
