@@ -579,6 +579,22 @@ function adapt_labgp(first) {
 /*--------------------
   ------ COURS -------
   --------------------*/
+function fetch_constraint(){
+  $.ajax({
+  type: "GET",
+  dataType: 'text',
+  url: build_url(url_ttconstraint,context_dept),
+  async: true,
+  contentType: "application/json",
+  success: function(msg){
+    data = JSON.parse(msg)
+  },
+  error: function (msg) {
+    console.log("error");
+    show_loader(false);
+  }
+  })
+};
 
 function fetch_cours() {
   fetch_status.ongoing_cours_pp = true;

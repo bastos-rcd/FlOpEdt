@@ -65,7 +65,7 @@ class ModuleViewSet(viewsets.ModelViewSet):
         if week is not None and year is not None:
             # Those 2 filters are needed to have returned data
             # distinct method allows us to get each module only once
-            qs = bm.ScheduledCourse.objects.distinct('course__module').filter(course__week=week, course__year=year)
+            qs = bm.ScheduledCourse.objects.distinct('course__module').filter(course__week__nb=week, course__week__year=year)
             # Filtering with department
             qs = qs.filter(course__module__train_prog__department__abbrev=abbrev)
 

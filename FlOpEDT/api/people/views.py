@@ -151,8 +151,8 @@ class TutorViewSet(viewsets.ModelViewSet):
         if week is not None and year is not None:
             return pm.Tutor.objects.filter(
                 pk__in=bm.ScheduledCourse.objects.filter(
-                    course__week=week,
-                    course__year=year) \
+                    course__week__nb=week,
+                    course__week__year=year) \
                     .distinct('tutor').values('tutor')
             )
         else:

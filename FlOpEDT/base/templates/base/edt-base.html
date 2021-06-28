@@ -33,6 +33,8 @@
 <link rel="stylesheet" href="{% static 'base/better.css' %}?7" />
 <script src="{% static 'base/d3.v4.min.js' %}"></script>
 <script>
+  var url_ttconstraint = "{% url 'api:ttapp:constraint-list' %}"
+  
   var groupes_fi = "{% url 'api:groups:group-tree' %}";
   var rooms_fi = "{% url 'api:rooms:all-list' %}";
   var constraints_fi = "{% url 'api:fetch:constraints-list' %}";

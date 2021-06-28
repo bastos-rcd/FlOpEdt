@@ -91,7 +91,7 @@ urlpatterns = [
     path('base/', include((routerBase.urls, 'api'), namespace='base')),
     path('user/', include(routerPeople.urls)),
     path('display/', include(routerDisplayweb.urls)),
-    path('ttapp/', include(routerTTapp.urls)),
+    path('ttapp/', include((routerTTapp.urls, 'api'), namespace='ttapp')),
     path('fetch/',
          include((routerFetch.urls, 'api'), namespace='fetch')),
     path('rest-auth/', include('rest_auth.urls')),

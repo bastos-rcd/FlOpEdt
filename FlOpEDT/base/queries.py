@@ -80,7 +80,7 @@ def create_first_department():
 
 def get_edt_version(department, week, year, create=False):
 
-    params = {'week': week, 'year': year, 'department': department}
+    params = {'week__nb': week, 'week__year': year, 'department': department}
 
     if create:
         try:
@@ -125,8 +125,8 @@ def get_scheduled_courses(department, week, year, num_copy):
 def get_unscheduled_courses(department, week, year, num_copy):
     return Course.objects.filter(
         module__train_prog__department=department,
-        week=week,
-        year=year
+        week__nb=week,
+        week__year=year
     ).exclude(pk__in=ScheduledCourse.objects.filter(
         course__module__train_prog__department=department,
         work_copy=num_copy

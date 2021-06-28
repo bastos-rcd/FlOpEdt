@@ -98,8 +98,8 @@ class Module_C_Serializer(serializers.Serializer):
 
 class CoursesSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    week = serializers.IntegerField()
-    year = serializers.IntegerField()
+    week = serializers.SerializerMethodField()
+    year = serializers.SerializerMethodField()
     no = serializers.IntegerField()
     type = CourseType_C_Serializer()
     room_type = RoomType_C_Serializer()
@@ -109,6 +109,18 @@ class CoursesSerializer(serializers.Serializer):
     module = Module_C_Serializer()
     modulesupp = Module_C_Serializer()
 
+    def get_week(self, obj):
+        if(obj.week is not None):
+            return (obj.week.nb)
+        else:
+            return
+
+    def get_year(self, obj):
+        if(obj.week is not None):
+            return (obj.week.year)
+        else:
+            return
+            
     class Meta:
         model = bm.Course
         fields = ['id', 'week', 'year', 'no', 'department', 'type',

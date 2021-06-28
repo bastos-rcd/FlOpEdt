@@ -221,8 +221,8 @@ def fetch_user_preferred_links(req, **kwargs):
 
 def fetch_physical_presence(req, year, week, **kwargs):
     presence = PhysicalPresence.objects.filter(user__departments=req.department,
-                                               year=year,
-                                               week=week)
+                                               week__year=year,
+                                               week__nb=week)
     dataset = PhysicalPresenceResource().export(presence)
     response = HttpResponse(dataset.csv,
                             content_type='text/csv')

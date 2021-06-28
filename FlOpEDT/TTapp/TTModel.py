@@ -80,7 +80,7 @@ GUROBI_NAME = 'GUROBI_CMD'
 solution_files_path = "misc/logs/solutions"
 
 class TTModel(object):
-    def __init__(self, department_abbrev, week_year_list,
+    def __init__(self, department_abbrev, weeks,
                  train_prog=None,
                  stabilize_work_copy=None,
                  min_nps_i=1.,
@@ -97,21 +97,7 @@ class TTModel(object):
                  min_visio=0.5):
         # beg_file = os.path.join('logs',"FlOpTT")
         self.department = Department.objects.get(abbrev=department_abbrev)
-
-        # Split week_year_list into weeks (list), and year (int)
-        # week_year should be a list of {'week': week, 'year': year}
-        year = None
-        weeks = []
-        for week_year in week_year_list:
-            y = week_year['year']
-            w = week_year['week']
-            if year is None: year = y
-            weeks.append(w)
-            if year != y:
-              raise Exception("Multiple week selection only support same year")
-
         self.weeks = weeks
-        self.year = year
 
         # Create the PuLP model, giving the name of the lp file
         self.model = LpProblem(self.solution_files_prefix(), LpMinimize)
@@ -182,7 +168,7 @@ class TTModel(object):
             self.send_lack_of_availability_mail()
 
     def wdb_init(self):
-        wdb = WeeksDatabase(self.department, self.weeks, self.year, self.train_prog, self.slots_step)
+        wdb = WeeksDatabase(self.department, self.weeks, self.train_prog, self.slots_step)
         return wdb
 
     def costs_init(self):
@@ -597,8 +583,7 @@ class TTModel(object):
                     )
 
         for mtr in ModuleTutorRepartition.objects.filter(module__in=self.wdb.modules,
-                                                         week__in=self.weeks,
-                                                         year=self.year):
+                                                         week__in=self.weeks):
             self.add_constraint(
                 self.sum(self.TTinstructors[sl, c, mtr.tutor]
                          for c in set(c for c in self.wdb.courses if c.module == mtr.module
@@ -921,7 +906,6 @@ class TTModel(object):
                         start_time__gt=sl.start_time - F('duration'),
                         day=sl.day.day,
                         week=sl.day.week,
-                        year=self.year,
                         room=room, value=0).exists():
                     avail_room[room][sl] = 0
                 else:
@@ -984,7 +968,6 @@ class TTModel(object):
             for constr in get_constraints(
                     self.department,
                     week=week,
-                    year=self.year,
                     # train_prog=promo,
                     is_active=True):
                 constr.enrich_model(self, week)
@@ -1031,7 +1014,6 @@ class TTModel(object):
         ScheduledCourse.objects \
             .filter(course__module__train_prog__department=self.department,
                     course__week__in=self.weeks,
-                    course__year=self.year,
                     work_copy=target_work_copy) \
             .delete()
 
@@ -1078,22 +1060,18 @@ class TTModel(object):
         # # On enregistre les coûts dans la BDD
         TutorCost.objects.filter(department=self.department,
                                  week__in=self.wdb.weeks,
-                                 year=self.wdb.year,
                                  work_copy=target_work_copy).delete()
         GroupFreeHalfDay.objects.filter(group__train_prog__department=self.department,
                                         week__in=self.wdb.weeks,
-                                        year=self.wdb.year,
                                         work_copy=target_work_copy).delete()
         GroupCost.objects.filter(group__train_prog__department=self.department,
                                  week__in=self.wdb.weeks,
-                                 year=self.wdb.year,
                                  work_copy=target_work_copy).delete()
 
         for week in self.weeks:
             for i in self.wdb.instructors:
                 tc = TutorCost(department=self.department,
                                tutor=i,
-                               year=self.wdb.year,
                                week=week,
                                value=self.get_expr_value(self.cost_I[i][week]),
                                work_copy=target_work_copy)
@@ -1107,13 +1085,11 @@ class TTModel(object):
                     DJL += 0.01 * self.get_expr_value(self.FHD_G[Time.AM][g][week])
 
                 djlg = GroupFreeHalfDay(group=g,
-                                        year=self.wdb.year,
                                         week=week,
                                         work_copy=target_work_copy,
                                         DJL=DJL)
                 djlg.save()
                 cg = GroupCost(group=g,
-                               year=self.wdb.year,
                                week=week,
                                work_copy=target_work_copy,
                                value=self.get_expr_value(self.cost_G[g][week]))
@@ -1167,7 +1143,6 @@ class TTModel(object):
         ScheduledCourse.objects \
             .filter(course__module__train_prog__department=self.department,
                     course__week__in=self.weeks,
-                    course__year=self.year,
                     work_copy=target_work_copy) \
             .delete()
 
@@ -1206,8 +1181,7 @@ class TTModel(object):
             .objects \
             .filter(
             course__module__train_prog__department=self.department,
-            course__week__in=self.weeks,
-            course__year=self.year) \
+            course__week__in=self.weeks) \
             .aggregate(Max('work_copy'))['work_copy__max']
 
         if local_max_wc is None:
@@ -1280,7 +1254,7 @@ class TTModel(object):
         is reached.
 
         If stabilize_work_copy is None: does not move the scheduled courses
-        whose year group is not in train_prog and fetches from the remote database
+        whose group is not in train_prog and fetches from the remote database
         these scheduled courses with work copy 0.
 
         If target_work_copy is given, stores the resulting schedule under this
@@ -1307,7 +1281,7 @@ class TTModel(object):
 
             self.add_tt_to_db(target_work_copy)
             # for week in self.weeks:
-                # reassign_rooms(self.department, week, self.year, target_work_copy)
+                # reassign_rooms(self.department, week, target_work_copy)
             print("Added work copy N°%g" % target_work_copy)
             return target_work_copy
 
@@ -1318,7 +1292,7 @@ class TTModel(object):
         return other_slots.pop()
 
 
-def get_constraints(department, week=None, year=None, train_prog=None, is_active=None):
+def get_constraints(department, week=None, train_prog=None, is_active=None):
     #
     #  Return constraints corresponding to the specific filters
     #
@@ -1327,17 +1301,14 @@ def get_constraints(department, week=None, year=None, train_prog=None, is_active
     if is_active:
         query &= Q(is_active=is_active)
 
-    if week and not year:
-        logger.warning(f"Unable to filter constraint for weeks {week} without specifing year")
-        return
     elif train_prog:
         query &= \
-            Q(train_progs__abbrev=train_prog) & Q(week__isnull=True) & Q(year__isnull=True) | \
-            Q(train_progs__abbrev=train_prog) & Q(week=week) & Q(year=year) | \
-            Q(train_progs__isnull=True) & Q(week=week) & Q(year=year) | \
-            Q(train_progs__isnull=True) & Q(week__isnull=True) & Q(year__isnull=True)
+            Q(train_progs__abbrev=train_prog) & Q(weeks__isnull=True) | \
+            Q(train_progs__abbrev=train_prog) & Q(weeks=week) | \
+            Q(train_progs__isnull=True) & Q(weeks=week) | \
+            Q(train_progs__isnull=True) & Q(weeks__isnull=True)
     else:
-        query &= Q(week=week) & Q(year=year) | Q(week__isnull=True) & Q(year__isnull=True)
+        query &= Q(week=week) | Q(week__isnull=True)
 
     # Look up the TTConstraint subclasses records to update
     from TTapp.TTConstraint import TTConstraint, all_subclasses

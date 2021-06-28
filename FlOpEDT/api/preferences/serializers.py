@@ -30,12 +30,24 @@ import base.models as bm
 
 class UserPreferenceSerializer(serializers.Serializer):
     user = serializers.CharField()
-    week = serializers.IntegerField()
-    year = serializers.IntegerField()
+    week = serializers.SerializerMethodField()
+    year = serializers.SerializerMethodField()
     day = serializers.CharField()
     start_time = serializers.IntegerField()
     duration = serializers.IntegerField()
     value = serializers.IntegerField()
+
+    def get_week(self, obj):
+        if(obj.week is not None):
+            return (obj.week.nb)
+        else:
+            return
+
+    def get_year(self, obj):
+        if(obj.week is not None):
+            return (obj.week.year)
+        else:
+            return
 
     class Meta:
         model = bm.UserPreference
@@ -43,12 +55,42 @@ class UserPreferenceSerializer(serializers.Serializer):
 
 
 class CoursePreferencesSerializer(serializers.ModelSerializer):
+    week = serializers.SerializerMethodField()
+    year = serializers.SerializerMethodField()
+
+    def get_week(self, obj):
+        if(obj.week is not None):
+            return (obj.week.nb)
+        else:
+            return
+
+    def get_year(self, obj):
+        if(obj.week is not None):
+            return (obj.week.year)
+        else:
+            return
+            
     class Meta:
         model = bm.CoursePreference
         fields = '__all__'
 
 
 class RoomPreferencesSerializer(serializers.ModelSerializer):
+    week = serializers.SerializerMethodField()
+    year = serializers.SerializerMethodField()
+
+    def get_week(self, obj):
+        if(obj.week is not None):
+            return (obj.week.nb)
+        else:
+            return
+
+    def get_year(self, obj):
+        if(obj.week is not None):
+            return (obj.week.year)
+        else:
+            return
+
     class Meta:
         model = bm.RoomPreference
         fields = '__all__'

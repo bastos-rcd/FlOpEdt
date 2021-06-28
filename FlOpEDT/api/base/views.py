@@ -234,7 +234,7 @@ class RegenFilterSet(filters.FilterSet):
 
     class Meta:
         model = bm.Regen
-        fields = ['dept', 'year', 'week']
+        fields = ['dept', 'week']
 
 
 class RegensViewSet(viewsets.ModelViewSet):

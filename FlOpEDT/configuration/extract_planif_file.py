@@ -36,9 +36,9 @@ from people.tutor import fill_default_user_preferences
 from misc.assign_colors import assign_module_color
 from TTapp.models import StabilizationThroughWeeks
 
-def do_assign(module, course_type, week, year, book):
+def do_assign(module, course_type, week, book):
     already_done = ModuleTutorRepartition.objects.filter(module=module, course_type=course_type,
-                                                         week=week, year=year).exists()
+                                                         week=week).exists()
     if already_done:
         return
 
@@ -56,7 +56,7 @@ def do_assign(module, course_type, week, year, book):
     while tutor_username is not None:
         tutor = Tutor.objects.get(username=tutor_username)
         mtr = ModuleTutorRepartition(module=module, course_type=course_type,
-                                     week=week, year=year, tutor=tutor)
+                                     week=week, tutor=tutor)
         nb = assignation_sheet.cell(row=assignation_row+1, column=column).value
         if nb is not None:
             nb = int(nb)
@@ -67,9 +67,10 @@ def do_assign(module, course_type, week, year, book):
     print(f"Assignation done for {module.abbrev} / {course_type.name}!")
 
 
-def ReadPlanifWeek(department, book, feuille, week, year, courses_to_stabilize=None):
+def ReadPlanifWeek(department, book, feuille, week_nb, year, courses_to_stabilize=None):
     sheet = book[feuille]
     period=Period.objects.get(name=feuille, department=department)
+    week = Week.objects.get(nb=week_nb, year=year)
 
     # lookup week row:
 
@@ -79,15 +80,15 @@ def ReadPlanifWeek(department, book, feuille, week, year, courses_to_stabilize=N
         while wc < 50:
             wc += 1
             sem = sheet.cell(row=wr, column=wc).value
-            if sem == float(week):
+            if sem == float(week_nb):
                 WEEK_COL = wc
                 break
     try:
         WEEK_COL += 0
     except UnboundLocalError:
-        print('Pas de semaine %s en %s' % (week, feuille))
+        print('Pas de semaine %s en %s' % (week_nb, feuille))
         return
-    print("Semaine %s de %s : colonne %g" % (week, feuille, WEEK_COL))
+    print("Semaine %s de %s : colonne %g" % (week_nb, feuille, WEEK_COL))
 
     row = 4
     module_COL = 1
@@ -104,7 +105,7 @@ def ReadPlanifWeek(department, book, feuille, week, year, courses_to_stabilize=N
                 courses_to_stabilize[row] = []
         is_total = sheet.cell(row=row, column=group_COL).value
         if is_total == "TOTAL":
-            # print "Sem %g de %s - TOTAL: %g"%(week, feuille,sumtotal)
+            # print "Sem %g de %s - TOTAL: %g"%(week_nb, feuille,sumtotal)
             break
 
         Cell = sheet.cell(row=row, column=WEEK_COL)
@@ -121,7 +122,7 @@ def ReadPlanifWeek(department, book, feuille, week, year, courses_to_stabilize=N
             if salle == "Type de Salle":
                 nominal = int(N)
                 if N != nominal:
-                    print('Valeur decimale ligne %g de %s, semaine %g : on la met a 1 !' % (row, feuille, week))
+                    print('Valeur decimale ligne %g de %s, semaine %g : on la met a 1 !' % (row, feuille, week_nb))
                     nominal = 1
                     # le nominal est le nombre de cours par groupe (de TP ou TD)
                 if Cell.comment:
@@ -155,7 +156,7 @@ def ReadPlanifWeek(department, book, feuille, week, year, courses_to_stabilize=N
                     UserDepartmentSettings(user=TUTOR, department=department).save()
             elif prof == '*':
                 TUTOR = None
-                do_assign(MODULE, COURSE_TYPE, week, year, book)
+                do_assign(MODULE, COURSE_TYPE, week, book)
             else:
                 assert isinstance(prof, str) and prof is not None
                 prof = prof.replace('\xa0', '').replace(' ', '')
@@ -189,7 +190,7 @@ def ReadPlanifWeek(department, book, feuille, week, year, courses_to_stabilize=N
 
 
             for i in range(N):
-                C = Course(tutor=TUTOR, type=COURSE_TYPE, module=MODULE, week=week, year=year,
+                C = Course(tutor=TUTOR, type=COURSE_TYPE, module=MODULE, week=week,
                            room_type=ROOMTYPE)
                 C.save()
                 if courses_to_stabilize is not None:
@@ -221,7 +222,7 @@ def ReadPlanifWeek(department, book, feuille, week, year, courses_to_stabilize=N
                     relevant_groups = set()
                     for g in GROUPS:
                         relevant_groups |= g.ancestor_groups() | {g} | g.descendants_groups()
-                    courses = Course.objects.filter(type__name=course_type, module=MODULE, week=week, year=year,
+                    courses = Course.objects.filter(type__name=course_type, module=MODULE, week=week,
                                                     groups__in = relevant_groups)
                     for course in courses[:n]:
                         P = Dependency(course1=course, course2=C)
@@ -240,18 +241,16 @@ def ReadPlanifWeek(department, book, feuille, week, year, courses_to_stabilize=N
                     course_additional.graded = True
                     course_additional.save()
             if 'D' in comments or 'D' in local_comments and N >= 2:
-                relevant_courses = Course.objects.filter(type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, year=year,
-                                              week=week)
+                relevant_courses = Course.objects.filter(type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, week=week)
                 for i in range(N//2-1):
                     P = Dependency(course1=relevant_courses[2*i], course2=relevant_courses[2*i+1], successive=True)
                     P.save()
             if 'ND' in comments or 'ND' in local_comments and N >= 2:
-                relevant_courses = Course.objects.filter(type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, year=year,
-                                              week=week)
+                relevant_courses = Course.objects.filter(type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, week=week)
                 P = Dependency(course1=relevant_courses[0], course2=relevant_courses[1], ND=True)
                 P.save()
         except Exception as e:
-            raise Exception(f"Exception ligne {row}, semaine {week} de {feuille}: {e} \n")
+            raise Exception(f"Exception ligne {row}, semaine {week_nb} de {feuille}: {e} \n")
 
 
 def extract_period(department, book, period, year, stabilize_courses=False, starting_week=-1, ending_week=53):

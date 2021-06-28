@@ -32,10 +32,14 @@ from rest_framework.decorators import action
 from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
 
+from django.apps import apps
+
 import base.models as bm
 from base import queries, weeks
 import people.models as pm
 import displayweb.models as dwm
+
+import TTapp.TTConstraint as tt
 
 from api.fetch import serializers
 from api.shared.params import dept_param, week_param, year_param, user_param, \
@@ -50,8 +54,8 @@ class ScheduledCourseFilterSet(filters.FilterSet):
     group = filters.CharFilter(field_name='course__groups__name')
     tutor_name = filters.CharFilter(field_name='tutor__username')
     # makes the fields required
-    week = filters.NumberFilter(field_name='course__week', required=True)
-    year = filters.NumberFilter(field_name='course__year', required=True)
+    week = filters.NumberFilter(field_name='course__week__nb', required=True)
+    year = filters.NumberFilter(field_name='course__week__year', required=True)
 
     work_copy = filters.NumberFilter(field_name='work_copy')
 
@@ -121,10 +125,10 @@ class UnscheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Filtering different querysets
         if year is not None:
-            queryset_course = queryset_course.filter(year=year)
+            queryset_course = queryset_course.filter(week__year=year)
 
         if week is not None:
-            queryset_course = queryset_course.filter(week=week)
+            queryset_course = queryset_course.filter(week__nb=week)
 
         queryset_sc = queryset_sc.filter(work_copy=work_copy)
         if department is not None:
@@ -164,9 +168,9 @@ class AvailabilitiesViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Filtering
         if week is not None:
-            qs = qs.filter(week=week)
+            qs = qs.filter(week__nb=week)
         if year is not None:
-            qs = qs.filter(year=year)
+            qs = qs.filter(week__year=year)
         if dept is not None:
             qs = qs.filter(user__departments__abbrev=dept)
 
@@ -310,9 +314,9 @@ class ExtraSchedCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             return None
 
         if week is not None:
-            qs_esc = qs_esc.filter(course__week=week)
+            qs_esc = qs_esc.filter(course__week__nb=week)
         if year is not None:
-            qs_esc = qs_esc.filter(course__year=year)
+            qs_esc = qs_esc.filter(course__week__year=year)
 
         # Getting all the needed data
 
@@ -379,14 +383,14 @@ class UnavailableRoomViewSet(viewsets.ViewSet):
         # To be done later
         # ----------------
         #
-        # cache_key = get_key_unavailable_rooms(department.abbrev, year, week)
+        # cache_key = get_key_unavailable_rooms(department.abbrev, week)
         # cached = cache.get(cache_key)
         # if cached is not None:
         #     return cached
 
         dataset = bm.RoomPreference.objects.filter(room__departments__abbrev=department,
-                                                   week=week,
-                                                   year=year,
+                                                   week__nb=week,
+                                                   week__year=year,
                                                    value=0)
 
         # cache.set(cache_key, response)7
@@ -443,3 +447,252 @@ class WeekDaysViewSet(viewsets.ViewSet):
 
         data = weeks.num_all_days(year, week, department)
         return JsonResponse(data, safe=False)
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False)
+                      ]
+                  ),
+                  )
+class IDTutorViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet to see the ID and name of every Tutor
+
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = serializers.IDTutorSerializer
+
+    def get_queryset(self):
+        queryset = pm.Tutor.objects.all()
+
+        dept = self.request.query_params.get('dept', None)
+
+        if(dept is not None):
+            queryset = queryset.filter(departments__abbrev = dept)
+        
+        return(queryset)
+    
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False)
+                      ]
+                  ),
+                  )
+class IDTrainProgViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet to see the ID and name of every TrainingProgramme
+
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = serializers.IDTrainProgSerializer
+
+    def get_queryset(self):
+        queryset = bm.TrainingProgramme.objects.all()
+
+        dept = self.request.query_params.get('dept', None)
+
+        if(dept is not None):
+            queryset = queryset.filter(department__abbrev = dept)
+        
+        return(queryset)
+
+    
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False)
+                      ]
+                  ),
+                  )
+class IDModuleViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet to see the ID and name of every Module
+
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = serializers.IDModuleSerializer
+
+    def get_queryset(self):
+        queryset = bm.Module.objects.all()
+        dept = self.request.query_params.get('dept', None)
+
+        if(dept is not None):
+            queryset = queryset.filter(train_prog__department__abbrev = dept)
+
+        return(queryset)
+    
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False)
+                      ]
+                  ),
+                  )
+class IDCourseTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet to see the ID and name of every CourseType
+
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = serializers.IDCourseTypeSerializer
+
+    def get_queryset(self):
+        queryset = bm.CourseType.objects.all()
+        dept = self.request.query_params.get('dept', None)
+
+        if(dept is not None):
+            queryset = queryset.filter(department__abbrev = dept)
+
+        return(queryset)
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False)
+                      ]
+                  ),
+                  )
+class IDGroupViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet to see the ID and name of every Group
+
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = serializers.IDGroupSerializer
+
+    def get_queryset(self):
+        queryset = bm.Group.objects.all()
+        dept = self.request.query_params.get('dept', None)
+
+        if(dept is not None):
+            queryset = queryset.filter(train_prog__department__abbrev = dept)
+
+        return(queryset)
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False)
+                      ]
+                  ),
+                  )
+class IDGroupTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet to see the ID and name of every GroupType
+
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = serializers.IDGroupTypeSerializer
+
+    def get_queryset(self):
+        queryset = bm.GroupType.objects.all()
+        dept = self.request.query_params.get('dept', None)
+
+        if(dept is not None):
+            queryset = queryset.filter(department__abbrev = dept)
+
+        return(queryset)
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False)
+                      ]
+                  ),
+                  )
+class IDRoomViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet to see the ID and name of every Room
+
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = serializers.IDRoomSerializer
+
+    def get_queryset(self):
+        queryset = bm.Room.objects.all()
+        dept = self.request.query_params.get('dept', None)
+
+        if(dept is not None):
+            queryset = queryset.filter(departments__abbrev = dept)
+
+        return(queryset)
+
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False)
+                      ]
+                  ),
+                  )
+class IDRoomTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet to see the ID and name of every RoomType
+    
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = serializers.IDRoomTypeSerializer
+
+    def get_queryset(self):
+        queryset = bm.RoomType.objects.all()
+        dept = self.request.query_params.get('dept', None)
+
+        if(dept is not None):
+            queryset = queryset.filter(department__abbrev = dept)
+
+        return(queryset)
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False)
+                      ]
+                  ),
+                  )
+class ParameterViewSet(viewsets.ViewSet):
+    permission_classes = [IsAdminOrReadOnly]
+    filterset_fields = '__all__' 
+    
+    def list(self, request):
+        data = {}
+        data["people"] = {}
+        data["base"] = {}
+        data["people"]["Tutor"] = list()
+
+        dept = self.request.query_params.get('dept', None)
+
+        base_types =["TrainingProgramme","Module","CourseType","Group","GroupType","Room","RoomType"]
+
+        qtutor = pm.Tutor.objects.all()
+
+        if(dept is not None):
+            qtutor = qtutor.filter(departments__abbrev = dept)
+
+        for object in qtutor:
+            serializer = serializers.IDTutorSerializer(object)
+            data["people"]["Tutor"].append(serializer.data)
+
+        for typename in base_types:
+            model = apps.get_model("base",typename)
+            data["base"][typename] = list()
+            queryset = model.objects.all()
+
+            if(dept is not None):
+                if (typename == "Room"):
+                    queryset = queryset.filter(departments__abbrev = dept)
+
+                if (typename in ["Group","Module"]):
+                    queryset = queryset.filter(train_prog__department__abbrev = dept)
+
+                if (typename in ["TrainingProgramme","CourseType","GroupType","RoomType"]):
+                    queryset = queryset.filter(department__abbrev = dept)
+
+            for object in queryset:
+                serializer = serializers.IDRoomSerializer(object)
+                data["base"][typename].append(serializer.data)
+
+        return Response(data)

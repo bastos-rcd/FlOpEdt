@@ -156,13 +156,13 @@ def pref_requirements(department, tutor, year, week):
     """
     courses_time =sum(c.type.duration for c in
                       bm.Course.objects.filter(tutor=tutor,
-                                               week=week,
-                                               year=year))
+                                               week__nb=week,
+                                               week__year=year))
     week_av = bm.UserPreference \
         .objects \
         .filter(user=tutor,
-                week=week,
-                year=year,
+                week__nb=week,
+                week__year=year,
                 day__in=queries.get_working_days(department))
     if not week_av.exists():
         week_av = bm.UserPreference \
@@ -196,6 +196,7 @@ class WeekInfoViewSet(viewsets.ViewSet):
     def list(self, request, format=None):
         week = int(request.query_params.get('week'))
         year = int(request.query_params.get('year'))
+
         try:
             department = bm.Department.objects.get(
                 abbrev=request.query_params.get('dept')
@@ -212,7 +213,7 @@ class WeekInfoViewSet(viewsets.ViewSet):
                 else (-1, -1)
 
         try:
-            regen = str(bm.Regen.objects.get(department=department, week=week, year=year))
+            regen = str(bm.Regen.objects.get(department=department, week__nb=week, week__year=year))
         except bm.Regen.DoesNotExist:
             regen = 'I'
 

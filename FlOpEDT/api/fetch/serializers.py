@@ -75,11 +75,24 @@ class Course_SC_Serializer(serializers.Serializer):
     id = serializers.IntegerField()
     type = serializers.CharField()
     room_type = serializers.CharField()
-    week = serializers.IntegerField()
-    year = serializers.IntegerField()
+    week = serializers.SerializerMethodField()
+    year = serializers.SerializerMethodField()
     groups = Group_SC_Serializer(many=True)
     module = Module_SC_Serializer()
     is_graded = serializers.BooleanField()
+
+    def get_week(self, obj):
+        if(obj.week is not None):
+            return (obj.week.nb)
+        else:
+            return
+
+    def get_year(self, obj):
+        if(obj.week is not None):
+            return (obj.week.year)
+        else:
+            return
+
 
     class Meta:
         model = bm.Course
@@ -116,10 +129,23 @@ class CourseCosmo_SC_Serializer(serializers.Serializer):
     id = serializers.IntegerField()
     type = serializers.CharField()
     room_type = serializers.CharField()
-    week = serializers.IntegerField()
-    year = serializers.IntegerField()
+    week = serializers.SerializerMethodField()
+    year = serializers.SerializerMethodField()
     groups = Group_SC_Serializer(many=True)
     module = ModuleCosmo_SC_Serializer()
+
+    def get_week(self, obj):
+        if(obj.week is not None):
+            return (obj.week.nb)
+        else:
+            return
+
+    def get_year(self, obj):
+        if(obj.week is not None):
+            return (obj.week.year)
+        else:
+            return
+
 
     class Meta:
         model = bm.Course
@@ -309,10 +335,22 @@ class DepartmentAbbrevSerializer(serializers.Serializer):
 
 class AllVersionsSerializer(serializers.ModelSerializer):
     # Spécification des champs voulus
-    year = serializers.IntegerField()
-    week = serializers.IntegerField()
+    year = serializers.SerializerMethodField()
+    week = serializers.SerializerMethodField()
     version = serializers.IntegerField()
     department = DepartmentAbbrevSerializer()
+
+    def get_week(self, obj):
+        if(obj.week is not None):
+            return (obj.week.nb)
+        else:
+            return
+
+    def get_year(self, obj):
+        if(obj.week is not None):
+            return (obj.week.year)
+        else:
+            return
 
     # Mise en forme des données
     class Meta:
@@ -346,10 +384,23 @@ class Course_TC_Serializer(serializers.Serializer):
     type = CourseType_TC_Serializer()
     tutor = serializers.CharField()
     room_type = serializers.CharField()
-    week = serializers.IntegerField()
-    year = serializers.IntegerField()
+    week = serializers.SerializerMethodField()
+    year = serializers.SerializerMethodField()
     groups = Group_SC_Serializer()
     module = Module_SC_Serializer()
+
+    def get_week(self, obj):
+        if(obj.week is not None):
+            return (obj.week.nb)
+        else:
+            return
+
+    def get_year(self, obj):
+        if(obj.week is not None):
+            return (obj.week.year)
+        else:
+            return
+
 
     class Meta:
         model = bm.Course
@@ -437,3 +488,48 @@ class BKNewsSerializer(serializers.ModelSerializer):
 #                                   ------------------                                  #
 #                                   ----Week infos----                                  #
 #                                   ------------------                                  #
+
+class IDTutorSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return obj.username
+
+    class Meta:
+        model = pm.Tutor
+        fields = ['id', 'name']
+
+class IDTrainProgSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.TrainingProgramme
+        fields = ['id', 'name']
+        
+class IDModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.Module
+        fields = ['id', 'name']
+
+class IDCourseTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.CourseType
+        fields = ['id', 'name']
+
+class IDGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.Group
+        fields = ['id', 'name'] 
+
+class IDGroupTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.GroupType
+        fields = ['id', 'name'] 
+
+class IDRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.Room
+        fields = ['id', 'name']
+
+class IDRoomTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.RoomType
+        fields = ['id', 'name']

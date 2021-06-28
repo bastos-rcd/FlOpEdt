@@ -26,7 +26,7 @@
 # without disclosing the source code of your own applications.
 
 from base.models import ScheduledCourse, RoomPreference, EdtVersion, Department, CourseStartTimeConstraint,\
-    TimeGeneralSettings, Room, CourseModification, UserPreference
+    TimeGeneralSettings, Room, CourseModification, UserPreference, Week
 from base.timing import str_slot
 from django.db.models import Count, Max, Q, F
 from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, max_weight
@@ -37,11 +37,11 @@ from people.models import Tutor
 import json
 
 
-def basic_reassign_rooms(department, week, year, target_work_copy):
-    minimize_moves(department, week, year, target_work_copy)
+def basic_reassign_rooms(department, week, target_work_copy):
+    minimize_moves(department, week, target_work_copy)
 
 
-def minimize_moves(department, week, year, target_work_copy):
+def minimize_moves(department, week, target_work_copy):
     """
     Reassign the rooms to minimize moves...
     """
@@ -50,7 +50,6 @@ def minimize_moves(department, week, year, target_work_copy):
     scheduled_courses_params = {
         'course__module__train_prog__department': department,
         'course__week': week,
-        'course__year': year,
         'work_copy': target_work_copy,
     }
 
@@ -105,7 +104,7 @@ def minimize_moves(department, week, year, target_work_copy):
                 # test if precedent.room is available
                 prec_is_unavailable = False
                 for r in precedent.room.and_subrooms():
-                    if RoomPreference.objects.filter(week=week, year=year,  day=day,
+                    if RoomPreference.objects.filter(week=week, day=day,
                                                      start_time=st, room=r, value=0).exists():
                         prec_is_unavailable = True
 
@@ -136,13 +135,12 @@ def minimize_moves(department, week, year, target_work_copy):
                             sib.save()
                         # print "swapped", CP, " with", sib
     cache.delete(get_key_course_pl(department.abbrev,
-                                   year,
                                    week,
                                    target_work_copy))
     print("done")
 
 
-def get_shared_tutors(department, week, year, copy_a):
+def get_shared_tutors(department, week, copy_a):
     '''
     Returns tutors that are busy both in the department for the given week (work_copy copy_a)
     and in another department (work_copy 0)
@@ -153,7 +151,6 @@ def get_shared_tutors(department, week, year, copy_a):
                                       'tutor')\
                       .filter(course__module__train_prog__department__abbrev=department,
                               course__week=week,
-                              course__year=year,
                               work_copy=copy_a)\
                       .distinct('tutor')]
     return [s.tutor.username for s in ScheduledCourse\
@@ -161,7 +158,6 @@ def get_shared_tutors(department, week, year, copy_a):
             .select_related('course__module__train_prog__department')\
             .exclude(course__module__train_prog__department__abbrev=department)\
             .filter(course__week=week,
-                    course__year=year,
                     tutor__in=busy_tutors_in_dept,
                     work_copy=0)\
             .distinct('tutor')]
@@ -189,10 +185,10 @@ def compute_conflicts_helper(dic):
     return conflicts
     
 
-def compute_conflicts(department, week, year, copy_a):
+def compute_conflicts(department, week, copy_a):
     '''
     Computes the conflicts (tutor giving several courses at the same time or
-    room used in parallel) in week (year,week) between the work copy copy_a
+    room used in parallel) in week (year,nb) between the work copy copy_a
     of department department, and work copy 0 of the other departments.
     '''
     conflicts = {}
@@ -200,21 +196,19 @@ def compute_conflicts(department, week, year, copy_a):
     # tutors with overlapping courses
     dic_by_tutor = {}
     tmp_conflicts = []
-    tutors_username_list = get_shared_tutors(department, week, year, copy_a)
+    tutors_username_list = get_shared_tutors(department, week, copy_a)
     courses_list = ScheduledCourse.objects.select_related('course__module__train_prog__department',
                                                           'course__type__duration',
                                                           'tutor')\
                                           .filter(Q(work_copy=copy_a) & Q(course__module__train_prog__department__abbrev=department) \
                                                   | Q(work_copy=0)&~Q(course__module__train_prog__department__abbrev=department),
                                                   course__week=week,
-                                                  course__year=year,
                                                   tutor__username__in=tutors_username_list,
                                           )\
                                           .annotate(duration=F('course__type__duration'),
-                                                    week=F('course__week'),
-                                                    year=F('course__year'))\
+                                                    week=F('course__week'))\
                                           .values('id',
-                                                  'year', 'week',
+                                                  'week',
                                                   'day','start_time','duration','tutor__username')
     for t in tutors_username_list:
         dic_by_tutor[t] = []
@@ -235,14 +229,12 @@ def compute_conflicts(department, week, year, copy_a):
                                           .filter(Q(work_copy=copy_a) & Q(course__module__train_prog__department__abbrev=department) \
                                                   | Q(work_copy=0)&~Q(course__module__train_prog__department__abbrev=department),
                                                   course__week=week,
-                                                  course__year=year,
                                                   work_copy=copy_a,
                                                   room__in=conflict_room_list)\
                                           .annotate(duration=F('course__type__duration'),
-                                                    week=F('course__week'),
-                                                    year=F('course__year'))\
+                                                    week=F('course__week'))\
                                           .values('id',
-                                                  'year', 'week',
+                                                  'week',
                                                   'day','start_time','duration','room')
     for room in get_shared_rooms():
         dic_by_room[room.name] = []
@@ -261,7 +253,7 @@ def compute_conflicts(department, week, year, copy_a):
     return conflicts
 
 
-def get_conflicts(department, week, year, copy_a):
+def get_conflicts(department, week, copy_a):
     '''
     Checks whether the work copy copy_a of department department is compatible
     with the work copies 0 of the other departments.
@@ -270,7 +262,7 @@ def get_conflicts(department, week, year, copy_a):
     result = {'status':'OK'}
     more = ''
     
-    conflicts = compute_conflicts(department, week, year, copy_a)
+    conflicts = compute_conflicts(department, week, copy_a)
 
     if len(conflicts['tutor']) + len(conflicts['room']) == 0:
         return result
@@ -306,12 +298,11 @@ def get_conflicts(department, week, year, copy_a):
     return result
 
 
-def basic_swap_version(department, week, year, copy_a, copy_b=0):
+def basic_swap_version(department, week, copy_a, copy_b=0):
 
     scheduled_courses_params = {
         'course__module__train_prog__department': department,
         'course__week': week,
-        'course__year': year,
     }
 
     try:
@@ -323,7 +314,7 @@ def basic_swap_version(department, week, year, copy_a, copy_b=0):
         print('No scheduled courses')
         return
 
-    version_copy = EdtVersion.objects.get(department=department, week=week, year=year)
+    version_copy = EdtVersion.objects.get(department=department, week=week)
 
     for cp in ScheduledCourse.objects.filter(work_copy=copy_a, **scheduled_courses_params):
         cp.work_copy = tmp_wc
@@ -338,37 +329,31 @@ def basic_swap_version(department, week, year, copy_a, copy_b=0):
         cp.save()
 
     if copy_a == 0 or copy_b == 0:
-        CourseModification.objects.filter(course__year=year,
-                                          course__week=week).delete()
+        CourseModification.objects.filter(course__week=week).delete()
         version_copy.version += 1
         version_copy.save()
 
     cache.delete(get_key_course_pl(department.abbrev,
-                                   year,
                                    week,
                                    copy_a))
     cache.delete(get_key_course_pl(department.abbrev,
-                                   year,
                                    week,
                                    copy_b))
     cache.delete(get_key_course_pp(department.abbrev,
-                                   year,
                                    week,
                                    copy_a))
     cache.delete(get_key_course_pp(department.abbrev,
-                                   year,
                                    week,
                                    copy_b))
 
 
-def basic_delete_work_copy(department, week, year, work_copy):
+def basic_delete_work_copy(department, week, work_copy):
 
     result = {'status': 'OK', 'more': ''}
 
     scheduled_courses_params = {
         'course__module__train_prog__department': department,
         'course__week': week,
-        'course__year': year,
         'work_copy': work_copy
     }
 
@@ -384,39 +369,35 @@ def basic_delete_work_copy(department, week, year, work_copy):
     sc_to_delete.delete()
 
     cache.delete(get_key_course_pl(department.abbrev,
-                                   year,
                                    week,
                                    work_copy))
     return result
 
 
-def basic_delete_all_unused_work_copies(department, week, year):
+def basic_delete_all_unused_work_copies(department, week):
     result = {'status': 'OK', 'more': ''}
     scheduled_courses_params = {
         'course__module__train_prog__department': department,
         'course__week': week,
-        'course__year': year
     }
     work_copies = set(sc.work_copy
                       for sc in ScheduledCourse.objects.filter(**scheduled_courses_params)
                       .exclude(work_copy=0)
                       .distinct("work_copy"))
     for wc in work_copies:
-        result = basic_delete_work_copy(department, week, year, wc)
+        result = basic_delete_work_copy(department, week, wc)
         if result["status"] == "KO":
             return result
 
     return result
 
 
-def basic_duplicate_work_copy(department, week, year, work_copy):
+def basic_duplicate_work_copy(department, week, work_copy):
 
     result = {'status': 'OK', 'more': ''}
-
     scheduled_courses_params = {
         'course__module__train_prog__department': department,
         'course__week': week,
-        'course__year': year
     }
     local_max_wc = ScheduledCourse \
         .objects \
@@ -437,7 +418,7 @@ def basic_duplicate_work_copy(department, week, year, work_copy):
         sc.pk = None
         sc.work_copy = target_work_copy
         sc.save()
-        result['status'] = f'Duplicated to copy #{target_work_copy}'
+    result['status'] = f'Duplicated to copy #{target_work_copy}'
 
     return result
 
@@ -472,10 +453,10 @@ def load_dispos(json_filename):
         except Tutor.DoesNotExist:
             exceptions.add(dispo['prof'])
             continue
+        week = Week.objects.get(week=int_or_none(dispo["week"]), year=int_or_none(dispo["year"]))
         U, created = UserPreference.objects.get_or_create(
             user=tutor,
-            week=int_or_none(dispo["week"]),
-            year=int_or_none(dispo["year"]),
+            week=week,
             day=dispo['day'],
             start_time=dispo['start_time'],
             duration=dispo['duration']

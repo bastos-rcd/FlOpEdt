@@ -63,11 +63,10 @@ GUROBI_NAME = 'GUROBI_CMD'
 
 
 class WeeksDatabase(object):
-    def __init__(self, department, weeks, year, train_prog, slots_step=None):
+    def __init__(self, department, weeks, train_prog, slots_step=None):
         self.train_prog = train_prog
         self.department = department
         self.weeks = weeks
-        self.year = year
         self.slots_step = slots_step
         self.possible_apms=set()
         self.days, self.day_after, self.holidays, self.training_half_days, self.day_before = self.days_init()
@@ -98,14 +97,13 @@ class WeeksDatabase(object):
 
         training_half_days = TrainingHalfDay.objects.filter(
             week__in=self.weeks,
-            year=self.year,
             train_prog__in=self.train_prog)
 
         days = [Day(week=week, day=day)
                 for week in self.weeks
                 for day in TimeGeneralSettings.objects.get(department=self.department).days]
 
-        database_holidays = Holiday.objects.filter(week__in=self.weeks, year=self.year)
+        database_holidays = Holiday.objects.filter(week__in=self.weeks)
         holidays = set(d for d in days if database_holidays.filter(day=d.day, week=d.week).exists())
 
         if not self.department.mode.cosmo:
@@ -178,7 +176,7 @@ class WeeksDatabase(object):
 
     def courses_init(self):
         # COURSES
-        courses = Course.objects.filter(week__in=self.weeks, year=self.year, module__train_prog__in=self.train_prog)\
+        courses = Course.objects.filter(week__in=self.weeks, module__train_prog__in=self.train_prog)\
             .select_related('module')
 
         course_types = set(c.type for c in courses)
@@ -188,19 +186,17 @@ class WeeksDatabase(object):
         sched_courses = ScheduledCourse \
             .objects \
             .filter(course__week__in=self.weeks,
-                    course__year=self.year,
                     course__module__train_prog__in=self.train_prog,
                     work_copy=0)
 
         fixed_courses = ScheduledCourse.objects \
             .filter(course__module__train_prog__department=self.department,
                     course__week__in=self.weeks,
-                    course__year=self.year,
                     work_copy=0) \
             .exclude(course__module__train_prog__in=self.train_prog)
 
         other_departments_courses = Course.objects.filter(
-            week__in=self.weeks, year=self.year) \
+            week__in=self.weeks) \
             .exclude(type__department=self.department)
 
         other_departments_sched_courses = ScheduledCourse \
@@ -209,7 +205,7 @@ class WeeksDatabase(object):
                     work_copy=0)
 
         courses_availabilities = CoursePreference.objects \
-            .filter(Q(week__in=self.weeks, year=self.year) | Q(week=None),
+            .filter(Q(week__in=self.weeks) | Q(week=None),
                     train_prog__department=self.department)
 
         modules = Module.objects \
@@ -217,7 +213,6 @@ class WeeksDatabase(object):
 
         dependencies = Dependency.objects.filter(
             course1__week__in=self.weeks,
-            course1__year=self.year,
             course2__week__in=self.weeks,
             course1__module__train_prog__in=self.train_prog)
 
@@ -374,8 +369,7 @@ class WeeksDatabase(object):
             for tutor in cpt.possible_tutors.all():
                 instructors.add(tutor)
         for mtr in ModuleTutorRepartition.objects.filter(module__in=self.modules,
-                                                         week__in=self.weeks,
-                                                         year=self.year):
+                                                         week__in=self.weeks):
             instructors.add(mtr.tutor)
         try:
             no_tut = Tutor.objects.get(username='---')
@@ -394,7 +388,7 @@ class WeeksDatabase(object):
         for i in instructors:
             availabilities[i] = {}
             for week in self.weeks:
-                availabilities[i][week] = set(UserPreference.objects.filter(week=week, user=i, year=self.year))
+                availabilities[i][week] = set(UserPreference.objects.filter(week=week, user=i))
                 if not availabilities[i][week]:
                     availabilities[i][week] = set(UserPreference.objects.filter(week=None, user=i))
 
@@ -421,8 +415,8 @@ class WeeksDatabase(object):
             physical_presence_days_for_tutor[i] = {}
             for w in self.weeks:
                 physical_presence_days_for_tutor[i][w] = []
-                if PhysicalPresence.objects.filter(user=i, week=w, year=self.year).exists():
-                    for pp in i.physical_presences.filter(week=w, year=self.year):
+                if PhysicalPresence.objects.filter(user=i, week=w).exists():
+                    for pp in i.physical_presences.filter(week=w):
                         physical_presence_days_for_tutor[i][w].append(pp.day)
 
         return instructors, courses_for_tutor, courses_for_supp_tutor, availabilities, \
@@ -448,10 +442,10 @@ class WeeksDatabase(object):
             elif CoursePossibleTutors.objects.filter(course=c).exists():
                 possible_tutors[c] = set(CoursePossibleTutors.objects.get(course=c).possible_tutors.all())
             elif ModuleTutorRepartition.objects.filter(course_type=c.type, module=c.module,
-                                                       year=c.year, week=c.week).exists():
+                                                       week=c.week).exists():
                 possible_tutors[c] = set(mtr.tutor for mtr in
                                          ModuleTutorRepartition.objects.filter(course_type=c.type, module=c.module,
-                                                                               year=c.year, week=c.week))
+                                                                               week=c.week))
                 if no_tut is not None:
                     possible_tutors[c].add(no_tut)
             else:

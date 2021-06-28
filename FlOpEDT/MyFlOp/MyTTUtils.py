@@ -29,7 +29,7 @@ import functools
 
 from TTapp.TTUtils import basic_reassign_rooms, basic_swap_version, \
     basic_delete_work_copy, basic_duplicate_work_copy, basic_delete_all_unused_work_copies
-from base.models import ScheduledCourse, Department
+from base.models import ScheduledCourse, Department, Week
 from people.models import Tutor
 #from TTapp.forms import *
 
@@ -67,29 +67,34 @@ def print_differences(week, year, old_copy, new_copy, tutors=Tutor.objects.all()
 
 
 @resolve_department
-def reassign_rooms(department, week, year, target_work_copy):
+def reassign_rooms(department, week_nb, year, target_work_copy):
     result = {'status':'OK', 'more':''}
-    basic_reassign_rooms(department, week, year, target_work_copy)
+    week = Week.objects.get(nb=week_nb, year=year)
+    basic_reassign_rooms(department, week, target_work_copy)
     return result
 
 
 @resolve_department
-def swap_version(department, week, year, copy_a, copy_b=0):
+def swap_version(department, week_nb, year, copy_a, copy_b=0):
     result = {'status':'OK', 'more':''}
-    basic_swap_version(department, week, year, copy_a, copy_b)
+    week = Week.objects.get(nb=week_nb, year=year)
+    basic_swap_version(department, week, copy_a, copy_b)
     return result
 
 
 @resolve_department
-def delete_work_copy(department, week, year, work_copy):
-    return basic_delete_work_copy(department, week, year, work_copy)
+def delete_work_copy(department, week_nb, year, work_copy):
+    week = Week.objects.get(nb=week_nb, year=year)
+    return basic_delete_work_copy(department, week, work_copy)
 
 
 @resolve_department
-def delete_all_unused_work_copies(department, week, year):
-    return basic_delete_all_unused_work_copies(department, week, year)
+def delete_all_unused_work_copies(department, week_nb, year):
+    week = Week.objects.get(nb=week_nb, year=year)
+    return basic_delete_all_unused_work_copies(department, week)
 
 
 @resolve_department
-def duplicate_work_copy(department, week, year, work_copy):
-    return basic_duplicate_work_copy(department, week, year, work_copy)
+def duplicate_work_copy(department, week_nb, year, work_copy):
+    week = Week.objects.get(nb=week_nb, year=year)
+    return basic_duplicate_work_copy(department, week, work_copy)

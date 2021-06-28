@@ -106,7 +106,7 @@ class Group(models.Model):
 
     def descendants_groups(self):
         """
-        :return: the set of all Groupe contained by self (self not included)
+        :return: the set of all Groupe containe by self (self not included)
         """
         descendants = set()
 
@@ -139,9 +139,7 @@ class Group(models.Model):
 class Holiday(models.Model):
     day = models.CharField(
         max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)])
-    year = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
 
 
 class TrainingHalfDay(models.Model):
@@ -149,9 +147,7 @@ class TrainingHalfDay(models.Model):
                            verbose_name=_("Half day"), null=True, default=None, blank=True)
     day = models.CharField(
         max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)])
-    year = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     train_prog = models.ForeignKey(
         'TrainingProgramme', null=True, default=None, blank=True, on_delete=models.CASCADE)
 
@@ -168,6 +164,39 @@ class Period(models.Model):
     def __str__(self):
         return f"Period {self.name}: {self.department}, {self.starting_week} -> {self.ending_week}"
 
+
+class Week(models.Model):
+    nb = models.PositiveSmallIntegerField(validators=[MinValueValidator(0),
+                                                      MaxValueValidator(53)],
+                                          verbose_name=_('Week number'))
+    year = models.PositiveSmallIntegerField()
+
+    def __str__(self):
+        return f"{self.nb}-{self.year}"
+
+    def __eq__(self, other):
+        if isinstance(other, Week):
+            return self.nb == other.nb and self.year == other.year
+        else:
+            return False
+
+    def __lt__(self, other):
+        if isinstance(other, Week):
+            return self.year < other.year or (self.year == other.year and self.nb < other.nb)
+        else:
+            return False
+
+    def __gt__(self, other):
+        if isinstance(other, Week):
+            return self.year > other.year or (self.year == other.year and self.nb > other.nb)
+        else:
+            return False
+
+    def __le__(self, other):
+        return self == other or self < other
+
+    def __ge__(self, other):
+        return self == other or self > other
 
 class TimeGeneralSettings(models.Model):
     department = models.OneToOneField(Department, on_delete=models.CASCADE)
@@ -324,12 +353,7 @@ class ModuleTutorRepartition(models.Model):
     module = models.ForeignKey('Module', on_delete=models.CASCADE)
     course_type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     tutor = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)],
-        null=True,
-        blank=True)
-    year = models.PositiveSmallIntegerField(null=True,
-                                            blank=True)
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     courses_nb = models.PositiveSmallIntegerField(default=1)
 
 
@@ -365,10 +389,7 @@ class Course(models.Model):
         'Module', related_name='courses', on_delete=models.CASCADE)
     modulesupp = models.ForeignKey('Module', related_name='modulesupp',
                                    null=True, blank=True, on_delete=models.CASCADE)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)],
-        null=True, blank=True)
-    year = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     suspens = models.BooleanField(verbose_name=_('Suspens?'), default=False)
     show_id = False
 
@@ -502,9 +523,7 @@ class GroupPreferredLinks(models.Model):
 
 class UserPreference(models.Model):
     user = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)], null=True)
-    year = models.PositiveSmallIntegerField(null=True)
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     day = models.CharField(
         max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
     start_time = models.PositiveSmallIntegerField()
@@ -523,12 +542,7 @@ class CoursePreference(models.Model):
     course_type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     train_prog = models.ForeignKey(
         'TrainingProgramme', on_delete=models.CASCADE)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)],
-        null=True,
-        blank=True)
-    year = models.PositiveSmallIntegerField(null=True,
-                                            blank=True)
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     day = models.CharField(
         max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
     start_time = models.PositiveSmallIntegerField()
@@ -546,12 +560,7 @@ class CoursePreference(models.Model):
 class RoomPreference(models.Model):
     room = models.ForeignKey(
         'Room', on_delete=models.CASCADE, default=None, null=True)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)],
-        null=True,
-        blank=True)
-    year = models.PositiveSmallIntegerField(null=True,
-                                            blank=True)
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     day = models.CharField(
         max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
     start_time = models.PositiveSmallIntegerField()
@@ -577,13 +586,11 @@ class RoomPreference(models.Model):
 class EdtVersion(models.Model):
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, null=True)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)])
-    year = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     version = models.PositiveIntegerField(default=0)
 
-    class Meta:
-        unique_together = (("department", "week", "year"),)
+    #class Meta:
+        #unique_together = (("department", "week"),)
 
 
 #    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -592,9 +599,7 @@ class EdtVersion(models.Model):
 # null iff no change
 class CourseModification(models.Model):
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
-    old_week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)], null=True)
-    old_year = models.PositiveSmallIntegerField(null=True)
+    old_week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     room_old = models.ForeignKey(
         'Room', blank=True, null=True, on_delete=models.CASCADE)
     day_old = models.CharField(
@@ -617,7 +622,7 @@ class CourseModification(models.Model):
                 course=course, work_copy=0)
         department = course.type.department
         al = '\n  · '
-        same = f'- Cours {course.module.abbrev} semaine {course.week} ({course.year})'
+        same = f'- Cours {course.module.abbrev} semaine {course.week}'
         changed = ''
 
         tutor_old_name = self.tutor_old.username if self.tutor_old is not None else "personne"
@@ -643,7 +648,7 @@ class CourseModification(models.Model):
             changed += al + f'Salle : {room_old_name} -> {cur_room_name}'
 
         day_list = base.weeks.num_all_days(
-            course.year, course.week, department)
+            course.week.year, course.week.nb, department)
         if sched_course.day == self.day_old \
            and sched_course.start_time == self.start_time_old:
             for d in day_list:
@@ -687,9 +692,7 @@ class CourseModification(models.Model):
 class TutorCost(models.Model):
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, null=True)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)])
-    year = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     tutor = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
     value = models.FloatField()
     work_copy = models.PositiveSmallIntegerField(default=0)
@@ -699,9 +702,7 @@ class TutorCost(models.Model):
 
 
 class GroupCost(models.Model):
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)])
-    year = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     group = models.ForeignKey('Group', on_delete=models.CASCADE)
     value = models.FloatField()
     work_copy = models.PositiveSmallIntegerField(default=0)
@@ -711,9 +712,7 @@ class GroupCost(models.Model):
 
 
 class GroupFreeHalfDay(models.Model):
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)])
-    year = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     group = models.ForeignKey('Group', on_delete=models.CASCADE)
     DJL = models.PositiveSmallIntegerField()
     work_copy = models.PositiveSmallIntegerField(default=0)
@@ -754,9 +753,7 @@ class CourseStartTimeConstraint(models.Model):
 class Regen(models.Model):
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, null=True)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)])
-    year = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     full = models.BooleanField(verbose_name=_('Full'),
                                default=True)
     fdate = models.DateField(verbose_name=_('Full generation date'), null=True, blank=True)

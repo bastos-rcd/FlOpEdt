@@ -43,8 +43,7 @@ class TTConstraint(models.Model):
     Attributes:
         department : the department concerned by the constraint. Has to be filled.
         train_progs : the training programs concerned by the constraint. All of self.department if None
-        week : the week for which the constraint should be applied. All if None.
-        year : the year for which the constraint should be applied. All if None.
+        weeks : the weeks for which the constraint should be applied. All if None.
         weight : from 1 to max_weight if the constraint is optional, depending on its importance
                  None if the constraint is necessary
         is_active : usefull to de-activate a Constraint just before the generation
@@ -52,17 +51,13 @@ class TTConstraint(models.Model):
     department = models.ForeignKey('base.Department', null=True, on_delete=models.CASCADE)
     train_progs = models.ManyToManyField('base.TrainingProgramme',
                                          blank=True)
-    week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(52)],
-        null=True,
-        default=None,
-        blank=True)
-    year = models.PositiveSmallIntegerField(null=True, default=None, blank=True)
+    weeks = models.ManyToManyField('base.Week')
     weight = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
         null=True, default=None, blank=True)
     comment = models.CharField(max_length=100, null=True, default=None, blank=True)
     is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
+    modified_at = models.DateField(auto_now=True)
 
     def local_weight(self):
         return float(self.weight) / max_weight
@@ -92,8 +87,8 @@ class TTConstraint(models.Model):
         else:
             train_prog_value = 'All'
 
-        if self.week:
-            week_value = f"{self.week} ({self.year})"
+        if self.weeks.exists():
+            week_value = ','.join([f"{w.nb} ({w.year})" for w in self.weeks])
         else:
             week_value = 'All'
 
@@ -107,7 +102,7 @@ class TTConstraint(models.Model):
             'comment': self.comment,
             'details': {
                 'train_progs': train_prog_value,
-                'week': week_value,
+                'weeks': week_value,
                 'weight': self.weight,
                 }
             }

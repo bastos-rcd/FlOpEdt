@@ -31,8 +31,8 @@ def fetch_rectangle_colors(req, **kwargs):
                 Module.objects.filter(train_prog__department=req.department)
     else:
         scheds = ScheduledCourse.objects.filter(
-            course__week=week,
-            course__year=year,
+            course__week__nb=week,
+            course__week__year=year,
             course__module__train_prog__department=req.department)\
                 .prefetch_related('course__module__train_prog')
         unscheds = queries.get_unscheduled_courses(

@@ -140,6 +140,10 @@ class Tutor(User):
     class Meta:
         verbose_name = 'Tutor'
 
+    def save(self, *args, **kwargs):
+        self.is_tutor = True
+        super(Tutor, self).save(*args, **kwargs)
+
 
 class FullStaff(Tutor):
     is_iut = models.BooleanField(default=True)
@@ -297,8 +301,7 @@ class UserPreferredLinks(models.Model):
 class PhysicalPresence(models.Model):
     user = models.ForeignKey('people.User', on_delete=models.CASCADE, related_name='physical_presences')
     day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(53)])
-    year = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('base.Week', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} is present {self.day} of week {self.week}-{self.year}"

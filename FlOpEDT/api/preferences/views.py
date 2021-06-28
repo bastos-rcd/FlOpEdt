@@ -90,12 +90,12 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
             self.params['user__departments__abbrev'] = dept
 
     def set_default_params(self):
-        self.params['week'] = None
-        self.params['year'] = None
+        self.params['week__nb'] = None
+        self.params['week__year'] = None
 
     def set_singular_params(self):
-        self.params['week'] = int(self.request.query_params.get('week'))
-        self.params['year'] = int(self.request.query_params.get('year'))
+        self.params['week__nb'] = int(self.request.query_params.get('week'))
+        self.params['week__year'] = int(self.request.query_params.get('year'))
 
     def get_queryset(self):
         self.set_common_params()
@@ -162,19 +162,18 @@ class UserPreferenceActualViewSet(UserPreferenceViewSet):
     """
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = [IsTutor]
-
     def get_queryset(self):
         # set initial parameters
         self.set_common_params()
         self.set_singular_params()
         teach_only = self.request.query_params.get('teach-only', None)
         teach_only = True if teach_only is None else strtobool(teach_only)
-
+        
         # get teaching teachers only
         if teach_only:
             sched_params = {}
-            sched_params['course__week'] = self.params['week']
-            sched_params['course__year'] = self.params['year']
+            sched_params['course__week__nb'] = self.params['week__nb']
+            sched_params['course__week__year'] = self.params['week__year']
             if 'user__departments__abbrev' in self.params:
                 sched_params['course__module__train_prog__department__abbrev'] = \
                     self.params['user__departments__abbrev']
