@@ -1,3 +1,26 @@
+<!-- This file is part of the FlOpEDT/FlOpScheduler project.               -->
+<!-- Copyright (c) 2017                                                    -->
+<!-- Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.           -->
+<!--                                                                       -->
+<!-- This program is free software: you can redistribute it and/or modify  -->
+<!-- it under the terms of the GNU Affero General Public License as        -->
+<!-- published by the Free Software Foundation, either version 3 of the    -->
+<!-- License, or (at your option) any later version.                       -->
+<!--                                                                       -->
+<!-- This program is distributed in the hope that it will be useful, but   -->
+<!-- WITHOUT ANY WARRANTY; without even the implied warranty of            -->
+<!-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      -->
+<!-- Affero General Public License for more details.                       -->
+<!--                                                                       -->
+<!-- You should have received a copy of the GNU Affero General Public      -->
+<!-- License along with this program. If not, see                          -->
+<!-- <http://www.gnu.org/licenses/>.                                       -->
+<!--                                                                       -->
+<!-- You can be released from the requirements of the license by purchasing -->
+<!-- a commercial license. Buying such a license is mandatory as soon as   -->
+<!-- you develop activities involving the FlOpEDT/FlOpScheduler software   -->
+<!-- without disclosing the source code of your own applications.          -->
+
 {% extends "flopeditor/base.html" %}
 {% load static %}
 
@@ -7,14 +30,14 @@
 
 
 {% block navbar %} {% endblock %}
-{% block content %}
+{% block content-flopeditor %}
 <div class="container justify-content-center pb-4 mb-4" style="margin-top:4%;">
   <a href="{% url 'flopeditor:flopeditor-home' %}" class="btn btn-raised btn-primary d-block mx-auto mx-sm-0" style='max-width:300px'>
-    Retour à FlopEditor
+    Retour à flop!EDITOR
   </a>
   <div class="card container">
     <div class="card-header">
-      <h1 class="text-center">Documentation de FlopEditor</h1>
+      <h1 class="text-center">Documentation de flop!EDITOR</h1>
         <h5>
           Flopeditor est une application permettant aux professeurs et autres intervenants de modifier
           tous les éléments liés à la gestion de leurs départements, de la création de
@@ -140,7 +163,7 @@
         {% if request.user.is_superuser %}
         <h3>Vous êtes superuser ! Trop bien !</h3>
         <h6>En tant que super-utillisateur de FlopEDT, vous pouvez tout faire
-        dans FlopEditor, dans tous les départements.</h6>
+        dans flop!EDITOR, dans tous les départements.</h6>
         {% elif is_admin %}
         <h3>Vous êtes responsable d'au moins un département. Vous pouvez (presque) tout faire.</h3>
         <h6>En tant que responsable d'un département de FlopEDT, vous pouvez visualiser les paramètres de tous les départements,

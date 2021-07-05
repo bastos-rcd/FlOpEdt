@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('base', '0072_coursemodification_room_old_is_visio'),
+        ('TTapp', '0043_auto_20210329_1452')
     ]
 
     operations = [

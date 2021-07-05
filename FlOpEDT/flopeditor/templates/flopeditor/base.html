@@ -1,6 +1,31 @@
+<!-- This file is part of the FlOpEDT/FlOpScheduler project.               -->
+<!-- Copyright (c) 2017                                                    -->
+<!-- Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.           -->
+<!--                                                                       -->
+<!-- This program is free software: you can redistribute it and/or modify  -->
+<!-- it under the terms of the GNU Affero General Public License as        -->
+<!-- published by the Free Software Foundation, either version 3 of the    -->
+<!-- License, or (at your option) any later version.                       -->
+<!--                                                                       -->
+<!-- This program is distributed in the hope that it will be useful, but   -->
+<!-- WITHOUT ANY WARRANTY; without even the implied warranty of            -->
+<!-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      -->
+<!-- Affero General Public License for more details.                       -->
+<!--                                                                       -->
+<!-- You should have received a copy of the GNU Affero General Public      -->
+<!-- License along with this program. If not, see                          -->
+<!-- <http://www.gnu.org/licenses/>.                                       -->
+<!--                                                                       -->
+<!-- You can be released from the requirements of the license by purchasing -->
+<!-- a commercial license. Buying such a license is mandatory as soon as   -->
+<!-- you develop activities involving the FlOpEDT/FlOpScheduler software   -->
+<!-- without disclosing the source code of your own applications.          -->
+
+{% extends "base.html" %}
+
 {% load static %}
 <!DOCTYPE html>
-{% block html %}
+{% block content %}
 <html lang="fr-fr" dir="ltr">
     <head>
 
@@ -8,7 +33,7 @@
 
         {% block meta %}
         <meta charset="utf-8">
-        <title>{% block title %}FlopEditor - {{ title }}{% endblock %}</title>
+        <title>{% block title %}flop!EDITOR - {{ title }}{% endblock %}</title>
 
         {% block link %}
         <link rel="stylesheet" href="{% static 'flopeditor/lib/bootstrap-material-design/css/bootstrap-material-design.min.css' %}">
@@ -24,7 +49,7 @@
 
         {% block navbar %}
         <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-            <a class="navbar-brand" href="{% url 'flopeditor:flopeditor-home' %}">FlopEditor</a>
+            <a class="navbar-brand" href="{% url 'flopeditor:flopeditor-home' %}">flop!EDITOR</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
                 aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -83,7 +108,7 @@
         {% endblock %}
 
         <div id="main" class="{% block main-class %}container{% endblock %}">
-            {% block content %}
+            {% block content-flopeditor %}
             {% endblock %}
         </div>
 

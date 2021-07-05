@@ -41,7 +41,7 @@ from django.template.response import TemplateResponse
 from FlOpEDT.decorators import dept_admin_required
 
 from base import weeks
-from base.models import TrainingProgramme, ScheduledCourse
+from base.models import TrainingProgramme, ScheduledCourse, Week
 from base.core.period_weeks import PeriodWeeks
 from people.models import FullStaff
 from MyFlOp.MyTTModel import MyTTModel
@@ -118,7 +118,8 @@ def get_context(department, year, week, train_prog=None):
     #
     #   Get contextual datas
     #
-    params = {'week':int(week), 'year':int(year)}
+    week_object = Week.objects.get(nb=week, year=year)
+    params = {'week': week_object}
 
     # Get constraints
     if train_prog and not train_prog == text_all:
@@ -127,7 +128,7 @@ def get_context(department, year, week, train_prog=None):
     constraints = get_constraints_viewmodel(department, **params)
 
     # Get working copy list
-    work_copies = get_work_copies(department, int(week))
+    work_copies = get_work_copies(department, week_object)
 
     context = { 
         'constraints': constraints,

@@ -151,7 +151,6 @@ def fill_default_user_preferences(user, dept=None):
                 duration = max_time - current_time
             pref = UserPreference(user=user,
                                   week=None,
-                                  year=None,
                                   day=first_day,
                                   start_time=current_time,
                                   duration=duration,
@@ -167,11 +166,9 @@ def fill_default_user_preferences(user, dept=None):
     for day in days:
         for pref in UserPreference.objects.filter(user=user,
                                                   week=None,
-                                                  year=None,
                                                   day=first_day):
             new_pref = UserPreference(user=user,
                                       week=None,
-                                      year=None,
                                       day=day,
                                       start_time=pref.start_time,
                                       duration=pref.duration,

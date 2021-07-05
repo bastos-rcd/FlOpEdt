@@ -174,12 +174,6 @@ class Week(models.Model):
     def __str__(self):
         return f"{self.nb}-{self.year}"
 
-    def __eq__(self, other):
-        if isinstance(other, Week):
-            return self.nb == other.nb and self.year == other.year
-        else:
-            return False
-
     def __lt__(self, other):
         if isinstance(other, Week):
             return self.year < other.year or (self.year == other.year and self.nb < other.nb)

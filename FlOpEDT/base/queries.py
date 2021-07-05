@@ -35,7 +35,7 @@ from base.models import Group, RoomType, Room, \
                         RoomSort, Period, CourseType, \
                         TutorCost, CourseStartTimeConstraint, \
                         TimeGeneralSettings, GroupType, CourseType, \
-                        TrainingProgramme, Course
+                        TrainingProgramme, Course, Week
 
 from displayweb.models import GroupDisplay, TrainingProgrammeDisplay, BreakingNews
 

@@ -15,7 +15,6 @@ def add_all_weeks(apps, schema_editor):
         for w_nb in range(1, final_week+1):
             Week.objects.get_or_create(nb=w_nb, year=year)
 
-
 class Migration(migrations.Migration):
 
     dependencies = [

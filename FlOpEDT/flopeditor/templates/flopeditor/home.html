@@ -11,31 +11,17 @@
 {% block main-class %}container h-100{% endblock %}
 
 {% block navbar %} {% endblock %}
-{% block content %}
+{% block content-flopeditor %}
 
 
 
-
-<div class="col-md-6 d-flex justify-content-end align-items-center" style="position:fixed; right:10px; top:10px">
-  <div class="ml-2">
-    <a type=button class="btn btn-raised btn-secondary"  href="{% url 'flopeditor:flopeditor-help' %}" title='Aide'> <i class='fas fa-question'></i></a>
-  </div>
-  <div class="ml-2">
-    <button class="btn btn-raised btn-secondary" data-toggle="modal" data-target="#modal-profil" title='Profil'> <i class='fas fa-user'></i></button>
-  </div>
-</div>
 
 
 
 
 <div class="row h-100 justify-content-center align-items-center text-center text-white">
-  <div class='pt-2 pl-2' style="position:fixed; left:10px; top:10px">
-    <a href="{% url 'index' %}" class="d-block mx-auto mx-sm-0" style='max-width:300px'>
-      <img src="{% static 'base/img/flop2.png' %}" class='btn btn-raised p-0' style='max-width:300px' alt="Retourner vers FlopEDT">
-    </a>
-  </div>
   <div class="col-12" style="pointer-events:none">
-      <h1 class="display-1 mb-4"><strong>Flop Editor</strong></h1>
+      <h1 class="display-1 mb-4"><strong>flop!EDITOR</strong></h1>
       <p class="lead mb-4">
           Choix du département à éditer :
       </p>

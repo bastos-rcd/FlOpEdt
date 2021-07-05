@@ -89,15 +89,13 @@ class PeriodWeeks():
         """
         Exclude weeks that doesn't have any planned course 
         """        
-        return Course.objects \
+        return sorted(Course.objects \
                 .filter(
-                    year=year,
-                    week__in=list(range(start, end + 1)),
+                    week__year=year,
+                    week__nb__in=list(range(start, end + 1)),
                     module__train_prog__department=department) \
                 .distinct() \
-                .order_by('week') \
-                .values_list('week', flat=True)
-
+                .values_list('week__nb', flat=True))
 
     @classmethod
     def get_current_school_year(cls):
@@ -120,7 +118,7 @@ class PeriodWeeks():
             periods = self.__period_raw[1],
         else:
             periods = self.__period_raw
-
+        print(self.department, periods)
         if format:
             return tuple(self.format_week_list(periods, include_year=True))
         else:
@@ -158,13 +156,13 @@ class PeriodWeeks():
             week_list = None
             
             if week:
-                if week in weeks:
-                    week_list = {week}
+                if week.nb in weeks:
+                    week_list = {week.nb}
             else:
                 week_list = weeks
 
             if week_list:
-                kwargs = { f"{related_path}__year": year, f"{related_path}__week__in": week_list}
+                kwargs = { f"{related_path}__week__year": year, f"{related_path}__week__nb__in": week_list}
 
                 if filter:
                     filter |= Q(**kwargs)

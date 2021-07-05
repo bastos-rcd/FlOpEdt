@@ -30,7 +30,8 @@ from openpyxl import *
 
 from base.weeks import actual_year
 from base.models import Group, Module, Course, CourseType, RoomType,\
-    TrainingProgramme, Dependency, Period, Department, CoursePossibleTutors, ModuleTutorRepartition, CourseAdditional
+    TrainingProgramme, Dependency, Period, Department, CoursePossibleTutors, ModuleTutorRepartition, CourseAdditional, \
+    Week
 from people.models import Tutor, UserDepartmentSettings
 from people.tutor import fill_default_user_preferences
 from misc.assign_colors import assign_module_color

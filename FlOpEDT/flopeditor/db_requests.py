@@ -26,7 +26,7 @@ you develop activities involving the FlOpEDT/FlOpScheduler software
 without disclosing the source code of your own applications.
 
 
-This module is used to declare the database interactions related to FlopEditor, an app used
+This module is used to declare the database interactions related to flop!EDITOR, an app used
 to manage a department statistics for FlOpEDT.
 """
 
