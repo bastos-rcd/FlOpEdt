@@ -759,8 +759,7 @@ function translate_cours_pl_from_json(d, result) {
     new_course.color_bg = 'white' ;
     new_course.color_txt = 'black' ;
     new_course.prof = '?' ;
-
-    if (!department_settings.mode.cosmo) {
+    if (department_settings.mode.cosmo!==1) {
       new_course.prof = d.tutor ;
       if(d.course.module !== null && d.course.module.display !== null) {
         new_course.color_bg = d.course.module.display.color_bg ;

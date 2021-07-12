@@ -1186,19 +1186,37 @@ function go_courses(quick) {
   //         .style("opacity", 0);
   // })
 
-  incg
-    .append("text")
-    .attr("st", "p")
-    .attr("font-weight", cours_txt_weight)
-    .attr("font-size", cours_txt_size)
-    .merge(cg.select("[st=p]"))
-    .transition(t)
-    .attr("fill", cours_txt_fill)
-    .attr("x", cours_txt_x)
-    .attr("y", cours_txt_mid_y)
-    .attr("x", cours_txt_x)
-    .attr("y", cours_txt_mid_y)
-    .text(cours_txt_mid_txt);
+  // if cosmo_mode is 2, we put only module, in the middle!
+   if (department_settings.mode.cosmo === 2) {
+     incg
+       .append("text")
+       .attr("st", "p")
+       .attr("font-weight", cours_txt_weight)
+       .attr("font-size", cours_txt_size)
+       .merge(cg.select("[st=p]"))
+       .transition(t)
+       .attr("fill", cours_txt_fill)
+       .attr("x", cours_txt_x)
+       .attr("y", cours_txt_mid_y)
+       .attr("x", cours_txt_x)
+       .attr("y", cours_txt_mid_y)
+       .text(cours_txt_top_txt);
+   }
+   else {
+     incg
+       .append("text")
+       .attr("st", "p")
+       .attr("font-weight", cours_txt_weight)
+       .attr("font-size", cours_txt_size)
+       .merge(cg.select("[st=p]"))
+       .transition(t)
+       .attr("fill", cours_txt_fill)
+       .attr("x", cours_txt_x)
+       .attr("y", cours_txt_mid_y)
+       .attr("x", cours_txt_x)
+       .attr("y", cours_txt_mid_y)
+       .text(cours_txt_mid_txt);
+   }
 
 
   if (!department_settings.mode.cosmo) {

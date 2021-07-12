@@ -32,7 +32,7 @@ to manage a department statistics for FlOpEDT.
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseForbidden
-from base.models import Department, TimeGeneralSettings, Day
+from base.models import Department, TimeGeneralSettings, Day, Mode
 from base.timing import min_to_str, str_to_min
 from FlOpEDT.decorators import superuser_required, \
     tutor_or_superuser_required, tutor_required
@@ -159,6 +159,8 @@ def department_parameters(request, department_abbrev):
         'employer':employer,
         'is_iut': get_is_iut(request),
         'has_any_dept_perm': has_any_dept_perm(request),
+        'visio_mode': department.mode.visio,
+        'cosmo_mode': department.mode.get_cosmo_display()
     })
 
 
@@ -195,6 +197,7 @@ def department_parameters_edit(request, department_abbrev):
         'employer':employer,
         'is_iut': get_is_iut(request),
         'has_any_dept_perm': has_any_dept_perm(request),
+        'mode': department.mode
     })
 
 
@@ -263,6 +266,12 @@ def ajax_edit_parameters(request, department_abbrev):
     lunch_break_start_time = request.POST['lunch_break_start_time']
     lunch_break_finish_time = request.POST['lunch_break_finish_time']
     default_preference_duration = request.POST['default_preference_duration']
+    visio_mode = request.POST['visio_mode']
+    if visio_mode == "True":
+        visio_mode = True
+    else:
+        visio_mode = False
+    cosmo_mode = request.POST['cosmo_mode']
     response = validate_parameters_edit(
         days,
         day_start_time,
@@ -282,6 +291,10 @@ def ajax_edit_parameters(request, department_abbrev):
         parameters.default_preference_duration = str_to_min(
             default_preference_duration)
         parameters.save()
+        mode, created = Mode.objects.get_or_create(department=department)
+        mode.cosmo = cosmo_mode
+        mode.visio = visio_mode
+        mode.save()
         response['message'] = "Les modifications ont bien été enregistrées."
     return JsonResponse(response)
 

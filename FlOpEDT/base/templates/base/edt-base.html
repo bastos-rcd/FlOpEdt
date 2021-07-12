@@ -101,10 +101,7 @@
     var week_init = +"{{ week }}";
     var year_init = +"{{ year }}";
   var department_settings = {{ department_settings | safe }} ;
-  let k_dept_mode = Object.keys(department_settings.mode) ;
-  for(let i = 0 ; i < k_dept_mode.length ; i ++ ) {
-    department_settings.mode[k_dept_mode[i]]=department_settings.mode[k_dept_mode[i]]=='True'?true:false;
-  }
+  department_settings.mode['visio']=department_settings.mode['visio']=='True'?true:false;
   department_settings.time.bu = {} ;
     var days = {{ days | safe }} ;
   var csrftoken = '{{ csrf_token }}';

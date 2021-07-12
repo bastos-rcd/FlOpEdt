@@ -211,10 +211,36 @@ class TimeGeneralSettings(models.Model):
 
 
 class Mode(models.Model):
+    """
+    cosmo has to be:
+     - 0 for educational mode
+     - 1 for employee cooperatives in which columns are workplaces
+     - 2 for employee cooperatives in which columns are employees
+    """
+    EDUCATIVE = 0
+    COOPERATIVE_BY_WORKPLACE = 1
+    COOPERATIVE_BY_WORKER = 2
+
+    cosmo_choices = ((EDUCATIVE, _("Educative")),
+                     (COOPERATIVE_BY_WORKPLACE, _("Coop. (workplace)")),
+                     (COOPERATIVE_BY_WORKER, _("Coop. (worker)")))
+
     department = models.OneToOneField(Department,
                                       on_delete=models.CASCADE)
-    cosmo = models.BooleanField(default=False)
-    visio = models.BooleanField(default=True)
+    cosmo = models.PositiveSmallIntegerField(default=0, choices=cosmo_choices)
+    visio = models.BooleanField(default=False)
+
+    def __str__(self):
+        text = f"Dept {self.department.abbrev}: "
+        if not self.cosmo:
+            text += "educational mode "
+        else:
+            text += f"cosmo{self.cosmo} mode "
+        if self.visio:
+            text += "with "
+        else:
+            text += "without "
+        text += "visio."
 
 
 @receiver(post_save, sender=Department)
@@ -583,8 +609,8 @@ class EdtVersion(models.Model):
     week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     version = models.PositiveIntegerField(default=0)
 
-    #class Meta:
-        #unique_together = (("department", "week"),)
+    class Meta:
+        unique_together = (("department", "week"),)
 
 
 #    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

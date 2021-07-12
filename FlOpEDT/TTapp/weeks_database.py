@@ -106,7 +106,7 @@ class WeeksDatabase(object):
         database_holidays = Holiday.objects.filter(week__in=self.weeks)
         holidays = set(d for d in days if database_holidays.filter(day=d.day, week=d.week).exists())
 
-        if not self.department.mode.cosmo:
+        if self.department.mode.cosmo != 1:
             for hd in holidays:
                 days.remove(hd)
 
@@ -308,8 +308,8 @@ class WeeksDatabase(object):
             for c in self.courses:
                 sc = self.sched_courses.get(course=c)
                 if not c.suspens:
-                    slots = {slot for slot in slots_filter(self.courses_slots, week=sc.course.week,
-                                                           start_time=sc.start_time, course_type=sc.course.type)
+                    slots = {slot for slot in slots_filter(self.courses_slots, week=c.week,
+                                                           start_time=sc.start_time, course_type=c.type)
                              if slot.day.day == sc.day}
                     if len(slots) == 1:
                         sl = slots.pop()
@@ -318,10 +318,8 @@ class WeeksDatabase(object):
                     compatible_courses[sl].add(c)
                     compatible_slots[c] = {sl}
                 else:
-                    slots = set([slot for slot in slots_filter(self.courses_slots, week=sc.course.week,
-                                                               course_type=sc.course.type)
-                                 if 9 * 60 <= slot.start_time <= 18 * 60
-                                 and slot.day.day not in [Day.SUNDAY, Day.SATURDAY]])
+                    slots = set([slot for slot in slots_filter(self.courses_slots, week=c.week,
+                                                               course_type=c.type)])
                     compatible_slots[c] = slots
                     for sl in slots:
                         compatible_courses[sl].add(c)

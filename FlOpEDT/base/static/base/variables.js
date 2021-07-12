@@ -1047,7 +1047,8 @@ var tutors_info = {};
 
 
 // rectangle colors
-// cosmo mode: tutor_username -> {color_bg: color, color_txt: color}
+// cosmo mode 1: tutor_username -> {color_bg: color, color_txt: color}
+// cosmo mode 2: module_abbrev -> {color_bg: color, color_txt: color}
 // tutor mode: module_abbrev -> {color_bg: color, color_txt: color}
 var colors = {} ;
 

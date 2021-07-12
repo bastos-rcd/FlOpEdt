@@ -132,7 +132,7 @@ class CourseCosmo_SC_Serializer(serializers.Serializer):
     week = serializers.SerializerMethodField()
     year = serializers.SerializerMethodField()
     groups = Group_SC_Serializer(many=True)
-    module = ModuleCosmo_SC_Serializer()
+    module = Module_SC_Serializer()
 
     def get_week(self, obj):
         if(obj.week is not None):

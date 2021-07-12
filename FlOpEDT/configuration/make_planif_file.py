@@ -35,6 +35,8 @@ from people.models import Tutor
 
 from copy import copy
 
+from django.utils.translation import gettext_lazy as _
+
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +104,10 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         rules.cell(row=tutor_row, column=tutor_col).value = tutor
         tutor_col += 1
 
-    tutor_validator = DataValidation(type="list", formula1="Rules!$B$7:$EE$7", allow_blank=True)
+    # get the last tutor letter for the validator
+    # (and let room for 5 more tutors....)
+    last_tutor_letter = get_column_letter(tutor_col + 5)
+    tutor_validator = DataValidation(type="list", formula1=f"Rules!$B$7:${last_tutor_letter}$7", allow_blank=True)
     tutor_validator.error = "Ce prof n'est pas dans la liste de l'onglet Rules"
     tutor_validator.errorTitle = 'Erreur de prof'
     tutor_validator.prompt = 'Choisir un prof dans la liste'
@@ -115,7 +120,13 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
     for rt in room_type_list:
         rules.cell(row=room_type_row, column=room_type_col).value = rt
         room_type_col += 1
-    room_type_validator = DataValidation(type="list", formula1="Rules!$B$12:$EE$12", allow_blank=True)
+
+    # get the last room_type letter for the validator
+    # (and let room for 5 more tutors....)
+    last_room_type_letter = get_column_letter(room_type_col + 5)
+
+    room_type_validator = DataValidation(type="list", formula1=f"Rules!$B$12:${last_room_type_letter}$12",
+                                         allow_blank=True)
     room_type_validator.error = "Ce type de salle n'est pas dans la liste de l'onglet Rules"
     room_type_validator.errorTitle = 'Erreur de type de salle'
     room_type_validator.prompt = 'Choisir un type de salle dans la liste'

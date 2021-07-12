@@ -35,14 +35,12 @@ import django.contrib.auth as auth
 from django.utils.translation import gettext_lazy as _
 
 from people.models import Tutor, User
-from base.models import Day, Room, Module, Course, Group, \
-    UserPreference, Time, ScheduledCourse, EdtVersion, CourseModification, \
-    TrainingProgramme,  \
-    Regen, Holiday, TrainingHalfDay, \
+from base.models import Room, Module, Course, Group, \
+    UserPreference, ScheduledCourse, EdtVersion, CourseModification, \
+    TrainingProgramme, Regen, Holiday, TrainingHalfDay, \
     CoursePreference, Dependency, Department, CourseType, \
-    ScheduledCourseAdditional, CourseAdditional, EnrichedLink
-
-from base.models import RoomPreference, RoomSort, RoomType, EnrichedLink, GroupPreferredLinks
+    ScheduledCourseAdditional, CourseAdditional, RoomPreference, RoomSort, RoomType, EnrichedLink, GroupPreferredLinks, \
+    Mode
 from displayweb.models import ModuleDisplay
 from displayweb.models import TutorDisplay
 from import_export import resources, fields
@@ -682,9 +680,6 @@ class EnrichedLinkAdmin(MyModelAdmin):
     ordering = ('description',)
 
 
-class GroupPreferredLinksAdmin(MyModelAdmin):
-    pass
-
 # </editor-fold desc="ADMIN_MENU">
 
 
@@ -706,4 +701,5 @@ admin.site.register(ScheduledCourse, CoursPlaceAdmin)
 admin.site.register(UserPreference, DispoAdmin)
 admin.site.register(Regen, RegenAdmin)
 admin.site.register(EnrichedLink, EnrichedLinkAdmin)
-admin.site.register(GroupPreferredLinks, GroupPreferredLinksAdmin)
+admin.site.register(GroupPreferredLinks, DepartmentModelAdmin)
+admin.site.register(Mode, DepartmentModelAdmin)

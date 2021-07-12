@@ -126,8 +126,23 @@ action="{% url 'flopeditor:flopeditor-ajax-edit-department-parameters' departmen
                     name="default_preference_duration" id="default_preference_duration">
             </div>
         </div>
+        <div class="form-group ">
+            <p class="h6"><u><strong>Modes</strong></u></p>
+        </div>
+        <label for="visio_mode" class="col-auto pl-0 mb-0 text-muted">Visio</label>
+        <select name="visio_mode" id="visio_mode" >
+           <option value="True">Oui</option>
+           <option value="False"{% if not mode.visio %} selected{% endif %}>Non</option>
+        </select>
+        <label for="cosmo_mode" class="col-auto pl-0 mb-0 text-muted">Cosmo</label>
+        <select name="cosmo_mode" id="cosmo_mode" >
+            {% for x, y in mode.cosmo_choices %}
+                <option value="{{ x }}"{% if mode.cosmo == x %} selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
 
     </div>
+
 
     <div class="col-sm-12 mt-4 text-center">
         <div id="form-message" class="alert mt-4 mr-2 ml-2 mb-3" role="alert"

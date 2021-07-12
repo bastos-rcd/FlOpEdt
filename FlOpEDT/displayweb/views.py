@@ -16,14 +16,14 @@ def fetch_rectangle_colors(req, **kwargs):
     year = req.GET.get('year', None)
     work_copy = int(req.GET.get('work_copy', '0'))
     filters = {}
-    if req.department.mode.cosmo:
+    if req.department.mode.cosmo == 1:
         Display = TutorDisplay.objects.select_related('tutor')
         Resource = TutorDisplayResource
     else:
         Display = ModuleDisplay.objects.select_related('module')
         Resource = ModuleDisplayResource
     if week is None or year is None:
-        if req.department.mode.cosmo:
+        if req.department.mode.cosmo == 1:
             filters['tutor__in'] = \
                 Tutor.objects.filter(departments=req.department)
         else:
@@ -42,7 +42,7 @@ def fetch_rectangle_colors(req, **kwargs):
             work_copy)
 
         to_be_colored_set = set()
-        if req.department.mode.cosmo:
+        if req.department.mode.cosmo == 1:
             for sc in scheds.distinct('tutor'):
                 to_be_colored_set.add(sc.tutor)
             for usc in unscheds.distinct('tutor'):

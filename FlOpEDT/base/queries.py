@@ -300,7 +300,7 @@ def get_department_settings(dept):
           'def_pref_duration': ts.default_preference_duration},
          'days': ts.days,
          'mode':
-         {'cosmo': str(mode.cosmo),
+         {'cosmo': mode.cosmo,
           'visio': str(mode.visio)}
         }
     return department_settings

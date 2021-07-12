@@ -270,7 +270,7 @@ class TTModel(object):
                 forced_IBD[(i, d)] = 0
                 if d.day in self.wdb.physical_presence_days_for_tutor[i][d.week]:
                     forced_IBD[(i, d)] = 1
-                if self.department.mode.cosmo:
+                if self.department.mode.cosmo == 1:
                     if self.wdb.sched_courses.filter(day=d.day, course__week=d.week,
                                                      course__suspens=False,
                                                      course__tutor=i).exists():
@@ -736,7 +736,7 @@ class TTModel(object):
                                                                   self.wdb.other_departments_courses_for_tutor[i]
                                                                   if c.week == week)
                 week_holidays = [d.day for d in days_filter(self.wdb.holidays, week=week)]
-                if not self.department.mode.cosmo and week_holidays:
+                if self.department.mode.cosmo != 1 and week_holidays:
                     week_tutor_availabilities = set(
                         a for a in self.wdb.availabilities[i][week]
                         if a.day not in week_holidays)
@@ -993,7 +993,8 @@ class TTModel(object):
         # because it contains rooms/instructors availability modification...
         self.add_other_departments_constraints()
 
-        self.add_rooms_constraints()
+        if not self.department.mode.cosmo:
+            self.add_rooms_constraints()
 
         self.add_instructors_constraints()
 
@@ -1017,6 +1018,11 @@ class TTModel(object):
                     work_copy=target_work_copy) \
             .delete()
 
+        if self.department.mode.cosmo == 2:
+            corresponding_group = {}
+            for i in self.wdb.instructors:
+                corresponding_group[i] = self.wdb.groups.get(name=i.username)
+
         for c in self.wdb.courses:
             for sl in self.wdb.compatible_slots[c]:
                 for i in self.wdb.possible_tutors[c]:
@@ -1036,12 +1042,14 @@ class TTModel(object):
                                              start_time=sl.start_time,
                                              day=sl.day.day,
                                              work_copy=target_work_copy)
-
-                        for rg in self.wdb.course_rg_compat[c]:
-                            if self.get_var_value(self.TTrooms[(sl, c, rg)]) == 1:
-                                cp.room = rg
-                                break
+                        if not self.department.mode.cosmo:
+                            for rg in self.wdb.course_rg_compat[c]:
+                                if self.get_var_value(self.TTrooms[(sl, c, rg)]) == 1:
+                                    cp.room = rg
+                                    break
                         cp.save()
+                        if self.department.mode.cosmo == 2:
+                            c.groups.add(corresponding_group[i])
 
         for fc in self.wdb.fixed_courses:
             cp = ScheduledCourse(course=fc.course,
