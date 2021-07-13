@@ -51,7 +51,7 @@ class TTConstraint(models.Model):
     department = models.ForeignKey('base.Department', null=True, on_delete=models.CASCADE)
     train_progs = models.ManyToManyField('base.TrainingProgramme',
                                          blank=True)
-    weeks = models.ManyToManyField('base.Week')
+    weeks = models.ManyToManyField('base.Week', blank=True)
     weight = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
         null=True, default=None, blank=True)
