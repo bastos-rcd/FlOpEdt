@@ -241,6 +241,7 @@ class Mode(models.Model):
         else:
             text += "without "
         text += "visio."
+        return text
 
 
 @receiver(post_save, sender=Department)
