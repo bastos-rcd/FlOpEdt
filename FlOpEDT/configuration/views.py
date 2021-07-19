@@ -39,10 +39,12 @@ from FlOpEDT.decorators import dept_admin_required
 from base.models import Department, Course
 
 from configuration.make_planif_file import make_planif_file
-from configuration.extract_planif_file import extract_planif
+from configuration.extract_planif_file import extract_planif, extract_planif_from_week
 from configuration.deploy_database import extract_database_file
 from configuration.file_manipulation import upload_file, check_ext_file
 from configuration.forms import ImportPlanif, ImportConfig
+from base.weeks import current_year
+from django.db.models import Q
 
 
 logger = logging.getLogger(__name__)
@@ -61,6 +63,7 @@ def configuration(req, **kwargs):
 
     arg_req['departements'] = [{'name': depart.name, 'abbrev': depart.abbrev}
                                for depart in Department.objects.all() if not depart.abbrev == 'default']
+    arg_req['current_year'] = current_year
     return render(req, 'configuration/configuration.html', arg_req)
 
 
@@ -204,10 +207,20 @@ def import_planif_file(req, **kwargs):
                         return HttpResponse(json.dumps(response), content_type='application/json')
                     print(req.POST)
                     stabilize_courses = "stabilize" in req.POST
-                    Course.objects.filter(type__department=dept).delete()
-                    logger.info("Flush planif database OK")
-
-                    extract_planif(dept, bookname=path, stabilize_courses=stabilize_courses)
+                    from_week = "from_week" in req.POST
+                    courses_to_flush = Course.objects.filter(type__department=dept)
+                    if from_week:
+                        week_nb = int(req.POST["week_nb"])
+                        year = int(req.POST["year"])
+                        courses_to_flush = courses_to_flush.filter(Q(week__nb__gte=week_nb, week__year=year)
+                                                                   | Q(week__year=year+1))
+                        courses_to_flush.delete()
+                        extract_planif_from_week(week_nb, year, dept, bookname=path,
+                                                 stabilize_courses=stabilize_courses)
+                    else:
+                        courses_to_flush.delete()
+                        logger.info("Flush planif database OK")
+                        extract_planif(dept, bookname=path, stabilize_courses=stabilize_courses)
                     logger.info("Extract file OK")
                     rep = "OK !"
 

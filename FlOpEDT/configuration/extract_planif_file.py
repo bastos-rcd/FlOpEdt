@@ -265,15 +265,15 @@ def extract_period(department, book, period, year, stabilize_courses=False, star
             year += 1
         start = max(period.starting_week, starting_week)
         end = min(period.ending_week, ending_week)
-        for week in range(start, end + 1):
-            ReadPlanifWeek(department, book, period.name, week, year, courses_to_stabilize)
-            print(week, year)
+        for week_nb in range(start, end + 1):
+            ReadPlanifWeek(department, book, period.name, week_nb, year, courses_to_stabilize)
+            print(week_nb, year)
 
     else:
-        for week in range(period.starting_week, 53):
-            ReadPlanifWeek(department, book, period.name, week, year, courses_to_stabilize)
-        for week in range(1, period.ending_week + 1):
-            ReadPlanifWeek(department, book, period.name, week, year+1, courses_to_stabilize)
+        for week_nb in range(period.starting_week, 53):
+            ReadPlanifWeek(department, book, period.name, week_nb, year, courses_to_stabilize)
+        for week_nb in range(1, period.ending_week + 1):
+            ReadPlanifWeek(department, book, period.name, week_nb, year+1, courses_to_stabilize)
 
     if stabilize_courses:
         for courses_list in courses_to_stabilize.values():
@@ -297,35 +297,49 @@ def extract_planif(department, bookname=None, stabilize_courses=False):
     assign_module_color(department)
 
 
-def extract_planif_from_week(week, year, department, bookname=None):
+def extract_planif_from_week(week_nb, year, department, bookname=None, stabilize_courses=False):
     '''
     Generate the courses from bookname; the school year starts in actual_year
     '''
+    if stabilize_courses:
+        courses_to_stabilize = {}
+        print("Courses will be stabilized through weeks")
+    else:
+        courses_to_stabilize = None
+
     if bookname is None:
         bookname = 'media/configuration/planif_file_'+department.abbrev+'.xlsx'
     book = load_workbook(filename=bookname, data_only=True)
+    print(year, actual_year)
     if year == actual_year:
         for period in Period.objects.filter(department=department):
             if period.starting_week < period.ending_week:
-                for w in range(max(week, period.starting_week), period.ending_week + 1):
-                    ReadPlanifWeek(department, book, period.name, w, actual_year)
+                for w in range(max(week_nb, period.starting_week), period.ending_week + 1):
+                    ReadPlanifWeek(department, book, period.name, w, actual_year, courses_to_stabilize)
             else:
-                for w in range(max(week, period.starting_week), 53):
-                    ReadPlanifWeek(department, book, period.name, w, actual_year)
+                for w in range(max(week_nb, period.starting_week), 53):
+                    ReadPlanifWeek(department, book, period.name, w, actual_year, courses_to_stabilize)
                 for w in range(1, period.ending_week + 1):
-                    ReadPlanifWeek(department, book, period.name, w, actual_year + 1)
+                    ReadPlanifWeek(department, book, period.name, w, actual_year + 1, courses_to_stabilize)
     elif year == actual_year + 1:
         for period in Period.objects.filter(department=department):
             if period.starting_week < period.ending_week:
-                for w in range(max(week, period.starting_week), period.ending_week + 1):
-                    ReadPlanifWeek(department, book, period.name, w, year)
+                for w in range(max(week_nb, period.starting_week), period.ending_week + 1):
+                    ReadPlanifWeek(department, book, period.name, w, year, courses_to_stabilize)
             else:
-                for w in range(week, period.ending_week + 1):
-                    ReadPlanifWeek(department, book, period.name, w, year)
+                for w in range(week_nb, period.ending_week + 1):
+                    ReadPlanifWeek(department, book, period.name, w, year, courses_to_stabilize)
 
     else:
         print("Are you sure of year value?")
 
+    if stabilize_courses:
+        for courses_list in courses_to_stabilize.values():
+            if len(courses_list) < 2:
+                continue
+            stw = StabilizationThroughWeeks.objects.create(department=department)
+            for c in courses_list:
+                stw.courses.add(c)
 
 def extract_planif_weeks(week_year_list, department, bookname=None):
     if bookname is None:

@@ -60,21 +60,33 @@
     </div>
 
     <div class="step">
-        <h3>{% trans "Completed planning file" %}</h3>
-        <p>{% trans "Upload the completed planning file." %}<br>
-            {% trans "Only xlsx format is accepted." %}</p>
 <!--        <form action="/configuration/import_planif_file/" method="post" enctype="multipart/form-data" id="config_2">-->
-        <form action="{% url "configuration:ul_planif" %}" method="post" enctype="multipart/form-data" id="planif">
-            {% csrf_token %}
-            <select name="departement" id="dropdown_dpt_2">
-                {% for depart in departements %}
-                    <option value={{ depart.abbrev }} >{{ depart.name }}</option>
-                {% endfor %}
-            </select>
-            {{ form_planif }}
-            <span>{% trans "Stabilization ?" %}</span> <input type="checkbox" name="stabilize"/>
-            <input type="submit" value={% trans "Import" %}>
-        </form>
+        <fieldset>
+            <legend> <h3>{% trans "Completed planning file" %}</h3> </legend>
+            <p>{% trans "Upload the completed planning file." %} ({% trans "Only xlsx format is accepted." %})</p>
+            <form action="{% url "configuration:ul_planif" %}" method="post" enctype="multipart/form-data" id="planif">
+                {% csrf_token %}
+                <select name="departement" id="dropdown_dpt_2">
+                    {% for depart in departements %}
+                        <option value={{ depart.abbrev }} >{{ depart.name }}</option>
+                    {% endfor %}
+                </select>
+                </br></br>
+                {{ form_planif }}
+                </br></br>
+                <input type="checkbox" name="from_week"/> {% trans "From week" %} <input type="number" name="week_nb" style="width: 40px" min="1" max="53">
+                {% trans "year" %} <input type="number" name="year" style="width: 60px" min="{{current_year}}" max="{{current_year|add:"1"}}">
+                {% comment %}
+                {% trans "Until week" %}
+                <input type="number" name="week_end" style="width: 40px" value="{{ date_fin.semaine }}" min="1" max="53">, {% trans "year" %}
+                <input type="number" name="year_end" style="width: 60px" value="{{ date_fin.an }}" min="{{current_year}}" max="{{current_year|add:"1"}}">
+                {% endcomment %}
+                </br></br>
+                <input type="checkbox" name="stabilize"/> <span>{% trans "Stabilization ?" %}</span>
+                </br></br>
+                <input type="submit" value={% trans "Import" %}>
+            </form>
+        </fieldset>
         <div id="error_planif">
           <h4>{% trans "Verdict :" %}</h4>
           <p></p>

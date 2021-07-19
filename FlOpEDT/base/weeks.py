@@ -51,7 +51,7 @@ def get_current_school_year():
     return school_year
 
 
-actual_year = get_current_school_year()
+current_year = actual_year = get_current_school_year()
 
 
 # monday of Week #2
@@ -116,15 +116,8 @@ def week_list():
         return li
 
 
-def current_year():
-    now = datetime.date.today()
-    if now.month < 7:
-        return now.year - 1
-    return now.year
-
-
 def year_by_week(week):
     if week > 36:
-        return current_year()
+        return current_year
     else:
-        return current_year() + 1
+        return current_year + 1
