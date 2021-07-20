@@ -744,7 +744,7 @@ class TTModel(object):
                     week_tutor_availabilities = self.wdb.availabilities[i][week]
 
                 if not week_tutor_availabilities:
-                    self.add_warning(i, "no availability information given week %g" % week)
+                    self.add_warning(i, "no availability information given week %s" % week)
                     for availability_slot in week_availability_slots:
                         unp_slot_cost[i][availability_slot] = 0
                         avail_at_school_instr[i][availability_slot] = 1
@@ -763,7 +763,7 @@ class TTModel(object):
                         #     avail_instr[i][availability_slot] = 1
 
                     elif avail_time < total_teaching_duration:
-                        self.add_warning(i, "%g available hours < %g courses hours including other deps week %g" % (
+                        self.add_warning(i, "%g available hours < %g courses hours including other deps week %s" % (
                             avail_time / 60, total_teaching_duration / 60, week))
                         # We used to forget tutor availabilities in this case...
                         # for availability_slot in week_availability_slots:
