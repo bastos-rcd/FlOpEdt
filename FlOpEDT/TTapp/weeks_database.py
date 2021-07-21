@@ -135,6 +135,7 @@ class WeeksDatabase(object):
         courses_slots = set()
         filtered_cstc = CourseStartTimeConstraint.objects.filter(Q(course_type__in=self.course_types)
                                                                  | Q(course_type=None))
+        # Courses slots
         for cc in filtered_cstc:
             start_times = cc.allowed_start_times
             if self.slots_step is None:
@@ -149,9 +150,13 @@ class WeeksDatabase(object):
         for slot in courses_slots:
             self.possible_apms.add(slot.apm)
 
+        # We build availability slots considering the possible Intervals from a possible start time to another
+        # and adding the possible end times. It is a partition, and we may use the Partition class to do it.
         dayly_availability_slots= set()
         for cst in filtered_cstc:
             dayly_availability_slots |= set(cst.allowed_start_times)
+            if cst.course_type is not None:
+                dayly_availability_slots |= set(st + cst.course_type.duration for st in cst.allowed_start_times)
         dayly_availability_slots.add(tgs.day_finish_time)
         dayly_availability_slots = list(dayly_availability_slots)
         dayly_availability_slots.sort()
