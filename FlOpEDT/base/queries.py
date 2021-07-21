@@ -78,9 +78,11 @@ def create_first_department():
     return department
 
 
-def get_edt_version(department, week, year, create=False):
+def get_edt_version(department, week_nb, year, create=False):
 
-    params = {'week__nb': week, 'week__year': year, 'department': department}
+    week = Week.objects.get(nb=week_nb, year=year)
+
+    params = {'week': week, 'department': department}
 
     if create:
         try:

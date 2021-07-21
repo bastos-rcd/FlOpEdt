@@ -194,7 +194,7 @@ class WeekInfoViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     def list(self, request, format=None):
-        week = int(request.query_params.get('week'))
+        week_nb = int(request.query_params.get('week'))
         year = int(request.query_params.get('year'))
 
         try:
@@ -206,14 +206,14 @@ class WeekInfoViewSet(viewsets.ViewSet):
 
         version = 0
         for dept in bm.Department.objects.all():
-            version += queries.get_edt_version(dept, week, year, create=True)
+            version += queries.get_edt_version(dept, week_nb, year, create=True)
 
         proposed_pref, required_pref = \
-            pref_requirements(department, request.user, year, week) if request.user.is_authenticated \
+            pref_requirements(department, request.user, year, week_nb) if request.user.is_authenticated \
                 else (-1, -1)
 
         try:
-            regen = str(bm.Regen.objects.get(department=department, week__nb=week, week__year=year))
+            regen = str(bm.Regen.objects.get(department=department, week__nb=week_nb, week__year=year))
         except bm.Regen.DoesNotExist:
             regen = 'I'
 
