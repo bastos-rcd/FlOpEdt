@@ -162,9 +162,6 @@ class WeeksDatabase(object):
         dayly_availability_slots.sort()
         start_times = dayly_availability_slots[:-1]
         end_times = dayly_availability_slots[1:]
-        for i in range(len(end_times)):
-            if tgs.lunch_break_start_time < end_times[i] <= tgs.lunch_break_finish_time:
-                end_times[i] = tgs.lunch_break_start_time
 
         availability_slots = {Slot(day=day,
                                    start_time=start_times[i],
