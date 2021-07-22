@@ -147,10 +147,12 @@ class CourseSlot(Slot):
 
 def slots_filter(slot_set, day=None, apm=None, course_type=None, start_time=None, week_day=None,
                  simultaneous_to=None, week=None, is_after=None, starts_after=None, starts_before=None,
-                 ends_before=None, ends_after=None, day_in=None, same=None):
+                 ends_before=None, ends_after=None, day_in=None, same=None, week_in=None):
     slots = slot_set
     if week is not None:
         slots = set(sl for sl in slots if sl.day.week == week)
+    if week_in is not None:
+        slots = set(sl for sl in slots if sl.day.week in week_in)
     if day is not None:
         slots = set(sl for sl in slots if sl.day == day)
     if day_in is not None:

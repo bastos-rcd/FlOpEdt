@@ -14,7 +14,7 @@ def from_week_year_to_weeks(apps, schema_editor):
             cl = apps.get_model('TTapp', class_name)
         except:
             continue
-        all_o = cl.objects.exclude(Q(week=None)|Q(year=None))
+        all_o = cl.objects.exclude(Q(week=None) | Q(year=None))
         for o in all_o:
             w = Week.objects.get(nb=o.week, year=o.year)
             o.weeks.add(w)

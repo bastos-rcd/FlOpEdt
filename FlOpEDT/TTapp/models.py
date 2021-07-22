@@ -48,6 +48,7 @@ from TTapp.TTConstraints.limit_time_constraints import LimitModulesTimePerPeriod
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak, BreakAroundCourseType, TutorsLunchBreak
 from TTapp.TTConstraints.visio_constraints import NoVisio, BoundPhysicalPresenceHalfDays, LimitGroupsPhysicalPresence, \
     VisioOnly, Curfew
+from TTapp.TTConstraints.cosmo_style_constraints import LimitHoles, LimitTutorTimePerWeeks
 
 #
 #   CustomConstraint

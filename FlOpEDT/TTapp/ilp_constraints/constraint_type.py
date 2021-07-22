@@ -138,3 +138,55 @@ class ConstraintType(Enum):
     MIN_HALF_DAYS_JOIN_PM = "Min Half Days join PM"
     MIN_HALF_DAYS_SUP = "MIN_HALF_DAYS_SUP"
     MIN_HALF_DAYS_INF = "MIN_HALF_DAYS_INF"
+
+    # From Cosmo
+    JOURS_CONSECUTIFS = "Jours consécutifs"
+    jours_de_repos_par_semaine = "jours_de_repos_par_semaine"
+    COSMO = "Cosmo - to be defined"
+    TRAVAILLE_ASSEZ = "TRAVAILLE_ASSEZ"
+    MOD_PER_DAY = "MOD_PER_DAY"
+    TUTOR_PER_DAY = "TUTOR_PER_DAY"
+    END_OF_BLOC = "END_OF_BLOC"
+    MAX_HOLES = "MAX_HOLES"
+    MENAGE = "MENAGE"
+    PATRONS_SEMAINE_MOINS_DEUX = "PATRONS_SEMAINE_MOINS_DEUX"
+    DIFF_MAX_ENTRE_PATRONS = "DIFF_MAX_ENTRE_PATRONS"
+    UN_SEUL_PATRON = "UN_SEUL_PATRON"
+    TEAM_MEETING = "TEAM_MEETING"
+    REST_DAYS_PER_WEEK = "REST_DAYS_PER_WEEK"
+    CONSECUTIVE_REST_DAYS_PER_WEEK = "CONSECUTIVE_REST_DAYS_PER_WEEK"
+    SUSPENS_HOURS = "SUSPENS_HOURS"
+    IF_MOD_A_THEN_NOT_MOD_B = "IF_MOD_A_THEN_NOT_MOD_B"
+    LONG_ENOUGH_EVENINGS = "LONG_ENOUGH_EVENINGS"
+    WORKS_ON_EVENING = "WORKS_ON_EVENING"
+    AT_LEAST_ONCE_ON_MOD = "AT_LEAST_ONCE_ON_MOD"
+    NOT_ON_MOD = "NOT_ON_MOD"
+    MAX_AMPLITUDE_PER_DAY = "MAX_AMPLITUDE_PER_DAY"
+    NIGHT_BREAK = "NIGHT_BREAK"
+    MIN_WE = "MIN_WE"
+    TRAVAILLE_PAS_TROP = "TRAVAILLE_PAS_TROP"
+    max_time_per_week = "max_time_per_week"
+    min_time_per_week = "min_time_per_week"
+
+    # Gardes
+    GARDES = "Gardes"
+    SOIR_AUBE = "Soir et Aube"
+    PAUSE_APRES_NUIT = "PAUSE_APRES_NUIT"
+    PAS_TROP_D_HEURES = "Pas trop d'heures par jours glissants"
+    PAS_TROP_DE_NUITS = "Pas trop de nuits par jours glissants"
+    TECHNICAL_WE = 'TECHNICAL_WE'
+    ASSEZ_DE_WE = 'ASSEZ_DE_WE libres'
+    ASSEZ_DE_quasiWE = 'ASSEZ_DE_quasiWE libres '
+    ASSEZ_DE_WE_OU_QUASI = 'ASSEZ_DE_WE_OU_QUASI libres'
+    ASSEZ_DE_dimanches = 'Assez dimanches travaillés'
+    PAS_TROP_DE_dimanches = 'Pas trop de dimanches travaillés'
+    ASSEZ_DE_SAMEDIS = 'Assez de samedis travaillés'
+    PAS_TROP_DE_SAMEDIS = 'Pas trop de samedis travaillés'
+    ASSEZ_DE_SAMEDIS_ET_DIM = 'Assez de samedis/dimanches travaillés'
+    PAS_TROP_DE_SAMEDIS_ET_DIM = 'Pas trop de samedis/dimanches travaillés'
+    GARDES_DE_24H = "GARDES_DE_24H"
+    AU_MOINS_UNE_GARDE = "AU_MOINS_UNE_GARDE"
+    AU_PLUS_DEUX_GARDES = "AU_PLUS_DEUX_GARDES"
+    EGALITE_GARDES = "EGALITE_GARDES"
+    AU_MOINS_DEUX_GARDES = "AU_MOINS_DEUX_GARDES"
+
