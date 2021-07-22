@@ -31,16 +31,6 @@ Dans la rubrique `TTapp` vos trouverez les contraintes prêtes à être en base.
 ![TTConstraints](static/TTapp/TTConstraints.png) En voici une description des plus fréquemment utilisées, 
 avec quelques caractéristiques propres. 
 
-- Groups lunch breaks: force une pause d'une durée définie entre telle heure et telle heure pour les groupes choisis
-- Limit groups time per periods	: limite le nombre d'heures (d'un type donné) par jour/demie-journée pour
-un ou plusieurs groupes.
-- Limit modules time per periods : idem pour une ou plusieurs matières (éventuellement par promo) 
-- Limit tutors time per periods	: idem pour un enseignant
-- Limited room choices	: limite les salles possibles (pour un enseignant, un module, ...)
-- Limited start time choices: limite les heures de début possible 
-- Min tutors half days : minimise les demie-journées de présence/cours pour les profs choisis
-- Simultaneous courses : impose qu'un ensemble de cours donnés soient simultanés
-
 :bulb: le paramètre weight définit s'il s'agit d'**une contrainte (si weight est laissé vide)** qui sera toujours respectée
 ou d'une préférence (avec un degré d'importance de 1 à 8) que le solveur essaiera d'appliquer.
 
@@ -53,15 +43,40 @@ pour une promotion particulière ou pour toutes (laisser vide), etc...
 
 :bulb: Attention, les contraintes ne sont valables que pour le département via lequel elles sont saisies!
 
-Certaines sont enregistrées automatiquement à la première génération puis appliquées par défaut (il est possible
+### Contraintes de base
+Ces contraintes sont enregistrées automatiquement à la première génération puis appliquées par défaut (il est possible
 néanmoins de les désactiver):
 - Min non prefered train progs slots : minimise les créneaux non préférés pour les groupes
 - Min non prefered tutors slots	: minimise les créneaux non préférés pour les profs
 - Minimize busy days: minimise les jours de présence des profs (en respectant leur journée idéale)
 - Respecter les limites horaires: respecte la limite maximale définie par les profs
 - Min groups half days: tente de libérer une/plusieurs demie-journées aux étudiant⋅e⋅s 
+- ConsiderDependencies: prend en compte les dépendance entre cours (Dependecy) enregistrées en base
 
-### Spoil
+### Autres contraintes génériques
+
+- Groups lunch breaks: force une pause d'une durée définie entre telle heure et telle heure pour les groupes choisis
+- Tutors lunch breaks: idem, pour les enseignant⋅e⋅s / salarié⋅e⋅s
+- Limit groups time per periods	: limite le nombre d'heures (d'un type donné) par jour/demie-journée pour
+un ou plusieurs groupes.
+- Limit modules time per periods : idem pour une ou plusieurs matières (éventuellement par promo) 
+- Limit tutors time per periods	: idem, pour les enseignant⋅e⋅s / salarié⋅e⋅s
+- Limited room choices	: limite les salles possibles (pour un enseignant, un module, ...)
+- Limited start time choices: limite les heures de début possible 
+- Min tutors half days : minimise les demie-journées de présence/cours pour les profs choisis
+- Simultaneous courses : impose qu'un ensemble de cours donnés soient simultanés
+- No group course on day: permet d'interdire tout cours sur une journée/demie-journée
+- No tutor course on day: idem, pour les enseignant⋅e⋅s / salarié⋅e⋅s
+
+### Contraintes spécifiques au mode Visio
+- Bound Physical presence half days: met des bornes (min/max) sur le nombre de demies-journées de présene sur site pour les groupes d'étudiant⋅e⋅s
+- Curfew : définit une heure à partir de laquelle les cours en présentiel sont proscrits
+- Limit groups physical presence: permet de donner un ratio détudiant⋅e⋅s pouvant être simultanément sur site
+- No Visio: force les cours concernés à être en présentiel
+- Visio Only: force les cours concernés à être en visio
+
+
+### Spoiler alert
 Vous ne trouverez probablement pas toutes les contraintes qui vous intéresseront dans cette liste. 
 De nombreuses autres contraintes sont sur le point d'être ajoutées (on y travaille!). Si vous voulez nous y aider,
 ou simplement nous proposer une nouvelle contrainte qui vous serez utile, [contactez-nous!](mailto:contact@flopedt.org) 

@@ -45,7 +45,8 @@ from base.timing import Time
 
 from people.models import Tutor
 
-from TTapp.models import MinNonPreferedTutorsSlot, Stabilize, MinNonPreferedTrainProgsSlot
+from TTapp.models import MinNonPreferedTutorsSlot, Stabilize, MinNonPreferedTrainProgsSlot, \
+    MinimizeBusyDays, MinGroupsHalfDays, RespectBoundPerDay, ConsiderDepencies
 
 from TTapp.slots import slots_filter, days_filter
 
@@ -520,21 +521,25 @@ class TTModel(object):
             self.add_constraint(self.sum([self.TT[(sl, c)] for sl in self.wdb.compatible_slots[c]]), '==', 1,
                                 CourseConstraint(c))
 
-        # # Training half day TODO: Delete usage because redundant with NoCourseOnDay ?
-        # for training_half_day in self.wdb.training_half_days:
-        #     training_slots = slots_filter(self.wdb.courses_slots, week_day=training_half_day.day, week=training_half_day.week)
-        #     if training_half_day.apm is not None:
-        #         training_slots = slots_filter(training_slots, apm=training_half_day.apm)
-        #     training_progs = self.train_prog
-        #     if training_half_day.train_prog is not None:
-        #         training_progs = [training_half_day.train_prog]
-        #     # , "no_course_on_%s_%s_%g" % (training_half_day.day, training_half_day.apm, self.constraint_nb)
-        #     self.add_constraint(self.sum(self.TT[(sl, c)] for sl in training_slots
-        #                                  for c in self.wdb.compatible_courses[sl]
-        #                                  & set(self.wdb.courses.filter(module__train_prog__in=training_progs))),
-        #                         '==', 0,
-        #                         Constraint(constraint_type=ConstraintType.PAS_DE_COURS_DE_DEMI_JOURNEE,
-        #                         days=training_half_day.day, apm=training_half_day.apm))
+        # Check if RespectBound constraint is in database, and add it if not
+        R, created = RespectBoundPerDay.objects.get_or_create(department=self.department)
+        if created:
+            R.save()
+
+        # Check if MinimizeBusyDays constraint is in database, and add it if not
+        M, created = MinimizeBusyDays.objects.get_or_create(department=self.department)
+        if created:
+            M.save()
+
+        # Check if MinGroupsHalfDays constraint is in database, and add it if not
+        M, created = MinGroupsHalfDays.objects.get_or_create(department=self.department)
+        if created:
+            M.save()
+
+        # Check if ConsiderDependencies constraint is in database, and add it if not
+        C, created = ConsiderDepencies.objects.get_or_create(department=self.department)
+        if created:
+            M.save()
 
     def add_instructors_constraints(self):
         print("adding instructors constraints")
