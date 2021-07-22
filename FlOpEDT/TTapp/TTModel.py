@@ -506,15 +506,16 @@ class TTModel(object):
         print("adding core constraints")
 
         # constraint : only one course on simultaneous slots
-        print('Simultaneous slots constraints for groups')
-        for sl in self.wdb.availability_slots:
-            for bg in self.wdb.basic_groups:
-                self.add_constraint(self.sum(self.TT[(sl2, c2)]
-                                             for sl2 in slots_filter(self.wdb.courses_slots,
-                                                                     simultaneous_to=sl)
-                                             for c2 in self.wdb.courses_for_basic_group[bg]
-                                             & self.wdb.compatible_courses[sl2]),
-                                    '<=', 1, SimulSlotGroupConstraint(sl, bg))
+        if self.department.mode.cosmo != 2:
+            print('Simultaneous slots constraints for groups')
+            for sl in self.wdb.availability_slots:
+                for bg in self.wdb.basic_groups:
+                    self.add_constraint(self.sum(self.TT[(sl2, c2)]
+                                                 for sl2 in slots_filter(self.wdb.courses_slots,
+                                                                         simultaneous_to=sl)
+                                                 for c2 in self.wdb.courses_for_basic_group[bg]
+                                                 & self.wdb.compatible_courses[sl2]),
+                                        '<=', 1, SimulSlotGroupConstraint(sl, bg))
 
         # a course is scheduled once and only once
         for c in self.wdb.courses:
@@ -1027,6 +1028,8 @@ class TTModel(object):
             corresponding_group = {}
             for i in self.wdb.instructors:
                 corresponding_group[i] = self.wdb.groups.get(name=i.username)
+            for c in self.wdb.courses:
+                c.groups.clear()
 
         for c in self.wdb.courses:
             for sl in self.wdb.compatible_slots[c]:
@@ -1290,7 +1293,10 @@ class TTModel(object):
         if result is not None:
 
             if target_work_copy is None:
-                target_work_copy = self.choose_free_work_copy()
+                if self.department.mode.cosmo == 2:
+                    target_work_copy =0
+                else:
+                    target_work_copy = self.choose_free_work_copy()
 
             self.add_tt_to_db(target_work_copy)
             # for week in self.weeks:

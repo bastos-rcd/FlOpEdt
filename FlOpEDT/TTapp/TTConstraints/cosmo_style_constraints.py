@@ -192,12 +192,15 @@ class LimitTutorTimePerWeeks(TTConstraint):
             tutors = set(t for t in ttmodel.wdb.instructors if t in self.tutors.all())
         else:
             tutors = set(ttmodel.wdb.instructors)
+        local_weight = 1
+        if self.weight is not None:
+            local_weight = self.local_weight()
         # enrich model for each period of the desired length inside ttmodel.weeks
         for i in range(len(ttmodel.weeks) - self.number_of_weeks + 1):
             considered_weeks = ttmodel.weeks[i:i+self.number_of_weeks]
             for tutor in tutors:
                 total_tutor_time = ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.duration
-                                               for c in ttmodel.wdb.courses_for_tutor[tutor]
+                                               for c in ttmodel.wdb.possible_courses[tutor]
                                                for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
                                                                       week_in = considered_weeks)
                                                ) \
@@ -221,8 +224,8 @@ class LimitTutorTimePerWeeks(TTConstraint):
                                                Constraint(constraint_type=ConstraintType.max_time_per_week,
                                                           instructors=tutor))
                     else:
-                        ttmodel.add_to_inst_cost(untolerable_max * self.local_weight() * ponderation, week)
-                    ttmodel.add_to_inst_cost(undesirable_max * self.local_weight() * ponderation, week)
+                        ttmodel.add_to_inst_cost(tutor, untolerable_max * local_weight * ponderation, week)
+                    ttmodel.add_to_inst_cost(tutor, undesirable_max * local_weight * ponderation, week)
                 if self.min_time_per_period is not None:
                     undesirable_min = ttmodel.one_var - ttmodel.add_floor(total_tutor_time, self.min_time_per_period,
                                                                           24 * 60 * 7 * self.number_of_weeks)
@@ -240,5 +243,5 @@ class LimitTutorTimePerWeeks(TTConstraint):
                                                Constraint(constraint_type=ConstraintType.min_time_per_week,
                                                           instructors=tutor))
                     else:
-                        ttmodel.add_to_inst_cost(untolerable_min * self.local_weight() * ponderation, week)
-                    ttmodel.add_to_inst_cost(undesirable_min * self.local_weight() * ponderation, week)
+                        ttmodel.add_to_inst_cost(tutor, untolerable_min * local_weight * ponderation, week)
+                    ttmodel.add_to_inst_cost(tutor, undesirable_min * local_weight * ponderation, week)

@@ -196,7 +196,7 @@ class RespectBoundPerDay(TTConstraint):
         for tutor in tutors:
             for d in days_filter(ttmodel.wdb.days, week=week):
                 ttmodel.add_constraint(ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.duration / 60
-                                                   for c in ttmodel.wdb.courses_for_tutor[tutor]
+                                                   for c in ttmodel.wdb.possible_courses[tutor]
                                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=d)
                                                    )
                                        + sum(sc.course.type.duration

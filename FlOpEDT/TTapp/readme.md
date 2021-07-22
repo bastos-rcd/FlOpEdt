@@ -44,9 +44,8 @@ pour une promotion particulière ou pour toutes (laisser vide), etc...
 :bulb: Attention, les contraintes ne sont valables que pour le département via lequel elles sont saisies!
 
 ### Contraintes de base
-Ces contraintes sont enregistrées automatiquement à la première génération puis appliquées par défaut (il est possible
-néanmoins de les désactiver):
-- Min non prefered train progs slots : minimise les créneaux non préférés pour les groupes
+Ces contraintes sont enregistrées automatiquement à la première génération puis appliquées par défaut (il est possible néanmoins de les désactiver):
+- Min non prefered train progs slots : considère les indisponibilités et minimise les créneaux non préférés pour les groupes
 - Min non prefered tutors slots	: minimise les créneaux non préférés pour les profs
 - Minimize busy days: minimise les jours de présence des profs (en respectant leur journée idéale)
 - Respecter les limites horaires: respecte la limite maximale définie par les profs
