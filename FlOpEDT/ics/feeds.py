@@ -52,7 +52,7 @@ class EventFeed(ICalFeed):
     def item_start_datetime(self, scourse):
         course = scourse.course
         begin = datetime.combine(
-            Week(course.year, course.week)\
+            Week(course.week.year, course.week.nb)\
             .day(self.days.index(scourse.day)),
             datetime.min.time()) \
             + timedelta(minutes=scourse.start_time)
