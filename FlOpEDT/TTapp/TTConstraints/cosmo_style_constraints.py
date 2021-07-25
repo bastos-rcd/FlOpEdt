@@ -32,6 +32,7 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
 from django.core.validators import MaxValueValidator
 from django.utils.translation import gettext_lazy as _
+from base.models import CourseStartTimeConstraint
 
 slot_pause = 5
 
@@ -97,8 +98,7 @@ class LimitHoles(TTConstraint):
                 possible_end_times = list(set(sl.end_time for sl in slots_filter(ttmodel.wdb.courses_slots, day=d)))
                 possible_end_times.sort()
                 for end_time in possible_end_times:
-                    end_of_block[i, end_time] = ttmodel.add_var(
-                        "%s a un bloc qui finit a %gh" % (i.username, end_time / 60))
+                    end_of_block[i, end_time] = ttmodel.add_var()
                     # Si c'est une fin de bloc, un cours se termine là
                     ttmodel.add_constraint(
                         end_of_block[i, end_time] - sum_of_courses_that_end_at(ttmodel, i, d, end_time),
@@ -245,3 +245,93 @@ class LimitTutorTimePerWeeks(TTConstraint):
                     else:
                         ttmodel.add_to_inst_cost(tutor, untolerable_min * local_weight * ponderation, week)
                     ttmodel.add_to_inst_cost(tutor, undesirable_min * local_weight * ponderation, week)
+
+
+class ModulesByBloc(TTConstraint):
+    """
+    Force that same module is affected by bloc (a same tutor is affected to each bloc of same module)
+    Except for suspens courses
+    """
+    modules = models.ManyToManyField('base.Module', blank=True)
+
+    def get_viewmodel(self):
+        view_model = super().get_viewmodel()
+        details = view_model['details']
+
+        if self.modules.exists():
+            details.update({'modules': ', '.join([module.abbrev for module in self.modules.all()])})
+
+        return view_model
+
+    def one_line_description(self):
+        text = "Modules "
+        if self.modules.exists():
+            text +=', '.join([module.abbrev for module in self.modules.all()])
+        text += "are affected by bloc."
+        return text
+
+    def enrich_model(self, ttmodel, week, ponderation=1):
+        if self.weight is not None:
+            print("ModulesByBloc is available only for constraint, not preference...")
+            return
+
+        considered_modules = ttmodel.wdb.modules
+        if self.modules.exists():
+            considered_modules = set(considered_modules) & set(self.modules.all())
+        if self.train_progs.exists():
+            considered_modules = set(m for m in considered_modules if m.train_prog in self.train_progs.all())
+
+        possible_start_times = set()
+        for c in CourseStartTimeConstraint.objects.filter(course_type__department=ttmodel.department):
+            possible_start_times |= set(c.allowed_start_times)
+        possible_start_times = list(possible_start_times)
+        possible_start_times.sort()
+
+        for d in days_filter(ttmodel.wdb.days, week=week):
+            day_slots = slots_filter(ttmodel.wdb.courses_slots, day=d)
+            day_sched_courses = ttmodel.wdb.sched_courses.filter(day=d.day, course__week=week, course__suspens=False)
+            for m in considered_modules:
+                module_day_sched_courses = day_sched_courses.filter(course__module=m)
+                if not module_day_sched_courses.exists():
+                    continue
+                for i in range(len(possible_start_times) - 1):
+                    slot_sched_courses = module_day_sched_courses.filter(start_time=possible_start_times[i])
+                    next_slot_sched_courses = module_day_sched_courses.filter(start_time=possible_start_times[i+1])
+                    if not (slot_sched_courses.exists() and next_slot_sched_courses.exists()):
+                        continue
+                    slot = slots_filter(day_slots, start_time=possible_start_times[i]).pop()
+                    next_slot = slots_filter(day_slots, start_time=possible_start_times[i+1]).pop()
+                    # Choose the slot where more courses have to be assigned
+                    if slot_sched_courses.count() == next_slot_sched_courses.count():
+                        for tutor in ttmodel.wdb.possible_tutors[m]:
+                            ttmodel.add_constraint(
+                                ttmodel.sum(ttmodel.TTinstructors[(next_slot, sc2.course, tutor)]
+                                            for sc2 in next_slot_sched_courses)
+                                - ttmodel.sum(ttmodel.TTinstructors[(slot, sc.course, tutor)]
+                                              for sc in slot_sched_courses),
+                                '==',
+                                0,
+                                Constraint(constraint_type=ConstraintType.module_by_bloc,
+                                           instructors=tutor, days=d, modules=m))
+                    elif slot_sched_courses.count() > next_slot_sched_courses.count():
+                        for tutor in ttmodel.wdb.possible_tutors[m]:
+                            ttmodel.add_constraint(
+                                2 * ttmodel.sum(ttmodel.TTinstructors[(next_slot, sc2.course, tutor)]
+                                                for sc2 in next_slot_sched_courses)
+                                - ttmodel.sum(ttmodel.TTinstructors[(slot, sc.course, tutor)]
+                                              for sc in slot_sched_courses),
+                                '<=',
+                                1,
+                                Constraint(constraint_type=ConstraintType.module_by_bloc,
+                                           instructors=tutor, days=d, modules=m))
+                    else: # slot_sched_courses.count() < next_slot_sched_courses.count()
+                        for tutor in ttmodel.wdb.possible_tutors[m]:
+                            ttmodel.add_constraint(
+                                2 * ttmodel.sum(ttmodel.TTinstructors[(slot, sc.course, tutor)]
+                                              for sc in slot_sched_courses)
+                                - ttmodel.sum(ttmodel.TTinstructors[(next_slot, sc2.course, tutor)]
+                                                for sc2 in next_slot_sched_courses),
+                                '<=',
+                                1,
+                                Constraint(constraint_type=ConstraintType.module_by_bloc,
+                                           instructors=tutor, days=d, modules=m))

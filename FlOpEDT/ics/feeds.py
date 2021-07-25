@@ -73,7 +73,7 @@ class TutorEventFeed(EventFeed):
 
     def items(self, tutor):
         return ScheduledCourse.objects.filter(tutor=tutor, work_copy=0)\
-                                      .order_by('-course__year','-course__week')
+                                      .order_by('-course__week__year','-course__week__nb')
 
     def item_title(self, scourse):
         course = scourse.course
@@ -91,8 +91,8 @@ class RoomEventFeed(EventFeed):
 
     def items(self, room_groups):
         return ScheduledCourse.objects\
-                              .filter(room__in=room_groups, work_copy=0)\
-                              .order_by('-course__year','-course__week')
+                              .filter(room__in=room_groups, work_copy=0) \
+            .order_by('-course__week__year', '-course__week__nb')
 
     def item_title(self, scourse):
         course = scourse.course
@@ -112,8 +112,8 @@ class GroupEventFeed(EventFeed):
 
     def items(self, groups):
         return ScheduledCourse.objects\
-                              .filter(course__groups__in=groups, work_copy=0\
-                              ).order_by('-course__year','-course__week')
+                              .filter(course__groups__in=groups, work_copy=0) \
+            .order_by('-course__week__year', '-course__week__nb')
 
     def item_title(self, scourse):
         course = scourse.course
@@ -138,7 +138,7 @@ class RegenFeed(ICalFeed):
 
     def items(self, departments):
         return Regen.objects.filter(department__in=departments)\
-            .exclude(full=False, stabilize=False).order_by('-year','-week')
+            .exclude(full=False, stabilize=False).order_by('-week__year','-week__nb')
 
     def item_title(self, regen):
         return f"flop!EDT - {regen.department.abbrev} : {regen.strplus()}"
@@ -147,11 +147,11 @@ class RegenFeed(ICalFeed):
         return self.item_title(regen)
 
     def item_start_datetime(self, regen):
-        begin = Week(regen.year, regen.week).day(0)
+        begin = Week(regen.week.year, regen.week.nb).day(0)
         return begin
 
     def item_end_datetime(self, regen):
-        end = Week(regen.year, regen.week).day(len(regen.department.timegeneralsettings.days))
+        end = Week(regen.week.year, regen.week.nb).day(len(regen.department.timegeneralsettings.days))
         return end
 
     def item_link(self, s):

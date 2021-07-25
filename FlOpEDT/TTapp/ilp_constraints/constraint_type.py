@@ -146,6 +146,7 @@ class ConstraintType(Enum):
     TRAVAILLE_ASSEZ = "TRAVAILLE_ASSEZ"
     MOD_PER_DAY = "MOD_PER_DAY"
     TUTOR_PER_DAY = "TUTOR_PER_DAY"
+    module_by_bloc = "module_by_bloc"
     END_OF_BLOC = "END_OF_BLOC"
     MAX_HOLES = "MAX_HOLES"
     MENAGE = "MENAGE"
