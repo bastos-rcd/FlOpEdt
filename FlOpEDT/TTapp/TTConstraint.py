@@ -88,7 +88,7 @@ class TTConstraint(models.Model):
             train_prog_value = 'All'
 
         if self.weeks.exists():
-            week_value = ','.join([f"{w.nb} ({w.year})" for w in self.weeks])
+            week_value = ','.join([f"{w.nb} ({w.year})" for w in self.weeks.all()])
         else:
             week_value = 'All'
 

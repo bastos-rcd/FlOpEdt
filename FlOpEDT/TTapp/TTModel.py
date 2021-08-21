@@ -1320,7 +1320,7 @@ def get_constraints(department, week=None, train_prog=None, is_active=None):
     if is_active:
         query &= Q(is_active=is_active)
 
-    elif train_prog:
+    if train_prog:
         query &= \
             Q(train_progs__abbrev=train_prog) & Q(weeks__isnull=True) | \
             Q(train_progs__abbrev=train_prog) & Q(weeks=week) | \
