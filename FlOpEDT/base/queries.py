@@ -104,13 +104,12 @@ def get_edt_version(department, week_nb, year, create=False):
     return version
 
 
-def get_scheduled_courses(department, week, year, num_copy):
+def get_scheduled_courses(department, week, num_copy=0):
 
     qs = ScheduledCourse.objects \
                     .filter(
-                        course__module__train_prog__department=department,
+                        course__type__department=department,
                         course__week=week,
-                        course__year=year,
                         day__in=get_working_days(department),
                         work_copy=num_copy).select_related('course',
                                                            'course__tutor',
@@ -179,6 +178,12 @@ def get_groups(department_abbrev):
         final_groups.append(get_descendant_groups(gp_master, gp_dict_children))
 
     return final_groups
+
+
+def get_all_connected_courses(group, week, num_copy=0):
+    qs = get_scheduled_courses(group.train_prog.department,
+                               week, num_copy=num_copy)
+    return qs.filter(groups__in = group.connected_groups())
 
 
 def get_descendant_groups(gp, children):
