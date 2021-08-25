@@ -27,7 +27,7 @@
 import logging
 
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.core.exceptions import ObjectDoesNotExist
 
 from base.models import Group, RoomType, Room, \
@@ -235,12 +235,16 @@ def get_room_types_groups(department_abbrev):
     """
     dept = Department.objects.get(abbrev=department_abbrev)
 
-    return {'roomtypes': {str(rt): list(set(
-        [room.name for room in rt.members.all()]
-    )) for rt in RoomType.objects.prefetch_related('members').filter(department=dept)},
-            'roomgroups': {room.name: [sub.name for sub in room.and_subrooms()] \
-                           for room in Room.objects.prefetch_related('subrooms', 'subrooms__subrooms').filter(departments=dept)}
-            }
+    roomtypes = {str(rt):
+                 list(set([room.name for room in rt.members.all()]))
+                 for rt in RoomType.objects.prefetch_related('members').filter(department=dept)}
+
+    # either department related or common room
+    roomgroups = {room.name: [sub.name for sub in room.and_subrooms()]
+                  for room in Room.objects.prefetch_related('subrooms', 'subrooms__subrooms').filter(Q(departments=dept) | Q(departments__isnull=True))}
+    
+    return {'roomtypes': roomtypes,
+            'roomgroups': roomgroups}
 
 
 def get_rooms(department_abbrev, basic=False):

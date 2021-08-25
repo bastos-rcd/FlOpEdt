@@ -2090,21 +2090,29 @@ function apply_selection_display(choice) {
 
 
     if (choice.panel.type == "tutor"
-      && logged_usr.dispo_all_change && ckbox["dis-mod"].cked) {
+        && logged_usr.dispo_all_change && ckbox["dis-mod"].cked) {
+      // special mode
       tutors.all.forEach(function (t) { t.display = false; });
       concerned.display = true;
       user.name = choice.name;
       create_dispos_user_data();
       go_pref(true);
+
+      
     } else {
 
       if (concerned.display) {
+        // click when displayed
+        
         var nb_displayed = sel_list.filter(function (t) {
           return t.display;
         }).length;
+        
         if (nb_displayed == sel_list.length) {
+          // click when all displayed
           sel_list.forEach(function (t) { t.display = false; });
           concerned.display = true;
+          
         } else {
           concerned.display = false;
           nb_displayed--;
