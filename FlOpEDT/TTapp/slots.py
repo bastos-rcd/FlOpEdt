@@ -66,10 +66,10 @@ class Slot:
     def has_previous_day_than(self, other):
         if type(other) == type(self):
             return self.day.week > other.day.week \
-                or self.day.week == other.day.week and days_index[self.day.day] > days_index[other.day.day]
+                or self.day.week == other.day.week and days_index[self.day.day] < days_index[other.day.day]
         elif type(other) == ScheduledCourse:
             return self.day.week > other.course.week \
-                or self.day.week == other.course.week and days_index[self.day.day] > days_index[other.day]
+                or self.day.week == other.course.week and days_index[self.day.day] < days_index[other.day]
         else:
             raise TypeError("A slot can only have previous day than a ScheduledCourse or another slot")
 
@@ -80,7 +80,7 @@ class Slot:
             return False
 
     def is_after(self, other):
-        if self.has_previous_day_than(other) or self.has_same_day(other) and self.start_time >= other.end_time:
+        if other.has_previous_day_than(self) or self.has_same_day(other) and self.start_time >= other.end_time:
             return True
         else:
             return False

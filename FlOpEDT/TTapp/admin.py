@@ -41,7 +41,7 @@ from TTapp.models import \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, GroupsLunchBreak, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
     NoTutorCourseOnDay, NoGroupCourseOnDay, \
-    ConsiderDepencies, Curfew, \
+    ConsiderDepencies, Curfew, ConsiderPivots, \
     LimitHoles, ModulesByBloc, LimitTutorTimePerWeeks
 
 
@@ -391,8 +391,20 @@ class ConsiderDepenciesAdmin(DepartmentModelAdmin):
                    ('modules', DropdownFilterRel),
                    )
 
+class ConsiderPivotsAdmin(DepartmentModelAdmin):
+    list_display = ('comment',
+                    'weight',
+                    'is_active')
+    ordering = ()
+    list_filter = (('weeks__nb', DropdownFilterAll),
+                   ('train_progs', DropdownFilterRel),
+                   ('modules', DropdownFilterRel),
+                   )
+
+
 
 admin.site.register(ConsiderDepencies, ConsiderDepenciesAdmin)
+admin.site.register(ConsiderPivots, ConsiderPivotsAdmin)
 admin.site.register(CustomConstraint, CustomConstraintAdmin)
 admin.site.register(Stabilize, StabilizeAdmin)
 admin.site.register(MinGroupsHalfDays, MinGroupsHalfDaysAdmin)

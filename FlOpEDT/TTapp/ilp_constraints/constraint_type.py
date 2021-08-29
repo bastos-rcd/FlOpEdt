@@ -59,6 +59,7 @@ class ConstraintType(Enum):
     SALLE_PAS_DISPONIBLE = "La salle n'est pas disponible"
     SALLE_PREFEREE_NON_DISPONIBLE = "La salle préférée n'est pas disponible"
     DEPENDANCE = "Problème de dépendance"
+    PIVOT = "Pivot"
     DEPENDANCE_SALLE = "Problème de dépendance entre les salles"
     DEPARTEMENT_BLOQUE_SLOT = "Les autres départements bloquent le slot"
     PROFESSEUR_A_DEJA_COURS_EN_AUTRE_DEPARTEMENT = "Le professeur a déjà un cours dans un autre département"

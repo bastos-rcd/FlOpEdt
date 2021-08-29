@@ -46,7 +46,7 @@ from base.timing import Time
 from people.models import Tutor
 
 from TTapp.models import MinNonPreferedTutorsSlot, Stabilize, MinNonPreferedTrainProgsSlot, \
-    MinimizeBusyDays, MinGroupsHalfDays, RespectBoundPerDay, ConsiderDepencies
+    MinimizeBusyDays, MinGroupsHalfDays, RespectBoundPerDay, ConsiderDepencies, ConsiderPivots
 
 from TTapp.slots import slots_filter, days_filter
 
@@ -524,23 +524,18 @@ class TTModel(object):
 
         # Check if RespectBound constraint is in database, and add it if not
         R, created = RespectBoundPerDay.objects.get_or_create(department=self.department)
-        if created:
-            R.save()
 
         # Check if MinimizeBusyDays constraint is in database, and add it if not
         M, created = MinimizeBusyDays.objects.get_or_create(department=self.department)
-        if created:
-            M.save()
 
         # Check if MinGroupsHalfDays constraint is in database, and add it if not
         M, created = MinGroupsHalfDays.objects.get_or_create(department=self.department)
-        if created:
-            M.save()
 
         # Check if ConsiderDependencies constraint is in database, and add it if not
         C, created = ConsiderDepencies.objects.get_or_create(department=self.department)
-        if created:
-            M.save()
+
+        # Check if ConsiderPivots constraint is in database, and add it if not
+        C, created = ConsiderPivots.objects.get_or_create(department=self.department)
 
     def add_instructors_constraints(self):
         print("adding instructors constraints")
@@ -1206,6 +1201,7 @@ class TTModel(object):
         return local_max_wc + 1
 
     def write_infaisability(self, write_iis=True, write_analysis=True):
+        close_old_connections()
         file_path = "misc/logs/iis"
         filename_suffixe = "_%s_%s" % (self.department.abbrev, self.weeks)
         iis_filename = "%s/IIS%s.ilp" % (file_path, filename_suffixe)

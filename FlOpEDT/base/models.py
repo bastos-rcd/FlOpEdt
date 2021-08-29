@@ -763,6 +763,16 @@ class Dependency(models.Model):
         return f"{self.course1} avant {self.course2}"
 
 
+class Pivot(models.Model):
+    pivot_course = models.ForeignKey(
+        'Course', related_name='as_pivot', on_delete=models.CASCADE)
+    other_courses = models.ManyToManyField('Course', related_name='as_pivot_other')
+    ND = models.BooleanField(verbose_name=_('On different days'), default=False)
+
+    def __str__(self):
+        return f"{self.other_courses.all()} on the same side of {self.pivot_course}"
+
+
 class CourseStartTimeConstraint(models.Model):
     # foreignkey instead of onetoone to leave room for a day attribute
     course_type = models.ForeignKey(
