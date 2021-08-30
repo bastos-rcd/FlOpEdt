@@ -143,10 +143,12 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             if self.train_prog is not None:
                 queryset = queryset.filter(course__groups__train_prog=self.train_prog)
 
-        if group_name is None and self.train_prog is None and self.tutor is None:
+        if group_name is None and self.train_prog is None:
             if self.dept is None:
-                raise exceptions.APIException(detail='You should either a group and a training programme, or a tutor, or a department')
-            queryset = queryset.filter(course__module__train_prog__department=self.dept)
+                if self.tutor is None:
+                    raise exceptions.APIException(detail='You should either a group and a training programme, or a tutor, or a department')
+            else:
+                queryset = queryset.filter(course__module__train_prog__department=self.dept)
 
         return queryset
 
