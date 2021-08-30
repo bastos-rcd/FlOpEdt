@@ -114,13 +114,13 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                                                      'room')
 
         # sanity check
-        if group_name is not None and train_prog is None:
+        if group_name is not None and self.train_prog is None:
             raise exceptions.APIException(detail='A training programme should be '
                                       'given when a group name is given')
 
         if self.train_prog is not None:
             try:
-                if dept is not None:
+                if self.dept is not None:
                     self.train_prog = bm.TrainingProgramme.objects.get(abbrev=self.train_prog,
                                                                        department=self.dept)
                 else:
