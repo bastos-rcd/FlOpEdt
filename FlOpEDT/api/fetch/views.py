@@ -31,6 +31,7 @@ from rest_framework.decorators import action
 
 from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
+from django.core.exceptions import MultipleObjectsReturned
 
 from django.apps import apps
 
@@ -47,7 +48,6 @@ from api.shared.params import dept_param, week_param, year_param, user_param, \
 from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
 
 class ScheduledCourseFilterSet(filters.FilterSet):
-    dept = filters.CharFilter(field_name='course__module__train_prog__department__abbrev', required=True)
     tutor_name = filters.CharFilter(field_name='tutor__username')
     # makes the fields required
     week = filters.NumberFilter(field_name='course__week__nb', required=True)
@@ -57,7 +57,7 @@ class ScheduledCourseFilterSet(filters.FilterSet):
 
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['dept', 'week', 'year']
+        fields = ['week', 'year']
 
 
 @method_decorator(name='list',
@@ -66,9 +66,9 @@ class ScheduledCourseFilterSet(filters.FilterSet):
                           # in the filterset
                           week_param(required=True),
                           year_param(required=True),
-                          dept_param(required=True),
                           work_copy_param(),
                           # in the get_queryset
+                          dept_param(),
                           train_prog_param(),
                           group_param(),
                           lineage_param(),
@@ -88,8 +88,21 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         lineage = self.request.query_params.get('lineage', 'false')
         lineage = True if lineage=='true' else False
-        train_prog = self.request.query_params.get('train_prog', None)
+        self.dept = self.request.query_params.get('dept', None)
+        if self.dept is not None:
+            try:
+                self.dept = bm.Department.objects.get(abbrev=self.dept)
+            except bm.Department.DoesNotExist:
+                raise exceptions.APIException(detail='Unknown department')
+            
+        self.train_prog = self.request.query_params.get('train_prog', None)
         group_name = self.request.query_params.get('group', None)
+        self.tutor = self.request.query_params.get('tutor_name', None)
+        if self.tutor is not None:
+            try:
+                self.tutor = pm.Tutor.objects.get(username=self.tutor)
+            except pm.Tutor.DoesNotExist:
+                raise exceptions.APIException(detail='Unknown tutor')
 
         queryset = bm.ScheduledCourse\
                      .objects.all().select_related('course__module__train_prog__department',
@@ -105,35 +118,56 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             raise exceptions.APIException(detail='A training programme should be '
                                       'given when a group name is given')
 
-        if train_prog is not None:
+        if self.train_prog is not None:
             try:
-                train_prog = bm.TrainingProgramme.objects.get(abbrev=train_prog)
+                if dept is not None:
+                    self.train_prog = bm.TrainingProgramme.objects.get(abbrev=self.train_prog,
+                                                                       department=self.dept)
+                else:
+                    self.train_prog = bm.TrainingProgramme.objects.get(abbrev=self.train_prog)
             except bm.TrainingProgramme.DoesNotExist:
                 raise exceptions.APIException(detail='No such training programme')
-            except:
-                raise exceptions.APIException(detail='Issue with the training programme')
+            except MultipleObjectsReturned:
+                raise exceptions.APIException(detail='Multiple training programme with this name')
 
         if group_name is not None:
             try:
-                groups = bm.Group.objects.get(name=group_name, train_prog=train_prog)
-                groups = groups.ancestor_groups() if lineage else [groups]
+                self.groups = bm.Group.objects.get(name=group_name, train_prog=self.train_prog)
+                self.groups = self.groups.ancestor_groups() if lineage else [self.groups]
             except bm.Group.DoesNotExist:
                 raise exceptions.APIException(detail='No such group')
             except:
                 raise exceptions.APIException(detail='Issue with the group')
-            queryset = queryset.filter(course__groups__in=groups)
+            queryset = queryset.filter(course__groups__in=self.groups)
         else:
-            if train_prog is not None:
-                queryset = queryset.filter(course__groups__train_prog=train_prog)
+            if self.train_prog is not None:
+                queryset = queryset.filter(course__groups__train_prog=self.train_prog)
+
+        if group_name is None and self.train_prog is None and self.tutor is None:
+            if self.dept is None:
+                raise exceptions.APIException(detail='You should either a group and a training programme, or a tutor, or a department')
+            queryset = queryset.filter(course__module__train_prog__department=self.dept)
 
         return queryset
 
     
     def get_serializer_class(self):
-        department = bm.Department.objects.get(
-            abbrev=self.request.query_params.get('dept', None)
-        )
-        if department.mode.cosmo:
+        # get the department
+        if self.dept is None:
+            if self.tutor is not None:
+                for d in self.tutor.departments.all():
+                    uds = pm.UserDepartmentSettings.objects.get(department=d,
+                                                                user=self.tutor)
+                    if uds.is_main:
+                        self.dept = uds.department
+                        break
+
+                # no primary department
+                if self.dept is None:
+                    self.dept = self.tutor.departments.first()
+            else:
+                 self.dept = self.groups[0].train_prog.department       
+        if self.dept.mode.cosmo:
             return serializers.ScheduledCoursesCosmoSerializer
         else:
             return serializers.ScheduledCoursesSerializer

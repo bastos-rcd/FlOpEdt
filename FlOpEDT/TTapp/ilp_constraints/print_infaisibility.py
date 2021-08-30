@@ -29,7 +29,7 @@ from TTapp.ilp_constraints.constraint import Constraint
 
 def print_all(constraints, occurs, threshold_type, threshold_attr, file_path, filename_suffixe, write_csv_file):
     print_brut_constraints(constraints, occurs, file_path, filename_suffixe)
-    print_factorised_constraints(occurs, file_path, filename_suffixe)
+    print_factorised_constraints(occurs, file_path, filename_suffixe, print_output=True)
     print_summary_from_types_with_threshold(constraints, occurs, threshold_type, threshold_attr, file_path,
                                             filename_suffixe)
     if write_csv_file:
@@ -52,8 +52,10 @@ def print_brut_constraints(constraints, occurs, file_path, filename_suffixe):
     write_file(filename, output)
 
 
-def print_factorised_constraints(occurs, file_path, filename_suffixe):
-    output = "Sommaire des contraintes :"
+def print_factorised_constraints(occurs, file_path, filename_suffixe, print_output=False):
+    output = "Voici Les différentes contraintes qui créent l'infaisabilité, factorisés :\n"
+    if print_output:
+        print(output)
     for dimension in occurs.keys():
         output += "\n\n%s:" % dimension
         for elt in occurs[dimension].keys():
@@ -61,7 +63,7 @@ def print_factorised_constraints(occurs, file_path, filename_suffixe):
             if dimension != "types":
                 output += " (%s)" % ", ".join(occurs[dimension][elt]["types"])
     filename = "%s/constraints_factorised%s.txt" % (file_path, filename_suffixe)
-    write_file(filename, output)
+    write_file(filename, output, print_output=print_output)
 
 
 def get_most_important(dico, threshold, constraint_type=""):
@@ -123,10 +125,11 @@ def find_object_from_type(constraint_type, constraints):
 
 
 def print_summary_from_types_with_threshold(constraints, occurs, threshold_type, threshold_attr,
-                                            file_path, filename_suffixe, print_output=True):
+                                            file_path, filename_suffixe, print_output=False):
     filename = "%s/constraints_summary%s.txt" % (file_path, filename_suffixe)
-    output = "Voici les principaux problèmes liés à l'infaisabilité :\n"
-    print(output)
+    output = "Voici les principales contraintes liées à l'infaisabilité :\n"
+    if print_output:
+        print(output)
     write_file(filename, output)
     for constraint_type in get_most_important(occurs['types'], threshold_type):
         output, dimensions = find_object_from_type(constraint_type, constraints).get_summary_format()
