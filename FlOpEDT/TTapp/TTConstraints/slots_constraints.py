@@ -233,6 +233,71 @@ class ConsiderDepencies(TTConstraint):
                                                             ttmodel.TT[(sl2, c2)])
                             ttmodel.add_to_generic_cost(conj_var * self.local_weight() * ponderation)
 
+
+class ConsiderPivots(TTConstraint):
+    """
+    Transform the constraints of pivots saved on the DB in model constraints:
+    -include non same-day constraint
+    If there is a weight, it's a preference, else it's a constraint...
+    """
+    modules = models.ManyToManyField('base.Module', blank=True)
+
+    def one_line_description(self):
+        text = f"Prend en compte les pivots enregistrées en base."
+        if self.train_progs.exists():
+            text += ' des promos ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+        if self.modules.exists():
+            text += ' pour les modules ' + ', '.join([module.abbrev for module in self.modules.all()])
+        return text
+
+    def enrich_model(self, ttmodel, week, ponderation=10):
+        if self.train_progs.exists():
+            train_progs = set(tp for tp in self.train_progs.all() if tp in ttmodel.train_prog)
+        else:
+            train_progs = set(ttmodel.train_prog)
+        considered_modules = set(ttmodel.wdb.modules)
+        if self.modules.exists():
+            considered_modules &= set(self.modules.all())
+
+        for p in ttmodel.wdb.pivots:
+            pivot = p.pivot_course
+            other = p.other_courses.all()
+            other_length = other.count()
+            if (pivot.module not in considered_modules
+                and all (o.module not in considered_modules for o in other)) or \
+                    (pivot.module.train_prog not in train_progs
+                     and all (o.module.train_prog not in train_progs for o in other)):
+                continue
+            if pivot in other:
+                ttmodel.add_warning(None, f"Warning: {pivot} is declared pivoting around itself")
+                continue
+            for sl1 in ttmodel.wdb.compatible_slots[pivot]:
+                all_after = ttmodel.add_floor(ttmodel.sum(ttmodel.TT[(sl2, o)]
+                                                          for o in other
+                                                          for sl2 in ttmodel.wdb.compatible_slots[o]
+                                                          if (not p.ND and not sl2.is_after(sl1))
+                                                          or (p.ND and (sl1.has_previous_day_than(sl2)))
+                                                          ),
+                                              other_length, 2 * other_length)
+                all_before = ttmodel.add_floor(ttmodel.sum(ttmodel.TT[(sl2, o)]
+                                                           for o in other
+                                                           for sl2 in ttmodel.wdb.compatible_slots[o]
+                                                           if (not p.ND and not sl1.is_after(sl2))
+                                                           or (p.ND and (sl2.has_previous_day_than(sl1)))
+                                                           ),
+                                               other_length, 2 * other_length)
+                if not self.weight:
+                    ttmodel.add_constraint(ttmodel.TT[(sl1, pivot)] - all_after - all_before,
+                                           '<=', 0, Constraint(constraint_type=ConstraintType.PIVOT,
+                                                              slots=sl1))
+                else:
+                    undesired_situation = ttmodel.add_floor(10 * ttmodel.TT[(sl1, pivot)] - all_after - all_before,
+                                                            10,
+                                                            20)
+
+                    ttmodel.add_to_generic_cost(undesired_situation * self.local_weight() * ponderation)
+
+
 # Ex TTConstraints that have to be re-written.....
 
 

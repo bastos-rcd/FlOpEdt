@@ -37,7 +37,7 @@ from base.models import Group, \
     Room, RoomSort, RoomType, RoomPreference, \
     Course, ScheduledCourse, UserPreference, CoursePreference, \
     Department, Module, TrainingProgramme, CourseType, \
-    Dependency, TutorCost, GroupFreeHalfDay, GroupCost, Holiday, TrainingHalfDay, \
+    Dependency, TutorCost, GroupFreeHalfDay, GroupCost, Holiday, TrainingHalfDay, Pivot, \
     CourseStartTimeConstraint, TimeGeneralSettings, ModulePossibleTutors, CoursePossibleTutors, CourseAdditional
 
 from base.timing import Time, Day
@@ -73,7 +73,7 @@ class WeeksDatabase(object):
         self.course_types, self.courses, self.courses_by_week, \
             self.sched_courses, self.fixed_courses, \
             self.other_departments_courses, self.other_departments_sched_courses, \
-            self.courses_availabilities, self.modules, self.dependencies = self.courses_init()
+            self.courses_availabilities, self.modules, self.dependencies, self.pivots = self.courses_init()
         self.courses_slots, self.availability_slots, \
             self.first_hour_slots, self.last_hour_slots = self.slots_init()
         self.fixed_courses_for_avail_slot, self.other_departments_sched_courses_for_avail_slot = \
@@ -223,9 +223,14 @@ class WeeksDatabase(object):
             course2__week__in=self.weeks,
             course1__module__train_prog__in=self.train_prog)
 
+        pivots = Pivot.objects.filter(
+            pivot_course__week__in=self.weeks,
+            other_courses__week__in=self.weeks,
+            pivot_course__module__train_prog__in=self.train_prog)
+
         return course_types, courses, courses_by_week, sched_courses, fixed_courses, \
                other_departments_courses, other_departments_sched_courses, \
-               courses_availabilities, modules, dependencies
+               courses_availabilities, modules, dependencies, pivots
 
     def courses_for_avail_slot_init(self):
         fixed_courses_for_avail_slot = {}

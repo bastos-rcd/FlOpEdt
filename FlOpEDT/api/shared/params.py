@@ -63,3 +63,26 @@ def work_copy_param(**kwargs):
                              type=openapi.TYPE_INTEGER,
                              **kwargs)
 
+
+def group_param(**kwargs):
+    return openapi.Parameter('group',
+                             openapi.IN_QUERY,
+                             description="Group name",
+                             type=openapi.TYPE_STRING,
+                             **kwargs)
+
+
+def train_prog_param(**kwargs):
+    return openapi.Parameter('train_prog',
+                             openapi.IN_QUERY,
+                             description="Training programme abbreviation",
+                             type=openapi.TYPE_STRING,
+                             **kwargs)
+
+
+def lineage_param(**kwargs):
+    return openapi.Parameter('lineage',
+                             openapi.IN_QUERY,
+                             description="includes parent groups (default: false)",
+                             type=openapi.TYPE_BOOLEAN,
+                             **kwargs)

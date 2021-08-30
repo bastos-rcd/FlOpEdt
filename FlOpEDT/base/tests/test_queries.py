@@ -68,8 +68,9 @@ class ScheduledCourseTestCase(TestCase):
         cls.s1 = models.Slot.objects.create(day=cls.day1, hour=cls.t1)
         cls.sc1 = models.ScheduledCourse.objects.create(course=cls.c1, slot=cls.s1)
 
-    def test_get_scheduled_courses_with_department(self):   
-        count = queries.get_scheduled_courses(self.department1, 39, 2018, 0).count()
+    def test_get_scheduled_courses_with_department(self):
+        week = models.Week.objects.get(nb=39, year=2018)
+        count = queries.get_scheduled_courses(self.department1, week, 0).count()
         self.assertEqual(count, 1)
-        count = queries.get_scheduled_courses(self.department2, 39, 2018, 0).count()
+        count = queries.get_scheduled_courses(self.department2, week, 0).count()
         self.assertEqual(count, 0)        

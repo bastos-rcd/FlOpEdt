@@ -43,15 +43,11 @@ import TTapp.TTConstraint as tt
 
 from api.fetch import serializers
 from api.shared.params import dept_param, week_param, year_param, user_param, \
-    work_copy_param
+    work_copy_param, group_param, train_prog_param, lineage_param
 from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
 
 class ScheduledCourseFilterSet(filters.FilterSet):
     dept = filters.CharFilter(field_name='course__module__train_prog__department__abbrev', required=True)
-    # by promo and groups
-    train_prog = filters.CharFilter(field_name='course__module__train_prog__abbrev')
-    # group or tutor
-    group = filters.CharFilter(field_name='course__groups__name')
     tutor_name = filters.CharFilter(field_name='tutor__username')
     # makes the fields required
     week = filters.NumberFilter(field_name='course__week__nb', required=True)
@@ -64,6 +60,20 @@ class ScheduledCourseFilterSet(filters.FilterSet):
         fields = ['dept', 'week', 'year']
 
 
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          # in the filterset
+                          week_param(required=True),
+                          year_param(required=True),
+                          dept_param(required=True),
+                          work_copy_param(),
+                          # in the get_queryset
+                          train_prog_param(),
+                          group_param(),
+                          lineage_param(),
+                      ])
+                  )
 class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet to see all the scheduled courses
@@ -73,17 +83,52 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     Request needs a department filter.
     """
     permission_classes = [IsAdminOrReadOnly]
-    queryset = bm.ScheduledCourse.objects.all()\
-                                         .select_related('course__module__train_prog__department',
-                                                         'tutor__display',
-                                                         'course__type',
-                                                         'course__room_type',
-                                                         'course__module__display')\
-                                         .prefetch_related('course__groups__train_prog',
-                                                           'room')
-    #serializer_class = serializers.ScheduledCoursesSerializer
     filter_class = ScheduledCourseFilterSet
 
+    def get_queryset(self):
+        lineage = self.request.query_params.get('lineage', 'false')
+        lineage = True if lineage=='true' else False
+        train_prog = self.request.query_params.get('train_prog', None)
+        group_name = self.request.query_params.get('group', None)
+
+        queryset = bm.ScheduledCourse\
+                     .objects.all().select_related('course__module__train_prog__department',
+                                                   'tutor__display',
+                                                   'course__type',
+                                                   'course__room_type',
+                                                   'course__module__display')\
+                                   .prefetch_related('course__groups__train_prog',
+                                                     'room')
+
+        # sanity check
+        if group_name is not None and train_prog is None:
+            raise exceptions.APIException(detail='A training programme should be '
+                                      'given when a group name is given')
+
+        if train_prog is not None:
+            try:
+                train_prog = bm.TrainingProgramme.objects.get(abbrev=train_prog)
+            except bm.TrainingProgramme.DoesNotExist:
+                raise exceptions.APIException(detail='No such training programme')
+            except:
+                raise exceptions.APIException(detail='Issue with the training programme')
+
+        if group_name is not None:
+            try:
+                groups = bm.Group.objects.get(name=group_name, train_prog=train_prog)
+                groups = groups.ancestor_groups() if lineage else [groups]
+            except bm.Group.DoesNotExist:
+                raise exceptions.APIException(detail='No such group')
+            except:
+                raise exceptions.APIException(detail='Issue with the group')
+            queryset = queryset.filter(course__groups__in=groups)
+        else:
+            if train_prog is not None:
+                queryset = queryset.filter(course__groups__train_prog=train_prog)
+
+        return queryset
+
+    
     def get_serializer_class(self):
         department = bm.Department.objects.get(
             abbrev=self.request.query_params.get('dept', None)
@@ -202,7 +247,7 @@ class CourseTypeDefaultWeekViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         # Getting the wanted data
-        qs = bm.CoursePreference.objects.all()
+        qs = bm.CoursePreference.objects.filter(week__isnull=True)
 
         # Getting all the filters
         train_prog = self.request.query_params.get('train_prog', None)

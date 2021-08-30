@@ -27,7 +27,7 @@
 import logging
 
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
 
 from base.models import Group, RoomType, Room, \
@@ -104,13 +104,12 @@ def get_edt_version(department, week_nb, year, create=False):
     return version
 
 
-def get_scheduled_courses(department, week, year, num_copy):
+def get_scheduled_courses(department, week, num_copy=0):
 
     qs = ScheduledCourse.objects \
                     .filter(
-                        course__module__train_prog__department=department,
+                        course__type__department=department,
                         course__week=week,
-                        course__year=year,
                         day__in=get_working_days(department),
                         work_copy=num_copy).select_related('course',
                                                            'course__tutor',
@@ -181,6 +180,12 @@ def get_groups(department_abbrev):
     return final_groups
 
 
+def get_all_connected_courses(group, week, num_copy=0):
+    qs = get_scheduled_courses(group.train_prog.department,
+                               week, num_copy=num_copy)
+    return qs.filter(groups__in = group.connected_groups())
+
+
 def get_descendant_groups(gp, children):
     """
     Gather informations about all descendants of a group gp
@@ -235,16 +240,12 @@ def get_room_types_groups(department_abbrev):
     """
     dept = Department.objects.get(abbrev=department_abbrev)
 
-    roomtypes = {str(rt):
-                 list(set([room.name for room in rt.members.all()]))
-                 for rt in RoomType.objects.prefetch_related('members').filter(department=dept)}
-
-    # either department related or common room
-    roomgroups = {room.name: [sub.name for sub in room.and_subrooms()]
-                  for room in Room.objects.prefetch_related('subrooms', 'subrooms__subrooms').filter(Q(departments=dept) | Q(departments__isnull=True))}
-    
-    return {'roomtypes': roomtypes,
-            'roomgroups': roomgroups}
+    return {'roomtypes': {str(rt): list(set(
+        [room.name for room in rt.members.all()]
+    )) for rt in RoomType.objects.prefetch_related('members').filter(department=dept)},
+            'roomgroups': {room.name: [sub.name for sub in room.and_subrooms()] \
+                           for room in Room.objects.prefetch_related('subrooms', 'subrooms__subrooms').filter(departments=dept)}
+            }
 
 
 def get_rooms(department_abbrev, basic=False):

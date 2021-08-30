@@ -41,7 +41,7 @@ from TTapp.TTConstraints.tutors_constraints import MinTutorsHalfDays, MinNonPref
     MinimizeBusyDays, RespectBoundPerDay, LowerBoundBusyDays
 from TTapp.TTConstraints.modules_constraints import MinModulesHalfDays
 from TTapp.TTConstraints.slots_constraints import SimultaneousCourses, AvoidBothTimes, LimitedStartTimeChoices, \
-    ConsiderDepencies
+    ConsiderDepencies, ConsiderPivots
 from TTapp.TTConstraints.rooms_constraints import LimitedRoomChoices
 from TTapp.TTConstraints.limit_time_constraints import LimitModulesTimePerPeriod, \
     LimitGroupsTimePerPeriod, LimitTutorsTimePerPeriod, LimitTimePerPeriod

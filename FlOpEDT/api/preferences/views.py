@@ -90,8 +90,7 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
             self.params['user__departments__abbrev'] = dept
 
     def set_default_params(self):
-        self.params['week__nb'] = None
-        self.params['week__year'] = None
+        self.params['week'] = None
 
     def set_singular_params(self):
         self.params['week__nb'] = int(self.request.query_params.get('week'))

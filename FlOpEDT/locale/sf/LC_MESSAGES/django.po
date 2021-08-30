@@ -443,7 +443,7 @@ msgstr "Type de cours"
 
 #: base/templates/base/show-stype.html:190 ics/templates/ics/index.html:68
 msgid "Rooms"
-msgstr "Classe"
+msgstr "Salles"
 
 #: base/templates/base/statistics.html:105
 msgid "Number of days of innocuousness per room"

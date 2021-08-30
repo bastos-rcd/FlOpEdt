@@ -14,6 +14,9 @@ def add_all_weeks(apps, schema_editor):
             final_week = 52
         for w_nb in range(1, final_week+1):
             Week.objects.get_or_create(nb=w_nb, year=year)
+    Week.objects.get_or_create(nb=0, year=0)
+    Week.objects.get_or_create(nb=1, year=0)
+
 
 class Migration(migrations.Migration):
 
