@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'colorfield',
     'flopeditor',
     'rest_framework',
-    # 'django_filters',
+    'django_filters',
     'base',
     'TTapp',
     'quote',
