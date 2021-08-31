@@ -559,17 +559,13 @@ class TTModel(object):
                 # a course is assigned to a tutor only if s⋅he is available
                 self.add_constraint(self.sum(self.TTinstructors[(sl2, c2, i)]
                                              for sl2 in slots_filter(self.wdb.courses_slots, simultaneous_to=sl)
-                                             for c2 in self.wdb.possible_courses[i] & self.wdb.compatible_courses[sl2]),
+                                             for c2 in self.wdb.possible_courses[i] & self.wdb.compatible_courses[sl2])
+                                    + self.sum(self.TT[(sl2, c2)]
+                                               for sl2 in slots_filter(self.wdb.courses_slots, simultaneous_to=sl)
+                                               for c2 in self.wdb.courses_for_supp_tutor[i]
+                                               & self.wdb.compatible_courses[sl2]),
                                     '<=', self.avail_instr[i][sl],
                                     SlotInstructorConstraint(sl, i))
-
-                self.add_constraint(self.sum(self.TT[(sl2, c2)]
-                                             for sl2 in slots_filter(self.wdb.courses_slots, simultaneous_to=sl)
-                                             for c2 in self.wdb.courses_for_supp_tutor[i]
-                                             & self.wdb.compatible_courses[sl2]),
-                                    '<=', self.avail_instr[i][sl],
-                                    Constraint(constraint_type=ConstraintType.SUPP_TUTOR,
-                                               instructors=i, slots=sl))
 
                 if self.department.mode.visio:
                     # avail_at_school_instr consideration...
