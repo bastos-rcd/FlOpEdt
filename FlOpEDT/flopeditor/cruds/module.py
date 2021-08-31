@@ -29,6 +29,7 @@ without disclosing the source code of your own applications.
 
 from django.http import JsonResponse
 from base.models import Module, Period, TrainingProgramme
+from displayweb.models import ModuleDisplay
 from people.models import Tutor
 from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_module_values
 
@@ -183,6 +184,8 @@ def update(entries, department):
                     module.period = Period.objects.get(
                         name=entries['new_values'][i][6], department=department)
                     module.save()
+                    mod_disp = ModuleDisplay(module=module)
+                    mod_disp.save()
                     entries['result'].append([OK_RESPONSE])
             except (Module.DoesNotExist,
                     TrainingProgramme.DoesNotExist,
