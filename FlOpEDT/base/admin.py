@@ -602,7 +602,7 @@ class CourseAdmin(DepartmentModelAdmin):
 class CoursPlaceAdmin(DepartmentModelAdmin):
 
     def course_week(o):
-        return str(o.course.week.disp)
+        return str(o.course.week)
 
     course_week.short_description = _('Week')
     course_week.admin_order_field = 'course__week'
@@ -641,7 +641,7 @@ class DependencyAdmin(DepartmentModelAdmin):
 
 class CourseModificationAdmin(DepartmentModelAdmin):
     def course_week(o):
-        return str(o.course.week.disp)
+        return str(o.course.week)
 
     course_week.short_description = _('Week')
     course_week.admin_order_field = 'course__week'

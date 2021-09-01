@@ -874,7 +874,7 @@ class TTModel(object):
                                     if minimum == 0:
                                         avail_course[(course_type, promo)][availability_slot] = 0
                                         non_preferred_cost_course[(course_type,
-                                                                       promo)][availability_slot] = 5
+                                                                       promo)][availability_slot] = 100
                                     else:
                                         avail_course[(course_type, promo)][availability_slot] = 1
                                         value = minimum
