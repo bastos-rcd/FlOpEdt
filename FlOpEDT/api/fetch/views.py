@@ -132,9 +132,10 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
         if group_name is not None:
             try:
-                self.groups = {bm.Group.objects.get(name=group_name, train_prog=self.train_prog)}
+                declared_group = bm.Group.objects.get(name=group_name, train_prog=self.train_prog)
+                self.groups = {declared_group}
                 if lineage:
-                    self.groups |= self.groups.ancestor_groups()
+                    self.groups |= declared_group.ancestor_groups()
             except bm.Group.DoesNotExist:
                 raise exceptions.APIException(detail='No such group')
             except:
