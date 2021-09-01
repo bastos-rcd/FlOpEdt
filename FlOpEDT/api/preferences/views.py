@@ -90,11 +90,16 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
             self.params['user__departments__abbrev'] = dept
 
     def set_default_params(self):
+        self.unset_singular_params()
         self.params['week'] = None
 
     def set_singular_params(self):
         self.params['week__nb'] = int(self.request.query_params.get('week'))
         self.params['week__year'] = int(self.request.query_params.get('year'))
+
+    def unset_singular_params(self):
+        self.params.pop('week__nb', None)
+        self.params.pop('week__year', None)
 
     def get_queryset(self):
         self.set_common_params()
@@ -166,18 +171,18 @@ class UserPreferenceActualViewSet(UserPreferenceViewSet):
         self.set_common_params()
         self.set_singular_params()
         teach_only = self.request.query_params.get('teach-only', None)
-        teach_only = True if teach_only is None else strtobool(teach_only)
+        teach_only = False if teach_only is None else strtobool(teach_only)
         
         # get teaching teachers only
         if teach_only:
-            sched_params = {}
-            sched_params['course__week__nb'] = self.params['week__nb']
-            sched_params['course__week__year'] = self.params['week__year']
+            course_params = {}
+            course_params['week__nb'] = self.params['week__nb']
+            course_params['week__year'] = self.params['week__year']
             if 'user__departments__abbrev' in self.params:
-                sched_params['course__module__train_prog__department__abbrev'] = \
+                course_params['module__train_prog__department__abbrev'] = \
                     self.params['user__departments__abbrev']
-            teaching_ids = bm.ScheduledCourse.objects.filter(**sched_params) \
-                .distinct('tutor') \
+            teaching_ids = bm.Course.objects.filter(**course_params) \
+                .distinct('tutor').exclude(tutor__isnull=True) \
                 .values_list('tutor__id', flat=True)
             if self.request.user.is_authenticated:
                 teaching_ids = list(teaching_ids)
