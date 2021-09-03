@@ -32,11 +32,8 @@ from django.core.mail import EmailMessage
 def concerned_tutors(week_list, department):
     liste = []
     for tutor in Tutor.objects.filter(departments=department):
-        if tutor.email in liste:
-            break
         if Course.objects.filter(week__in=week_list, tutor=tutor, type__department=department):
             liste.append(str(tutor.username) + ' <' + str(tutor.email) + '>')
-            break
     liste.sort()
     return liste
 
