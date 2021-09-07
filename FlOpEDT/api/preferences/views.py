@@ -77,6 +77,8 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.params = {}
+        self.select = []
+        self.prefetch = []
 
     serializer_class = serializers.UserPreferenceSerializer
 
@@ -85,9 +87,11 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
         user = self.request.query_params.get('user', None)
         if user is not None:
             self.params['user__username'] = user
+            self.select.append('user')
         dept = self.request.query_params.get('dept', None)
         if dept is not None:
             self.params['user__departments__abbrev'] = dept
+            self.prefetch.append('user__departments')
 
     def set_default_params(self):
         self.unset_singular_params()
@@ -96,15 +100,20 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
     def set_singular_params(self):
         self.params['week__nb'] = int(self.request.query_params.get('week'))
         self.params['week__year'] = int(self.request.query_params.get('year'))
+        self.select.append('week')
 
     def unset_singular_params(self):
         self.params.pop('week__nb', None)
         self.params.pop('week__year', None)
+        self.select.remove('week')
 
     def get_queryset(self):
         self.set_common_params()
-        return bm.UserPreference.objects.select_related('user').filter(**self.params) \
-            .order_by('user__username')
+        return bm.UserPreference.objects\
+                                .select_related(*self.select)\
+                                .prefetch_related(*self.prefetch)\
+                                .filter(**self.params) \
+                                .order_by('user__username')
 
 
 # Custom schema generation: see
@@ -181,7 +190,9 @@ class UserPreferenceActualViewSet(UserPreferenceViewSet):
             if 'user__departments__abbrev' in self.params:
                 course_params['module__train_prog__department__abbrev'] = \
                     self.params['user__departments__abbrev']
-            teaching_ids = bm.Course.objects.filter(**course_params) \
+            teaching_ids = bm.Course.objects\
+                                    .select_related(*course_params.keys())\
+                                    .filter(**course_params) \
                 .distinct('tutor').exclude(tutor__isnull=True) \
                 .values_list('tutor__id', flat=True)
             if self.request.user.is_authenticated:
@@ -197,12 +208,14 @@ class UserPreferenceActualViewSet(UserPreferenceViewSet):
             users = teaching_ids
         else:
             filter_user = {}
+            users = pm.User.objects
             if 'user__username' in self.params:
                 filter_user['username'] = self.params['user__username']
             if 'user__departments__abbrev' in self.params:
                 filter_user['departments__abbrev'] = \
                     self.params['user__departments__abbrev']
-            users = pm.User.objects.filter(**filter_user).values_list('id', flat=True)
+                users = users.prefetch_related('departments')
+            users = users.filter(**filter_user).values_list('id', flat=True)
 
         # get users with no singular week
         singular_users = qs.distinct('user__username').values_list('user__id', flat=True)
