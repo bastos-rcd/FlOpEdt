@@ -1,3 +1,13 @@
+# /!\ DISCLAIMER /!\
+
+La branche `master` suit de loin [la branche
+`dev`](https://framagit.org/flopedt/FlOpEDT/-/tree/dev).
+
+Utilisez donc cette branche (`git checkout dev` après clonage) et [son
+README](https://framagit.org/flopedt/FlOpEDT/-/blob/dev/README.md).
+
+
+
 ![Logo](./FlOpEDT/base/static/base/img/flop2.png)
 
 FlOpEDT/FlOpScheduler est un outil de gestion

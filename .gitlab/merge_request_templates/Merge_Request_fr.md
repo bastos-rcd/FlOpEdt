@@ -3,12 +3,33 @@
 ## Liste des choses à vérifier
 
 Merci de vérifier is votre Merge Request (MR) satisfait bien aux conditions suivantes (mettre un 'x' pour cocher la case) :
-- [ ] Nous avons ajouter nos noms dans le fichier `AUTHORS.md`
-- [ ] Nous avons ajouter quelques mots d'anglais dans le `CHANGELOG.md` pour résumer notre travail
+- [ ] Le code et les commentaires sont en anglais
+- [ ] Nous avons ajouté nos noms dans le fichier `AUTHORS.md`
+- [ ] Nous avons ajouté quelques mots d'anglais dans le `CHANGELOG.md` pour résumer notre travail
 - [ ] Si nous avons utilisé de nouveaux modules python, nous les avons ajouté dans le fichier `requirements.txt`
 - [ ] Nous avons effectué quelques tests (et les avons éventuellement ajoutés au dépôt)
 - [ ] Nous avons ajouté, modifié et revu la documentation, si nécessaire. On peut effectuer une MR sur la page wiki de FlOpEDT, comme expliqué ici : https://stackoverflow.com/a/38537453
 - [ ] Nous n'avons pas ajouté d'affichage dans les consoles (ni dans celle de django (avec `print`), ni dans celle du navigateur (avec des `console.log`))
+
+
+## Nouvelles dépendances
+
+### Des dépendances nouvelles ont-elles été ajoutées ?
+
+- [ ] Oui
+- [ ] Non
+
+Si oui, lesquelles ?
+
+### Licences
+
+Si de nouvelles dépendances ont été ajoutées, leurs licences sont compatibles avec une inclusion dans un logiciel sous AGPL.
+
+- [ ] Tout à fait
+- [ ] J'ai regardé, mais j'ai un doute. Franchement, les licences, c'est compliqué.
+- [ ] Non, mais il existe une alternative.
+
+Si non, quelle(s) alternative(s) ?
 
 
 ## Type de Merge Request

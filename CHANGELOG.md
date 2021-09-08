@@ -4,7 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
 
+### Changed
+
+### TBD
+- right permissions in TTapp/views
+- Modification proposal: id for modification bunch, modification
+  applicability, email notification
+- Room preferences: user interface improvement, room exclusion
+
+## [0.4.0] - 2021-09-07
 ### Added
 - Enable courses with multiple groups
 - New app flopeditor: save initial data through graphical interface
@@ -15,32 +25,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Modules
   - Student groups
   - Staff members
-- Preferences for mail notification
+- More tutor preferences:
+  - mail notification
+  - ideal day
+  - favorite rooms
+- New student preferences design, attributes and behavior
+- Module extensive description
 - New mode for employees planning
   - new constraints (week-ends, consecutive working hours/days, etc.)
   - batch of weeks
 - Modification proposal sent via email
-- A tutor can choose her/his favorite rooms
-- Module description
-- Enabled text translation, with english, french and spanish version
-- TTApp/ilp_constraints : contains all code + documentation allowing to write files in logs/ 
-that explain the infaisability by the solver of a set of constraints
+- Enabled text translation, with english, french, spanish, chinese,
+  schtroumpf version
+- TTApp/ilp_constraints: contains all code + documentation allowing
+  to write files in logs that explain the infeasability by the solver
+  of a set of constraints
 - Availability slots in TTModel to optimize resources
-- Allow parametrized repartition between tutors on a given Module
+- Wildcard in planification: distributes evenly courses among tutors within a
+  module
 - the API handles the identification for the modification requests
-- New student preferences design, attributes and behavior
 
 ### Changed
 - front-end: dispatch week/day management in js files
 - back-end refactoring: all model attributes in english
 - Selection of multiple weeks possible with the solve board
-- cleaned the API and optimized th requests for the mobile applicaton
+- cleaned the API and optimized requests for the mobile application
 
-### TBD
-- right permissions in TTapp/views
-- Modification proposal: id for modification bunch, modification
-  applicability, email notification
-- Room preferences: user interface improvement, room exclusion
+
 
 ## [0.3.0] - 2019-11-07
 ### Added

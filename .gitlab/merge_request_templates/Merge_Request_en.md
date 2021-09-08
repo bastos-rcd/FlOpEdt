@@ -11,6 +11,26 @@ Please check if your Merge Request (MR) fulfills the following requirements:
 - [ ] No additional printing (neither in django (`print`) or in javascript (`console.log`))
 
 
+## New dependencies
+
+### Have new dependencies been added?
+
+- [ ] Yes
+- [ ] No
+
+If yes, which dependencies?
+
+### Licenses
+
+If new dependencies have been added, their licenses is  avec une inclusion dans un logiciel sous AGPL.
+
+- [ ] Yes indeed.
+- [ ] I have looked, but I am not sure. Licensing is such a pain.
+- [ ] No, but alternatives exist.
+
+If no, which alternative(s) ?
+
+
 ## Merge request type
 
 <!-- Please try to limit your pull request to one type, submit multiple pull requests if needed. --> 
