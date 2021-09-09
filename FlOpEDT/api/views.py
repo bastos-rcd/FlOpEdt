@@ -23,6 +23,7 @@
 
 from random import randint
 
+from django.db.models import Q
 import django_filters.rest_framework as filters
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
@@ -155,7 +156,7 @@ def pref_requirements(department, tutor, year, week):
     to local policy
     """
     courses_time =sum(c.type.duration for c in
-                      bm.Course.objects.filter(tutor=tutor,
+                      bm.Course.objects.filter(Q(tutor=tutor)|Q(supp_tutor=tutor),
                                                week__nb=week,
                                                week__year=year))
     week_av = bm.UserPreference \

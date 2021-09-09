@@ -243,13 +243,14 @@ def ReadPlanifWeek(department, book, feuille, week_nb, year, courses_to_stabiliz
                     course_additional.save()
             if 'D' in comments or 'D' in local_comments and N >= 2:
                 relevant_courses = Course.objects.filter(type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, week=week)
-                for i in range(N//2-1):
+                for i in range(N//2):
                     P = Dependency(course1=relevant_courses[2*i], course2=relevant_courses[2*i+1], successive=True)
                     P.save()
             if 'ND' in comments or 'ND' in local_comments and N >= 2:
                 relevant_courses = Course.objects.filter(type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, week=week)
-                P = Dependency(course1=relevant_courses[0], course2=relevant_courses[1], ND=True)
-                P.save()
+                for i in range(N-1):
+                    P = Dependency(course1=relevant_courses[i], course2=relevant_courses[i+1], ND=True)
+                    P.save()
         except Exception as e:
             raise Exception(f"Exception ligne {row}, semaine {week_nb} de {feuille}: {e} \n")
 
