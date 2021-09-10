@@ -52,7 +52,7 @@ class Stabilize(TTConstraint):
         verbose_name='Stabiliser tout?',
         default=False)
 
-    group = models.ForeignKey('base.Group', null=True, default=None, on_delete=models.CASCADE)
+    group = models.ForeignKey('base.StructuralGroup', null=True, default=None, on_delete=models.CASCADE)
     module = models.ForeignKey('base.Module', null=True, default=None, on_delete=models.CASCADE)
     tutor = models.ForeignKey('people.Tutor',
                               null=True,

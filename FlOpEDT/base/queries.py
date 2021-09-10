@@ -30,7 +30,7 @@ from django.db import transaction
 from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
 
-from base.models import Group, RoomType, Room, \
+from base.models import StructuralGroup, RoomType, Room, \
                         ScheduledCourse, EdtVersion, Department, Regen, \
                         RoomSort, Period, CourseType, \
                         TutorCost, CourseStartTimeConstraint, \
@@ -154,7 +154,7 @@ def get_groups(department_abbrev):
 
         gp_dict_children = {}
         gp_master = None
-        for gp in Group.objects.filter(train_prog=train_prog):
+        for gp in StructuralGroup.objects.filter(train_prog=train_prog):
             if gp.full_name in gp_dict_children:
                 raise Exception('Group name should be unique')
             if gp.parent_groups.all().count() == 0:
@@ -171,7 +171,7 @@ def get_groups(department_abbrev):
             raise Exception(f"Training program {train_prog} does not have any group"
                             f" with no parent.")
 
-        for gp in Group.objects.filter(train_prog=train_prog).order_by('name'):
+        for gp in StructuralGroup.objects.filter(train_prog=train_prog).order_by('name'):
             for new_gp in gp.parent_groups.all():
                 gp_dict_children[new_gp.full_name].append(gp)
 

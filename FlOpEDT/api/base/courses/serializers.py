@@ -84,7 +84,7 @@ class Group_C_Serializer(serializers.Serializer):
     name = serializers.CharField()
 
     class Meta:
-        model = bm.Group
+        model = bm.StructuralGroup
         fields = ['name']
 
 

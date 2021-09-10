@@ -26,7 +26,7 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from base.timing import Day
-
+from base.models import StructuralGroup
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
 
 from TTapp.slots import slots_filter
@@ -37,6 +37,26 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 
 from django.utils.translation import gettext as _
+
+def pre_analysis_considered_basic_groups(group_ttconstraint):
+    if group_ttconstraint.train_progs.exists():
+        basic_groups = set(StructuralGroup.objects.filter(train_prog__in=group_ttconstraint.train_progs.all(), basic=True))
+    else:
+        basic_groups = set(StructuralGroup.objects.filter(train_prog__department=group_ttconstraint.department, basic=True))
+    
+    if group_ttconstraint.groups.exists():
+        basic_groups_constraint = set()
+        for g in group_ttconstraint.groups.all():
+            basic_groups_constraint |= g.basic_groups()
+        basic_groups &= basic_groups_constraint
+    return basic_groups
+'''
+    basic_groups_to_consider = set()
+    for g in basic_groups:
+        if ttmodel.wdb.courses_for_basic_group[g]:
+            basic_groups_to_consider.add(g)
+'''
+
 
 
 def considered_basic_groups(group_ttconstraint, ttmodel):
@@ -60,7 +80,7 @@ class MinGroupsHalfDays(TTConstraint):
     """
     All courses will fit in a minimum of half days
     """
-    groups = models.ManyToManyField('base.Group', blank=True)
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True)
 
     def enrich_model(self, ttmodel, week, ponderation=1):
         helper = MinHalfDaysHelperGroup(ttmodel, self, week, ponderation)

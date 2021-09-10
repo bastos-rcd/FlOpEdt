@@ -153,14 +153,14 @@ pref_only = false;
 
 file_fetch.groups.callback = function () {
 
-  create_groups(this.data);
+  
+  create_structural_groups(this.data);
 
   create_edt_grid();
 
   create_alarm_dispos();
   create_val_but();
   create_regen();
-  create_quote();
 
   //    go_ack_msg();
 
@@ -200,9 +200,9 @@ file_fetch.groups.callback = function () {
 
 
 
-
-
-
+file_fetch.transversal_groups.callback = function () {
+  create_transversal_groups(this.data);
+}
 
 /*---------------------
   ------ STARTER ------
@@ -236,7 +236,11 @@ d3.json(build_url(constraints_fi, context_dept),
 
 d3.json(build_url(groupes_fi, context_dept),
   function (d) { main('groups', d); });
-
+  
+/* Il faudrait un jour remplacer groupes par groups! J'ai mis transversal_groupEs par soucis de consistence */  
+  
+d3.json(build_url(transversal_groupes_fi, context_dept),
+  function (d) { main('transversal_groups', d); });
 
 
 d3.select("body")

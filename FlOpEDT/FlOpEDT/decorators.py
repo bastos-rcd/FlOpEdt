@@ -24,6 +24,8 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+
+import time
 from functools import wraps
 from urllib.parse import urlparse
 
@@ -125,3 +127,18 @@ def superuser_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
     if view_func:
         return actual_decorator(view_func)
     return actual_decorator
+
+a_mesurer = True
+
+def timer(fonction):
+    if a_mesurer:
+        def pre_analyse_timer(*args, **kwargs):
+            start_time = time.time()
+            result = fonction(*args, **kwargs)
+            stop_time = time.time()
+            total = stop_time - start_time
+            print("temps d'execution: %.5fs" % (total))
+            return result
+        return pre_analyse_timer
+    else:
+        return fonction

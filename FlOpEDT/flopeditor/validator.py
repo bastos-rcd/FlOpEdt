@@ -290,7 +290,7 @@ def validate_course_values(name, duree, entries):
     return False
 
 
-def validate_student_groups_values(entry, entries):
+def validate_student_structural_groups_values(entry, entries):
     """Validate parameters for student group values' CRUD
 
     :param abbrev: data returned by crudJS
@@ -311,6 +311,29 @@ def validate_student_groups_values(entry, entries):
     elif entry[0] in entry[2]:
         entries['result'].append([ERROR_RESPONSE,
                                   "Le groupe ne peut pas être un sous-groupe de lui-même."])
+    else:
+        return True
+    return False
+
+
+def validate_student_transversal_groups_values(entry, entries):
+    """Validate parameters for student group values' CRUD
+
+    :param abbrev: data returned by crudJS
+    :type abbrev: list
+    :param entries: list that is returned to CrudJS
+    :type abbrev: list
+    :return: boolean are the paramaters valid
+    """
+    if not entry[0]:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le nom ne peut pas être vide."])
+    elif len(entry[0]) > 10:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le nom ne peut pas être plus long que 10 caractères."])
+    elif entry[5] < 0:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "La taille ne peut pas être négative."])
     else:
         return True
     return False

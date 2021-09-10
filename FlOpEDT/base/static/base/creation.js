@@ -418,18 +418,18 @@ function go_promo_gp_init(button_available) {
     if (gp_init == "") {
       gp_init = root_gp[promo_init].gp.name;
     }
-    if (Object.keys(groups[promo_init]).map(function (g) { return groups[promo_init][g].name; }).indexOf(gp_init) != -1) {
-      apply_gp_display(groups[promo_init][gp_init], true, button_available);
+    if (Object.keys(groups[promo_init]["structural"]).map(function (g) { return groups[promo_init]["structural"][g].name; }).indexOf(gp_init) != -1) {
+      apply_gp_display(groups[promo_init]["structural"][gp_init], true, button_available);
     }
   } else if (gp_init != "") {
-    if (Object.keys(groups[0]).map(function (g) { return groups[0][g].name; }).indexOf(gp_init) != -1) {
-      apply_gp_display(groups[0][gp_init], true, button_available);
+    if (Object.keys(groups[0]["structural"]).map(function (g) { return groups[0]["structural"][g].name; }).indexOf(gp_init) != -1) {
+      apply_gp_display(groups[0]["structural"][gp_init], true, button_available);
     }
   }
 }
 
 
-function create_groups(data_groups) {
+function create_structural_groups(data_groups) {
   var root;
 
   extract_all_groups_structure(data_groups);
@@ -450,14 +450,69 @@ function create_groups(data_groups) {
     }
   }
   for (let p = 0; p < set_promos.length; p++) {
-    var keys = Object.keys(groups[p]);
+    var keys = Object.keys(groups[p]["structural"]);
     for (let g = 0; g < keys.length; g++) {
-      groups[p][keys[g]].bx = groups[p][keys[g]].x;
-      groups[p][keys[g]].bw = groups[p][keys[g]].width;
+      groups[p]["structural"][keys[g]].bx = groups[p]["structural"][keys[g]].x;
+      groups[p]["structural"][keys[g]].bw = groups[p]["structural"][keys[g]].width;
     }
   }
-
+	
   set_butgp();
+}
+
+
+function create_transversal_groups(data_groups) {
+	var nb_promos = groups.length;
+	for (let nprom =0; nprom<nb_promos; nprom++){
+		groups[nprom]["transversal"] = {};
+	}
+
+
+  var nb_groups = data_groups.length;
+  
+  //First pass: create groups and fill their attribute: "conflicting_groups"
+  for (let ngrp = 0; ngrp < nb_groups; ngrp++) {
+  	group_prom = set_promos.indexOf(data_groups[ngrp]['train_prog']);
+  	
+
+  	if (group_prom == -1) {
+  		console.log("The group named "+data_groups[ngrp]['name']+" has invalid training program.")
+  		
+  	} else {  	
+  		var gr = {
+  			name: data_groups[ngrp]['name'],
+  			promo: group_prom,
+  			display: true,
+  			x: 0,
+    		maxx: 0,
+    		width: 0,
+    		est: 0,
+    		lft: 0,
+    		conflicting_groups: [],
+    		parallel_groups: [],
+  		}
+  		
+  		
+  		var nb_conflict_groups = data_groups[ngrp]["conflicting_groups"].length;
+  		for (let conflict_group_nb = 0; conflict_group_nb < nb_conflict_groups; conflict_group_nb++) {
+  			if (data_groups[ngrp]["conflicting_groups"][conflict_group_nb].name in groups[group_prom]["structural"]) {
+  				gr["conflicting_groups"].push(groups[group_prom]["structural"][data_groups[ngrp]["conflicting_groups"][conflict_group_nb].name]);
+  			}
+  		}
+  		groups[group_prom]["transversal"][gr.name]=gr;
+  	}
+  } 
+  
+  // Second pass: Complete transversal groups by adding their parallel groups (which are transversal groups) 
+  for (let ngrp = 0; ngrp < nb_groups; ngrp++){
+  	group_prom = set_promos.indexOf(data_groups[ngrp]['train_prog']);
+  	if (group_prom != -1) {
+  		nb_para_groups = data_groups[ngrp]["parallel_groups"].length;
+  		for (let n_pargrp; n_pargrp < nb_para_groups; n_pargrp++) {
+  			groups[group_prom]["transversal"][data_groups[ngrp]["name"]]["parallel_groups"].push(groups[group_prom]["transversal"][data_groups[ngrp]["parallel_groups"][n_pargrp]]);
+  		}
+  	}
+  }
 }
 
 
@@ -514,7 +569,7 @@ function extract_groups_structure(r, npro, nrow) {
 
 
     // promo number should be unique
-    groups[npro] = [];
+    groups[npro] = {"structural":{}};
     root_gp[npro] = {};
 
 
@@ -548,7 +603,7 @@ function extract_groups_structure(r, npro, nrow) {
       extract_groups_structure(r.children[i], npro, nrow);
     }
   }
-  groups[npro][gr.name] = gr;
+  groups[npro]["structural"][gr.name] = gr;
 }
 
 
@@ -569,7 +624,7 @@ function create_static_att_groups(node) {
 
   if (node.children.length != 0) {
     for (var i = 0; i < node.children.length; i++) {
-      child = groups[node.promo][node.children[i]];
+      child = groups[node.promo]["structural"][node.children[i]];
       child.by = node.by + node.buth;
       create_static_att_groups(child);
     }
@@ -599,7 +654,7 @@ function compute_promo_est_n_wh(node) {
     }
   } else {
     for (var i = 0; i < node.children.length; i++) {
-      child = groups[node.promo][node.children[i]];
+      child = groups[node.promo]["structural"][node.children[i]];
       child.est = node.est + node.width;
       if (!child.display) {
         child.width = 0;
@@ -621,7 +676,7 @@ function compute_promo_lft(node) {
   var child;
   var eaten = 0;
   for (var i = node.children.length - 1; i >= 0; i--) {
-    child = groups[node.promo][node.children[i]];
+    child = groups[node.promo]["structural"][node.children[i]];
     child.lft = node.lft - eaten;
     compute_promo_lft(child);
     eaten += child.width;
@@ -648,7 +703,7 @@ function compute_promo_lmx(node) {
     var lastmax = node.x;
     var lastmin = -1;
     for (var i = 0; i < node.children.length; i++) {
-      child = groups[node.promo][node.children[i]];
+      child = groups[node.promo]["structural"][node.children[i]];
       if (child.display) {
         if (child.x < lastmax) {
           child.x = lastmax;
@@ -767,7 +822,7 @@ function compute_promo_leaves(node) {
   }
 
   for (var i = 0; i < node.children.length; i++) {
-    child = groups[node.promo][node.children[i]];
+    child = groups[node.promo]["structural"][node.children[i]];
     compute_promo_leaves(child);
   }
 }
@@ -1130,10 +1185,10 @@ function gp_courses(target_course) {
         && (
           c.group == target_course.group
           ||
-          groups[target_course.promo][target_course.group]
+          groups[target_course.promo]["structural"][target_course.group]
             .ancetres.indexOf(c.group) > -1
           ||
-          groups[target_course.promo][target_course.group]
+          groups[target_course.promo]["structural"][target_course.group]
             .descendants.indexOf(c.group) > -1
         )
     ) ;
@@ -1308,13 +1363,15 @@ function check_course() {
 
   // tutor availability
   if (!pending.pass.tutor) {
-    
-    check_tutor_busy(ret, possible_conflicts) ;
-    
-    // tutor availability
-    if (!check_tutor_free_week(ret)) {
-      check_tutor_preferences(ret) ;
-      check_tutor_busy_other_departments(ret) ;
+
+    if (pending.wanted_course.prof != null) {
+      check_tutor_busy(ret, possible_conflicts) ;
+      
+      // tutor availability
+      if (!check_tutor_free_week(ret)) {
+        check_tutor_preferences(ret) ;
+        check_tutor_busy_other_departments(ret) ;
+      }
     }
         
     // we will ask later about room constraints
@@ -1360,8 +1417,8 @@ function check_busy_group(issues, possible_conflicts) {
     conflicts = possible_conflicts.filter(function (c) {
       return (
         (c.group == wanted.group
-         || groups[wanted.promo][wanted.group].ancetres.indexOf(c.group) > -1
-         || groups[wanted.promo][wanted.group].descendants.indexOf(c.group) > -1
+         || groups[wanted.promo]["structural"][wanted.group].ancetres.indexOf(c.group) > -1
+         || groups[wanted.promo]["structural"][wanted.group].descendants.indexOf(c.group) > -1
         )
           && c.promo == wanted.promo
       );

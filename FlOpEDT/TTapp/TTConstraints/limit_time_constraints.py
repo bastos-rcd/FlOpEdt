@@ -111,7 +111,7 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
     Attributes:
         groups : the groups concerned by the limitation. All the groups of self.train_progs if None.
     """
-    groups = models.ManyToManyField('base.Group',
+    groups = models.ManyToManyField('base.StructuralGroup',
                                     blank=True,
                                     related_name="Course_type_limits")
 

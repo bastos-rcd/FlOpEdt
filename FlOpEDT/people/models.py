@@ -198,8 +198,8 @@ class BIATOS(Tutor):
 
 
 class Student(User):  # for now: representative
-    belong_to = models.ManyToManyField('base.Group',
-                                       blank=True)
+    belong_to = models.ManyToManyField('base.GenericGroup',
+                                               blank=True)
 
     def __str__(self):
         return str(self.username)
@@ -244,14 +244,13 @@ class StudentPreferences(Preferences):
 
 
 class GroupPreferences(Preferences):
-    group = models.OneToOneField('base.Group',
+    group = models.OneToOneField('base.StructuralGroup',
                                  related_name='preferences',
                                  on_delete=models.CASCADE)
 
     def calculate_fields(self):
         # To pull students from the group
-        students_preferences = StudentPreferences.objects.filter(
-            student__belong_to=self.group)
+        students_preferences = StudentPreferences.objects.filter(student__belong_to=self.group)
 
         # To initialise variables and getting the divider to get the average
         local_morning_weight = 0

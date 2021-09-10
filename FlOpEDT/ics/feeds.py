@@ -6,7 +6,7 @@ from django_ical.views import ICalFeed
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from base.models import ScheduledCourse, Room, Group, Day, Department, Regen
+from base.models import ScheduledCourse, Room, StructuralGroup, Day, Department, Regen
 from people.models import Tutor
 
 from django.http import HttpResponse, Http404
@@ -105,7 +105,7 @@ class RoomEventFeed(EventFeed):
 
 class GroupEventFeed(EventFeed):
     def get_object(self, request, department, group_id):
-        gp = Group.objects.get(id=group_id)
+        gp = StructuralGroup.objects.get(id=group_id)
         gp_included = gp.ancestor_groups()
         gp_included.add(gp)
         return gp_included

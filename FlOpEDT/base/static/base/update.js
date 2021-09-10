@@ -653,7 +653,7 @@ function go_grid(quick) {
   var grid = fg.selectAll(".grids")
     .data(
       data_slot_grid.filter(function (d) {
-        return groups[d.promo][d.group].display;
+        return groups[d.promo]["structural"][d.group].display;
       }),
       function (d) { return d.day + d.start + d.group + d.promo; }
     );
@@ -886,8 +886,8 @@ function go_gp_buttons() {
     var cont = svg.get_dom("selg")
       .select(".sel-pop-g#" + popup_type_id("group"))
       .selectAll('[train_prog="' + set_promos[p] + '"]')
-      .data(Object.keys(groups[p]).map(function (k) {
-        return groups[p][k];
+      .data(Object.keys(groups[p]["structural"]).map(function (k) {
+        return groups[p]["structural"][k];
       }));
 
     var contg = cont
@@ -1096,7 +1096,7 @@ function go_courses(quick) {
     .selectAll(".cours")
     .data(
       cours.filter(function (d) {
-        return groups[d.promo][d.group].display;
+        return groups[d.promo]["structural"][d.group].display;
       }),
       function (d) { return d.group + d.id_course; }
     )

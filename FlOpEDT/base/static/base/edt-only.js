@@ -113,7 +113,7 @@ svg.create_layouts(dsp_svg.cadastre);
 
 file_fetch.groups.callback = function () {
 
-  create_groups(this.data);
+  create_structural_groups(this.data);
 
   create_edt_grid();
 

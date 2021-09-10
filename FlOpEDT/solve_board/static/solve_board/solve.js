@@ -30,7 +30,12 @@ var week_year_sel, train_prog_sel, txt_area;
 
 var launchButton;
 var started = false;
+let errorPreAnalyse = [];
 
+let analyseButton = document.querySelector('#analyse');
+//nb pre_analyse launch each week
+let nbPreAnalyse = 3;
+let firstCourse = true;
 
 function displayConsoleMessage(message){
     while (message.length > 0 && message.slice(-1) == '\n') {
@@ -54,7 +59,7 @@ function start() {
 function stop() {
     console.log("STOOOOP");
 
-  open_socket();
+    open_socket();
   
     socket.onmessage = function (e) {
         var dat = JSON.parse(e.data);
@@ -103,7 +108,7 @@ function open_connection() {
         + format_zero(now.getMinutes()) + "-"
         + format_zero(now.getSeconds());
 
-  open_socket();
+    open_socket();
 
     socket.onmessage = function (e) {
         var dat = JSON.parse(e.data);
@@ -334,7 +339,6 @@ function init_constraints(constraints) {
 /* 
 	Get constraints list with updated state propepety
 */
-
 function update_constraints_state() {
     var checkboxes = document.querySelectorAll("#constraints input[type=checkbox]");
     checkboxes.forEach(c => {
@@ -357,8 +361,9 @@ function get_constraints_url(train_prog, year, week) {
     return fetch_context_url_template.replace(regexp, replacer)
 }
 
+
 /*
-  Retrieve work_copies and contraints for a specific week
+  Retrieve work_copies and constraints for a specific week
   This doesn't apply if more than one week is selected
 */
 function fetch_context() {
@@ -436,19 +441,248 @@ function dispatchAction(token) {
         changeState('stopped');
 }
 
+function get_analyse_url(train_prog, year, week, type) {
+
+    let params = arguments;
+    let regexp = /(tp)\/(1111)\/(11)\/(constraint)/;
+    let replacer = (match, train_prog, year, week, constraint, offset, string) => {
+        return Object.values(params).join('/');
+    }
+    return analyse_url_template.replace(regexp, replacer)
+}
+
+
+function launchPreanalyse(event) {
+    hideFinishLabel();
+    let nbAnalyse = nbPreAnalyse * week_year_sel.length;
+    let nbDone = 0;
+    errorPreAnalyse = [];
+    displayErrorAnalyse();
+    console.log("On Analyse !");
+    if(week_year_sel.length !== 0){
+        analyseButton.disabled = true;
+    }
+    //console.log(week_year_sel);
+    //console.log(train_prog_sel);
+    let constraint_type = "";
+    week_year_sel.forEach((week_year) => {
+        week = week_year.week;
+        year=week_year.year;
+        constraint_type = "ConsiderDependencies";
+        url_get = get_analyse_url(train_prog_sel, year, week, constraint_type);
+        console.log(url_get);
+        $.ajax({
+            type: "GET",
+            dataType: 'json',
+            url: url_get,
+            async: true,
+            contentType: "application/json; charset=utf-8",
+            success: function (result) {
+                console.log("ConsiderDependencies",result);
+                result["ConsiderDependencies"].forEach((obj) => {
+                    if (obj["status"] === "KO") {
+                        errorPreAnalyse.push(obj);
+                    }
+                });
+                displayErrorAnalyse("ConsiderDependencies");
+            },
+            error: function (msg) {
+                console.log("error", msg);
+            },
+            complete: function (msg) {
+                console.log("complete");
+                nbDone = nbDone + 1;
+                if (nbDone == nbAnalyse) {
+                    displayFinishLabel();
+                    analyseButton.disabled = false;
+                }
+            }
+        });
+        constraint_type = "NoSimultaneousGroupCourses";
+        url_get = get_analyse_url(train_prog_sel, year, week, constraint_type);
+        console.log(url_get);
+        $.ajax({
+            type: "GET",
+            dataType: 'json',
+            url: url_get,
+            async: true,
+            contentType: "application/json; charset=utf-8",
+            success: function (result) {
+                console.log("NoSimultaneous", result)
+                result["NoSimultaneousGroupCourses"].forEach((obj) => {
+                    if (obj["status"] === "KO") {
+                        errorPreAnalyse.push(obj);
+                    }
+                });
+                displayErrorAnalyse("NoSimultaneousGroupCourses");
+            },
+            error: function (msg) {
+                console.log("error", msg);
+            },
+            complete: function (msg) {
+                console.log("complete");
+                nbDone = nbDone + 1;
+                if (nbDone == nbAnalyse) {
+                    displayFinishLabel();
+                    analyseButton.disabled = false;
+                }
+            }
+        });
+        constraint_type = "ConsiderTutorsUnavailability";
+        url_get = get_analyse_url(train_prog_sel, year, week, constraint_type);
+        console.log(url_get);
+        $.ajax({
+            type: "GET",
+            dataType: 'json',
+            url: url_get,
+            async: true,
+            contentType: "application/json; charset=utf-8",
+            success: function (result) {
+                console.log("ConsiderTutor;", result);
+                result["ConsiderTutorsUnavailability"].forEach((obj) => {
+                    if (obj["status"] === "KO") {
+                        errorPreAnalyse.push(obj);
+                    }
+                });
+                displayErrorAnalyse("ConsiderTutorsUnavailability");
+            },
+            error: function (msg) {
+                console.log("error:", msg);
+            },
+            complete: function (msg) {
+                console.log("complete");
+                nbDone = nbDone + 1;
+                if (nbDone == nbAnalyse) {
+                    displayFinishLabel();
+                    analyseButton.disabled = false;
+                }
+            }
+        });
+    });
+}
+
+function getTextMessage(obj) {
+    messageBuilder = "";
+    obj["messages"].forEach((message) => {
+        messageBuilder += "\n" + message;
+    });
+    return messageBuilder;
+}
+
+function getTextTitle(obj) {
+    return 'Pour la semaine ' + obj["period"]["week"] + " de " + obj["period"]["year"] + ":";
+}
+
+function displayErrorAnalyse() {
+    // NEED TO FIX THE MERGE UPDATE WITH D3 OTHERWISE SORTING MAKING A MESS WHEN DISPLAYING
+    /*let messageAnalyseGroup = d3.select("#divAnalyse").selectAll(".msg_error").data(errorPreAnalyse.sort(function triMessage(a, b) {
+        return a["period"]["year"] == b["period"]["year"] ? a["period"]["week"] - b["period"]["week"] : a["period"]["year"] - b["period"]["year"];
+    }));
+    console.log("This is analyse group", d3.select("#divAnalyse").selectAll(".msg_error").data(errorPreAnalyse.sort(function triMessage(a, b) {
+        return a["period"]["year"] == b["period"]["year"] ? a["period"]["week"] - b["period"]["week"] : a["period"]["year"] - b["period"]["year"];
+    })));*/
+    let messageAnalyseGroup = d3.select("#divAnalyse").selectAll(".msg_error").data(errorPreAnalyse);
+    
+    let enter = messageAnalyseGroup.enter()
+                .append("p")
+                .attr("class", "msg_error");
+
+    enter.append("h3")
+        .attr("class", "msg_error_week")
+        .merge(messageAnalyseGroup.select(".msg_error_week"))
+        .text(getTextTitle);
+
+    console.log("this is pre analyse error", errorPreAnalyse);
+    let messages_display = enter.selectAll(".detail_analyse").data(function(d){return d["messages"]});
+    console.log("this is display", enter.selectAll(".detail_analyse").data(function(d){return d["messages"]}));
+    enterMessagesDisplay = messages_display.enter()
+                    .append("span")
+                    .attr("class", "detail_analyse")
+                    .merge(messages_display.select(".detail_analyse"))
+                    .text(function(d){return d["str"]});
+    enterMessagesDisplay.append("a").attr("href", hrefBuilder).text(textLink);
+    console.log(firstCourse);
+    enterMessagesDisplay.append("span").style("visibility", hiddingSecondLink).text(",");
+    enterMessagesDisplay.append("a").attr("href", hrefBuilder).style("visibility", hiddingSecondLink).text("Second Course");
+
+    
+    enterMessagesDisplay.append("br");
+    messages_display.exit().remove();
+    messageAnalyseGroup.exit().remove();
+}
+
+function textLink(d) {
+    switch(d["type"]) {
+        case "ConsiderDependencies":
+            return "First Course";
+            break;
+        case "NoSimultaneousGroupCourses":
+            return "Group";
+            break;
+        case "ConsiderTutorsUnavailability":
+            return "Tutor";
+            break
+    }
+}
+
+function hiddingSecondLink(d) {
+    switch(d["type"]) {
+        case "ConsiderDependencies":
+            return "normal";
+        case "NoSimultaneousGroupCourses":
+            return "hidden";
+        case "ConsiderTutorsUnavailability":
+            return "hidden";
+    }
+}
+
+function hrefBuilder(d) {
+    switch(d["type"]) {
+        case "ConsiderDependencies":
+            if (firstCourse) {
+                firstCourse = false;
+                return courses_id_url+d["course1"];
+            } else {
+                firstCourse = true;
+                return courses_id_url+d["course2"];
+            }
+            break;
+        case "NoSimultaneousGroupCourses":
+            return group_id_url+d["group"];
+            break;
+        case "ConsiderTutorsUnavailability":
+            return tutor_id_url+d["tutor"];
+            break
+    }
+}
+
+function displayFinishLabel() {
+    let label = document.getElementById("completion");
+    label.style.visibility = "visible";
+    label.style.fontSize = "1em";
+    label.style.color = "red";
+}
+
+function hideFinishLabel() {
+    document.getElementById("completion").style.visibility = "hidden";
+}
+
 /*
 	Main process
 */
 
 var solver_select = document.querySelector("#solver");
 var stabilize_select = document.querySelector("#stabilize select");
+document.getElementById("divAnalyse").style.overflow = "scroll";
 
 time_limit_select = document.querySelector("#limit");
 txt_area = document.getElementsByTagName("textarea")[0];
-
 launchButton = document.querySelector("#launch");
 if (launchButton)
     launchButton.addEventListener("click", manageSolverProcess);
+if (analyseButton){
+    analyseButton.addEventListener("click", launchPreanalyse);
+}
 
 init_dropdowns();
 update_context_view();

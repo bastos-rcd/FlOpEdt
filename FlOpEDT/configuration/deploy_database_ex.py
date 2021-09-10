@@ -34,7 +34,7 @@ from random import choice
 from displayweb.models import TrainingProgrammeDisplay
 
 from base.models import RoomType, Room, TrainingProgramme,\
-    Group, Module, GroupType, Period, Time, Day, CourseType, \
+    StructuralGroup, Module, GroupType, Period, Time, Day, CourseType, \
     Department, CourseStartTimeConstraint, TimeGeneralSettings, UserPreference, CoursePreference
 
 from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
@@ -349,7 +349,7 @@ def groups_extract(department, book):
     while idGroup is not None:
 
         tpGr = sheet.cell(row=GROUP_ROW, column=2).value
-        verif = Group.objects.filter(name=idGroup, train_prog__abbrev=tpGr, train_prog__department=department)
+        verif = StructuralGroup.objects.filter(name=idGroup, train_prog__abbrev=tpGr, train_prog__department=department)
 
         if not verif.exists():
 
@@ -361,7 +361,7 @@ def groups_extract(department, book):
                 gt = sheet.cell(row=GROUP_ROW, column=4).value
                 groupType = GroupType.objects.get(name=gt, department=department)
 
-                group = Group(name=idGroup, size=0, train_prog=tpGroup, type=groupType)
+                group = StructuralGroup(name=idGroup, size=0, train_prog=tpGroup, type=groupType)
                 group.save()
 
             except IntegrityError as ie:
@@ -385,9 +385,9 @@ def groups_extract(department, book):
 
         if p_group is not None:
 
-            parent_group = Group.objects.get(name=p_group, train_prog__abbrev=tpGr, train_prog__department=department)
+            parent_group = StructuralGroup.objects.get(name=p_group, train_prog__abbrev=tpGr, train_prog__department=department)
 
-            group = Group.objects.get(name=idGroup, train_prog__abbrev=tpGr, train_prog__department=department)
+            group = StructuralGroup.objects.get(name=idGroup, train_prog__abbrev=tpGr, train_prog__department=department)
 
             group.parent_groups.add(parent_group)
 
@@ -398,11 +398,11 @@ def groups_extract(department, book):
 
 ######################## Defining basic groups ####################################
 
-    for g in Group.objects.all():
+    for g in StructuralGroup.objects.all():
 
         isbasic = True
 
-        for g1 in Group.objects.all():
+        for g1 in StructuralGroup.objects.all():
 
             if g in g1.parent_groups.all():
 

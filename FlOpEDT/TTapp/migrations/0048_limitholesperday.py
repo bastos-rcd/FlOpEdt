@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('base', '0081_auto_20210710_2236'),
         ('people', '0031_auto_20210709_0953'),
-        ('TTapp', '0048_auto_20210713_1439'),
+        ('TTapp', '0047_auto_20210510_1941'),
     ]
 
     operations = [

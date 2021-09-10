@@ -43,7 +43,7 @@ class ReasonableDays(TTConstraint):
     a None value builds the constraint for all possible values,
     e.g. promo = None => the constraint holds for all promos.
     """
-    groups = models.ManyToManyField('base.Group',
+    groups = models.ManyToManyField('base.models.StructuralGroup',
                                     blank=True,
                                     related_name="reasonable_day_constraints")
     tutors = models.ManyToManyField('people.Tutor',
@@ -156,7 +156,7 @@ class AvoidBothTimes(TTConstraint):
     """
     time1 = models.PositiveSmallIntegerField()
     time2 = models.PositiveSmallIntegerField()
-    group = models.ForeignKey('base.Group', null=True, on_delete=models.CASCADE)
+    group = models.ForeignKey('base.models.StructuralGroup', null=True, on_delete=models.CASCADE)
     tutor = models.ForeignKey('people.Tutor',
                               null=True,
                               default=None,
@@ -221,7 +221,7 @@ class LimitedStartTimeChoices(TTConstraint):
                               null=True,
                               default=None,
                               on_delete=models.CASCADE)
-    group = models.ForeignKey('base.Group',
+    group = models.ForeignKey('base.models.StructuralGroup',
                               null=True,
                               default=None,
                               on_delete=models.CASCADE)
@@ -292,7 +292,7 @@ class LimitedRoomChoices(TTConstraint):
                               null=True,
                               default=None,
                               on_delete=models.CASCADE)
-    group = models.ForeignKey('base.Group',
+    group = models.ForeignKey('base.models.StructuralGroup',
                               null=True,
                               default=None,
                               on_delete=models.CASCADE)

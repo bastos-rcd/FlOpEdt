@@ -46,7 +46,7 @@ class LimitedRoomChoices(TTConstraint):
                               default=None,
                               blank=True,
                               on_delete=models.CASCADE)
-    group = models.ForeignKey('base.Group',
+    group = models.ForeignKey('base.StructuralGroup',
                               null=True,
                               default=None,
                               blank=True,

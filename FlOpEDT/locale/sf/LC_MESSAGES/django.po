@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-26 19:59+0200\n"
+"POT-Creation-Date: 2021-09-03 21:40+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,6 +94,249 @@ msgstr "Chinois"
 msgid "Smurf"
 msgstr "Schtroumpf"
 
+#: TTapp/TTConstraint.py:61
+msgid "Is active?"
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:69
+#: TTapp/TTConstraints/core_constraints.py:327
+#: TTapp/TTConstraints/slots_constraints.py:254
+msgid "OK"
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:113
+#: TTapp/TTConstraints/core_constraints.py:124
+#: TTapp/TTConstraints/core_constraints.py:142
+#: TTapp/TTConstraints/core_constraints.py:357
+#: TTapp/TTConstraints/core_constraints.py:413
+#: TTapp/TTConstraints/core_constraints.py:436
+#: TTapp/TTConstraints/slots_constraints.py:278
+#: TTapp/TTConstraints/slots_constraints.py:285
+#: TTapp/TTConstraints/slots_constraints.py:292
+#: TTapp/TTConstraints/slots_constraints.py:306
+#: TTapp/TTConstraints/slots_constraints.py:314
+#: TTapp/TTConstraints/slots_constraints.py:321
+msgid "KO"
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:114
+#, python-brace-format
+msgid ""
+"Group {bg.name} has {group_partition.not_forbidden_duration} available time "
+"but requires minimum {min_course_time_needed}."
+msgstr ""
+"Le groupe {bg.name} schtroumpf {group_partition.not_forbidden_duration} "
+"minutes de temps disponible mais schtroumpf un minimum de "
+"{min_course_time_needed}."
+
+#: TTapp/TTConstraints/core_constraints.py:125
+#, python-brace-format
+msgid ""
+"Group {bg.name} has {group_partition.not_forbidden_duration} available time "
+"but probably requires minimum {course_time_needed}."
+msgstr ""
+"Le groupe {bg.name} schtroumpf {group_partition.not_forbidden_duration} "
+"minutes de temps disponible mais schtroumpf probablement un minimum de "
+"{course_time_needed}"
+
+#: TTapp/TTConstraints/core_constraints.py:143
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "Group {bg.name} has {group_partition."
+#| "nb_slots_not_forbidden_of_duration(course_type.duration)} slots available "
+#| "of {course_type.duration} minutes and requires {nb_courses}."
+msgid ""
+"Group {bg.name} has {allowed_slots_nb} slots available of {course_type."
+"duration} minutes and requires {nb_courses}."
+msgstr ""
+"Le group {bg.name} schtroumpf {group_partition."
+"nb_slots_not_forbidden_of_duration(course_type.duration)} créneaux "
+"disponibles d'une durée de {course_type.duration} minutes et schtroumpf de "
+"{nb_courses}."
+
+#: TTapp/TTConstraints/core_constraints.py:207
+msgid "No simultaneous courses for one group"
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:256
+msgid "Schedule once every considered course"
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:308
+msgid "Each course is assigned to one tutor (max)"
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:354
+#, python-brace-format
+msgid ""
+"Tutor {tutor} has {tutor_partition.available_duration} minutes of available "
+"time."
+msgstr ""
+"{tutor} schtroumpf {tutor_partition.available_duration} minutes de temps "
+"disponible"
+
+#: TTapp/TTConstraints/core_constraints.py:355
+#: TTapp/TTConstraints/core_constraints.py:411
+msgid ""
+" He or she has to lecture {len(courses)} classes for an amount of {sum(c."
+"type.duration for c in courses)} minutes of courses."
+msgstr ""
+"Il ou elle schtroumpf {len(courses)} cours pour un total de {sum(c.type."
+"duration for c in courses)} minutes."
+
+#: TTapp/TTConstraints/core_constraints.py:398
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "Tutor {tutor} has {tutor_partition.available_duration} minutes of "
+#| "available time."
+msgid ""
+"Tutor {tutor} has {tutor_partition.available_duration} minutes of available "
+"time"
+msgstr ""
+"{tutor} schtroumpf {tutor_partition.available_duration} minutes de temps "
+"disponible"
+
+#: TTapp/TTConstraints/core_constraints.py:400
+msgid " (considering that"
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:402
+#, python-brace-format
+msgid " {forbidden_days} is forbidden"
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:404
+#, python-brace-format
+msgid " and {holiday_text} is holiday)."
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:408
+#, python-brace-format
+msgid " {holiday_text} is holiday)."
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:433
+msgid ""
+"Tutor {tutor} has {course_partition."
+"nb_slots_available_of_duration_beginning_at(course_type.duration, "
+"start_times)} available slots of {course_type.duration} mins "
+msgstr ""
+"{tutor} schtroumpf {course_partition."
+"nb_slots_available_of_duration_beginning_at(course_type.duration, "
+"start_times)} créneaux disponibles de {course_type.duration} minutes."
+
+#: TTapp/TTConstraints/core_constraints.py:434
+msgid "and {len(course_list)} courses that long to attend."
+msgstr "et {len(course_lits)} cours à schtroumpfer."
+
+#: TTapp/TTConstraints/core_constraints.py:480
+msgid "Consider tutors unavailability"
+msgstr ""
+
+#: TTapp/TTConstraints/cosmo_style_constraints.py:158
+msgid "Number of weeks"
+msgstr ""
+
+#: TTapp/TTConstraints/groups_constraints.py:115
+msgid "Minimize groups half-days"
+msgstr ""
+
+#: TTapp/TTConstraints/groups_constraints.py:181
+msgid "Minimize groups non-preferred slots"
+msgstr ""
+
+#: TTapp/TTConstraints/slots_constraints.py:280
+#: TTapp/TTConstraints/slots_constraints.py:287
+#, python-brace-format
+msgid ""
+"There is no available slots for the second course after the first one. "
+"{dependency}"
+msgstr ""
+"Il ne schtroumpf pas de créneaux disponibles pour le deuxième cours après le "
+"premier. {dependency}"
+
+#: TTapp/TTConstraints/slots_constraints.py:294
+#, python-brace-format
+msgid ""
+"There is no available slots for the first or the second course. {dependency}"
+msgstr ""
+"Il ne schtroumpf pas de créneaux disponibles pour le deuxième cours après le "
+"premier. {dependency}"
+
+#: TTapp/TTConstraints/slots_constraints.py:308
+#, python-brace-format
+msgid "There is no available successive slots for those courses. {dependency}"
+msgstr ""
+"Il ne schtroumpf pas de créneaux succéssifs disponibles pour ces cours. "
+"{dependency}"
+
+#: TTapp/TTConstraints/slots_constraints.py:316
+#, python-brace-format
+msgid ""
+"There is no available slots for the second course after a {dependency."
+"day_gap} day gap. {dependency}"
+msgstr ""
+"Il ne schtroumpf pas de créneaux disponibles pour le second cours "
+"{dependency.day_gap} jours après le premier. {dependency}"
+
+#: TTapp/TTConstraints/slots_constraints.py:323
+#, python-brace-format
+msgid "One of the courses has no eligible tutor to lecture it. {dependency}"
+msgstr "Un des cours ne schtroumpf pas de professeur schtroumpfé. {dependency}"
+
+#: TTapp/TTConstraints/test_constraints.py:82 base/models.py:884
+msgid "Successives?"
+msgstr "Successifs ?"
+
+#: TTapp/TTConstraints/test_constraints.py:83 base/models.py:886
+msgid "Minimal day gap between courses"
+msgstr ""
+
+#: TTapp/TTConstraints/test_constraints.py:105
+msgid "There is no tutor assigned to {self.course1.full_name()}"
+msgstr ""
+
+#: TTapp/TTConstraints/test_constraints.py:120
+msgid "There is no tutor assigned to {self.course2.full_name()}"
+msgstr ""
+
+#: TTapp/TTConstraints/test_constraints.py:232
+msgid "There is no available slots for the second course after the first one."
+msgstr ""
+
+#: TTapp/TTConstraints/test_constraints.py:235
+msgid "There is no available slots for the second course."
+msgstr ""
+
+#: TTapp/TTConstraints/test_constraints.py:238
+msgid "There is no available slots for the first or the second course."
+msgstr ""
+
+#: TTapp/TTConstraints/test_constraints.py:248
+msgid "There is no available successive slots for those courses."
+msgstr ""
+
+#: TTapp/TTConstraints/test_constraints.py:252
+#, python-brace-format
+msgid ""
+"There is no available slots for the second course after a {self.day_gap} day "
+"gap."
+msgstr ""
+
+#: TTapp/TTConstraints/test_constraints.py:257
+msgid "There is no available tutor for {self.course1.full_name()}"
+msgstr ""
+
+#: TTapp/TTConstraints/test_constraints.py:259
+msgid "There is no available tutor for {self.course2.full_name()}"
+msgstr ""
+
+#: base/admin.py:614 base/admin.py:640 base/admin.py:653
+#, fuzzy
+#| msgid "Weeks"
+msgid "Week"
+msgstr "Semaines particulières"
+
 #: base/forms.py:33
 msgid "Your e-mail address :"
 msgstr "Votre adresse mail :"
@@ -130,51 +373,63 @@ msgstr "Idéalement"
 msgid "Maximum"
 msgstr "Maximum"
 
-#: base/models.py:82
+#: base/models.py:121
 msgid "Basic group?"
 msgstr "Groupe basique?"
 
-#: base/models.py:149
+#: base/models.py:210
 msgid "Half day"
 msgstr "Demie-journée"
 
-#: base/models.py:296
+#: base/models.py:234
+msgid "Week number"
+msgstr ""
+
+#: base/models.py:287
+msgid "Educative"
+msgstr ""
+
+#: base/models.py:288
+msgid "Coop. (workplace)"
+msgstr ""
+
+#: base/models.py:289
+msgid "Coop. (worker)"
+msgstr ""
+
+#: base/models.py:409
 msgid "Abbreviation"
 msgstr "Abbréviation"
 
-#: base/models.py:344
+#: base/models.py:452
 msgid "graded?"
 msgstr "Noté ?"
 
-#: base/models.py:372
+#: base/models.py:477
 msgid "Suspens?"
 msgstr "En suspens?"
 
-#: base/models.py:404
+#: base/models.py:509
 msgid "Graded?"
 msgstr "Noté ?"
 
-#: base/models.py:728
-msgid "Successives?"
-msgstr "Successifs ?"
-
-#: base/models.py:729
+#: base/models.py:885 base/models.py:896
 msgid "On different days"
 msgstr "Des jours différents"
 
-#: base/models.py:749
+#: base/models.py:914
 msgid "Full"
 msgstr "Totale"
 
-#: base/models.py:751
+#: base/models.py:916
 msgid "Full generation date"
 msgstr "Date de regénération"
 
-#: base/models.py:752
+#: base/models.py:917
 msgid "Stabilized"
 msgstr "Stabilisée"
 
-#: base/models.py:754
+#: base/models.py:919
 msgid "Partial generation date"
 msgstr "Date de regénération partielle"
 
@@ -196,9 +451,9 @@ msgid ""
 "+ to choose a room that is not available for this course. Don't forget to "
 "validate any changes."
 msgstr ""
-"Cliquer droit sur le cours en question, les salles disponibles apparaissent. "
-"Cliquer sur + pour schtroumpfer une salle non prévue pour ce cours. Ne pas "
-"oublier de valider tout changement."
+"Schtroumpfer droit sur le cours en question, les salles disponibles "
+"apparaissent. Schtroumpfer sur + pour schtroumpfer une salle non prévue pour "
+"ce cours. Ne pas oublier de valider tout changement."
 
 #: base/templates/base/help.html:38
 msgid "Create an account"
@@ -245,14 +500,22 @@ msgid "Direct link to a particular group"
 msgstr ""
 
 #: base/templates/base/help.html:52
-msgid "Add \"?promo=INFO1&gp=1A\" at the end of the url, for example "
+msgid "Add \"?promo=...&gp=...\" at the end of the url, for example "
 msgstr ""
 
-#: base/templates/base/help.html:54
+#: base/templates/base/help.html:53
+msgid "To know the name of your training programme and group, check the list "
+msgstr ""
+
+#: base/templates/base/help.html:53
+msgid "here"
+msgstr ""
+
+#: base/templates/base/help.html:56
 msgid "How availability entry work"
 msgstr "Fonctionnement de la saisie des disponibilités"
 
-#: base/templates/base/help.html:55
+#: base/templates/base/help.html:57
 msgid ""
 "When generating the schedule for a given week, if no availability is entered "
 "for that week, the typical week defines the availability."
@@ -261,7 +524,7 @@ msgstr ""
 "aucune disponibilité n'est schtroumpfée pour cette semaine, la semaine type "
 "définit les disponibilités."
 
-#: base/templates/base/help.html:57
+#: base/templates/base/help.html:59
 msgid "Some Tutorial Videos"
 msgstr "Quelques Tutos Vidéos"
 
@@ -368,6 +631,7 @@ msgstr "de la semaine"
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
+#: configuration/templates/configuration/configuration.html:78
 msgid "year"
 msgstr "année"
 
@@ -457,23 +721,23 @@ msgstr "Nombre de cours donnés par professeur"
 msgid "Create or modify a link"
 msgstr "Créer ou schtroumpfer un lien"
 
-#: base/views.py:1700
+#: base/views.py:1512
 msgid "Not authorized. New link then."
 msgstr "Non autorisé. Création d'un nouveau schtroumpf."
 
-#: base/views.py:1703
+#: base/views.py:1515
 msgid "Unknown link. New link then."
 msgstr "Lien inconnu. Création d'un nouveau schtroumpf."
 
-#: base/views.py:1715
+#: base/views.py:1527
 msgid "Created"
 msgstr "Créé"
 
-#: base/views.py:1715
+#: base/views.py:1527
 msgid "Modified"
 msgstr "Modifié"
 
-#: base/views.py:1718
+#: base/views.py:1530
 msgid "Tutor does not exist"
 msgstr "L'utilisateur n'existe pas."
 
@@ -543,7 +807,7 @@ msgid "Upload the completed configuration file."
 msgstr "Téléversez le fichier de configuration rempli."
 
 #: configuration/templates/configuration/configuration.html:23
-#: configuration/templates/configuration/configuration.html:65
+#: configuration/templates/configuration/configuration.html:66
 msgid "Only xlsx format is accepted."
 msgstr "Seul le format xlsx est accepté."
 
@@ -562,13 +826,13 @@ msgid "Edit"
 msgstr "Modifier"
 
 #: configuration/templates/configuration/configuration.html:32
-#: configuration/templates/configuration/configuration.html:76
-#: templates/base.html:94
+#: configuration/templates/configuration/configuration.html:88
+#: templates/base.html:95
 msgid "Import"
 msgstr "Importer"
 
 #: configuration/templates/configuration/configuration.html:37
-#: configuration/templates/configuration/configuration.html:79
+#: configuration/templates/configuration/configuration.html:92
 msgid "Verdict :"
 msgstr "Verdict :"
 
@@ -611,15 +875,21 @@ msgstr ""
 msgid "Click to download the planning file outline"
 msgstr "Cliquez pour schtroumpfer le canevas du fichier de planification"
 
-#: configuration/templates/configuration/configuration.html:63
+#: configuration/templates/configuration/configuration.html:65
 msgid "Completed planning file"
 msgstr "Fichier de planification des cours complété"
 
-#: configuration/templates/configuration/configuration.html:64
+#: configuration/templates/configuration/configuration.html:66
 msgid "Upload the completed planning file."
 msgstr "Téléversez le schtroumpf de planification rempli."
 
-#: configuration/templates/configuration/configuration.html:75
+#: configuration/templates/configuration/configuration.html:77
+#, fuzzy
+#| msgid "from week"
+msgid "From week"
+msgstr "de la semaine"
+
+#: configuration/templates/configuration/configuration.html:86
 msgid "Stabilization ?"
 msgstr "Stabilisation ?"
 
@@ -689,7 +959,7 @@ msgstr "Générations prévues"
 msgid "Forgot password?"
 msgstr "Mot de passe perdu ?"
 
-#: people/templates/people/login.html:58 templates/base.html:108
+#: people/templates/people/login.html:58 templates/base.html:109
 msgid "Sign in"
 msgstr "Se connecter"
 
@@ -790,49 +1060,49 @@ msgstr "Catégorie "
 msgid "Schedule Generation"
 msgstr "Consulter"
 
-#: solve_board/templates/solve_board/main-board.html:60
+#: solve_board/templates/solve_board/main-board.html:64
 msgid "Constraints"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:61
+#: solve_board/templates/solve_board/main-board.html:65
 msgid ""
 "All constraints appearing in bolded - with no weight - will be considered "
 "mandatory, the other ones will considered as preferences."
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:66
+#: solve_board/templates/solve_board/main-board.html:70
 #, fuzzy
 #| msgid "Configuration file canvas"
 msgid "Configuration"
 msgstr "Canevas du fichier de configuration"
 
-#: solve_board/templates/solve_board/main-board.html:70
+#: solve_board/templates/solve_board/main-board.html:75
 #, fuzzy
 #| msgid "Weeks"
 msgid "Week⋅s"
 msgstr "Semaines particulières"
 
-#: solve_board/templates/solve_board/main-board.html:74
+#: solve_board/templates/solve_board/main-board.html:79
 #, fuzzy
 #| msgid "Training program"
 msgid "Training Program"
 msgstr "Promotion"
 
-#: solve_board/templates/solve_board/main-board.html:78
+#: solve_board/templates/solve_board/main-board.html:83
 #, fuzzy
 #| msgid "Stabilization ?"
 msgid "Stabilization"
 msgstr "Stabilisation ?"
 
-#: solve_board/templates/solve_board/main-board.html:83
+#: solve_board/templates/solve_board/main-board.html:88
 msgid "Solver"
 msgstr "Schtroumpf"
 
-#: solve_board/templates/solve_board/main-board.html:94
+#: solve_board/templates/solve_board/main-board.html:99
 msgid "Maximum time limit for resolution (minuts)"
 msgstr "Durée limite (en schtroumpfs)"
 
-#: solve_board/templates/solve_board/main-board.html:100
+#: solve_board/templates/solve_board/main-board.html:105
 msgid "Unlimited"
 msgstr "Illimité"
 
@@ -877,20 +1147,23 @@ msgid "Generate"
 msgstr "Générer"
 
 #: templates/base.html:93
-msgid "Statistics"
-msgstr "Statistiques"
+msgid "flop!EDITOR"
+msgstr ""
 
-#: templates/base.html:95
+#: templates/base.html:96
 msgid "Admin"
 msgstr "Admin"
 
-#: templates/base.html:101 templates/base.html:103 templates/base.html:105
+#: templates/base.html:102 templates/base.html:104 templates/base.html:106
 msgid "Sign out"
 msgstr "Déconnexion"
 
-#: templates/base.html:112
+#: templates/base.html:113
 msgid "Signed in as "
 msgstr "Connecté·e sous "
+
+#~ msgid "Statistics"
+#~ msgstr "Statistiques"
 
 #~ msgid "Scheduler"
 #~ msgstr "Schtroumpf"

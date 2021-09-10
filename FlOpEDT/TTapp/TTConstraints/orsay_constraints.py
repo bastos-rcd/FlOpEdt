@@ -51,7 +51,7 @@ class GroupsLunchBreak(TTConstraint):
     # ArrayField unusable with django-import-export
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     lunch_length = models.PositiveSmallIntegerField()
-    groups = models.ManyToManyField('base.Group', blank=True, related_name='lunch_breaks_constraints')
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='lunch_breaks_constraints')
 
     def enrich_model(self, ttmodel, week, ponderation=100):
         considered_groups = considered_basic_groups(self, ttmodel)
@@ -204,7 +204,7 @@ class BreakAroundCourseType(TTConstraint):
     Ensures that the courses of a given course type and other types of courses cannot be consecutive for the given groups.
     """
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    groups = models.ManyToManyField('base.Group', blank=True, related_name='amphi_break_constraint')
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='amphi_break_constraint')
     course_type = models.ForeignKey('base.CourseType', related_name='amphi_break_constraint', on_delete=models.CASCADE)
     min_break_length = models.PositiveSmallIntegerField(default=15)
 

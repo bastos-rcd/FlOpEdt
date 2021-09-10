@@ -41,18 +41,26 @@ from TTapp.models import \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, GroupsLunchBreak, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
     NoTutorCourseOnDay, NoGroupCourseOnDay, \
-    ConsiderDepencies, Curfew, ConsiderPivots, \
-    LimitHoles, ModulesByBloc, LimitTutorTimePerWeeks
+    ConsiderDependencies, Curfew, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
+    ConsiderTutorsUnavailability, LimitHoles, \
+    Curfew, \
+    ModulesByBloc, LimitTutorTimePerWeeks
 
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
 
 # Register your models here.
 
-from FlOpEDT.filters import DropdownFilterAll, DropdownFilterRel, \
-    DropdownFilterCho
+from FlOpEDT.filters import DropdownFilterAll, DropdownFilterRel
 from django.conf import settings
 
+
+class BasicConstraintAdmin(DepartmentModelAdmin):
+    list_display = ('comment',
+                    'weight',
+                    'is_active')
+    ordering = ()
+    list_filter = ()
 
 class CustomConstraintAdmin(DepartmentModelAdmin):
     list_display = ('class_name',
@@ -363,7 +371,7 @@ class GroupsLunchBreakResource(resources.ModelResource):
     groups = fields.Field(
         column_name='groups',
         attribute='groups',
-        widget=ManyToManyWidget('base.Group', field='full_name', separator='|'))
+        widget=ManyToManyWidget('base.StructuralGroup', field='full_name', separator='|'))
 
     class Meta:
         model = GroupsLunchBreak
@@ -381,7 +389,7 @@ class NoCourseOnDayAdmin(DepartmentModelAdmin):
                    )
 
 
-class ConsiderDepenciesAdmin(DepartmentModelAdmin):
+class ConsiderDependenciesAdmin(DepartmentModelAdmin):
     list_display = ('comment',
                     'weight',
                     'is_active')
@@ -403,7 +411,7 @@ class ConsiderPivotsAdmin(DepartmentModelAdmin):
 
 
 
-admin.site.register(ConsiderDepencies, ConsiderDepenciesAdmin)
+admin.site.register(ConsiderDependencies, ConsiderDependenciesAdmin)
 admin.site.register(ConsiderPivots, ConsiderPivotsAdmin)
 admin.site.register(CustomConstraint, CustomConstraintAdmin)
 admin.site.register(Stabilize, StabilizeAdmin)
@@ -432,6 +440,10 @@ admin.site.register(NoVisio, NoVisioAdmin)
 admin.site.register(VisioOnly, VisioOnlyAdmin)
 admin.site.register(BoundPhysicalPresenceHalfDays, BoundPhysicalPresenceHalfDaysAdmin)
 admin.site.register(LimitGroupsPhysicalPresence, LimitGroupsPhysicalPresenceAdmin)
+admin.site.register(NoSimultaneousGroupCourses, BasicConstraintAdmin)
+admin.site.register(ScheduleAllCourses, BasicConstraintAdmin)
+admin.site.register(AssignAllCourses, BasicConstraintAdmin)
+admin.site.register(ConsiderTutorsUnavailability, BasicConstraintAdmin)
 admin.site.register(LimitHoles, DepartmentModelAdmin)
 admin.site.register(LimitTutorTimePerWeeks, DepartmentModelAdmin)
 admin.site.register(ModulesByBloc, DepartmentModelAdmin)

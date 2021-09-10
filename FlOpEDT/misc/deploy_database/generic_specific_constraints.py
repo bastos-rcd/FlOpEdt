@@ -28,7 +28,7 @@
 
 from TTapp.models import LimitTimePerPeriod, ReasonableDays, MinHalfDays, max_weight, \
     SimultaneousCourses, LimitedSlotChoices
-from base.models import Time, Day, TrainingProgramme, CourseType, Module, Room, Slot, Group, Course, Department
+from base.models import Time, Day, TrainingProgramme, CourseType, Module, Room, Slot, StructuralGroup, Course, Department
 from people.models import Tutor
 
 info=Department.objects.get(abbrev='info')
@@ -64,7 +64,7 @@ def add_iut_blagnac_basics():
 
 
     # Libérer des demi-journées aux étudiants
-    for g in Group.objects.exclude(train_prog=lp):
+    for g in StructuralGroup.objects.exclude(train_prog=lp):
         M = MinHalfDays(group=g, weight=max_weight, department=info)
         M.save()
 

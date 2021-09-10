@@ -35,7 +35,8 @@ import django.contrib.auth as auth
 from django.utils.translation import gettext_lazy as _
 
 from people.models import Tutor, User
-from base.models import Room, Module, Course, Group, \
+from base.models import CourseStartTimeConstraint, Day, StructuralGroup, TransversalGroup, \
+    Room, Module, Course, \
     UserPreference, ScheduledCourse, EdtVersion, CourseModification, \
     TrainingProgramme, Regen, Holiday, TrainingHalfDay, \
     CoursePreference, Dependency, Department, CourseType, \
@@ -84,7 +85,7 @@ class CoursPlaceResource(resources.ModelResource):
     #                               widget=ForeignKeyWidget(Tutor, 'last_name'))
     groups = fields.Field(column_name='gpe_name',
                           attribute='course__groups',
-                          widget=ManyToManyWidget(Group, field='name',
+                          widget=ManyToManyWidget(StructuralGroup, field='name',
                                                   separator='|'))
     promo = fields.Field(column_name='gpe_promo',
                          attribute='course__module__train_prog',
@@ -158,7 +159,7 @@ class CoursPlaceResourceCosmo(resources.ModelResource):
     #                               widget=ForeignKeyWidget(Tutor, 'last_name'))
     groups = fields.Field(column_name='gpe_name',
                           attribute='course__groups',
-                          widget=ManyToManyWidget(Group, field='name',
+                          widget=ManyToManyWidget(StructuralGroup, field='name',
                                                   separator='|'))
     promo = fields.Field(column_name='gpe_promo',
                          attribute='course__module__train_prog',
@@ -259,7 +260,7 @@ class CoursResource(resources.ModelResource):
                             attribute='course__type__duration')
     groups = fields.Field(column_name='groups',
                          attribute='groups',
-                         widget=ManyToManyWidget(Group, field='name',
+                         widget=ManyToManyWidget(StructuralGroup, field='name',
                                                  separator='|'))
     color_bg = fields.Field(column_name='color_bg',
                             attribute='module__display',
@@ -541,14 +542,20 @@ class TrainingHalfDayAdmin(DepartmentModelAdmin):
     ordering = ('-week', 'train_prog', 'day')
 
 
-class GroupAdmin(DepartmentModelAdmin):
-    list_display = ('name', 'type', 'size', 'train_prog')
-    filter_horizontal = ('parent_groups',)
-    ordering = ('size',)
-    list_filter = (('train_prog', DropdownFilterRel),
-                   )
+class StructuralGroupAdmin(DepartmentModelAdmin):
+    # list_display = ('name', 'type', 'size', 'train_prog')
+    # filter_horizontal = ('parent_groups',)
+    # ordering = ('size',)
+    # list_filter = (('train_prog', DropdownFilterRel),
+    #                )
+    pass
 
-
+class TransversalGroupAdmin(DepartmentModelAdmin):
+#     list_display = ('name', 'size', 'train_prog')
+#     ordering = ('size',)
+#     list_filter = (('train_prog', DropdownFilterRel),
+#                    )
+    pass
 # class RoomInline(admin.TabularInline):
 #     model = RoomGroup.subroom_of.through
 #     show_change_link = False
@@ -595,7 +602,7 @@ class CourseAdmin(DepartmentModelAdmin):
         ('tutor', DropdownFilterRel),
         ('week__nb', DropdownFilterAll),
         ('type', DropdownFilterRel),
-        ('groups', DropdownFilterRel),
+        #('groups', DropdownFilterRel),
     )
 
 
@@ -628,7 +635,7 @@ class CoursePreferenceAdmin(DepartmentModelAdmin):
 
 class DependencyAdmin(DepartmentModelAdmin):
     def course1_week(o):
-        return str(o.course1.week.disp)
+        return str(o.course1.week)
     
     course1_week.short_description = _('Week')
     course1_week.admin_order_field = 'course1__week'
@@ -680,6 +687,11 @@ class EnrichedLinkAdmin(MyModelAdmin):
     ordering = ('description',)
 
 
+class GroupPreferredLinksAdmin(MyModelAdmin):
+    pass
+
+class CourseStartTimeConstraintAdmin(MyModelAdmin):
+    pass
 # </editor-fold desc="ADMIN_MENU">
 
 
@@ -688,7 +700,8 @@ admin.site.unregister(auth.models.Group)
 
 admin.site.register(Holiday, HolidayAdmin)
 admin.site.register(TrainingHalfDay, TrainingHalfDayAdmin)
-admin.site.register(Group, GroupAdmin)
+admin.site.register(StructuralGroup, StructuralGroupAdmin)
+admin.site.register(TransversalGroup, TransversalGroupAdmin)
 admin.site.register(Room, RoomAdmin)
 admin.site.register(RoomPreference, RoomPreferenceAdmin)
 admin.site.register(RoomSort, RoomSortAdmin)
@@ -701,5 +714,6 @@ admin.site.register(ScheduledCourse, CoursPlaceAdmin)
 admin.site.register(UserPreference, DispoAdmin)
 admin.site.register(Regen, RegenAdmin)
 admin.site.register(EnrichedLink, EnrichedLinkAdmin)
-admin.site.register(GroupPreferredLinks, DepartmentModelAdmin)
+admin.site.register(GroupPreferredLinks, GroupPreferredLinksAdmin)
+admin.site.register(CourseStartTimeConstraint, CourseStartTimeConstraintAdmin)
 admin.site.register(Mode, DepartmentModelAdmin)

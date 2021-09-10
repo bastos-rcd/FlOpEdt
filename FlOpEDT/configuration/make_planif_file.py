@@ -30,7 +30,7 @@ from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from base.models import Group, Module, Period, CourseType, RoomType
+from base.models import StructuralGroup, Module, Period, CourseType, RoomType, Course, TransversalGroup
 from people.models import Tutor
 
 from copy import copy
@@ -91,7 +91,8 @@ def adjust_column_length(sheet):
         sheet.column_dimensions[get_column_letter(i + 1)].width = adjusted_length
 
 
-def make_planif_file(department, empty_bookname=default_empty_bookname, target_repo="media/configuration"):
+def make_planif_file(department, empty_bookname=default_empty_bookname, target_repo="media/configuration",
+                     with_courses=False):
     new_book = load_workbook(filename=empty_bookname)
 
     # Define the list of possible tutors and possible room_types
@@ -151,6 +152,7 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         sheet.add_data_validation(tutor_validator)
         sheet.add_data_validation(room_type_validator)
         ################ Writing line 1 with weeks ################
+        week_col_dict = {}
         rank = 1
         FIRST_WEEK_COL = 8
         first_column_letter[p] = column_letter(FIRST_WEEK_COL)
@@ -161,19 +163,23 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
             cols = weeks + 8
             append_row(sheet, empty_rows, 1, rank, cols)
             for i in range(p.starting_week, p.ending_week + 1):
+                week_col_dict[i] = week_col
                 sheet.cell(row=rank, column=week_col).value = i
                 week_col += 1
             VERIF_COL = week_col
 
         else:
+
             weeks = (53 - p.starting_week) + p.ending_week
             cols = weeks + 8
             append_row(sheet, empty_rows, 1, rank, cols)
             for i in range(p.starting_week, 53):
+                week_col_dict[i] = week_col
                 sheet.cell(row=rank, column=week_col).value = i
                 week_col += 1
 
             for i in range(1, p.ending_week + 1):
+                week_col_dict[i] = week_col
                 sheet.cell(row=rank, column=week_col).value = i
                 week_col += 1
             VERIF_COL = week_col
@@ -193,10 +199,14 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
 
         ################ A line per module per CourseType ################
         for mod in Module.objects.filter(period=p):
+            courses = Course.objects.filter(module=mod)
+            if not courses.exists():
+                continue
             logger.info(f"Module {mod}")
             for ct in CT:
-                groups = Group.objects.filter(type__in=ct.group_types.all(), train_prog=mod.train_prog)
-                nb_groups = groups.count()
+                type_courses = courses.filter(type=ct)
+                if not type_courses.exists():
+                    continue
                 append_row(sheet, empty_rows, 2, rank, cols)
                 sheet.cell(row=rank, column=1).value = mod.abbrev
                 sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
@@ -208,32 +218,71 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                 sheet.cell(row=rank, column=VERIF_COL).value = '=SUM(%s%d:%s%d)' % (first_column_letter[p], rank,
                                                                                     last_column_letter[p], rank)
                 rank += 1
-                if nb_groups > 0:
+                if with_courses:
+                    groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog))
+                             #| set(TransversalGroup.objects.filter(train_prog=mod.train_prog))
+                else:
+                    groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog))
+                             #| set(TransversalGroup.objects.filter(type__in=ct.group_types.all(), train_prog=mod.train_prog))
+
+                nb_groups = len(groups)
+                if nb_groups:
                     for g in groups:
-                        append_row(sheet, empty_rows, 3, rank, cols)
-                        sheet.cell(row=rank, column=1).value = mod.abbrev
-                        sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
-                        sheet.cell(row=rank, column=3).value = ct.name
-                        sheet.cell(row=rank, column=4).value = ct.duration
-                        tutor_validator.add(sheet.cell(row=rank, column=5))
-                        room_type_validator.add(sheet.cell(row=rank, column=6))
-                        sheet.cell(row=rank, column=7).value = g.name
-                        rank += 1
-                    sheet.cell(row=rank - nb_groups, column=VERIF_COL).value = '' \
-                       '=IF(SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d=0,"OK","/!\\ -> ' \
-                       '"&SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d)' % \
-                           (
-                               first_column_letter[p], rank - nb_groups,
-                               rank - nb_groups, rank - nb_groups + 10,
-                               VERIF_COL - 1,
-                               column_letter(VERIF_COL),
-                               rank - nb_groups - 1, nb_groups,
-                               first_column_letter[p], rank - nb_groups,
-                               rank - nb_groups, rank - nb_groups + 10,
-                               VERIF_COL - 1,
-                               column_letter(VERIF_COL),
-                               rank - nb_groups - 1, nb_groups,
-                           )
+                        if with_courses:
+                            group_courses = type_courses.filter(groups=g)
+                            if not group_courses.exists():
+                                continue
+                            courses_tutors = group_courses.distinct('tutor')
+                            for course_tutor in courses_tutors:
+                                if course_tutor.tutor is None:
+                                    username = ""
+                                else:
+                                    username = course_tutor.tutor.username
+                                append_row(sheet, empty_rows, 3, rank, cols)
+                                sheet.cell(row=rank, column=1).value = mod.abbrev
+                                sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
+                                sheet.cell(row=rank, column=3).value = ct.name
+                                sheet.cell(row=rank, column=4).value = ct.duration
+                                sheet.cell(row=rank, column=5).value = username
+                                room_type_validator.add(sheet.cell(row=rank, column=6))
+                                sheet.cell(row=rank, column=7).value = g.name
+
+                                tutor_group_courses = group_courses.filter(tutor=course_tutor.tutor)
+                                courses_weeks = tutor_group_courses.distinct('week')
+                                for course_week in courses_weeks:
+                                    local_week = course_week.week
+                                    week_col = week_col_dict[local_week.nb]
+                                    week_tutor_group_courses_nb = tutor_group_courses.filter(week=local_week).count()
+                                    sheet.cell(row=rank, column=week_col).value = week_tutor_group_courses_nb
+                                rank += 1
+
+                        else:
+                            append_row(sheet, empty_rows, 3, rank, cols)
+                            sheet.cell(row=rank, column=1).value = mod.abbrev
+                            sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
+                            sheet.cell(row=rank, column=3).value = ct.name
+                            sheet.cell(row=rank, column=4).value = ct.duration
+                            tutor_validator.add(sheet.cell(row=rank, column=5))
+                            room_type_validator.add(sheet.cell(row=rank, column=6))
+                            sheet.cell(row=rank, column=7).value = g.name
+                            rank += 1
+
+                    if not with_courses:
+                        sheet.cell(row=rank - nb_groups, column=VERIF_COL).value = '' \
+                           '=IF(SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d=0,"OK","/!\\ -> ' \
+                           '"&SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d)' % \
+                               (
+                                   first_column_letter[p], rank - nb_groups,
+                                   rank - nb_groups, rank - nb_groups + 10,
+                                   VERIF_COL - 1,
+                                   column_letter(VERIF_COL),
+                                   rank - nb_groups - 1, nb_groups,
+                                   first_column_letter[p], rank - nb_groups,
+                                   rank - nb_groups, rank - nb_groups + 10,
+                                   VERIF_COL - 1,
+                                   column_letter(VERIF_COL),
+                                   rank - nb_groups - 1, nb_groups,
+                               )
                 else:
                     append_row(sheet, empty_rows, 3, rank, cols)
                     sheet.cell(row=rank, column=1).value = mod.abbrev

@@ -705,7 +705,7 @@ function but_open_sel_txt(d) {
 function cours_x(c) {
   return week_days.day_by_ref(c.day).num * (rootgp_width * labgp.width +
     dim_dispo.plot * (dim_dispo.width + dim_dispo.right)) +
-    groups[c.promo][c.group].x * labgp.width;
+    groups[c.promo]["structural"][c.group].x * labgp.width;
 }
 
 function cours_y(c) {
@@ -780,7 +780,7 @@ function cours_reverse_y(y) {
 }
 
 function cours_width(c) {
-  var gp = groups[c.promo][c.group];
+  var gp = groups[c.promo]["structural"][c.group];
   return (gp.maxx - gp.x) * labgp.width;
 }
 
@@ -832,7 +832,8 @@ function cours_txt_bot_y(c) {
 }
 function cours_txt_bot_txt(c) {
   if (c.room !== null && c.id_visio != -1) {
-    console.log(c, 'Both on site and remote?');
+    //console.log(c, 'Both on site and remote?');
+    1;
   } else {
     if (c.id_visio > -1) {
       return 'Visio' ;

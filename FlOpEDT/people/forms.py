@@ -28,7 +28,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.db import transaction
 
 from .models import Student, User, FullStaff, SupplyStaff, BIATOS, Tutor
-from base.models import Group
+from base.models import StructuralGroup
 
 
 class GroupChoiceField(forms.ModelMultipleChoiceField):
@@ -37,7 +37,7 @@ class GroupChoiceField(forms.ModelMultipleChoiceField):
 
 class AddStudentForm(UserCreationForm):
     gps = GroupChoiceField(
-        queryset=Group.objects.filter(basic=True),
+        queryset=StructuralGroup.objects.filter(basic=True),
         widget=forms.CheckboxSelectMultiple,
         required=False,
         help_text='Les groupes auquels vous appartenez'

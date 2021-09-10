@@ -60,11 +60,11 @@
   }
 
   .settings{
-    flex-grow: 1;
+    flex-grow: 2;
   }
 
   .console{
-    flex-grow: 3; 
+    flex-grow: 2; 
     background-color: black; 
     color: white;
   }
@@ -85,6 +85,16 @@
   height: 100%;
 }
 
+#divAnalyse {
+  overflow: hidden;
+}
+
+#settings {
+  flex-grow: 2;
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+};
 
 
   /*

@@ -593,8 +593,8 @@ var is_no_hidden_grp = true;
 function check_hidden_groups() {
   is_no_hidden_grp = true;
   for (let a in groups) {
-    for (let g in groups[a]) {
-      if (groups[a][g].display == false) {
+    for (let g in groups[a]["structural"]) {
+      if (groups[a]["structural"][g].display == false) {
         is_no_hidden_grp = false;
         return;
       }
@@ -606,8 +606,8 @@ function are_all_groups_hidden() {
   // if all groups are hidden
   // all groups are automatically displayed
   for (let a in groups) {
-    for (let g in groups[a]) {
-      if (groups[a][g].display == true) {
+    for (let g in groups[a]["structural"]) {
+      if (groups[a]["structural"][g].display == true) {
         return;
       }
     }
@@ -617,8 +617,8 @@ function are_all_groups_hidden() {
 
 function set_all_groups_display(isDisplayed) {
   for (let a in groups) {
-    for (let g in groups[a]) {
-      groups[a][g].display = isDisplayed;
+    for (let g in groups[a]["structural"]) {
+      groups[a]["structural"][g].display = isDisplayed;
     }
   }
 }
@@ -658,7 +658,7 @@ function apply_gp_display(gp, start, go_button) {
 function propagate_display_down(gp, b) {
   gp.display = b;
   for (let i = 0; i < gp.children.length; i++) {
-    propagate_display_down(groups[gp.promo][gp.children[i]], b);
+    propagate_display_down(groups[gp.promo]["structural"][gp.children[i]], b);
   }
 }
 
@@ -668,19 +668,19 @@ function propagate_display_up(gp, b) {
   gp.display = b;
   if (gp.parent != null) {
     if (b) { // ancestors should be displayed too 
-      propagate_display_up(groups[gp.promo][gp.parent], true);
+      propagate_display_up(groups[gp.promo]["structural"][gp.parent], true);
     } else { // is there any sibling still displayed?
       var i = 0;
       var hidden_child = true;
-      while (hidden_child && i < groups[gp.promo][gp.parent].children.length) {
-        if (groups[gp.promo][groups[gp.promo][gp.parent].children[i]].display) {
+      while (hidden_child && i < groups[gp.promo]["structural"][gp.parent].children.length) {
+        if (groups[gp.promo]["structural"][groups[gp.promo]["structural"][gp.parent].children[i]].display) {
           hidden_child = false;
         } else {
           i += 1;
         }
       }
       if (hidden_child) {
-        propagate_display_up(groups[gp.promo][gp.parent], false);
+        propagate_display_up(groups[gp.promo]["structural"][gp.parent], false);
       }
     }
   }
@@ -900,16 +900,16 @@ function compute_changes(changes, conc_tutors, gps) {
 
       // add instructor if never seen
       if (conc_tutors.indexOf(cur_course.prof) == -1
-        && cur_course.prof != logged_usr.name) {
+        && cur_course.prof != logged_usr.name && cur_course.prof != null) {
         conc_tutors.push(cur_course.prof);
       }
       if (conc_tutors.indexOf(cb.prof) == -1
-        && cur_course.prof != logged_usr.name) {
+        && cur_course.prof != logged_usr.name && cb.prof != null) {
         conc_tutors.push(cb.prof);
       }
 
       // add group if never seen
-      gp_changed = groups[cur_course.promo][cur_course.group];
+      gp_changed = groups[cur_course.promo]["structural"][cur_course.group];
       gp_named = set_promos[gp_changed.promo] + gp_changed.name;
       if (gps.indexOf(gp_named) == -1) {
         gps.push(gp_named);
@@ -2003,10 +2003,31 @@ function compute_cm_room_tutor_direction() {
   }
 }
 
+
+function find_overlapping_courses(reference_course) {
+	let start_time = reference_course["start"];
+	let finish_time = reference_course["start"]+reference_course["duration"];
+	let reference_group = reference_course["group"];
+	let reference_day = reference_course["day"];
+	overlapping_courses = [];
+	
+	for (let i = 0; i<cours.length ; i++) {
+		if (cours[i]["group"] == reference_group && cours[i]["day"]==reference_day ){
+			let cours_finish_time = cours[i]["start"]+cours[i]["duration"];
+			if (cours[i]["start"] < finish_time && cours_finish_time > start_time){
+				overlapping_courses.push(cours[i])
+			}
+		}
+	}
+	return overlapping_courses;
+}
+
 function show_detailed_courses(cours) {
-  remove_details();
+  remove_details(); 
   var details = svg.get_dom("dg").append("g")
     .attr("id", "course_details");
+
+  let overlapping_courses = find_overlapping_courses(cours);
 
   var strokeColor;
   var strokeWidth;
@@ -2029,14 +2050,55 @@ function show_detailed_courses(cours) {
     }
   }
   
+  let modinfo = {name: '', url: ''} ;
+  let tutinfo = {name: '', mail: ''} ;
+  if (cours.mod in modules_info){
+    modinfo.name = modules_info[cours.mod].name;
+    modinfo.url = modules_info[cours.mod].url;
+  } else {
+    if (cours.mod == null) {
+      modinfo.name = 'Pas de module';
+    } else {
+      modinfo.name = 'Module inconnu';
+    }
+  }
+  if (cours.prof in tutors_info){
+    tutinfo.name = tutors_info[cours.prof].full_name;
+    tutinfo.mail = tutors_info[cours.prof].email;
+  } else {
+    if (cours.prof == null) {
+      tutinfo.name = 'Pas de prof attitré·e';
+    } else {
+      tutinfo.name = 'Prof inconnu·e';
+    }
+  }
   
   let infos = [
-    {'txt':modules_info[cours.mod].name, 'url':modules_info[cours.mod].url},
+    {
+      'txt': modinfo.name,
+      'url': modinfo.url
+    },
     room_info,
-    {'txt':cours.comment},
-    {'txt':tutors_info[cours.prof].full_name},
-    {'txt':tutors_info[cours.prof].email, 'url': url_contact + cours.prof}
-  ];
+    {'txt': cours.comment},
+    {'txt': tutinfo.name},
+    {
+      'txt': tutinfo.mail,
+      'url': url_contact + cours.prof
+    },
+  ]; 
+  
+  if (overlapping_courses.length > 1) {
+    infos.push( {'txt':""} );
+    infos.push( {'txt':"Cours ayant lieu en même temps:"} );
+    infos.push( {'txt':""} );
+    
+    for (let i=1; i<overlapping_courses.length; i++) {
+      infos.push( {'txt':overlapping_courses[i]["mod"] + ' - '
+                   + overlapping_courses[i]["from_transversal"] + ' - ' +overlapping_courses[i]["prof"] + ' - '+overlapping_courses[i]["start"]/60+"h à "+(overlapping_courses[i]["start"]+overlapping_courses[i]["duration"])/60+"h"} );
+      infos.push( {'txt':''});
+    }
+  }
+  
   nb_detailed_infos = infos.length ;
 
   details

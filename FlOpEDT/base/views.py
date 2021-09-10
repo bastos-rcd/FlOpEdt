@@ -63,7 +63,7 @@ from base.forms import ContactForm, PerfectDayForm, ModuleDescriptionForm, \
 from base.models import Course, UserPreference, ScheduledCourse, EdtVersion, \
     CourseModification, Day, Time, Room, RoomType, RoomSort, \
     Regen, RoomPreference, Department, TimeGeneralSettings, CoursePreference, \
-    TrainingProgramme, CourseType, Module, Group, EnrichedLink, \
+    TrainingProgramme, CourseType, Module, StructuralGroup, EnrichedLink, \
     ScheduledCourseAdditional, GroupPreferredLinks, Week
 import base.queries as queries
 from base.weeks import *
@@ -594,7 +594,7 @@ def fetch_decale(req, **kwargs):
 
     try:
         print(group_name, training_programme)
-        group = Group.objects.get(
+        group = StructuralGroup.objects.get(
             name=group_name,
             train_prog__abbrev=training_programme,
             train_prog__department=req.department
@@ -881,7 +881,9 @@ def clean_change(week, old_version, change, work_copy=0, initiator=None, apply=F
 
     # Tutor
     try:
-        tutor = Tutor.objects.get(username=change['tutor'])
+        tutor = change['tutor']
+        if tutor is not None:
+            tutor = Tutor.objects.get(username=tutor)
         ret['sched'].tutor = tutor
         if ret['course'].tutor is not None:
             ret['course'].tutor = tutor

@@ -23,11 +23,13 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from base.models import TimeGeneralSettings
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django.utils.translation import gettext_lazy as _
 
 from django.db import models
+
 max_weight = 8
 
 
@@ -162,3 +164,9 @@ class TTConstraint(models.Model):
             if hasattr(self, attr) and attr not in kwargs:
                 kwargs[attr] = getattr(self, attr)
         return self.get_courses_queryset_by_parameters(ttmodel, week, **kwargs)
+
+    def time_settings(self, department = None):
+        if department:
+            return TimeGeneralSettings.objects.get(department = department)
+        else:
+            return TimeGeneralSettings.objects.get(department = self.department)

@@ -24,6 +24,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from django.core.checks.messages import Error
 from colorfield.fields import ColorField
 
 from django.contrib.auth.models import AbstractUser
@@ -33,7 +34,7 @@ from django.db.models.signals import post_save
 from django.db import models
 from django.dispatch import receiver
 
-from base.timing import hhmm, str_slot, Day, Time, days_list
+from base.timing import hhmm, str_slot, Day, Time, days_list, days_index
 import base.weeks
 
 from django.utils.translation import gettext_lazy as _
@@ -72,17 +73,16 @@ class GroupType(models.Model):
         return self.name
 
 
-class Group(models.Model):
+class GenericGroup(models.Model):
     # should not include "-" nor "|"
     name = models.CharField(max_length=100)
     train_prog = models.ForeignKey(
         'TrainingProgramme', on_delete=models.CASCADE)
     type = models.ForeignKey('GroupType', on_delete=models.CASCADE, null=True)
     size = models.PositiveSmallIntegerField()
-    basic = models.BooleanField(verbose_name=_('Basic group?'), default=False)
-    parent_groups = models.ManyToManyField('self', symmetrical=False,
-                                           blank=True,
-                                           related_name="children_groups")
+
+    class Meta:
+        unique_together = (("name", "train_prog"),)
 
     @property
     def full_name(self):
@@ -92,8 +92,41 @@ class Group(models.Model):
         return self.name
 
     def ancestor_groups(self):
+        if self.is_structural:
+            return self.structuralgroup.ancestor_groups()
+        return set()
+
+    def descendants_groups(self):
+        if self.is_structural:
+            return self.structuralgroup.descendants_groups()
+        return set()
+
+    @property
+    def is_structural(self):
+        try:
+            self.structuralgroup
+            return True
+        except:
+            return False
+
+    @property
+    def is_transversal(self):
+        try:
+            self.transversalgroup
+            return True
+        except:
+            return False
+
+class StructuralGroup(GenericGroup):
+    basic = models.BooleanField(verbose_name=_('Basic group?'), default=False)
+    parent_groups = models.ManyToManyField('self', symmetrical=False,
+                                           blank=True,
+                                           related_name="children_groups")
+    generic = models.OneToOneField('GenericGroup', on_delete=models.CASCADE, parent_link=True)
+
+    def ancestor_groups(self):
         """
-        :return: the set of all Groupe containing self (self not included)
+        :return: the set of all StructuralGroup containing self (self not included)
         """
         ancestors = set(self.parent_groups.all())
 
@@ -104,13 +137,20 @@ class Group(models.Model):
 
         return ancestors
 
+    def and_ancestors(self):
+        """
+        :return: the set of all StructuralGroup containing self (self included)
+        """
+        return {self} | self.ancestor_groups()
+
+
     def descendants_groups(self):
         """
-        :return: the set of all Groupe containe by self (self not included)
+        :return: the set of all StructuralGroup contained by self (self not included)
         """
         descendants = set()
 
-        for gp in Group.objects.filter(train_prog=self.train_prog):
+        for gp in StructuralGroup.objects.filter(train_prog=self.train_prog):
             if self in gp.ancestor_groups():
                 descendants.add(gp)
 
@@ -122,10 +162,33 @@ class Group(models.Model):
 
     def connected_groups(self):
         """
-        :return: the set of all Groupe that have a non empty intersection with self (self included)
+        :return: the set of all StructuralGroup that have a non empty intersection with self (self included)
         """
         return {self} | self.descendants_groups() | self.ancestor_groups()
 
+    @property
+    def transversal_conflicting_groups(self):
+        """
+        :return: the set of all TransversalGroup containing self
+        """
+        return TransversalGroup.objects.filter(conflicting_groups__in = self.connected_groups())
+
+
+class TransversalGroup(GenericGroup):
+    conflicting_groups = models.ManyToManyField("base.StructuralGroup", blank=True)
+
+    parallel_groups = models.ManyToManyField('self', symmetrical=True,
+                                             blank=True)
+    generic = models.OneToOneField('GenericGroup', on_delete=models.CASCADE, parent_link=True)
+
+    def nb_of_courses(self, week):
+        return len(Course.objects.filter(week = week, groups = self))
+
+    def time_of_courses(self, week):
+        t = 0
+        for c in Course.objects.filter(week=week, groups = self):
+            t += c.type.duration
+        return t
 
 # </editor-fold desc="GROUPS">
 
@@ -405,7 +468,7 @@ class Course(models.Model):
     supp_tutor = models.ManyToManyField('people.Tutor',
                                         related_name='courses_as_supp',
                                         blank=True)
-    groups = models.ManyToManyField('Group', related_name='courses')
+    groups = models.ManyToManyField('base.GenericGroup', related_name='courses', blank=True)
     module = models.ForeignKey(
         'Module', related_name='courses', on_delete=models.CASCADE)
     modulesupp = models.ForeignKey('Module', related_name='modulesupp',
@@ -470,7 +533,7 @@ class ScheduledCourse(models.Model):
                               related_name='taught_scheduled_courses',
                               null=True,
                               default=None,
-                              on_delete=models.CASCADE)
+                              on_delete=models.SET_NULL)
 
     # les utilisateurs auront acces à la copie publique (0)
 
@@ -524,7 +587,7 @@ class EnrichedLink(models.Model):
 
 
 class GroupPreferredLinks(models.Model):
-    group = models.OneToOneField('Group',
+    group = models.OneToOneField('base.StructuralGroup',
                                  on_delete=models.CASCADE,
                                  related_name='preferred_links')
     links = models.ManyToManyField('EnrichedLink',
@@ -541,8 +604,17 @@ class GroupPreferredLinks(models.Model):
 # -- PREFERENCES --
 # -----------------
 
+class Preference(models.Model):
 
-class UserPreference(models.Model):
+    class Meta:
+        abstract = True
+
+    @property
+    def end_time(self):
+        return self.start_time + self.duration
+
+
+class UserPreference(Preference):
     user = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
     week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     day = models.CharField(
@@ -558,8 +630,61 @@ class UserPreference(models.Model):
                f"({str_slot(self.day, self.start_time, self.duration)})" + \
                f"={self.value}"
 
+    def __lt__(self, other):
+        if isinstance(other, UserPreference):
+            index_day_self = days_index[self.day]
+            index_day_other = days_index[other.day]
+            if self.week and other.week:
+                if self.week != other.week:
+                    return self.week < other.week
+                else:
+                    if index_day_self != index_day_other:
+                        return index_day_self < index_day_other
+                    else:
+                        return other.start_time > self.start_time + self.duration
+            else:
+                return index_day_self < index_day_other  
+        else:
+            raise NotImplementedError
 
-class CoursePreference(models.Model):
+    def __gt__(self,other):
+        if isinstance(other, UserPreference):
+            index_day_self = days_index[self.day]
+            index_day_other = days_index[other.day]
+            if self.week and other.week:
+                if self.week != other.week:
+                    return self.week > other.week
+                else:
+                    if index_day_self != index_day_other:
+                        return index_day_self > index_day_other
+                    else:
+                        return other.start_time > self.start_time + self.duration
+            else:
+                return index_day_self > index_day_other  
+        else:
+            raise NotImplementedError
+
+    def is_same(self, other):
+        if isinstance(other, UserPreference):
+            return ((((self.week and other.week) and self.week == other.week) or not self.week or not other.week)
+                and days_index[self.day] == days_index[other.day] and self.start_time == other.start_time)
+        else:
+            raise NotImplementedError
+    
+    def same_day(self, other):
+        if isinstance(other, UserPreference):
+            return days_index[self.day] == days_index[other.day]
+        else:
+            raise ValueError
+
+    def is_successor_of(self, other):
+        if isinstance(other, UserPreference):
+            return self.same_day(other) and other.end_time <= self.start_time <= other.end_time + 30 #slot_pause
+        else:
+            raise ValueError
+
+
+class CoursePreference(Preference):
     course_type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     train_prog = models.ForeignKey(
         'TrainingProgramme', on_delete=models.CASCADE)
@@ -724,7 +849,7 @@ class TutorCost(models.Model):
 
 class GroupCost(models.Model):
     week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
-    group = models.ForeignKey('Group', on_delete=models.CASCADE)
+    group = models.ForeignKey('StructuralGroup', on_delete=models.CASCADE)
     value = models.FloatField()
     work_copy = models.PositiveSmallIntegerField(default=0)
 
@@ -734,7 +859,7 @@ class GroupCost(models.Model):
 
 class GroupFreeHalfDay(models.Model):
     week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
-    group = models.ForeignKey('Group', on_delete=models.CASCADE)
+    group = models.ForeignKey('StructuralGroup', on_delete=models.CASCADE)
     DJL = models.PositiveSmallIntegerField()
     work_copy = models.PositiveSmallIntegerField(default=0)
 
@@ -758,6 +883,7 @@ class Dependency(models.Model):
         'Course', related_name='second_course', on_delete=models.CASCADE)
     successive = models.BooleanField(verbose_name=_('Successives?'), default=False)
     ND = models.BooleanField(verbose_name=_('On different days'), default=False)
+    day_gap = models.PositiveSmallIntegerField(verbose_name=_('Minimal day gap between courses'), default=0)
 
     def __str__(self):
         return f"{self.course1} avant {self.course2}"

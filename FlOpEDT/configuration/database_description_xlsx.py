@@ -337,17 +337,22 @@ def parse_settings(sheet):
 
     return result
 
+
 def parse_groups(sheet):
     row_prom, col_prom = find_marker_cell(sheet, 'Identifiant')
-    if row_prom == None:
+    if row_prom is None:
         return dict(), set(), dict()
 
     row_nat, col_nat = find_marker_cell(sheet, 'Identifiant', row_prom + 1)
-    if row_nat == None:
+    if row_nat is None:
         return dict(), set(), dict()
 
     row_grp, col_grp = find_marker_cell(sheet, 'Identifiant', row_nat + 1)
-    if row_grp == None:
+    if row_grp is None:
+        return dict(), set(), dict()
+
+    row_trans_grp, col_trans_grp = find_marker_cell(sheet, 'Identifiant', row_grp + 1)
+    if row_trans_grp is None:
         return dict(), set(), dict()
 
     promotions = dict()
@@ -374,15 +379,14 @@ def parse_groups(sheet):
         group_types.add(id_)
         row = row + 1
 
-    groups = dict()
+    structural_groups = dict()
     row = row_grp + 1
-    while row < REASONABLE:
-
+    while row < row_trans_grp-4:
         id_ = parse_string(sheet, row, col_grp)
         if id_ == '':
-            row = row + 1
+            row += 1
             continue
-        if id_ in groups:
+        if id_ in structural_groups:
             id_ = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row, col_prom))
         promotion = parse_string(sheet, row, col_grp + 1)
         group_type = parse_string(sheet, row, col_grp + 2)
@@ -391,11 +395,31 @@ def parse_groups(sheet):
             parent = set()
         else:
             parent = {parent_}
-        groups[promotion, id_] = {'group_type' : group_type,
-                                  'parent' : parent}
+        structural_groups[promotion, id_] = {'group_type' : group_type,
+                                             'parent' : parent}
         row = row + 1
 
-    return promotions, group_types, groups
+    transversal_groups = dict()
+    row = row_trans_grp + 1
+    while row < REASONABLE:
+
+        id_ = parse_string(sheet, row, col_grp)
+        if id_ == '':
+            row += 1
+            continue
+        if id_ in set(structural_groups) | set(transversal_groups):
+            id_ = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row, col_prom))
+        promotion = parse_string(sheet, row, col_trans_grp + 1)
+        row_trans, col_trans = find_marker_cell(sheet, 'Groupes structuraux en conflit')
+        row_par, col_par = find_marker_cell(sheet, 'Groupes transversaux parallèles')
+        transversal_to = parse_string_set_in_line(sheet, row, col_trans)
+        parallel_to = parse_string_set_in_line(sheet, row, col_par)
+
+        transversal_groups[promotion, id_] = {'transversal_to': transversal_to,
+                                             'parallel_to': parallel_to}
+        row = row + 1
+
+    return promotions, group_types, structural_groups, transversal_groups
 
 
 #################################################
@@ -449,7 +473,7 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
             logger.warning(f"Sheet {groups_sheet} doesn't exist")
             return None
 
-        promotions, group_types, groups = parse_groups(sheet)
+        promotions, group_types, structural_groups, transversal_groups = parse_groups(sheet)
 
         return {'rooms' : rooms,
                 'room_groups' : room_groups,
@@ -460,10 +484,12 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
                 'settings' : settings,
                 'promotions': promotions,
                 'group_types' : group_types,
-                'groups' : groups }
+                'groups' : structural_groups,
+                'transversal_groups' : transversal_groups}
     except FileNotFoundError as ex:
         logger.warning("Database file couldn't be opened: ", ex)
         return None
+
 
 def database_description_save_xlsx_file(filename, database):
     wb = load_workbook('/home/jpuydt/Logiciel/FlOpEDT/FlOpEDT/media/configuration/empty_database_file.xlsx') # FIXME HELP!

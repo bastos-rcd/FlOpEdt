@@ -311,7 +311,7 @@ def check_group_types(group_types):
     return result
 
 
-def check_groups(groups):
+def check_structural_groups(groups):
     result = []
     if not isinstance(groups, dict):
         result.append("D: the groups chunk should be a 'dict'")
@@ -337,6 +337,12 @@ def check_groups(groups):
     return result
 
 
+def check_transversal_groups(transversal_groups):
+    result = []
+    if not isinstance(transversal_groups, dict):
+        result.append("D: the transversal_groups chunk should be a 'dict'")
+        return result
+    return result
 ##########################################
 #                                        #
 #             Helper functions           #
@@ -649,7 +655,8 @@ def database_description_check (database):
         'settings': check_settings,
         'promotions': check_promotions,
         'group_types': check_group_types,
-        'groups': check_groups
+        'groups': check_structural_groups,
+        'transversal_groups': check_transversal_groups
     }
 
     invalid_keys = set(database.keys())

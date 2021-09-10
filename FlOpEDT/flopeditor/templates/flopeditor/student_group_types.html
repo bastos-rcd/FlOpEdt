@@ -39,9 +39,15 @@
         </a>
     </li>
     <li class="nav-item">
-        <a  class="nav-link {% block card-nav-classes-student-groups %}{% endblock %}"
-            href="{% url 'flopeditor:flopeditor-department-student-groups' department_abbrev=department.abbrev %}">
-            Groupes d'élèves
+        <a  class="nav-link {% block card-nav-classes-student-structural-groups %}{% endblock %}"
+            href="{% url 'flopeditor:flopeditor-department-student-structural-groups' department_abbrev=department.abbrev %}">
+            Groupes structuraux
+        </a>
+    </li>
+    <li class="nav-item">
+        <a  class="nav-link {% block card-nav-classes-student-transversal-groups %}{% endblock %}"
+            href="{% url 'flopeditor:flopeditor-department-student-transversal-groups' department_abbrev=department.abbrev %}">
+            Groupes transversaux
         </a>
     </li>
 {% endblock %}

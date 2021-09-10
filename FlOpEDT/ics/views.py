@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 from people.models import Tutor
-from base.models import Group, Department
+from base.models import StructuralGroup, Department
 import base.queries as queries
 
 
@@ -10,7 +10,7 @@ def index(request, **kwargs):
                                       departments=request.department)\
                               .prefetch_related('departments')\
                               .order_by('username')
-    group_list = Group.objects.filter(
+    group_list = StructuralGroup.objects.filter(
         basic=True,
         train_prog__department=request.department)\
                               .select_related('train_prog__department')\

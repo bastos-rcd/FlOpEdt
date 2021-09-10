@@ -33,7 +33,7 @@ from pulp import LpVariable, LpConstraint, LpBinary, LpConstraintEQ, \
 import pulp
 from pulp import GUROBI_CMD
 
-from base.models import Group, \
+from base.models import StructuralGroup, \
     Room, RoomSort, RoomType, RoomPreference, \
     Course, ScheduledCourse, UserPreference, CoursePreference, \
     Department, Module, TrainingProgramme, CourseType, \
@@ -46,8 +46,9 @@ from base.timing import Time
 from people.models import Tutor
 
 from TTapp.models import MinNonPreferedTutorsSlot, Stabilize, MinNonPreferedTrainProgsSlot, \
-    MinimizeBusyDays, MinGroupsHalfDays, RespectBoundPerDay, ConsiderDepencies, ConsiderPivots
-
+    NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, ConsiderTutorsUnavailability, \
+    MinimizeBusyDays, MinGroupsHalfDays, RespectBoundPerDay, ConsiderDependencies, ConsiderPivots
+from TTapp.TTConstraint import max_weight
 from TTapp.slots import slots_filter, days_filter
 
 from TTapp.weeks_database import WeeksDatabase
@@ -67,18 +68,20 @@ import logging
 from TTapp.ilp_constraints.constraintManager import ConstraintManager
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
+
 
 from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
 from TTapp.ilp_constraints.constraints.instructorConstraint import InstructorConstraint
 from TTapp.ilp_constraints.constraints.simulSlotGroupConstraint import SimulSlotGroupConstraint
 from TTapp.ilp_constraints.constraints.slotInstructorConstraint import SlotInstructorConstraint
-from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
 
 logger = logging.getLogger(__name__)
 pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
 GUROBI = 'GUROBI'
 GUROBI_NAME = 'GUROBI_CMD'
 solution_files_path = "misc/logs/solutions"
+
 
 class TTModel(object):
     def __init__(self, department_abbrev, weeks,
@@ -134,17 +137,34 @@ class TTModel(object):
         self.train_prog = train_prog
         self.stabilize_work_copy = stabilize_work_copy
         self.obj = self.lin_expr()
+        start = datetime.datetime.now()
         self.wdb = self.wdb_init()
+        print('-->', datetime.datetime.now() - start)
+        print('apms and costs')
+        start = datetime.datetime.now()
         self.possible_apms = self.wdb.possible_apms
         self.cost_I, self.FHD_G, self.cost_G, self.cost_SL, self.generic_cost = self.costs_init()
+        print('-->', datetime.datetime.now() - start)
+        print('TT_init')
+        start = datetime.datetime.now()
         self.TT, self.TTrooms, self.TTinstructors = self.TT_vars_init()
+        print('-->', datetime.datetime.now() - start)
+        print('Busy_init')
+        start = datetime.datetime.now()
         self.IBD, self.IBD_GTE, self.IBHD, self.GBHD, self.IBS, self.forced_IBD = self.busy_vars_init()
+        print('-->', datetime.datetime.now() - start)
         if self.department.mode.visio:
+            print('Visio_init')
+            start = datetime.datetime.now()
             self.physical_presence, self.has_visio = self.visio_vars_init()
+            print('-->', datetime.datetime.now() - start)
+        print('Avail_init')
+        start = datetime.datetime.now()
         self.avail_instr, self.avail_at_school_instr, self.unp_slot_cost \
             = self.compute_non_preferred_slots_cost()
         self.unp_slot_cost_course, self.avail_course \
             = self.compute_non_preferred_slots_cost_course()
+        print('-->', datetime.datetime.now() - start)
         self.avail_room = self.compute_avail_room()
         print('Ok', datetime.datetime.now()-a)
         self.one_var = self.add_var()
@@ -323,7 +343,7 @@ class TTModel(object):
             for (d, apm) in physical_presence[g]:
                 expr = 1000 * physical_presence[g][d, apm] \
                        - self.sum(self.TTrooms[sl, c, r]
-                                  for c in self.wdb.courses_for_basic_group[g]
+                                  for c in self.wdb.all_courses_for_basic_group[g]
                                   for r in self.wdb.course_rg_compat[c] - {None}
                                   for sl in slots_filter(self.wdb.compatible_slots[c], day=d, apm=apm))
                 self.add_constraint(expr, '<=', 999,
@@ -341,7 +361,7 @@ class TTModel(object):
             for (d, apm) in has_visio[g]:
                 expr = 1000 * has_visio[g][d, apm] \
                        - self.sum(self.TTrooms[sl, c, None]
-                                  for c in self.wdb.courses_for_basic_group[g]
+                                  for c in self.wdb.all_courses_for_basic_group[g]
                                   for sl in slots_filter(self.wdb.compatible_slots[c], day=d, apm=apm))
                 self.add_constraint(expr, '<=', 999,
                                     Constraint(constraint_type=ConstraintType.HAS_VISIO, groups=g, days=d, apm=apm))
@@ -505,68 +525,58 @@ class TTModel(object):
 
         print("adding core constraints")
 
-        # constraint : only one course on simultaneous slots
+        # constraint : only one course per basic group on simultaneous slots
+        # (and None if transversal ones)
+        # Do not consider it if mode.cosmo == 2!
         if self.department.mode.cosmo != 2:
-            print('Simultaneous slots constraints for groups')
-            for sl in self.wdb.availability_slots:
-                for bg in self.wdb.basic_groups:
-                    self.add_constraint(self.sum(self.TT[(sl2, c2)]
-                                                 for sl2 in slots_filter(self.wdb.courses_slots,
-                                                                         simultaneous_to=sl)
-                                                 for c2 in self.wdb.courses_for_basic_group[bg]
-                                                 & self.wdb.compatible_courses[sl2]),
-                                        '<=', 1, SimulSlotGroupConstraint(sl, bg))
+            NoSimultaneousGroupCourses.objects.get_or_create(department=self.department)
 
-        # a course is scheduled once and only once
+        # a course is scheduled at most once
         for c in self.wdb.courses:
-            self.add_constraint(self.sum([self.TT[(sl, c)] for sl in self.wdb.compatible_slots[c]]), '==', 1,
+            self.add_constraint(self.sum([self.TT[(sl, c)] for sl in self.wdb.compatible_slots[c]]), '<=', 1,
                                 CourseConstraint(c))
 
+        # constraint : courses are scheduled only once
+        if not ScheduleAllCourses.objects.filter(department=self.department).exists():
+            ScheduleAllCourses.objects.create(department=self.department)
+
         # Check if RespectBound constraint is in database, and add it if not
-        R, created = RespectBoundPerDay.objects.get_or_create(department=self.department)
-
-        # Check if MinimizeBusyDays constraint is in database, and add it if not
-        M, created = MinimizeBusyDays.objects.get_or_create(department=self.department)
-
-        # Check if MinGroupsHalfDays constraint is in database, and add it if not
-        M, created = MinGroupsHalfDays.objects.get_or_create(department=self.department)
-
-        # Check if ConsiderDependencies constraint is in database, and add it if not
-        C, created = ConsiderDepencies.objects.get_or_create(department=self.department)
+        if not RespectBoundPerDay.objects.filter(department=self.department).exists():
+            RespectBoundPerDay.objects.create(department=self.department)
 
         # Check if ConsiderPivots constraint is in database, and add it if not
-        C, created = ConsiderPivots.objects.get_or_create(department=self.department)
+        if not ConsiderPivots.objects.filter(department=self.department).exists():
+            ConsiderPivots.objects.create(department=self.department)
+
+        # Check if MinimizeBusyDays constraint is in database, and add it if not
+        if not MinimizeBusyDays.objects.filter(department=self.department).exists():
+            MinimizeBusyDays.objects.create(department=self.department, weight=max_weight)
+
+        # Check if MinGroupsHalfDays constraint is in database, and add it if not
+        if not MinGroupsHalfDays.objects.filter(department=self.department).exists():
+            MinGroupsHalfDays.objects.create(department=self.department, weight=max_weight)
+
+        # Check if ConsiderDependencies constraint is in database, and add it if not
+        if not ConsiderDependencies.objects.filter(department=self.department).exists():
+            ConsiderDependencies.objects.create(department=self.department)
 
     def add_instructors_constraints(self):
         print("adding instructors constraints")
 
         # Each course is assigned to a unique tutor
-        for c in self.wdb.courses:
-            for sl in self.wdb.compatible_slots[c]:
-                self.add_constraint(self.sum(self.TTinstructors[(sl, c, i)]
-                                             for i in self.wdb.possible_tutors[c]) - self.TT[sl, c],
-                                    '==', 0,
-                                    InstructorConstraint(constraint_type=ConstraintType.COURS_DOIT_AVOIR_PROFESSEUR,
-                                    slot=sl, course=c))
+        if not AssignAllCourses.objects.filter(department=self.department).exists():
+            AssignAllCourses.objects.create(department=self.department)
 
         if self.core_only:
             return
+
+        if not ConsiderTutorsUnavailability.objects.filter(department=self.department).exists():
+            ConsiderTutorsUnavailability.objects.create(department=self.department)
 
         for i in self.wdb.instructors:
             if i.username == '---':
                 continue
             for sl in self.wdb.availability_slots:
-                # a course is assigned to a tutor only if s⋅he is available
-                self.add_constraint(self.sum(self.TTinstructors[(sl2, c2, i)]
-                                             for sl2 in slots_filter(self.wdb.courses_slots, simultaneous_to=sl)
-                                             for c2 in self.wdb.possible_courses[i] & self.wdb.compatible_courses[sl2])
-                                    + self.sum(self.TT[(sl2, c2)]
-                                               for sl2 in slots_filter(self.wdb.courses_slots, simultaneous_to=sl)
-                                               for c2 in self.wdb.courses_for_supp_tutor[i]
-                                               & self.wdb.compatible_courses[sl2]),
-                                    '<=', self.avail_instr[i][sl],
-                                    SlotInstructorConstraint(sl, i))
-
                 if self.department.mode.visio:
                     # avail_at_school_instr consideration...
                     relevant_courses = set(c for c in self.wdb.possible_courses[i]
@@ -635,7 +645,7 @@ class TTModel(object):
         # courses that are neither visio neither no-visio are preferentially not in Visio room
         for bg in self.wdb.basic_groups:
             group_courses_except_visio_and_no_visio_ones = \
-                self.wdb.courses_for_basic_group[bg] - self.wdb.visio_courses - self.wdb.no_visio_courses
+                self.wdb.all_courses_for_basic_group[bg] - self.wdb.visio_courses - self.wdb.no_visio_courses
             self.add_to_group_cost(bg,
                                    self.min_visio *
                                    self.sum(self.TTrooms[(sl, c, None)] * self.wdb.visio_ponderation[c]
@@ -646,7 +656,7 @@ class TTModel(object):
         # visio-courses are preferentially in Visio
         for bg in self.wdb.basic_groups:
             group_visio_courses= \
-                self.wdb.courses_for_basic_group[bg] & self.wdb.visio_courses
+                self.wdb.all_courses_for_basic_group[bg] & self.wdb.visio_courses
             self.add_to_group_cost(bg,
                                    self.min_visio *
                                    self.sum(self.TTrooms[(sl, c, room)] * self.wdb.visio_ponderation[c]
@@ -657,7 +667,7 @@ class TTModel(object):
 
         # No visio_course have (strongly) preferentially a room
         for bg in self.wdb.basic_groups:
-            group_no_visio_courses = self.wdb.courses_for_basic_group[bg] & self.wdb.no_visio_courses
+            group_no_visio_courses = self.wdb.all_courses_for_basic_group[bg] & self.wdb.no_visio_courses
             self.add_to_group_cost(bg,
                                    10 * self.min_visio *
                                    self.sum(self.TTrooms[(sl, c, None)] * self.wdb.visio_ponderation[c]
@@ -791,9 +801,7 @@ class TTModel(object):
 
                     for availability_slot in week_availability_slots:
                         avail = set(a for a in week_tutor_availabilities
-                                    if a.start_time < availability_slot.end_time
-                                    and availability_slot.start_time < a.start_time + a.duration
-                                    and a.day == availability_slot.day.day)
+                                    if availability_slot.is_simultaneous_to(a))
                         if not avail:
                             print(f"availability pbm for {i} availability_slot {availability_slot}")
                             unp_slot_cost[i][availability_slot] = 0
@@ -855,41 +863,42 @@ class TTModel(object):
                                             .filter(course_type=course_type,
                                                     train_prog=promo,
                                                     week=None))
+                        for cv in courses_avail:
+                            cv.week = week
                     if not courses_avail:
-                        # print("No course availability given for %s - %s" % (course_type, promo))
                         for availability_slot in week_availability_slots:
                             avail_course[(course_type, promo)][availability_slot] = 1
                             non_preferred_cost_course[(course_type,
                                                            promo)][availability_slot] = 0
+                            print("Course availability problem for %s - %s on availability_slot %s" % (
+                                course_type, promo, availability_slot))
+
                     else:
                         for availability_slot in week_availability_slots:
-                            try:
-                                avail = set(a for a in courses_avail
-                                            if a.start_time < availability_slot.end_time
-                                            and availability_slot.start_time < a.start_time + a.duration
-                                            and a.day == availability_slot.day.day)
+                            avail = set(a for a in courses_avail
+                                        if availability_slot.is_simultaneous_to(a))
 
-                                if avail:
-                                    minimum = min(a.value for a in avail)
-                                    if minimum == 0:
-                                        avail_course[(course_type, promo)][availability_slot] = 0
-                                        non_preferred_cost_course[(course_type,
-                                                                       promo)][availability_slot] = 100
-                                    else:
-                                        avail_course[(course_type, promo)][availability_slot] = 1
-                                        value = minimum
-                                        non_preferred_cost_course[(course_type, promo)][availability_slot] \
-                                            = 1 - value / 8
-
+                            if avail:
+                                minimum = min(a.value for a in avail)
+                                if minimum == 0:
+                                    avail_course[(course_type, promo)][availability_slot] = 0
+                                    non_preferred_cost_course[(course_type,
+                                                                   promo)][availability_slot] = 100
                                 else:
                                     avail_course[(course_type, promo)][availability_slot] = 1
-                                    non_preferred_cost_course[(course_type, promo)][availability_slot] = 0
+                                    value = minimum
+                                    non_preferred_cost_course[(course_type, promo)][availability_slot] \
+                                        = 1 - value / 8
 
-                            except:
+                            else:
                                 avail_course[(course_type, promo)][availability_slot] = 1
                                 non_preferred_cost_course[(course_type, promo)][availability_slot] = 0
-                                print("Course availability problem for %s - %s on availability_slot %s" % (
-                                    course_type, promo, availability_slot))
+
+                            # except:
+                            #     avail_course[(course_type, promo)][availability_slot] = 1
+                            #     non_preferred_cost_course[(course_type, promo)][availability_slot] = 0
+                            #     print("Course availability problem for %s - %s on availability_slot %s" % (
+                            #         course_type, promo, availability_slot))
 
         return non_preferred_cost_course, avail_course
 
@@ -915,19 +924,16 @@ class TTModel(object):
          Add the constraints derived from the slot preferences expressed on the database
          """
         print("adding slot preferences")
-        from TTapp.TTConstraint import max_weight
         # first objective  => minimise use of unpreferred slots for teachers
         # ponderation MIN_UPS_I
+        if not MinNonPreferedTutorsSlot.objects.filter(department=self.department).exists():
+            M = MinNonPreferedTutorsSlot.objects.create(weight=max_weight, department=self.department)
 
-        M, created = MinNonPreferedTutorsSlot.objects.get_or_create(weight=max_weight, department=self.department)
-        if created:
-            M.save()
 
         # second objective  => minimise use of unpreferred slots for courses
         # ponderation MIN_UPS_C
-        M, created = MinNonPreferedTrainProgsSlot.objects.get_or_create(weight=max_weight, department=self.department)
-        if created:
-            M.save()
+        if not MinNonPreferedTrainProgsSlot.objects.filter(department=self.department).exists():
+            M = MinNonPreferedTrainProgsSlot.objects.create(weight=max_weight, department=self.department)
 
     def add_other_departments_constraints(self):
         """
@@ -1024,31 +1030,23 @@ class TTModel(object):
 
         for c in self.wdb.courses:
             for sl in self.wdb.compatible_slots[c]:
-                for i in self.wdb.possible_tutors[c]:
-                    if self.get_var_value(self.TTinstructors[(sl, c, i)]) == 1:
-                        # No = len(self.wdb.sched_courses \
-                        #          .filter(course__module=c.module,
-                        #                  course__group=c.group,
-                        #                  course__week__lte=self.weeks - 1,
-                        #                  copie_travail=0))
-                        # No += len(CoursPlace.objects \
-                        #           .filter(course__module=c.module,
-                        #                   course__group=c.group,
-                        #                   course__week=self.weeks,
-                        #                   copie_travail=target_work_copy))
-                        cp = ScheduledCourse(course=c,
-                                             tutor=i,
-                                             start_time=sl.start_time,
-                                             day=sl.day.day,
-                                             work_copy=target_work_copy)
-                        if not self.department.mode.cosmo:
-                            for rg in self.wdb.course_rg_compat[c]:
-                                if self.get_var_value(self.TTrooms[(sl, c, rg)]) == 1:
-                                    cp.room = rg
-                                    break
-                        cp.save()
-                        if self.department.mode.cosmo == 2:
-                            c.groups.add(corresponding_group[i])
+                if self.get_var_value(self.TT[(sl, c)]) == 1:
+                    cp = ScheduledCourse(course=c,
+                                         start_time=sl.start_time,
+                                         day=sl.day.day,
+                                         work_copy=target_work_copy)
+                    for i in self.wdb.possible_tutors[c]:
+                        if self.get_var_value(self.TTinstructors[(sl, c, i)]) == 1:
+                            cp.tutor = i
+                            if self.department.mode.cosmo == 2:
+                                c.groups.add(corresponding_group[i])
+                            break
+                    if not self.department.mode.cosmo:
+                        for rg in self.wdb.course_rg_compat[c]:
+                            if self.get_var_value(self.TTrooms[(sl, c, rg)]) == 1:
+                                cp.room = rg
+                                break
+                    cp.save()
 
         for fc in self.wdb.fixed_courses:
             cp = ScheduledCourse(course=fc.course,

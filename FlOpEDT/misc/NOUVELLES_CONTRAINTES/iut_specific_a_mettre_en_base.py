@@ -30,7 +30,7 @@ from TTapp.models import LimitTimePerPeriod, LimitModulesTimePerPeriod, \
     LimitGroupsTimePerPeriod,\
     MinGroupsHalfDays, MinTutorsHalfDays, MinModulesHalfDays,\
     max_weight
-from base.models import TrainingProgramme, CourseType, Module, Department, Group
+from base.models import TrainingProgramme, CourseType, Module, Department, StructuralGroup
 from people.models import Tutor
 from TTapp.TTUtils import add_generic_constraints_to_database
 

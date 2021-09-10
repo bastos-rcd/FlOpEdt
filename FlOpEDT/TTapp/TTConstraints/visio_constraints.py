@@ -39,7 +39,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class NoVisio(TTConstraint):
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    groups = models.ManyToManyField('base.Group', blank=True, related_name='no_visio')
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='no_visio')
     course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='no_visio')
     modules = models.ManyToManyField('base.Module', blank=True, related_name='no_visio')
 
@@ -101,7 +101,7 @@ class NoVisio(TTConstraint):
 
 class VisioOnly(TTConstraint):
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    groups = models.ManyToManyField('base.Group', blank=True, related_name='visio_only')
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='visio_only')
     course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='visio_only')
     modules = models.ManyToManyField('base.Module', blank=True, related_name='visio_only')
 
@@ -215,7 +215,7 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
     """
     nb_max = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(14)], default=14)
     nb_min = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(14)], default=0)
-    groups = models.ManyToManyField('base.Group', blank=True, related_name='bound_physical_presence_half_days')
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='bound_physical_presence_half_days')
 
     def enrich_model(self, ttmodel, week, ponderation=1):
         if not self.department.mode.visio:
