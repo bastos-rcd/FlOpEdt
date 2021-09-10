@@ -37,8 +37,8 @@ from people.models import Tutor
 import json
 
 
-def basic_reassign_rooms(department, week, year, target_work_copy):
-    minimize_moves(department, week, year,  target_work_copy)
+def basic_reassign_rooms(department, week, target_work_copy):
+    minimize_moves(department, week, target_work_copy)
 
 
 def minimize_moves(department, week, year, target_work_copy):
@@ -49,8 +49,7 @@ def minimize_moves(department, week, year, target_work_copy):
 
     scheduled_courses_params = {
         'course__module__train_prog__department': department,
-        'course__week__nb': week,
-        'course__week__year': year,
+        'course__week': week,
         'work_copy': target_work_copy,
     }
 
@@ -254,7 +253,7 @@ def compute_conflicts(department, week, copy_a):
     return conflicts
 
 
-def get_conflicts(department, week, year, copy_a):
+def get_conflicts(department, week, copy_a):
     '''
     Checks whether the work copy copy_a of department department is compatible
     with the work copies 0 of the other departments.
@@ -348,14 +347,13 @@ def basic_swap_version(department, week, copy_a, copy_b=0):
                                    copy_b))
 
 
-def basic_delete_work_copy(department, week, year, work_copy):
+def basic_delete_work_copy(department, week, work_copy):
 
     result = {'status': 'OK', 'more': ''}
 
     scheduled_courses_params = {
         'course__module__train_prog__department': department,
-        'course__week__nb': week,
-        'course__week__year': year,
+        'course__week': week,
         'work_copy': work_copy
     }
 
@@ -376,13 +374,11 @@ def basic_delete_work_copy(department, week, year, work_copy):
     return result
 
 
-def basic_delete_all_unused_work_copies(department, week, year):
+def basic_delete_all_unused_work_copies(department, week):
     result = {'status': 'OK', 'more': ''}
     scheduled_courses_params = {
         'course__module__train_prog__department': department,
-        'course__week__nb': week,
-        'course__week__year': year,
-
+        'course__week': week
     }
     work_copies = set(sc.work_copy
                       for sc in ScheduledCourse.objects.filter(**scheduled_courses_params)
@@ -396,13 +392,12 @@ def basic_delete_all_unused_work_copies(department, week, year):
     return result
 
 
-def basic_duplicate_work_copy(department, week, year, work_copy):
+def basic_duplicate_work_copy(department, week, work_copy):
 
     result = {'status': 'OK', 'more': ''}
     scheduled_courses_params = {
         'course__module__train_prog__department': department,
-        'course__week__nb': week,
-        'course__week__year': year,
+        'course__week': week
     }
     local_max_wc = ScheduledCourse \
         .objects \
@@ -458,7 +453,7 @@ def load_dispos(json_filename):
         except Tutor.DoesNotExist:
             exceptions.add(dispo['prof'])
             continue
-        week = Week.objects.get(week=int_or_none(dispo["week"]), year=int_or_none(dispo["year"]))
+        week = Week.objects.get(nb=int_or_none(dispo["week"]), year=int_or_none(dispo["year"]))
         U, created = UserPreference.objects.get_or_create(
             user=tutor,
             week=week,
