@@ -132,11 +132,11 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
         if group_name is not None:
             try:
-                declared_group = bm.Group.objects.get(name=group_name, train_prog=self.train_prog)
+                declared_group = bm.StructuralGroup.objects.get(name=group_name, train_prog=self.train_prog)
                 self.groups = {declared_group}
                 if lineage:
                     self.groups |= declared_group.ancestor_groups()
-            except bm.Group.DoesNotExist:
+            except bm.StructuralGroup.DoesNotExist:
                 raise exceptions.APIException(detail='No such group')
             except:
                 raise exceptions.APIException(detail='Issue with the group')
@@ -648,7 +648,7 @@ class IDGroupViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.IDGroupSerializer
 
     def get_queryset(self):
-        queryset = bm.Group.objects.all()
+        queryset = bm.StructuralGroup.objects.all()
         dept = self.request.query_params.get('dept', None)
 
         if(dept is not None):
