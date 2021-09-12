@@ -1367,7 +1367,8 @@ function fetch_ended(light) {
 
     clean_prof_displayed(light);
 
-    hide_idle_groups() ;
+    //Do not hide groups...
+    //hide_idle_groups() ;
     
   }
 
