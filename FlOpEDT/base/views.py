@@ -1108,8 +1108,6 @@ def room_preferences_changes_per_tutor(req, tutor, **kwargs):
                   if val != 0] \
                  for rt_id, rg_val_dict in recv_pref.items() }
 
-    print(pref_list)
-
     bulk = []
     for rt in pref_list:
         pref_list[rt].sort(key=lambda p: p['rank'])
