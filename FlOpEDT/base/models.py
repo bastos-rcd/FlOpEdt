@@ -89,7 +89,7 @@ class GenericGroup(models.Model):
         return self.train_prog.abbrev + "-" + self.name
 
     def __str__(self):
-        return self.name
+        return self.full_name
 
     def ancestor_groups(self):
         if self.is_structural:
