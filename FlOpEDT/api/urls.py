@@ -42,6 +42,7 @@ from api.base.courses.urls import routerCourses
 from api.fetch.urls import routerFetch
 from api.people.urls import routerPeople
 from api.preferences.urls import routerPreferences
+from api.myflop.urls import routerMyFlop
 
 #####################################
 # URLS based on django applications #
@@ -106,4 +107,6 @@ urlpatterns = [
          include((routerGroups.urls, 'api'), namespace = 'groups')),
     path('extra/',
          include((routerExtra.urls, 'api'), namespace='extra')),
+    path('myflop/',
+         include((routerMyFlop.urls, 'api'), namespace='myflop')),
 ]
