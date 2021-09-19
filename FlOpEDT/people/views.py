@@ -41,7 +41,7 @@ from people.models import Tutor, GroupPreferences, StudentPreferences, Student,\
     NotificationsPreferences, UserPreferredLinks, PhysicalPresence, User
 from people.admin import TutorResource, GroupPreferencesResource, \
     StudentPreferencesResource, UserPreferredLinksResource, PhysicalPresenceResource
-from base.models import TimeGeneralSettings, Department
+from base.models import TimeGeneralSettings, Department, Week
 
 logger = logging.getLogger(__name__)
 
@@ -230,7 +230,7 @@ def fetch_physical_presence(req, year, week, **kwargs):
 
 
 @tutor_or_superuser_required
-def change_physical_presence(req, year, week, user):
+def change_physical_presence(req, year, week_nb, user):
     bad_response = {'status': 'KO'}
 
     if not req.is_department_admin and req.user.username != user:
@@ -252,20 +252,19 @@ def change_physical_presence(req, year, week, user):
         logger.info(change)
 
     # Default week at None
-    if week == 0 or year == 0:
-        week = None
-        year = None
+    if week_nb == 0 or year == 0:
+        week=None
+    else:
+        week = Week.objects.get(nb=week_nb, year=year)
 
     for change in changes:
         logger.info(f"Change {change}")
         if not change['force_here']:
             PhysicalPresence.objects.filter(week=week,
-                                            year=year,
                                             day=change['day'],
                                             user=user).delete()
         else:
             PhysicalPresence.objects.create(week=week,
-                                            year=year,
                                             day=change['day'],
                                             user=user)
 

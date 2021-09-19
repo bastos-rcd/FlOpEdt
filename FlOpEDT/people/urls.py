@@ -123,7 +123,7 @@ urlpatterns = [
     path('fetch_physical_presence/<str:department>/<int:year>/<int:week>',
          views.fetch_physical_presence,
          name='fetch_physical_presence'),
-    path('change_physical_presence/<int:year>/<int:week>/<str:user>',
+    path('change_physical_presence/<int:year>/<int:week_nb>/<str:user>',
          views.change_physical_presence,
          name='change_physical_presence')
     ]

@@ -504,10 +504,8 @@ class TTModel(object):
         if self.stabilize_work_copy is not None:
             s = Stabilize(general=True,
                           work_copy=self.stabilize_work_copy)
-            s.save()
             for week in self.weeks:
                 s.enrich_model(self, week, self.max_stab)
-            s.delete()
             print('Will stabilize from remote work copy #', \
                   self.stabilize_work_copy)
         else:

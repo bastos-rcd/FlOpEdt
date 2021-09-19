@@ -70,7 +70,8 @@ class Stabilize(TTConstraint):
         return attributes
 
     def enrich_model(self, ttmodel, week, ponderation=1):
-        sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy, course__week=week)
+        ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
+        sched_courses = ttmodel.wdb.sched_courses.filter(course__week=week)
         if self.fixed_days:
             pass
             # Attention, les fixed_days doivent être des couples jour-semaine!!!!

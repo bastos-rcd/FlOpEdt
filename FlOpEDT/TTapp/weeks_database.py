@@ -195,8 +195,9 @@ class WeeksDatabase(object):
         sched_courses = ScheduledCourse \
             .objects \
             .filter(course__week__in=self.weeks,
-                    course__module__train_prog__in=self.train_prog,
-                    work_copy=0)
+                    course__module__train_prog__in=self.train_prog)
+        if self.department.mode.cosmo:
+            sched_courses = sched_courses.filter(work_copy=0)
 
         fixed_courses = ScheduledCourse.objects \
             .filter(course__module__train_prog__department=self.department,
