@@ -93,7 +93,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             try:
                 self.dept = bm.Department.objects.get(abbrev=self.dept)
             except bm.Department.DoesNotExist:
-                raise exceptions.APIException(detail='Unknown department')
+                raise exceptions.NotAcceptable(detail='Unknown department')
             
         self.train_prog = self.request.query_params.get('train_prog', None)
         group_name = self.request.query_params.get('group', None)
@@ -102,7 +102,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             try:
                 self.tutor = pm.Tutor.objects.get(username=self.tutor)
             except pm.Tutor.DoesNotExist:
-                raise exceptions.APIException(detail='Unknown tutor')
+                raise exceptions.NotAcceptable(detail='Unknown tutor')
 
         queryset = bm.ScheduledCourse\
                      .objects.all().select_related('course__module__train_prog__department',
@@ -115,7 +115,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
         # sanity check
         if group_name is not None and self.train_prog is None:
-            raise exceptions.APIException(detail='A training programme should be '
+            raise exceptions.NotAcceptable(detail='A training programme should be '
                                       'given when a group name is given')
 
         if self.train_prog is not None:
@@ -126,9 +126,9 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 else:
                     self.train_prog = bm.TrainingProgramme.objects.get(abbrev=self.train_prog)
             except bm.TrainingProgramme.DoesNotExist:
-                raise exceptions.APIException(detail='No such training programme')
+                raise exceptions.NotAcceptable(detail='No such training programme')
             except MultipleObjectsReturned:
-                raise exceptions.APIException(detail='Multiple training programme with this name')
+                raise exceptions.NotAcceptable(detail='Multiple training programme with this name')
 
         if group_name is not None:
             try:
@@ -137,9 +137,9 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 if lineage:
                     self.groups |= declared_group.ancestor_groups()
             except bm.StructuralGroup.DoesNotExist:
-                raise exceptions.APIException(detail='No such group')
+                raise exceptions.NotAcceptable(detail='No such group')
             except:
-                raise exceptions.APIException(detail='Issue with the group')
+                raise exceptions.NotAcceptable(detail='Issue with the group')
             queryset = queryset.filter(course__groups__in=self.groups)
         else:
             if self.train_prog is not None:
@@ -148,7 +148,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
         if group_name is None and self.train_prog is None:
             if self.dept is None:
                 if self.tutor is None:
-                    raise exceptions.APIException(detail='You should either a group and a training programme, or a tutor, or a department')
+                    raise exceptions.NotAcceptable(detail='You should either a group and a training programme, or a tutor, or a department')
             else:
                 queryset = queryset.filter(course__module__train_prog__department=self.dept)
 

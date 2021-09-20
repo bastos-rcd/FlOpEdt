@@ -99,7 +99,7 @@ class RoomEventFeed(EventFeed):
         gp_str, plural = str_groups(course)
         return (f'{course.module.abbrev} {course.type.name} '
                 f'- {gp_str} '
-                f'- {scourse.tutor.username}'
+                f'- {scourse.tutor.username if scourse.tutor is not None else "x"}'
         )
 
 
@@ -119,7 +119,7 @@ class GroupEventFeed(EventFeed):
         course = scourse.course
         location = scourse.room.name if scourse.room is not None else ''
         return (f'{course.module.abbrev} {course.type.name} '
-                f'- {scourse.tutor.username} '
+                f'- {scourse.tutor.username if scourse.tutor is not None else "x"} '
                 f'- {location}'
         )
 
