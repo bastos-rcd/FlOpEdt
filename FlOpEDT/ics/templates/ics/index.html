@@ -36,19 +36,33 @@
     <p>{% trans "Copy the corresponding link of the calendar you would like to add to your calendar manager." %}</p>
     
     <h2>{% trans "Groups" %}</h2>
-    <ul>
-      <table>
-        <th>{% trans "Training program" %}</th><th>{% trans "Group" %}</th>
-        {% for g in groups %}
-        <tr>
-          <td>{{ g.train_prog.abbrev }}</td>
-          <td>{{ g.name }}</td>
-          <td><a href="{% url "ics:group" department g.id %}">{% trans "Copy this link" %} - {{ g.name }}</a></td>
-        </tr>
-      {% endfor %}
-      </table>
-    </ul>
-    
+        <ul>
+            <h3>{% trans "Structural" %}</h3>
+            <table>
+              <th>{% trans "Training program" %}</th><th>{% trans "Group name" %}</th>
+              {% for g in structural_groups %}
+                  <tr>
+                     <td>{{ g.train_prog.abbrev }}</td>
+                     <td>{{ g.name }}</td>
+                     <td><a href="{% url "ics:structural_group" department g.id %}">{% trans "Copy this link" %} - {{ g.name }}</a></td>
+                  </tr>
+              {% endfor %}
+            </table>
+            {% if transversal_groups %}
+                <h3>{% trans "Transversal" %}</h3>
+                <table>
+                    <th>{% trans "Training program" %}</th><th>{% trans "Group name" %}</th>
+                    {% for g in transversal_groups %}
+                        <tr>
+                        <td>{{ g.train_prog.abbrev }}</td>
+                        <td>{{ g.name }}</td>
+                        <td><a href="{% url "ics:transversal_group" department g.id %}">{% trans "Copy this link" %} - {{ g.name }}</a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </ul>
+
     <h2>{% trans "Tutors" %}</h2>
     <ul>
       <table>

@@ -1,5 +1,5 @@
 from django.urls import path
-from ics.feeds import TutorEventFeed, RoomEventFeed, GroupEventFeed, RegenFeed
+from ics.feeds import TutorEventFeed, RoomEventFeed, StructuralGroupEventFeed, TransversalGroupEventFeed, RegenFeed
 
 from ics import views
 
@@ -9,6 +9,7 @@ urlpatterns = [
     path(r'', views.index, name="index"),
     path(r'tutor/<int:tutor_id>.ics', TutorEventFeed(), name="tutor"),
     path(r'room/<int:room_id>.ics', RoomEventFeed(), name="room"),
-    path(r'group/<int:group_id>.ics', GroupEventFeed(), name="group"),
+    path(r'structural_group/<int:group_id>.ics', StructuralGroupEventFeed(), name="structural_group"),
+    path(r'transversal_group/<int:group_id>.ics', TransversalGroupEventFeed(), name="transversal_group"),
     path(r'regen/<int:dep_id>.ics', RegenFeed(), name="regen"),
 ]

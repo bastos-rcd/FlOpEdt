@@ -6,7 +6,7 @@ from django_ical.views import ICalFeed
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from base.models import ScheduledCourse, Room, GenericGroup, Day, Department, Regen
+from base.models import ScheduledCourse, Room, StructuralGroup, TransversalGroup, Day, Department, Regen
 from people.models import Tutor
 from django.db.models import Q
 
@@ -106,11 +106,7 @@ class RoomEventFeed(EventFeed):
 
 class GroupEventFeed(EventFeed):
     def get_object(self, request, department, group_id):
-        gp = GenericGroup.objects.get(id=group_id)
-        if gp.is_structural:
-            return gp.structuralgroup.and_ancestors()
-        else:
-            return {gp.transversalgroup}
+        raise NotImplementedError
 
     def items(self, groups):
         return ScheduledCourse.objects\
@@ -124,6 +120,17 @@ class GroupEventFeed(EventFeed):
                 f'- {scourse.tutor.username if scourse.tutor is not None else "x"} '
                 f'- {location}'
         )
+
+
+class StructuralGroupEventFeed(GroupEventFeed):
+    def get_object(self, request, department, group_id):
+        gp = StructuralGroup.objects.get(id=group_id)
+        return gp.structuralgroup.and_ancestors()
+
+
+class TransversalGroupEventFeed(GroupEventFeed):
+    def get_object(self, request, department, group_id):
+        return {TransversalGroup.objects.get(id=group_id)}
 
 
 class RegenFeed(ICalFeed):

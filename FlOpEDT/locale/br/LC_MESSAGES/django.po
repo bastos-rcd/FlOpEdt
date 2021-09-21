@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-03 21:40+0000\n"
+"POT-Creation-Date: 2021-09-21 12:49+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -103,7 +103,7 @@ msgid "Is active?"
 msgstr ""
 
 #: TTapp/TTConstraints/core_constraints.py:69
-#: TTapp/TTConstraints/core_constraints.py:327
+#: TTapp/TTConstraints/core_constraints.py:331
 #: TTapp/TTConstraints/slots_constraints.py:254
 msgid "OK"
 msgstr ""
@@ -111,9 +111,9 @@ msgstr ""
 #: TTapp/TTConstraints/core_constraints.py:113
 #: TTapp/TTConstraints/core_constraints.py:124
 #: TTapp/TTConstraints/core_constraints.py:142
-#: TTapp/TTConstraints/core_constraints.py:357
-#: TTapp/TTConstraints/core_constraints.py:413
-#: TTapp/TTConstraints/core_constraints.py:436
+#: TTapp/TTConstraints/core_constraints.py:361
+#: TTapp/TTConstraints/core_constraints.py:417
+#: TTapp/TTConstraints/core_constraints.py:440
 #: TTapp/TTConstraints/slots_constraints.py:278
 #: TTapp/TTConstraints/slots_constraints.py:285
 #: TTapp/TTConstraints/slots_constraints.py:292
@@ -152,62 +152,66 @@ msgstr ""
 msgid "Schedule once every considered course"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:308
+#: TTapp/TTConstraints/core_constraints.py:268
+msgid "Pre-assigned courses only"
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:312
 msgid "Each course is assigned to one tutor (max)"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:354
+#: TTapp/TTConstraints/core_constraints.py:358
 #, python-brace-format
 msgid ""
 "Tutor {tutor} has {tutor_partition.available_duration} minutes of available "
 "time."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:355
-#: TTapp/TTConstraints/core_constraints.py:411
+#: TTapp/TTConstraints/core_constraints.py:359
+#: TTapp/TTConstraints/core_constraints.py:415
 msgid ""
 " He or she has to lecture {len(courses)} classes for an amount of {sum(c."
 "type.duration for c in courses)} minutes of courses."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:398
+#: TTapp/TTConstraints/core_constraints.py:402
 #, python-brace-format
 msgid ""
 "Tutor {tutor} has {tutor_partition.available_duration} minutes of available "
 "time"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:400
+#: TTapp/TTConstraints/core_constraints.py:404
 msgid " (considering that"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:402
+#: TTapp/TTConstraints/core_constraints.py:406
 #, python-brace-format
 msgid " {forbidden_days} is forbidden"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:404
+#: TTapp/TTConstraints/core_constraints.py:408
 #, python-brace-format
 msgid " and {holiday_text} is holiday)."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:408
+#: TTapp/TTConstraints/core_constraints.py:412
 #, python-brace-format
 msgid " {holiday_text} is holiday)."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:433
+#: TTapp/TTConstraints/core_constraints.py:437
 msgid ""
 "Tutor {tutor} has {course_partition."
 "nb_slots_available_of_duration_beginning_at(course_type.duration, "
 "start_times)} available slots of {course_type.duration} mins "
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:434
+#: TTapp/TTConstraints/core_constraints.py:438
 msgid "and {len(course_list)} courses that long to attend."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:480
+#: TTapp/TTConstraints/core_constraints.py:484
 msgid "Consider tutors unavailability"
 msgstr ""
 
@@ -665,7 +669,7 @@ msgstr ""
 msgid "Types of classes"
 msgstr ""
 
-#: base/templates/base/show-stype.html:190 ics/templates/ics/index.html:68
+#: base/templates/base/show-stype.html:190 ics/templates/ics/index.html:82
 msgid "Rooms"
 msgstr ""
 
@@ -770,7 +774,7 @@ msgid "Only xlsx format is accepted."
 msgstr ""
 
 #: configuration/templates/configuration/configuration.html:27
-#: ics/templates/ics/index.html:84
+#: ics/templates/ics/index.html:98
 msgid "Department"
 msgstr ""
 
@@ -858,49 +862,58 @@ msgstr ""
 msgid "Groups"
 msgstr ""
 
-#: ics/templates/ics/index.html:41
+#: ics/templates/ics/index.html:40
+msgid "Structural"
+msgstr ""
+
+#: ics/templates/ics/index.html:42 ics/templates/ics/index.html:54
 msgid "Training program"
 msgstr ""
 
-#: ics/templates/ics/index.html:41
-msgid "Group"
+#: ics/templates/ics/index.html:42 ics/templates/ics/index.html:54
+msgid "Group name"
 msgstr ""
 
-#: ics/templates/ics/index.html:46 ics/templates/ics/index.html:62
-#: ics/templates/ics/index.html:75 ics/templates/ics/index.html:88
+#: ics/templates/ics/index.html:47 ics/templates/ics/index.html:59
+#: ics/templates/ics/index.html:76 ics/templates/ics/index.html:89
+#: ics/templates/ics/index.html:102
 msgid "Copy this link"
 msgstr ""
 
 #: ics/templates/ics/index.html:52
+msgid "Transversal"
+msgstr ""
+
+#: ics/templates/ics/index.html:66
 msgid "Tutors"
 msgstr ""
 
-#: ics/templates/ics/index.html:55
+#: ics/templates/ics/index.html:69
 msgid "Pseudo"
 msgstr ""
 
-#: ics/templates/ics/index.html:55
+#: ics/templates/ics/index.html:69
 msgid "First name"
 msgstr ""
 
-#: ics/templates/ics/index.html:55
+#: ics/templates/ics/index.html:69
 msgid "Last lame"
 msgstr ""
 
-#: ics/templates/ics/index.html:55
+#: ics/templates/ics/index.html:69
 msgid "Department(s)"
 msgstr ""
 
-#: ics/templates/ics/index.html:55 ics/templates/ics/index.html:71
-#: ics/templates/ics/index.html:84
+#: ics/templates/ics/index.html:69 ics/templates/ics/index.html:85
+#: ics/templates/ics/index.html:98
 msgid "Address"
 msgstr ""
 
-#: ics/templates/ics/index.html:71
+#: ics/templates/ics/index.html:85
 msgid "Name"
 msgstr ""
 
-#: ics/templates/ics/index.html:81
+#: ics/templates/ics/index.html:95
 msgid "Planned generations"
 msgstr ""
 
