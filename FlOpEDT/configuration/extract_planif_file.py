@@ -186,6 +186,8 @@ def ReadPlanifWeek(department, book, feuille, week_nb, year, courses_to_stabiliz
             groups = [str(g) for g in grps]
 
             GROUPS = list(GenericGroup.objects.filter(name__in=groups, train_prog=PROMO))
+            if not GROUPS:
+                raise Exception(f"Group(s) do(es) not exist {row}, week {week_nb} of {feuille}\n")
 
             N=int(N)
 

@@ -2007,12 +2007,15 @@ function compute_cm_room_tutor_direction() {
 function find_overlapping_courses(reference_course) {
 	let start_time = reference_course["start"];
 	let finish_time = reference_course["start"]+reference_course["duration"];
-	let reference_group = reference_course["group"];
+	let reference_group_name = reference_course["group"];
+    let reference_train_prog_name = reference_course["promo"];
 	let reference_day = reference_course["day"];
 	overlapping_courses = [];
 	
 	for (let i = 0; i<cours.length ; i++) {
-		if (cours[i]["group"] == reference_group && cours[i]["day"]==reference_day ){
+		if (cours[i]["group"] == reference_group_name
+            && cours[i]["promo"] == reference_train_prog_name
+            && cours[i]["day"]==reference_day ){
 			let cours_finish_time = cours[i]["start"]+cours[i]["duration"];
 			if (cours[i]["start"] < finish_time && cours_finish_time > start_time){
 				overlapping_courses.push(cours[i])
