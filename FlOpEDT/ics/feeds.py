@@ -6,8 +6,9 @@ from django_ical.views import ICalFeed
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from base.models import ScheduledCourse, Room, StructuralGroup, Day, Department, Regen
+from base.models import ScheduledCourse, Room, GenericGroup, Day, Department, Regen
 from people.models import Tutor
+from django.db.models import Q
 
 from django.http import HttpResponse, Http404
 from django.utils.http import http_date
@@ -72,7 +73,7 @@ class TutorEventFeed(EventFeed):
         return Tutor.objects.get(id=tutor_id)
 
     def items(self, tutor):
-        return ScheduledCourse.objects.filter(tutor=tutor, work_copy=0)\
+        return ScheduledCourse.objects.filter(Q(tutor=tutor) | Q(course__supp_tutor=tutor), work_copy=0)\
                                       .order_by('-course__week__year','-course__week__nb')
 
     def item_title(self, scourse):
@@ -105,10 +106,11 @@ class RoomEventFeed(EventFeed):
 
 class GroupEventFeed(EventFeed):
     def get_object(self, request, department, group_id):
-        gp = StructuralGroup.objects.get(id=group_id)
-        gp_included = gp.ancestor_groups()
-        gp_included.add(gp)
-        return gp_included
+        gp = GenericGroup.objects.get(id=group_id)
+        if gp.is_structural:
+            return gp.structuralgroup.and_ancestors()
+        else:
+            return {gp.transversalgroup}
 
     def items(self, groups):
         return ScheduledCourse.objects\

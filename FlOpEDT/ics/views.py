@@ -1,8 +1,9 @@
 from django.shortcuts import render
 
 from people.models import Tutor
-from base.models import StructuralGroup, Department
+from base.models import GenericGroup, Department
 import base.queries as queries
+from django.db.models import Q
 
 
 def index(request, **kwargs):
@@ -10,9 +11,9 @@ def index(request, **kwargs):
                                       departments=request.department)\
                               .prefetch_related('departments')\
                               .order_by('username')
-    group_list = StructuralGroup.objects.filter(
-        basic=True,
-        train_prog__department=request.department)\
+    group_list = GenericGroup.objects.filter(Q(transversalgroup__isnull=True, structuralgroup__basic=True) |
+                                             Q(structuralgroup__isnull=True),
+                                             train_prog__department=request.department)\
                               .select_related('train_prog__department')\
                               .order_by('train_prog__abbrev', 'name')
     room_list = [{'name':n.name, 'id':n.id}
