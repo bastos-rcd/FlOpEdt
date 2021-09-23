@@ -288,7 +288,8 @@ def get_conflicts(department, week, copy_a):
                 sched.append(ScheduledCourse.objects.get(id=sc['id']))
             str_sched = list(map(
                 lambda s: f'{s.room} ({str_slot(s.day,s.start_time,s.course.type.duration)}, '\
-                + f'{s.tutor.username}, {s.course.module.train_prog.department.abbrev})',
+                + f'{s.tutor.username if s.tutor is not None else "No one"}, '
+                + f'{s.course.module.train_prog.department.abbrev})',
                 sched))
             more += ' VS '.join(str_sched) + ' ; '
 

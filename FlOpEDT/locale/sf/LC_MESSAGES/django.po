@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-21 12:49+0000\n"
+"POT-Creation-Date: 2021-09-23 07:27+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -79,24 +79,30 @@ msgid "Norwegian"
 msgstr "Norvégien"
 
 #: FlOpEDT/settings/base.py:172
+#, fuzzy
+#| msgid "English"
+msgid "Polish"
+msgstr "Anglais"
+
+#: FlOpEDT/settings/base.py:173
 msgid "Portuguese"
 msgstr "Portugais"
 
-#: FlOpEDT/settings/base.py:173
+#: FlOpEDT/settings/base.py:174
 msgid "Swedish"
 msgstr "Suédois"
 
-#: FlOpEDT/settings/base.py:174
+#: FlOpEDT/settings/base.py:175
 msgid "Chinese"
 msgstr "Chinois"
 
-#: FlOpEDT/settings/base.py:175
+#: FlOpEDT/settings/base.py:176
 msgid "Smurf"
 msgstr "Schtroumpf"
 
 #: TTapp/TTConstraint.py:61
 msgid "Is active?"
-msgstr ""
+msgstr "Est active?"
 
 #: TTapp/TTConstraints/core_constraints.py:69
 #: TTapp/TTConstraints/core_constraints.py:331
@@ -156,19 +162,19 @@ msgstr ""
 
 #: TTapp/TTConstraints/core_constraints.py:207
 msgid "No simultaneous courses for one group"
-msgstr ""
+msgstr "Pas de schtroumpf simultané pour un groupe"
 
 #: TTapp/TTConstraints/core_constraints.py:256
 msgid "Schedule once every considered course"
-msgstr ""
+msgstr "Schtroumpfer une et une seule fois chaque cours considéré"
 
 #: TTapp/TTConstraints/core_constraints.py:268
 msgid "Pre-assigned courses only"
-msgstr ""
+msgstr "Seulement les schtroumpf pré-assignés"
 
 #: TTapp/TTConstraints/core_constraints.py:312
 msgid "Each course is assigned to one tutor (max)"
-msgstr ""
+msgstr "Chaque schtroumpf est assigné à un prof (max)"
 
 #: TTapp/TTConstraints/core_constraints.py:358
 #, python-brace-format
@@ -189,10 +195,7 @@ msgstr ""
 "duration for c in courses)} minutes."
 
 #: TTapp/TTConstraints/core_constraints.py:402
-#, fuzzy, python-brace-format
-#| msgid ""
-#| "Tutor {tutor} has {tutor_partition.available_duration} minutes of "
-#| "available time."
+#, python-brace-format
 msgid ""
 "Tutor {tutor} has {tutor_partition.available_duration} minutes of available "
 "time"
@@ -202,17 +205,17 @@ msgstr ""
 
 #: TTapp/TTConstraints/core_constraints.py:404
 msgid " (considering that"
-msgstr ""
+msgstr " ( en schtroumpfant que"
 
 #: TTapp/TTConstraints/core_constraints.py:406
 #, python-brace-format
 msgid " {forbidden_days} is forbidden"
-msgstr ""
+msgstr "{forbiden_days} est schtroumpfement interdit"
 
 #: TTapp/TTConstraints/core_constraints.py:408
 #, python-brace-format
 msgid " and {holiday_text} is holiday)."
-msgstr ""
+msgstr " and {holiday_text} correspond à des vacances)."
 
 #: TTapp/TTConstraints/core_constraints.py:412
 #, python-brace-format
@@ -235,19 +238,19 @@ msgstr "et {len(course_lits)} cours à schtroumpfer."
 
 #: TTapp/TTConstraints/core_constraints.py:484
 msgid "Consider tutors unavailability"
-msgstr ""
+msgstr "Considère les indisponibilités des schtroumpfs"
 
 #: TTapp/TTConstraints/cosmo_style_constraints.py:158
 msgid "Number of weeks"
-msgstr ""
+msgstr "Nombre de semaines"
 
 #: TTapp/TTConstraints/groups_constraints.py:115
 msgid "Minimize groups half-days"
-msgstr ""
+msgstr "Minimise les demis-schtroumpfs pour les groupes"
 
 #: TTapp/TTConstraints/groups_constraints.py:181
 msgid "Minimize groups non-preferred slots"
-msgstr ""
+msgstr "Minimize les créneaux non-schtroumpfés pour les groupes"
 
 #: TTapp/TTConstraints/slots_constraints.py:280
 #: TTapp/TTConstraints/slots_constraints.py:287
@@ -294,15 +297,15 @@ msgstr "Successifs ?"
 
 #: TTapp/TTConstraints/test_constraints.py:83 base/models.py:886
 msgid "Minimal day gap between courses"
-msgstr ""
+msgstr "Délai minimal (en schtroumpfs) entre deux cours"
 
 #: TTapp/TTConstraints/test_constraints.py:105
 msgid "There is no tutor assigned to {self.course1.full_name()}"
-msgstr ""
+msgstr "Il n'y a pas de prof schtroumpfé à {self.course1.full_name()}"
 
 #: TTapp/TTConstraints/test_constraints.py:120
 msgid "There is no tutor assigned to {self.course2.full_name()}"
-msgstr ""
+msgstr "Il n'y a pas de prof schtroumpfé à {self.course2.full_name()}"
 
 #: TTapp/TTConstraints/test_constraints.py:232
 msgid "There is no available slots for the second course after the first one."
@@ -336,10 +339,8 @@ msgid "There is no available tutor for {self.course2.full_name()}"
 msgstr ""
 
 #: base/admin.py:614 base/admin.py:640 base/admin.py:653
-#, fuzzy
-#| msgid "Weeks"
 msgid "Week"
-msgstr "Semaines particulières"
+msgstr "Semaine"
 
 #: base/forms.py:33
 msgid "Your e-mail address :"
@@ -387,19 +388,19 @@ msgstr "Demie-journée"
 
 #: base/models.py:234
 msgid "Week number"
-msgstr ""
+msgstr "Numéro de semaine"
 
 #: base/models.py:287
 msgid "Educative"
-msgstr ""
+msgstr "Mode éducatif"
 
 #: base/models.py:288
 msgid "Coop. (workplace)"
-msgstr ""
+msgstr "Mode coopératif (poste)"
 
 #: base/models.py:289
 msgid "Coop. (worker)"
-msgstr ""
+msgstr "Mode coopératif (salarié⋅e⋅s)"
 
 #: base/models.py:409
 msgid "Abbreviation"
@@ -501,19 +502,21 @@ msgstr "pour un rappel de schtroumpf, ou via 'Se connecter' en haut de page."
 
 #: base/templates/base/help.html:51
 msgid "Direct link to a particular group"
-msgstr ""
+msgstr "Lien direct vers un schtroumpf particulier"
 
 #: base/templates/base/help.html:52
 msgid "Add \"?promo=...&gp=...\" at the end of the url, for example "
-msgstr ""
+msgstr "Schtroumpfer \"?promo=...&gp=...\" à la fin de l'url, par exemple"
 
 #: base/templates/base/help.html:53
 msgid "To know the name of your training programme and group, check the list "
 msgstr ""
+"Pour connaître le nom de votre schtroumpf et de votre groupe, regarder la "
+"liste "
 
 #: base/templates/base/help.html:53
 msgid "here"
-msgstr ""
+msgstr "ici"
 
 #: base/templates/base/help.html:56
 msgid "How availability entry work"
@@ -1077,13 +1080,15 @@ msgstr "Consulter"
 
 #: solve_board/templates/solve_board/main-board.html:64
 msgid "Constraints"
-msgstr ""
+msgstr "Contraintes"
 
 #: solve_board/templates/solve_board/main-board.html:65
 msgid ""
 "All constraints appearing in bolded - with no weight - will be considered "
 "mandatory, the other ones will considered as preferences."
 msgstr ""
+"Toutes les schtroumpfs qui apparaissent en gras - sans poids - vont être "
+"considéréesobligatoires, les autres comme des préférences."
 
 #: solve_board/templates/solve_board/main-board.html:70
 #, fuzzy
@@ -1092,22 +1097,16 @@ msgid "Configuration"
 msgstr "Canevas du fichier de configuration"
 
 #: solve_board/templates/solve_board/main-board.html:75
-#, fuzzy
-#| msgid "Weeks"
 msgid "Week⋅s"
-msgstr "Semaines particulières"
+msgstr "Semaine(s)"
 
 #: solve_board/templates/solve_board/main-board.html:79
-#, fuzzy
-#| msgid "Training program"
 msgid "Training Program"
 msgstr "Promotion"
 
 #: solve_board/templates/solve_board/main-board.html:83
-#, fuzzy
-#| msgid "Stabilization ?"
 msgid "Stabilization"
-msgstr "Stabilisation ?"
+msgstr "Stabilisation"
 
 #: solve_board/templates/solve_board/main-board.html:88
 msgid "Solver"

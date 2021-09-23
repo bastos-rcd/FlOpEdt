@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-21 12:49+0000\n"
+"POT-Creation-Date: 2021-09-23 07:27+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -79,18 +79,24 @@ msgid "Norwegian"
 msgstr "Norvégien"
 
 #: FlOpEDT/settings/base.py:172
+#, fuzzy
+#| msgid "English"
+msgid "Polish"
+msgstr "Anglais"
+
+#: FlOpEDT/settings/base.py:173
 msgid "Portuguese"
 msgstr "Portugais"
 
-#: FlOpEDT/settings/base.py:173
+#: FlOpEDT/settings/base.py:174
 msgid "Swedish"
 msgstr "Suédois"
 
-#: FlOpEDT/settings/base.py:174
+#: FlOpEDT/settings/base.py:175
 msgid "Chinese"
 msgstr "Chinois"
 
-#: FlOpEDT/settings/base.py:175
+#: FlOpEDT/settings/base.py:176
 msgid "Smurf"
 msgstr "Schtroumpf"
 

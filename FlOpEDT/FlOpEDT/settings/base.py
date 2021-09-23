@@ -169,6 +169,7 @@ LANGUAGES = [
     ('it', _('Italian')),
     ('la', _('Latin')),
     ('no', _('Norwegian')),
+    ('pl', _('Polish')),
     ('pt', _('Portuguese')),
     ('sv', _('Swedish')),
     ('zh', _('Chinese')),

@@ -303,4 +303,4 @@ class PhysicalPresence(models.Model):
     week = models.ForeignKey('base.Week', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.username} is present {self.day} of week {self.week}-{self.year}"
+        return f"{self.user.username} is present {self.day} of week {self.week}"

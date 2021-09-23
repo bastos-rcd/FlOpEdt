@@ -1,0 +1,338 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-03-17 20:18+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: base/static/base/action.js:769
+msgid "The schedule shall be fully regenerated (see downside to the right)."
+msgstr ""
+
+#: base/static/base/action.js:770
+msgid ""
+"Just update your availabilities : they will be considered for the next "
+"generation."
+msgstr ""
+
+#: base/static/base/creation.js:808
+msgid "Courses :"
+msgstr ""
+
+#: base/static/base/creation.js:815
+msgid "Avail :"
+msgstr ""
+
+#: base/static/base/creation.js:1765
+msgid "Validate timetable"
+msgstr ""
+
+#: base/static/base/creation.js:1888
+msgid "Validate availabilities"
+msgstr ""
+
+#: base/static/base/creation.js:1918
+msgid "Apply"
+msgstr ""
+
+#: base/static/base/creation.js:1926
+msgid "tipical week"
+msgstr ""
+
+#: base/static/base/decale.js:35
+msgid "Module    "
+msgstr ""
+
+#: base/static/base/decale.js:36
+msgid "Teacher    "
+msgstr ""
+
+#: base/static/base/decale.js:37
+msgid "Group    "
+msgstr ""
+
+#: base/static/base/decale.js:322
+msgid "Definitely cancel"
+msgstr ""
+
+#: base/static/base/decale.js:334
+msgid "Put on hold"
+msgstr ""
+
+#: base/static/base/decale.js:351
+msgid "Move to week "
+msgstr ""
+
+#: base/static/base/decale.js:361
+msgid "by "
+msgstr ""
+
+#: base/static/base/logo.js:84
+msgid ""
+"Schedule manager <span id=\"flopGreen\">fl</span>exible and <span id="
+"\"flopGreen\">op</span>enSource"
+msgstr ""
+
+#: base/static/base/logo.js:85
+msgid ""
+"\"Who want to manage schedules this year?\" ...  ... <span id=\"flopGreen"
+"\">flop</span>!"
+msgstr ""
+
+#: base/static/base/logo.js:86
+msgid "And your schedules will <span id=\"flopRedDel\">flop</span> be a hit!"
+msgstr ""
+
+#: base/static/base/logo.js:87
+msgid "Even your logo will be on time..."
+msgstr ""
+
+#: base/static/base/logo.js:88
+msgid "Everybody do the <span id=\"flopGreen\">flop</span>!"
+msgstr ""
+
+#: base/static/base/logo.js:89
+msgid ""
+"You got to make the schedules? Don't flip out: <span id=\"flopGreen\">flop</"
+"span> it!"
+msgstr ""
+
+#: base/static/base/logo.js:90
+msgid "To flop or not to flop, that is the question (for your schedules)"
+msgstr ""
+
+#: base/static/base/logo.js:91
+msgid "flop!Scheduler != flop "
+msgstr ""
+
+#: base/static/base/logo.js:92
+msgid "Just <span id=\"flopGreen\">flop</span> it."
+msgstr ""
+
+#: base/static/base/logo.js:93
+msgid "Schedule... khhh... I am your flop!"
+msgstr ""
+
+#: base/static/base/logo.js:94
+msgid "What else?"
+msgstr ""
+
+#: base/static/base/room_preference.js:30
+msgid "Successful operation"
+msgstr ""
+
+#: base/static/base/room_preference.js:33
+msgid "It's a fail. "
+msgstr ""
+
+#: base/static/base/statistics.js:80 base/static/base/variables.js:957
+msgid "Room"
+msgstr ""
+
+#: base/static/base/statistics.js:81
+msgid "Number of days"
+msgstr ""
+
+#: base/static/base/transformation.js:267
+msgid "You have to do  "
+msgstr ""
+
+#: base/static/base/transformation.js:269
+msgid "No course for you this week."
+msgstr ""
+
+#: base/static/base/transformation.js:277
+msgid "You propose   "
+msgstr ""
+
+#: base/static/base/transformation.js:290
+msgid "Maybe you should free up more..."
+msgstr ""
+
+#: base/static/base/transformation.js:292
+msgid "It's Ok."
+msgstr ""
+
+#: base/static/base/transformation.js:296
+msgid "Thank you for adding some."
+msgstr ""
+
+#: base/static/base/update.js:1280
+msgid "No planned re-generation"
+msgstr ""
+
+#: base/static/base/update.js:1284
+msgid "Full (minor) generation planned on "
+msgstr ""
+
+#: base/static/base/update.js:1287
+msgid "Full generation planned (probably on "
+msgstr ""
+
+#: base/static/base/update.js:1290
+msgid "Minor generation planned (probably on "
+msgstr ""
+
+#: base/static/base/variables.js:468 base/static/base/variables.js:476
+msgid "Modify"
+msgstr ""
+
+#: base/static/base/variables.js:580
+msgid "Filters"
+msgstr ""
+
+#: base/static/base/variables.js:584
+msgid "Employees"
+msgstr ""
+
+#: base/static/base/variables.js:588
+msgid "Posts"
+msgstr ""
+
+#: base/static/base/variables.js:593
+msgid "Groups"
+msgstr ""
+
+#: base/static/base/variables.js:597
+msgid "Teachers"
+msgstr ""
+
+#: base/static/base/variables.js:601
+msgid "Modules"
+msgstr ""
+
+#: base/static/base/variables.js:605
+msgid "Rooms"
+msgstr ""
+
+#: base/static/base/variables.js:783
+msgid "KO"
+msgstr ""
+
+#: base/static/base/variables.js:784
+msgid "OK"
+msgstr ""
+
+#: base/static/base/variables.js:866
+msgid "What to change ?"
+msgstr ""
+
+#: base/static/base/variables.js:879
+msgid "Module teacher ?"
+msgstr ""
+
+#: base/static/base/variables.js:892 base/static/base/variables.js:905
+msgid "Alphabetical order"
+msgstr ""
+
+#: base/static/base/variables.js:917
+msgid "Virtual classroom link ?"
+msgstr ""
+
+#: base/static/base/variables.js:929
+msgid "Relating to who ?"
+msgstr ""
+
+#: base/static/base/variables.js:940
+msgid "No room available"
+msgstr ""
+
+#: base/static/base/variables.js:941
+msgid "Room available"
+msgstr ""
+
+#: base/static/base/variables.js:942
+msgid "Rooms available"
+msgstr ""
+
+#: base/static/base/variables.js:948
+msgid "No room available (any type)"
+msgstr ""
+
+#: base/static/base/variables.js:949
+msgid "Room available (any type)"
+msgstr ""
+
+#: base/static/base/variables.js:950
+msgid "Rooms available (any type)"
+msgstr ""
+
+#: base/static/base/variables.js:956
+msgid "No room"
+msgstr ""
+
+#: base/static/base/variables.js:958
+msgid "Every rooms"
+msgstr ""
+
+#: base/static/base/variables.js:981
+msgid "Who should do it ?"
+msgstr ""
+
+#: people/static/people/student_preferences.js:9
+msgid "Start early in order to end up early"
+msgstr ""
+
+#: people/static/people/student_preferences.js:12
+msgid "Do not start late, so as not to end up too late"
+msgstr ""
+
+#: people/static/people/student_preferences.js:15
+#: people/static/people/student_preferences.js:34
+#: people/static/people/student_preferences.js:50
+#: people/static/people/student_preferences.js:63
+msgid "Indifferent"
+msgstr ""
+
+#: people/static/people/student_preferences.js:18
+msgid "Do not start early, even if I don't end up early"
+msgstr ""
+
+#: people/static/people/student_preferences.js:21
+msgid "Start late, even if I end up late"
+msgstr ""
+
+#: people/static/people/student_preferences.js:28
+msgid "Have light days"
+msgstr ""
+
+#: people/static/people/student_preferences.js:31
+msgid "Have light days more than free half-days"
+msgstr ""
+
+#: people/static/people/student_preferences.js:37
+msgid "Have free half-days more than light days."
+msgstr ""
+
+#: people/static/people/student_preferences.js:40
+msgid "Have free half-days."
+msgstr ""
+
+#: people/static/people/student_preferences.js:47
+msgid "Avoid holes between courses"
+msgstr ""
+
+#: people/static/people/student_preferences.js:53
+msgid "Promote holes between courses"
+msgstr ""
+
+#: people/static/people/student_preferences.js:60
+msgid "Eat early"
+msgstr ""
+
+#: people/static/people/student_preferences.js:66
+msgid "Eat late"
+msgstr ""
