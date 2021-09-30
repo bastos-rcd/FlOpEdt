@@ -66,7 +66,7 @@ class StabilizeTutorsCourses(TTConstraint):
             for i in tutors_to_be_considered:
                 if not sched_courses.filter(start_time__lt=sl.end_time,
                                             start_time__gt=sl.start_time - F('course__type__duration'),
-                                            day=sl.day,
+                                            day=sl.day.day,
                                             tutor=i):
                     relevant_sum = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
                                                for c in ttmodel.wdb.possible_courses[i]
@@ -79,7 +79,7 @@ class StabilizeTutorsCourses(TTConstraint):
                     else:
                         ttmodel.add_to_inst_cost(i, self.local_weight() * relevant_sum, week=week)
                         if not sched_courses.filter(tutor=i,
-                                                    day=sl.day):
+                                                    day=sl.day.day):
                             ttmodel.add_to_inst_cost(i, self.local_weight() * ponderation * relevant_sum, week=week)
 
         if self.fixed_days:
