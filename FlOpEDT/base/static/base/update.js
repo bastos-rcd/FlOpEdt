@@ -1024,8 +1024,15 @@ function update_selection() {
     var mod = modules.all.find(function(d) {
       return d.name == c.mod ;
     });
+    let tut_display = false ;
+    for(let it = 0 ; it < tutors.all.length && !tut_display ; it++) {
+      if (c.tutors.includes(tutors.all[it].name) &&
+         tutors.all[it].display) {
+        tut_display = true ;
+      }
+    }
     var tut = tutors.all.find(function(d) {
-      return d.name == c.prof ;
+      return c.tutors.includes(d.name) ;
     });
     var roo = rooms_sel.all.find(function(d) {
       // visio room
@@ -1039,11 +1046,11 @@ function update_selection() {
         return false;
       }
     });
-    if (typeof mod === 'undefined' || typeof tut === 'undefined'
+    if (typeof mod === 'undefined'
         || typeof roo === 'undefined') {
       c.display = false ;
     } else {
-      c.display = mod.display && tut.display && roo.display ;
+      c.display = mod.display && tut_display && roo.display ;
     }
   });
 }
@@ -1153,7 +1160,7 @@ function go_courses(quick) {
       && logged_usr.dispo_all_see) {
     d3.selectAll("rect.crect").attr("fill", function (d) {
       try {
-        lDis = get_preference(dispos[d.prof][d.day], d.duration);
+        lDis = get_preference(dispos[d.tutors[0]][d.day], d.duration);
       } catch (e) {
         lDis = par_dispos.nmax;
       }
@@ -1450,10 +1457,10 @@ function update_relevant() {
       return d.name == c.mod;
     });
     var tut = tutors.all.find(function (d) {
-      return d.name == c.prof;
+      return c.tutors.includes(d.name);
     });
     if (!tut_act) {
-      if (c.prof == user.name) {
+      if (c.tutors.includes(user.name)) {
         mod.relevant = true;
       }
     } else if (typeof mod !== 'undefined'

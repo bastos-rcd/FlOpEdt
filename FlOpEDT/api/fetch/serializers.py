@@ -41,6 +41,13 @@ import people.models as pm
 #                             ----Scheduled Courses (SC)----                            #
 #                             ------------------------------                            #
 
+class Tutor_Serializer(serializers.Serializer):
+    username = serializers.CharField()
+
+    class Meta:
+        model = pm.Tutor
+        fields = ['username']
+
 
 class ModuleDisplay_SC_Serializer(serializers.Serializer):
     color_bg = serializers.CharField()
@@ -79,6 +86,7 @@ class Course_SC_Serializer(serializers.Serializer):
     week = serializers.SerializerMethodField()
     year = serializers.SerializerMethodField()
     groups = Group_SC_Serializer(many=True)
+    supp_tutor = Tutor_Serializer(many=True)
     module = Module_SC_Serializer()
     is_graded = serializers.BooleanField()
 
@@ -98,7 +106,7 @@ class Course_SC_Serializer(serializers.Serializer):
     class Meta:
         model = bm.Course
         fields = ['id', 'type', 'room_type', 'week', 'year', 'module', 'groups',
-                  'is_graded']
+                  'is_graded', 'supp_tutor']
 
 
 class ScheduledCoursesSerializer(serializers.Serializer):
@@ -233,10 +241,11 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
     groups = Group_PP_Serializer(many=True)
     type = CourseType_PP_Serializer()
     is_graded = serializers.BooleanField()
+    supp_tutor = Tutor_Serializer(many=True)
     
     class Meta:
         model = bm.Course
-        fields = ['id', 'tutor', 'room_type', 'module', 'groups', 'is_graded']
+        fields = ['id', 'tutor', 'room_type', 'module', 'groups', 'is_graded', 'supp_tutor']
 
 
 #                                ---------------------------                            #
@@ -244,20 +253,13 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
 #                                ---------------------------                            #
 
 
-class Tutor_Av_Serializer(serializers.Serializer):
-    username = serializers.CharField()
-
-    class Meta:
-        model = pm.Tutor
-        fields = ['username']
-
 
 class AvailabilitiesSerializer(serializers.Serializer):
     day = serializers.CharField()
     start_time = serializers.IntegerField()
     duration = serializers.IntegerField()
     value = serializers.IntegerField()
-    user = Tutor_Av_Serializer()
+    user = Tutor_Serializer()
 
     class Meta:
         model = bm.UserPreference

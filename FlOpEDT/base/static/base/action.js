@@ -342,14 +342,22 @@ function select_tutor_module_change() {
   room_tutor_change.cm_settings = tutor_module_cm_settings;
 
   var c = pending.wanted_course;
-  room_tutor_change.old_value = c.prof;
-  room_tutor_change.cur_value = c.prof;
 
-  var tutor_same_module = cours
+  room_tutor_change.old_value = null ;
+  if (c.tutors.length > 0) {
+    room_tutor_change.old_value = c.tutors[0];
+  }
+  room_tutor_change.cur_value = room_tutor_change.old_value ;
+
+  let courses_same_module = cours
     .filter(function (oth_c) {
       return oth_c.mod == c.mod;
-    })
-    .map(function (oth_c) { return oth_c.prof; });
+    }) ;
+
+  let tutor_same_module = [] ;
+  for (let ic = 0 ; ic < courses_same_module.length ; ic++) {
+    Array.prototype.push.apply(tutor_same_module, courses_same_module[ic].tutors) ;
+  }
 
   // remove duplicate 
   tutor_same_module = tutor_same_module.filter(function (t, i) {
@@ -411,7 +419,7 @@ function select_salarie_change() {
     var possibles = new Set();
     cours.forEach(function (c) {
       if (c.group == tache.group) {
-        possibles.add(c.prof);
+        Set.prototype.add.apply(possibles, c.tutors);
       }
     });
     room_tutor_change.proposal = Array.from(possibles);
@@ -463,7 +471,9 @@ function select_tutor_change(f) {
 
 
 function confirm_tutor_change(d) {
-  Object.assign(pending.wanted_course, { prof: d.content });
+
+  pending.wanted_course.tutors.shift();
+  pending.wanted_course.tutors.unshift(d.content);
 
   room_tutor_change.proposal = [];
 
@@ -899,13 +909,19 @@ function compute_changes(changes, conc_tutors, gps) {
       /* Compute who is concerned by the change */
 
       // add instructor if never seen
-      if (conc_tutors.indexOf(cur_course.prof) == -1
-        && cur_course.prof != logged_usr.name && cur_course.prof != null) {
-        conc_tutors.push(cur_course.prof);
+      let it ;
+      for (it = 0 ; it < cur_course.tutors.length ; it++) {
+        if (conc_tutors.indexOf(cur_course.tutors[it]) == -1
+            && cur_course.tutors[it] != logged_usr.name) {
+          conc_tutors.push(cur_course.tutors[it]);
+        }
       }
-      if (conc_tutors.indexOf(cb.prof) == -1
-        && cur_course.prof != logged_usr.name && cb.prof != null) {
-        conc_tutors.push(cb.prof);
+      for (it = 0 ; it < cb.tutors.length ; it++) {
+        if (conc_tutors.indexOf(cb.tutors[it]) == -1
+            && cb.tutors[it] != logged_usr.name
+            && cb.tutors[it] != null) {
+          conc_tutors.push(cb.tutors[it]);
+        }
       }
 
       // add group if never seen
@@ -923,10 +939,13 @@ function compute_changes(changes, conc_tutors, gps) {
         day: cur_course.day,
         start: cur_course.start,
         room: cur_course.room,
-        tutor: cur_course.prof,
+        tutor: null, 
         id_visio: cur_course.id_visio
       };
 
+      if (cur_course.tutors.length > 0) {
+        change.tutor = cur_course.tutors[0] ;
+      }
 
       console.log("change", change);
       changes.push(change);
@@ -1016,7 +1035,7 @@ function get_courses(tutor, day_desc) {
   });
   if (typeof full_week !== 'undefined') {
     return full_week.courses.filter(function (d) {
-      return d.day == day_desc.ref && d.prof == tutor;
+      return d.day == day_desc.ref && d.tutors.includes(tutor);
     });
   }
   return [];
@@ -1087,7 +1106,7 @@ function aggregate_hours(tutor, iweek) {
   }
 
   week_desc.courses.filter(function (d) {
-    return d.prof == tutor;
+    return d.tutors.includes(tutor) ;
   }).forEach(function (d) {
     ret[day_shifts[d.day]].duration += d.duration;
   });
@@ -1196,7 +1215,7 @@ function check_constraints_tutor(tutor) {
   var issues = [];
 
   var tut_courses = cours.filter(function (d) {
-    d.prof == tutor;
+    d.tutors.includes(tutor) ;
   });
 
   var icur_week = wdw_weeks.get_iselected_pure();
@@ -1875,8 +1894,12 @@ function select_pref_links_change() {
   ["users", "groups"].forEach(function(link_type) {
     switch(link_type) {
     case 'users':
-      key = pending.wanted_course.prof ;
       pref_links = preferred_links.users ;
+      //TBD supp_tutor
+      key = Object.keys(pref_links)[0];
+      if (pending.wanted_course.tutors.length > 0) {
+        key = pending.wanted_course.tutors[0] ;
+      }
       break;
     case 'groups':
       key = gp_training_prog_to_str(pending.wanted_course) ;
@@ -1907,8 +1930,10 @@ function select_pref_links_change() {
 
   if (room_tutor_change.proposal.length == 0) {
     console.log('Pas de lien...');
-    window.location.href =
-      url_change_preferred_links + pending.wanted_course.prof ;
+    if (pending.wanted_course.tutors.length > 0) {
+      window.location.href =
+        url_change_preferred_links + pending.wanted_course.tutors[0] ;
+    }
   }
   
   
@@ -1940,7 +1965,7 @@ function add_bouge(pending) {
       day: pending.init_course.day,
       start: pending.init_course.start,
       room: pending.init_course.room,
-      prof: pending.init_course.prof,
+      tutors: pending.init_course.tutors.slice(),
       id_visio: pending.init_course.id_visio
     };
     cours.forEach(function(c) {
@@ -1948,7 +1973,7 @@ function add_bouge(pending) {
         c.day = pending.wanted_course.day ;
         c.start = pending.wanted_course.start ;
         c.room = pending.wanted_course.room ;
-        c.prof = pending.wanted_course.prof ;
+        c.tutors = pending.wanted_course.tutors.slice() ;
         id_visio = pending.wanted_course.id_visio ;
       }
     });
@@ -1957,11 +1982,24 @@ function add_bouge(pending) {
 }
 
 function has_changed(cb, c) {
-  return cb.day != c.day
+  let except_tutors = cb.day != c.day
     || cb.start != c.start
     || cb.room != c.room
-    || cb.prof != c.prof
     || cb.id_visio != c.id_visio;
+  if (except_tutors) {
+    return true;
+  } else {
+    if (cb.tutors.length != c.tutors.length) {
+      return true ;
+    } else {
+      for (let it = 0 ; it < cb.tutors.length ; it++) {
+        if (cb.tutors[it] != c.tutors[it]) {
+          return true ;
+        }
+      }
+      return false ;
+    }
+  }
 }
 
 
@@ -2065,17 +2103,23 @@ function show_detailed_courses(cours) {
       modinfo.name = 'Module inconnu';
     }
   }
-  if (cours.prof in tutors_info){
-    tutinfo.name = tutors_info[cours.prof].full_name;
-    tutinfo.mail = tutors_info[cours.prof].email;
-  } else {
-    if (cours.prof == null) {
-      tutinfo.name = 'Pas de prof attitré·e';
+  if (cours.tutors.length > 0) {
+    let tutor = cours.tutors[0] ;
+    if (tutor in tutors_info) {
+      tutinfo.name = tutors_info[tutor].full_name;
+      tutinfo.mail = tutors_info[tutor].email;
     } else {
-      tutinfo.name = 'Prof inconnu·e';
+      tutinfo.name = 'Prof inconnu·e' ;
     }
+  } else {
+    tutinfo.name = 'Pas de prof attitré·e';
   }
   
+  // TBD supp_tutor
+  let tutor = null ;
+  if (cours.tutors.length > 0) {
+    tutor = cours.tutors[0] ;
+  }
   let infos = [
     {
       'txt': modinfo.name,
@@ -2086,7 +2130,7 @@ function show_detailed_courses(cours) {
     {'txt': tutinfo.name},
     {
       'txt': tutinfo.mail,
-      'url': url_contact + cours.prof
+      'url': tutor==null?url_contact:(url_contact + tutor)
     },
   ]; 
   
@@ -2097,7 +2141,11 @@ function show_detailed_courses(cours) {
     
     for (let i=1; i<overlapping_courses.length; i++) {
       infos.push( {'txt':overlapping_courses[i]["mod"] + ' - '
-                   + overlapping_courses[i]["from_transversal"] + ' - ' +overlapping_courses[i]["prof"] + ' - '+overlapping_courses[i]["start"]/60+"h à "+(overlapping_courses[i]["start"]+overlapping_courses[i]["duration"])/60+"h"} );
+                   + overlapping_courses[i]["from_transversal"] + ' - '
+                   + overlapping_courses[i]["prof"] + ' - '
+                   + overlapping_courses[i]["start"]/60+"h à "
+                   +(overlapping_courses[i]["start"]
+                     +overlapping_courses[i]["duration"])/60+"h"} );
       infos.push( {'txt':''});
     }
   }

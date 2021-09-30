@@ -792,9 +792,13 @@ function cours_txt_x(c) {
   return cours_x(c) + .5 * cours_width(c);
 }
 function get_color(c){
-//  console.log(c);
-  let key = (department_settings.mode.cosmo===1)?c.prof:c.mod;
-  return colors[key];
+  let col = 'white' ;
+  if (department_settings.mode.cosmo===1 && c.tutors.length) {
+    col = colors[c.tutors[0]] ;
+  } else {
+    col = colors[c.mod] ;
+  }
+  return col ;
 }
 function cours_txt_fill(c) {
   let coco = get_color(c) ;
@@ -825,7 +829,7 @@ function cours_txt_mid_y(c) {
   return cours_y(c) + .5 * cours_height(c);
 }
 function cours_txt_mid_txt(c) {
-  return c.prof;
+  return c.tutors.join(',');
 }
 function cours_txt_bot_y(c) {
   return cours_y(c) + .75 * cours_height(c);

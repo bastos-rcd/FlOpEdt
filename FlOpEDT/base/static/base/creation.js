@@ -1197,15 +1197,21 @@ function gp_courses(target_course) {
   return ret ;
 }
 
-// return courses that involve the tutor of target_course during
+// return courses that involve the tutors of target_course during
 // during the same day
 function tutor_courses(target_course) {
   return cours.filter(function (c) {
-    return (
-      c.day == target_course.day
-        && c.id_course != target_course.id_course
-        && c.prof == target_course.prof
-    ) ;
+    let day_id = c.day == target_course.day
+      && c.id_course != target_course.id_course ;
+    if (!day_id) {
+      return false ;
+    }
+    for (let it = 0 ; it < c.tutors.length ; it++) {
+      if (target_course.includes(c.tutors[it])) {
+        return true ;
+      }
+    }
+    return false ;
   });
 }
 
@@ -1364,13 +1370,14 @@ function check_course() {
   // tutor availability
   if (!pending.pass.tutor) {
 
-    if (pending.wanted_course.prof != null) {
-      check_tutor_busy(ret, possible_conflicts) ;
+    for (let it = 0 ; it < pending.wanted_course.tutors.length ; it ++) {
+      let tutor = pending.wanted_course.tutors[it] ;
+      check_tutor_busy(ret, possible_conflicts, tutor) ;
       
       // tutor availability
-      if (!check_tutor_free_week(ret)) {
-        check_tutor_preferences(ret) ;
-        check_tutor_busy_other_departments(ret) ;
+      if (!check_tutor_free_week(ret, tutor)) {
+        check_tutor_preferences(ret, tutor) ;
+        check_tutor_busy_other_departments(ret, tutor) ;
       }
     }
         
@@ -1435,11 +1442,11 @@ function check_busy_group(issues, possible_conflicts) {
 
 // tutor does not teach this week
 // return true iff does not teach  
-function check_tutor_free_week(issues) {
-  if (typeof dispos[pending.wanted_course.prof] === 'undefined') {
+function check_tutor_free_week(issues, tutor) {
+  if (typeof dispos[tutor] === 'undefined') {
     issues.push({
       nok: 'tutor_free_week',
-      more: { tutor: pending.wanted_course.prof }
+      more: { tutor: tutor }
     });
     return true ;
   }
@@ -1448,50 +1455,50 @@ function check_tutor_free_week(issues) {
 
 
 // tutor teaches already in the current department
-function check_tutor_busy(issues, possible_conflicts) {
+function check_tutor_busy(issues, possible_conflicts, tutor) {
   let conflicts = possible_conflicts.filter(function (c) {
-    return (c.prof == pending.wanted_course.prof);
+    return (c.tutors.includes(tutor));
   });
   
   if (conflicts.length > 0) {
     issues.push({
       nok: 'tutor_busy',
-      more: { tutor: pending.wanted_course.prof }
+      more: { tutor: tutor }
     });
   }
 }
 
 
 // tutor teaches already in another department
-function check_tutor_busy_other_departments(issues) {
+function check_tutor_busy_other_departments(issues, tutor) {
   let extra_unavailable = find_in_pref(
     extra_pref.tutors,
-    pending.wanted_course.prof,
+    tutor,
     pending.wanted_course);
   
   if (extra_unavailable == 0) {
     issues.push({
       nok: 'tutor_busy_other_dept',
-      more: { tutor: pending.wanted_course.prof }
+      more: { tutor: tutor }
     });
   }
 }
 
 // tutor is a priori available
-function check_tutor_preferences(issues) {
+function check_tutor_preferences(issues, tutor) {
   let wanted_course = pending.wanted_course ;
   let pref_tut = get_preference(
-    dispos[wanted_course.prof][wanted_course.day],
+    dispos[tutor][wanted_course.day],
     wanted_course.start, wanted_course.duration);
   if (pref_tut == 0) {
     issues.push({
       nok: 'tutor_unavailable',
-      more: { tutor: wanted_course.prof }
+      more: { tutor: tutor }
     });
   } else if (pref_tut == -1) {
     issues.push({
       nok: 'tutor_availability_unknown',
-      more: { tutor: wanted_course.prof }
+      more: { tutor: tutor }
     });
   }
 }

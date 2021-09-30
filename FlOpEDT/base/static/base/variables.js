@@ -728,6 +728,7 @@ var pending = {
     });
     this.update_linked();
     this.init_course = Object.assign({}, d);
+    this.init_course.tutors = this.wanted_course.tutors.slice() ;
   },
   update_linked: function() {
     let w = this.wanted_course ;
@@ -735,7 +736,7 @@ var pending = {
       c.day =   w.day ;
       c.start = w.start ;
       c.room =  w.room ;
-      c.prof =  w.prof ;
+      c.tutors =  w.tutors ;
     });
   },
   prepare_dragndrop: function (d) {

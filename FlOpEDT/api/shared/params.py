@@ -48,6 +48,14 @@ def user_param(**kwargs):
                              **kwargs)
 
 
+def tutor_param(**kwargs):
+    return openapi.Parameter('tutor',
+                             openapi.IN_QUERY,
+                             description="Tutor username",
+                             type=openapi.TYPE_STRING,
+                             **kwargs)
+
+
 def dept_param(**kwargs):
     return openapi.Parameter('dept',
                              openapi.IN_QUERY,
@@ -59,7 +67,7 @@ def dept_param(**kwargs):
 def work_copy_param(**kwargs):
     return openapi.Parameter('work_copy',
                              openapi.IN_QUERY,
-                             description="N° of work copy",
+                             description="N° of work copy (default: 0)",
                              type=openapi.TYPE_INTEGER,
                              **kwargs)
 

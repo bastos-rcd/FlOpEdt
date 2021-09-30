@@ -32,6 +32,7 @@ from rest_framework.decorators import action
 from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
 from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Q
 
 from django.apps import apps
 
@@ -44,16 +45,13 @@ import TTapp.TTConstraint as tt
 
 from api.fetch import serializers
 from api.shared.params import dept_param, week_param, year_param, user_param, \
-    work_copy_param, group_param, train_prog_param, lineage_param
+    work_copy_param, group_param, train_prog_param, lineage_param, tutor_param
 from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
 
 class ScheduledCourseFilterSet(filters.FilterSet):
-    tutor_name = filters.CharFilter(field_name='tutor__username')
     # makes the fields required
     week = filters.NumberFilter(field_name='course__week__nb', required=True)
     year = filters.NumberFilter(field_name='course__week__year', required=True)
-
-    work_copy = filters.NumberFilter(field_name='work_copy')
 
     class Meta:
         model = bm.ScheduledCourse
@@ -72,6 +70,7 @@ class ScheduledCourseFilterSet(filters.FilterSet):
                           train_prog_param(),
                           group_param(),
                           lineage_param(),
+                          tutor_param()
                       ])
                   )
 class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
@@ -97,7 +96,8 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             
         self.train_prog = self.request.query_params.get('train_prog', None)
         group_name = self.request.query_params.get('group', None)
-        self.tutor = self.request.query_params.get('tutor_name', None)
+        self.tutor = self.request.query_params.get('tutor', None)
+        work_copy = self.request.query_params.get('work_copy', 0)
         if self.tutor is not None:
             try:
                 self.tutor = pm.Tutor.objects.get(username=self.tutor)
@@ -112,7 +112,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                                                    'course__module__display')\
                                    .prefetch_related('course__groups__train_prog',
                                                      'room')
-
+        queryset = queryset.filter(work_copy=work_copy)
         # sanity check
         if group_name is not None and self.train_prog is None:
             raise exceptions.NotAcceptable(detail='A training programme should be '
@@ -151,6 +151,8 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                     raise exceptions.NotAcceptable(detail='You should either a group and a training programme, or a tutor, or a department')
             else:
                 queryset = queryset.filter(course__module__train_prog__department=self.dept)
+            if self.tutor is not None:
+                queryset = queryset.filter(Q(tutor=self.tutor)|Q(course__supp_tutor=self.tutor))
 
         return queryset
 
