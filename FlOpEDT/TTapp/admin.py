@@ -33,7 +33,7 @@ from import_export import resources, fields
 from import_export.widgets import ManyToManyWidget
 
 from TTapp.models import \
-    LimitModulesTimePerPeriod, Stabilize, \
+    LimitModulesTimePerPeriod, StabilizeTutorsCourses, StabilizeGroupsCourses, \
     MinModulesHalfDays, MinTutorsHalfDays, MinGroupsHalfDays,\
     MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, \
     CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectBoundPerDay,\
@@ -126,20 +126,25 @@ class ReasonableDaysAdmin(DepartmentModelAdmin):
                    )
 
 
-class StabilizeAdmin(DepartmentModelAdmin):
-    list_display = ('general',
-                    'group', 'tutor', 'module', 'course_type', 'comment',
+class StabilizeTutorsCoursesAdmin(DepartmentModelAdmin):
+    list_display = ('comment',
                     'weight',
                     'is_active')
     ordering = ()
     list_filter = (('weeks__nb', DropdownFilterAll),
                    ('train_progs', DropdownFilterRel),
-                   ('group', DropdownFilterRel),
-                   ('tutor', DropdownFilterRel),
-                   ('module', DropdownFilterRel),
-                   ('course_type', DropdownFilterRel),
+                   ('tutors', DropdownFilterRel),
                    )
 
+class StabilizeGroupsCoursesAdmin(DepartmentModelAdmin):
+    list_display = ('comment',
+                    'weight',
+                    'is_active')
+    ordering = ()
+    list_filter = (('weeks__nb', DropdownFilterAll),
+                   ('train_progs', DropdownFilterRel),
+                   ('groups', DropdownFilterRel),
+                   )
 
 class MinTutorsHalfDaysAdmin(DepartmentModelAdmin):
     list_display = ('join2courses', 'comment',
@@ -414,7 +419,8 @@ class ConsiderPivotsAdmin(DepartmentModelAdmin):
 admin.site.register(ConsiderDependencies, ConsiderDependenciesAdmin)
 admin.site.register(ConsiderPivots, ConsiderPivotsAdmin)
 admin.site.register(CustomConstraint, CustomConstraintAdmin)
-admin.site.register(Stabilize, StabilizeAdmin)
+admin.site.register(StabilizeTutorsCourses, StabilizeTutorsCoursesAdmin)
+admin.site.register(StabilizeGroupsCourses, StabilizeGroupsCoursesAdmin)
 admin.site.register(MinGroupsHalfDays, MinGroupsHalfDaysAdmin)
 admin.site.register(MinTutorsHalfDays, MinTutorsHalfDaysAdmin)
 admin.site.register(MinModulesHalfDays, MinModulesHalfDaysAdmin)

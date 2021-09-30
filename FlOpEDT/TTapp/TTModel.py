@@ -45,9 +45,10 @@ from base.timing import Time
 
 from people.models import Tutor
 
-from TTapp.models import MinNonPreferedTutorsSlot, Stabilize, MinNonPreferedTrainProgsSlot, \
+from TTapp.models import MinNonPreferedTutorsSlot, StabilizeTutorsCourses, MinNonPreferedTrainProgsSlot, \
     NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, ConsiderTutorsUnavailability, \
-    MinimizeBusyDays, MinGroupsHalfDays, RespectBoundPerDay, ConsiderDependencies, ConsiderPivots
+    MinimizeBusyDays, MinGroupsHalfDays, RespectBoundPerDay, ConsiderDependencies, ConsiderPivots, \
+    StabilizeGroupsCourses
 from TTapp.TTConstraint import max_weight
 from TTapp.slots import slots_filter, days_filter
 
@@ -502,10 +503,11 @@ class TTModel(object):
 
         # maximize stability
         if self.stabilize_work_copy is not None:
-            s = Stabilize(general=True,
-                          work_copy=self.stabilize_work_copy)
+            st = StabilizeTutorsCourses(work_copy=self.stabilize_work_copy, weight=max_weight)
+            sg = StabilizeGroupsCourses(work_copy=self.stabilize_work_copy, weight=max_weight)
             for week in self.weeks:
-                s.enrich_model(self, week, self.max_stab)
+                st.enrich_model(self, week, self.max_stab)
+                sg.enrich_model(self, week, self.max_stab)
             print('Will stabilize from remote work copy #', \
                   self.stabilize_work_copy)
         else:

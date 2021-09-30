@@ -35,30 +35,18 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import Slot, slots_filter
 from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.groups_constraints import considered_basic_groups
+from TTapp.TTConstraints.tutors_constraints import considered_tutors
 
 
-class Stabilize(TTConstraint):
+class StabilizeTutorsCourses(TTConstraint):
     """
-    Allow to realy stabilize the courses of a category
-    If general is true, none of the other (except week and work_copy) is
-    relevant.
-    --> In this case, each course c placed:
+    Allow to really stabilize the courses of some/all tutor
+    --> In this case, each course c scheduled:
         - in a unused slot costs 1,
-        - in a unused half day (for tutor and/or group) cost ponderation
-    If general is False, it Fixes train_prog/tutor/group courses (or tries to if
-    self.weight)
+        - in a unused day for tutor group cost ponderation
     """
-    general = models.BooleanField(
-        verbose_name='Stabiliser tout?',
-        default=False)
-
-    group = models.ForeignKey('base.StructuralGroup', null=True, default=None, on_delete=models.CASCADE)
-    module = models.ForeignKey('base.Module', null=True, default=None, on_delete=models.CASCADE)
-    tutor = models.ForeignKey('people.Tutor',
-                              null=True,
-                              default=None,
-                              on_delete=models.CASCADE)
-    course_type = models.ForeignKey('base.CourseType', null=True, default=None, on_delete=models.CASCADE)
+    tutors = models.ManyToManyField('people.Tutor',blank=True)
     work_copy = models.PositiveSmallIntegerField(default=0)
     fixed_days = ArrayField(models.CharField(max_length=2,
                                              choices=Day.CHOICES), blank=True, null=True)
@@ -66,12 +54,34 @@ class Stabilize(TTConstraint):
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['group', 'module', 'tutor', 'course_type'])
+        attributes.extend(['tutors'])
         return attributes
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_model(self, ttmodel, week, ponderation=5):
+        tutors_to_be_considered = considered_tutors(self, ttmodel)
         ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
         sched_courses = ttmodel.wdb.sched_courses.filter(course__week=week)
+
+        for sl in slots_filter(ttmodel.wdb.courses_slots, week=week):
+            for i in tutors_to_be_considered:
+                if not sched_courses.filter(start_time__lt=sl.end_time,
+                                            start_time__gt=sl.start_time - F('course__type__duration'),
+                                            day=sl.day,
+                                            tutor=i):
+                    relevant_sum = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
+                                               for c in ttmodel.wdb.possible_courses[i]
+                                                & ttmodel.wdb.compatible_courses[sl])
+
+                    if self.weight is None:
+                        ttmodel.add_constraint(relevant_sum, '==', 0,
+                                               Constraint(constraint_type=ConstraintType.STABILIZE_ENRICH_MODEL,
+                                                          instructors=i))
+                    else:
+                        ttmodel.add_to_inst_cost(i, self.local_weight() * relevant_sum, week=week)
+                        if not sched_courses.filter(tutor=i,
+                                                    day=sl.day):
+                            ttmodel.add_to_inst_cost(i, self.local_weight() * ponderation * relevant_sum, week=week)
+
         if self.fixed_days:
             pass
             # Attention, les fixed_days doivent être des couples jour-semaine!!!!
@@ -82,66 +92,68 @@ class Stabilize(TTConstraint):
             #         for sl in ttmodel.wdb.slots.filter(day=day):
             #             ttmodel.add_constraint(ttmodel.TT[(sl, sc.course)], '==', 0)
 
-        if self.general:
-            # nb_changements_I=dict(zip(ttmodel.wdb.instructors,[0 for i in ttmodel.wdb.instructors]))
+    def one_line_description(self):
+        text = "Minimiser les changements"
+        if self.tutors.exists():
+            text += ' de ' + ', '.join([t.username for t in self.tutors.all()])
+        if self.train_progs.count():
+            text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+        text += ': copie ' + str(self.work_copy)
+        return text
+
+
+class StabilizeGroupsCourses(TTConstraint):
+    """
+    Allow to really stabilize the courses of some/all tutor
+    --> In this case, each course c scheduled:
+        - in a unused slot costs 1,
+        - in a unused day for tutor group cost ponderation
+    """
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True)
+    work_copy = models.PositiveSmallIntegerField(default=0)
+    fixed_days = ArrayField(models.CharField(max_length=2,
+                                             choices=Day.CHOICES), blank=True, null=True)
+
+    @classmethod
+    def get_viewmodel_prefetch_attributes(cls):
+        attributes = super().get_viewmodel_prefetch_attributes()
+        attributes.extend(['groups'])
+        return attributes
+
+    def enrich_model(self, ttmodel, week, ponderation=5):
+        basic_groups_to_be_considered = considered_basic_groups(self, ttmodel)
+        ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
+        sched_courses = ttmodel.wdb.sched_courses.filter(course__week=week)
+
+        for bg in basic_groups_to_be_considered:
             for sl in slots_filter(ttmodel.wdb.courses_slots, week=week):
-                for c in ttmodel.wdb.compatible_courses[sl]:
-                    for g in c.groups.all():
-                        if not sched_courses.filter(course__groups=g,
-                                                    day=sl.day):
-                            ttmodel.add_to_generic_cost(ponderation * ttmodel.TT[(sl, c)], week=week)
-                for i in ttmodel.wdb.instructors:
-                    for c in ttmodel.wdb.possible_courses[i] & ttmodel.wdb.compatible_courses[sl]:
-                        if not sched_courses.filter(start_time__lt=sl.end_time,
-                                                    start_time__gt=sl.start_time - F('course__type__duration'),
-                                                    day=sl.day,
-                                                    tutor=i):
-                            ttmodel.add_to_generic_cost(ponderation * ttmodel.TTinstructors[(sl, c, i)], week=week)
-                            # nb_changements_I[c.tutor]+=ttmodel.TT[(sl,c)]
-                        if not sched_courses.filter(tutor=i,
-                                                    day=sl.day):
-                            ttmodel.add_to_generic_cost(ponderation * ttmodel.TTinstructors[(sl, c, i)], week=week)
-                            # nb_changements_I[i]+=ttmodel.TT[(sl,c)]
+                if not sched_courses.filter(course__groups__in=bg.and_ancestors(),
+                                            day=sl.day):
+                    considered_courses = ttmodel.wdb.courses_for_basic_group[bg] & ttmodel.wdb.compatible_courses[sl]
+                    relevant_sum = ttmodel.sum(ttmodel.TT[(sl, c)] for c in considered_courses)
+                    if self.weight is None:
+                        ttmodel.add_constraint(relevant_sum, '==', 0,
+                                               Constraint(constraint_type=ConstraintType.STABILIZE_ENRICH_MODEL,
+                                                          groups=bg))
+                    else:
+                        ttmodel.add_to_group_cost(bg, self.local_weight() * ponderation * relevant_sum, week=week)
 
-        else:
-            # TO BE CHECKED !!!
+        if self.fixed_days:
             pass
-            # fc = self.get_courses_queryset_by_attributes(ttmodel, week)
-            # for c in fc:
-            #     sched_c = ttmodel.wdb \
-            #         .sched_courses \
-            #         .get(course=c,
-            #              work_copy=self.work_copy)
-            #     chosen_slot = Slot(start_time=sched_c.start_time,
-            #                        end_time=sched_c.end_time,
-            #                        day=sched_c.day)
-            #     if self.weight is not None:
-            #         ttmodel.add_to_generic_cost(-self.local_weight() \
-            #                        * ponderation * ttmodel.TT[(chosen_slot, c)], week=week)
-            #
-            #     else:
-            #         for slot in ttmodel.wdb.compatible_slots[c]:
-            #             if not slot.is_simultaneous_to(chosen_slot):
-            #                 ttmodel.add_constraint(ttmodel.TT[(slot, c)],
-            #                                        '==',
-            #                                        0,
-            #                                        Constraint(constraint_type=ConstraintType.STABILIZE_ENRICH_MODEL,
-            #                                                   courses=fc, slots=slot))
-
+            # Attention, les fixed_days doivent être des couples jour-semaine!!!!
+            # for day in days_filter(self.fixed_days.all(), week=week):
+            #     for sc in sched_courses.filter(slot__jour=day):
+            #         ttmodel.add_constraint(ttmodel.TT[(sc.slot, sc.course)], '==', 1)
+            #     for sc in sched_courses.exclude(slot__day=day):
+            #         for sl in ttmodel.wdb.slots.filter(day=day):
+            #             ttmodel.add_constraint(ttmodel.TT[(sl, sc.course)], '==', 0)
 
     def one_line_description(self):
         text = "Minimiser les changements"
-        if self.course_type:
-            text += " pour les " + str(self.course_type
-                                       )
-        if self.module:
-            text += " de " + str(self.module)
-        if self.tutor:
-            text += ' pour ' + str(self.tutor)
+        if self.groups.exists():
+            text += ' des groupes ' + ', '.join([g.full_name for g in self.groups.all()])
         if self.train_progs.count():
             text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
-        if self.group:
-            text += ' du groupe ' + str(self.group)
         text += ': copie ' + str(self.work_copy)
         return text
 

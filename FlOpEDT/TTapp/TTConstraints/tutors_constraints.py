@@ -33,6 +33,13 @@ from TTapp.slots import days_filter, slots_filter
 from TTapp.TTConstraint import TTConstraint, max_weight
 
 
+def considered_tutors(tutors_ttconstraint, ttmodel):
+    tutors_to_consider = set(ttmodel.wdb.instructors)
+    if tutors_ttconstraint.tutors.exists():
+        tutors_to_consider &= set(tutors_ttconstraint.tutors.all())
+    return tutors_to_consider
+
+
 class MinTutorsHalfDays(TTConstraint):
     """
     All courses will fit in a minimum of half days
@@ -46,10 +53,7 @@ class MinTutorsHalfDays(TTConstraint):
     def enrich_model(self, ttmodel, week, ponderation=1):
 
         helper = MinHalfDaysHelperTutor(ttmodel, self, week, ponderation)
-        considered_tutors = set(ttmodel.wdb.instructors)
-        if self.tutors.exists():
-            considered_tutors &= set(self.tutors.all())
-        for tutor in considered_tutors:
+        for tutor in considered_tutors(self, ttmodel):
             helper.enrich_model(tutor=tutor)
 
     def get_viewmodel(self):
@@ -91,10 +95,7 @@ class MinNonPreferedTutorsSlot(TTConstraint):
     def enrich_model(self, ttmodel, week, ponderation=None):
         if ponderation is None:
             ponderation = ttmodel.min_ups_i
-        if self.tutors.exists():
-            tutors = set(t for t in ttmodel.wdb.instructors if t in self.tutors.all())
-        else:
-            tutors = set(ttmodel.wdb.instructors)
+        tutors = considered_tutors(self, ttmodel)
         for sl in ttmodel.wdb.availability_slots:
             for tutor in tutors:
                 filtered_courses = set(c for c in ttmodel.wdb.possible_courses[tutor] if c.week == week)
@@ -132,10 +133,7 @@ class MinimizeBusyDays(TTConstraint):
         if ponderation is None:
             ponderation = ttmodel.min_bd_i
 
-        if self.tutors.exists():
-            tutors = set(t for t in ttmodel.wdb.instructors if t in self.tutors.all())
-        else:
-            tutors = set(ttmodel.wdb.instructors)
+        tutors = considered_tutors(self, ttmodel)
 
         for tutor in tutors:
             slot_by_day_cost = 0
@@ -188,10 +186,7 @@ class RespectBoundPerDay(TTConstraint):
         Minimize the number of busy days for tutor with cost
         (if it does not overcome the bound expressed in pref_hours_per_day)
         """
-        if self.tutors.exists():
-            tutors = set(t for t in ttmodel.wdb.instructors if t in self.tutors.all())
-        else:
-            tutors = set(ttmodel.wdb.instructors)
+        tutors = considered_tutors(self, ttmodel)
 
         for tutor in tutors:
             for d in days_filter(ttmodel.wdb.days, week=week):
