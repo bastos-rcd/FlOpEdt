@@ -96,7 +96,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             
         self.train_prog = self.request.query_params.get('train_prog', None)
         group_name = self.request.query_params.get('group', None)
-        self.tutor = self.request.query_params.get('tutor', None)
+        self.tutor = self.request.query_params.get('tutor_name', None)
         work_copy = self.request.query_params.get('work_copy', 0)
         if self.tutor is not None:
             try:
@@ -111,7 +111,8 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                                                    'course__room_type',
                                                    'course__module__display')\
                                    .prefetch_related('course__groups__train_prog',
-                                                     'room')
+                                                     'room',
+                                                     'course__supp_tutor')
         queryset = queryset.filter(work_copy=work_copy)
         # sanity check
         if group_name is not None and self.train_prog is None:
@@ -188,6 +189,8 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                           work_copy_param()
                       ])
                   )
+
+
 class UnscheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet to see all the unscheduled courses

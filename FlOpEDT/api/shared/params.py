@@ -49,7 +49,7 @@ def user_param(**kwargs):
 
 
 def tutor_param(**kwargs):
-    return openapi.Parameter('tutor',
+    return openapi.Parameter('tutor_name',
                              openapi.IN_QUERY,
                              description="Tutor username",
                              type=openapi.TYPE_STRING,
