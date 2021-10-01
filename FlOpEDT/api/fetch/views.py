@@ -96,7 +96,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             
         self.train_prog = self.request.query_params.get('train_prog', None)
         group_name = self.request.query_params.get('group', None)
-        self.tutor = self.request.query_params.get('tutor', None)
+        self.tutor = self.request.query_params.get('tutor_name', None)
         work_copy = self.request.query_params.get('work_copy', 0)
         if self.tutor is not None:
             try:
