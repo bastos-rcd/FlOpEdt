@@ -292,7 +292,7 @@ function allocate_dispos(tutor) {
 // --  begin  --
 // to change, maybe, if splitting intervals is not allowed
 // in the interface
-function fill_missing_preferences(tutor, ts) {
+function fill_missing_preferences(pref, ts) {
   week_days.forEach(function (day) {
     var current = ts.day_start_time;
     var next;
@@ -312,7 +312,7 @@ function fill_missing_preferences(tutor, ts) {
           duration: next - current,
           value: -1
         },
-        dispos[tutor][day.ref]
+        pref[day.ref]
       );
       if (next == ts.lunch_break_start_time) {
         next = ts.lunch_break_finish_time;
@@ -342,7 +342,7 @@ function create_dispos_user_data() {
 
   if (dispos[user.name] === undefined) {
     allocate_dispos(user.name);
-    fill_missing_preferences(user.name, ts);
+    fill_missing_preferences(dispos[user.name], ts);
     sort_preferences(dispos);
   }
 
@@ -1144,6 +1144,7 @@ function fetch_room_preferences() {
       if (Week.compare(exp_week, sel_week) == 0) {
         clean_unavailable_rooms();
         d3.csvParse(msg, translate_unavailable_rooms);
+        sort_preferences(unavailable_rooms);
       }
       show_loader(false);
       fetch_status.ongoing_un_rooms = false;

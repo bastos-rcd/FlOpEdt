@@ -137,32 +137,31 @@ function find_in_pref(pref, entity, period) {
 
 
 function no_overlap(list, start_time, duration) {
-  if (list.length == 0) {
+  if (list.length == 0 || duration == 0) {
     return true;
   }
 
   var i_start = index_in_pref(list.map(function (d) { return d.start_time; }), start_time);
   var i_end = index_in_pref(list.map(function (d) { return d.start_time; }), start_time + duration);
 
-  if (i_start != i_end) {
+  // too far
+  if (i_end > i_start + 1) {
     return false;
   }
-  if (i_end == 0) {
-    return true;
+
+  // start inside an occupied interval
+  if (i_start != 0
+      && list[i_start - 1].start_time + list[i_start - 1].duration > start_time) {
+    return false ;
   }
-  if (i_start == list.length) {
-    if (start_time >= list[list.length - 1].start_time + list[list.length - 1].duration) {
-      return true;
-    } else {
-      return false;
-    }
+
+  // should end after the next occupied interval
+  if (i_end == i_start
+      || i_end == i_start + 1 && list[i_end - 1].start_time == start_time + duration) {
+    return true ;
   }
-  if (list[i_start - 1].start_time + list[i_start - 1].duration
-    <= start_time
-    && start_time + duration <= list[i_end].start_time) {
-    return true;
-  }
-  return false;
+
+  return false ;
 }
 
 
