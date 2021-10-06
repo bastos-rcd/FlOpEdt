@@ -887,7 +887,7 @@ function compute_changes(changes, conc_tutors, gps) {
       // } else 
 
 
-      if (cur_course.room == "" && cur_course.id_visio == -1) {
+      if (cur_course.room == null && cur_course.id_visio == -1) {
         splash_case = {
           id: "def-room",
           but: butOK,

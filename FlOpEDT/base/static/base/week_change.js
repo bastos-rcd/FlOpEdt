@@ -738,10 +738,15 @@ function translate_cours_pl_from_json(d, result) {
   }
 
 
-  // pre-process supplementary tutors
-  d.tutors = d.course.supp_tutor.map(function(st) {
-    return st.username ;
-  });
+  if (department_settings.mode.cosmo==0) {
+      // pre-process supplementary tutors
+      d.tutors = d.course.supp_tutor.map(function (st) {
+        return st.username;
+      });
+  }
+  else{
+    d.tutors=[];
+  }
 
   // pre-process colors
   d.color_bg = 'white' ;
@@ -1125,15 +1130,15 @@ function fetch_room_preferences_unavailability() {
 function fetch_room_preferences() {
   fetch_status.ongoing_un_rooms = true;
 
-  var exp_week = wdw_weeks.get_selected();
+  var exp_week = wdw_weeks.get_selected() ;
 
   show_loader(true);
   $.ajax({
     type: "GET", //rest Type
+    headers: {Accept: 'text/csv'},
     dataType: 'text',
     url: build_url(url_unavailable_rooms, context_dept, exp_week.as_context()),
     async: true,
-    contentType: "text/csv",
     success: function (msg, ts, req) {
       var sel_week = wdw_weeks.get_selected();
       if (Week.compare(exp_week, sel_week) == 0) {
