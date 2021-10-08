@@ -23,7 +23,7 @@
 
 
 function Hours(settings) {
-  // side time scale: list of {h: int, hd:('am'|'pm')}
+  // side time scale: list of {min: int, hd:('am'|'pm')}
   this.data = [];
   this.settings = settings ;
 
@@ -87,6 +87,8 @@ function HourHeader(svg, layout_name, hours) {
   this.layout = svg.get_dom(layout_name).append("g").attr("class", "hour-scale");
   this.hours = hours;
   this.mix = new HourMix(this.hours.settings);
+  // free_text: list of {texts: list of string, time: {min: int, hd }}
+  this.free_text = [] ;
   hard_bind(this.mix);
 }
 
@@ -155,6 +157,7 @@ HourHeader.prototype.update = function (quick) {
 
   hour_scale.exit().remove();
 
+  this.update_free_text();
 };
 
 HourHeader.prototype.create_indicator = function() {
@@ -201,9 +204,45 @@ HourHeader.prototype.create_indicator = function() {
     });
 } ;
 
-// HourHeader.prototype.indicate_time = function () {
+HourHeader.prototype.update_free_text = function (quick) {
+  var t = get_transition(quick);
 
-// } ;
+  let text_group = this.layout
+    .selectAll(".gridsckhft")
+    .data(this.free_text);
+
+  text_group.exit().remove();
+
+  let new_text_group = text_group
+    .enter()
+    .append("text")
+    .attr("class", "gridsckhft");
+
+  text_group = text_group.merge(new_text_group);
+
+  text_group
+    .attr("y", this.mix.gsckh_y_time);
+
+
+  let texts = text_group
+    .selectAll("tspan")
+    .data(function(d){ return d.texts; });
+  
+  texts.exit().remove();
+
+  let new_texts = texts
+    .enter()
+    .append("tspan")
+    .text(function(d) { return d ; });
+
+  texts = texts.merge(new_texts);
+  
+  texts
+    .attr("dy", ".6em")
+    .attr("x", -20);
+  
+};
+
 
 
 // Display parameters and functions
@@ -232,5 +271,8 @@ function HourMix(settings) {
     let h = Math.floor(m / 60) ;
     m = m - h * 60 ;
     return h + "h" + m.toString().padStart(2, "0");
+  };
+  this.gsckh_y_time = function(d) {
+    return this.gsckh_y(d.time);
   };
 }

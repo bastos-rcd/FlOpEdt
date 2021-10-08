@@ -131,6 +131,7 @@ class ConstraintType(Enum):
     BREAK_AROUND_COURSE = "Break around course"
     NO_COURSE_ON_DAY = "No Course on day"
     TRAIN_PROG_FORBIDDEN_SLOT = "TRAIN_PROG_FORBIDDEN_SLOT"
+    Undesired_slots_limit = "Undesired_slots_limit"
 
     # From minhalfdays
     MIN_HALF_DAYS_LIMIT = "Min Half Days limit"

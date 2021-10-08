@@ -529,11 +529,13 @@ class TTModel(object):
         # (and None if transversal ones)
         # Do not consider it if mode.cosmo == 2!
         if self.department.mode.cosmo != 2:
-            NoSimultaneousGroupCourses.objects.get_or_create(department=self.department)
+            if not NoSimultaneousGroupCourses.objects.filter(department=self.department).exists():
+                NoSimultaneousGroupCourses.objects.create(department=self.department)
 
         # a course is scheduled at most once
         for c in self.wdb.courses:
-            self.add_constraint(self.sum([self.TT[(sl, c)] for sl in self.wdb.compatible_slots[c]]), '<=', 1,
+            self.add_constraint(self.sum([self.TT[(sl, c)] for sl in self.wdb.compatible_slots[c]]),
+                                '<=', 1,
                                 CourseConstraint(c))
 
         # constraint : courses are scheduled only once

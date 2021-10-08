@@ -44,7 +44,7 @@ from TTapp.models import \
     ConsiderDependencies, Curfew, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
-    ModulesByBloc, LimitTutorTimePerWeeks
+    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek
 
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
@@ -453,5 +453,6 @@ admin.site.register(ConsiderTutorsUnavailability, BasicConstraintAdmin)
 admin.site.register(LimitHoles, DepartmentModelAdmin)
 admin.site.register(LimitTutorTimePerWeeks, DepartmentModelAdmin)
 admin.site.register(ModulesByBloc, DepartmentModelAdmin)
+admin.site.register(LimitUndesiredSlotsPerWeek, DepartmentModelAdmin)
 
 

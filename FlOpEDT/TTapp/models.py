@@ -44,7 +44,7 @@ from TTapp.TTConstraints.tutors_constraints import MinTutorsHalfDays, MinNonPref
     MinimizeBusyDays, RespectBoundPerDay, LowerBoundBusyDays
 from TTapp.TTConstraints.modules_constraints import MinModulesHalfDays
 from TTapp.TTConstraints.slots_constraints import SimultaneousCourses, AvoidBothTimes, LimitedStartTimeChoices, \
-    ConsiderDependencies, ConsiderPivots
+    ConsiderDependencies, ConsiderPivots, LimitUndesiredSlotsPerWeek
 from TTapp.TTConstraints.rooms_constraints import LimitedRoomChoices
 from TTapp.TTConstraints.limit_time_constraints import LimitModulesTimePerPeriod, \
     LimitGroupsTimePerPeriod, LimitTutorsTimePerPeriod, LimitTimePerPeriod
@@ -52,7 +52,6 @@ from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak, BreakAroundC
 from TTapp.TTConstraints.visio_constraints import NoVisio, BoundPhysicalPresenceHalfDays, LimitGroupsPhysicalPresence, \
     VisioOnly, Curfew
 from TTapp.TTConstraints.cosmo_style_constraints import LimitHoles, LimitTutorTimePerWeeks, ModulesByBloc
-
 
 #
 #   CustomConstraint

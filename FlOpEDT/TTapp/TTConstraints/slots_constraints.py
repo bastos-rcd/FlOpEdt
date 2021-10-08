@@ -29,7 +29,6 @@ from base.partition import Partition
 from datetime import timedelta
 
 from django.http.response import JsonResponse
-from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
 from base.models import CourseStartTimeConstraint, Dependency, ModulePossibleTutors, UserPreference
 from django.contrib.postgres.fields import ArrayField
 
@@ -39,10 +38,14 @@ from base.timing import TimeInterval, flopdate_to_datetime, french_format, Day
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
-from TTapp.slots import days_filter, slots_filter
+from TTapp.slots import days_filter, slots_filter, Slot
 from TTapp.TTConstraint import TTConstraint
 from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
 from django.utils.translation import gettext as _
+from django.core.validators import MaxValueValidator
+from TTapp.TTConstraints.tutors_constraints import considered_tutors
+
+
 
 class SimultaneousCourses(TTConstraint):
     """
@@ -501,4 +504,54 @@ class AvoidBothTimes(TTConstraint):
             text += ' des promos ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
         else:
             text += " de toutes les promos."
+        return text
+
+
+class LimitUndesiredSlotsPerWeek(TTConstraint):
+    """
+    Allow to limit the number of undesired slots per week
+    start_time and end_time are in minuts from 0:00 AM
+    """
+
+    tutors = models.ManyToManyField('people.Tutor', blank=True)
+    slot_start_time = models.PositiveSmallIntegerField()
+    slot_end_time = models.PositiveSmallIntegerField()
+    max_number = models.PositiveSmallIntegerField(validators=[MaxValueValidator(7)])
+
+    def enrich_model(self, ttmodel, week, ponderation=1):
+        tutor_to_be_considered = considered_tutors(self, ttmodel)
+        days = days_filter(ttmodel.wdb.days, week=week)
+        undesired_slots = [Slot(day=day, start_time=self.slot_start_time, end_time=self.slot_end_time)
+                             for day in days]
+        for tutor in tutor_to_be_considered:
+            considered_courses = self.get_courses_queryset_by_parameters(tutor=tutor)
+            expr = ttmodel.lin_expr()
+            for undesired_slot in undesired_slots:
+                expr += ttmodel.add_floor(
+                    ttmodel.sum(ttmodel.TTinstructors[(sl, c, tutor)]
+                                for c in considered_courses
+                                for sl in slots_filter(ttmodel.wdb.courses_slots,
+                                                       simultaneous_to=undesired_slot)
+                                & ttmodel.wdb.compatible_slots[c]),
+                    1,
+                    len(considered_courses))
+            if self.weight is None:
+                ttmodel.add_constraint(expr, '<=', self.max_number,
+                                       Constraint(constraint_type=ConstraintType.Undesired_slots_limit,
+                                                  tutors=tutor))
+            else:
+                for i in range(self.max_number+1, len(days)+1):
+                    cost = self.local_weight() * ponderation
+                    undesired_situation = ttmodel.add_floor(expr, i, len(days))
+                    ttmodel.add_to_inst_cost(tutor, cost * undesired_situation, week)
+                    cost *= 2
+
+    def one_line_description(self):
+        text = ""
+        if self.tutors.exists():
+            text += ', '.join([tutor.username for tutor in self.tutors.all()])
+        else:
+            text += "Les profs"
+        text += f" n'ont pas cours plus de {self.max_number} jours par semaine " \
+               f"entre {french_format(self.slot_start_time)} et {french_format(self.slot_end_time)}"
         return text
