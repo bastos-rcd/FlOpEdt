@@ -151,14 +151,14 @@ class TutorsLunchBreak(TTConstraint):
                     # Je veux que slot_vars[tutor, local_slot] soit à 1
                     # si et seulement si
                     # undesired_scheduled_courses ou other_dep_undesired_sc_nb vaut plus que 1
-                    considered_slots = slots_filter(ttmodel.wdb.compatible_slots[c],
-                                                           simultaneous_to=local_slot)
-                    if not considered_slots:
+                    considered_sl_c = set((sl,c) for c in considered_courses
+                                          for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                                 simultaneous_to=local_slot))
+                    if not considered_sl_c:
                         continue
                     undesired_scheduled_courses = \
                         ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor]
-                                    for c in considered_courses
-                                    for sl in considered_slots)
+                                    for (sl,c) in considered_sl_c)
                     if not other_dep_scheduled_courses:
                         other_dep_undesired_sc_nb = 0
                     else:
