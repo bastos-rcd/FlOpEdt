@@ -139,9 +139,9 @@ class TutorsLunchBreak(TTConstraint):
                                            15)]
             slots_nb = len(local_slots)
             # pour chaque groupe, au moins un de ces slots ne voit aucun cours lui être simultané
-            slot_vars = {}
 
             for tutor in tutors_to_be_considered:
+                slot_vars = {}
                 considered_courses = self.get_courses_queryset_by_parameters(ttmodel, week, tutor=tutor)
                 if not considered_courses:
                     continue
@@ -170,10 +170,13 @@ class TutorsLunchBreak(TTConstraint):
                                 and local_slot.start_time < sc.end_time)
                         other_dep_undesired_sc_nb = len(other_dep_undesired_scheduled_courses)
                     undesired_expression = undesired_scheduled_courses + other_dep_undesired_sc_nb * ttmodel.one_var
-                    slot_vars[tutor, local_slot] = ttmodel.add_floor(expr=undesired_expression,
-                                                                     floor=1,
-                                                                     bound=len(considered_courses))
-                not_ok = ttmodel.add_floor(expr=ttmodel.sum(slot_vars[tutor, sl] for sl in local_slots),
+                    slot_vars[local_slot] = ttmodel.add_floor(expr=undesired_expression,
+                                                              floor=1,
+                                                              bound=len(considered_courses))
+                if not slot_vars:
+                    continue
+                    
+                not_ok = ttmodel.add_floor(expr=ttmodel.sum(slot_vars[sl] for sl in slot_vars),
                                            floor=slots_nb,
                                            bound=2 * slots_nb)
 
