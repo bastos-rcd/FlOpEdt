@@ -119,7 +119,6 @@ class TutorsLunchBreak(TTConstraint):
     """
     Ensures time for lunch in a given interval for given groups (all if groups is Null)
     """
-
     start_time = models.PositiveSmallIntegerField()
     end_time = models.PositiveSmallIntegerField()
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
@@ -143,6 +142,8 @@ class TutorsLunchBreak(TTConstraint):
 
             for tutor in considered_tutors:
                 considered_courses = self.get_courses_queryset_by_parameters(ttmodel, week, tutor=tutor)
+                if not considered_courses:
+                    continue
                 other_dep_scheduled_courses = \
                     set(ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]) | \
                     set(ttmodel.wdb.other_departments_scheduled_courses_for_supp_tutor[tutor])
@@ -150,10 +151,14 @@ class TutorsLunchBreak(TTConstraint):
                     # Je veux que slot_vars[tutor, local_slot] soit à 1
                     # si et seulement si
                     # undesired_scheduled_courses ou other_dep_undesired_sc_nb vaut plus que 1
+                    considered_slots = slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                           simultaneous_to=local_slot)
+                    if not considered_slots:
+                        continue
                     undesired_scheduled_courses = \
-                        ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] for c in considered_courses
-                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
-                                                           simultaneous_to=local_slot))
+                        ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor]
+                                    for c in considered_courses
+                                    for sl in considered_slots)
                     if not other_dep_scheduled_courses:
                         other_dep_undesired_sc_nb = 0
                     else:
