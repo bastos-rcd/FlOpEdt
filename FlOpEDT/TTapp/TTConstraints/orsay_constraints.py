@@ -39,6 +39,7 @@ from TTapp.slots import days_filter, slots_filter
 from TTapp.TTConstraint import TTConstraint
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from TTapp.slots import Slot
+from TTapp.TTConstraints.tutors_constraints import considered_tutors
 
 
 class GroupsLunchBreak(TTConstraint):
@@ -126,9 +127,9 @@ class TutorsLunchBreak(TTConstraint):
     tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints')
 
     def enrich_model(self, ttmodel, week, ponderation=100):
-        considered_tutors = set(ttmodel.wdb.instructors)
+        tutors_to_be_considered = considered_tutors(self, ttmodel)
         if self.tutors.exists():
-            considered_tutors &= set(self.tutors.all())
+            tutors_to_be_considered &= set(self.tutors.all())
         days = days_filter(ttmodel.wdb.days, week=week)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
@@ -140,7 +141,7 @@ class TutorsLunchBreak(TTConstraint):
             # pour chaque groupe, au moins un de ces slots ne voit aucun cours lui être simultané
             slot_vars = {}
 
-            for tutor in considered_tutors:
+            for tutor in tutors_to_be_considered:
                 considered_courses = self.get_courses_queryset_by_parameters(ttmodel, week, tutor=tutor)
                 if not considered_courses:
                     continue
