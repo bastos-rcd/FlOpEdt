@@ -297,6 +297,8 @@ class TTModel(object):
                                                      course__suspens=False,
                                                      course__tutor=i).exists():
                         forced_IBD[(i, d)] = 1
+                self.add_constraint(IBD[i, d], '>=', forced_IBD[(i, d)],
+                                    Constraint(constraint_type=ConstraintType.forced_IBD, instructors=i, days=d))
 
         IBD_GTE = {week: [] for week in self.weeks}
         max_days = len(TimeGeneralSettings.objects.get(department=self.department).days)

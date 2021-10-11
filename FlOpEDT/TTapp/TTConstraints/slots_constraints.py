@@ -524,7 +524,7 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
         undesired_slots = [Slot(day=day, start_time=self.slot_start_time, end_time=self.slot_end_time)
                              for day in days]
         for tutor in tutor_to_be_considered:
-            considered_courses = self.get_courses_queryset_by_parameters(tutor=tutor)
+            considered_courses = self.get_courses_queryset_by_parameters(ttmodel, week, tutor=tutor)
             expr = ttmodel.lin_expr()
             for undesired_slot in undesired_slots:
                 expr += ttmodel.add_floor(
@@ -538,7 +538,7 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
             if self.weight is None:
                 ttmodel.add_constraint(expr, '<=', self.max_number,
                                        Constraint(constraint_type=ConstraintType.Undesired_slots_limit,
-                                                  tutors=tutor))
+                                                  instructors=tutor))
             else:
                 for i in range(self.max_number+1, len(days)+1):
                     cost = self.local_weight() * ponderation
