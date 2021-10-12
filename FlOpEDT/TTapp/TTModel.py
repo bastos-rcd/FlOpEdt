@@ -491,17 +491,21 @@ class TTModel(object):
         else:
             self.warnings[key] = [warning]
 
+    @timer
     def add_stabilization_constraints(self):
-
         # maximize stability
         if self.stabilize_work_copy is not None:
-            st = StabilizeTutorsCourses(work_copy=self.stabilize_work_copy, weight=max_weight)
-            sg = StabilizeGroupsCourses(work_copy=self.stabilize_work_copy, weight=max_weight)
+            st = StabilizeTutorsCourses.objects.create(department=self.department,
+                                                       work_copy=self.stabilize_work_copy, weight=max_weight)
+            sg = StabilizeGroupsCourses.objects.create(department=self.department,
+                                                       work_copy=self.stabilize_work_copy, weight=max_weight)
             for week in self.weeks:
                 st.enrich_model(self, week, self.max_stab)
                 sg.enrich_model(self, week, self.max_stab)
             print('Will stabilize from remote work copy #', \
                   self.stabilize_work_copy)
+            st.delete()
+            sg.delete()
         else:
             print('No stabilization')
 
