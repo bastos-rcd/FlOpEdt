@@ -30,6 +30,8 @@ from django.utils.translation import gettext_lazy as _
 
 from django.db import models
 
+from FlOpEDT.decorators import timer
+
 max_weight = 8
 
 
@@ -67,6 +69,7 @@ class TTConstraint(models.Model):
     class Meta:
         abstract = True
 
+    @timer
     def enrich_model(self, ttmodel, week, ponderation=1):
         raise NotImplementedError
 
