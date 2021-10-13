@@ -1522,7 +1522,10 @@ function send_edt_change(changes) {
       edt_change_ack(msg);
       show_loader(false);
     },
-    error: function (msg) {
+    error: function (xhr, ajaxOptions, thrownError) {
+      console.log(xhr);
+      console.log(ajaxOptions);
+      console.log(thrownError);
       edt_change_ack({
         status: 'KO',
         more: 'Pb de communication avec le serveur'

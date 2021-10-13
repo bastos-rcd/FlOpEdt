@@ -916,10 +916,13 @@ def clean_change(week, old_version, change, work_copy=0, initiator=None, apply=F
     return ret
 
 
-@login_required
 def edt_changes(req, **kwargs):
     bad_response = {'status': 'KO', 'more': ''}
     good_response = {'status': 'OK', 'more': ''}
+
+    if not req.user.is_authenticated:
+        bad_response['more'] = "Vous ne vous êtes pas authentifié·e..."
+        return JsonResponse(bad_response)
 
     if not req.user.is_tutor:
         bad_response['more'] = "Pas membre de l'équipe encadrante"
@@ -933,7 +936,7 @@ def edt_changes(req, **kwargs):
 
     if req.method != "POST":
         bad_response['more'] = "Non POST"
-        return bad_response
+        return JsonResponse(bad_response)
 
     try:
         week = json.loads(req.POST.get('week'))

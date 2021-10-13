@@ -39,6 +39,7 @@ from TTapp.slots import days_filter, slots_filter
 from TTapp.TTConstraint import TTConstraint
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from TTapp.slots import Slot
+from TTapp.TTConstraints.tutors_constraints import considered_tutors
 
 
 class GroupsLunchBreak(TTConstraint):
@@ -119,7 +120,6 @@ class TutorsLunchBreak(TTConstraint):
     """
     Ensures time for lunch in a given interval for given groups (all if groups is Null)
     """
-
     start_time = models.PositiveSmallIntegerField()
     end_time = models.PositiveSmallIntegerField()
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
@@ -127,9 +127,9 @@ class TutorsLunchBreak(TTConstraint):
     tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints')
 
     def enrich_model(self, ttmodel, week, ponderation=100):
-        considered_tutors = set(ttmodel.wdb.instructors)
+        tutors_to_be_considered = considered_tutors(self, ttmodel)
         if self.tutors.exists():
-            considered_tutors &= set(self.tutors.all())
+            tutors_to_be_considered &= set(self.tutors.all())
         days = days_filter(ttmodel.wdb.days, week=week)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
@@ -139,10 +139,12 @@ class TutorsLunchBreak(TTConstraint):
                                            15)]
             slots_nb = len(local_slots)
             # pour chaque groupe, au moins un de ces slots ne voit aucun cours lui être simultané
-            slot_vars = {}
 
-            for tutor in considered_tutors:
+            for tutor in tutors_to_be_considered:
+                slot_vars = {}
                 considered_courses = self.get_courses_queryset_by_parameters(ttmodel, week, tutor=tutor)
+                if not considered_courses:
+                    continue
                 other_dep_scheduled_courses = \
                     set(ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]) | \
                     set(ttmodel.wdb.other_departments_scheduled_courses_for_supp_tutor[tutor])
@@ -150,10 +152,14 @@ class TutorsLunchBreak(TTConstraint):
                     # Je veux que slot_vars[tutor, local_slot] soit à 1
                     # si et seulement si
                     # undesired_scheduled_courses ou other_dep_undesired_sc_nb vaut plus que 1
+                    considered_sl_c = set((sl,c) for c in considered_courses
+                                          for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                                 simultaneous_to=local_slot))
+                    if not considered_sl_c:
+                        continue
                     undesired_scheduled_courses = \
-                        ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] for c in considered_courses
-                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
-                                                           simultaneous_to=local_slot))
+                        ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor]
+                                    for (sl,c) in considered_sl_c)
                     if not other_dep_scheduled_courses:
                         other_dep_undesired_sc_nb = 0
                     else:
@@ -164,10 +170,13 @@ class TutorsLunchBreak(TTConstraint):
                                 and local_slot.start_time < sc.end_time)
                         other_dep_undesired_sc_nb = len(other_dep_undesired_scheduled_courses)
                     undesired_expression = undesired_scheduled_courses + other_dep_undesired_sc_nb * ttmodel.one_var
-                    slot_vars[tutor, local_slot] = ttmodel.add_floor(expr=undesired_expression,
-                                                                     floor=1,
-                                                                     bound=len(considered_courses))
-                not_ok = ttmodel.add_floor(expr=ttmodel.sum(slot_vars[tutor, sl] for sl in local_slots),
+                    slot_vars[local_slot] = ttmodel.add_floor(expr=undesired_expression,
+                                                              floor=1,
+                                                              bound=len(considered_courses))
+                if not slot_vars:
+                    continue
+                    
+                not_ok = ttmodel.add_floor(expr=ttmodel.sum(slot_vars[sl] for sl in slot_vars),
                                            floor=slots_nb,
                                            bound=2 * slots_nb)
 

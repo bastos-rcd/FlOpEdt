@@ -230,7 +230,7 @@ def fetch_physical_presence(req, year, week, **kwargs):
 
 
 @tutor_or_superuser_required
-def change_physical_presence(req, year, week, user):
+def change_physical_presence(req, year, week_nb, user):
     bad_response = {'status': 'KO'}
 
     if not req.is_department_admin and req.user.username != user:
@@ -250,16 +250,16 @@ def change_physical_presence(req, year, week, user):
     logger.info("List of changes")
     for change in changes:
         logger.info(change)
-
+    print(week_nb, year)
     # Default week at None
-    if week == 0 or year == 0:
+    if week_nb == 0 or year == 0:
         week = None
-        
-    try:
-        week = Week.objects.get(nb=week, year=year)
-    except Week.DoesNotExist:
-        bad_response['more'] = 'Wrong week'
-        return JsonResponse(bad_response)
+    else:
+        try:
+            week = Week.objects.get(nb=week_nb, year=year)
+        except Week.DoesNotExist:
+            bad_response['more'] = 'Wrong week'
+            return JsonResponse(bad_response)
 
     for change in changes:
         logger.info(f"Change {change}")

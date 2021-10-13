@@ -137,7 +137,7 @@ def timer(fonction):
             result = fonction(*args, **kwargs)
             stop_time = time.time()
             total = stop_time - start_time
-            print("temps d'execution: %.5fs" % (total))
+            print("%s : %.5fs" % (fonction.__name__, total))
             return result
         return pre_analyse_timer
     else:
