@@ -912,7 +912,8 @@ function compute_changes(changes, conc_tutors, gps) {
       let it ;
       for (it = 0 ; it < cur_course.tutors.length ; it++) {
         if (conc_tutors.indexOf(cur_course.tutors[it]) == -1
-            && cur_course.tutors[it] != logged_usr.name) {
+            && cur_course.tutors[it] != logged_usr.name
+            && cur_course.tutors[it] !== null) {
           conc_tutors.push(cur_course.tutors[it]);
         }
       }

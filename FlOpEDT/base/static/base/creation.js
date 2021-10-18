@@ -1458,9 +1458,13 @@ function check_tutor_free_week(issues, tutor) {
 
 // tutor teaches already in the current department
 function check_tutor_busy(issues, possible_conflicts, tutor) {
-  let conflicts = possible_conflicts.filter(function (c) {
-    return (c.tutors.includes(tutor));
-  });
+  let conflicts = [] ;
+
+  if (tutor !== null) {
+    possible_conflicts.filter(function (c) {
+      return (c.tutors.includes(tutor));
+    });
+  }
   
   if (conflicts.length > 0) {
     issues.push({
