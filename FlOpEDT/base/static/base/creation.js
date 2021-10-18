@@ -1444,10 +1444,12 @@ function check_busy_group(issues, possible_conflicts) {
 // return true iff does not teach  
 function check_tutor_free_week(issues, tutor) {
   if (typeof dispos[tutor] === 'undefined') {
-    issues.push({
-      nok: 'tutor_free_week',
-      more: { tutor: tutor }
-    });
+    if (tutor !== null) {
+      issues.push({
+        nok: 'tutor_free_week',
+        more: { tutor: tutor }
+      });
+    }
     return true ;
   }
   return false ;
