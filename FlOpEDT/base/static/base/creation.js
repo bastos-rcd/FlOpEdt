@@ -1444,10 +1444,12 @@ function check_busy_group(issues, possible_conflicts) {
 // return true iff does not teach  
 function check_tutor_free_week(issues, tutor) {
   if (typeof dispos[tutor] === 'undefined') {
-    issues.push({
-      nok: 'tutor_free_week',
-      more: { tutor: tutor }
-    });
+    if (tutor !== null) {
+      issues.push({
+        nok: 'tutor_free_week',
+        more: { tutor: tutor }
+      });
+    }
     return true ;
   }
   return false ;
@@ -1456,9 +1458,13 @@ function check_tutor_free_week(issues, tutor) {
 
 // tutor teaches already in the current department
 function check_tutor_busy(issues, possible_conflicts, tutor) {
-  let conflicts = possible_conflicts.filter(function (c) {
-    return (c.tutors.includes(tutor));
-  });
+  let conflicts = [] ;
+
+  if (tutor !== null) {
+    possible_conflicts.filter(function (c) {
+      return (c.tutors.includes(tutor));
+    });
+  }
   
   if (conflicts.length > 0) {
     issues.push({

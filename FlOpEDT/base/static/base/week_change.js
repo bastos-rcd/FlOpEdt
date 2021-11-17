@@ -838,11 +838,20 @@ function course_pp_canevas_json_to_obj(d) {
 
 
 function translate_cours_pp_from_json(d, result) {
-  // pre-process supplementary tutors
-  d.tutors = d.supp_tutor.map(function(st) {
-    return st.username ;
-  });
+  if (department_settings.mode.cosmo==0) {
+    // pre-process supplementary tutors
+    d.tutors = d.supp_tutor.map(function(st) {
+      return st.username ;
+    });
+  } else {
+    d.tutors = [] ;
+  }
 
+  if (d.tutor !== null) {
+    d.tutors.unshift(d.tutor) ;
+  }
+
+  
   // TBD: add also supp_tutors
   for(let ip = 0 ; ip < Math.max(d.tutors.length, 1) ; ip++) {
     if (tutors.pp.indexOf(d.tutors[ip]) == -1) {

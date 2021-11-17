@@ -916,10 +916,13 @@ def clean_change(week, old_version, change, work_copy=0, initiator=None, apply=F
     return ret
 
 
-@login_required
 def edt_changes(req, **kwargs):
     bad_response = {'status': 'KO', 'more': ''}
     good_response = {'status': 'OK', 'more': ''}
+
+    if not req.user.is_authenticated:
+        bad_response['more'] = "Vous ne vous êtes pas authentifié·e..."
+        return JsonResponse(bad_response)
 
     if not req.user.is_tutor:
         bad_response['more'] = "Pas membre de l'équipe encadrante"
@@ -933,7 +936,7 @@ def edt_changes(req, **kwargs):
 
     if req.method != "POST":
         bad_response['more'] = "Non POST"
-        return bad_response
+        return JsonResponse(bad_response)
 
     try:
         week = json.loads(req.POST.get('week'))
@@ -1423,8 +1426,9 @@ def send_email_proposal(req, **kwargs):
         return bad_response
 
     try:
-        week = json.loads(req.POST.get('week'))
+        week_nb = json.loads(req.POST.get('week'))
         year = json.loads(req.POST.get('year'))
+        week = Week.objects.get(nb=week_nb, year=year)
         work_copy = json.loads(req.POST.get('work_copy'))
         initiator = User.objects.get(username=req.user.username)
     except:
@@ -1446,7 +1450,7 @@ def send_email_proposal(req, **kwargs):
     
     try:
         for change in recv_changes:
-            new_courses = clean_change(year, week, 0, change, work_copy=work_copy,
+            new_courses = clean_change(week, 0, change, work_copy=work_copy,
                                        initiator=initiator, apply=False)
             same, changed = new_courses['log'].strs_course_changes(course=new_courses['course'],
                                                                    sched_course=new_courses['sched'])

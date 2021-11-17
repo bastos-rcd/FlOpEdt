@@ -912,7 +912,8 @@ function compute_changes(changes, conc_tutors, gps) {
       let it ;
       for (it = 0 ; it < cur_course.tutors.length ; it++) {
         if (conc_tutors.indexOf(cur_course.tutors[it]) == -1
-            && cur_course.tutors[it] != logged_usr.name) {
+            && cur_course.tutors[it] != logged_usr.name
+            && cur_course.tutors[it] !== null) {
           conc_tutors.push(cur_course.tutors[it]);
         }
       }
@@ -1522,7 +1523,10 @@ function send_edt_change(changes) {
       edt_change_ack(msg);
       show_loader(false);
     },
-    error: function (msg) {
+    error: function (xhr, ajaxOptions, thrownError) {
+      console.log(xhr);
+      console.log(ajaxOptions);
+      console.log(thrownError);
       edt_change_ack({
         status: 'KO',
         more: 'Pb de communication avec le serveur'
