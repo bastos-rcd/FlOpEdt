@@ -1,21 +1,21 @@
 # This file is part of the FlOpEDT/FlOpScheduler project.
 # Copyright (c) 2017
 # Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # Affero General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Affero General Public
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
-# 
+#
 # You can be released from the requirements of the license by purchasing
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
@@ -31,13 +31,13 @@ import datetime
 import base.models
 
 days_infos = {
-    'm' :{'shift': 0, 'slug': _('Mon.')},
-    'tu':{'shift': 1, 'slug': _('Tue.')},
-    'w' :{'shift': 2, 'slug': _('Wed.')},
-    'th':{'shift': 3, 'slug': _('Thu.')},
-    'f' :{'shift': 4, 'slug': _('Fri.')},
-    'sa':{'shift': 5, 'slug': _('Sat.')},
-    'su':{'shift': 6, 'slug': _('Sun.')}
+    'm': {'shift': 0, 'slug': _('Mon.')},
+    'tu': {'shift': 1, 'slug': _('Tue.')},
+    'w': {'shift': 2, 'slug': _('Wed.')},
+    'th': {'shift': 3, 'slug': _('Thu.')},
+    'f': {'shift': 4, 'slug': _('Fri.')},
+    'sa': {'shift': 5, 'slug': _('Sat.')},
+    'su': {'shift': 6, 'slug': _('Sun.')}
 }
 
 
@@ -81,18 +81,21 @@ def num_all_days(y, w, dept):
         return []
     monday = monday_w2(y) + datetime.timedelta(7 * (w - 2))
     day_list = []
-    dept_day_list = base.models.TimeGeneralSettings.objects.get(department=dept).days
+    dept_day_list = base.models.TimeGeneralSettings.objects.get(
+        department=dept).days
     iday = 0
     for d_ref in dept_day_list:
         cur_day = monday + datetime.timedelta(days_infos[d_ref]['shift'])
-        day_list.append({'num':iday,
-                         'date':f"{cur_day.day:02d}/{cur_day.month:02d}",
-                         'ref':d_ref,
-                         'name':days_infos[d_ref]['slug']})
+        day_list.append({'num': iday,
+                         'date': f"{cur_day.day:02d}/{cur_day.month:02d}",
+                         'ref': d_ref,
+                         'name': days_infos[d_ref]['slug']})
         iday += 1
     return day_list
 
 # More or less working weeks
+
+
 def week_list():
     li = []
     if actual_year == 2017:

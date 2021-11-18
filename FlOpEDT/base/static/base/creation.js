@@ -1461,7 +1461,7 @@ function check_tutor_busy(issues, possible_conflicts, tutor) {
   let conflicts = [] ;
 
   if (tutor !== null) {
-    possible_conflicts.filter(function (c) {
+    conflicts = possible_conflicts.filter(function (c) {
       return (c.tutors.includes(tutor));
     });
   }
