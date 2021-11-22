@@ -1034,7 +1034,7 @@ function update_selection() {
     var tut = tutors.all.find(function(d) {
       return c.tutors.includes(d.name) ;
     });
-    var roo = rooms_sel.all.find(function(d) {
+    var roo = rooms_sel.all.filter(function(d) {
       // visio room
       if (c.room === null) {
         return true ;
@@ -1046,11 +1046,13 @@ function update_selection() {
         return false;
       }
     });
+    const reducer = (p, c) => (p || c.display);
+    let display_room = roo.reduce(reducer, false);
     if (typeof mod === 'undefined'
         || typeof roo === 'undefined') {
       c.display = false ;
     } else {
-      c.display = mod.display && tut_display && roo.display ;
+      c.display = mod.display && tut_display && display_room ;
     }
   });
 }
