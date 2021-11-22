@@ -1048,8 +1048,7 @@ function update_selection() {
     });
     const reducer = (p, c) => (p || c.display);
     let display_room = roo.reduce(reducer, false);
-    if (typeof mod === 'undefined'
-        || typeof roo === 'undefined') {
+    if (typeof mod === 'undefined') {
       c.display = false ;
     } else {
       c.display = mod.display && tut_display && display_room ;
