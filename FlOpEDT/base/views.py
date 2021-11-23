@@ -595,13 +595,12 @@ def fetch_decale(req, **kwargs):
     week = int(req.GET.get('s', '0'))
     year = int(req.GET.get('a', '0'))
     module = req.GET.get('m', '')
-    prof = req.GET.get('p', '')
+    prof = req.GET.get('p', None)
     group_name = req.GET.get('group', '')
     training_programme = req.GET.get('training_programme', '')
     department = req.department
 
     try:
-        print(group_name, training_programme)
         group = StructuralGroup.objects.get(
             name=group_name,
             train_prog__abbrev=training_programme,
@@ -633,13 +632,12 @@ def fetch_decale(req, **kwargs):
         except ObjectDoesNotExist:
             day = ''
             time = -1
-        if c.tutor is not None:
-            courses.append({'i': c.id,
-                            'm': c.module.abbrev,
-                            'p': c.tutor.username,
-                            'g': [g.name for g in c.groups.all()],
-                            'd': day,
-                            't': time})
+        courses.append({'i': c.id,
+                        'm': c.module.abbrev,
+                        'p': c.tutor.username if c.tutor is not None else '',
+                        'g': [g.name for g in c.groups.all()],
+                        'd': day,
+                        't': time})
 
     course = filt_p(filt_g(filt_sa(department, week, year), group), prof) \
         .order_by('module__abbrev') \
@@ -653,6 +651,8 @@ def fetch_decale(req, **kwargs):
     for c in course:
         if c.tutor is not None:
             tutors.append(c.tutor.username)
+        else:
+            tutors.append('')
 
     if module != '':
         course_queryset = Course\
@@ -665,6 +665,8 @@ def fetch_decale(req, **kwargs):
         for c in course:
             if c.tutor is not None:
                 module_tutors.append(c.tutor.username)
+            else:
+                module_tutors.append('')
 
     course = filt_p(filt_m(filt_sa(department, week, year), module), prof) \
         .distinct('groups')
@@ -1628,8 +1630,11 @@ def filt_m(r, module):
 
 
 def filt_p(r, prof):
-    if prof != '':
-        r = r.filter(tutor__username=prof)
+    if prof != None:
+        if prof == "":
+            r = r.filter(tutor=None)
+        else:
+            r = r.filter(tutor__username=prof)
     return r
 
 
