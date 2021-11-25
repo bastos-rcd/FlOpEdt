@@ -32,7 +32,7 @@ from MyFlOp.MyTTUtils import print_differences
 
 
 class MyTTModel(TTModel):
-    def __init__(self, department_abbrev, week_year_list,
+    def __init__(self, department_abbrev, weeks,
                  train_prog=None,
                  stabilize_work_copy=None,
                  min_nps_i=1.,
@@ -52,7 +52,7 @@ class MyTTModel(TTModel):
         problem, you must write it here, before calling TTModel's constructor.
 
         """
-        TTModel.__init__(self, department_abbrev, week_year_list,
+        TTModel.__init__(self, department_abbrev, weeks,
                          train_prog=train_prog,
                          stabilize_work_copy=stabilize_work_copy,
                          min_nps_i=min_nps_i,
@@ -88,4 +88,4 @@ class MyTTModel(TTModel):
                                solver=solver,
                                threads=None)
         if result is not None and self.stabilize_work_copy is not None:
-            print_differences(self.weeks, self.year, self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
+            print_differences(self.weeks, self.stabilize_work_copy, target_work_copy, self.wdb.instructors)

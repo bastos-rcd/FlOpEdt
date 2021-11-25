@@ -48,22 +48,22 @@ def resolve_department(func):
 
     return _wraper_function
 
-def print_differences(week, year, old_copy, new_copy, tutors=Tutor.objects.all()):
-    for tutor in tutors:
-        SCa = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=old_copy, course__week__nb=week,
-                                             course__week__year=year)
-        SCb = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=new_copy, course__week__nb=week,
-                                             course__week__year=year)
-        slots_a = set([x.start_time//60 for x in SCa])
-        slots_b = set([x.start_time//60 for x in SCb])
-        if slots_a ^ slots_b:
-            result = "For %s old copy has :" % tutor
-            for sl in slots_a - slots_b:
-                result += "%s, " % sl
-            result += "and new copy has :"
-            for sl in slots_b - slots_a:
-                result += "%s, " % sl
-            print(result)
+def print_differences(weeks, old_copy, new_copy, tutors=Tutor.objects.all()):
+    for week in weeks:
+        print("For", week)
+        for tutor in tutors:
+            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=old_copy, course__week=week)
+            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=new_copy, course__week=week)
+            slots_a = set([x.start_time//60 for x in SCa])
+            slots_b = set([x.start_time//60 for x in SCb])
+            if slots_a ^ slots_b:
+                result = "For %s old copy has :" % tutor
+                for sl in slots_a - slots_b:
+                    result += "%s, " % sl
+                result += "and new copy has :"
+                for sl in slots_b - slots_a:
+                    result += "%s, " % sl
+                print(result)
 
 
 @resolve_department

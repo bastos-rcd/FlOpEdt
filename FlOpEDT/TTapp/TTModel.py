@@ -540,21 +540,22 @@ class TTModel(object):
         if not RespectBoundPerDay.objects.filter(department=self.department).exists():
             RespectBoundPerDay.objects.create(department=self.department)
 
-        # Check if ConsiderPivots constraint is in database, and add it if not
-        if not ConsiderPivots.objects.filter(department=self.department).exists():
-            ConsiderPivots.objects.create(department=self.department)
-
         # Check if MinimizeBusyDays constraint is in database, and add it if not
         if not MinimizeBusyDays.objects.filter(department=self.department).exists():
             MinimizeBusyDays.objects.create(department=self.department, weight=max_weight)
 
-        # Check if MinGroupsHalfDays constraint is in database, and add it if not
-        if not MinGroupsHalfDays.objects.filter(department=self.department).exists():
-            MinGroupsHalfDays.objects.create(department=self.department, weight=max_weight)
+        if not self.department.mode.cosmo:
+            # Check if ConsiderPivots constraint is in database, and add it if not
+            if not ConsiderPivots.objects.filter(department=self.department).exists():
+                ConsiderPivots.objects.create(department=self.department)
 
-        # Check if ConsiderDependencies constraint is in database, and add it if not
-        if not ConsiderDependencies.objects.filter(department=self.department).exists():
-            ConsiderDependencies.objects.create(department=self.department)
+            # Check if MinGroupsHalfDays constraint is in database, and add it if not
+            if not MinGroupsHalfDays.objects.filter(department=self.department).exists():
+                MinGroupsHalfDays.objects.create(department=self.department, weight=max_weight)
+    
+            # Check if ConsiderDependencies constraint is in database, and add it if not
+            if not ConsiderDependencies.objects.filter(department=self.department).exists():
+                ConsiderDependencies.objects.create(department=self.department)
 
     @timer
     def add_instructors_constraints(self):

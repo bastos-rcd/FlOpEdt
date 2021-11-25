@@ -37,6 +37,8 @@ from people.tutor import fill_default_user_preferences
 from misc.assign_colors import assign_module_color
 from TTapp.models import StabilizationThroughWeeks
 
+from django.db import transaction
+
 def do_assign(module, course_type, week, book):
     already_done = ModuleTutorRepartition.objects.filter(module=module, course_type=course_type,
                                                          week=week).exists()
@@ -68,7 +70,9 @@ def do_assign(module, course_type, week, book):
     print(f"Assignation done for {module.abbrev} / {course_type.name}!")
 
 
+@transaction.atomic
 def ReadPlanifWeek(department, book, feuille, week_nb, year, courses_to_stabilize=None):
+    Course.objects.filter(type__department=department, week__nb=week_nb, week__year=year).delete()
     sheet = book[feuille]
     period=Period.objects.get(name=feuille, department=department)
     week = Week.objects.get(nb=week_nb, year=year)
@@ -257,7 +261,9 @@ def ReadPlanifWeek(department, book, feuille, week_nb, year, courses_to_stabiliz
             raise Exception(f"Exception ligne {row}, semaine {week_nb} de {feuille}: {e} \n")
 
 
+@transaction.atomic
 def extract_period(department, book, period, year, stabilize_courses=False, starting_week=-1, ending_week=53):
+    Course.objects.filter(module__period=period, week=None).delete()
     if stabilize_courses:
         courses_to_stabilize = {}
         print("Courses will be stabilized through weeks for period", period)
@@ -287,7 +293,7 @@ def extract_period(department, book, period, year, stabilize_courses=False, star
                 stw.courses.add(c)
 
 
-
+@transaction.atomic
 def extract_planif(department, bookname=None, stabilize_courses=False):
     '''
     Generate the courses from bookname; the school year starts in actual_year
@@ -300,6 +306,7 @@ def extract_planif(department, bookname=None, stabilize_courses=False):
     assign_module_color(department)
 
 
+@transaction.atomic
 def extract_planif_from_week(week_nb, year, department, bookname=None, stabilize_courses=False):
     '''
     Generate the courses from bookname; the school year starts in actual_year
@@ -344,6 +351,8 @@ def extract_planif_from_week(week_nb, year, department, bookname=None, stabilize
             for c in courses_list:
                 stw.courses.add(c)
 
+
+@transaction.atomic
 def extract_planif_weeks(week_year_list, department, bookname=None):
     if bookname is None:
         bookname = 'media/configuration/planif_file_'+department.abbrev+'.xlsx'
