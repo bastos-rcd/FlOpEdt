@@ -88,4 +88,5 @@ class MyTTModel(TTModel):
                                solver=solver,
                                threads=None)
         if result is not None and self.stabilize_work_copy is not None:
-            print_differences(self.weeks, self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
+            print_differences(self.department, self.weeks,
+                              self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
