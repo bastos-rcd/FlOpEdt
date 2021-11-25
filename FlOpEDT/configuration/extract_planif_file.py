@@ -72,11 +72,10 @@ def do_assign(module, course_type, week, book):
 
 @transaction.atomic
 def ReadPlanifWeek(department, book, feuille, week_nb, year, courses_to_stabilize=None):
-    Course.objects.filter(type__department=department, week__nb=week_nb, week__year=year).delete()
     sheet = book[feuille]
     period=Period.objects.get(name=feuille, department=department)
     week = Week.objects.get(nb=week_nb, year=year)
-
+    Course.objects.filter(type__department=department, week=week, module__period=period).delete()
     # lookup week row:
 
     # lookup week column
