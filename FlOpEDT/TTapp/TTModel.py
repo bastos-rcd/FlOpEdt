@@ -273,7 +273,7 @@ class TTModel(object):
                     card = 2 * len(halfdayslots)
                     self.add_constraint(card * IBHD[i, d, apm] - self.sum(IBS[i, sl] for sl in halfdayslots), '>=',
                                         0,
-                                        Constraint(constraint_type=ConstraintType.IBD_INF, instructors=i, days=d))
+                                        Constraint(constraint_type=ConstraintType.IBHD_INF, instructors=i, days=d))
 
         forced_IBD = {}
         for i in self.wdb.instructors:
