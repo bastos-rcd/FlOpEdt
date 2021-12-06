@@ -463,6 +463,7 @@ class Course(models.Model):
     tutor = models.ForeignKey('people.Tutor',
                               related_name='taught_courses',
                               null=True,
+                              blank=True,
                               default=None,
                               on_delete=models.CASCADE)
     supp_tutor = models.ManyToManyField('people.Tutor',
