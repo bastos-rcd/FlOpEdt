@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-23 07:27+0000\n"
+"POT-Creation-Date: 2021-12-08 15:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -98,13 +98,13 @@ msgstr ""
 msgid "Smurf"
 msgstr ""
 
-#: TTapp/TTConstraint.py:61
+#: TTapp/TTConstraint.py:63
 msgid "Is active?"
 msgstr ""
 
 #: TTapp/TTConstraints/core_constraints.py:69
 #: TTapp/TTConstraints/core_constraints.py:331
-#: TTapp/TTConstraints/slots_constraints.py:254
+#: TTapp/TTConstraints/slots_constraints.py:257
 msgid "OK"
 msgstr ""
 
@@ -114,12 +114,12 @@ msgstr ""
 #: TTapp/TTConstraints/core_constraints.py:361
 #: TTapp/TTConstraints/core_constraints.py:417
 #: TTapp/TTConstraints/core_constraints.py:440
-#: TTapp/TTConstraints/slots_constraints.py:278
-#: TTapp/TTConstraints/slots_constraints.py:285
-#: TTapp/TTConstraints/slots_constraints.py:292
-#: TTapp/TTConstraints/slots_constraints.py:306
-#: TTapp/TTConstraints/slots_constraints.py:314
-#: TTapp/TTConstraints/slots_constraints.py:321
+#: TTapp/TTConstraints/slots_constraints.py:281
+#: TTapp/TTConstraints/slots_constraints.py:288
+#: TTapp/TTConstraints/slots_constraints.py:295
+#: TTapp/TTConstraints/slots_constraints.py:309
+#: TTapp/TTConstraints/slots_constraints.py:317
+#: TTapp/TTConstraints/slots_constraints.py:324
 msgid "KO"
 msgstr ""
 
@@ -227,42 +227,42 @@ msgstr ""
 msgid "Minimize groups non-preferred slots"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:280
-#: TTapp/TTConstraints/slots_constraints.py:287
+#: TTapp/TTConstraints/slots_constraints.py:283
+#: TTapp/TTConstraints/slots_constraints.py:290
 #, python-brace-format
 msgid ""
 "There is no available slots for the second course after the first one. "
 "{dependency}"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:294
+#: TTapp/TTConstraints/slots_constraints.py:297
 #, python-brace-format
 msgid ""
 "There is no available slots for the first or the second course. {dependency}"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:308
+#: TTapp/TTConstraints/slots_constraints.py:311
 #, python-brace-format
 msgid "There is no available successive slots for those courses. {dependency}"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:316
+#: TTapp/TTConstraints/slots_constraints.py:319
 #, python-brace-format
 msgid ""
 "There is no available slots for the second course after a {dependency."
 "day_gap} day gap. {dependency}"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:323
+#: TTapp/TTConstraints/slots_constraints.py:326
 #, python-brace-format
 msgid "One of the courses has no eligible tutor to lecture it. {dependency}"
 msgstr ""
 
-#: TTapp/TTConstraints/test_constraints.py:82 base/models.py:884
+#: TTapp/TTConstraints/test_constraints.py:82 base/models.py:885
 msgid "Successives?"
 msgstr ""
 
-#: TTapp/TTConstraints/test_constraints.py:83 base/models.py:886
+#: TTapp/TTConstraints/test_constraints.py:83 base/models.py:887
 msgid "Minimal day gap between courses"
 msgstr ""
 
@@ -305,7 +305,7 @@ msgstr ""
 msgid "There is no available tutor for {self.course2.full_name()}"
 msgstr ""
 
-#: base/admin.py:614 base/admin.py:640 base/admin.py:653
+#: base/admin.py:615 base/admin.py:641 base/admin.py:654
 msgid "Week"
 msgstr ""
 
@@ -377,31 +377,31 @@ msgstr ""
 msgid "graded?"
 msgstr ""
 
-#: base/models.py:477
+#: base/models.py:478
 msgid "Suspens?"
 msgstr ""
 
-#: base/models.py:509
+#: base/models.py:510
 msgid "Graded?"
 msgstr ""
 
-#: base/models.py:885 base/models.py:896
+#: base/models.py:886 base/models.py:897
 msgid "On different days"
 msgstr ""
 
-#: base/models.py:914
+#: base/models.py:915
 msgid "Full"
 msgstr ""
 
-#: base/models.py:916
+#: base/models.py:917
 msgid "Full generation date"
 msgstr ""
 
-#: base/models.py:917
+#: base/models.py:918
 msgid "Stabilized"
 msgstr ""
 
-#: base/models.py:919
+#: base/models.py:920
 msgid "Partial generation date"
 msgstr ""
 
@@ -490,7 +490,7 @@ msgid ""
 "for that week, the typical week defines the availability."
 msgstr ""
 
-#: base/templates/base/help.html:59
+#: base/templates/base/help.html:60
 msgid "Some Tutorial Videos"
 msgstr ""
 
@@ -558,28 +558,36 @@ msgstr ""
 msgid " How ?"
 msgstr ""
 
-#: base/templates/base/show-edt.html:49
+#: base/templates/base/show-edt.html:50
 msgid "Check election"
 msgstr ""
 
-#: base/templates/base/show-edt.html:53
+#: base/templates/base/show-edt.html:54
 msgid "Elect this copy"
 msgstr ""
 
-#: base/templates/base/show-edt.html:57
+#: base/templates/base/show-edt.html:58
 msgid "Duplicate this copy"
 msgstr ""
 
-#: base/templates/base/show-edt.html:61
+#: base/templates/base/show-edt.html:62
 msgid "Delete this copy"
 msgstr ""
 
-#: base/templates/base/show-edt.html:65
+#: base/templates/base/show-edt.html:66
 msgid "Delete all copies except the 0"
 msgstr ""
 
-#: base/templates/base/show-edt.html:68
+#: base/templates/base/show-edt.html:69
 msgid "Reassign rooms"
+msgstr ""
+
+#: base/templates/base/show-edt.html:71
+msgid "Check avail on GRR"
+msgstr ""
+
+#: base/templates/base/show-edt.html:73
+msgid "Save on GRR"
 msgstr ""
 
 #: base/templates/base/show-stype.html:95
@@ -596,11 +604,13 @@ msgstr ""
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
-#: configuration/templates/configuration/configuration.html:78
+#: configuration/templates/configuration/configuration.html:82
+#: configuration/templates/configuration/configuration.html:85
 msgid "year"
 msgstr ""
 
 #: base/templates/base/show-stype.html:100
+#: configuration/templates/configuration/configuration.html:84
 msgid "until week"
 msgstr ""
 
@@ -685,23 +695,23 @@ msgstr ""
 msgid "Create or modify a link"
 msgstr ""
 
-#: base/views.py:1512
+#: base/views.py:1524
 msgid "Not authorized. New link then."
 msgstr ""
 
-#: base/views.py:1515
+#: base/views.py:1527
 msgid "Unknown link. New link then."
 msgstr ""
 
-#: base/views.py:1527
+#: base/views.py:1539
 msgid "Created"
 msgstr ""
 
-#: base/views.py:1527
+#: base/views.py:1539
 msgid "Modified"
 msgstr ""
 
-#: base/views.py:1530
+#: base/views.py:1542
 msgid "Tutor does not exist"
 msgstr ""
 
@@ -733,119 +743,129 @@ msgstr ""
 msgid "Sun."
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:11
+#: configuration/templates/configuration/configuration.html:12
 msgid ""
 "Step 1 - Database configuration (teachers, groups, rooms, course types, etc.)"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:12
+#: configuration/templates/configuration/configuration.html:13
 msgid "Option A: Using a spreadsheet file"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:14
+#: configuration/templates/configuration/configuration.html:15
 msgid "Configuration file canvas"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:15
-#: configuration/templates/configuration/configuration.html:50
+#: configuration/templates/configuration/configuration.html:16
+#: configuration/templates/configuration/configuration.html:51
 msgid "Download and then complete the file below."
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:16
+#: configuration/templates/configuration/configuration.html:17
 msgid "Click to download the configuration file"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:17
-#: configuration/templates/configuration/configuration.html:58
+#: configuration/templates/configuration/configuration.html:18
+#: configuration/templates/configuration/configuration.html:59
 msgid "Download"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:21
+#: configuration/templates/configuration/configuration.html:22
 msgid "Configuration file completed"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:22
+#: configuration/templates/configuration/configuration.html:23
 msgid "Upload the completed configuration file."
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:23
-#: configuration/templates/configuration/configuration.html:66
+#: configuration/templates/configuration/configuration.html:24
+#: configuration/templates/configuration/configuration.html:67
 msgid "Only xlsx format is accepted."
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:27
+#: configuration/templates/configuration/configuration.html:28
 #: ics/templates/ics/index.html:98
 msgid "Department"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:28
-#: people/templates/people/login.html:86
+#: configuration/templates/configuration/configuration.html:29
+#: people/templates/people/login.html:87
 msgid "Create"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:29
+#: configuration/templates/configuration/configuration.html:30
 msgid "Edit"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:32
-#: configuration/templates/configuration/configuration.html:88
+#: configuration/templates/configuration/configuration.html:33
+#: configuration/templates/configuration/configuration.html:96
 #: templates/base.html:95
 msgid "Import"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:37
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:38
+#: configuration/templates/configuration/configuration.html:100
 msgid "Verdict :"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:41
+#: configuration/templates/configuration/configuration.html:42
 msgid "Option B: With Flopeditor"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:43
+#: configuration/templates/configuration/configuration.html:44
 msgid "Click here"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:43
+#: configuration/templates/configuration/configuration.html:44
 msgid " to go to Flopeditor."
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:44
+#: configuration/templates/configuration/configuration.html:45
 msgid "If you need help, you can consult the Flopeditor documentation on "
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:44
+#: configuration/templates/configuration/configuration.html:45
 msgid "this page."
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:47
+#: configuration/templates/configuration/configuration.html:48
 msgid ""
 "Step 2 - Plan the lessons (which lesson in which week, which teacher gives "
 "which lesson)"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:49
+#: configuration/templates/configuration/configuration.html:50
 msgid "Template for the planning file from the configuration file"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:51
+#: configuration/templates/configuration/configuration.html:52
 msgid "Click to download the planning file outline"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:65
+#: configuration/templates/configuration/configuration.html:66
 msgid "Completed planning file"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:66
+#: configuration/templates/configuration/configuration.html:67
 msgid "Upload the completed planning file."
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:77
+#: configuration/templates/configuration/configuration.html:81
 msgid "From week"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:86
+#: configuration/templates/configuration/configuration.html:87
+msgid "Only for periods "
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:91
 msgid "Stabilization ?"
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:95
+msgid ""
+"return confirm('You will erase all courses for chosen periods and weeks. Do "
+"you confirm import ?')"
 msgstr ""
 
 #: ics/templates/ics/index.html:35
@@ -925,27 +945,27 @@ msgstr ""
 msgid "Sign in"
 msgstr ""
 
-#: people/templates/people/login.html:79
+#: people/templates/people/login.html:80
 msgid "Sign up"
 msgstr ""
 
-#: people/templates/people/login.html:80
+#: people/templates/people/login.html:81
 msgid "I am"
 msgstr ""
 
-#: people/templates/people/login.html:82
+#: people/templates/people/login.html:83
 msgid "A student"
 msgstr ""
 
-#: people/templates/people/login.html:83
+#: people/templates/people/login.html:84
 msgid "A teacher"
 msgstr ""
 
-#: people/templates/people/login.html:84
+#: people/templates/people/login.html:85
 msgid "A temporary teacher"
 msgstr ""
 
-#: people/templates/people/login.html:85
+#: people/templates/people/login.html:86
 msgid "A tech or administrative staff"
 msgstr ""
 

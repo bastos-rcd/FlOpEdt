@@ -68,6 +68,22 @@ function handleRadioChanges(value) {
     }
 }
 
+
+function handlePlanifDeptChanges() {
+    var selectPlanifDept = document.getElementById("dropdown_dpt_2");
+    let selectedDepartmentAbbrev = selectPlanifDept.options[selectPlanifDept.selectedIndex].value;
+    let selectPeriods = document.getElementById("dropdown_periods");
+    selectPeriods.innerHTML = '';
+    for (let period of periods) {
+        if (period.department === selectedDepartmentAbbrev) {
+            let opt = document.createElement('option');
+            opt.value = period.name;
+            opt.innerHTML = period.name;
+            selectPeriods.appendChild(opt);
+        }
+    }
+}
+
 function init_departement_manager() {
     rBut = document.querySelector("#config input[type=radio]:checked");
     if (rBut === null) {
@@ -83,4 +99,11 @@ document.querySelectorAll("#config input[type=radio]").forEach((i) => {
     })
 })
 
+let selectPlanifDepartment = document.getElementById("dropdown_dpt_2");
+selectPlanifDepartment.addEventListener('change', () => {
+		handlePlanifDeptChanges();
+		}
+        )
+
 init_departement_manager();
+handlePlanifDeptChanges();
