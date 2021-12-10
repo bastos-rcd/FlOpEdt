@@ -149,24 +149,23 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
                         cost = self.local_weight() * ponderation * slot_vars_sum \
                             * ttmodel.unp_slot_cost_course[c.type,
                                                            train_prog][sl]
-                        cost *= day_time_ponderation
+                        cost *= (day_time_ponderation + 1)
                         ttmodel.add_to_group_cost(g, cost, week=week)
-            if self.weight is None:
-                for course_type in ttmodel.wdb.course_types:
-                    for sl in ttmodel.wdb.availability_slots:
-                        if ttmodel.avail_course[(course_type, train_prog)][sl] == 0:
-                            ttmodel.add_constraint(
-                                ttmodel.sum(ttmodel.TT[(sl2, c)]
-                                            for g in basic_groups
-                                            for c in ttmodel.wdb.courses_for_basic_group[g]
-                                            for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
-                                                                    simultaneous_to=sl)),
-                                '==',
-                                0,
-                                Constraint(constraint_type=ConstraintType.BOUND_HOURS_PER_DAY,
-                                           train_progs=train_prog,
-                                           slots=sl)
-                            )
+            for course_type in ttmodel.wdb.course_types:
+                for sl in ttmodel.wdb.availability_slots:
+                    if ttmodel.avail_course[(course_type, train_prog)][sl] == 0:
+                        ttmodel.add_constraint(
+                            ttmodel.sum(ttmodel.TT[(sl2, c)]
+                                        for g in basic_groups
+                                        for c in ttmodel.wdb.courses_for_basic_group[g]
+                                        for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                                simultaneous_to=sl)),
+                            '==',
+                            0,
+                            Constraint(constraint_type=ConstraintType.BOUND_HOURS_PER_DAY,
+                                       train_progs=train_prog,
+                                       slots=sl)
+                        )
 
 
     def one_line_description(self):
