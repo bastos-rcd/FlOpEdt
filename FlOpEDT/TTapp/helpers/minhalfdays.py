@@ -70,7 +70,6 @@ class MinHalfDaysHelperBase():
                 if d + c2.type.duration <= half_days_min_time:
                     d += c2.type.duration
                     considered_courses.remove(c2)
-            print(considered_courses)
             limit+=1
         return limit
 

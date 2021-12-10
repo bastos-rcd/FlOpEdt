@@ -163,7 +163,6 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
                             '==',
                             0,
                             Constraint(constraint_type=ConstraintType.BOUND_HOURS_PER_DAY,
-                                       train_progs=train_prog,
                                        slots=sl)
                         )
 
