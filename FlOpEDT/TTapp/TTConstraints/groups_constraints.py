@@ -118,7 +118,7 @@ class MinGroupsHalfDays(TTConstraint):
 class MinNonPreferedTrainProgsSlot(TTConstraint):
     """
     Minimize the use of unprefered Slots for groups.
-    If weight is None, make impossible the use of forbidden slots.
+    Make impossible the use of forbidden slots.
     """
     def enrich_model(self, ttmodel, week, ponderation=None):
         if ponderation is None:

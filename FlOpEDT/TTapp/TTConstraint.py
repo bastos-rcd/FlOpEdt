@@ -64,6 +64,8 @@ class TTConstraint(models.Model):
     modified_at = models.DateField(auto_now=True)
 
     def local_weight(self):
+        if self.weight is None:
+            return 1
         return float(self.weight) / max_weight
 
     class Meta:
