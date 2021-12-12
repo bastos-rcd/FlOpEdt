@@ -65,7 +65,7 @@ class TTConstraint(models.Model):
 
     def local_weight(self):
         if self.weight is None:
-            return 1
+            return 10
         return float(self.weight) / max_weight
 
     class Meta:
