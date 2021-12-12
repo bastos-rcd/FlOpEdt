@@ -73,7 +73,9 @@ class MinHalfDaysHelperBase():
 
     def add_constraint(self, expression, courses):
         limit = self.minimal_half_days_number(courses)
-        excess_of_half_days = {i : self.ttmodel.add_floor(expression, limit + i, 100) for i in range(1,4)}
+        # TODO : change 2*5 in number of possible half_days
+        max_diff = min(len(courses), 2 * 5) - limit
+        excess_of_half_days = {i : self.ttmodel.add_floor(expression, limit + i, 100) for i in range(1, max_diff)}
         if self.constraint.weight is None:
             self.ttmodel.add_constraint(excess_of_half_days[1], '==', 0,
                                         Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_LIMIT))
