@@ -59,7 +59,6 @@ class MinHalfDaysHelperBase():
         t = TimeGeneralSettings.objects.get(department=self.ttmodel.department)
         half_days_min_time = min(t.lunch_break_start_time-t.day_start_time, t.day_finish_time-t.lunch_break_finish_time)
         considered_courses = list(courses)
-        print(considered_courses[0].groups.first())
         considered_courses.sort(key=lambda x: x.type.duration)
         limit = 0
         while considered_courses:
@@ -70,8 +69,6 @@ class MinHalfDaysHelperBase():
                     d += c2.type.duration
                     considered_courses.remove(c2)
             limit+=1
-        # seems ok...
-        print(len(courses), sum(c.type.duration for c in courses)/60, '-->',limit)
         return limit
 
     def add_constraint(self, expression, courses):
