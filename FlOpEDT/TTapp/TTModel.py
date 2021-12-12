@@ -303,26 +303,23 @@ class TTModel(object):
                                                          max_days)
 
         GBHD = {}
-        for g in self.wdb.basic_groups:
+        for bg in self.wdb.basic_groups:
             for d in self.wdb.days:
                 # add constraint linking IBD to EDT
                 for apm in self.possible_apms:
-                    GBHD[(g, d, apm)] \
-                        = self.add_var("GBHD(%s,%s,%s)" % (g, d, apm))
+                    GBHD[(bg, d, apm)] \
+                        = self.add_var("GBHD(%s,%s,%s)" % (bg, d, apm))
                     halfdayslots = slots_filter(self.wdb.courses_slots, day=d, apm=apm)
                     card = 2 * len(halfdayslots)
                     expr = self.lin_expr()
-                    expr += card * GBHD[(g, d, apm)]
+                    expr += card * GBHD[(bg, d, apm)]
                     for sl in halfdayslots:
-                        for c in self.wdb.courses_for_group[g] & self.wdb.compatible_courses[sl]:
+                        for c in self.wdb.all_courses_for_basic_group[bg] & self.wdb.compatible_courses[sl]:
                             expr -= self.TT[(sl, c)]
-                        for sg in g.ancestor_groups():
-                            for c in self.wdb.courses_for_group[sg] & self.wdb.compatible_courses[sl]:
-                                expr -= self.TT[(sl, c)]
                     self.add_constraint(expr, '>=', 0,
-                                        Constraint(constraint_type=ConstraintType.GBHD_INF, groups=g, days=d))
+                                        Constraint(constraint_type=ConstraintType.GBHD_INF, groups=bg, days=d))
                     self.add_constraint(expr, '<=', card - 1,
-                                        Constraint(constraint_type=ConstraintType.GBHD_SUP, groups=g, days=d))
+                                        Constraint(constraint_type=ConstraintType.GBHD_SUP, groups=bg, days=d))
 
         return IBD, IBD_GTE, IBHD, GBHD, IBS, forced_IBD
 
