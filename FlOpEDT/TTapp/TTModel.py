@@ -396,15 +396,6 @@ class TTModel(object):
     def sum(self, *args):
         return lpSum(list(*args))
 
-    def check_and_sum(self, dict, *args):
-        """
-        This helper method get a variable list check if the corresponding
-        expression exists in the given dict and returns the lpSum of
-        available expressions
-        """
-        expressions = [dict(v) for v in args if v in dict]
-        return lpSum(expressions)
-
     def get_var_value(self, ttvar):
         return round(ttvar.value())
 

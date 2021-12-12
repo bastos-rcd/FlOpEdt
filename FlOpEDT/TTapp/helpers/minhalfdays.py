@@ -59,6 +59,7 @@ class MinHalfDaysHelperBase():
         t = TimeGeneralSettings.objects.get(department=self.ttmodel.department)
         half_days_min_time = min(t.lunch_break_start_time-t.day_start_time, t.day_finish_time-t.lunch_break_finish_time)
         considered_courses = list(courses)
+        print(considered_courses[0].groups.first())
         considered_courses.sort(key=lambda x: x.type.duration)
         limit = 0
         while considered_courses:
@@ -69,18 +70,21 @@ class MinHalfDaysHelperBase():
                     d += c2.type.duration
                     considered_courses.remove(c2)
             limit+=1
-        # print(len(courses), sum(c.type.duration for c in courses)/60, '-->',limit)
         # seems ok...
+        print(len(courses), sum(c.type.duration for c in courses)/60, '-->',limit)
         return limit
 
     def add_constraint(self, expression, courses):
         limit = self.minimal_half_days_number(courses)
-        if self.constraint.weight:
-            cost = self.constraint.local_weight() * self.ponderation * (expression - limit * self.ttmodel.one_var)
-            self.add_cost(cost)
-        else:
-            self.ttmodel.add_constraint(expression, '<=', limit,
+        excess_of_half_days = {i : self.ttmodel.add_floor(expression, limit + i, 100) for i in range(1,4)}
+        if self.constraint.weight is None:
+            self.ttmodel.add_constraint(excess_of_half_days[1], '==', 0,
                                         Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_LIMIT))
+        else:
+            cost = self.ttmodel.lin_expr()
+            for i in excess_of_half_days:
+                cost += self.constraint.local_weight() * self.ponderation * excess_of_half_days[i]
+            self.add_cost(cost)
 
     def enrich_model(self, **args):
         expression, courses = self.build_variables()
@@ -139,19 +143,17 @@ class MinHalfDaysHelperGroup(MinHalfDaysHelperBase):
 
     def build_variables(self):
         courses = set(c for c in self.ttmodel.wdb.all_courses_for_basic_group[self.group]
-                      if c.week==self.week)
+                      if c.week == self.week)
 
-        expression = self.ttmodel.check_and_sum(
-            self.ttmodel.GBHD,
-            ((self.group, d, apm) for apm in self.ttmodel.possible_apms
-             for d in self.ttmodel.wdb.days if d.week == self.week))
+        expression = self.ttmodel.sum(self.ttmodel.GBHD[self.group, d, apm] for apm in self.ttmodel.possible_apms
+             for d in self.ttmodel.wdb.days if d.week == self.week)
 
         return expression, courses
 
     def add_cost(self, cost):
         g_pref = self.group.preferences
         g_pref.calculate_fields()
-        free_half_day_weight = 2 * g_pref.get_free_half_day_weight()
+        free_half_day_weight = g_pref.get_free_half_day_weight()
         self.ttmodel.add_to_group_cost(self.group, free_half_day_weight * cost, self.week)
 
     def enrich_model(self, group=None):
