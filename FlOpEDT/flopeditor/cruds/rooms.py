@@ -40,22 +40,22 @@ def set_values_for_room(room, i, new_name, entries):
     :rtype:  Boolean
 
     """
-    sur_salles = []
-    for nom_sur_salle in entries['new_values'][i][1]:
-        sur_salles_found = Room.objects.filter(name=nom_sur_salle)
-        if sur_salles_found[0].name == new_name:
+    subrooms = []
+    for subroom_name in entries['new_values'][i][1]:
+        subrooms_found = Room.objects.filter(name=subroom_name)
+        if subrooms_found[0].name == new_name:
             entries['result'].append([
                 ERROR_RESPONSE,
                 "Une salle ne peut pas être sur-salle d'elle-même."
             ])
             return False
-        if len(sur_salles_found) != 1:
+        if len(subrooms_found) != 1:
             entries['result'].append([
                 ERROR_RESPONSE,
                 "Erreur en base de données."
             ])
             return False
-        sur_salles.append(sur_salles_found[0])
+        subrooms.append(subrooms_found[0])
     depts = []
     for dept_name in entries['new_values'][i][2]:
         depts_found = Department.objects.filter(name=dept_name)
@@ -67,7 +67,7 @@ def set_values_for_room(room, i, new_name, entries):
             return False
         depts.append(depts_found[0])
     room.name = new_name
-    room.subroom_of.set(sur_salles)
+    room.subrooms.set(subrooms)
     room.departments.set(depts)
     return True
 
@@ -159,7 +159,7 @@ def read():
     values = []
     for room in rooms:
         subrooms = []
-        for subroom in room.subroom_of.all():
+        for subroom in room.subrooms.all():
             subrooms.append(subroom.name)
         room_departments = []
         for dept in room.departments.all():
@@ -172,7 +172,7 @@ def read():
             "type": "text",
             "options": {}
         }, {
-            'name': 'Sous-salle de...',
+            'name': 'Sous-salles',
             "type": "select-chips",
             "options": {'values': rooms_available}
         }, {
