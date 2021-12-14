@@ -82,6 +82,7 @@ function handlePlanifDeptChanges() {
             selectPeriods.appendChild(opt);
         }
     }
+    confirm_text.department = selectedDepartmentAbbrev;
 }
 
 function init_departement_manager() {

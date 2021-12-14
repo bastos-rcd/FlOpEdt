@@ -301,7 +301,7 @@ def extract_period(department, book, period, stabilize_courses=False, year=actua
 
 @transaction.atomic
 def extract_planif(department, bookname=None, stabilize_courses=False, year=actual_year,
-                   from_week=None, until_week=None, periods=None):
+                   from_week=None, until_week=None, periods=None, assign_colors=False):
     '''
     Generate the courses from bookname; the school year starts in actual_year
     '''
@@ -313,7 +313,8 @@ def extract_planif(department, bookname=None, stabilize_courses=False, year=actu
     for period in periods:
         extract_period(department, book, period, stabilize_courses, year=year,
                        from_week=from_week, until_week=until_week)
-    assign_module_color(department, overwrite=False)
+    if assign_colors:
+        assign_module_color(department, overwrite=False)
 
 
 @transaction.atomic
