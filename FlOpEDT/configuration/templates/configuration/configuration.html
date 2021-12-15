@@ -85,12 +85,12 @@
                     <input type="checkbox" name="choose_weeks"/> {% trans "From week" %}
                     <input type="number" name="week_nb" style="width: 40px" min="1" max="53" id="1">
                     {% trans "year" %}
-                    <input type="number" name="year" style="width: 60px" min="{{current_year}}" max="{{current_year|add:"1"}}" id="3">
+                    <input type="number" name="year" style="width: 60px" value="{{current_year}}" min="{{current_year}}" max="{{current_year|add:"1"}}" id="3">
                     </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     {% trans "until week" %}
                     <input type="number" name="week_nb_end" style="width: 40px" min="1" max="53" id="5">
                     {% trans "year" %}
-                    <input type="number" name="year_end" style="width: 60px" min="{{current_year}}" max="{{current_year|add:"1"}}" id="7">
+                    <input type="number" name="year_end" style="width: 60px" value="{{current_year|add:"1"}}" min="{{current_year}}" max="{{current_year|add:"1"}}" id="7">
                 </div>
                 </br>
                 <div id="choose_periods">
