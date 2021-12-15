@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-17 20:18+0100\n"
+"POT-Creation-Date: 2021-12-15 11:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,11 +18,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: base/static/base/action.js:769
+#: base/static/base/action.js:787
 msgid "The schedule shall be fully regenerated (see downside to the right)."
-msgstr "L'emploi du temps va être re-schtroumpfé totalement (cf. en bas à droite)."
+msgstr ""
+"L'emploi du temps va être re-schtroumpfé totalement (cf. en bas à droite)."
 
-#: base/static/base/action.js:770
+#: base/static/base/action.js:788
 msgid ""
 "Just update your availabilities : they will be considered for the next "
 "generation."
@@ -30,27 +31,27 @@ msgstr ""
 "Contentez-vous de mettre à jour vos schtroumpfs : elles seront prises en "
 "schtroumpf lors de la regénération."
 
-#: base/static/base/creation.js:808
+#: base/static/base/creation.js:868
 msgid "Courses :"
 msgstr "Cours :"
 
-#: base/static/base/creation.js:815
+#: base/static/base/creation.js:875
 msgid "Avail :"
 msgstr "Dispos :"
 
-#: base/static/base/creation.js:1765
+#: base/static/base/creation.js:1831
 msgid "Validate timetable"
 msgstr "Valider"
 
-#: base/static/base/creation.js:1888
+#: base/static/base/creation.js:1954
 msgid "Validate availabilities"
 msgstr "Valider dispos"
 
-#: base/static/base/creation.js:1918
+#: base/static/base/creation.js:1984
 msgid "Apply"
 msgstr "Schtroumpfer"
 
-#: base/static/base/creation.js:1926
+#: base/static/base/creation.js:1992
 msgid "tipical week"
 msgstr "Semaine type"
 
@@ -148,7 +149,7 @@ msgstr "Opération schtroumpfée"
 msgid "It's a fail. "
 msgstr "C'est un échec. "
 
-#: base/static/base/statistics.js:80 base/static/base/variables.js:957
+#: base/static/base/statistics.js:80 base/static/base/variables.js:959
 #, fuzzy
 #| msgid "Rooms"
 msgid "Room"
@@ -182,121 +183,158 @@ msgstr "C'est parfait"
 msgid "Thank you for adding some."
 msgstr "Merci d'en schtroumpfer. "
 
-#: base/static/base/update.js:1280
+#: base/static/base/update.js:1327
 msgid "No planned re-generation"
 msgstr "Pas de (re)schtroumpf prévu"
 
-#: base/static/base/update.js:1284
+#: base/static/base/update.js:1331
 msgid "Full (minor) generation planned on "
 msgstr "Re-schtroumpf total (mineure) le"
 
-#: base/static/base/update.js:1287
+#: base/static/base/update.js:1334
 msgid "Full generation planned (probably on "
 msgstr "Re-chtroumpf total prévu (probablement le"
 
-#: base/static/base/update.js:1290
+#: base/static/base/update.js:1337
 msgid "Minor generation planned (probably on "
 msgstr "Re-chtroumpf mineur prévu (probablement le"
 
-#: base/static/base/variables.js:468 base/static/base/variables.js:476
+#: base/static/base/variables.js:478 base/static/base/variables.js:486
 msgid "Modify"
 msgstr "Modifier"
 
-#: base/static/base/variables.js:580
+#: base/static/base/variables.js:590
 msgid "Filters"
 msgstr "Filtres"
 
-#: base/static/base/variables.js:584
+#: base/static/base/variables.js:594
 msgid "Employees"
 msgstr "Salarié⋅e⋅s"
 
-#: base/static/base/variables.js:588
+#: base/static/base/variables.js:598
 msgid "Posts"
 msgstr "Postes"
 
-#: base/static/base/variables.js:593
+#: base/static/base/variables.js:603
 msgid "Groups"
 msgstr "Groupes"
 
-#: base/static/base/variables.js:597
+#: base/static/base/variables.js:607
 msgid "Teachers"
 msgstr "Profs"
 
-#: base/static/base/variables.js:601
+#: base/static/base/variables.js:611
 msgid "Modules"
 msgstr "Modules"
 
-#: base/static/base/variables.js:605
+#: base/static/base/variables.js:615
 msgid "Rooms"
 msgstr "Salles"
 
-#: base/static/base/variables.js:783
+#: base/static/base/variables.js:794
 msgid "KO"
 msgstr ""
 
-#: base/static/base/variables.js:784
+#: base/static/base/variables.js:795
 msgid "OK"
 msgstr ""
 
-#: base/static/base/variables.js:866
+#: base/static/base/variables.js:868
 msgid "What to change ?"
 msgstr "Que schtroumpfer ?"
 
-#: base/static/base/variables.js:879
+#: base/static/base/variables.js:881
 #, fuzzy
 #| msgid "Module    "
 msgid "Module teacher ?"
 msgstr "Module    "
 
-#: base/static/base/variables.js:892 base/static/base/variables.js:905
+#: base/static/base/variables.js:894 base/static/base/variables.js:907
 msgid "Alphabetical order"
 msgstr "Par ordre schtroumpfique"
 
-#: base/static/base/variables.js:917
+#: base/static/base/variables.js:919
 msgid "Virtual classroom link ?"
 msgstr "Sschtroumpf virtuel ?"
 
-#: base/static/base/variables.js:929
+#: base/static/base/variables.js:931
 msgid "Relating to who ?"
 msgstr "Relatif à qui"
 
-#: base/static/base/variables.js:940
+#: base/static/base/variables.js:942
 msgid "No room available"
 msgstr "Pas de schtroumpf dispo"
 
-#: base/static/base/variables.js:941
+#: base/static/base/variables.js:943
 #, fuzzy
 #| msgid "Avail :"
 msgid "Room available"
 msgstr "Dispos :"
 
-#: base/static/base/variables.js:942
+#: base/static/base/variables.js:944
 msgid "Rooms available"
 msgstr "Schtroumpfs dispos"
 
-#: base/static/base/variables.js:948
+#: base/static/base/variables.js:950
 msgid "No room available (any type)"
 msgstr ""
 
-#: base/static/base/variables.js:949
+#: base/static/base/variables.js:951
 msgid "Room available (any type)"
 msgstr ""
 
-#: base/static/base/variables.js:950
+#: base/static/base/variables.js:952
 msgid "Rooms available (any type)"
 msgstr ""
 
-#: base/static/base/variables.js:956
+#: base/static/base/variables.js:958
 msgid "No room"
 msgstr ""
 
-#: base/static/base/variables.js:958
+#: base/static/base/variables.js:960
 msgid "Every rooms"
 msgstr "Toutes les schtroumpfs"
 
-#: base/static/base/variables.js:981
+#: base/static/base/variables.js:983
 msgid "Who should do it ?"
 msgstr "Qui devrait le faire"
+
+#: configuration/static/configuration/configuration_vars.js:1
+msgid ""
+"You will erase ALL COURSES corresponding to the following conditions. Do you "
+"confirm import ?"
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:3
+msgid "From week"
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:3
+#: configuration/static/configuration/configuration_vars.js:4
+msgid "year"
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:4
+#, fuzzy
+#| msgid "tipical week"
+msgid "until week"
+msgstr "Semaine type"
+
+#: configuration/static/configuration/configuration_vars.js:5
+msgid "Department : "
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:6
+msgid "Periods : "
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:7
+msgid "Weeks : "
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:8
+msgid "All"
+msgstr ""
 
 #: people/static/people/student_preferences.js:9
 msgid "Start early in order to end up early"

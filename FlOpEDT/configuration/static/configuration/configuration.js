@@ -100,6 +100,46 @@ document.querySelectorAll("#config input[type=radio]").forEach((i) => {
     })
 })
 
+
+// Weeks div gesture
+let weeksDiv = document.getElementById("choose_weeks");
+let weeksCheckbox = weeksDiv.querySelector("input[type=checkbox]");
+let weeksInput = weeksDiv.querySelectorAll("input[type=number]");
+weeksInput.forEach( (c) => {
+        c.addEventListener('change', (event) => {
+            weeksCheckbox.checked = true;
+            weeks_text_pattern[c.id] = c.value;
+            confirm_text.weeks = weeks_text_pattern.join(' ');
+        })
+})
+weeksCheckbox.addEventListener('change', (event) => {
+            if (weeksCheckbox.checked === true){
+                confirm_text.weeks = weeks_text_pattern.join(' ');
+            }
+            else {
+                confirm_text.weeks = translated_all;
+            }
+})
+
+// Period div gesture
+let periodsDiv = document.getElementById("choose_periods");
+let periodsCheckbox = periodsDiv.querySelector("input[type=checkbox]");
+let periodsInput = periodsDiv.querySelectorAll("select");
+periodsInput.forEach( (c) => {
+        c.addEventListener('change', (event) => {
+            periodsCheckbox.checked = true;
+            confirm_text.periods = Array.from(c.selectedOptions).map(el => el.value);
+        })
+})
+periodsCheckbox.addEventListener('change', (event) => {
+            if (periodsCheckbox.checked === true){
+                confirm_text.periods = Array.from(c.selectedOptions).map(el => el.value);
+            }
+            else {
+                confirm_text.periods = translated_all;
+            }
+})
+
 let selectPlanifDepartment = document.getElementById("dropdown_dpt_2");
 selectPlanifDepartment.addEventListener('change', () => {
 		handlePlanifDeptChanges();

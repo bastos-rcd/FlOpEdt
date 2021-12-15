@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-14 22:27+0100\n"
+"POT-Creation-Date: 2021-12-15 11:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,26 +17,39 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: base/static/base/action.js:769
+#: base/static/base/action.js:787
 msgid "The schedule shall be fully regenerated (see downside to the right)."
 msgstr "时间表将完全重新生成（请参阅右下角）"
 
-#: base/static/base/action.js:770
+#: base/static/base/action.js:788
 msgid ""
 "Just update your availabilities : they will be considered for the next "
 "generation."
-msgstr ""
-"只需更新您的可用时间即可："
-"在重新生成过程中将考虑它们。"
+msgstr "只需更新您的可用时间即可：在重新生成过程中将考虑它们。"
 
-
-#: base/static/base/creation.js:808
+#: base/static/base/creation.js:868
 msgid "Courses :"
 msgstr "课程："
 
-#: base/static/base/creation.js:815
+#: base/static/base/creation.js:875
 msgid "Avail :"
 msgstr "可用："
+
+#: base/static/base/creation.js:1831
+msgid "Validate timetable"
+msgstr ""
+
+#: base/static/base/creation.js:1954
+msgid "Validate availabilities"
+msgstr ""
+
+#: base/static/base/creation.js:1984
+msgid "Apply"
+msgstr ""
+
+#: base/static/base/creation.js:1992
+msgid "tipical week"
+msgstr ""
 
 #: base/static/base/decale.js:35
 msgid "Module    "
@@ -71,26 +84,85 @@ msgid ""
 "Schedule manager <span id=\"flopGreen\">fl</span>exible and <span id="
 "\"flopGreen\">op</span>enSource"
 msgstr ""
-"日程管理者 <span id=\"flopGreen\">fl</span>exible 且 "
-"<span id=\"flopGreen\">op</span>enSource"
-
+"日程管理者 <span id=\"flopGreen\">fl</span>exible 且 <span id=\"flopGreen"
+"\">op</span>enSource"
 
 #: base/static/base/logo.js:85
+#, fuzzy
+#| msgid ""
+#| "\"Who want to manage the <span id=\"flopRed\">schedules</span> this year?"
+#| "\" ...  ... <span id=\"flopGreen\">flop</span> !"
 msgid ""
-"\"Who want to manage the <span id=\"flopRed\">schedules</span> this year?"
-"\" ...  ... <span id=\"flopGreen\">flop</span> !"
-msgstr ""
-"谁想管理今年的时间表？ ...  ... <span id="
-"\"flopGreen\">flop</span> !"
+"\"Who want to manage schedules this year?\" ...  ... <span id=\"flopGreen"
+"\">flop</span>!"
+msgstr "谁想管理今年的时间表？ ...  ... <span id=\"flopGreen\">flop</span> !"
 
 #: base/static/base/logo.js:86
 msgid "And your schedules will <span id=\"flopRedDel\">flop</span> be a hit!"
 msgstr "而且您的日程安排将会很<span id=\"flopRedDel\">flop</span> 受欢迎！"
 
-
 #: base/static/base/logo.js:87
-msgid "And even your logo will be on time..."
+#, fuzzy
+#| msgid "And even your logo will be on time..."
+msgid "Even your logo will be on time..."
 msgstr "甚至您的logo也将准时出现"
+
+#: base/static/base/logo.js:88
+#, fuzzy
+#| msgid ""
+#| "And your schedules will <span id=\"flopRedDel\">flop</span> be a hit!"
+msgid "Everybody do the <span id=\"flopGreen\">flop</span>!"
+msgstr "而且您的日程安排将会很<span id=\"flopRedDel\">flop</span> 受欢迎！"
+
+#: base/static/base/logo.js:89
+#, fuzzy
+#| msgid ""
+#| "And your schedules will <span id=\"flopRedDel\">flop</span> be a hit!"
+msgid ""
+"You got to make the schedules? Don't flip out: <span id=\"flopGreen\">flop</"
+"span> it!"
+msgstr "而且您的日程安排将会很<span id=\"flopRedDel\">flop</span> 受欢迎！"
+
+#: base/static/base/logo.js:90
+msgid "To flop or not to flop, that is the question (for your schedules)"
+msgstr ""
+
+#: base/static/base/logo.js:91
+msgid "flop!Scheduler != flop "
+msgstr ""
+
+#: base/static/base/logo.js:92
+#, fuzzy
+#| msgid ""
+#| "And your schedules will <span id=\"flopRedDel\">flop</span> be a hit!"
+msgid "Just <span id=\"flopGreen\">flop</span> it."
+msgstr "而且您的日程安排将会很<span id=\"flopRedDel\">flop</span> 受欢迎！"
+
+#: base/static/base/logo.js:93
+msgid "Schedule... khhh... I am your flop!"
+msgstr ""
+
+#: base/static/base/logo.js:94
+msgid "What else?"
+msgstr ""
+
+#: base/static/base/room_preference.js:30
+msgid "Successful operation"
+msgstr ""
+
+#: base/static/base/room_preference.js:33
+msgid "It's a fail. "
+msgstr ""
+
+#: base/static/base/statistics.js:80 base/static/base/variables.js:959
+#, fuzzy
+#| msgid "Rooms"
+msgid "Room"
+msgstr "教室"
+
+#: base/static/base/statistics.js:81
+msgid "Number of days"
+msgstr ""
 
 #: base/static/base/transformation.js:267
 msgid "You have to do  "
@@ -116,38 +188,208 @@ msgstr "没问题"
 msgid "Thank you for adding some."
 msgstr "感谢您添加一些。"
 
-#: base/static/base/update.js:1280
-msgid "No regeneration planned"
+#: base/static/base/update.js:1327
+#, fuzzy
+#| msgid "No regeneration planned"
+msgid "No planned re-generation"
 msgstr "没有计划(再)生成"
 
-#: base/static/base/update.js:1284
+#: base/static/base/update.js:1331
 msgid "Full (minor) generation planned on "
 msgstr "完整的(次要的)生成计划在"
 
-#: base/static/base/update.js:1287
+#: base/static/base/update.js:1334
 msgid "Full generation planned (probably on "
 msgstr "完整的生成计划(可能在"
 
-#: base/static/base/update.js:1290
+#: base/static/base/update.js:1337
 msgid "Minor generation planned (probably on "
 msgstr "次要的生成计划(可能在"
 
-#: base/static/base/variables.js:468 base/static/base/variables.js:476
+#: base/static/base/variables.js:478 base/static/base/variables.js:486
 msgid "Modify"
 msgstr "修改"
 
-#: base/static/base/variables.js:593
+#: base/static/base/variables.js:590
+msgid "Filters"
+msgstr ""
+
+#: base/static/base/variables.js:594
+msgid "Employees"
+msgstr ""
+
+#: base/static/base/variables.js:598
+msgid "Posts"
+msgstr ""
+
+#: base/static/base/variables.js:603
 msgid "Groups"
 msgstr "组"
 
-#: base/static/base/variables.js:597
+#: base/static/base/variables.js:607
 msgid "Teachers"
 msgstr "老师"
 
-#: base/static/base/variables.js:601
+#: base/static/base/variables.js:611
 msgid "Modules"
 msgstr "模块"
 
-#: base/static/base/variables.js:605
+#: base/static/base/variables.js:615
 msgid "Rooms"
 msgstr "教室"
+
+#: base/static/base/variables.js:794
+msgid "KO"
+msgstr ""
+
+#: base/static/base/variables.js:795
+msgid "OK"
+msgstr ""
+
+#: base/static/base/variables.js:868
+msgid "What to change ?"
+msgstr ""
+
+#: base/static/base/variables.js:881
+#, fuzzy
+#| msgid "Module    "
+msgid "Module teacher ?"
+msgstr "模块    "
+
+#: base/static/base/variables.js:894 base/static/base/variables.js:907
+msgid "Alphabetical order"
+msgstr ""
+
+#: base/static/base/variables.js:919
+msgid "Virtual classroom link ?"
+msgstr ""
+
+#: base/static/base/variables.js:931
+msgid "Relating to who ?"
+msgstr ""
+
+#: base/static/base/variables.js:942
+msgid "No room available"
+msgstr ""
+
+#: base/static/base/variables.js:943
+msgid "Room available"
+msgstr ""
+
+#: base/static/base/variables.js:944
+msgid "Rooms available"
+msgstr ""
+
+#: base/static/base/variables.js:950
+msgid "No room available (any type)"
+msgstr ""
+
+#: base/static/base/variables.js:951
+msgid "Room available (any type)"
+msgstr ""
+
+#: base/static/base/variables.js:952
+msgid "Rooms available (any type)"
+msgstr ""
+
+#: base/static/base/variables.js:958
+msgid "No room"
+msgstr ""
+
+#: base/static/base/variables.js:960
+msgid "Every rooms"
+msgstr ""
+
+#: base/static/base/variables.js:983
+msgid "Who should do it ?"
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:1
+msgid ""
+"You will erase ALL COURSES corresponding to the following conditions. Do you "
+"confirm import ?"
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:3
+msgid "From week"
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:3
+#: configuration/static/configuration/configuration_vars.js:4
+msgid "year"
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:4
+msgid "until week"
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:5
+msgid "Department : "
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:6
+msgid "Periods : "
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:7
+msgid "Weeks : "
+msgstr ""
+
+#: configuration/static/configuration/configuration_vars.js:8
+msgid "All"
+msgstr ""
+
+#: people/static/people/student_preferences.js:9
+msgid "Start early in order to end up early"
+msgstr ""
+
+#: people/static/people/student_preferences.js:12
+msgid "Do not start late, so as not to end up too late"
+msgstr ""
+
+#: people/static/people/student_preferences.js:15
+#: people/static/people/student_preferences.js:34
+#: people/static/people/student_preferences.js:50
+#: people/static/people/student_preferences.js:63
+msgid "Indifferent"
+msgstr ""
+
+#: people/static/people/student_preferences.js:18
+msgid "Do not start early, even if I don't end up early"
+msgstr ""
+
+#: people/static/people/student_preferences.js:21
+msgid "Start late, even if I end up late"
+msgstr ""
+
+#: people/static/people/student_preferences.js:28
+msgid "Have light days"
+msgstr ""
+
+#: people/static/people/student_preferences.js:31
+msgid "Have light days more than free half-days"
+msgstr ""
+
+#: people/static/people/student_preferences.js:37
+msgid "Have free half-days more than light days."
+msgstr ""
+
+#: people/static/people/student_preferences.js:40
+msgid "Have free half-days."
+msgstr ""
+
+#: people/static/people/student_preferences.js:47
+msgid "Avoid holes between courses"
+msgstr ""
+
+#: people/static/people/student_preferences.js:53
+msgid "Promote holes between courses"
+msgstr ""
+
+#: people/static/people/student_preferences.js:60
+msgid "Eat early"
+msgstr ""
+
+#: people/static/people/student_preferences.js:66
+msgid "Eat late"
+msgstr ""

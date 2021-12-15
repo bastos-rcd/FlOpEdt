@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-17 20:18+0100\n"
+"POT-Creation-Date: 2021-12-15 11:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: base/static/base/action.js:769
+#: base/static/base/action.js:787
 msgid "The schedule shall be fully regenerated (see downside to the right)."
 msgstr "L'emploi du temps va être regénéré totalement (cf. en bas à droite)."
 
-#: base/static/base/action.js:770
+#: base/static/base/action.js:788
 msgid ""
 "Just update your availabilities : they will be considered for the next "
 "generation."
@@ -30,27 +30,27 @@ msgstr ""
 "Contentez-vous de mettre à jour vos disponibilités : elles seront prises en "
 "compte lors de la regénération."
 
-#: base/static/base/creation.js:808
+#: base/static/base/creation.js:868
 msgid "Courses :"
 msgstr "Cours :"
 
-#: base/static/base/creation.js:815
+#: base/static/base/creation.js:875
 msgid "Avail :"
 msgstr "Dispos :"
 
-#: base/static/base/creation.js:1765
+#: base/static/base/creation.js:1831
 msgid "Validate timetable"
 msgstr "Valider EDT"
 
-#: base/static/base/creation.js:1888
+#: base/static/base/creation.js:1954
 msgid "Validate availabilities"
 msgstr "Valider les disponibilités"
 
-#: base/static/base/creation.js:1918
+#: base/static/base/creation.js:1984
 msgid "Apply"
 msgstr "Appliquer"
 
-#: base/static/base/creation.js:1926
+#: base/static/base/creation.js:1992
 msgid "tipical week"
 msgstr "semaine type"
 
@@ -147,7 +147,7 @@ msgstr "Opération réussie"
 msgid "It's a fail. "
 msgstr "C'est un échec. "
 
-#: base/static/base/statistics.js:80 base/static/base/variables.js:957
+#: base/static/base/statistics.js:80 base/static/base/variables.js:959
 msgid "Room"
 msgstr "Salle"
 
@@ -179,119 +179,157 @@ msgstr "C'est parfait"
 msgid "Thank you for adding some."
 msgstr "Merci d'en ajouter "
 
-#: base/static/base/update.js:1280
+#: base/static/base/update.js:1327
 msgid "No planned re-generation"
 msgstr "Pas de regénération prévue"
 
-#: base/static/base/update.js:1284
+#: base/static/base/update.js:1331
 msgid "Full (minor) generation planned on "
 msgstr "Regénération totale (mineure) le"
 
-#: base/static/base/update.js:1287
+#: base/static/base/update.js:1334
 msgid "Full generation planned (probably on "
 msgstr "Regénération totale prévue (probablement le"
 
-#: base/static/base/update.js:1290
+#: base/static/base/update.js:1337
 msgid "Minor generation planned (probably on "
 msgstr "Regénération mineure prévue (probablement le"
 
-#: base/static/base/variables.js:468 base/static/base/variables.js:476
+#: base/static/base/variables.js:478 base/static/base/variables.js:486
 msgid "Modify"
 msgstr "Modifier"
 
-#: base/static/base/variables.js:580
+#: base/static/base/variables.js:590
 msgid "Filters"
 msgstr "Filtres"
 
-#: base/static/base/variables.js:584
+#: base/static/base/variables.js:594
 msgid "Employees"
 msgstr "Salarié·e·s"
 
-#: base/static/base/variables.js:588
+#: base/static/base/variables.js:598
 msgid "Posts"
 msgstr "Postes"
 
-#: base/static/base/variables.js:593
+#: base/static/base/variables.js:603
 msgid "Groups"
 msgstr "Groupes"
 
-#: base/static/base/variables.js:597
+#: base/static/base/variables.js:607
 msgid "Teachers"
 msgstr "Profs"
 
-#: base/static/base/variables.js:601
+#: base/static/base/variables.js:611
 msgid "Modules"
 msgstr "Modules"
 
-#: base/static/base/variables.js:605
+#: base/static/base/variables.js:615
 msgid "Rooms"
 msgstr "Salles"
 
-#: base/static/base/variables.js:783
+#: base/static/base/variables.js:794
 msgid "KO"
 msgstr ""
-"C'est un échec cuisant. Trouvez un·e responsable de flop!EDT et faites "
-"lui part de vos problèmes."
+"C'est un échec cuisant. Trouvez un·e responsable de flop!EDT et faites lui "
+"part de vos problèmes."
 
-#: base/static/base/variables.js:784
+#: base/static/base/variables.js:795
 msgid "OK"
 msgstr "La modification s'est déroulée sans accroc."
 
-#: base/static/base/variables.js:866
+#: base/static/base/variables.js:868
 msgid "What to change ?"
 msgstr "Que changer ?"
 
-#: base/static/base/variables.js:879
+#: base/static/base/variables.js:881
 msgid "Module teacher ?"
 msgstr "Enseignant⋅e du module ?"
 
-#: base/static/base/variables.js:892 base/static/base/variables.js:905
+#: base/static/base/variables.js:894 base/static/base/variables.js:907
 msgid "Alphabetical order"
 msgstr "Ordre alphabétique"
 
-#: base/static/base/variables.js:917
+#: base/static/base/variables.js:919
 msgid "Virtual classroom link ?"
 msgstr "Lien de la classe en visioconférence ?"
 
-#: base/static/base/variables.js:929
+#: base/static/base/variables.js:931
 msgid "Relating to who ?"
 msgstr "Relatif à qui ?"
 
-#: base/static/base/variables.js:940
+#: base/static/base/variables.js:942
 msgid "No room available"
 msgstr "Pas de salle disponible"
 
-#: base/static/base/variables.js:941
+#: base/static/base/variables.js:943
 msgid "Room available"
 msgstr "Salle disponible"
 
-#: base/static/base/variables.js:942
+#: base/static/base/variables.js:944
 msgid "Rooms available"
 msgstr "Salles disponibles"
 
-#: base/static/base/variables.js:948
+#: base/static/base/variables.js:950
 msgid "No room available (any type)"
 msgstr "Aucune salle disponible (tous types)"
 
-#: base/static/base/variables.js:949
+#: base/static/base/variables.js:951
 msgid "Room available (any type)"
 msgstr "Salle disponible (tous types)"
 
-#: base/static/base/variables.js:950
+#: base/static/base/variables.js:952
 msgid "Rooms available (any type)"
 msgstr "Salles disponibles (tous types)"
 
-#: base/static/base/variables.js:956
+#: base/static/base/variables.js:958
 msgid "No room"
 msgstr "Pas de salle"
 
-#: base/static/base/variables.js:958
+#: base/static/base/variables.js:960
 msgid "Every rooms"
 msgstr "Toutes les salles"
 
-#: base/static/base/variables.js:981
+#: base/static/base/variables.js:983
 msgid "Who should do it ?"
 msgstr "Qui s'y colle ?"
+
+#: configuration/static/configuration/configuration_vars.js:1
+msgid ""
+"You will erase ALL COURSES corresponding to the following conditions. Do you "
+"confirm import ?"
+msgstr ""
+"Vous allez effacer TOUS LES COURS correspondant aux conditions suivantes. "
+"Confirmez-vous l'import ?"
+
+#: configuration/static/configuration/configuration_vars.js:3
+msgid "From week"
+msgstr "De la semaine"
+
+#: configuration/static/configuration/configuration_vars.js:3
+#: configuration/static/configuration/configuration_vars.js:4
+msgid "year"
+msgstr "année"
+
+#: configuration/static/configuration/configuration_vars.js:4
+
+msgid "until week"
+msgstr "à la semaine"
+
+#: configuration/static/configuration/configuration_vars.js:5
+msgid "Department : "
+msgstr "Département : "
+
+#: configuration/static/configuration/configuration_vars.js:6
+msgid "Periods : "
+msgstr "Périodes : "
+
+#: configuration/static/configuration/configuration_vars.js:7
+msgid "Weeks : "
+msgstr "Semaines : "
+
+#: configuration/static/configuration/configuration_vars.js:8
+msgid "All"
+msgstr "Toutes"
 
 #: people/static/people/student_preferences.js:9
 msgid "Start early in order to end up early"
