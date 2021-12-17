@@ -145,10 +145,10 @@ class LimitedStartTimeChoices(TTConstraint):
     def enrich_model(self, ttmodel, week, ponderation=1.):
         fc = self.get_courses_queryset_by_attributes(ttmodel, week)
         pst = self.possible_start_times
-        if pst is None:
+        if not pst:
             pst = set(sl.start_time for sl in ttmodel.wdb.courses_slots)
         pwd = self.possible_week_days
-        if pwd is None:
+        if not pwd:
             pwd = list(c[0] for c in Day.CHOICES)
         excluded_slots = set(sl for sl in ttmodel.wdb.courses_slots
                              if (sl.start_time not in pst or sl.day.day not in pwd))
@@ -184,14 +184,15 @@ class LimitedStartTimeChoices(TTConstraint):
         if self.group:
             text += ' avec le groupe ' + str(self.group)
         text += " ne peuvent avoir lieu que"
-        if self.possible_week_days is not None:
-            text += ' les '
-            text += ', '.join(self.possible_week_days)
-        if self.possible_start_times is not None:
-            text += ' à '
-            text += ', '.join([french_format(pst) for pst in self.possible_start_times])
-        if self.possible_week_days is None and self.possible_start_times is None:
+        if not (self.possible_week_days or self.possible_start_times):
             text += ' ... Tout le temps!'
+        else:
+            if self.possible_week_days:
+                text += ' les '
+                text += ', '.join(self.possible_week_days)
+            if self.possible_start_times:
+                text += ' à '
+                text += ', '.join([french_format(pst) for pst in self.possible_start_times])
         text += '.'
         return text
 
