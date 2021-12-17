@@ -149,16 +149,16 @@ class LimitedStartTimeChoices(TTConstraint):
             pwd = list(c[0] for c in Day.CHOICES)
         else:
             pwd = self.possible_week_days
+        excluded_slots = set(sl for sl in ttmodel.wdb.courses_slots
+                             if (sl.start_time not in pst or sl.day.day not in pwd))
         if self.tutor is None:
             relevant_sum = ttmodel.sum(ttmodel.TT[(sl, c)]
                                        for c in fc
-                                       for sl in ttmodel.wdb.compatible_slots[c] if (sl.start_time not in pst or
-                                                                                     sl.day.day not in pwd))
+                                       for sl in ttmodel.wdb.compatible_slots[c] & excluded_slots)
         else:
             relevant_sum = ttmodel.sum(ttmodel.TTinstructors[(sl, c, self.tutor)]
                                        for c in fc
-                                       for sl in ttmodel.wdb.compatible_slots[c] if (sl.start_time not in pst or
-                                                                                     sl.day.day not in pwd))
+                                       for sl in ttmodel.wdb.compatible_slots[c] & excluded_slots)
         if self.weight is not None:
             ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum, week=week)
         else:

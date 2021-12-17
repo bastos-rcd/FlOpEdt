@@ -141,6 +141,9 @@ class TTModel(object):
         self.stabilize_work_copy = stabilize_work_copy
         self.obj = self.lin_expr()
         self.wdb = self.wdb_init()
+        if not self.wdb.courses.exists():
+            print('There are no course to be scheduled...')
+            return
         self.possible_apms = self.wdb.possible_apms
         self.cost_I, self.FHD_G, self.cost_G, self.cost_SL, self.generic_cost = self.costs_init()
         start = datetime.datetime.now()
