@@ -59,13 +59,12 @@ class SimultaneousCourses(TTConstraint):
         nb = courses_weeks.count()
         if nb == 0:
             return
-        elif nb > 1:
-            self.delete()
-            raise Exception("Simultaneous courses need to have the same week: not saved")
         else:
-            week = courses_weeks.first()
-            self.week = week
             super().save(*args, **kwargs)
+            self.weeks.clear()
+            for w in courses_weeks:
+                self.weeks.add(w.week)
+
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -75,7 +74,7 @@ class SimultaneousCourses(TTConstraint):
 
     def enrich_model(self, ttmodel, week, ponderation=1):
         course_types = set(c.type for c in self.courses.all())
-        relevant_courses = list(c for c in self.courses.all() if c.week in ttmodel.weeks)
+        relevant_courses = set(self.courses.all()) & set(ttmodel.wdb.courses)
         nb_courses = len(relevant_courses)
         if nb_courses < 2:
             return
@@ -574,17 +573,15 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        courses_weeks_and_years = self.courses.all().distinct('week')
-        nb = courses_weeks_and_years.count()
+        courses_weeks = self.courses.all().distinct('week')
+        nb = courses_weeks.count()
         if nb == 0:
             return
-        elif nb > 1:
-            self.delete()
-            raise Exception("Courses in LimitSimultaneousCoursesNumber need to have the same week: not saved")
         else:
-            week = courses_weeks_and_years.first()
-            self.week = week
             super().save(*args, **kwargs)
+            self.weeks.clear()
+            for w in courses_weeks:
+                self.weeks.add(w.week)
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -603,21 +600,22 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
                 more_than_limit = ttmodel.add_floor(
                     ttmodel.sum(ttmodel.TT[sl,c]
                                 for c in relevant_courses
-                                for sl in slots_filter(ttmodel.wdb.compatible_slots[sl], simultaneous_to=a_sl)),
+                                for sl in slots_filter(ttmodel.wdb.compatible_slots[c], simultaneous_to=a_sl)),
                     self.limit+1,
                     nb_courses)
                 relevant_sum += more_than_limit
             ttmodel.add_constraint(relevant_sum, '==', 0,
                                    Constraint(constraint_type=ConstraintType.LimitSimultaneousCoursesNumber,
-                                              weeks=self.week))
+                                              weeks=week))
         else:
             for bound in range(self.limit, nb_courses+1):
                 relevant_sum *= 2
                 for a_sl in ttmodel.wdb.availability_slots:
                     more_than_limit = ttmodel.add_floor(
                         ttmodel.sum(ttmodel.TT[sl, c]
-                                for c in relevant_courses
-                                for sl in slots_filter(ttmodel.wdb.compatible_slots[sl], simultaneous_to=a_sl)),
+                                    for c in relevant_courses
+                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                           simultaneous_to=a_sl)),
                         bound + 1,
                         nb_courses)
                     relevant_sum += more_than_limit
