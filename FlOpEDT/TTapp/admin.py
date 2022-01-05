@@ -44,7 +44,7 @@ from TTapp.models import \
     ConsiderDependencies, Curfew, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
-    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek
+    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber
 
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
@@ -220,7 +220,7 @@ class AvoidBothTimesAdmin(DepartmentModelAdmin):
                    )
 
 
-class SimultaneousCoursesAdmin(DepartmentModelAdmin):
+class CoursesAdmin(DepartmentModelAdmin):
     list_display = ('comment',
                     'weight',
                     'is_active')
@@ -427,7 +427,7 @@ admin.site.register(MinModulesHalfDays, MinModulesHalfDaysAdmin)
 admin.site.register(MinNonPreferedTutorsSlot, MinNonPreferedTutorsSlotAdmin)
 admin.site.register(MinNonPreferedTrainProgsSlot, MinNonPreferedTrainProgsSlotAdmin)
 # admin.site.register(AvoidBothTimes, AvoidBothTimesAdmin)
-admin.site.register(SimultaneousCourses, SimultaneousCoursesAdmin)
+admin.site.register(SimultaneousCourses, CoursesAdmin)
 admin.site.register(MinimizeBusyDays, MinimizeBusyDaysAdmin)
 admin.site.register(RespectBoundPerDay, RespectBoundPerDayAdmin)
 admin.site.register(LimitedStartTimeChoices, LimitedStartTimeChoicesAdmin)
@@ -454,5 +454,6 @@ admin.site.register(LimitHoles, DepartmentModelAdmin)
 admin.site.register(LimitTutorTimePerWeeks, DepartmentModelAdmin)
 admin.site.register(ModulesByBloc, DepartmentModelAdmin)
 admin.site.register(LimitUndesiredSlotsPerWeek, DepartmentModelAdmin)
+admin.site.register(LimitSimultaneousCoursesNumber, CoursesAdmin)
 
 

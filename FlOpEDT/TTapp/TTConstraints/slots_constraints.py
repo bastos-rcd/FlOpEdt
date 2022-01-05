@@ -55,17 +55,16 @@ class SimultaneousCourses(TTConstraint):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        courses_weeks_and_years = set((c.week, c.year) for c in self.courses.all())
-        nb = len(courses_weeks_and_years)
+        courses_weeks = self.courses.all().distinct('week')
+        nb = courses_weeks.count()
         if nb == 0:
             return
         elif nb > 1:
             self.delete()
             raise Exception("Simultaneous courses need to have the same week: not saved")
         else:
-            week, year = courses_weeks_and_years.pop()
+            week = courses_weeks.first()
             self.week = week
-            self.year = year
             super().save(*args, **kwargs)
 
     @classmethod
@@ -564,3 +563,76 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
         text += f" n'ont pas cours plus de {self.max_number} jours par semaine " \
                f"entre {french_format(self.slot_start_time)} et {french_format(self.slot_end_time)}"
         return text
+
+
+class LimitSimultaneousCoursesNumber(TTConstraint):
+    """
+    Limit the number of simultaneous courses inside a set of courses
+    """
+    courses = models.ManyToManyField('base.Course', related_name='limit_simultaneous_courses_number_constraints')
+    limit = models.PositiveSmallIntegerField()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        courses_weeks_and_years = self.courses.all().distinct('week')
+        nb = courses_weeks_and_years.count()
+        if nb == 0:
+            return
+        elif nb > 1:
+            self.delete()
+            raise Exception("Courses in LimitSimultaneousCoursesNumber need to have the same week: not saved")
+        else:
+            week = courses_weeks_and_years.first()
+            self.week = week
+            super().save(*args, **kwargs)
+
+    @classmethod
+    def get_viewmodel_prefetch_attributes(cls):
+        attributes = super().get_viewmodel_prefetch_attributes()
+        attributes.extend(['courses'])
+        return attributes
+
+    def enrich_model(self, ttmodel, week, ponderation=1):
+        relevant_courses = set(self.courses.all()) & set(ttmodel.wdb.courses)
+        nb_courses = len(relevant_courses)
+        if nb_courses <= self.limit:
+            return
+        relevant_sum = ttmodel.lin_expr()
+        if self.weight is None:
+            for a_sl in ttmodel.wdb.availability_slots:
+                more_than_limit = ttmodel.add_floor(
+                    ttmodel.sum(ttmodel.TT[sl,c]
+                                for c in relevant_courses
+                                for sl in slots_filter(ttmodel.wdb.compatible_slots[sl], simultaneous_to=a_sl)),
+                    self.limit+1,
+                    nb_courses)
+                relevant_sum += more_than_limit
+            ttmodel.add_constraint(relevant_sum, '==', 0,
+                                   Constraint(constraint_type=ConstraintType.LimitSimultaneousCoursesNumber,
+                                              weeks=self.week))
+        else:
+            for bound in range(self.limit, nb_courses+1):
+                relevant_sum *= 2
+                for a_sl in ttmodel.wdb.availability_slots:
+                    more_than_limit = ttmodel.add_floor(
+                        ttmodel.sum(ttmodel.TT[sl, c]
+                                for c in relevant_courses
+                                for sl in slots_filter(ttmodel.wdb.compatible_slots[sl], simultaneous_to=a_sl)),
+                        bound + 1,
+                        nb_courses)
+                    relevant_sum += more_than_limit
+            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum)
+
+
+    def get_viewmodel(self):
+        view_model = super().get_viewmodel()
+        details = view_model['details']
+
+        if self.courses.exists():
+            details.update({'courses': ', '.join([str(course) for course in self.courses.all()]),
+                            'limit': self.limit})
+
+        return view_model
+
+    def one_line_description(self):
+        return f"Parmi {self.courses.all()} au maximum {self.limit} peuvent être simultanés !"
