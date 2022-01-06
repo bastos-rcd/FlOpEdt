@@ -566,10 +566,15 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
 
 class LimitSimultaneousCoursesNumber(TTConstraint):
     """
-    Limit the number of simultaneous courses inside a set of courses
+    Limit the number of simultaneous courses inside a set of courses, and/or selecting a specific course type
+    and/or a set of considered modules
     """
     courses = models.ManyToManyField('base.Course', related_name='limit_simultaneous_courses_number_constraints')
     limit = models.PositiveSmallIntegerField()
+    course_type = models.ForeignKey('base.CourseType', on_delete=models.CASCADE, null=True, blank=True)
+    modules = models.ManyToManyField('base.Module',
+                                     blank=True,
+                                     related_name="limit_simultaneous")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -590,7 +595,13 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
         return attributes
 
     def enrich_model(self, ttmodel, week, ponderation=1):
-        relevant_courses = set(self.courses.all()) & set(ttmodel.wdb.courses)
+        relevant_courses = ttmodel.wdb.courses
+        if self.course_type is not None:
+            relevant_courses = relevant_courses.filter(type=self.course_type)
+        if self.modules.exists():
+            relevant_courses = relevant_courses.filter(module__in=self.modules.all())
+        if self.courses.exists():
+            relevant_courses = set(relevant_courses) & set(ttmodel.wdb.courses)
         nb_courses = len(relevant_courses)
         if nb_courses <= self.limit:
             return
@@ -628,9 +639,19 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
 
         if self.courses.exists():
             details.update({'courses': ', '.join([str(course) for course in self.courses.all()]),
-                            'limit': self.limit})
+                            'limit': self.limit,
+                            'type': self.course_type,
+                            'modules': ', '.join([m.abbrev for m in self.module.all()])})
 
         return view_model
 
     def one_line_description(self):
-        return f"Parmi {self.courses.all()} au maximum {self.limit} peuvent être simultanés !"
+        text = f"Parmi les cours"
+        if self.courses.exists():
+            text+= f" {self.courses.all()}"
+        if self.course_type:
+            text += f" de type {self.course_type}"
+        if self.modules.exists():
+            text += f" de modules {', '.join([m.abbrev for m in self.module.all()])}"
+        text += f" au maximum {self.limit} peuvent être simultanés."
+        return text
