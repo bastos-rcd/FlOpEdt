@@ -569,29 +569,16 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
     Limit the number of simultaneous courses inside a set of courses, and/or selecting a specific course type
     and/or a set of considered modules
     """
-    courses = models.ManyToManyField('base.Course', related_name='limit_simultaneous_courses_number_constraints')
     limit = models.PositiveSmallIntegerField()
     course_type = models.ForeignKey('base.CourseType', on_delete=models.CASCADE, null=True, blank=True)
     modules = models.ManyToManyField('base.Module',
                                      blank=True,
                                      related_name="limit_simultaneous")
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        courses_weeks = self.courses.all().distinct('week')
-        nb = courses_weeks.count()
-        if nb == 0:
-            return
-        else:
-            super().save(*args, **kwargs)
-            self.weeks.clear()
-            for w in courses_weeks:
-                self.weeks.add(w.week)
-
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['courses'])
+        attributes.extend(['course_type', "modules"])
         return attributes
 
     def enrich_model(self, ttmodel, week, ponderation=1):
@@ -600,9 +587,7 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
             relevant_courses = relevant_courses.filter(type=self.course_type)
         if self.modules.exists():
             relevant_courses = relevant_courses.filter(module__in=self.modules.all())
-        if self.courses.exists():
-            relevant_courses = set(relevant_courses) & set(ttmodel.wdb.courses)
-        nb_courses = len(relevant_courses)
+        nb_courses = relevant_courses.count()
         if nb_courses <= self.limit:
             return
         relevant_sum = ttmodel.lin_expr()
@@ -637,21 +622,17 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
         view_model = super().get_viewmodel()
         details = view_model['details']
 
-        if self.courses.exists():
-            details.update({'courses': ', '.join([str(course) for course in self.courses.all()]),
-                            'limit': self.limit,
-                            'type': self.course_type,
-                            'modules': ', '.join([m.abbrev for m in self.module.all()])})
+        details.update({'limit': self.limit,
+                        'type': self.course_type,
+                        'modules': ', '.join([m.abbrev for m in self.module.all()])})
 
         return view_model
 
     def one_line_description(self):
         text = f"Parmi les cours"
-        if self.courses.exists():
-            text+= f" {self.courses.all()}"
         if self.course_type:
             text += f" de type {self.course_type}"
         if self.modules.exists():
-            text += f" de modules {', '.join([m.abbrev for m in self.module.all()])}"
+            text += f" des modules {', '.join([m.abbrev for m in self.module.all()])}"
         text += f" au maximum {self.limit} peuvent être simultanés."
         return text
