@@ -454,6 +454,6 @@ admin.site.register(LimitHoles, DepartmentModelAdmin)
 admin.site.register(LimitTutorTimePerWeeks, DepartmentModelAdmin)
 admin.site.register(ModulesByBloc, DepartmentModelAdmin)
 admin.site.register(LimitUndesiredSlotsPerWeek, DepartmentModelAdmin)
-admin.site.register(LimitSimultaneousCoursesNumber, CoursesAdmin)
+admin.site.register(LimitSimultaneousCoursesNumber, DepartmentModelAdmin)
 
 
