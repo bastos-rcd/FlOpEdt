@@ -200,13 +200,9 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         ################ A line per module per CourseType ################
         for mod in Module.objects.filter(period=p):
             courses = Course.objects.filter(module=mod)
-            if not courses.exists():
-                continue
             logger.info(f"Module {mod}")
             for ct in CT:
                 type_courses = courses.filter(type=ct)
-                if not type_courses.exists():
-                    continue
                 append_row(sheet, empty_rows, 2, rank, cols)
                 sheet.cell(row=rank, column=1).value = mod.abbrev
                 sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
