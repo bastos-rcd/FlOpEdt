@@ -145,7 +145,7 @@ class MinimizeBusyDays(TTConstraint):
             nb_days = len(days_filter(ttmodel.wdb.days, week=week))
             minimal_number_of_days = nb_days
             # for any number of days inferior to nb_days
-            for d in range(nb_days, 1, -1):
+            for d in range(nb_days, 0, -1):
                 # if courses fit in d-1 days
                 if courses_hours <= tutor.pref_hours_per_day * (d-1):
                     # multiply the previous cost by 2
