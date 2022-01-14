@@ -136,23 +136,31 @@ class MinimizeBusyDays(TTConstraint):
         tutors = considered_tutors(self, ttmodel)
 
         for tutor in tutors:
-            slot_by_day_cost = 0
+            slot_by_day_cost = ttmodel.lin_expr()
             # need to be sorted
             courses_hours = sum(c.type.duration
                                 for c in (ttmodel.wdb.courses_for_tutor[tutor]
                                           | ttmodel.wdb.courses_for_supp_tutor[tutor])
                                 & ttmodel.wdb.courses_by_week[week]) / 60
-            nb_days = 5
-            frontier_pref_busy_days = [tutor.pref_hours_per_day * d for d in range(nb_days - 1, 0, -1)]
-
-            for fr in frontier_pref_busy_days:
-                if courses_hours <= fr:
+            nb_days = len(ttmodel.wdb.days)
+            minimal_number_of_days = nb_days
+            # for any number of days inferior to nb_days
+            for d in range(nb_days, 1, -1):
+                # if courses fit in d-1 days
+                if courses_hours <= tutor.pref_hours_per_day * (d-1):
+                    # multiply the previous cost by 2
                     slot_by_day_cost *= 2
-                    slot_by_day_cost += ttmodel.IBD_GTE[week][nb_days][tutor]
-                    nb_days -= 1
+                    # add a cost for having d busy days
+                    slot_by_day_cost += ttmodel.IBD_GTE[week][d][tutor]
                 else:
+                    minimal_number_of_days = d
                     break
-            ttmodel.add_to_inst_cost(tutor, ponderation * slot_by_day_cost, week=week)
+            if self.weight is None:
+                ttmodel.add_constraint(ttmodel.IBD_GTE[week][minimal_number_of_days + 1][tutor], '==', 0,
+                                       Constraint(constraint_type=ConstraintType.MinimizeBusyDays,
+                                                  instructors=tutor, weeks=week))
+            else:
+                ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * slot_by_day_cost, week=week)
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()

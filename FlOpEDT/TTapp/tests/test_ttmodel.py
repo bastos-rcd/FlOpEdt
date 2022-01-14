@@ -18,10 +18,14 @@ class TTModelTestCase(TestCase):
 
     fixtures = ['dump.json']
 
+    @property
+    def week(self):
+        return models.Course.objects.exclude(week__nb=None).first().week
+
     @skip("redondant testting")
-    def test_init(self):   
+    def test_init(self):
         tp1 = models.TrainingProgramme.objects.get(abbrev="INFO1")
-        tt = TTModel(tp1.department.abbrev, 39, 2018, train_prog=tp1)
+        tt = TTModel(tp1.department.abbrev, weeks=[self.week], train_prog=tp1)
         self.assertIsNotNone(tt)
 
     @skip("redondant testting")
@@ -29,12 +33,12 @@ class TTModelTestCase(TestCase):
     @patch('TTapp.TTModel.TTModel.add_tt_to_db', side_effect=mock_add_tt_to_db)
     def test_solve_without_optimize(self, optimize, add_tt_to_db):        
         tp1 = models.TrainingProgramme.objects.get(abbrev="INFO1")
-        tt = TTModel(tp1.department.abbrev, 39, 2018, train_prog=tp1)
+        tt = TTModel(tp1.department.abbrev, self.week, train_prog=tp1)
         tt.solve(time_limit=300, solver='CBC')
         self.assertTrue(True)
 
     def test_solve(self):
         tp1 = models.TrainingProgramme.objects.get(abbrev="INFO1")
-        tt = TTModel(tp1.department.abbrev, 39, 2018, train_prog=tp1)
+        tt = TTModel(tp1.department.abbrev, self.week, train_prog=tp1)
         tt.solve(time_limit=300, solver='CBC')
         self.assertTrue(True)        
