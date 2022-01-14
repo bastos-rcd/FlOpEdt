@@ -142,7 +142,7 @@ class MinimizeBusyDays(TTConstraint):
                                 for c in (ttmodel.wdb.courses_for_tutor[tutor]
                                           | ttmodel.wdb.courses_for_supp_tutor[tutor])
                                 & ttmodel.wdb.courses_by_week[week]) / 60
-            nb_days = len(ttmodel.wdb.days)
+            nb_days = len(days_filter(ttmodel.wdb.days, week=week))
             minimal_number_of_days = nb_days
             # for any number of days inferior to nb_days
             for d in range(nb_days, 1, -1):
@@ -156,9 +156,10 @@ class MinimizeBusyDays(TTConstraint):
                     minimal_number_of_days = d
                     break
             if self.weight is None:
-                ttmodel.add_constraint(ttmodel.IBD_GTE[week][minimal_number_of_days + 1][tutor], '==', 0,
-                                       Constraint(constraint_type=ConstraintType.MinimizeBusyDays,
-                                                  instructors=tutor, weeks=week))
+                if minimal_number_of_days < nb_days:
+                    ttmodel.add_constraint(ttmodel.IBD_GTE[week][minimal_number_of_days + 1][tutor], '==', 0,
+                                           Constraint(constraint_type=ConstraintType.MinimizeBusyDays,
+                                                      instructors=tutor, weeks=week))
             else:
                 ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * slot_by_day_cost, week=week)
 
