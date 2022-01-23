@@ -29,9 +29,9 @@ from TTapp.ilp_constraints.constraint import Constraint
 
 def print_all(constraints, occurs, threshold_type, threshold_attr, file_path, filename_suffixe, write_csv_file):
     print_brut_constraints(constraints, occurs, file_path, filename_suffixe)
-    print_factorised_constraints(occurs, file_path, filename_suffixe, print_output=True)
     print_summary_from_types_with_threshold(constraints, occurs, threshold_type, threshold_attr, file_path,
-                                            filename_suffixe)
+                                            filename_suffixe, print_output=True)
+    print_factorised_constraints(occurs, file_path, filename_suffixe, print_output=True)
     if write_csv_file:
         write_csv(constraints, file_path, filename_suffixe)
 
@@ -53,7 +53,7 @@ def print_brut_constraints(constraints, occurs, file_path, filename_suffixe):
 
 
 def print_factorised_constraints(occurs, file_path, filename_suffixe, print_output=False):
-    output = "Voici Les différentes contraintes qui créent l'infaisabilité, factorisés :\n"
+    output = "\n\n Voici toutes les contraintes qui créent l'infaisabilité, factorisées :\n"
     if print_output:
         print(output)
     for dimension in occurs.keys():
