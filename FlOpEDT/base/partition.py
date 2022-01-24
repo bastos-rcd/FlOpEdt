@@ -235,11 +235,24 @@ class Partition(object):
             
         Returns:
             (int): the number of times it founds an available time of minimum duration starting at a starting time"""
+            
+        # on considère ici qu'il existe forcément une nuit, c'est à dire un intervalle à not available qui nous fait passer d'une journée à l'autre
+        
         start_times.sort()
         current_duration = 0
         nb_slots = 0
+        heure_jour = 0
+        first_day = True
         for interval in self.intervals:
-            if not interval[1]["forbidden"] and not interval[1]["forbidden"]:
+            heure_jour += interval[0].duration
+            
+            # le premier interval du preminer jour ne commençant pas forcément à 0h00 on doit ajouter à l'heure du jour l'heure de début du premier interval
+            
+            if first_day :
+                heure_jour += time_to_floptime(interval[0].start.time())
+                first_day = False
+                
+            if interval[1]["available"] and not interval[1]["forbidden"]:
                 if current_duration == 0:
                     for st in start_times:
                         if time_to_floptime(interval[0].start.time()) <= st and time_to_floptime(interval[0].end.time()) > st:
@@ -248,10 +261,19 @@ class Partition(object):
                 else:
                     current_duration += interval[0].duration
             else:
-                nb_slots += current_duration//duration
+                current_duration = current_duration - current_duration%duration
+                
+            # on calcul ici le nombre de slot dispo pour un jour. Possible uniquement car on a supposé qu'il existe un slot de nuit avec forbidden = true ( donc current_duration ne sera pas modifié dans cette itération )
+            
+            if heure_jour >= 1440 :
+                heure_jour = heure_jour - 1440
+                nb_slots += min(len(start_times),current_duration//duration)
                 current_duration = 0
-        nb_slots += current_duration//duration
-        current_duration = 0
+                
+        # au cas où le dernier interval du dernier jour ne se finit pas à miniuit
+        
+        nb_slots += min(len(start_times),current_duration//duration)
+        
         return int(nb_slots)
 
 
@@ -277,6 +299,8 @@ class Partition(object):
         return int(nb_slots)
 
     def nb_slots_not_forbidden_of_duration_beginning_at(self, duration, start_times):
+        
+        
         """Calculates the number of time not forbidden in the partition of minimum consecutive duration and with specific starting times
         
         Parameters:
@@ -288,8 +312,18 @@ class Partition(object):
         start_times.sort()
         current_duration = 0
         nb_slots = 0
+        heure_jour = 0
+        first_day = True
         for interval in self.intervals:
-            if not interval[1]["forbidden"]:
+            heure_jour += interval[0].duration
+            
+            # le premier interval du preminer jour ne commençant pas forcément à 0h00 on doit ajouter à l'heure du jour l'heure de début du premier interval
+            
+            if first_day :
+                heure_jour += time_to_floptime(interval[0].start.time())
+                first_day = False
+                
+            if interval[1]["available"] and not interval[1]["forbidden"]:
                 if current_duration == 0:
                     for st in start_times:
                         if time_to_floptime(interval[0].start.time()) <= st and time_to_floptime(interval[0].end.time()) > st:
@@ -298,10 +332,19 @@ class Partition(object):
                 else:
                     current_duration += interval[0].duration
             else:
-                nb_slots += current_duration//duration
+                current_duration = current_duration - current_duration%duration
+                
+            # on calcul ici le nombre de slot dispo pour un jour. Possible uniquement car on a supposé qu'il existe un slot de nuit avec forbidden = true ( donc current_duration ne sera pas modifié dans cette itération )
+            
+            if heure_jour >= 1440 :
+                heure_jour = heure_jour - 1440
+                nb_slots += min(len(start_times),current_duration//duration)
                 current_duration = 0
-        nb_slots += current_duration//duration
-        current_duration = 0
+                
+        # au cas où le dernier interval du dernier jour ne se finit pas à miniuit
+        
+        nb_slots += min(len(start_times),current_duration//duration)
+        
         return int(nb_slots)
     
     def clear_merge(self):
