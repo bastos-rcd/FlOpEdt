@@ -35,6 +35,8 @@ from people.models import Tutor
 
 from copy import copy
 
+from django.db.models import Count
+
 from django.utils.translation import gettext_lazy as _
 
 
@@ -218,30 +220,36 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                                                             type__in=ct.group_types.all())) \
                          | set(TransversalGroup.objects.filter(train_prog=mod.train_prog,
                                                                type__in=ct.group_types.all()))
-                # if with_courses:
-                #     groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog,
-                #                                                 type__in=ct.group_types.all())) \
-                #              | set(TransversalGroup.objects.filter(train_prog=mod.train_prog,
-                #                                                    type__in=ct.group_types.all()))
-                # else:
-                #     groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog,
-                #                                                 type__in=ct.group_types.all())) \
-                #              | set(TransversalGroup.objects.filter(train_prog=mod.train_prog,
-                #                                                    type__in=ct.group_types.all()))
+                if with_courses:
+                    for c in type_courses.distinct('groups'):
+                        groups |= set(c.groups.all())
 
                 nb_groups = len(groups)
                 if nb_groups:
-                    for g in groups:
-                        if with_courses:
-                            group_courses = type_courses.filter(groups=g)
+                    if with_courses:
+                        relevant_groups_dict = {}
+                        for c in type_courses:
+                            relevant_groups = c.groups.all()
+                            group_to_be_written = ';'.join(g.name for g in relevant_groups)
+                            relevant_groups_dict[group_to_be_written] = c.groups.all()
+                        for groups_name, groups in relevant_groups_dict.items():
+                            # This 3 lines code allow to limit the courses to those which have
+                            # exactly groups as groups...
+                            group_courses = type_courses.annotate(count=Count('groups')).filter(count=groups.count())
+                            for gp in groups:
+                                group_courses = group_courses.filter(groups=gp)
                             if not group_courses.exists():
                                 continue
-                            courses_tutors = group_courses.distinct('tutor')
+                            courses_tutors = type_courses.distinct('tutor')
                             for course_tutor in courses_tutors:
-                                if course_tutor.tutor is None:
+                                local_tutor = course_tutor.tutor
+                                tutor_group_courses = group_courses.filter(tutor=local_tutor)
+                                if not tutor_group_courses.exists():
+                                    continue
+                                if local_tutor is None:
                                     username = ""
                                 else:
-                                    username = course_tutor.tutor.username
+                                    username = local_tutor.username
                                 append_row(sheet, empty_rows, 3, rank, cols)
                                 sheet.cell(row=rank, column=1).value = mod.abbrev
                                 sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
@@ -249,10 +257,9 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                                 sheet.cell(row=rank, column=4).value = ct.duration
                                 sheet.cell(row=rank, column=5).value = username
                                 room_type_validator.add(sheet.cell(row=rank, column=6))
-                                sheet.cell(row=rank, column=7).value = g.name
+                                sheet.cell(row=rank, column=7).value = groups_name
 
-                                tutor_group_courses = group_courses.filter(tutor=course_tutor.tutor)
-                                courses_weeks = tutor_group_courses.distinct('week')
+                                courses_weeks = type_courses.distinct('week').exclude(week__nb=0)
                                 for course_week in courses_weeks:
                                     local_week = course_week.week
                                     week_col = week_col_dict[local_week.nb]
@@ -260,7 +267,8 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                                     sheet.cell(row=rank, column=week_col).value = week_tutor_group_courses_nb
                                 rank += 1
 
-                        else:
+                    else:
+                        for g in groups:
                             append_row(sheet, empty_rows, 3, rank, cols)
                             sheet.cell(row=rank, column=1).value = mod.abbrev
                             sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
@@ -270,8 +278,6 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                             room_type_validator.add(sheet.cell(row=rank, column=6))
                             sheet.cell(row=rank, column=7).value = g.name
                             rank += 1
-
-                    if not with_courses:
                         sheet.cell(row=rank - nb_groups, column=VERIF_COL).value = '' \
                            '=IF(SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d=0,"OK","/!\\ -> ' \
                            '"&SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d)' % \
