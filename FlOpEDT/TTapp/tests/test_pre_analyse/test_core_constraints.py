@@ -6,7 +6,7 @@ django.setup()
 from unittest import skip
 from TTapp.tests.test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
-from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability
+from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability, NoSimultaneousGroupCourses
 
 # Test pre_analyse function for constraints in core_constraints.py : assert correct result returned
 class ConsiderTutorsUnavailabilityTestCase(ConstraintTestCase):
@@ -99,6 +99,7 @@ class NoSimultaneousGroupCoursesTestCase(ConstraintTestCase):
     fixtures = ['data_test_constraints.json']
 
     def setUp(self):
+        # Set constraint's type
         ConstraintTestCase.setUp(self)
         self.constraint_type = "NoSimultaneousGroupCourses"
 
@@ -107,8 +108,8 @@ class NoSimultaneousGroupCoursesTestCase(ConstraintTestCase):
         self.dep_2 = Department.objects.get(abbrev="Dept2")
 
         # Constraints by departments
-        self.constraint_default_dep = ConsiderTutorsUnavailability.objects.get(department=self.default_dep)
-        self.constraint_dep_2 = ConsiderTutorsUnavailability.objects.get(department=self.dep_2)
+        self.constraint_default_dep = NoSimultaneousGroupCourses.objects.get(department=self.default_dep)
+        self.constraint_dep_2 = NoSimultaneousGroupCourses.objects.get(department=self.dep_2)
 
         # Weeks
         self.week_7_2022 = Week.objects.get(year=2022, nb=7)
