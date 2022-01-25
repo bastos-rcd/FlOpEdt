@@ -4,17 +4,19 @@ import django
 django.setup()
 # end
 from unittest import skip
-from django.test import TestCase
+from TTapp.tests.test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
-from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability
-import TTapp.tests.test_pre_analyse.json_response as json_response_module
+from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability, NoSimultaneousGroupCourses
 
 # Test pre_analyse function for constraints in core_constraints.py : assert correct result returned
-class ConsiderTutorsUnavailabilityTestCase(TestCase):
+class ConsiderTutorsUnavailabilityTestCase(ConstraintTestCase):
 
     fixtures = ['data_test_constraints.json']
 
     def setUp(self):
+        # Set constraint's type
+        ConstraintTestCase.setUp(self)
+        self.constraint_type = "ConsiderTutorsUnavailability"
 
         # Departments
         self.default_dep = Department.objects.get(abbrev="default")
@@ -90,70 +92,62 @@ class ConsiderTutorsUnavailabilityTestCase(TestCase):
         json_response_dict = self.constraint_dep_2.pre_analyse(week=self.week_5_2022)
         self.assertJsonResponseIsOK("10", json_response_dict)
 
-    def assertJsonResponseIsOK(self, test_id, response_dict):
-        """
-                Assert that the json response status given in the dictionnary is "OK".
 
-        :param test_id: A string identifying the test concerned (generally a number).
-        :type test_id: str
-        :param response_dict: A dictionnary containing the data of the json response returned after launcing the pre_analysis.
-        :type response_dict: dict
+class NoSimultaneousGroupCoursesTestCase(ConstraintTestCase):
+    # TODO : complete
 
-        """
-        json_response_manager = json_response_module.JsonResponse()
+    fixtures = ['data_test_constraints.json']
 
-        # Json response is OK
-        self.assertEquals("OK", json_response_manager.getResponseStatus(response_dict),
-                          self.unexpectedResponseErrorMessage(test_id, "OK", "KO"))
+    def setUp(self):
+        # Set constraint's type
+        ConstraintTestCase.setUp(self)
+        self.constraint_type = "NoSimultaneousGroupCourses"
 
-    def assertJsonResponseIsKO(self, test_id, response_dict):
-        """
-                Assert that the json response status given in the dictionnary is "KO" and that "ConsiderTutorsUnavailability"
-                belongs to the errors' type.
+        # Departments
+        self.default_dep = Department.objects.get(abbrev="default")
+        self.dep_2 = Department.objects.get(abbrev="Dept2")
 
-        :param test_id: A string identifying the test concerned (generally a number).
-        :type test_id: str
-        :param response_dict: A dictionnary containing the data of the json response returned after launcing the pre_analysis.
-        :type response_dict: dict
+        # Constraints by departments
+        self.constraint_default_dep = NoSimultaneousGroupCourses.objects.get(department=self.default_dep)
+        self.constraint_dep_2 = NoSimultaneousGroupCourses.objects.get(department=self.dep_2)
 
-        """
-        json_response_manager = json_response_module.JsonResponse()
-        all_blocking_constraints_types = list(map(lambda dico: dico["type"], response_dict["messages"]))
+        # Weeks
+        self.week_7_2022 = Week.objects.get(year=2022, nb=7)
+        self.week_8_2022 = Week.objects.get(year=2022, nb=8)
+        self.week_9_2022 = Week.objects.get(year=2022, nb=9)
+        self.week_10_2022 = Week.objects.get(year=2022, nb=10)
+        self.week_11_2022 = Week.objects.get(year=2022, nb=11)
+        self.week_12_2022 = Week.objects.get(year=2022, nb=12)
 
-        # Json response is KO and json status "ConsiderTutorsUnavailability" belongs to failure's reasons
-        self.assertEquals("KO", json_response_manager.getResponseStatus(response_dict),
-                          self.unexpectedResponseErrorMessage(test_id, "KO", "OK")) \
-        and self.assertIn("ConsiderTutorsUnavailability", all_blocking_constraints_types,
-                          self.constraintNotInJsonResponseErrorMessage(test_id))
 
-    def unexpectedResponseErrorMessage(self, test_id, expected_response, actual_response):
-        """
-                Generate an error message.
+    def test_consider_enough_slots_and_time(self):
+        # TODO
+        # Test 1 : KO case
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_7_2022)
+        self.assertJsonResponseIsKO("1", json_response_dict)
 
-        :param test_id: A string identifying the test concerned (generally a number).
-        :type test_id: str
-        :type expected_response: str
-        :type actual_response: str
-        :return: A message describing the error that occured when a json response's status is not the expected status.
-        :rtype: str
+        # Test 2 : OK case
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_8_2022)
+        self.assertJsonResponseIsOK("2", json_response_dict)
 
-        """
-        return "Test %(test_id)s of ConsiderTutorsUnavailability FAILED.\nUnexpected json response, expected %(expected_response)s but got %(actual_response)s"%{'test_id' : str(test_id),
-                                                                                                                                                                 'expected_response' : expected_response,
-                                                                                                                                                                 'actual_response' : actual_response}
+    def test_consider_no_simultaneous_groups_and_subgroups_courses(self):
+        # TODO
+        # Test 3 : KO case
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_9_2022)
+        self.assertJsonResponseIsKO("3", json_response_dict)
 
-    def constraintNotInJsonResponseErrorMessage(self, test_id):
-        """
-                Generate an error message.
-                
-        :param test_id: A string identifying the test concerned (generally a number).
-        :type test_id: str
+        # Test 4 : OK case
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_10_2022)
+        self.assertJsonResponseIsOK("4", json_response_dict)
 
-        :return: A message describing the error that occured when a json response's set of errors' type does not contain the expected type ConsiderTutorsUnavailability.
-        :rtype: str
+    def test_consider_transversal_courses(self):
+        # Test 5 : KO case
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_11_2022)
+        self.assertJsonResponseIsKO("5", json_response_dict)
 
-        """
-        return "Test %(test_id)s of ConsiderTutorsUnavailability FAILED.\nExpected ConsiderTutorsUnavailability in failure's reasons."%{'test_id' : str(test_id)}
+        # Test 6 : OK case
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_12_2022)
+        self.assertJsonResponseIsOK("6", json_response_dict)
 
 # TODO : delete at the end, only print tests
 if __name__ == "__main__":
