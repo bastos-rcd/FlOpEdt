@@ -25,7 +25,7 @@
 
 
 from FlOpEDT.decorators import timer
-from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
+from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay,NoGroupCourseOnDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval
 from base.models import CourseStartTimeConstraint, Department, TimeGeneralSettings, TransversalGroup
@@ -69,17 +69,34 @@ class NoSimultaneousGroupCourses(TTConstraint):
         jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year }}
 
         considered_basic_groups = pre_analysis_considered_basic_groups(self)
+        
         for bg in considered_basic_groups:
-
             #Retrieving information about general time settings and creating the partition
             group_partition = Partition.get_partition_of_week(week, bg.type.department, True)
+            
+            ############
+            
+            #prise en compte de la contrainte NoGroupCourseOnDay dans la construction de la partition
+            
+            no_course_group = NoGroupCourseOnDay.objects.filter(Q(groups=bg))
+            forbidden_days = ""
+            i = 1
+            if no_course_group.exists():
+                for constraint in no_course_group:
+                    forbidden_days += constraint.weekday+'-'+constraint.period+', '
+                    slot = constraint.get_slot_constraint(week, forbidden = True)
+                    if slot:
+                        group_partition.add_slot(slot[0],"no_course_tutor",slot[1])
+
+            ############
             
             ### Coloration ###
             tuple_graph = coloration_ordered(bg)
             ### Coloration ###
-
+            
             #We are looking for the maximum courses' time of transversal groups 
             max_courses_time_transversal = 0
+            
             if tuple_graph:
                 graph, color_max = tuple_graph
                 for transversal_group in graph:
@@ -105,10 +122,12 @@ class NoSimultaneousGroupCourses(TTConstraint):
                             time_group_courses = gp.time_of_courses(week)
                     transversal_conflict_groups.add(group_to_consider)
 
-            #Set of courses for the group and all its structural ancestors
-            considered_courses = set(c for c in Course.objects.filter(week=week, groups__in=bg.and_ancestors()))
+            #Set of courses for the group and all its structural descendants
+            considered_courses = set(c for c in Course.objects.filter(week=week, groups__in=bg.and_descendants()))
+
             #Mimimum time needed in any cases
             min_course_time_needed = sum(c.type.duration for c in considered_courses) + max_courses_time_transversal
+            
             if min_course_time_needed > group_partition.not_forbidden_duration:
                 jsondict["status"] = _("KO")
                 jsondict["messages"].append({"str":_(f"Group {bg.name} has {group_partition.not_forbidden_duration} available time but requires minimum {min_course_time_needed}."),
@@ -125,23 +144,30 @@ class NoSimultaneousGroupCourses(TTConstraint):
                     jsondict["messages"].append({"str":_(f"Group {bg.name} has {group_partition.not_forbidden_duration} available time but probably requires minimum {course_time_needed}."),
                                                 "group":bg.id, "type": "NoSimultaneousGroupCourses"})
                 else:
-                    #We are checking if we have enough slots for each course type
+                    #We are checking if we have enough slots for the number of courses
+                    
                     course_dict = dict()
                     for c in considered_courses:
+
                         if c.type in course_dict:
                             course_dict[c.type] += 1
                         else:
                             course_dict[c.type] = 1 
-
+                    
+                    # Calculer le nombre de slot pour les heures de début en commun puis y ajouter le nb de slot pour les heures des début pas en commun. Comparer aux nombre de cours
                             
                     for course_type, nb_courses in course_dict.items():
+                        
                         #We are retrieving the possible start times for each course type and then we check how many we can put in the partition
+                        
                         start_times = CourseStartTimeConstraint.objects.get(course_type = course_type)
                         allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(course_type.duration, start_times.allowed_start_times)
                         if allowed_slots_nb < nb_courses:
                             jsondict["status"] = _("KO")
                             jsondict["messages"].append({ "str": _(f"Group {bg.name} has {allowed_slots_nb} slots available of {course_type.duration} minutes and requires {nb_courses}."),
-                                                        "group": bg.id, "type": "NoSimultaneousGroupCourses"}) 
+                                                        "group": bg.id, "type": "NoSimultaneousGroupCourses"})
+                         
+                            
         return jsondict
 
     def enrich_model(self, ttmodel, week, ponderation=1):
@@ -507,7 +533,6 @@ def coloration_ordered(basic_group):
             }
     """
     transversal_conflict_groups = basic_group.transversal_conflicting_groups
-
     if transversal_conflict_groups:
         graph = []
         for tr in transversal_conflict_groups:
