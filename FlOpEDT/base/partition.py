@@ -45,6 +45,7 @@ class Partition(object):
         If one of the optionnal parameters is missing no day time will be set.'''
         self.intervals = []
         self.type = type
+        self.weekend =[]
         self.day_start_time = day_start_time
         self.day_end_time = day_end_time
         self.intervals.append(
@@ -89,6 +90,9 @@ class Partition(object):
         if self.day_start_time and self.day_end_time:
             return (self.day_end_time - self.day_start_time)
         return 0
+    
+    def get_weekend(self):
+        return self.weekend
 
     def __str__(self):
         return_string = f"Partition starts at {self.intervals[0][0].start} and ends at {self.intervals[self.nb_intervals-1][0].end}\n"
@@ -138,7 +142,8 @@ class Partition(object):
         days_of_week must have all days in it consecutives'''
         weekend_days = [day for day in [Day.MONDAY, Day.TUESDAY, Day.WEDNESDAY, Day.THURSDAY, Day.FRIDAY, Day.SATURDAY, Day.SUNDAY] if not (day in days_of_week)]
         weekend_indexes =  [days_index[day] for day in weekend_days]
-
+        for d in weekend_days :
+            self.weekend.append(d)
         i=0
         while weekend_indexes[len(weekend_indexes)-1] - weekend_indexes[0] >= len(weekend_indexes) and i < len(weekend_indexes):
             weekend_indexes.append(weekend_indexes[0]+7)
