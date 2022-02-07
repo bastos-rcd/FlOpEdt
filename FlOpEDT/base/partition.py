@@ -244,41 +244,57 @@ class Partition(object):
         # on considère ici qu'il existe forcément une nuit, c'est à dire un intervalle à not available qui nous fait passer d'une journée à l'autre
         
         start_times.sort()
-        current_duration = 0
+        slot_duration = 0
         nb_slots = 0
-        heure_jour = 0
-        first_day = True
+            
         for interval in self.intervals:
-            heure_jour += interval[0].duration
             
-            # le premier interval du preminer jour ne commençant pas forcément à 0h00 on doit ajouter à l'heure du jour l'heure de début du premier interval
-            
-            if first_day :
-                heure_jour += time_to_floptime(interval[0].start.time())
-                first_day = False
+            # for each start time we look for a slot
                 
             if interval[1]["available"] and not interval[1]["forbidden"]:
-                if current_duration == 0:
+                start = time_to_floptime(interval[0].start.time())
+                end = time_to_floptime(interval[0].end.time())
+                
+                # we need to know times already used for a slot in an interval
+                
+                time_already_use = 0
+                
+                if slot_duration == 0:
                     for st in start_times:
-                        if time_to_floptime(interval[0].start.time()) <= st and time_to_floptime(interval[0].end.time()) > st:
-                            current_duration += interval[0].duration - (st - time_to_floptime(interval[0].start.time()))
-                            break
+                        
+                        # we look if the current start time is not in a slot already computed
+                        
+                        if start + st > time_already_use :
+                            if start <= st and end > st:
+                                slot_duration = interval[0].duration - (st - start)
+                                time_already_use += duration
+                                if slot_duration >= duration :
+                                    nb_slots += 1
+                                    slot_duration = 0
+                                
+                                # slot_duration < duration implies no more time useful in the interval
+                                # we keep it to look if there is enough time in the next interval.
+                                
+                                else :
+                                    break
                 else:
-                    current_duration += interval[0].duration
+                    time_already_use += duration - slot_duration
+                    slot_duration += interval[0].duration
+                    if slot_duration >= duration :
+                        nb_slots += 1
+                    for st in start_times:
+                        if end - st > time_already_use :
+                            if start <= st and end > st:
+                                slot_duration = interval[0].duration - (st - start)
+                                time_already_use += duration
+                                if slot_duration >= duration :
+                                    nb_slots += 1
+                                    slot_duration = 0
+                                else :
+                                    break
             else:
-                current_duration = current_duration - current_duration%duration
-                
-            # on calcul ici le nombre de slot dispo pour un jour. Possible uniquement car on a supposé qu'il existe un slot de nuit avec forbidden = true ( donc current_duration ne sera pas modifié dans cette itération )
-            
-            if heure_jour >= 1440 :
-                heure_jour = heure_jour - 1440
-                nb_slots += min(len(start_times),current_duration//duration)
-                current_duration = 0
-                
-        # au cas où le dernier interval du dernier jour ne se finit pas à miniuit
-        
-        nb_slots += min(len(start_times),current_duration//duration)
-        
+                slot_duration = 0
+    
         return int(nb_slots)
 
 
@@ -314,42 +330,59 @@ class Partition(object):
             
         Returns:
             (int): the number of times it founds a non forbidden slot time of minimum duration starting at a starting time"""
+            
         start_times.sort()
-        current_duration = 0
+        slot_duration = 0
         nb_slots = 0
-        heure_jour = 0
-        first_day = True
+            
         for interval in self.intervals:
-            heure_jour += interval[0].duration
             
-            # le premier interval du preminer jour ne commençant pas forcément à 0h00 on doit ajouter à l'heure du jour l'heure de début du premier interval
-            
-            if first_day :
-                heure_jour += time_to_floptime(interval[0].start.time())
-                first_day = False
+            # for each start time we look for a slot
                 
             if not interval[1]["forbidden"]:
-                if current_duration == 0:
+                start = time_to_floptime(interval[0].start.time())
+                end = time_to_floptime(interval[0].end.time())
+                
+                # we need to know times already used for a slot in an interval
+                
+                time_already_use = 0
+                
+                if slot_duration == 0:
                     for st in start_times:
-                        if time_to_floptime(interval[0].start.time()) <= st and time_to_floptime(interval[0].end.time()) > st:
-                            current_duration += interval[0].duration - (st - time_to_floptime(interval[0].start.time()))
-                            break
+                        
+                        # we look if the current start time is not in a slot already computed
+                        
+                        if start + st > time_already_use :
+                            if start <= st and end > st:
+                                slot_duration = interval[0].duration - (st - start)
+                                time_already_use += duration
+                                if slot_duration >= duration :
+                                    nb_slots += 1
+                                    slot_duration = 0
+                                
+                                # slot_duration < duration implies no more time useful in the interval
+                                # we keep it to look if there is enough time in the next interval.
+                                
+                                else :
+                                    break
                 else:
-                    current_duration += interval[0].duration
+                    time_already_use += duration - slot_duration
+                    slot_duration += interval[0].duration
+                    if slot_duration >= duration :
+                        nb_slots += 1
+                    for st in start_times:
+                        if end - st > time_already_use :
+                            if start <= st and end > st:
+                                slot_duration = interval[0].duration - (st - start)
+                                time_already_use += duration
+                                if slot_duration >= duration :
+                                    nb_slots += 1
+                                    slot_duration = 0
+                                else :
+                                    break
             else:
-                current_duration = current_duration - current_duration%duration
-                
-            # on calcul ici le nombre de slot dispo pour un jour. Possible uniquement car on a supposé qu'il existe un slot de nuit avec forbidden = true ( donc current_duration ne sera pas modifié dans cette itération )
-            
-            if heure_jour >= 1440 :
-                heure_jour = heure_jour - 1440
-                nb_slots += min(len(start_times),current_duration//duration)
-                current_duration = 0
-                
-        # au cas où le dernier interval du dernier jour ne se finit pas à miniuit
-        
-        nb_slots += min(len(start_times),current_duration//duration)
-        
+                slot_duration = 0
+    
         return int(nb_slots)
     
     def clear_merge(self):
