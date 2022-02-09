@@ -624,7 +624,7 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
 
         details.update({'limit': self.limit,
                         'type': self.course_type,
-                        'modules': ', '.join([m.abbrev for m in self.module.all()])})
+                        'modules': ', '.join([m.abbrev for m in self.modules.all()])})
 
         return view_model
 
@@ -633,6 +633,6 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
         if self.course_type:
             text += f" de type {self.course_type}"
         if self.modules.exists():
-            text += f" des modules {', '.join([m.abbrev for m in self.module.all()])}"
+            text += f" des modules {', '.join([m.abbrev for m in self.modules.all()])}"
         text += f" au maximum {self.limit} peuvent être simultanés."
         return text
