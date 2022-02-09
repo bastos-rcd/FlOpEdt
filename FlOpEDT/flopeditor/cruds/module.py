@@ -121,7 +121,7 @@ def create(entries, department):
             ])
         else:
             try:
-                Module.objects.create(
+                module = Module.objects.create(
                     abbrev=entries['new_values'][i][0],
                     ppn=entries['new_values'][i][1],
                     name=entries['new_values'][i][2],
@@ -133,6 +133,8 @@ def create(entries, department):
                     period=Period.objects.get(
                         name=entries['new_values'][i][6], department=department)
                 )
+                mod_disp = ModuleDisplay(module=module)
+                mod_disp.save()
                 entries['result'].append([OK_RESPONSE])
             except (TrainingProgramme.DoesNotExist, Tutor.DoesNotExist, Period.DoesNotExist):
                 entries['result'].append([
@@ -184,8 +186,6 @@ def update(entries, department):
                     module.period = Period.objects.get(
                         name=entries['new_values'][i][6], department=department)
                     module.save()
-                    mod_disp = ModuleDisplay(module=module)
-                    mod_disp.save()
                     entries['result'].append([OK_RESPONSE])
             except (Module.DoesNotExist,
                     TrainingProgramme.DoesNotExist,
