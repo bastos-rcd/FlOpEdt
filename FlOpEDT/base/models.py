@@ -338,6 +338,10 @@ class RoomType(models.Model):
     def __str__(self):
         return self.name
 
+    def basic_rooms(self):
+        s = set(b for r in self.members.all() for b in r.and_subrooms() if b.is_basic)
+        return s
+
 
 class Room(models.Model):
     name = models.CharField(max_length=50)
