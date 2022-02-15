@@ -38,7 +38,8 @@ from base.models import StructuralGroup, TransversalGroup,\
     Course, ScheduledCourse, UserPreference, CoursePreference, \
     Department, Module, TrainingProgramme, CourseType, \
     Dependency, TutorCost, GroupFreeHalfDay, GroupCost, Holiday, TrainingHalfDay, Pivot, \
-    CourseStartTimeConstraint, TimeGeneralSettings, ModulePossibleTutors, CoursePossibleTutors, CourseAdditional
+    CourseStartTimeConstraint, TimeGeneralSettings, ModulePossibleTutors, CoursePossibleTutors, CourseAdditional, \
+    RoomPonderation
 
 from base.timing import Time, Day
 
@@ -82,7 +83,8 @@ class WeeksDatabase(object):
             self.visio_courses, self.no_visio_courses, self.visio_ponderation = self.visio_init()
         self.room_types, self.rooms, self.basic_rooms, self.room_prefs, self.rooms_for_type, \
             self.room_course_compat, self.course_rg_compat, self.fixed_courses_for_room, \
-            self.other_departments_sched_courses_for_room = self.rooms_init()
+            self.other_departments_sched_courses_for_room, self.rooms_ponderations, \
+            self.courses_for_room_type = self.rooms_init()
         self.compatible_slots, self.compatible_courses = self.compatibilities_init()
         self.groups, self.transversal_groups, self.all_groups, self.basic_groups, self.all_groups_of, \
             self.basic_groups_of, self.conflicting_basic_groups, self.transversal_groups_of,\
@@ -186,7 +188,7 @@ class WeeksDatabase(object):
     def courses_init(self):
         # COURSES
         courses = Course.objects.filter(week__in=self.weeks, module__train_prog__in=self.train_prog)\
-            .select_related('module')
+            .select_related('module', 'room_type')
 
         course_types = set(c.type for c in courses)
 
@@ -252,7 +254,8 @@ class WeeksDatabase(object):
 
     def rooms_init(self):
         # ROOMS
-        room_types = RoomType.objects.filter(department=self.department)
+        room_types = set(c.room_type for c in self.courses.distinct('room_type'))
+        room_types_ids = set(rt.id for rt in room_types)
         basic_rooms = queries.get_rooms(self.department.abbrev, basic=True).distinct()
         room_prefs = RoomSort.objects.filter(for_type__department=self.department)
         rooms_for_type = {t: t.members.all() for t in room_types}
@@ -291,8 +294,16 @@ class WeeksDatabase(object):
             for rg in r.and_overrooms():
                 other_departments_sched_courses_for_room[r] |= set(self.other_departments_sched_courses.filter(room=rg))
 
+        rooms_ponderations = set(rp for rp in RoomPonderation.objects.filter(department=self.department)
+                                 if all(id in room_types_ids for id in rp.room_types))
+
+        courses_for_room_type = {}
+        for rt in room_types:
+            courses_for_room_type[rt] = set(self.courses.filter(room_type=rt))
+
         return room_types, rooms, basic_rooms, room_prefs, rooms_for_type, room_course_compat, course_rg_compat, \
-               fixed_courses_for_room, other_departments_sched_courses_for_room
+               fixed_courses_for_room, other_departments_sched_courses_for_room, rooms_ponderations, \
+               courses_for_room_type
 
     def compatibilities_init(self):
         # COMPATIBILITY

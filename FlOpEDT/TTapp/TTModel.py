@@ -102,7 +102,8 @@ class TTModel(object):
                  send_mails=False,
                  slots_step=None,
                  keep_many_solution_files=False,
-                 min_visio=0.5):
+                 min_visio=0.5,
+                 with_rooms=True):
         # beg_file = os.path.join('logs',"FlOpTT")
         self.department = Department.objects.get(abbrev=department_abbrev)
         self.weeks = weeks
@@ -123,6 +124,7 @@ class TTModel(object):
         self.min_visio = min_visio
         self.var_nb = 0
         self.constraintManager = ConstraintManager()
+        self.with_rooms = with_rooms
 
         print("\nLet's start weeks #%s" % weeks)
 
@@ -146,11 +148,13 @@ class TTModel(object):
             return
         self.possible_apms = self.wdb.possible_apms
         self.cost_I, self.FHD_G, self.cost_G, self.cost_SL, self.generic_cost = self.costs_init()
-        start = datetime.datetime.now()
-        self.TT, self.TTrooms, self.TTinstructors = self.TT_vars_init()
+        self.TT, self.TTinstructors = self.TT_vars_init()
+        if self.with_rooms:
+            self.TTrooms = self.TTrooms_init()
         self.IBD, self.IBD_GTE, self.IBHD, self.GBHD, self.IBS, self.forced_IBD = self.busy_vars_init()
-        if self.department.mode.visio:
-            self.physical_presence, self.has_visio = self.visio_vars_init()
+        if self.with_rooms:
+            if self.department.mode.visio:
+                self.physical_presence, self.has_visio = self.visio_vars_init()
         self.avail_instr, self.avail_at_school_instr, self.unp_slot_cost \
             = self.compute_non_preferred_slots_cost()
         self.unp_slot_cost_course, self.avail_course \
@@ -208,20 +212,25 @@ class TTModel(object):
     @timer
     def TT_vars_init(self):
         TT = {}
-        TTrooms = {}
         TTinstructors = {}
 
         for sl in self.wdb.courses_slots:
             for c in self.wdb.compatible_courses[sl]:
-                # print c, c.room_type
                 TT[(sl, c)] = self.add_var("TT(%s,%s)" % (sl, c))
-                for rg in self.wdb.course_rg_compat[c]:
-                    TTrooms[(sl, c, rg)] \
-                        = self.add_var("TTroom(%s,%s,%s)" % (sl, c, rg))
                 for i in self.wdb.possible_tutors[c]:
                     TTinstructors[(sl, c, i)] \
                         = self.add_var("TTinstr(%s,%s,%s)" % (sl, c, i))
-        return TT, TTrooms, TTinstructors
+        return TT, TTinstructors
+
+    @timer
+    def TTrooms_init(self):
+        TTrooms = {}
+        for sl in self.wdb.courses_slots:
+            for c in self.wdb.compatible_courses[sl]:
+                for rg in self.wdb.course_rg_compat[c]:
+                    TTrooms[(sl, c, rg)] \
+                        = self.add_var("TTroom(%s,%s,%s)" % (sl, c, rg))
+        return TTrooms
 
     @timer
     def busy_vars_init(self):
@@ -568,13 +577,14 @@ class TTModel(object):
                     # avail_at_school_instr consideration...
                     relevant_courses = set(c for c in self.wdb.possible_courses[i]
                                            if None in self.wdb.course_rg_compat[c])
-                    self.add_constraint(
-                        self.sum(self.TTinstructors[(sl2, c2, i)] - self.TTrooms[(sl2, c2, None)]
-                                 for sl2 in slots_filter(self.wdb.courses_slots, simultaneous_to=sl)
-                                 for c2 in relevant_courses & self.wdb.compatible_courses[sl2]),
-                        '<=', self.avail_at_school_instr[i][sl],
-                        SlotInstructorConstraint(sl, i)
-                    )
+                    if self.with_rooms:
+                        self.add_constraint(
+                            self.sum(self.TTinstructors[(sl2, c2, i)] - self.TTrooms[(sl2, c2, None)]
+                                     for sl2 in slots_filter(self.wdb.courses_slots, simultaneous_to=sl)
+                                     for c2 in relevant_courses & self.wdb.compatible_courses[sl2]),
+                            '<=', self.avail_at_school_instr[i][sl],
+                            SlotInstructorConstraint(sl, i)
+                        )
 
         for mtr in ModuleTutorRepartition.objects.filter(module__in=self.wdb.modules,
                                                          week__in=self.weeks):
@@ -626,6 +636,33 @@ class TTModel(object):
                                             '==', 0,
                                             Constraint(constraint_type=ConstraintType.CORE_ROOMS,
                                                        slots=sl, rooms=r))
+
+    @timer
+    def add_rooms_ponderations_constraints(self):
+        for rooms_ponderation in self.wdb.rooms_ponderations:
+            room_types_id_list = rooms_ponderation.room_types
+            room_types_list = [RoomType.objects.get(id=id) for id in room_types_id_list]
+            ponderations = rooms_ponderation.ponderations
+            n = len(ponderations)
+            corresponding_basic_rooms = rooms_ponderation.basic_rooms.all()
+            for sl in self.wdb.availability_slots:
+                considered_basic_rooms = set(b for b in corresponding_basic_rooms
+                                             if self.avail_room[b] != 0)
+                bound = len(considered_basic_rooms)
+                expr = self.lin_expr()
+                for i in range(n):
+                    ponderation = ponderations[i]
+                    room_type = room_types_list[i]
+                    expr += ponderation * self.sum(self.TT[s_sl, c]
+                                                   for s_sl in slots_filter(self.wdb.courses_slots, simultaneous_to=sl)
+                                                   for c in self.wdb.courses_for_room_type[room_type]
+                                                   & self.wdb.compatible_courses[s_sl]
+
+                                                   )
+                self.add_constraint(
+                    expr, '<=', bound, Constraint()
+                )
+
     @timer
     def add_visio_room_constraints(self):
         # courses that are neither visio neither no-visio are preferentially not in Visio room
@@ -983,17 +1020,19 @@ class TTModel(object):
         # Has to be before add_rooms_constraints and add_instructors_constraints
         # because it contains rooms/instructors availability modification...
         self.add_other_departments_constraints()
-
-        if not self.department.mode.cosmo:
-            self.add_rooms_constraints()
+        if self.with_rooms:
+            if not self.department.mode.cosmo:
+                self.add_rooms_constraints()
+        else:
+            self.add_rooms_ponderations_constraints()
 
         self.add_instructors_constraints()
 
         if self.core_only:
             return
-
-        if self.department.mode.visio:
-            self.add_visio_room_constraints()
+        if self.with_rooms:
+            if self.department.mode.visio:
+                self.add_visio_room_constraints()
 
         self.add_slot_preferences()
 
@@ -1030,10 +1069,11 @@ class TTModel(object):
                                 c.groups.add(corresponding_group[i])
                             break
                     if not self.department.mode.cosmo:
-                        for rg in self.wdb.course_rg_compat[c]:
-                            if self.get_var_value(self.TTrooms[(sl, c, rg)]) == 1:
-                                cp.room = rg
-                                break
+                        if self.with_rooms:
+                            for rg in self.wdb.course_rg_compat[c]:
+                                if self.get_var_value(self.TTrooms[(sl, c, rg)]) == 1:
+                                    cp.room = rg
+                                    break
                     cp.save()
 
         for fc in self.wdb.fixed_courses:
@@ -1151,11 +1191,11 @@ class TTModel(object):
                                              start_time=sl.start_time,
                                              day=sl.day.day,
                                              work_copy=target_work_copy)
-
-                        for rg in self.wdb.course_rg_compat[c]:
-                            if self.TTrooms[(sl, c, rg)].getName() in solution_file_one_vars_set:
-                                cp.room = rg
-                                break
+                        if self.with_rooms:
+                            for rg in self.wdb.course_rg_compat[c]:
+                                if self.TTrooms[(sl, c, rg)].getName() in solution_file_one_vars_set:
+                                    cp.room = rg
+                                    break
                         cp.save()
 
         for fc in self.wdb.fixed_courses:

@@ -400,6 +400,23 @@ class RoomSort(models.Model):
     def __str__(self):
         return f"{self.for_type}-pref-{self.prefer}-to-{self.unprefer}"
 
+
+class RoomPonderation(models.Model):
+    department = models.ForeignKey('Department', on_delete=models.CASCADE)
+    room_types = ArrayField(models.PositiveSmallIntegerField())
+    ponderations = ArrayField(models.PositiveSmallIntegerField(), null=True)
+    basic_rooms = models.ManyToManyField('Room')
+
+    def save(self, *args, **kwargs):
+        super(RoomPonderation, self).save(*args, **kwargs)
+        self.add_basic_rooms()
+
+    def add_basic_rooms(self):
+        RT = RoomType.objects.filter(id__in=self.room_types)
+        for rt in RT:
+            for basic_room in rt.basic_rooms():
+                self.basic_rooms.add(basic_room)
+
 # </editor-fold>
 
 # <editor-fold desc="COURSES">
