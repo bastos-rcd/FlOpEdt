@@ -146,7 +146,8 @@ class Solve():
 
         # if all train progs are called, training_programme=''
         try:
-            self.training_programme = TrainingProgramme.objects.get(abbrev=training_programme)
+            self.training_programme = TrainingProgramme.objects.get(abbrev=training_programme,
+                                                                    department__abbrev=department_abbrev)
         except ObjectDoesNotExist:
             self.training_programme = None
     
