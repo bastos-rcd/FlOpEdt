@@ -108,8 +108,8 @@ class SolverConsumer(WebsocketConsumer):
                 self,
                 time_limit,
                 data['solver'],
-                data['pre-assign-rooms'],
-                data['post-assign-rooms'],
+                data['pre_assign_rooms'],
+                data['post_assign_rooms'],
                 stabilize_work_copy=stabilize
                 ).start()
 
