@@ -32,8 +32,7 @@ from django.utils.functional import lazy
 
 from django.db import models
 # Import constraints from other files
-
-from TTapp.TTConstraint import TTConstraint, max_weight
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.TTConstraints.core_constraints import ScheduleAllCourses, NoSimultaneousGroupCourses, AssignAllCourses, \
     ConsiderTutorsUnavailability
 from TTapp.TTConstraints.stabilization_constraints import StabilizeTutorsCourses, StabilizeGroupsCourses,\
@@ -53,6 +52,8 @@ from TTapp.TTConstraints.visio_constraints import NoVisio, BoundPhysicalPresence
     VisioOnly, Curfew
 from TTapp.TTConstraints.cosmo_style_constraints import LimitHoles, LimitTutorTimePerWeeks, ModulesByBloc
 
+from TTapp.RoomConstraints.RoomConstraint import ConsiderRoomSorts, LocateAllCourses, LimitRoomChoices, \
+    LimitGroupMoves, LimitTutorMoves
 #
 #   CustomConstraint
 #

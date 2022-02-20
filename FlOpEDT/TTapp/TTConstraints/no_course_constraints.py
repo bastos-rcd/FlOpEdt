@@ -23,8 +23,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from TTapp.TTConstraint import TTConstraint
-from base.models import TimeGeneralSettings
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from django.db import models
 from base.timing import Day, TimeInterval, flopdate_to_datetime
 from people.models import Tutor

@@ -28,11 +28,10 @@ from FlOpEDT.decorators import timer
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval
-from base.models import CourseStartTimeConstraint, Department, TimeGeneralSettings, TransversalGroup
+from base.models import CourseStartTimeConstraint
 from django.db import models
 
-from TTapp.TTConstraint import TTConstraint
-from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraints.instructorConstraint import InstructorConstraint
 from TTapp.ilp_constraints.constraints.slotInstructorConstraint import SlotInstructorConstraint

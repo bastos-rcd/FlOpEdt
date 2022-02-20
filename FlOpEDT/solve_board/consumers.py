@@ -95,10 +95,11 @@ class SolverConsumer(WebsocketConsumer):
             except:
                 stabilize = None
 
-            # Start solver
+            # Get additional informations
             time_limit = data['time_limit'] or None
             weeks = [Week.objects.get(nb=o['week'], year=o['year']) for o in data['week_year_list']]
 
+            # Start solver
             Solve(
                 data['department'],
                 weeks,
@@ -107,6 +108,8 @@ class SolverConsumer(WebsocketConsumer):
                 self,
                 time_limit,
                 data['solver'],
+                data['pre-assing-rooms'],
+                data['post-assing-rooms'],
                 stabilize_work_copy=stabilize
                 ).start()
 
@@ -134,7 +137,8 @@ def solver_subprocess_SIGINT_handler(sig, stack):
 
 
 class Solve():
-    def __init__(self, department_abbrev, weeks, timestamp, training_programme, chan, time_limit, solver, stabilize_work_copy=None):
+    def __init__(self, department_abbrev, weeks, timestamp, training_programme, chan, time_limit, solver,
+                 pre_assign_rooms, post_assign_rooms, stabilize_work_copy=None):
         super(Solve, self).__init__()
         self.department_abbrev = department_abbrev
         self.weeks = weeks
@@ -143,6 +147,8 @@ class Solve():
         self.time_limit = time_limit
         self.solver = solver
         self.stabilize_work_copy = stabilize_work_copy
+        self.pre_assign_rooms = pre_assign_rooms
+        self.post_assign_rooms = post_assign_rooms
 
         # if all train progs are called, training_programme=''
         try:
@@ -163,7 +169,9 @@ class Solve():
                 os.dup2(wd,1)   # redirect stdout
                 os.dup2(wd,2)   # redirect stderr
                 try:
-                    t = MyTTModel(self.department_abbrev, self.weeks, train_prog=self.training_programme, stabilize_work_copy = self.stabilize_work_copy)
+                    t = MyTTModel(self.department_abbrev, self.weeks, train_prog=self.training_programme,
+                                  stabilize_work_copy = self.stabilize_work_copy,
+                                  pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
                     os.setpgid(os.getpid(), os.getpid())
                     signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
                     t.solve(time_limit=self.time_limit, solver=self.solver)

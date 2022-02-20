@@ -24,7 +24,8 @@
 # without disclosing the source code of your own applications.
 
 from base.models import CourseStartTimeConstraint, Course, UserPreference, Week
-from TTapp import TTConstraint
+from TTapp.TTConstraints import TTConstraint
+
 
 def split_preferences(tutor, departments=None):
     splits = set()

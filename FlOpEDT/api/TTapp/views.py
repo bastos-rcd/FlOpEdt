@@ -21,26 +21,18 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from rest_framework.views import APIView
 from api.shared.params import dept_param, week_param, year_param
-from django.db.models import query
-from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.utils.serializer_helpers import ReturnDict
 from django.apps import apps
-import TTapp.models as ttm
-import TTapp.TTConstraint as ttc
-import TTapp.TTConstraints.tutors_constraints as ttt
-import TTapp.TTConstraints.rooms_constraints as ttr
+import TTapp.TTConstraints.TTConstraint as ttc
 import TTapp.TTConstraints.visio_constraints as ttv
 
 from drf_yasg import openapi
 from rest_framework import viewsets
 from rest_framework.response import Response
-import django_filters.rest_framework as filters
 from api.TTapp import serializers
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
+from api.permissions import IsAdminOrReadOnly
 
 # ---------------
 # ---- TTAPP ----

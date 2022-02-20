@@ -24,13 +24,11 @@
 # without disclosing the source code of your own applications.
 
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
-from base.timing import Day
 from base.models import StructuralGroup
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
 
 from TTapp.slots import slots_filter
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from people.models import GroupPreferences
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType

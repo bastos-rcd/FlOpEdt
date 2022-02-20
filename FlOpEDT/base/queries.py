@@ -32,15 +32,15 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from base.models import StructuralGroup, RoomType, Room, \
                         ScheduledCourse, EdtVersion, Department, Regen, \
-                        RoomSort, Period, CourseType, \
-                        TutorCost, CourseStartTimeConstraint, \
+    Period, TutorCost, CourseStartTimeConstraint, \
                         TimeGeneralSettings, GroupType, CourseType, \
                         TrainingProgramme, Course, Week
 
 from displayweb.models import GroupDisplay, TrainingProgrammeDisplay, BreakingNews
 
 from people.models import Tutor, NotificationsPreferences
-from TTapp.TTConstraint import TTConstraint, all_subclasses
+from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.FlopConstraint import all_subclasses
 
 logger = logging.getLogger(__name__)
 

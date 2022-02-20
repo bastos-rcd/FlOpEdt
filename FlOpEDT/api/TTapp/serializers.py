@@ -23,11 +23,8 @@
 
 from django.contrib.postgres.fields.array import ArrayField
 from rest_framework.fields import empty
-from base.models import Week
-import TTapp.models as ttm
-import TTapp.TTConstraint as ttc
+import TTapp.TTConstraints.TTConstraint as ttc
 import TTapp.TTConstraints.tutors_constraints as ttt
-import TTapp.TTConstraints.rooms_constraints as ttr
 import TTapp.TTConstraints.visio_constraints as ttv
 from rest_framework import serializers
 

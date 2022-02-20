@@ -44,9 +44,12 @@ def room_types_subsets_with_ponderations_for_constraints(room_types_subsets_with
 @timer
 def register_ponderations_in_database(department):
     room_types_query_set = RoomType.objects.filter(department=department)
-    ARTS = all_room_types_subsets_with_corresponding_basic_rooms(room_types_query_set)
+    room_types_to_update = room_types_query_set.exclude(course__isnull=True)
+    ARTS = all_room_types_subsets_with_corresponding_basic_rooms(room_types_to_update)
     RTSWP = room_types_subsets_with_ponderations_for_constraints(ARTS)
     for rtswp in RTSWP:
         RP, created = RoomPonderation.objects.get_or_create(department=department, room_types=[rt.id for rt in rtswp])
         RP.ponderations = RTSWP[rtswp]
         RP.save()
+    room_types_to_delete = room_types_query_set.filter(course__isnull=True)
+    room_types_to_delete.delete()

@@ -29,11 +29,10 @@ from django.db import models
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from base.timing import Day, Time, min_to_str
 from django.contrib.postgres.fields import ArrayField
-from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 

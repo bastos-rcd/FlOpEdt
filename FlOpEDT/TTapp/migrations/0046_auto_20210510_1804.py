@@ -2,7 +2,8 @@
 
 from django.db import migrations, models
 from django.db.models import Q
-from TTapp.TTConstraint import all_subclasses, TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.FlopConstraint import all_subclasses
 
 
 def from_week_year_to_weeks(apps, schema_editor):

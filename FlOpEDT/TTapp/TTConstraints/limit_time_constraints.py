@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 from django.db import models
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.slots import days_filter, slots_filter
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType

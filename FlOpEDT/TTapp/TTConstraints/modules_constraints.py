@@ -28,7 +28,7 @@ from django.db import models
 
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperModule
 
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 
 
 class MinModulesHalfDays(TTConstraint):

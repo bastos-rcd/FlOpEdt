@@ -30,7 +30,8 @@ from TTapp.helpers.minhalfdays import MinHalfDaysHelperTutor
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TTConstraint import TTConstraint, max_weight
+from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.FlopConstraint import max_weight
 
 
 def considered_tutors(tutors_ttconstraint, ttmodel):

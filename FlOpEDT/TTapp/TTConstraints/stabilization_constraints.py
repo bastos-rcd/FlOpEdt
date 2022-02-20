@@ -33,8 +33,8 @@ from base.timing import Day
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
-from TTapp.slots import Slot, slots_filter
-from TTapp.TTConstraint import TTConstraint
+from TTapp.slots import slots_filter
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
 

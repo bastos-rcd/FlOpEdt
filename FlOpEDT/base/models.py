@@ -39,7 +39,7 @@ import base.weeks
 
 from django.utils.translation import gettext_lazy as _
 
-
+slot_pause = 30
 
 # <editor-fold desc="GROUPS">
 # ------------
@@ -565,6 +565,15 @@ class ScheduledCourse(models.Model):
     @property
     def end_time(self):
         return self.start_time + self.course.type.duration
+
+    def has_same_day(self, other):
+        return self.course.week == other.course.week and self.day == other.day
+
+    def is_successor_of(self, other):
+        return self.has_same_day(other) and other.end_time <= self.start_time <= other.end_time + slot_pause
+
+    def is_simultaneous_to(self, other):
+        return self.has_same_day(other) and self.start_time < other.end_time and other.start_time < self.end_time
 
 
 class ScheduledCourseAdditional(models.Model):

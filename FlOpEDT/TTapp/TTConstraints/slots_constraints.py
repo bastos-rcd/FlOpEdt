@@ -29,17 +29,17 @@ from base.partition import Partition
 from datetime import timedelta
 
 from django.http.response import JsonResponse
-from base.models import CourseStartTimeConstraint, Dependency, ModulePossibleTutors, UserPreference
+from base.models import CourseStartTimeConstraint, Dependency
 from django.contrib.postgres.fields import ArrayField
 
 from django.db import models
 from django.db.models import Q
-from base.timing import TimeInterval, flopdate_to_datetime, french_format, Day
+from base.timing import french_format, Day
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter, Slot
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
 from django.utils.translation import gettext as _
 from django.core.validators import MaxValueValidator
