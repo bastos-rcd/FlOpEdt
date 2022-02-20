@@ -679,7 +679,7 @@ var solver_select = document.querySelector("#solver");
 var stabilize_select = document.querySelector("#stabilize select");
 document.getElementById("divAnalyse").style.overflow = "scroll";
 var pre_assign_rooms_checkbox = document.querySelector("#pre-assign-rooms");
-var post_assign_rooms_checkbox = document.querySelector("#pre-assign-rooms");
+var post_assign_rooms_checkbox = document.querySelector("#post-assign-rooms");
 
 time_limit_select = document.querySelector("#limit");
 txt_area = document.getElementsByTagName("textarea")[0];
