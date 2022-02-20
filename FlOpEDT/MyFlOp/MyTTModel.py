@@ -81,7 +81,7 @@ class MyTTModel(TTModel):
         TTModel.add_specific_constraints(self)
 
     def solve(self, time_limit=None, target_work_copy=None,
-              solver=GUROBI_NAME, threads=None):
+              solver=GUROBI_NAME, threads=None, ignore_sigint=True):
         """
         If you shall add pre (or post) processing apps, you may write them down
         here.
@@ -90,7 +90,8 @@ class MyTTModel(TTModel):
                                          time_limit=time_limit,
                                          target_work_copy=target_work_copy,
                                          solver=solver,
-                                         threads=None)
+                                         threads=threads,
+                                         ignore_sigint=ignore_sigint)
         if result_work_copy is not None and self.stabilize_work_copy is not None:
             print_differences(self.department, self.weeks,
                               self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
