@@ -40,6 +40,7 @@ from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from TTapp.slots import Slot
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
+from django.utils.translation import gettext_lazy as _
 
 
 class GroupsLunchBreak(TTConstraint):
@@ -142,6 +143,7 @@ class TutorsLunchBreak(TTConstraint):
 
             for tutor in tutors_to_be_considered:
                 slot_vars = {}
+                other_deps_unavailable_slots_number = 0
                 considered_courses = self.get_courses_queryset_by_parameters(ttmodel, week, tutor=tutor)
                 if not considered_courses:
                     continue
@@ -169,13 +171,18 @@ class TutorsLunchBreak(TTConstraint):
                                 and sc.start_time < local_slot.end_time
                                 and local_slot.start_time < sc.end_time)
                         other_dep_undesired_sc_nb = len(other_dep_undesired_scheduled_courses)
+                        if other_dep_undesired_sc_nb:
+                            other_deps_unavailable_slots_number += 1
                     undesired_expression = undesired_scheduled_courses + other_dep_undesired_sc_nb * ttmodel.one_var
                     slot_vars[local_slot] = ttmodel.add_floor(expr=undesired_expression,
                                                               floor=1,
                                                               bound=len(considered_courses))
                 if not slot_vars:
                     continue
-                    
+
+                if other_deps_unavailable_slots_number == slots_nb:
+                    ttmodel.add_warning(tutor, _(f"Not able to eat in other departments on {day}-{week}"))
+                    continue
                 not_ok = ttmodel.add_floor(expr=ttmodel.sum(slot_vars[sl] for sl in slot_vars),
                                            floor=slots_nb,
                                            bound=2 * slots_nb)
