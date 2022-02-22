@@ -103,4 +103,4 @@ class TTConstraint(FlopConstraint):
         """
         if self.train_progs.exists() and 'train_progs' not in kwargs:
             kwargs['train_progs'] = self.train_progs.all()
-        return FlopConstraint.get_courses_queryset_by_parameters(self, ttmodel, week, **kwargs)
+        return self.get_courses_queryset_by_parameters(ttmodel, week, **kwargs)

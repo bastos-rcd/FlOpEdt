@@ -80,8 +80,10 @@ class RoomConstraint(FlopConstraint):
                                                                        group=group,
                                                                        course_type=course_type,
                                                                        room_type=room_type)
-
-        return courses_qs.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
+        if tutor is not None:
+            return courses_qs.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
+        else:
+            return courses_qs
 
     def get_ttmodel_courses_queryset_by_parameters(self, ttmodel, week,
                                                    train_progs=None,
@@ -99,7 +101,7 @@ class RoomConstraint(FlopConstraint):
                                                                group=group,
                                                                course_type=course_type,
                                                                room_type=room_type,
-                                                               tutor=None)
+                                                               tutor=tutor)
 
 
 
