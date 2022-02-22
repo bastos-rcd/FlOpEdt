@@ -138,7 +138,7 @@ def print_summary_from_types_with_threshold(constraints, occurs, threshold_type,
 
 def write_csv(constraints, file_path, filename_suffixe):
     filename = "%s/graph%s.csv" % (file_path, filename_suffixe)
-    print("writting %s..." % filename)
+    print("writing %s..." % filename)
     with open(filename, 'w+', encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(['ID', 'Constraint type', 'Instructors', 'Slots', 'Courses', 'Week', 'Rooms', 'Group',
@@ -148,9 +148,9 @@ def write_csv(constraints, file_path, filename_suffixe):
             writer.writerow(csv_info)
 
 
-def write_file(filename, output, print_output=False, mode="w+"):
+def write_file(filename, output, print_output=True, mode="w+"):
     if mode == 'w+':
-        print("writting %s..." % filename)
+        print("writing %s..." % filename, "\n")
     with open(filename, mode, encoding="utf-8") as file:
         file.write(output)
         file.write("\n")
