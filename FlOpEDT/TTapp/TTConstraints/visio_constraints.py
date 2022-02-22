@@ -43,7 +43,7 @@ class NoVisio(TTConstraint):
     modules = models.ManyToManyField('base.Module', blank=True, related_name='no_visio')
 
 
-    def enrich_model(self, ttmodel, week, ponderation=1000000):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1000000):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore NoVisio constraint")
             return
@@ -104,7 +104,7 @@ class VisioOnly(TTConstraint):
     course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='visio_only')
     modules = models.ManyToManyField('base.Module', blank=True, related_name='visio_only')
 
-    def enrich_model(self, ttmodel, week, ponderation=1000000):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1000000):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore VisioOnly constraint")
             return
@@ -167,7 +167,7 @@ class LimitGroupsPhysicalPresence(TTConstraint):
     percentage = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
 
-    def enrich_model(self, ttmodel, week, ponderation=1000):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1000):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore LimitGroupsPhysicalPresence constraint")
             return
@@ -216,7 +216,7 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
     nb_min = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(14)], default=0)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='bound_physical_presence_half_days')
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore BoundPhysicalPresenceHalfDays constraint")
             return
@@ -270,7 +270,7 @@ class Curfew(TTConstraint):
     def one_line_description(self):
         text = f"Curfew after {min_to_str(self.curfew_time)}"
 
-    def enrich_model(self, ttmodel, week, ponderation=2):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=2):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore Curfew constraint")
             return

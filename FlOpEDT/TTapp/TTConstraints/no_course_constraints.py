@@ -59,7 +59,7 @@ class NoCourseOnDay(TTConstraint):
     def considered_sum(self, ttmodel, week):
         raise NotImplementedError
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         if self.weight is None:
             ttmodel.add_constraint(self.considered_sum(ttmodel, week),
                                    '==', 0,

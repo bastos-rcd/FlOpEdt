@@ -37,7 +37,7 @@ class MinModulesHalfDays(TTConstraint):
     """
     modules = models.ManyToManyField('base.Module', blank=True)
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         considered_modules = set(ttmodel.wdb.modules)
         if self.modules.exists():
             considered_modules &= set(self.modules.all())

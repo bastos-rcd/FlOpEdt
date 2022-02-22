@@ -896,7 +896,7 @@ def add_iut_blagnac_cs(ttmodel):
                 M.tutors.add(i)
         M.save()
 
-        M.enrich_model(ttmodel, week, ponderation=1000)
+        M.enrich_ttmodel(ttmodel, week, ponderation=1000)
         M.delete()
 
     # - libérer le vendredi à 17h (++) --> Mis en indispo des train prog

@@ -57,7 +57,7 @@ class StabilizeTutorsCourses(TTConstraint):
         attributes.extend(['tutors'])
         return attributes
 
-    def enrich_model(self, ttmodel, week, ponderation=5):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=5):
         tutors_to_be_considered = considered_tutors(self, ttmodel)
         ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
         sched_courses = ttmodel.wdb.sched_courses.filter(course__week=week)
@@ -120,7 +120,7 @@ class StabilizeGroupsCourses(TTConstraint):
         attributes.extend(['groups'])
         return attributes
 
-    def enrich_model(self, ttmodel, week, ponderation=5):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=5):
         basic_groups_to_be_considered = considered_basic_groups(self, ttmodel)
         ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
         sched_courses = ttmodel.wdb.sched_courses.filter(course__week=week)
@@ -161,7 +161,7 @@ class StabilizeGroupsCourses(TTConstraint):
 class StabilizationThroughWeeks(TTConstraint):
     courses = models.ManyToManyField('base.Course')
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         if week != ttmodel.weeks[0]:
             return
         ttmodel_courses_id = [c.id for c in ttmodel.wdb.courses]

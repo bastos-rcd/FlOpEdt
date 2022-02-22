@@ -80,7 +80,7 @@ class MinGroupsHalfDays(TTConstraint):
     """
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         helper = MinHalfDaysHelperGroup(ttmodel, self, week, ponderation)
         for group in considered_basic_groups(self, ttmodel):
             helper.enrich_model(group=group)
@@ -118,7 +118,7 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
     Minimize the use of unprefered Slots for groups.
     Make impossible the use of forbidden slots.
     """
-    def enrich_model(self, ttmodel, week, ponderation=None):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=None):
         if ponderation is None:
             ponderation = ttmodel.min_ups_c
         if self.train_progs.exists():

@@ -72,7 +72,7 @@ class SimultaneousCourses(TTConstraint):
         attributes.extend(['courses'])
         return attributes
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         course_types = set(c.type for c in self.courses.all())
         relevant_courses = set(self.courses.all()) & set(ttmodel.wdb.courses)
         nb_courses = len(relevant_courses)
@@ -140,7 +140,7 @@ class LimitedStartTimeChoices(TTConstraint):
     possible_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
 
-    def enrich_model(self, ttmodel, week, ponderation=1.):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
         fc = self.get_courses_queryset_by_attributes(ttmodel, week)
         pst = self.possible_start_times
         if not pst:
@@ -355,7 +355,7 @@ class ConsiderDependencies(TTConstraint):
             text += ' pour les modules ' + ', '.join([module.abbrev for module in self.modules.all()])
         return text
 
-    def enrich_model(self, ttmodel, week, ponderation=10):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=10):
         if self.train_progs.exists():
             train_progs = set(tp for tp in self.train_progs.all() if tp in ttmodel.train_prog)
         else:
@@ -407,7 +407,7 @@ class ConsiderPivots(TTConstraint):
             text += ' pour les modules ' + ', '.join([module.abbrev for module in self.modules.all()])
         return text
 
-    def enrich_model(self, ttmodel, week, ponderation=10):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=10):
         if self.train_progs.exists():
             train_progs = set(tp for tp in self.train_progs.all() if tp in ttmodel.train_prog)
         else:
@@ -478,7 +478,7 @@ class AvoidBothTimes(TTConstraint):
         attributes.extend(['group', 'tutor'])
         return attributes
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         fc = self.get_courses_queryset_by_attributes(ttmodel, week)
         slots1 = set([slot for slot in ttmodel.wdb.courses_slots
                       if slot.start_time <= self.time1 < slot.end_time])
@@ -525,7 +525,7 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
     slot_end_time = models.PositiveSmallIntegerField()
     max_number = models.PositiveSmallIntegerField(validators=[MaxValueValidator(7)])
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         tutor_to_be_considered = considered_tutors(self, ttmodel)
         days = days_filter(ttmodel.wdb.days, week=week)
         undesired_slots = [Slot(day=day, start_time=self.slot_start_time, end_time=self.slot_end_time)
@@ -581,7 +581,7 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
         attributes.extend(['course_type', "modules"])
         return attributes
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         relevant_courses = ttmodel.wdb.courses
         if self.course_type is not None:
             relevant_courses = relevant_courses.filter(type=self.course_type)

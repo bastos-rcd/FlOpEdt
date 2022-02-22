@@ -54,7 +54,7 @@ class GroupsLunchBreak(TTConstraint):
     lunch_length = models.PositiveSmallIntegerField()
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='lunch_breaks_constraints')
 
-    def enrich_model(self, ttmodel, week, ponderation=100):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=100):
         considered_groups = considered_basic_groups(self, ttmodel)
         days = days_filter(ttmodel.wdb.days, week=week)
         if self.weekdays:
@@ -126,7 +126,7 @@ class TutorsLunchBreak(TTConstraint):
     lunch_length = models.PositiveSmallIntegerField()
     tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints')
 
-    def enrich_model(self, ttmodel, week, ponderation=100):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=100):
         tutors_to_be_considered = considered_tutors(self, ttmodel)
         if self.tutors.exists():
             tutors_to_be_considered &= set(self.tutors.all())
@@ -217,7 +217,7 @@ class BreakAroundCourseType(TTConstraint):
     course_type = models.ForeignKey('base.CourseType', related_name='amphi_break_constraint', on_delete=models.CASCADE)
     min_break_length = models.PositiveSmallIntegerField(default=15)
 
-    def enrich_model(self, ttmodel, week, ponderation=1000):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1000):
         considered_groups = considered_basic_groups(self, ttmodel)
         days = days_filter(ttmodel.wdb.days, week=week)
         if self.weekdays:

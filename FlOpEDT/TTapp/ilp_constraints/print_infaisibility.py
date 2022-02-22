@@ -53,9 +53,7 @@ def print_brut_constraints(constraints, occurs, file_path, filename_suffixe):
 
 
 def print_factorised_constraints(occurs, file_path, filename_suffixe, print_output=False):
-    output = "\n\n Voici toutes les contraintes qui créent l'infaisabilité, factorisées :\n"
-    if print_output:
-        print(output)
+    output = "\n\n Voici toutes les contraintes qui créent l'infaisabilité, factorisées :\n\n "
     for dimension in occurs.keys():
         output += "\n\n%s:" % dimension
         for elt in occurs[dimension].keys():
@@ -127,9 +125,7 @@ def find_object_from_type(constraint_type, constraints):
 def print_summary_from_types_with_threshold(constraints, occurs, threshold_type, threshold_attr,
                                             file_path, filename_suffixe, print_output=False):
     filename = "%s/constraints_summary%s.txt" % (file_path, filename_suffixe)
-    output = "Voici les principales contraintes liées à l'infaisabilité :\n"
-    if print_output:
-        print(output)
+    output = "\n\n Voici les principales contraintes liées à l'infaisabilité :\n"
     write_file(filename, output)
     for constraint_type in get_most_important(occurs['types'], threshold_type):
         output, dimensions = find_object_from_type(constraint_type, constraints).get_summary_format()

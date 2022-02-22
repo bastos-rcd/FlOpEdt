@@ -143,7 +143,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                                                         "group": bg.id, "type": "NoSimultaneousGroupCourses"}) 
         return jsondict
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         relevant_slots = slots_filter(ttmodel.wdb.availability_slots, week=week)
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         # Count the number of transversal groups
@@ -216,7 +216,7 @@ class ScheduleAllCourses(TTConstraint):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
     course_types = models.ManyToManyField('base.CourseType', blank=True)
                                 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(c for bg in relevant_basic_groups
                                  for c in ttmodel.wdb.all_courses_for_basic_group[bg])
@@ -266,7 +266,7 @@ class AssignAllCourses(TTConstraint):
     course_types = models.ManyToManyField('base.CourseType', blank=True)
     pre_assigned_only = models.BooleanField(default=False, verbose_name=_('Pre-assigned courses only'))
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(c for bg in relevant_basic_groups
                                  for c in ttmodel.wdb.all_courses_for_basic_group[bg])
@@ -439,7 +439,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                             jsondict["status"] = _("KO")
         return jsondict
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         considered_tutors = set(ttmodel.wdb.instructors)
         if self.tutors.exists():
             considered_tutors &= set(self.tutors.all())

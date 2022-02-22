@@ -98,7 +98,7 @@ class ReasonableDays(TTConstraint):
                                        constraint_type=ConstraintType.REGISTER_EXPRESSION)
 
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         # Using a set type ensure that all combinations are
         # unique throw tutor and group filters
         combinations = set()
@@ -168,7 +168,7 @@ class AvoidBothTimes(TTConstraint):
         attributes.extend(['group', 'tutor'])
         return attributes
 
-    def enrich_model(self, ttmodel, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, ponderation=1):
         fc = ttmodel.wdb.courses
         if self.tutor is not None:
             fc = fc.filter(tutor=self.tutor)
@@ -234,7 +234,7 @@ class LimitedStartTimeChoices(TTConstraint):
 
 
 
-    def enrich_model(self, ttmodel, ponderation=1.):
+    def enrich_ttmodel(self, ttmodel, ponderation=1.):
         fc = ttmodel.wdb.courses
         if self.tutor is not None:
             fc = fc.filter(tutor=self.tutor)
@@ -303,7 +303,7 @@ class LimitedRoomChoices(TTConstraint):
     possible_rooms = models.ManyToManyField('base.Room',
                                             related_name="limited_rooms")
 
-    def enrich_model(self, ttmodel, ponderation=1.):
+    def enrich_ttmodel(self, ttmodel, ponderation=1.):
         fc = ttmodel.wdb.courses
         if self.tutor is not None:
             fc = fc.filter(tutor=self.tutor)

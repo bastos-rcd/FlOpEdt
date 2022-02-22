@@ -41,6 +41,10 @@ from FlOpEDT.decorators import timer
 from django.db import close_old_connections
 from django.db.models import Q, Max, F
 
+from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
+from TTapp.FlopConstraint import all_subclasses
+
 logger = logging.getLogger(__name__)
 pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
 GUROBI = 'GUROBI'
@@ -277,3 +281,60 @@ class FlopModel(object):
         else:
             print(f'lpfile has been saved in {self.solution_files_prefix()}-pulp.lp')
             return None
+
+
+def get_ttconstraints(department, week=None, train_prog=None, is_active=None):
+    #
+    #  Return constraints corresponding to the specific filters
+    #
+    query = Q(department=department)
+
+    if is_active:
+        query &= Q(is_active=is_active)
+
+    if train_prog:
+        query &= \
+            Q(train_progs__abbrev=train_prog) & Q(weeks__isnull=True) | \
+            Q(train_progs__abbrev=train_prog) & Q(weeks=week) | \
+            Q(train_progs__isnull=True) & Q(weeks=week) | \
+            Q(train_progs__isnull=True) & Q(weeks__isnull=True)
+    else:
+        query &= Q(weeks=week) | Q(weeks__isnull=True)
+
+    # Look up the TTConstraint subclasses records to update
+    types = all_subclasses(TTConstraint)
+    for t in types:
+        queryset = t.objects.filter(query)
+
+        # Get prefetch  attributes list for the current type
+        atributes = t.get_viewmodel_prefetch_attributes()
+        if atributes:
+            queryset = queryset.prefetch_related(*atributes)
+
+        for constraint in queryset.order_by('id'):
+            yield constraint
+
+
+def get_room_constraints(department, week=None, is_active=None):
+    #
+    #  Return constraints corresponding to the specific filters
+    #
+    query = Q(department=department)
+
+    if is_active:
+        query &= Q(is_active=is_active)
+
+    query &= Q(weeks=week) | Q(weeks__isnull=True)
+
+    # Look up the TTConstraint subclasses records to update
+    types = all_subclasses(RoomConstraint)
+    for t in types:
+        queryset = t.objects.filter(query)
+
+        # Get prefetch  attributes list for the current type
+        atributes = t.get_viewmodel_prefetch_attributes()
+        if atributes:
+            queryset = queryset.prefetch_related(*atributes)
+
+        for constraint in queryset.order_by('id'):
+            yield constraint

@@ -126,6 +126,7 @@ class ConstraintType(Enum):
     STABILIZE_THROUGH_WEEKS = "Stabilization through weeks"
     SIMULTANEOUS_COURSES = "Simultaneous courses"
     LIMITED_ROOM_CHOICES = "LIMITED_ROOM_CHOICES"
+    LOCATE_ALL_COURSES = "LOCATE_ALL_COURSES"
     LIMITED_START_TIME_CHOICES = "LIMITED_START_TIME_CHOICES"
     LowerBoundBusyDays = "LowerBoundBusyDays"
     LUNCH_BREAK = "Lunch Breaks"

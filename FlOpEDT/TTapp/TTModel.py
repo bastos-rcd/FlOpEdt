@@ -59,7 +59,7 @@ from TTapp.ilp_constraints.constraints.slotInstructorConstraint import SlotInstr
 
 from FlOpEDT.decorators import timer
 
-from TTapp.FlopModel import FlopModel, GUROBI_NAME
+from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_ttconstraints, get_room_constraints
 from TTapp.RoomModel import RoomModel
 
 from misc.manage_rooms_ponderations import register_ponderations_in_database
@@ -128,6 +128,7 @@ class TTModel(FlopModel):
         self.train_prog = train_prog
         self.stabilize_work_copy = stabilize_work_copy
         self.wdb = self.wdb_init()
+        self.courses = self.wdb.courses
         if not self.wdb.courses.exists():
             print('There are no course to be scheduled...')
             return
@@ -376,8 +377,8 @@ class TTModel(FlopModel):
             sg = StabilizeGroupsCourses.objects.create(department=self.department,
                                                        work_copy=self.stabilize_work_copy, weight=max_weight)
             for week in self.weeks:
-                st.enrich_model(self, week, self.max_stab)
-                sg.enrich_model(self, week, self.max_stab)
+                st.enrich_ttmodel(self, week, self.max_stab)
+                sg.enrich_ttmodel(self, week, self.max_stab)
             print('Will stabilize from remote work copy #', \
                   self.stabilize_work_copy)
             st.delete()
@@ -873,13 +874,24 @@ class TTModel(FlopModel):
         """
 
         for week in self.weeks:
-            for constr in get_constraints(
+            for constr in get_ttconstraints(
                     self.department,
                     week=week,
                     # train_prog=promo,
                     is_active=True):
                 print(constr.__class__.__name__, constr.id, end=' - ')
-                timer(constr.enrich_model)(self, week)
+                timer(constr.enrich_ttmodel)(self, week)
+
+        if self.pre_assign_rooms:
+            for week in self.weeks:
+                #Consider RoomConstraints that have enrich_ttmodel method
+                for constr in get_room_constraints(
+                        self.department,
+                        week=week,
+                        is_active=True):
+                    if hasattr(constr, 'enrich_ttmodel'):
+                        print(constr.__class__.__name__, constr.id, end=' - ')
+                        timer(constr.enrich_ttmodel)(self, week)
 
     def update_objective(self):
         self.obj = self.lin_expr()
@@ -1097,35 +1109,3 @@ class TTModel(FlopModel):
         if len(other_slots) != 1:
             raise Exception(f"Wrong slots among weeks {week}, {slot.day.week} \n {slot} vs {other_slots}")
         return other_slots.pop()
-
-
-def get_constraints(department, week=None, train_prog=None, is_active=None):
-    #
-    #  Return constraints corresponding to the specific filters
-    #
-    query = Q(department=department)
-
-    if is_active:
-        query &= Q(is_active=is_active)
-
-    if train_prog:
-        query &= \
-            Q(train_progs__abbrev=train_prog) & Q(weeks__isnull=True) | \
-            Q(train_progs__abbrev=train_prog) & Q(weeks=week) | \
-            Q(train_progs__isnull=True) & Q(weeks=week) | \
-            Q(train_progs__isnull=True) & Q(weeks__isnull=True)
-    else:
-        query &= Q(weeks=week) | Q(weeks__isnull=True)
-
-    # Look up the TTConstraint subclasses records to update
-    types = all_subclasses(TTConstraint)
-    for t in types:
-        queryset = t.objects.filter(query)
-
-        # Get prefetch  attributes list for the current type
-        atributes = t.get_viewmodel_prefetch_attributes()
-        if atributes:
-            queryset = queryset.prefetch_related(*atributes)
-
-        for constraint in queryset.order_by('id'):
-            yield constraint

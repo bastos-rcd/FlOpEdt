@@ -224,13 +224,12 @@ class CoursesAdmin(DepartmentModelAdmin):
                    )
 
 
-class LimitedRoomChoicesAdmin(DepartmentModelAdmin):
+class LimitRoomChoicesAdmin(DepartmentModelAdmin):
     list_display = ('group', 'tutor', 'module', 'course_type',
                     'weight',
                     'is_active')
     ordering = ()
     list_filter = (('weeks__nb', DropdownFilterAll),
-                   ('train_progs', DropdownFilterRel),
                    ('group', DropdownFilterRel),
                    ('tutor', DropdownFilterRel),
                    ('module', DropdownFilterRel),
@@ -344,7 +343,7 @@ admin.site.register(SimultaneousCourses, CoursesAdmin)
 admin.site.register(MinimizeBusyDays, BasicTutorsConstraintAdmin)
 admin.site.register(RespectBoundPerDay, BasicTutorsConstraintAdmin)
 admin.site.register(LimitedStartTimeChoices, LimitedStartTimeChoicesAdmin)
-admin.site.register(LimitedRoomChoices, LimitedRoomChoicesAdmin)
+admin.site.register(LimitedRoomChoices, LimitRoomChoicesAdmin)
 admin.site.register(LimitModulesTimePerPeriod, LimitModulesTimePerPeriodAdmin)
 admin.site.register(LimitGroupsTimePerPeriod, LimitGroupsTimePerPeriodAdmin)
 admin.site.register(LimitTutorsTimePerPeriod, LimitTutorsTimePerPeriodAdmin)

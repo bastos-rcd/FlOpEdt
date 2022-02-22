@@ -2,7 +2,7 @@
 
 
 from django.test import TestCase
-from solve_board.views import get_constraints, get_pulp_solvers, get_pulp_solvers_viewmodel
+from solve_board.views import get_ttconstraints, get_pulp_solvers, get_pulp_solvers_viewmodel
 from base import models as base
 import pulp
 
@@ -55,18 +55,18 @@ class GetConstraintsTestCase(TestCase):
         self.c_2019_1 = LimitTimePerPeriod.objects.create(train_prog=self.tp2, year=2019, week=1, limit=0, type=self.ct1, department=self.department1)
 
     def test_week_without_train_prog(self):   
-        constraints = set(get_constraints(self.department1, year=2018, week=39))
+        constraints = set(get_ttconstraints(self.department1, year=2018, week=39))
         self.assertSetEqual(constraints, set([self.c_basic, self.c_2018_39, self.c_2018_39_without_tp, self.c_tp2]))
 
     def test_week_without_year(self):   
         with self.assertLogs('base', level='WARNING') as cm:
-            list(get_constraints(self.department1, week=39))
+            list(get_ttconstraints(self.department1, week=39))
         self.assertIn('WARNING', cm.output[0])        
 
     def test_train_prog(self):   
-        constraints = set(get_constraints(self.department1, train_prog=self.tp2))
+        constraints = set(get_ttconstraints(self.department1, train_prog=self.tp2))
         self.assertSetEqual(constraints, set([self.c_basic, self.c_tp2, self.c_2018_39_without_tp, self.c_2019_1]))
 
     def test_train_prog_with_week(self):   
-        constraints = set(get_constraints(self.department1, train_prog=self.tp1, year=2018, week=39))
+        constraints = set(get_ttconstraints(self.department1, train_prog=self.tp1, year=2018, week=39))
         self.assertSetEqual(constraints, set([self.c_basic, self.c_2018_39]))        
