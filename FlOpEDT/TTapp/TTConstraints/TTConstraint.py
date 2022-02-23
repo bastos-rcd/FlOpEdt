@@ -92,6 +92,7 @@ class TTConstraint(FlopConstraint):
                                                                        course_type=course_type,
                                                                        room_type=room_type)
 
+        #if tutor is not None, we have to reduce to the courses that are in possible_course[tutor]
         if tutor is not None:
             if tutor in ttmodel.wdb.instructors:
                 return courses_qs.filter(id__in = [c.id for c in ttmodel.wdb.possible_courses[tutor]])
@@ -105,4 +106,4 @@ class TTConstraint(FlopConstraint):
         """
         if self.train_progs.exists() and 'train_progs' not in kwargs:
             kwargs['train_progs'] = self.train_progs.all()
-        return self.get_courses_queryset_by_parameters(ttmodel, week, **kwargs)
+        return FlopConstraint.get_courses_queryset_by_attributes(self, ttmodel, week, **kwargs)
