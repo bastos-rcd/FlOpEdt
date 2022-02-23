@@ -230,8 +230,9 @@ class FlopModel(object):
             from gurobipy import read
             lp = f"{self.solution_files_prefix()}-pulp.lp"
             m = read(lp)
-            m.computeIIS()
-            m.write(iis_filename)
+            mp = m.presolve()
+            mp.computeIIS()
+            mp.write(iis_filename)
         if write_analysis:
             self.constraintManager.handle_reduced_result(iis_filename, file_path, filename_suffixe)
 
