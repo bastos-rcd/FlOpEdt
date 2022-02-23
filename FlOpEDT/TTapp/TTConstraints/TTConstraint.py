@@ -97,6 +97,7 @@ class TTConstraint(FlopConstraint):
                 return courses_qs.filter(id__in = [c.id for c in ttmodel.wdb.possible_courses[tutor]])
             else:
                 return courses_qs.filter(id__in = [])
+        return courses_qs
 
     def get_courses_queryset_by_attributes(self, ttmodel, week, **kwargs):
         """
