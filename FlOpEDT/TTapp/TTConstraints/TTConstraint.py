@@ -92,10 +92,11 @@ class TTConstraint(FlopConstraint):
                                                                        course_type=course_type,
                                                                        room_type=room_type)
 
-        if tutor in ttmodel.wdb.instructors:
-            return courses_qs.filter(id__in = [c.id for c in ttmodel.wdb.possible_courses[tutor]])
-        else:
-            return courses_qs.filter(id__in = [])
+        if tutor is not None:
+            if tutor in ttmodel.wdb.instructors:
+                return courses_qs.filter(id__in = [c.id for c in ttmodel.wdb.possible_courses[tutor]])
+            else:
+                return courses_qs.filter(id__in = [])
 
     def get_courses_queryset_by_attributes(self, ttmodel, week, **kwargs):
         """
