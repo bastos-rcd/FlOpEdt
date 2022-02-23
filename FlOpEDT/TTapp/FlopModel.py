@@ -227,12 +227,16 @@ class FlopModel(object):
         filename_suffixe = "_%s_%s" % (self.department.abbrev, self.weeks)
         iis_filename = "%s/IIS%s.ilp" % (file_path, filename_suffixe)
         if write_iis:
-            from gurobipy import read
+            from gurobipy import read, GurobiError
             lp = f"{self.solution_files_prefix()}-pulp.lp"
             m = read(lp)
-            mp = m.presolve()
-            mp.computeIIS()
-            mp.write(iis_filename)
+            try:
+                mp = m.presolve()
+                mp.computeIIS()
+                mp.write(iis_filename)
+            except GurobiError:
+                m.computeIIS()
+                m.write(iis_filename)
         if write_analysis:
             self.constraintManager.handle_reduced_result(iis_filename, file_path, filename_suffixe)
 
