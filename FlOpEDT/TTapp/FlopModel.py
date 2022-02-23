@@ -279,7 +279,7 @@ class FlopModel(object):
             return self.get_obj_coeffs()
 
         else:
-            print(f'lpfile has been saved in {self.solution_files_prefix()}-pulp.lp')
+            # print(f'lpfile has been saved in {self.solution_files_prefix()}-pulp.lp')
             return None
 
 
