@@ -76,6 +76,21 @@ class RoomModel(FlopModel):
         return f"room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
 
     @timer
+    def courses_init(self):
+        scheduled_courses = ScheduledCourse.objects.filter(course__week__in=self.weeks,
+                                                           work_copy=self.work_copy,
+                                                           course__type__department=self.department)\
+            .select_related('course')
+        courses = Course.objects.filter(scheduledcourse__in=scheduled_courses).select_related('room_type')
+        corresponding_scheduled_course = {}
+        for scheduled_course in scheduled_courses:
+            corresponding_scheduled_course[scheduled_course.course] = scheduled_course
+        courses_for_week={}
+        for week in self.weeks:
+            courses_for_week[week] = set(courses.filter(week=week))
+        return scheduled_courses, courses, corresponding_scheduled_course, courses_for_week
+
+    @timer
     def slots_init(self):
         days = [Day(week=week, day=day)
                 for week in self.weeks
@@ -95,21 +110,6 @@ class RoomModel(FlopModel):
                                   start_time=times_list[i],
                                   end_time=times_list[i+1]))
         return days, slots
-
-    @timer
-    def courses_init(self):
-        scheduled_courses = ScheduledCourse.objects.filter(course__week__in=self.weeks,
-                                                           work_copy=self.work_copy,
-                                                           course__type__department=self.department)\
-            .select_related('course')
-        courses = Course.objects.filter(scheduledcourse__in=scheduled_courses).select_related('room_type')
-        corresponding_scheduled_course = {}
-        for scheduled_course in scheduled_courses:
-            corresponding_scheduled_course[scheduled_course.course]=scheduled_course
-        courses_for_week={}
-        for week in self.weeks:
-            courses_for_week[week] = set(courses.filter(week=week))
-        return scheduled_courses, courses, corresponding_scheduled_course, courses_for_week
 
     @timer
     def other_departments_located_scheduled_courses_init(self):

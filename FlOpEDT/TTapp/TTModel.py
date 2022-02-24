@@ -100,9 +100,10 @@ class TTModel(FlopModel):
         self.send_mails = send_mails
         self.slots_step = slots_step
         self.min_visio = min_visio
-        self.pre_assign_rooms = pre_assign_rooms
+        # RoomPonderation definition needs to be improved. It doesn't work for now...
+        # Exemple: RoomTypes: {A}-{B}-{C}-{ABC} OR {AB}-{BC}-{CA}-{A}
+        self.pre_assign_rooms = True # pre_assign_rooms
         self.post_assign_rooms = post_assign_rooms
-
         print(_(f"\nLet's start weeks #{self.weeks}"))
         assignment_text = ""
         if self.pre_assign_rooms:
