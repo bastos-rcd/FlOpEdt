@@ -55,7 +55,7 @@ class RoomModel(FlopModel):
             self.courses_for_week = self.courses_init()
         self.days, self.slots = self.slots_init()
         self.other_departments_located_scheduled_courses, \
-            self.other_departments_located_scheduled_courses_for_slot = self.located_scheduled_courses_init()
+            self.other_departments_located_scheduled_courses_for_slot = self.other_departments_located_scheduled_courses_init()
         self.room_types, self.rooms, self.basic_rooms, self.rooms_for_type, \
             self.room_course_compat, self.course_room_compat, self.other_departments_located_scheduled_courses_for_room, \
             self.courses_for_room_type = self.rooms_init()
@@ -112,12 +112,12 @@ class RoomModel(FlopModel):
         return scheduled_courses, courses, corresponding_scheduled_course, courses_for_week
 
     @timer
-    def located_scheduled_courses_init(self):
-        all_scheduled_courses = ScheduledCourse.objects.filter(course__week__in=self.weeks,
-                                                               work_copy=self.work_copy)\
-            .exclude(course__type__department=self.department)
-        all_located_scheduled_courses = all_scheduled_courses.exclude(room=None)
-        other_departments_located_scheduled_courses = all_located_scheduled_courses
+    def other_departments_located_scheduled_courses_init(self):
+        other_departments_located_scheduled_courses = \
+            ScheduledCourse.objects.filter(course__week__in=self.weeks,
+                                           work_copy=0)\
+                .exclude(course__type__department=self.department)\
+                .exclude(room=None)
         other_departments_located_scheduled_courses_for_slot = {}
         for sl in self.slots:
             other_departments_located_scheduled_courses_for_slot[sl] = \
