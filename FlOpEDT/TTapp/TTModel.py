@@ -529,7 +529,7 @@ class TTModel(FlopModel):
             corresponding_basic_rooms = rooms_ponderation.basic_rooms.all()
             for sl in self.wdb.availability_slots:
                 considered_basic_rooms = set(b for b in corresponding_basic_rooms
-                                             if self.avail_room[b] != 0)
+                                             if self.avail_room[b][sl] != 0)
                 bound = len(considered_basic_rooms)
                 expr = self.lin_expr()
                 for i in range(n):
