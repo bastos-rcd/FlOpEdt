@@ -415,10 +415,12 @@ class WeeksDatabase(object):
 
     def users_init(self):
         # USERS
-
         instructors = set()
         for tutor in Tutor.objects.filter(id__in=self.courses.values_list('tutor_id')):
             instructors.add(tutor)
+        for cst in self.courses.distinct("supp_tutor"):
+            for tutor in cst.supp_tutor.all():
+                instructors.add(tutor)
         for mpt in ModulePossibleTutors.objects.filter(module__in=self.modules):
             for tutor in mpt.possible_tutors.all():
                 instructors.add(tutor)
