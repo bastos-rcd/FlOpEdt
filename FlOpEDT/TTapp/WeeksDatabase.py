@@ -47,6 +47,7 @@ import base.queries as queries
 
 from people.models import Tutor, PhysicalPresence
 
+from misc.manage_rooms_ponderations import register_ponderations_in_database
 
 from TTapp.slots import Slot, CourseSlot, slots_filter, days_filter
 
@@ -81,7 +82,7 @@ class WeeksDatabase(object):
             self.courses_for_avail_slot_init()
         if self.department.mode.visio:
             self.visio_courses, self.no_visio_courses, self.visio_ponderation = self.visio_init()
-        self.room_types, self.rooms, self.basic_rooms, self.room_prefs, self.rooms_for_type, \
+        self.room_types, self.used_room_types, self.rooms, self.basic_rooms, self.room_prefs, self.rooms_for_type, \
             self.room_course_compat, self.course_rg_compat, self.fixed_courses_for_room, \
             self.other_departments_sched_courses_for_room, self.rooms_ponderations, \
             self.courses_for_room_type = self.rooms_init()
@@ -254,8 +255,8 @@ class WeeksDatabase(object):
 
     def rooms_init(self):
         # ROOMS
-        room_types = set(c.room_type for c in self.courses.distinct('room_type'))
-        room_types_ids = set(rt.id for rt in room_types)
+        room_types = RoomType.objects.filter(department=self.department)
+        used_room_types = set(c.room_type for c in self.courses.distinct('room_type'))
         basic_rooms = queries.get_rooms(self.department.abbrev, basic=True).distinct()
         room_prefs = RoomSort.objects.filter(for_type__department=self.department)
         rooms_for_type = {t: t.members.all() for t in room_types}
@@ -294,14 +295,18 @@ class WeeksDatabase(object):
             for rg in r.and_overrooms():
                 other_departments_sched_courses_for_room[r] |= set(self.other_departments_sched_courses.filter(room=rg))
 
-        rooms_ponderations = set(rp for rp in RoomPonderation.objects.filter(department=self.department)
-                                 if all(id in room_types_ids for id in rp.room_types))
+        department_rooms_ponderations = RoomPonderation.objects.filter(department=self.department)
+        if not department_rooms_ponderations.exists():
+            register_ponderations_in_database(self.department)
+
+        rooms_ponderations = set(rp for rp in department_rooms_ponderations
+                                 if rp.get_room_types_set() & set(used_room_types))
 
         courses_for_room_type = {}
         for rt in room_types:
             courses_for_room_type[rt] = set(self.courses.filter(room_type=rt))
 
-        return room_types, rooms, basic_rooms, room_prefs, rooms_for_type, room_course_compat, course_rg_compat, \
+        return room_types, used_room_types, rooms, basic_rooms, room_prefs, rooms_for_type, room_course_compat, course_rg_compat, \
                fixed_courses_for_room, other_departments_sched_courses_for_room, rooms_ponderations, \
                courses_for_room_type
 

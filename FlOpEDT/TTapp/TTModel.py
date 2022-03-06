@@ -62,8 +62,6 @@ from FlOpEDT.decorators import timer
 from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_ttconstraints, get_room_constraints
 from TTapp.RoomModel import RoomModel
 
-from misc.manage_rooms_ponderations import register_ponderations_in_database
-
 from django.utils.translation import gettext_lazy as _
 
 
@@ -100,9 +98,7 @@ class TTModel(FlopModel):
         self.send_mails = send_mails
         self.slots_step = slots_step
         self.min_visio = min_visio
-        # RoomPonderation definition needs to be improved. It doesn't work for now...
-        # Exemple: RoomTypes: {A}-{B}-{C}-{ABC} OR {AB}-{BC}-{CA}-{A}
-        self.pre_assign_rooms = True # pre_assign_rooms
+        self.pre_assign_rooms = pre_assign_rooms
         self.post_assign_rooms = post_assign_rooms
         print(_(f"\nLet's start weeks #{self.weeks}"))
         assignment_text = ""
@@ -518,9 +514,6 @@ class TTModel(FlopModel):
         considered_courses = set(self.wdb.courses)
         if self.department.mode.visio:
             considered_courses -= set(self.wdb.visio_courses)
-
-        if not self.wdb.rooms_ponderations:
-            register_ponderations_in_database(self.department)
 
         for rooms_ponderation in self.wdb.rooms_ponderations:
             room_types_id_list = rooms_ponderation.room_types
