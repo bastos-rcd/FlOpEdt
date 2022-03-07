@@ -39,16 +39,24 @@ from TTapp.ilp_constraints.constraint import Constraint
 from django.utils.translation import gettext as _
 
 def pre_analysis_considered_basic_groups(group_ttconstraint):
-    if group_ttconstraint.train_progs.exists():
-        basic_groups = set(StructuralGroup.objects.filter(train_prog__in=group_ttconstraint.train_progs.all(), basic=True))
-    else:
-        basic_groups = set(StructuralGroup.objects.filter(train_prog__department=group_ttconstraint.department, basic=True))
+    
+    groups = set(StructuralGroup.objects.filter(train_prog__in=group_ttconstraint.train_progs.all()))
+    basic_groups = set()
+    
+    for g in groups :
+        if len(g.descendants_groups()) == 0 :
+            basic_groups.add(g)
     
     if group_ttconstraint.groups.exists():
+        
         basic_groups_constraint = set()
+        
         for g in group_ttconstraint.groups.all():
-            basic_groups_constraint |= g.basic_groups()
+            
+            basic_groups_constraint.add(g)
+        
         basic_groups &= basic_groups_constraint
+        
     return basic_groups
 '''
     basic_groups_to_consider = set()

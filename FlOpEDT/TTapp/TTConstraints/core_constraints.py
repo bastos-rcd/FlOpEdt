@@ -63,31 +63,29 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
         Parameter:
             week (Week): the week we want to analyse the data from
-            
+        
         Returns:
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem"""
         jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year }}
-
+        
         considered_basic_groups = pre_analysis_considered_basic_groups(self)
         
         for bg in considered_basic_groups:
+            print(bg)
             #Retrieving information about general time settings and creating the partition
-            group_partition = Partition.get_partition_of_week(week, bg.type.department, True)
-            
+            group_partition = Partition.get_partition_of_week(week, bg.type.department,True)
             ############
             
             #prise en compte de la contrainte NoGroupCourseOnDay dans la construction de la partition
             
             no_course_group = NoGroupCourseOnDay.objects.filter(Q(groups=bg))
             forbidden_days = ""
-            i = 1
             if no_course_group.exists():
                 for constraint in no_course_group:
                     forbidden_days += constraint.weekday+'-'+constraint.period+', '
                     slot = constraint.get_slot_constraint(week, forbidden = True)
                     if slot:
                         group_partition.add_slot(slot[0],"no_course_tutor",slot[1])
-
             ############
             
             ### Coloration ###
@@ -122,8 +120,8 @@ class NoSimultaneousGroupCourses(TTConstraint):
                             time_group_courses = gp.time_of_courses(week)
                     transversal_conflict_groups.add(group_to_consider)
 
-            #Set of courses for the group and all its structural descendants
-            considered_courses = set(c for c in Course.objects.filter(week=week, groups__in=bg.and_descendants()))
+            #Set of courses for the group and all its structural ancestors
+            considered_courses = set(c for c in Course.objects.filter(week=week, groups__in=bg.and_ancestors()))
 
             #Mimimum time needed in any cases
             min_course_time_needed = sum(c.type.duration for c in considered_courses) + max_courses_time_transversal
@@ -132,20 +130,26 @@ class NoSimultaneousGroupCourses(TTConstraint):
                 jsondict["status"] = _("KO")
                 jsondict["messages"].append({"str":_(f"Group {bg.name} has {group_partition.not_forbidden_duration} available time but requires minimum {min_course_time_needed}."),
                                             "group":bg.id, "type": "NoSimultaneousGroupCourses"})
+                
             else:
                 #If they exists we add the transversal courses to the considered_courses
                 if transversal_conflict_groups:
                     considered_courses = considered_courses | set(c for c in Course.objects.filter(week=week, groups__in = transversal_conflict_groups))
-
+                print(considered_courses)
                 #If we are below that amount of time we probably cannot do it.
                 course_time_needed = sum(c.type.duration for c in considered_courses)
+                
                 if course_time_needed > group_partition.not_forbidden_duration:
                     jsondict["status"] = _("KO")
                     jsondict["messages"].append({"str":_(f"Group {bg.name} has {group_partition.not_forbidden_duration} available time but probably requires minimum {course_time_needed}."),
                                                 "group":bg.id, "type": "NoSimultaneousGroupCourses"})
-                else:
-                    #We are checking if we have enough slots for the number of courses
                     
+                else:
+                    
+                #We are checking if we have enough slots for the number of courses
+                    
+                #We gather the courses by type
+              
                     course_dict = dict()
                     for c in considered_courses:
 
@@ -154,19 +158,39 @@ class NoSimultaneousGroupCourses(TTConstraint):
                         else:
                             course_dict[c.type] = 1 
                     
-                    # Calculer le nombre de slot pour les heures de début en commun puis y ajouter le nb de slot pour les heures des début pas en commun. Comparer aux nombre de cours
-                            
+                    all_start_times = []
+                    all_nb_courses = 0
+                    min_duration = 1440
+                    
                     for course_type, nb_courses in course_dict.items():
                         
-                        #We are retrieving the possible start times for each course type and then we check how many we can put in the partition
+                        # We compute the total number of courses, all the different start times and the minimum duration of course
+                        all_nb_courses += nb_courses
+                        start_times = CourseStartTimeConstraint.objects.get(course_type = course_type).allowed_start_times
+                        if course_type.duration < min_duration :
+                            min_duration = course_type.duration
                         
-                        start_times = CourseStartTimeConstraint.objects.get(course_type = course_type)
-                        allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(course_type.duration, start_times.allowed_start_times)
+                        for st in start_times :
+                            if st not in all_start_times :
+                                all_start_times.append(st)
+                            
+                        # We look if there is enough slot for each course_type
+                                
+                        allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(course_type.duration, start_times)
+                        
                         if allowed_slots_nb < nb_courses:
                             jsondict["status"] = _("KO")
                             jsondict["messages"].append({ "str": _(f"Group {bg.name} has {allowed_slots_nb} slots available of {course_type.duration} minutes and requires {nb_courses}."),
                                                         "group": bg.id, "type": "NoSimultaneousGroupCourses"})
-                         
+                            return jsondict
+                    
+                    # To try to avoid conflict we are looking if there are enough slots for all courses at all start times possible for the minimum duration of all courses. Not always find an infaisability but can quickly find conflict in some case.
+                                
+                    all_allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(min_duration, all_start_times)
+                    print(all_allowed_slots_nb)
+                    if all_allowed_slots_nb < all_nb_courses:
+                            jsondict["status"] = _("KO")
+                            jsondict["messages"].append({ "str": _(f"Group {bg.name} has a total of {all_allowed_slots_nb} slots available of minimum {min_duration} minutes and requires {all_nb_courses}."),"group": bg.id, "type": "NoSimultaneousGroupCourses"})
                             
         return jsondict
 
