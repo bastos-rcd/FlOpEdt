@@ -5,7 +5,7 @@ django.setup()
 from unittest import skip
 from TTapp.tests.test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
-from TTapp.TTConstraints.slots_constraints import ConsiderDependencies
+from TTapp.TTConstraints.slots_constraints import ConsiderDependencies, SimultaneousCourses
 
 class ConsiderDependenciesTestCase(ConstraintTestCase):
     # In this class, we consider the relation between TD and TP as TD has to be given before TP
@@ -64,7 +64,7 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
 
     def test_consider_courses_beginning_time(self):
         # Test 5 : KO case : Tutor "bibiTU" has a TD and TP to give (which last 2 hours and 1h30) and he is only available
-        #          on monday morning and on tuesday, wednesday, thursday, friday afternoons,
+        #          on monday afternoon and on tuesday, wednesday, thursday, friday mornings,
         #          TD must start at 8 am and TP must start at 2 pm,
         #          so "bibiTU" can not assure TD before TP.
         json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_16_2022)
@@ -79,7 +79,7 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
 
         # Test 7 : KO case : TD has to be done before TP and there are 3 supp tutors : "bibiTU" and "Prof1" are always
         #          available but "Prof2" is only always on monday, tuesday, wednesday and thursday afternoons
-        #          and on friday morning but the TD can only start at 8 o'clock am and TP can only start at 2 o'clock pm,
+        #          and on friday mornings but the TD can only start at 8 o'clock am and TP can only start at 2 o'clock pm,
         #          so "Prof2" can handle the 2 courses with this dependency.
         json_response_dict = self.constraint_dep_2.pre_analyse(week=self.week_20_2022)
         self.assertJsonResponseIsKO("7", json_response_dict)
@@ -95,19 +95,21 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
         self.assertJsonResponseIsKO("8", json_response_dict)
 
 
+
 # TODO : delete at the end, only print tests
 if __name__ == "__main__":
-    my_week = Week.objects.get(year=2022, nb=20)
+    my_week = Week.objects.get(year=2022, nb=22)
     # Departments
     default_dep = Department.objects.get(abbrev="default")
     dep_2 = Department.objects.get(abbrev="Dept2")
 
     # Constraints by departments
-    constraint_default_dep = ConsiderDependencies.objects.get(department=default_dep)
-    constraint_dep_2 = ConsiderDependencies.objects.get(department=dep_2)
+    constraint_default_dep = SimultaneousCourses.objects.filter(department=default_dep)
+    constraint_dep_2 = SimultaneousCourses.objects.filter(department=dep_2)
 
-    dico = constraint_dep_2.pre_analyse(my_week)
-    print(dico)
+    for c in constraint_default_dep:
+        dico = c.pre_analyse(my_week)
+        print(dico)
 
     #dep = Department.objects.get(abbrev="Dept2")
     #constraint = ConsiderDependencies.objects.get(department=dep)
