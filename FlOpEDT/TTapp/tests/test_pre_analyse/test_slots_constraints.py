@@ -81,9 +81,9 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
         self.assertJsonResponseIsKO("6", json_response_dict)
 
         # Test 7 : KO case : TD has to be done before TP and there are 3 supp tutors : "bibiTU" and "Prof1" are always
-        #          available but "Prof2" is only always on monday, tuesday, wednesday and thursday afternoons
+        #          available but "Prof2" is only available on monday, tuesday, wednesday and thursday afternoons
         #          and on friday mornings but the TD can only start at 8 o'clock am and TP can only start at 2 o'clock pm,
-        #          so "Prof2" can handle the 2 courses with this dependency.
+        #          so "Prof2" can not handle the 2 courses with this dependency.
         json_response_dict = self.constraint_dep_2.pre_analyse(week=self.week_20_2022)
         self.assertJsonResponseIsKO("7", json_response_dict)
 
