@@ -339,7 +339,7 @@ class ConsiderDependencies(TTConstraint):
         return jsondict
 
     def considered_dependecies(self):
-        """Returns the depencies that have to be considered"""
+        """Returns the dependencies that have to be considered"""
         result=Dependency.objects.filter(course1__type__department=self.department, course2__type__department=self.department)
         if self.train_progs.exists():
             result = result.filter(course1__module__train_prog__in=self.train_progs.all(), course2__module__train_prog__in=self.train_progs.all())

@@ -8,7 +8,9 @@ from TTapp.tests.test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
 from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability, NoSimultaneousGroupCourses
 
-# Test pre_analyse function for constraints in core_constraints.py : assert correct result returned
+# In this python file we test (class by class) pre_analyse's function for constraints in core_constraints.py and assert
+# the correct result is returned
+
 class ConsiderTutorsUnavailabilityTestCase(ConstraintTestCase):
 
     fixtures = ['data_test_constraints.json']
@@ -94,7 +96,6 @@ class ConsiderTutorsUnavailabilityTestCase(ConstraintTestCase):
 
 
 class NoSimultaneousGroupCoursesTestCase(ConstraintTestCase):
-    # TODO : complete
 
     fixtures = ['data_test_constraints.json']
 
@@ -121,59 +122,44 @@ class NoSimultaneousGroupCoursesTestCase(ConstraintTestCase):
 
 
     def test_consider_enough_slots_and_time(self):
-        # TODO
-        # Test 1 : KO case
+        # Test 1 : KO case : group TD2 has 3 TD courses of 2 hours to do in the week, but TD course can only start
+        #          friday at 8:00 am, so only one course can be placed, there are not enough slots.
         json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_7_2022)
         self.assertJsonResponseIsKO("1", json_response_dict)
 
-        # Test 2 : OK case
+        # Test 2 : OK case : group TD2 has 2 TD courses of 2 hours to do in the week and there are 2 slots of 2 hours available.
         json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_8_2022)
         self.assertJsonResponseIsOK("2", json_response_dict)
 
     def test_consider_no_simultaneous_groups_and_subgroups_courses(self):
-        # TODO
-        # Test 3 : KO case
+        # Test 3 : KO case : group TD2 has a TD course of 2 hours to do in the week and its subgroup TP2A has a TP course
+        #          of 2 hours to do, but TD course and TP course can both only begin at 8:00 am on friday.
         json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_9_2022)
         self.assertJsonResponseIsKO("3", json_response_dict)
 
-        # Test 4 : OK case
+        # Test 4 : OK case : group TD2 has a TD course of 2 hours to do and its two subgroups TP2A and TP2B have both
+        #          a TP course of 2 hours to do, TD course can begin on wednesday at 8:00 am and TP courses can begin
+        #          on friday at 8:00 am, there is no conflict.
         json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_10_2022)
         self.assertJsonResponseIsOK("4", json_response_dict)
 
-    def test_consider_transversal_courses(self):
-        # Test 5 : KO case
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_11_2022)
+        # Test 5 : KO case : same as test 3 but the group TD2 has a subgroup with the same type, TD21.
+        json_response_dict = self.constraint_dep_2.pre_analyse(week=self.week_9_2022)
         self.assertJsonResponseIsKO("5", json_response_dict)
 
-        # Test 6 : OK case
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_12_2022)
+        # Test 6 : OK case : same as test 4 but the group TD2 has two subgroups with the same type, TD21 and TD22.
+        json_response_dict = self.constraint_dep_2.pre_analyse(week=self.week_10_2022)
         self.assertJsonResponseIsOK("6", json_response_dict)
 
-# TODO : delete at the end, only print tests
-if __name__ == "__main__":
-    tc = ConsiderTutorsUnavailabilityTestCase()
-    # holidays
-    my_week = Week.objects.get(year=2022, nb=2)
-    dep = Department.objects.get(abbrev="Dept2")
-    print(dep)
-    constraint_holidays = ConsiderTutorsUnavailability.objects.get(department=dep)
-    print(constraint_holidays)
-    constraint_holidays.pre_analyse(week=my_week)
-    # end holidays
-    #tc.assertTrue(False, tc.unexpectedResponseErrorMessage("3", "KO", "OK"))
-    #tc.assertTrue(False, tc.constraintNotInJsonResponseErrorMessage("3"))
-    '''cs = ConsiderTutorsUnavailability.objects.all()
-    my_week = Week.objects.get(year=2022, nb=2)
-    print(Department.objects.all())
-    dep = list(map(lambda dep: dep.abbrev, Department.objects.all()))
-    for dep_abbrev in dep:
-        for c in cs:
-            if c.department.abbrev == dep_abbrev:
-                print("## DEP :", c.department)
-                json_response_dict = c.pre_analyse(week=my_week)
-                print(json_response_dict)
+    def test_consider_transversal_courses(self):
+        # Test 7 : KO case : groups TD1 and TD2 have a transversal group TD3, those three groups have each one TD course
+        #          of 2 hours to do but the only slot available for the 3 TD courses is on friday at 8:00 am.
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_11_2022)
+        self.assertJsonResponseIsKO("7", json_response_dict)
 
-                jrobject = json_response_module.JsonResponse()
-                types = list(map(lambda dico: dico["type"], json_response_dict["messages"]))
-                print("## TYPES :",types)
-'''
+        # Test 8 : OK case : groups TD1 and TD2 have a transversal group TD3, those three groups have each one TD course
+        #          of 2 hours to do and two slots are available for the 3 TD courses, on friday at 8:00 am and on wednesday
+        #          at 8:00 am.
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_12_2022)
+        self.assertJsonResponseIsOK("8", json_response_dict)
+

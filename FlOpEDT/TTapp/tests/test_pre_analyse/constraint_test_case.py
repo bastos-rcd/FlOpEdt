@@ -3,6 +3,13 @@ import TTapp.tests.test_pre_analyse.json_response as json_response_module
 
 
 class ConstraintTestCase(TestCase):
+    """
+        A class that inherits from Django TestCase class. Is intended to be inherited. Allow to compare a dictionary
+        (json response) with an expected result given.
+        Note : it is important to define with a string the property `contraint_type` with the setUp method.
+
+    """
+
     def setUp(self):
         self.constraint_type = None
 

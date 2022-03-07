@@ -7,6 +7,9 @@ from TTapp.tests.test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
 from TTapp.TTConstraints.slots_constraints import ConsiderDependencies, SimultaneousCourses
 
+# In this python file we test (class by class) pre_analyse's function for constraints in slots_constraints.py and assert
+# the correct result is returned
+
 class ConsiderDependenciesTestCase(ConstraintTestCase):
     # In this class, we consider the relation between TD and TP as TD has to be given before TP
 
@@ -94,28 +97,3 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
         json_response_dict = self.constraint_dep_2.pre_analyse(week=self.week_19_2022)
         self.assertJsonResponseIsKO("8", json_response_dict)
 
-
-
-# TODO : delete at the end, only print tests
-if __name__ == "__main__":
-    my_week = Week.objects.get(year=2022, nb=22)
-    # Departments
-    default_dep = Department.objects.get(abbrev="default")
-    dep_2 = Department.objects.get(abbrev="Dept2")
-
-    # Constraints by departments
-    constraint_default_dep = SimultaneousCourses.objects.filter(department=default_dep)
-    constraint_dep_2 = SimultaneousCourses.objects.filter(department=dep_2)
-
-    for c in constraint_default_dep:
-        dico = c.pre_analyse(my_week)
-        print(dico)
-
-    #dep = Department.objects.get(abbrev="Dept2")
-    #constraint = ConsiderDependencies.objects.get(department=dep)
-    #dico = constraint.pre_analyse(week=my_week)
-    #constraints = ConsiderDependencies.objects.all()
-    #for c in constraints:
-    #    dico = c.pre_analyse(week=my_week)
-    #    print(dico)
-    #    print(dep)

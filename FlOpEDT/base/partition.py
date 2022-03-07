@@ -241,28 +241,28 @@ class Partition(object):
         Returns:
             (int): the number of times it founds an available time of minimum duration starting at a starting time"""
             
-        # on considère ici qu'il existe forcément une nuit, c'est à dire un intervalle à not available qui nous fait passer d'une journée à l'autre
-        
+        # Here we consider that one night necessarily exists i.e. an interval that makes us pass from one day to another
+
         start_times.sort()
         slot_duration = 0
         nb_slots = 0
             
         for interval in self.intervals:
             
-            # for each start time we look for a slot
+            # For each start time we look for a slot
                 
             if interval[1]["available"] and not interval[1]["forbidden"]:
                 start = time_to_floptime(interval[0].start.time())
                 end = time_to_floptime(interval[0].end.time())
                 
-                # we need to know times already used for a slot in an interval
+                # We need to know times already used for a slot in an interval
                 
                 time_already_use = 0
                 
                 if slot_duration == 0:
                     for st in start_times:
                         
-                        # we look if the current start time is not in a slot already computed
+                        # We look if the current start time is not in a slot already computed
                         
                         if start + st > time_already_use :
                             if start <= st and end > st:
@@ -273,7 +273,7 @@ class Partition(object):
                                     slot_duration = 0
                                 
                                 # slot_duration < duration implies no more time useful in the interval
-                                # we keep it to look if there is enough time in the next interval.
+                                # We keep it to look if there is enough time in the next interval.
                                 
                                 else :
                                     break
@@ -337,20 +337,20 @@ class Partition(object):
             
         for interval in self.intervals:
             
-            # for each start time we look for a slot
+            # For each start time we look for a slot
                 
             if not interval[1]["forbidden"]:
                 start = time_to_floptime(interval[0].start.time())
                 end = time_to_floptime(interval[0].end.time())
                 
-                # we need to know times already used for a slot in an interval
+                # We need to know times already used for a slot in an interval
                 
                 time_already_use = 0
                 
                 if slot_duration == 0:
                     for st in start_times:
                         
-                        # we look if the current start time is not in a slot already computed
+                        # We look if the current start time is not in a slot already computed
                         
                         if start + st > time_already_use :
                             if start <= st and end > st:
@@ -361,7 +361,7 @@ class Partition(object):
                                     slot_duration = 0
                                 
                                 # slot_duration < duration implies no more time useful in the interval
-                                # we keep it to look if there is enough time in the next interval.
+                                # We keep it to look if there is enough time in the next interval.
                                 
                                 else :
                                     break
