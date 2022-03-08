@@ -200,13 +200,9 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         ################ A line per module per CourseType ################
         for mod in Module.objects.filter(period=p):
             courses = Course.objects.filter(module=mod)
-            if not courses.exists():
-                continue
             logger.info(f"Module {mod}")
             for ct in CT:
                 type_courses = courses.filter(type=ct)
-                if not type_courses.exists():
-                    continue
                 append_row(sheet, empty_rows, 2, rank, cols)
                 sheet.cell(row=rank, column=1).value = mod.abbrev
                 sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
@@ -218,12 +214,20 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                 sheet.cell(row=rank, column=VERIF_COL).value = '=SUM(%s%d:%s%d)' % (first_column_letter[p], rank,
                                                                                     last_column_letter[p], rank)
                 rank += 1
-                if with_courses:
-                    groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog))
-                             #| set(TransversalGroup.objects.filter(train_prog=mod.train_prog))
-                else:
-                    groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog))
-                             #| set(TransversalGroup.objects.filter(type__in=ct.group_types.all(), train_prog=mod.train_prog))
+                groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog,
+                                                            type__in=ct.group_types.all())) \
+                         | set(TransversalGroup.objects.filter(train_prog=mod.train_prog,
+                                                               type__in=ct.group_types.all()))
+                # if with_courses:
+                #     groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog,
+                #                                                 type__in=ct.group_types.all())) \
+                #              | set(TransversalGroup.objects.filter(train_prog=mod.train_prog,
+                #                                                    type__in=ct.group_types.all()))
+                # else:
+                #     groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog,
+                #                                                 type__in=ct.group_types.all())) \
+                #              | set(TransversalGroup.objects.filter(train_prog=mod.train_prog,
+                #                                                    type__in=ct.group_types.all()))
 
                 nb_groups = len(groups)
                 if nb_groups:

@@ -55,18 +55,16 @@ class SimultaneousCourses(TTConstraint):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        courses_weeks_and_years = set((c.week, c.year) for c in self.courses.all())
-        nb = len(courses_weeks_and_years)
+        courses_weeks = self.courses.all().distinct('week')
+        nb = courses_weeks.count()
         if nb == 0:
             return
-        elif nb > 1:
-            self.delete()
-            raise Exception("Simultaneous courses need to have the same week: not saved")
         else:
-            week, year = courses_weeks_and_years.pop()
-            self.week = week
-            self.year = year
             super().save(*args, **kwargs)
+            self.weeks.clear()
+            for w in courses_weeks:
+                self.weeks.add(w.week)
+
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -76,7 +74,7 @@ class SimultaneousCourses(TTConstraint):
 
     def enrich_model(self, ttmodel, week, ponderation=1):
         course_types = set(c.type for c in self.courses.all())
-        relevant_courses = list(c for c in self.courses.all() if c.week in ttmodel.weeks)
+        relevant_courses = set(self.courses.all()) & set(ttmodel.wdb.courses)
         nb_courses = len(relevant_courses)
         if nb_courses < 2:
             return
@@ -563,4 +561,78 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
             text += "Les profs"
         text += f" n'ont pas cours plus de {self.max_number} jours par semaine " \
                f"entre {french_format(self.slot_start_time)} et {french_format(self.slot_end_time)}"
+        return text
+
+
+class LimitSimultaneousCoursesNumber(TTConstraint):
+    """
+    Limit the number of simultaneous courses inside a set of courses, and/or selecting a specific course type
+    and/or a set of considered modules
+    """
+    limit = models.PositiveSmallIntegerField()
+    course_type = models.ForeignKey('base.CourseType', on_delete=models.CASCADE, null=True, blank=True)
+    modules = models.ManyToManyField('base.Module',
+                                     blank=True,
+                                     related_name="limit_simultaneous")
+
+    @classmethod
+    def get_viewmodel_prefetch_attributes(cls):
+        attributes = super().get_viewmodel_prefetch_attributes()
+        attributes.extend(['course_type', "modules"])
+        return attributes
+
+    def enrich_model(self, ttmodel, week, ponderation=1):
+        relevant_courses = ttmodel.wdb.courses
+        if self.course_type is not None:
+            relevant_courses = relevant_courses.filter(type=self.course_type)
+        if self.modules.exists():
+            relevant_courses = relevant_courses.filter(module__in=self.modules.all())
+        nb_courses = relevant_courses.count()
+        if nb_courses <= self.limit:
+            return
+        relevant_sum = ttmodel.lin_expr()
+        if self.weight is None:
+            for a_sl in ttmodel.wdb.availability_slots:
+                more_than_limit = ttmodel.add_floor(
+                    ttmodel.sum(ttmodel.TT[sl,c]
+                                for c in relevant_courses
+                                for sl in slots_filter(ttmodel.wdb.compatible_slots[c], simultaneous_to=a_sl)),
+                    self.limit+1,
+                    nb_courses)
+                relevant_sum += more_than_limit
+            ttmodel.add_constraint(relevant_sum, '==', 0,
+                                   Constraint(constraint_type=ConstraintType.LimitSimultaneousCoursesNumber,
+                                              weeks=week))
+        else:
+            for bound in range(self.limit, nb_courses+1):
+                relevant_sum *= 2
+                for a_sl in ttmodel.wdb.availability_slots:
+                    more_than_limit = ttmodel.add_floor(
+                        ttmodel.sum(ttmodel.TT[sl, c]
+                                    for c in relevant_courses
+                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                           simultaneous_to=a_sl)),
+                        bound + 1,
+                        nb_courses)
+                    relevant_sum += more_than_limit
+            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum)
+
+
+    def get_viewmodel(self):
+        view_model = super().get_viewmodel()
+        details = view_model['details']
+
+        details.update({'limit': self.limit,
+                        'type': self.course_type,
+                        'modules': ', '.join([m.abbrev for m in self.module.all()])})
+
+        return view_model
+
+    def one_line_description(self):
+        text = f"Parmi les cours"
+        if self.course_type:
+            text += f" de type {self.course_type}"
+        if self.modules.exists():
+            text += f" des modules {', '.join([m.abbrev for m in self.module.all()])}"
+        text += f" au maximum {self.limit} peuvent être simultanés."
         return text

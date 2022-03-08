@@ -151,16 +151,12 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
             supp_profs = []
             possible_profs = []
             if prof is None:
-                TUTOR, created = Tutor.objects.get_or_create(username='---')
-                if created:
-                    TUTOR.save()
-                    fill_default_user_preferences(TUTOR, dept=department)
-                    UserDepartmentSettings(user=TUTOR, department=department).save()
+                TUTOR = None
             elif prof == '*':
                 TUTOR = None
                 do_assign(MODULE, COURSE_TYPE, week, book)
             else:
-                assert isinstance(prof, str) and prof is not None
+                assert isinstance(prof, str)
                 prof = prof.replace('\xa0', '').replace(' ', '')
                 if '|' in prof:
                     possible_profs = prof.split("|")

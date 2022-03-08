@@ -189,7 +189,7 @@ class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
                 for c in courses:
                     sl8h = min(slots_filter(self.ttmodel.wdb.courses_slots, day=d, apm=Time.AM) & self.ttmodel.wdb.compatible_slots[c])
                     sl14h = min(slots_filter(self.ttmodel.wdb.courses_slots, day=d, apm=Time.PM) & self.ttmodel.wdb.compatible_slots[c])
-                    for c2 in courses.exclude(id=c.id):
+                    for c2 in courses - {c}:
                         sl11h = max(
                             slots_filter(self.ttmodel.wdb.courses_slots, day=d, apm=Time.AM) & self.ttmodel.wdb.compatible_slots[c2])
                         sl17h = max(
