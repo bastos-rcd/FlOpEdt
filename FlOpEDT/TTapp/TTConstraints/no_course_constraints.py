@@ -211,3 +211,34 @@ class NoTutorCourseOnDay(NoCourseOnDay):
                 if supp_in == len(required_supps) and tutor_in:
                     break
         return supp_in == len(required_supps) and tutor_in
+
+    def complete_partition(self, partition, tutor, week):
+        if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ? non ...?
+            day_break = Day(self.weekday, week)
+            time_settings = self.time_settings()
+
+            # TODO : verifier si value à 0 ou à 8, si forbidden
+            if self.period == self.FULL_DAY:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                 flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    "forbidden",
+                    {"value": 0, "available": False, "tutor": tutor.username}
+                )
+            elif self.period == self.AM:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                 flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                    "forbidden",
+                    {"value": 0, "available": False, "tutor": tutor.username}
+                )
+
+            elif self.period == self.PM:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
+                                        flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    "forbidden",
+                    {"value": 0, "available": False, "tutor": tutor.username}
+                )
+
+        return partition
