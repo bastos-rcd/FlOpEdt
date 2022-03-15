@@ -129,6 +129,8 @@ function open_connection() {
         // Get solver parameters
         var solver = solver_select.value;
         var time_limit = parseInt(time_limit_select.value);
+        var pre_assign_rooms = pre_assign_rooms_checkbox.checked;
+        var post_assign_rooms = post_assign_rooms_checkbox.checked;
 
         // Get working copy number for stabilization
         var stabilize_working_copy = stabilize_select.value;
@@ -144,7 +146,9 @@ function open_connection() {
             'stabilize': stabilize_working_copy,
             'timestamp': opti_timestamp,
             'time_limit': time_limit,
-            'solver': solver
+            'solver': solver,
+            'pre_assign_rooms': pre_assign_rooms,
+            'post_assign_rooms': post_assign_rooms
         }))
     }
 
@@ -674,6 +678,8 @@ function hideFinishLabel() {
 var solver_select = document.querySelector("#solver");
 var stabilize_select = document.querySelector("#stabilize select");
 document.getElementById("divAnalyse").style.overflow = "scroll";
+var pre_assign_rooms_checkbox = document.querySelector("#pre-assign-rooms");
+var post_assign_rooms_checkbox = document.querySelector("#post-assign-rooms");
 
 time_limit_select = document.querySelector("#limit");
 txt_area = document.getElementsByTagName("textarea")[0];

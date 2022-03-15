@@ -48,7 +48,7 @@ from django.views.generic import RedirectView
 from FlOpEDT.decorators import dept_admin_required, tutor_required
 
 from people.models import Tutor, UserDepartmentSettings, User, \
-    NotificationsPreferences, UserPreferredLinks
+    NotificationsPreferences, UserPreferredLinks, TutorPreference
 
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
@@ -228,8 +228,9 @@ def stype(req, *args, **kwargs):
                                 {'date_deb': current_week(),
                                  'date_fin': current_week(),
                                  'name_usr': req.user.username,
-                                 'usr_pref_hours': req.user.tutor.pref_hours_per_day,
-                                 'usr_max_hours': req.user.tutor.max_hours_per_day,
+                                 'usr_pref_hours': req.user.tutor.preferences.pref_hours_per_day,
+                                 'usr_max_hours': req.user.tutor.preferences.max_hours_per_day,
+                                 'usr_min_hours': req.user.tutor.preferences.min_hours_per_day,
                                  'user_notifications_pref': user_notifications_pref,
                                  'err': err,
                                  'current_year': current_year,
@@ -265,6 +266,7 @@ def stype(req, *args, **kwargs):
                                  'name_usr': req.user.username,
                                  'usr_pref_hours': req.user.tutor.pref_hours_per_day,
                                  'usr_max_hours': req.user.tutor.max_hours_per_day,
+                                 'usr_min_hours': req.user.tutor.preferences.min_hours_per_day,
                                  'user_notifications_pref': user_notifications_pref,
                                  'err': err,
                                  'current_year': current_year,
@@ -346,22 +348,27 @@ def room_preference(req, department, tutor=None):
 def user_perfect_day_changes(req, username=None, *args, **kwargs):
     if username is not None:
         t = Tutor.objects.get(username=username)
+        preferences = TutorPreference.objects.get_or_create(tutor=t)
         data = req.POST
         user_pref_hours = int(data['user_pref_hours'][0])
         user_max_hours = int(data['user_max_hours'][0])
-        t.pref_hours_per_day = user_pref_hours
-        t.max_hours_per_day = user_max_hours
-        t.save()
+        user_min_hours = int(data['user_min_hours'][0])
+        preferences.pref_hours_per_day = user_pref_hours
+        preferences.max_hours_per_day = user_max_hours
+        preferences.user_min_hours = user_min_hours
+        preferences.save()
     return redirect('base:preferences', req.department)
 
 
 @login_required
 def fetch_perfect_day(req, username=None, *args, **kwargs):
-    perfect_day = {'pref': 4, 'max': 9}
+    perfect_day = {'pref': 4, 'max': 9, 'min': 0}
     if username is not None:
         t = Tutor.objects.get(username=username)
-        perfect_day['pref'] = t.pref_hours_per_day
-        perfect_day['max'] = t.max_hours_per_day
+        preferences = TutorPreference.objects.get_or_create(tutor=t)
+        perfect_day['pref'] = preferences.pref_hours_per_day
+        perfect_day['max'] = preferences.max_hours_per_day
+        perfect_day['min'] = preferences.min_hours_per_day
     return JsonResponse(perfect_day, safe=False)
 
 
@@ -1357,9 +1364,13 @@ def decale_changes(req, **kwargs):
             changing_course.week = new_week
             changing_course.year = new_year
             if new_year != 0:
-                changing_course.tutor = Tutor.objects.get(
-                    username=new_assignment['np']
-                )
+                new_tutor_username = new_assignment['np']
+                if new_tutor_username:
+                    changing_course.tutor = Tutor.objects.get(
+                        username=new_tutor_username
+                    )
+                else:
+                    changing_course.tutor=None
             cache.delete(get_key_course_pp(req.department.abbrev,
                                            new_week,
                                            0))

@@ -125,16 +125,10 @@ class Tutor(User):
                               choices=TUTOR_CHOICES,
                               verbose_name="Status",
                               default=FULL_STAFF)
-    pref_hours_per_day = models.PositiveSmallIntegerField(
-        verbose_name="How many hours per day would you prefer ?",
-        default=4)
-    max_hours_per_day = models.PositiveSmallIntegerField(
-        verbose_name="How many hours per day can you suffer ?",
-        default=9)
 
     def uni_extended(self):
         ret = super(Tutor, self).uni_extended()
-        ret += '-' + self.status + '-' + 'P' + str(self.pref_hours_per_day) + 'M' + str(self.max_hours_per_day)
+        ret += '-' + self.status
         return ret
 
     class Meta:
@@ -186,6 +180,26 @@ class BIATOS(Tutor):
 
     class Meta:
         verbose_name = 'BIATOS'
+
+
+class TutorPreference(models.Model):
+    tutor = models.OneToOneField('Tutor',
+                                 on_delete=models.CASCADE,
+                                 related_name='preferences')
+    pref_hours_per_day = models.PositiveSmallIntegerField(
+        verbose_name="How many hours per day would you prefer ?",
+        default=4)
+    max_hours_per_day = models.PositiveSmallIntegerField(
+        verbose_name="How many hours per day can you suffer ?",
+        default=9)
+    min_hours_per_day = models.PositiveSmallIntegerField(
+        verbose_name="Under how many hours would you prefer to avoid to have class?",
+        default=0)
+
+    def __str__(self):
+        ret = f"{self.tutor} - P{self.pref_hours_per_day} - M{self.pref_hours_per_day} - m{self.min_hours_per_day}"
+        return ret
+
 
 # --- Notes sur Prof ---
 #    MinDemiJournees=models.BooleanField(

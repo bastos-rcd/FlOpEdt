@@ -38,7 +38,8 @@ from base.models import StructuralGroup, TransversalGroup,\
     Course, ScheduledCourse, UserPreference, CoursePreference, \
     Department, Module, TrainingProgramme, CourseType, \
     Dependency, TutorCost, GroupFreeHalfDay, GroupCost, Holiday, TrainingHalfDay, Pivot, \
-    CourseStartTimeConstraint, TimeGeneralSettings, ModulePossibleTutors, CoursePossibleTutors, CourseAdditional
+    CourseStartTimeConstraint, TimeGeneralSettings, ModulePossibleTutors, CoursePossibleTutors, CourseAdditional, \
+    RoomPonderation
 
 from base.timing import Time, Day
 
@@ -46,6 +47,7 @@ import base.queries as queries
 
 from people.models import Tutor, PhysicalPresence
 
+from misc.manage_rooms_ponderations import register_ponderations_in_database
 
 from TTapp.slots import Slot, CourseSlot, slots_filter, days_filter
 
@@ -80,9 +82,10 @@ class WeeksDatabase(object):
             self.courses_for_avail_slot_init()
         if self.department.mode.visio:
             self.visio_courses, self.no_visio_courses, self.visio_ponderation = self.visio_init()
-        self.room_types, self.rooms, self.basic_rooms, self.room_prefs, self.rooms_for_type, \
+        self.room_types, self.used_room_types, self.rooms, self.basic_rooms, self.room_prefs, self.rooms_for_type, \
             self.room_course_compat, self.course_rg_compat, self.fixed_courses_for_room, \
-            self.other_departments_sched_courses_for_room = self.rooms_init()
+            self.other_departments_sched_courses_for_room, self.rooms_ponderations, \
+            self.courses_for_room_type = self.rooms_init()
         self.compatible_slots, self.compatible_courses = self.compatibilities_init()
         self.groups, self.transversal_groups, self.all_groups, self.basic_groups, self.all_groups_of, \
             self.basic_groups_of, self.conflicting_basic_groups, self.transversal_groups_of,\
@@ -186,7 +189,7 @@ class WeeksDatabase(object):
     def courses_init(self):
         # COURSES
         courses = Course.objects.filter(week__in=self.weeks, module__train_prog__in=self.train_prog)\
-            .select_related('module')
+            .select_related('module', 'room_type')
 
         course_types = set(c.type for c in courses)
 
@@ -194,8 +197,8 @@ class WeeksDatabase(object):
 
         sched_courses = ScheduledCourse \
             .objects \
-            .filter(course__week__in=self.weeks,
-                    course__module__train_prog__in=self.train_prog)
+            .filter(course__in=courses)
+
         if self.department.mode.cosmo:
             sched_courses = sched_courses.filter(work_copy=0)
 
@@ -253,6 +256,7 @@ class WeeksDatabase(object):
     def rooms_init(self):
         # ROOMS
         room_types = RoomType.objects.filter(department=self.department)
+        used_room_types = set(c.room_type for c in self.courses.distinct('room_type'))
         basic_rooms = queries.get_rooms(self.department.abbrev, basic=True).distinct()
         room_prefs = RoomSort.objects.filter(for_type__department=self.department)
         rooms_for_type = {t: t.members.all() for t in room_types}
@@ -291,8 +295,20 @@ class WeeksDatabase(object):
             for rg in r.and_overrooms():
                 other_departments_sched_courses_for_room[r] |= set(self.other_departments_sched_courses.filter(room=rg))
 
-        return room_types, rooms, basic_rooms, room_prefs, rooms_for_type, room_course_compat, course_rg_compat, \
-               fixed_courses_for_room, other_departments_sched_courses_for_room
+        department_rooms_ponderations = RoomPonderation.objects.filter(department=self.department)
+        if not department_rooms_ponderations.exists():
+            register_ponderations_in_database(self.department)
+
+        rooms_ponderations = set(rp for rp in department_rooms_ponderations
+                                 if rp.get_room_types_set() & set(used_room_types))
+
+        courses_for_room_type = {}
+        for rt in room_types:
+            courses_for_room_type[rt] = set(self.courses.filter(room_type=rt))
+
+        return room_types, used_room_types, rooms, basic_rooms, room_prefs, rooms_for_type, room_course_compat, course_rg_compat, \
+               fixed_courses_for_room, other_departments_sched_courses_for_room, rooms_ponderations, \
+               courses_for_room_type
 
     def compatibilities_init(self):
         # COMPATIBILITY
@@ -404,10 +420,12 @@ class WeeksDatabase(object):
 
     def users_init(self):
         # USERS
-
         instructors = set()
         for tutor in Tutor.objects.filter(id__in=self.courses.values_list('tutor_id')):
             instructors.add(tutor)
+        for cst in self.courses.distinct("supp_tutor"):
+            for tutor in cst.supp_tutor.all():
+                instructors.add(tutor)
         for mpt in ModulePossibleTutors.objects.filter(module__in=self.modules):
             for tutor in mpt.possible_tutors.all():
                 instructors.add(tutor)

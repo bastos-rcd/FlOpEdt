@@ -96,7 +96,13 @@
         {% endif %}
       </div>
       <div>
-        <label for="limit">{% trans "Maximum time limit for resolution (minuts)" %} :</label>
+          <input type="checkbox" id="pre-assign-rooms" name="pre-assign-rooms" checked/>
+          <label for="pre-assign-rooms">{% trans "Pre-assign rooms" %}</label><br>
+          <input type="checkbox" id="post-assign-rooms" name="post-assign-rooms"/>
+          <label for="post-assign-rooms">{% trans "Post-assign rooms" %}</label><br>
+      </div>
+      <div>
+        <label for="limit">{% trans "Time limit (minuts)" %} :</label>
         <select id="limit">
           <option value="300" selected>5</option>
           <option value="600">10</option>

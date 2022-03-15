@@ -24,13 +24,11 @@
 # without disclosing the source code of your own applications.
 
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
-from base.timing import Day
 from base.models import StructuralGroup
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
 
 from TTapp.slots import slots_filter
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from people.models import GroupPreferences
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -90,7 +88,7 @@ class MinGroupsHalfDays(TTConstraint):
     """
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         helper = MinHalfDaysHelperGroup(ttmodel, self, week, ponderation)
         for group in considered_basic_groups(self, ttmodel):
             helper.enrich_model(group=group)
@@ -128,7 +126,7 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
     Minimize the use of unprefered Slots for groups.
     Make impossible the use of forbidden slots.
     """
-    def enrich_model(self, ttmodel, week, ponderation=None):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=None):
         if ponderation is None:
             ponderation = ttmodel.min_ups_c
         if self.train_progs.exists():

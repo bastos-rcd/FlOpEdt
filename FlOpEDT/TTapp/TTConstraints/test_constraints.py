@@ -24,15 +24,3 @@
 # without disclosing the source code of your own applications.
 
 
-from datetime import timedelta
-from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
-from base.timing import Day, TimeInterval, flopdate_to_datetime
-from django.db import models
-from django.http.response import JsonResponse
-from django.db.models import Q
-
-from TTapp.TTConstraint import TTConstraint
-from TTapp.ilp_constraints.constraint import Constraint
-from django.utils.translation import gettext_lazy as _
-from base.models import CourseStartTimeConstraint, ModulePossibleTutors, UserPreference
-

@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 from django.db import models
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.slots import days_filter, slots_filter
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -115,7 +115,7 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
                                     blank=True,
                                     related_name="Course_type_limits")
 
-    def enrich_model(self, ttmodel, week, ponderation=1.):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
 
         # if self.groups.exists():
         #     considered_groups = self.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
@@ -181,7 +181,7 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
                                      blank=True,
                                      related_name="Course_type_limits")
 
-    def enrich_model(self, ttmodel, week, ponderation=1.):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
 
         if self.modules.exists():
             considered_modules = self.modules.filter(train_prog__in=self.considered_train_progs(ttmodel))
@@ -268,7 +268,7 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
 
         return expr
 
-    def enrich_model(self, ttmodel, week, ponderation=1.):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
 
         if self.tutors.exists():
             considered_tutors = self.tutors.all()

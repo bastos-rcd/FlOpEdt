@@ -90,11 +90,12 @@ def duplicate_work_copy(req, department, year, week, work_copy):
     return JsonResponse(MyTTUtils.duplicate_work_copy(department, week, year, work_copy), safe=False)
 
 
-def reassign_rooms(req, department, year, week, work_copy):
+def reassign_rooms(req, department, year, week, work_copy, create_new_work_copy=True):
     '''
     Reassign rooms of scheduled courses with work copy work_copy
     '''
-    return JsonResponse(MyTTUtils.reassign_rooms(department, week, year, work_copy))
+    return JsonResponse(MyTTUtils.reassign_rooms(department, week, year, work_copy,
+                                                 create_new_work_copy=create_new_work_copy))
 
 
 def fetch_group_lunch(req, **kwargs):

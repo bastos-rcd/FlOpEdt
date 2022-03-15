@@ -61,7 +61,9 @@ class Slot:
     def has_same_day(self, other):
         if isinstance(other, (Slot, CourseSlot)):
             return self.day == other.day
-        elif isinstance(other, (ScheduledCourse, UserPreference, CoursePreference)):
+        elif isinstance(other, ScheduledCourse):
+            return self.day.week == other.course.week and self.day.day == other.day
+        elif isinstance(other, (UserPreference, CoursePreference)):
             return self.day.week == other.week and self.day.day == other.day
         else:
             raise TypeError("A slot can only have "
@@ -71,9 +73,12 @@ class Slot:
         if isinstance(other, (Slot, CourseSlot)):
             return self.day.week < other.day.week \
                 or self.day.week == other.day.week and days_index[self.day.day] < days_index[other.day.day]
-        elif isinstance(other, (ScheduledCourse, UserPreference, CoursePreference)):
+        elif isinstance(other, ScheduledCourse):
             return self.day.week < other.course.week \
                 or self.day.week == other.course.week and days_index[self.day.day] < days_index[other.day]
+        elif isinstance(other, (UserPreference, CoursePreference)):
+            return self.day.week < other.week \
+                or self.day.week == other.week and days_index[self.day.day] < days_index[other.day]
         else:
             raise TypeError("A slot can only have "
             "previous day than a ScheduledCourse, UserPreference, CoursePreference or another slot")

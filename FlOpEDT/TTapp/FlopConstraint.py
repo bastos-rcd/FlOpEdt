@@ -40,25 +40,23 @@ def all_subclasses(cls):
         [s for c in cls.__subclasses__() for s in all_subclasses(c)])
 
 
-class TTConstraint(models.Model):
+class FlopConstraint(models.Model):
     """
     Abstract parent class of specific constraints that users may define
 
     Attributes:
         department : the department concerned by the constraint. Has to be filled.
-        train_progs : the training programs concerned by the constraint. All of self.department if None
         weeks : the weeks for which the constraint should be applied. All if None.
         weight : from 1 to max_weight if the constraint is optional, depending on its importance
                  None if the constraint is necessary
         is_active : usefull to de-activate a Constraint just before the generation
     """
     department = models.ForeignKey('base.Department', null=True, on_delete=models.CASCADE)
-    train_progs = models.ManyToManyField('base.TrainingProgramme',
-                                         blank=True)
     weeks = models.ManyToManyField('base.Week', blank=True)
     weight = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
         null=True, default=None, blank=True)
+    title = models.CharField(max_length=30, null=True, default=None, blank=True)
     comment = models.CharField(max_length=100, null=True, default=None, blank=True)
     is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
     modified_at = models.DateField(auto_now=True)
@@ -70,10 +68,6 @@ class TTConstraint(models.Model):
 
     class Meta:
         abstract = True
-
-    @timer
-    def enrich_model(self, ttmodel, week, ponderation=1):
-        raise NotImplementedError
 
     def full_name(self):
         # Return a human readable constraint name
@@ -89,11 +83,6 @@ class TTConstraint(models.Model):
         :return: a dictionnary with view-related data
         """
 
-        if self.train_progs.exists():
-            train_prog_value = ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
-        else:
-            train_prog_value = 'All'
-
         if self.weeks.exists():
             week_value = ','.join([f"{w.nb} ({w.year})" for w in self.weeks.all()])
         else:
@@ -108,7 +97,6 @@ class TTConstraint(models.Model):
             'explanation': self.one_line_description(),
             'comment': self.comment,
             'details': {
-                'train_progs': train_prog_value,
                 'weeks': week_value,
                 'weight': self.weight,
                 }
@@ -120,20 +108,26 @@ class TTConstraint(models.Model):
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
-        return ['train_progs', 'department',]
+        return ['department',]
 
-    def get_courses_queryset_by_parameters(self, ttmodel, week,
+    def time_settings(self, department = None):
+        if department:
+            return TimeGeneralSettings.objects.get(department = department)
+        else:
+            return TimeGeneralSettings.objects.get(department = self.department)
+
+    def get_courses_queryset_by_parameters(self, flopmodel, week,
                                            train_progs=None,
                                            train_prog=None,
                                            module=None,
                                            group=None,
                                            course_type=None,
-                                           tutor=None):
+                                           room_type=None):
         """
         Filter courses depending on constraints parameters
-        :parameter group : if not None, return all courses that has one group connected to group
+        parameter group : if not None, return all courses that has one group connected to group
         """
-        courses_qs = ttmodel.wdb.courses.filter(week=week)
+        courses_qs = flopmodel.courses.filter(week=week)
         courses_filter = {}
 
         if train_progs is not None:
@@ -151,27 +145,16 @@ class TTConstraint(models.Model):
         if course_type is not None:
             courses_filter['type'] = course_type
 
-        if tutor is not None:
-            if tutor in ttmodel.wdb.instructors:
-                courses_filter['id__in'] = [c.id for c in ttmodel.wdb.possible_courses[tutor]]
-            else:
-                courses_filter['id__in'] = []
+        if room_type is not None:
+            courses_filter['room_type'] = room_type
 
         return courses_qs.filter(**courses_filter)
 
-    def get_courses_queryset_by_attributes(self, ttmodel, week, **kwargs):
+    def get_courses_queryset_by_attributes(self, flopmodel, week, **kwargs):
         """
         Filter courses depending constraint attributes
         """
-        if self.train_progs.exists() and 'train_progs' not in kwargs:
-            kwargs['train_progs'] = self.train_progs.all()
-        for attr in ['train_prog', 'module', 'group', 'course_type', 'tutor']:
+        for attr in ['train_prog', 'module', 'group', 'course_type', 'tutor', 'room_type']:
             if hasattr(self, attr) and attr not in kwargs:
                 kwargs[attr] = getattr(self, attr)
-        return self.get_courses_queryset_by_parameters(ttmodel, week, **kwargs)
-
-    def time_settings(self, department = None):
-        if department:
-            return TimeGeneralSettings.objects.get(department = department)
-        else:
-            return TimeGeneralSettings.objects.get(department = self.department)
+        return self.get_courses_queryset_by_parameters(flopmodel, week, **kwargs)

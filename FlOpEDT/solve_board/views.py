@@ -48,7 +48,7 @@ from base.core.period_weeks import PeriodWeeks
 from people.models import FullStaff
 from MyFlOp.MyTTModel import MyTTModel
 from TTapp.models import TTConstraint
-from TTapp.TTModel import get_constraints
+from TTapp.TTModel import get_ttconstraints
 
 from solve_board.models import SolveRun
 # from solve_board.consumers import ws_add
@@ -112,7 +112,7 @@ def get_constraints_viewmodel(department, **kwargs):
     #
     # Extract simplified datas from constraints instances
     #
-    constraints = get_constraints(department, **kwargs)
+    constraints = get_ttconstraints(department, **kwargs)
     return [c.get_viewmodel() for c in constraints]
 
 

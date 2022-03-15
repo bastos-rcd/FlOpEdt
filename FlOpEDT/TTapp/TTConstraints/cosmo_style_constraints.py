@@ -26,7 +26,7 @@
 
 from django.db import models
 
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
@@ -86,7 +86,7 @@ class LimitHoles(TTConstraint):
             text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
         return text
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         end_of_block = {}
         holes_nb = {}
         considered_tutors = set(ttmodel.wdb.instructors)
@@ -184,7 +184,7 @@ class LimitTutorTimePerWeeks(TTConstraint):
             text += f" (avec une marge tolérée de {self.tolerated_margin}%)."
         return text
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         # Do nothing if the number of weeks is less than excpected
         if len(ttmodel.weeks) < self.number_of_weeks:
             return
@@ -270,7 +270,7 @@ class ModulesByBloc(TTConstraint):
         text += "are affected by bloc."
         return text
 
-    def enrich_model(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         if self.weight is not None:
             print("ModulesByBloc is available only for constraint, not preference...")
             return

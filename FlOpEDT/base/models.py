@@ -39,7 +39,7 @@ import base.weeks
 
 from django.utils.translation import gettext_lazy as _
 
-
+slot_pause = 30
 
 # <editor-fold desc="GROUPS">
 # ------------
@@ -343,6 +343,10 @@ class RoomType(models.Model):
     def __str__(self):
         return self.name
 
+    def basic_rooms(self):
+        s = set(b for r in self.members.all() for b in r.and_subrooms() if b.is_basic)
+        return s
+
 
 class Room(models.Model):
     name = models.CharField(max_length=50)
@@ -400,6 +404,26 @@ class RoomSort(models.Model):
 
     def __str__(self):
         return f"{self.for_type}-pref-{self.prefer}-to-{self.unprefer}"
+
+
+class RoomPonderation(models.Model):
+    department = models.ForeignKey('Department', on_delete=models.CASCADE)
+    room_types = ArrayField(models.PositiveSmallIntegerField())
+    ponderations = ArrayField(models.PositiveSmallIntegerField(), null=True)
+    basic_rooms = models.ManyToManyField('Room')
+
+    def save(self, *args, **kwargs):
+        super(RoomPonderation, self).save(*args, **kwargs)
+        self.add_basic_rooms()
+
+    def add_basic_rooms(self):
+        RT = RoomType.objects.filter(id__in=self.room_types)
+        for rt in RT:
+            for basic_room in rt.basic_rooms():
+                self.basic_rooms.add(basic_room)
+
+    def get_room_types_set(self):
+        return set(RoomType.objects.filter(id__in=self.room_types))
 
 # </editor-fold>
 
@@ -549,6 +573,15 @@ class ScheduledCourse(models.Model):
     @property
     def end_time(self):
         return self.start_time + self.course.type.duration
+
+    def has_same_day(self, other):
+        return self.course.week == other.course.week and self.day == other.day
+
+    def is_successor_of(self, other):
+        return self.has_same_day(other) and other.end_time <= self.start_time <= other.end_time + slot_pause
+
+    def is_simultaneous_to(self, other):
+        return self.has_same_day(other) and self.start_time < other.end_time and other.start_time < self.end_time
 
 
 class ScheduledCourseAdditional(models.Model):

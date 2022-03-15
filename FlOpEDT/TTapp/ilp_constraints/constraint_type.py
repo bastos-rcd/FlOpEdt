@@ -126,6 +126,7 @@ class ConstraintType(Enum):
     STABILIZE_THROUGH_WEEKS = "Stabilization through weeks"
     SIMULTANEOUS_COURSES = "Simultaneous courses"
     LIMITED_ROOM_CHOICES = "LIMITED_ROOM_CHOICES"
+    LOCATE_ALL_COURSES = "LOCATE_ALL_COURSES"
     LIMITED_START_TIME_CHOICES = "LIMITED_START_TIME_CHOICES"
     LowerBoundBusyDays = "LowerBoundBusyDays"
     LUNCH_BREAK = "Lunch Breaks"
@@ -134,6 +135,7 @@ class ConstraintType(Enum):
     TRAIN_PROG_FORBIDDEN_SLOT = "TRAIN_PROG_FORBIDDEN_SLOT"
     Undesired_slots_limit = "Undesired_slots_limit"
     LimitSimultaneousCoursesNumber = "LimitSimultaneousCoursesNumber"
+    MinimizeBusyDays = "MinimizeBusyDays"
 
     # From minhalfdays
     MIN_HALF_DAYS_LIMIT = "Min Half Days limit"
@@ -194,4 +196,5 @@ class ConstraintType(Enum):
     AU_PLUS_DEUX_GARDES = "AU_PLUS_DEUX_GARDES"
     EGALITE_GARDES = "EGALITE_GARDES"
     AU_MOINS_DEUX_GARDES = "AU_MOINS_DEUX_GARDES"
-
+    JOUR_GARDE = "JOUR_GARDE"
+    PAS_QUE_CES_POSTES = "PAS_QUE_CES_POSTES"

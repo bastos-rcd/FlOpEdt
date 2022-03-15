@@ -59,7 +59,7 @@ class TTConstraintTestCase(TestCase):
 
         constraint = LimitTimePerPeriod.objects.create(limit=1, type=self.TD, department=self.info)
         constraint.period == LimitTimePerPeriod.FULL_DAY
-        constraint.enrich_model(ttmodel)
+        constraint.enrich_ttmodel(ttmodel)
 
         register_expression.assert_has_calls(calls)
 
@@ -87,7 +87,7 @@ class TTConstraintTestCase(TestCase):
             calls.append(call(ttmodel, period_by_day, 1., tutor=tutor))
             constraint.tutors.add(tutor)
 
-        constraint.enrich_model(ttmodel)
+        constraint.enrich_ttmodel(ttmodel)
         register_expression.assert_has_calls(calls)
 
     @patch('TTapp.models.ReasonableDays.register_expression')
@@ -106,7 +106,7 @@ class TTConstraintTestCase(TestCase):
             calls.append(call(tutor=tutor))
             constraint.tutors.add(tutor)
 
-        constraint.enrich_model(ttmodel)
+        constraint.enrich_ttmodel(ttmodel)
         enrich_model.assert_has_calls(calls)
 
 
@@ -124,6 +124,6 @@ class CustomConstraintTestCase(TestCase):
     @patch('TTapp.models.CustomConstraint.class_name', 'MyFlOp.custom_constraints.FirstCustomConstraint')
     def test_enrich_model(self, constraint_class):
         custom_constraint = CustomConstraint.objects.create(class_name='MyFlOp.custom_constraints.FirstCustomConstraint')
-        custom_constraint.enrich_model(None)
+        custom_constraint.enrich_ttmodel(None)
         constraint_instance = constraint_class()
-        constraint_instance.enrich_model.assert_called_once_with(None, 1)
+        constraint_instance.enrich_ttmodel.assert_called_once_with(None, 1)

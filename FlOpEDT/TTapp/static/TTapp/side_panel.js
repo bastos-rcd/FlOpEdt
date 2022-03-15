@@ -17,9 +17,9 @@ function empty_acks() {
 // receive results and display in ack sections
 function format_acks(msg, key_ack) {
   if (msg.status == 'OK') {
-    ack_side_panel[key_ack].txt = 'OK';
+    ack_side_panel[key_ack].txt = 'OK. ' + msg.more;
   } else {
-    ack_side_panel[key_ack].txt = 'KO ! ' + msg.more;
+    ack_side_panel[key_ack].txt = 'KO! ' + msg.more;
   }
   update_acks();
 }
@@ -262,10 +262,13 @@ function reassign_rooms() {
     async: true,
     contentType: "application/json; charset=utf-8",
     success: function (msg) {
-      fetch_all(false, false);
+      console.log(msg);
+      format_acks(msg, 'reassign_rooms');
+      fetch_all(false, true);
       show_loader(false);
     },
     error: function (msg) {
+      ack_side_panel['reassign_rooms'].txt = 'Problème côté serveur';
       console.log("error");
       show_loader(false);
     }
@@ -279,7 +282,8 @@ var ack_side_panel = {
   'check-swap': { id: 'check-swap' },
   'delete':{id:'delete'},
   'delete_all_unused':{id: 'delete_all_unused'},
-  'duplicate': {id: 'duplicate'}
+  'duplicate': {id: 'duplicate'},
+  'reassign_rooms': {id: 'reassign_rooms'}
 };
 for (key in ack_side_panel) {
   ack_side_panel[key].id = '#ack-' + ack_side_panel[key].id;
