@@ -26,6 +26,7 @@
 
 from FlOpEDT.decorators import timer
 from base.partition import Partition
+import base.partition_bis as partition_bis
 from datetime import timedelta
 
 from django.http.response import JsonResponse
@@ -199,13 +200,13 @@ def find_successive_slots(course_slot1, course_slot2, course1_duration, course2_
     '''This function returns True if it finds a slot for the second course right after one of the first one with enough
     time duration.
     Complexity on O(n^2): n being the number of slots for each course.
-    
+
     Parameters:
         course_slot1 (list(TimeInterval)): A list of time interval representing when the first course can be placed
         course_slot2 (list(TimeInterval)): A list of time interval representing when the second course can be placed
         course1_duration (timedelta): The duration of the first course
         course2_duration (timedelta): The duration of the second course
-        
+
     Returns:
         (boolean): If we found at least one eligible slot'''
     for cs1 in course_slot1:
@@ -224,7 +225,7 @@ def find_successive_slots(course_slot1, course_slot2, course1_duration, course2_
 def find_day_gap_slots(course_slots1, course_slots2, day_gap):
     """This function search in the available times for each course if we can find a slot for the second course after a day gap passed
     in the parameters.
-    
+
     Parameters:
         course_slots1 (list(TimeInterval)): The TimeIntervals (starting datetime and ending datetime) available for the first course
         course_slots2 (list(TimeInterval)): The TimeIntervals (starting datetime and ending datetime) available for the second course
@@ -257,16 +258,25 @@ class ConsiderDependencies(TTConstraint):
 
         Parameter:
             week (Week): the week we want to analyse the data from
-            
+
         Returns:
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem"""
         dependencies = self.considered_dependecies().filter(Q(course1__week=week) | Q(course1__week=None), Q(course2__week=week) | Q(course2__week=None))
-        jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year} }  
+        jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year} }
         for dependency in dependencies:
             ok_so_far = True
             # Setting up empty partitions for both courses
-            week_partition_course1 = Partition.get_available_partition_for_course(dependency.course1, week, self.department)
-            week_partition_course2 = Partition.get_available_partition_for_course(dependency.course2, week, self.department)
+
+            # TODO : modif
+            # week_partition_course1 = Partition.get_available_partition_for_course(dependency.course1, week, self.department)
+            # week_partition_course2 = Partition.get_available_partition_for_course(dependency.course2, week, self.department)
+
+            week_partition_course1 = partition_bis.create_course_partition_from_constraints(dependency.course1, week,
+                                                                                            self.department)
+            week_partition_course2 = partition_bis.create_course_partition_from_constraints(dependency.course2, week,
+                                                                                            self.department)
+
+            # TODO end
             if week_partition_course1 and week_partition_course2:
                 # Retrieving possible start times for both courses
                 course1_start_times = CourseStartTimeConstraint.objects.get(course_type = dependency.course1.type).allowed_start_times
@@ -274,6 +284,8 @@ class ConsiderDependencies(TTConstraint):
                 # Retrieving only TimeInterval for each course
                 course1_slots = week_partition_course1.find_all_available_timeinterval_with_key_starting_at("user_preference", course1_start_times, dependency.course1.type.duration)
                 course2_slots = week_partition_course2.find_all_available_timeinterval_with_key_starting_at("user_preference", course2_start_times, dependency.course2.type.duration)
+                print("COURSE1-----------------------\n",course1_slots)
+                print("COURSE2-----------------------\n",course2_slots)
                 if course1_slots and course2_slots:
                     while course2_slots[0].end < course1_slots[0].start + timedelta(hours = dependency.course1.type.duration/60+dependency.course2.type.duration/60):
                         course2_slots.pop(0)

@@ -43,6 +43,7 @@ from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups, pre_analysis_considered_basic_groups
 from base.models import Course, UserPreference, Holiday
 from base.partition import Partition
+import base.partition_bis as partition_bis
 from base.timing import Day, flopdate_to_datetime
 from people.models import Tutor
 from django.db.models import Q
@@ -393,18 +394,20 @@ class ConsiderTutorsUnavailability(TTConstraint):
             courses = Course.objects.filter(Q(tutor = tutor) | Q(supp_tutor = tutor), week = week)
             if not courses.filter(type__department=self.department):
                 continue
-            tutor_partition = Partition.get_partition_of_week(week, self.department, True)
-            user_preferences = UserPreference.objects.filter(user = tutor, week = week, value__gte=1)
-            if not user_preferences.exists():
-                user_preferences = UserPreference.objects.filter(user = tutor, week = None, value__gte=1)
-            for up in user_preferences:
-                    up_day = Day(up.day, week)
-                    tutor_partition.add_slot(
-                        TimeInterval(flopdate_to_datetime(up_day, up.start_time),
-                        flopdate_to_datetime(up_day, up.end_time)),
-                        "user_preference",
-                        {"value" : up.value, "available" : True, "tutor" : up.user.username}
-                    )
+            print("Hello 1 !")
+            tutor_partition = partition_bis.createTutorPartitionFromTTConstraints(week=week, department=self.department, tutor=tutor)
+            #tutor_partition = Partition.get_partition_of_week(week, self.department, True)
+            #user_preferences = UserPreference.objects.filter(user = tutor, week = week, value__gte=1)
+            #if not user_preferences.exists():
+            #    user_preferences = UserPreference.objects.filter(user = tutor, week = None, value__gte=1)
+            #for up in user_preferences:
+            #        up_day = Day(up.day, week)
+            #        tutor_partition.add_slot(
+            #            TimeInterval(flopdate_to_datetime(up_day, up.start_time),
+            #            flopdate_to_datetime(up_day, up.end_time)),
+            #            "user_preference",
+            #            {"value" : up.value, "available" : True, "tutor" : up.user.username}
+            #        )
 
             if tutor_partition.available_duration < sum(c.type.duration for c in courses):
                 message = _(f"Tutor {tutor} has {tutor_partition.available_duration} minutes of available time.")
@@ -534,6 +537,22 @@ class ConsiderTutorsUnavailability(TTConstraint):
 
     def __str__(self):
         return _("Consider tutors unavailability")
+
+    def complete_tutor_partition(self, partition, tutor, week):
+        user_preferences = UserPreference.objects.filter(user = tutor, week = week, value__gte=1)
+        print("up :",user_preferences.all())
+        if not user_preferences.exists():
+           user_preferences = UserPreference.objects.filter(user = tutor, week = None, value__gte=1)
+        for up in user_preferences:
+               up_day = Day(up.day, week)
+               partition.add_slot(
+                   TimeInterval(flopdate_to_datetime(up_day, up.start_time),
+                   flopdate_to_datetime(up_day, up.end_time)),
+                   "user_preference",
+                   {"value" : up.value, "available" : True, "tutor" : up.user.username}
+               )
+
+        return partition
 
 
 def coloration_ordered(basic_group):

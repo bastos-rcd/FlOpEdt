@@ -124,6 +124,39 @@ class NoGroupCourseOnDay(NoCourseOnDay):
                         data)
         return None
 
+    def complete_group_partition(self, partition, group, week):
+        print("group no course")
+        if self.groups.filter(name=group.name): # TODO : ok de faire ca ? non ...?
+            print("GROUP:",group.name)
+            day_break = Day(self.weekday, week)
+            time_settings = self.time_settings()
+
+            # TODO : verifier si value à 0 ou à 8, si forbidden
+            if self.period == self.FULL_DAY:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                 flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    "forbidden",
+                    {"value": 0, "available": False, "forbidden": True, "group": group.name}
+                )
+            elif self.period == self.AM:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                 flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                    "forbidden",
+                    {"value": 0, "available": False, "forbidden": True, "group": group.name}
+                )
+
+            elif self.period == self.PM:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
+                                        flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    "forbidden",
+                    {"value": 0, "available": False, "forbidden": True, "group": group.name}
+                )
+
+        return partition
+
 class NoTutorCourseOnDay(NoCourseOnDay):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
     tutor_status = models.CharField(max_length=2, choices=Tutor.TUTOR_CHOICES, null=True, blank=True)
@@ -212,7 +245,9 @@ class NoTutorCourseOnDay(NoCourseOnDay):
                     break
         return supp_in == len(required_supps) and tutor_in
 
-    def complete_partition(self, partition, tutor, week):
+    def complete_tutor_partition(self, partition, tutor, week):
+        print("Hello 3 !")
+        print("tutor no course :",self.tutors.filter(username=tutor.username))
         if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ? non ...?
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
@@ -223,14 +258,14 @@ class NoTutorCourseOnDay(NoCourseOnDay):
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                     "forbidden",
-                    {"value": 0, "available": False, "tutor": tutor.username}
+                    {"value": 0, "available": False, "forbidden": True, "tutor": tutor.username}
                 )
             elif self.period == self.AM:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
                     "forbidden",
-                    {"value": 0, "available": False, "tutor": tutor.username}
+                    {"value": 0, "available": False, "forbidden": True, "tutor": tutor.username}
                 )
 
             elif self.period == self.PM:
@@ -238,7 +273,7 @@ class NoTutorCourseOnDay(NoCourseOnDay):
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
                                         flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                     "forbidden",
-                    {"value": 0, "available": False, "tutor": tutor.username}
+                    {"value": 0, "available": False, "forbidden": True, "tutor": tutor.username}
                 )
 
         return partition
