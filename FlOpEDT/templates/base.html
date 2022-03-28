@@ -51,6 +51,26 @@
 <script>var url_logo = "{% static 'base/logo-clock.svg' %}";</script>
 <!-- script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script -->
 <title>{% block title %}{% trans "Schedule_title" %}{% endblock %}</title>
+
+{% block css %}
+{% endblock %}
+{#    Allows to display a theme according to the user's preferences #}
+{#    If the user doesn't have a preferred theme yet, no css file will be overloaded#}
+{#    The white theme doesn't overload any file#}
+
+{% if request.user.get_theme == "Brume" %}
+    <link rel="stylesheet" href="{% static 'base/themes/themeBrume.css' %}"/>
+{% elif request.user.get_theme == "Prestige Edition" %}
+    <link rel="stylesheet" href="{% static 'base/themes/themePrestige.css' %}"/>
+{% elif request.user.get_theme == "SynthWave" %}
+    <link rel="stylesheet" href="{% static 'base/themes/themeSynthWave.css' %}"/>
+{% elif request.user.get_theme == "Dark" %}
+    <link rel="stylesheet" href="{% static 'base/themes/themeDark.css' %}"/>
+{% elif request.user.get_theme == "Pink" %}
+    <link rel="stylesheet" href="{% static 'base/themes/themePink.css' %}"/>
+{% endif %}
+
+
 </head>
 <body>
   {% block loader %}

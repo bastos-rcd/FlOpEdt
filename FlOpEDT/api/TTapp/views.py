@@ -25,7 +25,8 @@ from api.shared.params import dept_param, week_param, year_param
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from django.apps import apps
-import TTapp.TTConstraints.TTConstraint as ttc
+from TTapp.FlopConstraint import FlopConstraint, all_subclasses
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 import TTapp.TTConstraints.visio_constraints as ttv
 
 from drf_yasg import openapi
@@ -206,7 +207,8 @@ class TTLimitedRoomChoicesViewSet(viewsets.ModelViewSet):
                                             type=openapi.TYPE_STRING, required = True),
                       ])
                   )
-class TTConstraintViewSet(viewsets.ViewSet):
+
+class FlopConstraintViewSet(viewsets.ViewSet):
     """
     ViewSet to see all the constraints and their parameters
     
@@ -214,7 +216,7 @@ class TTConstraintViewSet(viewsets.ViewSet):
     """
     permission_classes = [IsAdminOrReadOnly]
     filterset_fields = '__all__' 
-    serializer_class = serializers.ConstraintSerializer
+    serializer_class = serializers.TTConstraintSerializer
 
 
     def list(self, request):
@@ -223,7 +225,7 @@ class TTConstraintViewSet(viewsets.ViewSet):
         year = self.request.query_params.get('year', None)
         dept = self.request.query_params.get('dept', None)
         data = list()
-        constraintlist = ttc.TTConstraint.__subclasses__()
+        constraintlist = all_subclasses(FlopConstraint)
 
         for constraint in constraintlist :
 
@@ -240,7 +242,7 @@ class TTConstraintViewSet(viewsets.ViewSet):
                     queryset = queryset.filter(department__abbrev=dept)
 
                 for object in queryset:
-                    serializer = serializers.ConstraintSerializer(object)
+                    serializer = serializers.TTConstraintSerializer(object)
                     data.append(serializer.data)
 
         return Response(data)
@@ -251,7 +253,7 @@ class TTConstraintViewSet(viewsets.ViewSet):
         constraint = apps.get_model('TTapp', name)
 
         instance = constraint.objects.get(pk=pk)
-        serializer = serializers.ConstraintSerializer(instance)
+        serializer = serializers.TTConstraintSerializer(instance)
 
         return Response(serializer.data)
 

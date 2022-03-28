@@ -28,7 +28,6 @@
 from datetime import date, time, datetime
 from enum import Enum
 
-
 def hr_min(t):
     h = t//60
     m = t - h*60
@@ -229,3 +228,13 @@ days_list = [c[0] for c in Day.CHOICES]
 days_index = {}
 for c in Day.CHOICES:
     days_index[c[0]] = days_list.index(c[0])
+
+def all_possible_start_times(department):
+    apst_set = set()
+    CT = department.coursetype_set.all()
+    for ct in CT:
+        for cstc in ct.coursestarttimeconstraint_set.all():
+           apst_set |= set(cstc.allowed_start_times)
+    apst_list = list(apst_set)
+    apst_list.sort()
+    return apst_list

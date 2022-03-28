@@ -31,14 +31,14 @@ from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
 
 from base.models import StructuralGroup, RoomType, Room, \
-                        ScheduledCourse, EdtVersion, Department, Regen, \
+    ScheduledCourse, EdtVersion, Department, Regen, \
     Period, TutorCost, CourseStartTimeConstraint, \
-                        TimeGeneralSettings, GroupType, CourseType, \
-                        TrainingProgramme, Course, Week
+    TimeGeneralSettings, GroupType, CourseType, \
+    TrainingProgramme, Course, Week
 
 from displayweb.models import GroupDisplay, TrainingProgrammeDisplay, BreakingNews
 
-from people.models import Tutor, NotificationsPreferences
+from people.models import Tutor, NotificationsPreferences, ThemesPreferences
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.FlopConstraint import all_subclasses
 
@@ -47,7 +47,6 @@ logger = logging.getLogger(__name__)
 
 @transaction.atomic
 def create_first_department():
-
     department = Department.objects.create(name="Default Department", abbrev="default")
 
     T = Tutor.objects.create(username='admin', is_staff=True, is_tutor=True, is_superuser=True, rights=6)
@@ -74,12 +73,11 @@ def create_first_department():
 
     for type in types:
         type.objects.all().update(department=department)
-        
+
     return department
 
 
 def get_edt_version(department, week_nb, year, create=False):
-
     week = Week.objects.get(nb=week_nb, year=year)
 
     params = {'week': week, 'department': department}
@@ -89,7 +87,7 @@ def get_edt_version(department, week_nb, year, create=False):
             edt_version, _ = EdtVersion.objects.get_or_create(defaults={'version': 0}, **params)
         except EdtVersion.MultipleObjectsReturned as e:
             logger.error(f'get_edt_version: database inconsistency, multiple objects returned for {params}')
-            raise(e)
+            raise (e)
         else:
             version = edt_version.version
     else:
@@ -100,26 +98,25 @@ def get_edt_version(department, week_nb, year, create=False):
         try:
             version = EdtVersion.objects.filter(**params).values_list("version", flat=True)[0]
         except IndexError:
-            raise(EdtVersion.DoesNotExist)
+            raise (EdtVersion.DoesNotExist)
     return version
 
 
 def get_scheduled_courses(department, week, num_copy=0):
-
     qs = ScheduledCourse.objects \
-                    .filter(
-                        course__type__department=department,
-                        course__week=week,
-                        day__in=get_working_days(department),
-                        work_copy=num_copy).select_related('course',
-                                                           'course__tutor',
-                                                           'course__module__train_prog',
-                                                           'course__module',
-                                                           'course__type',
-                                                           'room',
-                                                           'course__room_type',
-                                                           'course__module__display'
-                        )
+        .filter(
+        course__type__department=department,
+        course__week=week,
+        day__in=get_working_days(department),
+        work_copy=num_copy).select_related('course',
+                                           'course__tutor',
+                                           'course__module__train_prog',
+                                           'course__module',
+                                           'course__type',
+                                           'room',
+                                           'course__room_type',
+                                           'course__module__display'
+                                           )
     return qs
 
 
@@ -132,13 +129,13 @@ def get_unscheduled_courses(department, week, year, num_copy):
         course__module__train_prog__department=department,
         work_copy=num_copy
     ).values('course')
-    ).select_related('module__train_prog',
-                     'tutor',
-                     'module',
-                     'type',
-                     'room_type',
-                     'module__display'
-    ).prefetch_related('groups')
+              ).select_related('module__train_prog',
+                               'tutor',
+                               'module',
+                               'type',
+                               'room_type',
+                               'module__display'
+                               ).prefetch_related('groups')
 
 
 def get_groups(department_abbrev):
@@ -183,7 +180,7 @@ def get_groups(department_abbrev):
 def get_all_connected_courses(group, week, num_copy=0):
     qs = get_scheduled_courses(group.train_prog.department,
                                week, num_copy=num_copy)
-    return qs.filter(groups__in = group.connected_groups())
+    return qs.filter(groups__in=group.connected_groups())
 
 
 def get_descendant_groups(gp, children):
@@ -243,14 +240,15 @@ def get_room_types_groups(department_abbrev):
     return {'roomtypes': {str(rt): list(set(
         [room.name for room in rt.members.all()]
     )) for rt in RoomType.objects.prefetch_related('members').filter(department=dept)},
-            'roomgroups': {room.name: [sub.name for sub in room.and_subrooms()] \
-                           for room in Room.objects.prefetch_related('subrooms', 'subrooms__subrooms').filter(departments=dept)}
-            }
+        'roomgroups': {room.name: [sub.name for sub in room.and_subrooms()] \
+                       for room in
+                       Room.objects.prefetch_related('subrooms', 'subrooms__subrooms').filter(departments=dept)}
+    }
 
 
 def get_rooms(department_abbrev, basic=False):
     """
-    :return: 
+    :return:
     """
     if department_abbrev is not None:
         dept = Department.objects.get(abbrev=department_abbrev)
@@ -263,11 +261,11 @@ def get_rooms(department_abbrev, basic=False):
             return Room.objects.filter(departments=dept)
     else:
         if dept is None:
-            return Room.objects.annotate(nb_sub=Count('subrooms'))\
-                           .filter(nb_sub=0)
+            return Room.objects.annotate(nb_sub=Count('subrooms')) \
+                .filter(nb_sub=0)
         else:
-            return Room.objects.annotate(nb_sub=Count('subrooms'))\
-                               .filter(departments=dept, nb_sub=0)
+            return Room.objects.annotate(nb_sub=Count('subrooms')) \
+                .filter(departments=dept, nb_sub=0)
 
 
 def get_coursetype_constraints(department_abbrev):
@@ -280,10 +278,10 @@ def get_coursetype_constraints(department_abbrev):
     """
     dic = {}
     for ct in CourseType.objects.filter(department__abbrev=department_abbrev):
-        dic[ct.name] = {'duration':ct.duration,
-                        'allowed_st':[]}
+        dic[ct.name] = {'duration': ct.duration,
+                        'allowed_st': []}
         for ct_constraint in \
-              CourseStartTimeConstraint.objects.filter(course_type=ct):
+                CourseStartTimeConstraint.objects.filter(course_type=ct):
             dic[ct.name]['allowed_st'] += ct_constraint.allowed_start_times
         dic[ct.name]['allowed_st'].sort()
         if len(dic[ct.name]['allowed_st']) == 0:
@@ -300,16 +298,16 @@ def get_department_settings(dept):
     mode = dept.mode
     department_settings = \
         {'time':
-         {'day_start_time': ts.day_start_time,
-          'day_finish_time': ts.day_finish_time,
-          'lunch_break_start_time': ts.lunch_break_start_time,
-          'lunch_break_finish_time': ts.lunch_break_finish_time,
-          'def_pref_duration': ts.default_preference_duration},
+             {'day_start_time': ts.day_start_time,
+              'day_finish_time': ts.day_finish_time,
+              'lunch_break_start_time': ts.lunch_break_start_time,
+              'lunch_break_finish_time': ts.lunch_break_finish_time,
+              'def_pref_duration': ts.default_preference_duration},
          'days': ts.days,
          'mode':
-         {'cosmo': mode.cosmo,
-          'visio': str(mode.visio)}
-        }
+             {'cosmo': mode.cosmo,
+              'visio': str(mode.visio)}
+         }
     return department_settings
 
 
@@ -353,3 +351,20 @@ def get_notification_preference(user):
             else:
                 pass
     return 0
+
+###
+#
+#  Allows to get a user's theme
+#  if the user doesn't have a preferred theme yet, it returns "White"
+#  @param user : the user
+#  @return : the theme
+#
+###
+def get_theme_preference(user):
+    if user is not None:
+        try:
+            return user.get_theme
+        except ThemesPreferences.DoesNotExist:
+            return 'White'
+
+    return 'White'

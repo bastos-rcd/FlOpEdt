@@ -32,6 +32,7 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.FlopConstraint import max_weight
+from django.utils.translation import gettext_lazy as _
 
 
 def considered_tutors(tutors_ttconstraint, ttmodel):
@@ -148,7 +149,7 @@ class MinimizeBusyDays(TTConstraint):
             # for any number of days inferior to nb_days
             for d in range(nb_days, 0, -1):
                 # if courses fit in d-1 days
-                if courses_hours <= tutor.pref_hours_per_day * (d-1):
+                if courses_hours <= tutor.preferences.pref_hours_per_day * (d-1):
                     # multiply the previous cost by 2
                     slot_by_day_cost *= 2
                     # add a cost for having d busy days
@@ -185,7 +186,7 @@ class MinimizeBusyDays(TTConstraint):
         verbose_name_plural = "Minimize busy days"
 
 
-class RespectBoundPerDay(TTConstraint):
+class RespectMaxHoursPerDay(TTConstraint):
     """
     Respect the max_hours_per_day declared
     """
@@ -203,7 +204,7 @@ class RespectBoundPerDay(TTConstraint):
                 other_departments_hours_nb = sum(sc.course.type.duration
                                                  for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
                                                  if sc.course.week == week and sc.day == d.day) / 60
-                max_hours_nb = max(tutor.max_hours_per_day - other_departments_hours_nb, 0)
+                max_hours_nb = max(tutor.preferences.max_hours_per_day - other_departments_hours_nb, 0)
                 ttmodel.add_constraint(ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.duration / 60
                                                    for c in ttmodel.wdb.possible_courses[tutor]
                                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=d)) +
@@ -231,10 +232,10 @@ class RespectBoundPerDay(TTConstraint):
         """
         You can give a contextual explanation about what this constraint doesnt
         """
-        return "RespectBoundPerDay online description"
+        return _("Respect max hours per day")
 
     class Meta:
-        verbose_name_plural = "Respecter les limites horaires"
+        verbose_name_plural = _("Respect max hours per day")
 
 
 class LowerBoundBusyDays(TTConstraint):

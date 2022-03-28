@@ -35,7 +35,7 @@ from people.models import Tutor
 
 from TTapp.models import MinNonPreferedTutorsSlot, StabilizeTutorsCourses, MinNonPreferedTrainProgsSlot, \
     NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, ConsiderTutorsUnavailability, \
-    MinimizeBusyDays, MinGroupsHalfDays, RespectBoundPerDay, ConsiderDependencies, ConsiderPivots, \
+    MinimizeBusyDays, MinGroupsHalfDays, RespectMaxHoursPerDay, ConsiderDependencies, ConsiderPivots, \
     StabilizeGroupsCourses
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
@@ -409,8 +409,8 @@ class TTModel(FlopModel):
             ScheduleAllCourses.objects.create(department=self.department)
 
         # Check if RespectBound constraint is in database, and add it if not
-        if not RespectBoundPerDay.objects.filter(department=self.department).exists():
-            RespectBoundPerDay.objects.create(department=self.department)
+        if not RespectMaxHoursPerDay.objects.filter(department=self.department).exists():
+            RespectMaxHoursPerDay.objects.create(department=self.department)
 
         # Check if MinimizeBusyDays constraint is in database, and add it if not
         if not MinimizeBusyDays.objects.filter(department=self.department).exists():
@@ -765,8 +765,6 @@ class TTModel(FlopModel):
                         for cv in courses_avail:
                             cv.week = week
                     if not courses_avail:
-                        print("Course availability problem for %s - %s !" % (
-                            course_type, promo))
                         for availability_slot in week_availability_slots:
                             avail_course[(course_type, promo)][availability_slot] = 1
                             non_preferred_cost_course[(course_type,

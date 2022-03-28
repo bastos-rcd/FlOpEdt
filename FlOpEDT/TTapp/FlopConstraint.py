@@ -56,6 +56,7 @@ class FlopConstraint(models.Model):
     weight = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
         null=True, default=None, blank=True)
+    title = models.CharField(max_length=30, null=True, default=None, blank=True)
     comment = models.CharField(max_length=100, null=True, default=None, blank=True)
     is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
     modified_at = models.DateField(auto_now=True)

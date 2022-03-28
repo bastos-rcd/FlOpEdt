@@ -23,10 +23,11 @@
 
 from django.contrib.postgres.fields.array import ArrayField
 from rest_framework.fields import empty
-import TTapp.TTConstraints.TTConstraint as ttc
+from TTapp.FlopConstraint import FlopConstraint
 import TTapp.TTConstraints.tutors_constraints as ttt
 import TTapp.TTConstraints.visio_constraints as ttv
 from rest_framework import serializers
+from base.timing import all_possible_start_times
 
 # ---------------
 # ---- TTAPP ----
@@ -92,14 +93,14 @@ class TTLimitedRoomChoicesSerializer(serializers.ModelSerializer):
         model = ttm.LimitedRoomChoices
         fields = '__all__' """
 
-class TTConstraintSerializer(serializers.ModelSerializer):
+class FlopConstraintSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     weeks = serializers.SerializerMethodField()
     parameters = serializers.SerializerMethodField()
 
     class Meta:
         abstract = True
-        model = ttc.TTConstraint
+        model = FlopConstraint
         fields = '__all__'
 
     def get_name(self, obj):
@@ -121,14 +122,17 @@ class TTConstraintSerializer(serializers.ModelSerializer):
         fields = self.Meta.fields
 
         department = obj.department
-        train_progs = getattr(obj, "train_progs").values("id")
+
+        if hasattr(obj, "train_progs"):
+            train_progs = getattr(obj, "train_progs").values("id")
+        else:
+            train_progs = []
 
         for field in obj._meta.get_fields():
             if(field.name not in fields):
                 parameters = {}
                 id_list = []
                 acceptable = []
-                acceptablelist = list()
                 allexcept = False
                 multiple = False
 
@@ -145,7 +149,11 @@ class TTConstraintSerializer(serializers.ModelSerializer):
                         multiple = True 
                         typename = type(field.base_field).__name__  
                         #Récupère les choices de l'arrayfield dans acceptable
-                        acceptable = field.base_field.choices
+                        choices = field.base_field.choices
+                        if choices is not None:
+                            acceptable = choices
+                        elif field.name == "possible_start_times":
+                            acceptable = all_possible_start_times(department)
 
                 else :
                     #Récupère le modele en relation avec un ManyToManyField ou un ForeignKey
@@ -210,10 +218,10 @@ class TTConstraintSerializer(serializers.ModelSerializer):
 
         return(paramlist)
 
-class ConstraintSerializer(TTConstraintSerializer):
+class TTConstraintSerializer(FlopConstraintSerializer):
     class Meta:
         model = ttt.MinTutorsHalfDays
-        fields = ['id', 'name', 'weight', 'is_active', 'comment', "modified_at", 'weeks', 'parameters']
+        fields = ['id', 'title', 'name', 'weight', 'is_active', 'comment', "modified_at", 'weeks', 'parameters']
 
 class NoVisioSerializer(serializers.ModelSerializer):
     class Meta:
