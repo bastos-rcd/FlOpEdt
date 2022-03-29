@@ -67,6 +67,68 @@ class NoCourseOnDay(TTConstraint):
                                    Constraint(constraint_type=ConstraintType.NO_COURSE_ON_DAY, weeks=week))
         else:
             ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, week), week)
+    
+    def complete_group_partition(self, partition, group, week):
+        print("no course")
+
+        day_break = Day(self.weekday, week)
+        time_settings = self.time_settings()
+        # TODO : verifier si value à 0 ou à 8, si forbidden
+        if self.period == self.FULL_DAY:
+            partition.add_slot(
+                TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                "forbidden",
+                {"value": 0, "available": False, "forbidden": True, "no_course": day_break}
+            )
+        elif self.period == self.AM:
+            partition.add_slot(
+                TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                "forbidden",
+                {"value": 0, "available": False, "forbidden": True, "no_course": day_break}
+            )
+
+        elif self.period == self.PM:
+            partition.add_slot(
+                TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
+                                    flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                "forbidden",
+                {"value": 0, "available": False, "forbidden": True, "no_course": day_break}
+            )
+
+        return partition
+    
+    def complete_tutor_partition(self, partition, tutor, week):
+        print("no course")
+
+        day_break = Day(self.weekday, week)
+        time_settings = self.time_settings()
+        # TODO : verifier si value à 0 ou à 8, si forbidden
+        if self.period == self.FULL_DAY:
+            partition.add_slot(
+                TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                "forbidden",
+                {"value": 0, "available": False, "forbidden": True, "no_course": day_break}
+            )
+        elif self.period == self.AM:
+            partition.add_slot(
+                TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                "forbidden",
+                {"value": 0, "available": False, "forbidden": True, "no_course": day_break}
+            )
+
+        elif self.period == self.PM:
+            partition.add_slot(
+                TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
+                                    flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                "forbidden",
+                {"value": 0, "available": False, "forbidden": True, "no_course": day_break}
+            )
+
+        return partition
 
 
 class NoGroupCourseOnDay(NoCourseOnDay):
@@ -258,14 +320,14 @@ class NoTutorCourseOnDay(NoCourseOnDay):
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                     "forbidden",
-                    {"value": 0, "available": False, "forbidden": True, "tutor": tutor.username}
+                    {"value": 0, "forbidden": True, "tutor": tutor.username}
                 )
             elif self.period == self.AM:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
                     "forbidden",
-                    {"value": 0, "available": False, "forbidden": True, "tutor": tutor.username}
+                    {"value": 0, "forbidden": True, "tutor": tutor.username}
                 )
 
             elif self.period == self.PM:

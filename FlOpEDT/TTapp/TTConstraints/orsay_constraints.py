@@ -25,6 +25,9 @@
 
 
 from django.contrib.postgres.fields import ArrayField
+from base.timing import Day, TimeInterval, flopdate_to_datetime
+from datetime import datetime
+from base.partition import Partition 
 
 from django.db import models
 
@@ -114,6 +117,27 @@ class GroupsLunchBreak(TTConstraint):
         else:
             text += " de toutes les promos."
         return text
+    
+    def complete_group_partition(self, partition, group, week):
+
+        st = self.start_time
+        et = self.end_time
+        start_hours = st // 60
+        start_minutes = st % 60
+
+        end_hours = et // 60
+        end_minutes = et % 60
+
+        if self.groups.filter(name=group.name): # TODO : ok de faire ca ?
+            for day in self.weekdays :
+                d = Day(day,week)
+                partition.add_slot (
+                    TimeInterval (flopdate_to_datetime(d,st),
+                                  flopdate_to_datetime(d, et))
+                    ,"forbidden"
+                    ,{"value": 0, "available": False, "forbidden": True, "group_lunch_break": group.name}
+                    )
+        return partition
 
 
 class TutorsLunchBreak(TTConstraint):
@@ -192,6 +216,21 @@ class TutorsLunchBreak(TTConstraint):
                     # cost = ttmodel.sum(slot_vars[group, sl] for sl in local_slots) * ponderation \
                     #        * self.local_weight()
                     ttmodel.add_to_inst_cost(tutor, cost, week)
+                    
+    def complete_tutor_partition(self, partition, tutor, week):
+        print("group_lunch_break")
+
+        st = self.start_time
+        et = self.end_time
+
+        if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ?
+            for day in self.weekdays :
+                d = Day(day, week)
+                partition.add_slot(TimeInterval(flopdate_to_datetime(d,st),flopdate_to_datetime(d,et))
+                                   ,"forbidden"
+                                   ,{"value": 0, "available": False, "forbidden": True, "tutor_lunch_break": tutor.name}
+                    )
+        return partition
 
 
     def one_line_description(self):
