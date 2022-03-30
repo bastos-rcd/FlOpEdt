@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-19 10:37+0000\n"
+"POT-Creation-Date: 2022-03-30 16:24+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -227,6 +227,11 @@ msgstr ""
 msgid "Minimize groups non-preferred slots"
 msgstr ""
 
+#: TTapp/TTConstraints/orsay_constraints.py:184
+#, python-brace-format
+msgid "Not able to eat in other departments on {day}-{week}"
+msgstr ""
+
 #: TTapp/TTConstraints/slots_constraints.py:290
 #: TTapp/TTConstraints/slots_constraints.py:297
 #, python-brace-format
@@ -258,23 +263,23 @@ msgstr ""
 msgid "One of the courses has no eligible tutor to lecture it. {dependency}"
 msgstr ""
 
-#: TTapp/TTModel.py:106
+#: TTapp/TTModel.py:103
 #, python-brace-format
 msgid ""
 "\n"
 "Let's start weeks #{self.weeks}"
 msgstr ""
 
-#: TTapp/TTModel.py:116
+#: TTapp/TTModel.py:113
 msgid "Rooms assignment :"
 msgstr ""
 
-#: TTapp/TTModel.py:127
+#: TTapp/TTModel.py:124
 #, python-brace-format
 msgid "Will modify only courses of training programme(s) {train_prog}"
 msgstr ""
 
-#: TTapp/TTModel.py:160
+#: TTapp/TTModel.py:158
 msgid "Relevant warnings :"
 msgstr ""
 
@@ -282,7 +287,12 @@ msgstr ""
 msgid "Reload..."
 msgstr ""
 
-#: TTapp/TTUtils.py:52
+#: TTapp/TTUtils.py:48
+#, python-brace-format
+msgid "Saved in copy {result_work_copy}"
+msgstr ""
+
+#: TTapp/TTUtils.py:55
 msgid "Impossible to assign rooms"
 msgstr ""
 
@@ -322,75 +332,75 @@ msgstr ""
 msgid "Ideally"
 msgstr ""
 
-#: base/forms.py:64 base/templates/base/show-stype.html:134
+#: base/forms.py:64 base/templates/base/show-stype.html:131
 msgid "Maximum"
 msgstr ""
 
-#: base/models.py:121
+#: base/models.py:140
 msgid "Basic group?"
 msgstr ""
 
-#: base/models.py:210
+#: base/models.py:229
 msgid "Half day"
 msgstr ""
 
-#: base/models.py:234
+#: base/models.py:253
 msgid "Week number"
 msgstr ""
 
-#: base/models.py:287
+#: base/models.py:307
 msgid "Educative"
 msgstr ""
 
-#: base/models.py:288
+#: base/models.py:308
 msgid "Coop. (workplace)"
 msgstr ""
 
-#: base/models.py:289
+#: base/models.py:309
 msgid "Coop. (worker)"
 msgstr ""
 
-#: base/models.py:430
+#: base/models.py:455
 msgid "Abbreviation"
 msgstr ""
 
-#: base/models.py:473
+#: base/models.py:498
 msgid "graded?"
 msgstr ""
 
-#: base/models.py:499
+#: base/models.py:524
 msgid "Suspens?"
 msgstr ""
 
-#: base/models.py:531
+#: base/models.py:556
 msgid "Graded?"
 msgstr ""
 
-#: base/models.py:915
+#: base/models.py:939
 msgid "Successives?"
 msgstr ""
 
-#: base/models.py:916 base/models.py:927
+#: base/models.py:940 base/models.py:951
 msgid "On different days"
 msgstr ""
 
-#: base/models.py:917
+#: base/models.py:941
 msgid "Minimal day gap between courses"
 msgstr ""
 
-#: base/models.py:945
+#: base/models.py:969
 msgid "Full"
 msgstr ""
 
-#: base/models.py:947
+#: base/models.py:971
 msgid "Full generation date"
 msgstr ""
 
-#: base/models.py:948
+#: base/models.py:972
 msgid "Stabilized"
 msgstr ""
 
-#: base/models.py:950
+#: base/models.py:974
 msgid "Partial generation date"
 msgstr ""
 
@@ -503,7 +513,7 @@ msgstr ""
 msgid "(0 if no notification, 1 for the next 7 days, etc.)"
 msgstr ""
 
-#: base/templates/base/notification.html:36
+#: base/templates/base/notification.html:36 base/templates/base/themes.html:42
 msgid "Save"
 msgstr ""
 
@@ -608,7 +618,7 @@ msgid "Update my default week"
 msgstr ""
 
 #: base/templates/base/show-stype.html:112
-#: base/templates/base/show-stype.html:137
+#: base/templates/base/show-stype.html:140
 msgid "button_save"
 msgstr ""
 
@@ -621,7 +631,7 @@ msgid "Create a link"
 msgstr ""
 
 #: base/templates/base/show-stype.html:124
-#: base/templates/base/show-stype.html:147
+#: base/templates/base/show-stype.html:152
 msgid "button_change"
 msgstr ""
 
@@ -631,36 +641,37 @@ msgstr ""
 
 #: base/templates/base/show-stype.html:130
 msgid ""
-"This is the total number of teaching hours I would like to give every day:"
+"This is the total number of teaching hours I would like to give every "
+"teaching day:"
 msgstr ""
 
 #: base/templates/base/show-stype.html:132
 msgid "Preferred"
 msgstr ""
 
-#: base/templates/base/show-stype.html:144
+#: base/templates/base/show-stype.html:149
 msgid "My favorite rooms"
 msgstr ""
 
-#: base/templates/base/show-stype.html:145
+#: base/templates/base/show-stype.html:150
 msgid "Select my favorite rooms"
 msgstr ""
 
-#: base/templates/base/show-stype.html:170
+#: base/templates/base/show-stype.html:175
 msgid "Teachers"
 msgstr ""
 
-#: base/templates/base/show-stype.html:171
-#: base/templates/base/show-stype.html:191
+#: base/templates/base/show-stype.html:176
+#: base/templates/base/show-stype.html:196
 msgid "Transformation in : "
 msgstr ""
 
-#: base/templates/base/show-stype.html:177
-#: base/templates/base/show-stype.html:183
+#: base/templates/base/show-stype.html:182
+#: base/templates/base/show-stype.html:188
 msgid "Types of classes"
 msgstr ""
 
-#: base/templates/base/show-stype.html:190 ics/templates/ics/index.html:82
+#: base/templates/base/show-stype.html:195 ics/templates/ics/index.html:82
 msgid "Rooms"
 msgstr ""
 
@@ -672,27 +683,31 @@ msgstr ""
 msgid "Number of classes given per teacher"
 msgstr ""
 
+#: base/templates/base/themes.html:30
+msgid "Your themes is"
+msgstr ""
+
 #: base/templates/base/visio.html:31
 msgid "Create or modify a link"
 msgstr ""
 
-#: base/views.py:1526
+#: base/views.py:1558
 msgid "Not authorized. New link then."
 msgstr ""
 
-#: base/views.py:1529
+#: base/views.py:1561
 msgid "Unknown link. New link then."
 msgstr ""
 
-#: base/views.py:1541
+#: base/views.py:1573
 msgid "Created"
 msgstr ""
 
-#: base/views.py:1541
+#: base/views.py:1573
 msgid "Modified"
 msgstr ""
 
-#: base/views.py:1544
+#: base/views.py:1576
 msgid "Tutor does not exist"
 msgstr ""
 
@@ -780,7 +795,7 @@ msgstr ""
 
 #: configuration/templates/configuration/configuration.html:36
 #: configuration/templates/configuration/configuration.html:116
-#: templates/base.html:95
+#: templates/base.html:115
 msgid "Import"
 msgstr ""
 
@@ -916,7 +931,7 @@ msgstr ""
 msgid "Forgot password?"
 msgstr ""
 
-#: people/templates/people/login.html:58 templates/base.html:109
+#: people/templates/people/login.html:58 templates/base.html:129
 msgid "Sign in"
 msgstr ""
 
@@ -968,11 +983,11 @@ msgstr ""
 msgid "Eat early or late?"
 msgstr ""
 
-#: people/views.py:237
+#: people/views.py:242
 msgid "Not allowed"
 msgstr ""
 
-#: people/views.py:243
+#: people/views.py:248
 #, python-brace-format
 msgid "No such user as {user}"
 msgstr ""
@@ -1009,53 +1024,53 @@ msgstr ""
 msgid "Category "
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:32
+#: solve_board/templates/solve_board/main-board.html:36
 msgid "Schedule Generation"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:64
+#: solve_board/templates/solve_board/main-board.html:66
 msgid "Constraints"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:65
+#: solve_board/templates/solve_board/main-board.html:67
 msgid ""
 "All constraints appearing in bolded - with no weight - will be considered "
 "mandatory, the other ones will considered as preferences."
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:70
+#: solve_board/templates/solve_board/main-board.html:72
 msgid "Configuration"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:75
+#: solve_board/templates/solve_board/main-board.html:77
 msgid "Week⋅s"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:79
+#: solve_board/templates/solve_board/main-board.html:81
 msgid "Training Program"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:83
+#: solve_board/templates/solve_board/main-board.html:85
 msgid "Stabilization"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:88
+#: solve_board/templates/solve_board/main-board.html:90
 msgid "Solver"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:100
+#: solve_board/templates/solve_board/main-board.html:102
 msgid "Pre-assign rooms"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:102
+#: solve_board/templates/solve_board/main-board.html:104
 msgid "Post-assign rooms"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:105
+#: solve_board/templates/solve_board/main-board.html:107
 msgid "Time limit (minuts)"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:111
+#: solve_board/templates/solve_board/main-board.html:113
 msgid "Unlimited"
 msgstr ""
 
@@ -1063,54 +1078,54 @@ msgstr ""
 msgid "Schedule_title"
 msgstr ""
 
-#: templates/base.html:66
+#: templates/base.html:86
 msgid "<span id=flopGreen >flop</span>!<span id=EDTRed >Scheduler</span>"
 msgstr ""
 
-#: templates/base.html:82
+#: templates/base.html:102
 msgid "Schedule_banner"
 msgstr ""
 
-#: templates/base.html:84
+#: templates/base.html:104
 msgid "Move/Cancel"
 msgstr ""
 
-#: templates/base.html:86
+#: templates/base.html:106
 msgid "Preferences"
 msgstr ""
 
-#: templates/base.html:87
+#: templates/base.html:107
 msgid "iCal"
 msgstr ""
 
-#: templates/base.html:88
+#: templates/base.html:108
 msgid "Help"
 msgstr ""
 
-#: templates/base.html:89
+#: templates/base.html:109
 msgid "Messages"
 msgstr ""
 
-#: templates/base.html:90
+#: templates/base.html:110
 msgid "Modules"
 msgstr ""
 
-#: templates/base.html:92
+#: templates/base.html:112
 msgid "Generate"
 msgstr ""
 
-#: templates/base.html:93
+#: templates/base.html:113
 msgid "flop!EDITOR"
 msgstr ""
 
-#: templates/base.html:96
+#: templates/base.html:116
 msgid "Admin"
 msgstr ""
 
-#: templates/base.html:102 templates/base.html:104 templates/base.html:106
+#: templates/base.html:122 templates/base.html:124 templates/base.html:126
 msgid "Sign out"
 msgstr ""
 
-#: templates/base.html:113
+#: templates/base.html:133
 msgid "Signed in as "
 msgstr ""

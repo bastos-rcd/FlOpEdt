@@ -184,7 +184,7 @@ function go_filter() {
     success: function (msg) {
       // console.log(msg);
       // console.log("success");
-      console.log(msg.modules);
+      // console.log(msg.modules);
       filtered.mod_prof_gp[0].arr = msg.modules;
       filtered.mod_prof_gp[1].arr = msg.profs;
       filtered.mod_prof_gp[2].arr = msg.groups;
@@ -199,8 +199,8 @@ function go_filter() {
 
 
       for (i = 0; i < 3; i++) {
-        console.log(i);
-        console.log(filtered.mod_prof_gp[i].arr);
+        // console.log(i);
+        // console.log(filtered.mod_prof_gp[i].arr);
         filtered.mod_prof_gp[i].arr.unshift(default_dd);
       }
 
@@ -247,7 +247,7 @@ function go_filter() {
       show_loader(false);
     },
     complete: function (msg) {
-      console.log("complete");
+      // console.log("complete");
       show_loader(false);
     }
   });
