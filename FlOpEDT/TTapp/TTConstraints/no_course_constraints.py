@@ -68,7 +68,7 @@ class NoCourseOnDay(TTConstraint):
         else:
             ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, week), week)
     
-    def complete_group_partition(self, partition, group, week):
+    '''def complete_group_partition(self, partition, group, week):
         print("no course")
 
         day_break = Day(self.weekday, week)
@@ -128,7 +128,7 @@ class NoCourseOnDay(TTConstraint):
                 {"value": 0, "available": False, "forbidden": True, "no_course": day_break}
             )
 
-        return partition
+        return partition'''
 
 
 class NoGroupCourseOnDay(NoCourseOnDay):

@@ -119,24 +119,17 @@ class GroupsLunchBreak(TTConstraint):
         return text
     
     def complete_group_partition(self, partition, group, week):
-
-        st = self.start_time
-        et = self.end_time
-        start_hours = st // 60
-        start_minutes = st % 60
-
-        end_hours = et // 60
-        end_minutes = et % 60
+        print("group lunch break")
 
         if self.groups.filter(name=group.name): # TODO : ok de faire ca ?
-            for day in self.weekdays :
-                d = Day(day,week)
-                partition.add_slot (
-                    TimeInterval (flopdate_to_datetime(d,st),
-                                  flopdate_to_datetime(d, et))
-                    ,"forbidden"
-                    ,{"value": 0, "available": False, "forbidden": True, "group_lunch_break": group.name}
-                    )
+            for weekday in self.weekdays :
+                day = Day(weekday,week)
+                partition.add_slot(TimeInterval(flopdate_to_datetime(day,self.start_time),
+                                                flopdate_to_datetime(day, self.end_time)),
+                                   "forbidden",
+                                   {"value": 0, "available": False, "forbidden": True, "group_lunch_break": group.name}
+                                   )
+
         return partition
 
 
@@ -218,18 +211,21 @@ class TutorsLunchBreak(TTConstraint):
                     ttmodel.add_to_inst_cost(tutor, cost, week)
                     
     def complete_tutor_partition(self, partition, tutor, week):
-        print("group_lunch_break")
-
-        st = self.start_time
-        et = self.end_time
+        print("tutor lunch break")
+        print(partition)
 
         if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ?
-            for day in self.weekdays :
-                d = Day(day, week)
-                partition.add_slot(TimeInterval(flopdate_to_datetime(d,st),flopdate_to_datetime(d,et))
-                                   ,"forbidden"
-                                   ,{"value": 0, "available": False, "forbidden": True, "tutor_lunch_break": tutor.name}
-                    )
+            print("Entering complete tutor partition ...")
+            print(self.weekdays)
+            for weekday in self.weekdays :
+                day = Day(weekday, week)
+                print(TimeInterval(flopdate_to_datetime(day,self.start_time),
+                                                flopdate_to_datetime(day,self.end_time)))
+                partition.add_lunch_break_for_day(weekday,self.start_time,self.end_time
+                                                  )
+                print("next")
+        print("PARTITION LB:", partition)
+
         return partition
 
 

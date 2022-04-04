@@ -7,8 +7,26 @@ from datetime import datetime, timedelta
 from django.db.models import Q
 import copy
 
+
+def complete_tutor_partition_with_user_preferences(partition, tutor, week):
+    user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__gte=1)
+    print("ENTERING UP...")
+    print("up :", user_preferences.all())
+    if not user_preferences.exists():
+        user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__gte=1)
+    for up in user_preferences:
+        up_day = Day(up.day, week)
+        partition.add_slot(
+            TimeInterval(flopdate_to_datetime(up_day, up.start_time),
+                         flopdate_to_datetime(up_day, up.end_time)),
+            "user_preference",
+            {"value": up.value, "available": True, "tutor": up.user.username}
+        )
+
+    return partition
+
 # TODO : move ?
-def create_tutor_partition_from_constraints(week, department, tutor=None):
+def create_tutor_partition_from_constraints(week, department, tutor):
     print("Hello 2 !")
 
     # Init partition
@@ -26,11 +44,12 @@ def create_tutor_partition_from_constraints(week, department, tutor=None):
             partition = constraint.complete_tutor_partition(partition, tutor, week)
         except AttributeError:
             pass
+    partition = complete_tutor_partition_with_user_preferences(partition, tutor, week)
 
     return partition
 
 
-def complete_tutor_partition_from_constraints(partition, week, department, tutor=None):
+def complete_tutor_partition_from_constraints(partition, week, department, tutor):
     print("Hello 2 !")
 
     # Init partition
@@ -48,14 +67,15 @@ def complete_tutor_partition_from_constraints(partition, week, department, tutor
             partition = constraint.complete_tutor_partition(partition, tutor, week)
         except AttributeError:
             pass
+    partition = complete_tutor_partition_with_user_preferences(partition, tutor, week)
 
     return partition
 
 
 # TODO : a bouger dans partition ?
-def create_group_partition_from_constraints(self, week, department, group=None):
+def create_group_partition_from_constraints(week, department, group=None):
     # Init partition
-    partition = Partition.get_partition_of_week(week, department, True)
+    partition = Partition.get_partition_of_week(week=week, department=department, with_day_time=True)
 
     constraints_list = tools.getTTConstraintsInDB(week, department)
 
@@ -67,7 +87,7 @@ def create_group_partition_from_constraints(self, week, department, group=None):
 
     return partition
 
-def complete_group_partition_from_constraints(partition, week, department, group=None):
+def complete_group_partition_from_constraints(partition, week, department, group):
     print("Hello 2 !")
 
     # Init partition
@@ -88,7 +108,7 @@ def complete_group_partition_from_constraints(partition, week, department, group
 
     return partition
 
-# TODO : modified
+# TODO : modified (modifier si week = None)
 def create_course_partition_from_constraints(course, week, department):
     week_partition = Partition.get_partition_of_week(week, department, True)
     possible_tutors_1 = set()

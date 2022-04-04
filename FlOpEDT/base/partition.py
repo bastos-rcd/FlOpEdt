@@ -24,6 +24,7 @@
 # without disclosing the source code of your own applications.
 
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
+import TTapp.TTConstraints.tools_centralized_preanalysis as tools
 from base.models import CourseStartTimeConstraint, ModulePossibleTutors, ScheduledCourse, TimeGeneralSettings, UserPreference
 from base.timing import TimeInterval, Day, days_index, flopdate_to_datetime, time_to_floptime
 from datetime import datetime, timedelta
@@ -514,6 +515,7 @@ class Partition(object):
             - "scheduled_course" : with key "forbidden"
             - "holiday" : with key "forbidden"
             - "all" : with any key in it """
+        print("Entering add_slots ...")
         i = 0
         #Check if we are in the interval range
         if (interval.start >= self.intervals[len(self.intervals)-1][0].end
@@ -522,7 +524,6 @@ class Partition(object):
 
         while self.intervals[i][0].end <= interval.start:
             i += 1
-        
         while i < len(self.intervals) and interval.end > self.intervals[i][0].start:
             if(interval.start == self.intervals[i][0].end):
                 i+=1
@@ -562,6 +563,36 @@ class Partition(object):
                     self.add_data(data_type, copy.deepcopy(data), i+1)
                     i += 2
                     interval.start = self.intervals[i][0].start
+        return True
+    #TODO : remove, only test
+    def add_lunch_break_for_day(self, weekday, start_time, end_time):
+        '''Add forbidden lunch time to each day of the partition
+
+        Parameters:
+            start_time (int): the starting time in minutes from midnight of the lunch_break
+            end_time (int): the ending time in minutes from midnight of the lunch_break'''
+        print("H0")
+        nb_days = {"m": 0, "tu": 1, "w": 2, "th": 3, "f": 4, "sa": 5, "su": 6}
+        day = self.intervals[0][0].start + timedelta(days=nb_days[weekday])
+        end_hours = end_time // 60
+        end_minutes = end_time % 60
+        start_hours = start_time // 60
+        start_minutes = start_time % 60
+
+        if day < self.intervals[len(self.intervals) - 1][0].end:
+            self.add_slot(
+                TimeInterval(
+                    datetime(day.year, day.month, day.day, start_hours, start_minutes, 0),
+                    datetime(day.year, day.month, day.day, end_hours, end_minutes, 0)
+                ), "lunch_break",
+                {"forbidden": True, "lunch_break": True})
+        if self.intervals[0][0].start > self.intervals[len(self.intervals) - 1][0].end:
+            self.add_slot(
+                TimeInterval(
+                    datetime(day.year, day.month, day.day, start_hours, start_minutes, 0),
+                    datetime(day.year, day.month, day.day, end_hours, end_minutes, 0)
+                ), "lunch_break",
+                {"forbidden": True, "lunch_break": True})
         return True
 
     def add_data(self, data_type, data, interval_index):
@@ -715,7 +746,8 @@ class Partition(object):
             D1 = UserPreference.objects.filter(user__in=possible_tutors_1, week=None, value__gte=1)
         if D1:
             # Retrieving constraints for days were tutors shouldn't be working
-            no_course_tutor1 = (NoTutorCourseOnDay.objects
+            #TODO : week_partition = completeTutorPartitionFromTTConstraints
+            '''no_course_tutor1 = (NoTutorCourseOnDay.objects
                 .filter(Q(tutors__in = required_supp_1.union(possible_tutors_1))
                     | Q(tutor_status = [pt.status for pt in required_supp_1.union(possible_tutors_1)]),
                     weeks = week))
@@ -744,7 +776,7 @@ class Partition(object):
                         slot[0],
                         "no_course_tutor",
                         slot[1]
-                    )
+                    )'''
 
             for interval in week_partition.intervals:
                     if not NoTutorCourseOnDay.tutor_and_supp(interval, required_supp_1, possible_tutors_1):
@@ -770,3 +802,6 @@ class Partition(object):
                         interval[1]["available"] = False
             return week_partition   
         return None
+
+
+

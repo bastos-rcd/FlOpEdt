@@ -74,19 +74,20 @@ class NoSimultaneousGroupCourses(TTConstraint):
         for bg in considered_basic_groups:
 
             # Retrieving information about general time settings and creating the partition
-            group_partition = Partition.get_partition_of_week(week, bg.type.department,True)
+            #group_partition = Partition.get_partition_of_week(week, bg.type.department,True)
+            group_partition = partition_bis.create_group_partition_from_constraints(week=week, department=bg.type.department, group=bg)
             ############
             
             # Taking NoGroupCourseOnDay constraint in account in the partition's construction
             
-            no_course_group = NoGroupCourseOnDay.objects.filter(Q(groups=bg))
+            '''no_course_group = NoGroupCourseOnDay.objects.filter(Q(groups=bg))
             forbidden_days = ""
             if no_course_group.exists():
                 for constraint in no_course_group:
                     forbidden_days += constraint.weekday+'-'+constraint.period+', '
                     slot = constraint.get_slot_constraint(week, forbidden = True)
                     if slot:
-                        group_partition.add_slot(slot[0],"no_course_tutor",slot[1])
+                        group_partition.add_slot(slot[0],"no_course_tutor",slot[1])'''
             ############
             
             ### Coloration ###
@@ -395,7 +396,8 @@ class ConsiderTutorsUnavailability(TTConstraint):
             if not courses.filter(type__department=self.department):
                 continue
             print("Hello 1 !")
-            tutor_partition = partition_bis.createTutorPartitionFromTTConstraints(week=week, department=self.department, tutor=tutor)
+            tutor_partition = partition_bis.create_tutor_partition_from_constraints(week=week, department=self.department, tutor=tutor)
+            print(tutor_partition.intervals)
             #tutor_partition = Partition.get_partition_of_week(week, self.department, True)
             #user_preferences = UserPreference.objects.filter(user = tutor, week = week, value__gte=1)
             #if not user_preferences.exists():
@@ -538,21 +540,22 @@ class ConsiderTutorsUnavailability(TTConstraint):
     def __str__(self):
         return _("Consider tutors unavailability")
 
-    def complete_tutor_partition(self, partition, tutor, week):
-        user_preferences = UserPreference.objects.filter(user = tutor, week = week, value__gte=1)
-        print("up :",user_preferences.all())
+    '''def complete_tutor_partition(self, partition, tutor, week):
+        # TODO : rajouter une prise en compte ?
+        user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__lt=1)
+        print("ENTERING UP...")
+        print("up :", user_preferences.all())
         if not user_preferences.exists():
-           user_preferences = UserPreference.objects.filter(user = tutor, week = None, value__gte=1)
+            user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__lt=1)
         for up in user_preferences:
-               up_day = Day(up.day, week)
-               partition.add_slot(
-                   TimeInterval(flopdate_to_datetime(up_day, up.start_time),
-                   flopdate_to_datetime(up_day, up.end_time)),
-                   "user_preference",
-                   {"value" : up.value, "available" : True, "tutor" : up.user.username}
-               )
-
-        return partition
+            up_day = Day(up.day, week)
+            partition.add_slot(
+                TimeInterval(flopdate_to_datetime(up_day, up.start_time),
+                             flopdate_to_datetime(up_day, up.end_time)),
+                "user_preference",
+                {"value": up.value, "available": False, "forbidden": True, "tutor": up.user.username}
+            )
+        return partition'''
 
 
 def coloration_ordered(basic_group):
