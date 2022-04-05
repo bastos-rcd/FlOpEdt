@@ -540,11 +540,9 @@ class ConsiderTutorsUnavailability(TTConstraint):
     def __str__(self):
         return _("Consider tutors unavailability")
 
-    '''def complete_tutor_partition(self, partition, tutor, week):
-        # TODO : rajouter une prise en compte ?
+    def complete_tutor_partition(self, partition, tutor, week):
         user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__lt=1)
-        print("ENTERING UP...")
-        print("up :", user_preferences.all())
+
         if not user_preferences.exists():
             user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__lt=1)
         for up in user_preferences:
@@ -555,7 +553,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                 "user_preference",
                 {"value": up.value, "available": False, "forbidden": True, "tutor": up.user.username}
             )
-        return partition'''
+        return partition
 
 
 def coloration_ordered(basic_group):

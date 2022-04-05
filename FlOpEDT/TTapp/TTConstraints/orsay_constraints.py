@@ -119,7 +119,6 @@ class GroupsLunchBreak(TTConstraint):
         return text
     
     def complete_group_partition(self, partition, group, week):
-        print("group lunch break")
 
         if self.groups.filter(name=group.name): # TODO : ok de faire ca ?
             for weekday in self.weekdays :
@@ -210,21 +209,16 @@ class TutorsLunchBreak(TTConstraint):
                     #        * self.local_weight()
                     ttmodel.add_to_inst_cost(tutor, cost, week)
                     
-    def complete_tutor_partition(self, partition, tutor, week):
-        print("tutor lunch break")
-        print(partition)
+    def complete_tutor_partition(self, partition, group, week):
 
-        if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ?
-            print("Entering complete tutor partition ...")
-            print(self.weekdays)
+        if self.tutor.filter(username=tutor.username): # TODO : ok de faire ca ?
             for weekday in self.weekdays :
-                day = Day(weekday, week)
-                print(TimeInterval(flopdate_to_datetime(day,self.start_time),
-                                                flopdate_to_datetime(day,self.end_time)))
-                partition.add_lunch_break_for_day(weekday,self.start_time,self.end_time
-                                                  )
-                print("next")
-        print("PARTITION LB:", partition)
+                day = Day(weekday,week)
+                partition.add_slot(TimeInterval(flopdate_to_datetime(day,self.start_time),
+                                                flopdate_to_datetime(day, self.end_time)),
+                                   "forbidden",
+                                   {"value": 0, "available": False, "forbidden": True, "group_lunch_break": tutor.username}
+                                   )
 
         return partition
 

@@ -7,27 +7,8 @@ from datetime import datetime, timedelta
 from django.db.models import Q
 import copy
 
-
-def complete_tutor_partition_with_user_preferences(partition, tutor, week):
-    user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__gte=1)
-    print("ENTERING UP...")
-    print("up :", user_preferences.all())
-    if not user_preferences.exists():
-        user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__gte=1)
-    for up in user_preferences:
-        up_day = Day(up.day, week)
-        partition.add_slot(
-            TimeInterval(flopdate_to_datetime(up_day, up.start_time),
-                         flopdate_to_datetime(up_day, up.end_time)),
-            "user_preference",
-            {"value": up.value, "available": True, "tutor": up.user.username}
-        )
-
-    return partition
-
 # TODO : move ?
 def create_tutor_partition_from_constraints(week, department, tutor):
-    print("Hello 2 !")
 
     # Init partition
     partition = Partition.get_partition_of_week(week, department, True)
@@ -44,13 +25,11 @@ def create_tutor_partition_from_constraints(week, department, tutor):
             partition = constraint.complete_tutor_partition(partition, tutor, week)
         except AttributeError:
             pass
-    partition = complete_tutor_partition_with_user_preferences(partition, tutor, week)
 
     return partition
 
 
 def complete_tutor_partition_from_constraints(partition, week, department, tutor):
-    print("Hello 2 !")
 
     # Init partition
     # partition = Partition.get_partition_of_week(week, department, True)
@@ -67,13 +46,13 @@ def complete_tutor_partition_from_constraints(partition, week, department, tutor
             partition = constraint.complete_tutor_partition(partition, tutor, week)
         except AttributeError:
             pass
-    partition = complete_tutor_partition_with_user_preferences(partition, tutor, week)
 
     return partition
 
 
 # TODO : a bouger dans partition ?
 def create_group_partition_from_constraints(week, department, group=None):
+    
     # Init partition
     partition = Partition.get_partition_of_week(week=week, department=department, with_day_time=True)
 
@@ -88,7 +67,6 @@ def create_group_partition_from_constraints(week, department, group=None):
     return partition
 
 def complete_group_partition_from_constraints(partition, week, department, group):
-    print("Hello 2 !")
 
     # Init partition
     # partition = Partition.get_partition_of_week(week, department, True)
@@ -110,28 +88,29 @@ def complete_group_partition_from_constraints(partition, week, department, group
 
 # TODO : modified (modifier si week = None)
 def create_course_partition_from_constraints(course, week, department):
+    
     week_partition = Partition.get_partition_of_week(week, department, True)
+    
     possible_tutors_1 = set()
     required_supp_1 = set()
-    print("[OK1] : ",course.tutor)
+    
     if course.tutor is not None:
         possible_tutors_1.add(course.tutor)
+        
+    # TODO revoir cette partie
     elif ModulePossibleTutors.objects.filter(module=course.module).exists():
         possible_tutors_1 = set(ModulePossibleTutors.objects.get(module=course.module).possible_tutors.all())
     else:
         mods_possible_tutor = ModulePossibleTutors.objects.filter(module__train_prog__department=department)
         possible_tutors_1 = set(mod.possible_tutors.all() for mod in mods_possible_tutor)
-
     if course.supp_tutor is not None:
         required_supp_1 = set(course.supp_tutor.all())
 
-    print("[OK2] : ", required_supp_1)
     for tutor in possible_tutors_1:
         print(tutor.username)
         week_partition = complete_tutor_partition_from_constraints(week_partition, week, department, tutor)
 
     groups = course.groups.all()
-    print("GROUPS:",groups)
     for group in groups:
         print(group.name)
         week_partition = complete_group_partition_from_constraints(week_partition, week, department, group)
@@ -198,5 +177,5 @@ def create_course_partition_from_constraints(course, week, department):
                     interval[1]["available"] = False
         return week_partition
     return None'''
-    print(week_partition.intervals)
+    
     return week_partition
