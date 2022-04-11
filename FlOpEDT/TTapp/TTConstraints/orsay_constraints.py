@@ -27,7 +27,9 @@
 from django.contrib.postgres.fields import ArrayField
 from base.timing import Day, TimeInterval, flopdate_to_datetime
 from datetime import datetime
-from base.partition import Partition 
+from base.partition import Partition
+from base.models import Week
+from people.models import Tutor
 
 from django.db import models
 
@@ -209,16 +211,35 @@ class TutorsLunchBreak(TTConstraint):
                     #        * self.local_weight()
                     ttmodel.add_to_inst_cost(tutor, cost, week)
                     
-    def complete_tutor_partition(self, partition, group, week):
+    def complete_tutor_partition(self, partition, tutor, week):
+        """
+                Complete the partition in parameters with informations given by this TutorsLunchBreak constraint if it
+            concern the given tutor and week.
+            This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
 
-        if self.tutor.filter(username=tutor.username): # TODO : ok de faire ca ?
+            :param partition: A partition (empty or not) with informations about a tutor's availability.
+            :type partition: Partition
+            :param tutor: The tutor from whom the partition is about.
+            :type tutor: Tutor
+            :param week: The week we want to make a pre-analysis on (can be None if all).
+            :type week: Week
+            :return: A partition with new informations if the given tutor is concerned by this TutorsLunchBreak constraint.
+            :rtype: Partition
+
+        """
+
+        if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ?
+            print("Ok1")
             for weekday in self.weekdays :
+                print("Ok2")
                 day = Day(weekday,week)
+                print("Ok3")
                 partition.add_slot(TimeInterval(flopdate_to_datetime(day,self.start_time),
                                                 flopdate_to_datetime(day, self.end_time)),
                                    "forbidden",
-                                   {"value": 0, "available": False, "forbidden": True, "group_lunch_break": tutor.username}
+                                   {"value": 0, "available": False, "forbidden": True, "tutor_lunch_break": tutor.username}
                                    )
+                print("End complete_tutor_partition (TutorLunchBreak)")
 
         return partition
 

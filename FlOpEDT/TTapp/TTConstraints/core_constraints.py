@@ -28,7 +28,7 @@ from FlOpEDT.decorators import timer
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay,NoGroupCourseOnDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval
-from base.models import CourseStartTimeConstraint, Department, TimeGeneralSettings, TransversalGroup
+from base.models import CourseStartTimeConstraint, Department, TimeGeneralSettings, TransversalGroup, Week
 from django.db import models
 
 from TTapp.TTConstraint import TTConstraint
@@ -43,7 +43,7 @@ from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups, pre_analysis_considered_basic_groups
 from base.models import Course, UserPreference, Holiday
 from base.partition import Partition
-import base.partition_bis as partition_bis
+import base.partition_with_constraints as partition_bis
 from base.timing import Day, flopdate_to_datetime
 from people.models import Tutor
 from django.db.models import Q
@@ -72,7 +72,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
         considered_basic_groups = pre_analysis_considered_basic_groups(self)
         
         for bg in considered_basic_groups:
-
+            print(bg)
             # Retrieving information about general time settings and creating the partition
             #group_partition = Partition.get_partition_of_week(week, bg.type.department,True)
             group_partition = partition_bis.create_group_partition_from_constraints(week=week, department=bg.type.department, group=bg)
@@ -541,17 +541,31 @@ class ConsiderTutorsUnavailability(TTConstraint):
         return _("Consider tutors unavailability")
 
     def complete_tutor_partition(self, partition, tutor, week):
-        user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__lt=1)
+        """
+                Complete the partition in parameters with informations given by the UserPreferences of the given tutor for the given week.
+            This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+
+            :param partition: A partition (empty or not) with informations about a tutor's availability.
+            :type partition: Partition
+            :param tutor: The tutor from whom the partition is about.
+            :type tutor: Tutor
+            :param week: The week we want to make a pre-analysis on (can be None if all).
+            :type week: Week
+            :return: A partition with new informations about tutor's preferences.
+            :rtype: Partition
+
+        """
+        user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__gte=1)
 
         if not user_preferences.exists():
-            user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__lt=1)
+            user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__gte=1)
         for up in user_preferences:
             up_day = Day(up.day, week)
             partition.add_slot(
                 TimeInterval(flopdate_to_datetime(up_day, up.start_time),
                              flopdate_to_datetime(up_day, up.end_time)),
                 "user_preference",
-                {"value": up.value, "available": False, "forbidden": True, "tutor": up.user.username}
+                {"value": up.value, "available": True, "forbidden": False, "tutor": up.user.username}
             )
         return partition
 

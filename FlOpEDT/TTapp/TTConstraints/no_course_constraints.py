@@ -28,7 +28,7 @@ from base.models import TimeGeneralSettings
 from django.db import models
 from base.timing import Day, TimeInterval, flopdate_to_datetime
 from people.models import Tutor
-
+from base.models import Week
 
 from TTapp.slots import slots_filter
 
@@ -246,6 +246,21 @@ class NoTutorCourseOnDay(NoCourseOnDay):
         return supp_in == len(required_supps) and tutor_in
 
     def complete_tutor_partition(self, partition, tutor, week):
+        """
+            Complete the partition in parameters with informations given by this NoTutorCourseOnDay constraint if it
+        concern the given tutor and week.
+        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+
+        :param partition: A partition (empty or not) with informations about a tutor's availability.
+        :type partition: Partition
+        :param tutor: The tutor from whom the partition is about.
+        :type tutor: Tutor
+        :param week: The week we want to make a pre-analysis on (can be None if all).
+        :type week: Week
+        :return: A partition with new informations if the given tutor is concerned by this NoTutorCourseOnDay constraint.
+        :rtype: Partition
+
+        """
         
         if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ? non ...?
             day_break = Day(self.weekday, week)
