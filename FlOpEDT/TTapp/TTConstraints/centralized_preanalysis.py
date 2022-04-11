@@ -1,22 +1,14 @@
 import django
 django.setup()
 
-from TTapp.TTConstraints import *
 from TTapp.TTConstraint import TTConstraint
 from base.models import Week, Department
-from people.models import Tutor
 
-from base.partition import Partition
 from django.db.models import Q
-from base.models import Course, UserPreference, Holiday
-from base.timing import Day, flopdate_to_datetime
-from base.timing import TimeInterval
-from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability
+from TTapp.TTConstraints.core_constraints import NoSimultaneousGroupCourses, ConsiderTutorsUnavailability
 from TTapp.TTConstraints.slots_constraints import ConsiderDependencies
-from TTapp.TTConstraints.no_course_constraints import NoCourseOnDay
 
-
-import TTapp.tests.test_pre_analyse.json_response as json_response_module
+import TTapp.tests.tools_test_pre_analyse.json_response as json_response_module
 
 def pre_analyse(department, week):
     all_constraints_classes = TTConstraint.__subclasses__()
@@ -64,10 +56,10 @@ if __name__ == "__main__":
     default_dep = Department.objects.get(abbrev="default")
 
     # Constraints by departments
-    constraint_default_dep = ConsiderDependencies.objects.get(department=default_dep)
+    constraint_default_dep = ConsiderTutorsUnavailability.objects.get(department=default_dep)
 
     # Weeks
-    week_10_2022 = Week.objects.get(year=2022, nb=10)
+    week_10_2022 = Week.objects.get(year=2022, nb=20)
 
     json_dict = constraint_default_dep.pre_analyse(week=week_10_2022)
     print(json_dict)

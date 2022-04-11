@@ -2,10 +2,10 @@
 import django
 django.setup()
 # end
-from unittest import skip
-from TTapp.tests.test_pre_analyse.constraint_test_case import ConstraintTestCase
+from TTapp.tests.tools_test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
-from TTapp.TTConstraints.slots_constraints import ConsiderDependencies, SimultaneousCourses
+from TTapp.TTConstraints.slots_constraints import ConsiderDependencies
+
 
 # In this python file we test (class by class) pre_analyse's function for constraints in slots_constraints.py and assert
 # the correct result is returned

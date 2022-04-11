@@ -9,10 +9,26 @@ import copy
 
 # TODO : move ?
 def create_tutor_partition_from_constraints(week, department, tutor):
+    """
+        Create a partition and add information in some slots about all constraints implementing complete_tutor_partition.
+        Those constraints are retrieved in the database and taken in account if they are applied on the week and
+        the department given in parameters and that concern the given tutor.
+        Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
+
+    :param week: The Week we want to consider in a pre-analysis (can be None if constraint applied on all weeks).
+    :param department: The Department on which constraints in a pre-analysis are applied.
+    :param tutor: The Tutor used to create his partition.
+    :return: A tutor's partition with more details about this tutor's availabilities or forbidden slots depending
+    on defined constraints in the database.
+
+    """
+    print("Hello 2 !")
 
     # Init partition
     partition = Partition.get_partition_of_week(week, department, True)
 
+    # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
+    # week and department
     constraints_list = tools.getTTConstraintsInDB(week, department)
 
     for constraint in constraints_list:
@@ -30,10 +46,21 @@ def create_tutor_partition_from_constraints(week, department, tutor):
 
 
 def complete_tutor_partition_from_constraints(partition, week, department, tutor):
+    """
+
+    :param partition:
+    :param week:
+    :param department:
+    :param tutor:
+    :return:
+    """
+    print("Hello 2 !")
 
     # Init partition
     # partition = Partition.get_partition_of_week(week, department, True)
 
+    # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
+    # week and department
     constraints_list = tools.getTTConstraintsInDB(week, department)
 
     for constraint in constraints_list:
@@ -51,13 +78,29 @@ def complete_tutor_partition_from_constraints(partition, week, department, tutor
 
 
 # TODO : a bouger dans partition ?
-def create_group_partition_from_constraints(week, department, group=None):
-    
+def create_group_partition_from_constraints(week, department, group):
+    """
+            Create a partition and add information in some slots about all constraints implementing complete_group_partition.
+            Those constraints are retrieved in the database and taken in account if they are applied on the week and
+            the department given in parameters and that concern the given group.
+            Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
+
+        :param week: The Week we want to consider in a pre-analysis (can be None if constraint applied on all weeks).
+        :param department: The Department on which constraints in a pre-analysis are applied.
+        :param group: The group used to create its partition.
+        :return: A partition for a group with more details about this group's availabilities or forbidden slots depending
+        on defined constraints in the database.
+
+    """
     # Init partition
     partition = Partition.get_partition_of_week(week=week, department=department, with_day_time=True)
 
+    # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
+    # week and department
     constraints_list = tools.getTTConstraintsInDB(week, department)
 
+    # For each constraint (week and department considered) in the database, try to find the complete_group_partition
+    # method and add information in the partition if found
     for constraint in constraints_list:
         try:
             partition = constraint.complete_group_partition(partition, group, week)
@@ -71,6 +114,8 @@ def complete_group_partition_from_constraints(partition, week, department, group
     # Init partition
     # partition = Partition.get_partition_of_week(week, department, True)
 
+    # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
+    # week and department
     constraints_list = tools.getTTConstraintsInDB(week, department)
 
     for constraint in constraints_list:

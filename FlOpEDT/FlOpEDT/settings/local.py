@@ -32,7 +32,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'flop_database_public_dev',
         'USER': 'flop_user',
-        'PASSWORD': 'your_password',
+        'PASSWORD': 'anais72BC',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
