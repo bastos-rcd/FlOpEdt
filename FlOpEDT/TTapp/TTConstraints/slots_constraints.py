@@ -54,6 +54,108 @@ class SimultaneousCourses(TTConstraint):
     """
     courses = models.ManyToManyField('base.Course', related_name='simultaneous_courses_constraints')
 
+    def pre_analyse(self,week):
+        """
+        Pre-analysis of the constraint
+        Firstly verify if there is only one course per group/tutor to be done simultaneously
+        Then built a partition comparing each tutor availability
+        At the end, try to find an available slot in the week for the considered_courses
+
+        Parameters :
+            week : pre_analyse's current week
+
+        Returns :
+            jsondict :  a Json dictionary that contains the result of the pre-analyse
+        """
+        jsondict = {"status": _("OK"), "messages": [], "period": {"week": week.nb, "year": week.year}}
+
+        # pre_analyse's week simultaneous courses retrieval
+        considered_courses = (list(c for c in self.courses.all() if c.week == week ))#or c.week == None))
+
+        print("Week ", week, ", Courses : ", considered_courses)
+
+        #We verify if there is only one course to do simultaneously for each tutor/group
+        jsondict,OK = self.maxOneCourse(jsondict, considered_courses)
+        if not(OK) :
+            return jsondict
+
+        # We build a week's partition comparing partition of each tutors
+        partition = None
+        for course in considered_courses :
+            if partition == None : # Here we build the partition of the first teacher
+                partition = Partition.get_available_partition_for_course(course,week,course.type.department)
+            new_partition = Partition.get_available_partition_for_course(course,week,course.type.department)
+            """
+            Then, for each interval (named interval1) available and not forbidden of the main partition (named partition) 
+            we watch if the interval of another teacher (named interval2) is also available and not forbidden 
+            """
+            for interval1 in partition.intervals :
+                if interval1[1]["available"] and not(interval1[1]["forbidden"]):
+                    for interval2 in new_partition.intervals :
+                        if not(interval1[0].start >= interval2[0].end\
+                                or interval1[0].end <= interval2[0].start) :
+                            interval1[1]["available"] = interval2[1]["available"]
+                            interval1[1]["forbidden"] = interval2[1]["forbidden"]
+
+        max_duration = 0
+        # Here we find the maximal duration of the simultaneous courses
+        for course in considered_courses :
+            max_duration = max(max_duration,course.type.duration)
+
+        if partition == None :
+            jsondict["status"] = _("KO")
+            message = _(f"No partition created : maybe there is no courses or it's the week is wrong")
+            jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
+            return jsondict
+
+        # Here we search for an available slot in the week
+        if partition.nb_slots_available_of_duration(max_duration) < 1:
+            jsondict["status"] = _("KO")
+            message = _(f"Not enough common available time for courses ")
+            for course in considered_courses :
+                message += _(f" {course} ")
+            message += _(f" to be done simultaneously")
+            jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
+            jsondict["status"] = _("KO")
+        return jsondict
+
+    def maxOneCourse (self, jsondict, consideredCourses):
+        """Verify that tutors and groups have only one course to do simultaneously
+        Parameters :
+            jsondict : a Json dictionary
+            consideredCourses : The considered courses to be done simultaneously
+
+        Returns :
+            jsondict :  a Json dictionary
+            statusOK : boolean, True if it's all good, False otherwise
+        Limit start time choice
+        """
+        consideredTutors = []
+        consideredGroups = []
+        tutorError = []
+        groupError = []
+        statusOK = True
+        for course in consideredCourses :
+            if (consideredTutors.__contains__(course.tutor)):
+                if not(tutorError.__contains__(course.tutor)):
+                    tutorError.append(course.tutor)
+                    jsondict["status"] = _("KO")
+                    message = _(f"Tutor {course.tutor} has more than one to do at the same time")
+                    jsondict["messages"].append({"str": message, "tutor": course.tutor.id, "type": "SimultaneousCourses"})
+                    statusOK = False
+            consideredTutors.append(course.tutor)
+            course_groups = course.groups.all()
+            for group in course_groups :
+                if consideredGroups.__contains__(group) :
+                    if not(groupError.__contains__(group)):
+                        groupError.append(group)
+                        jsondict["status"] = _("KO")
+                        message = _(f"Group {group.name} has more than one course to do at the same time")
+                        jsondict["messages"].append({"str": message, "group": group.id, "type": "SimultaneousCourses"})
+                        statusOK = False
+                consideredGroups.append(group)
+        return jsondict, statusOK
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         courses_weeks = self.courses.all().distinct('week')
@@ -141,7 +243,26 @@ class LimitedStartTimeChoices(TTConstraint):
     possible_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
 
+<<<<<<< HEAD
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
+=======
+    def pre_analyse(self, week):
+        jsondict = {"status": _("OK"), "messages": [], "period": {"week": week.nb, "year": week.year}}
+        tutor = self.tutor
+        course_type = self.course_type
+        #todo : return a list of course_type courses with the concerned tutor
+        tutor_partition = None # TODO : retrieve tutor's partition for the week
+
+        print("Tutors : ", self.tutor)
+        print("Module : ", self.module)
+        print("Group : ", self.group)
+        print("Course type : ", self.course_type)
+        print("possible_week_days", self.possible_week_days)
+        print("possible_start_time : ", self.possible_start_times)
+        return jsondict
+
+    def enrich_model(self, ttmodel, week, ponderation=1.):
+>>>>>>> b7e95304 (pre-analyse simultaneousCourses)
         fc = self.get_courses_queryset_by_attributes(ttmodel, week)
         pst = self.possible_start_times
         if not pst:
