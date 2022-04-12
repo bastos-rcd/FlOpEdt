@@ -154,6 +154,10 @@ def create_course_partition_from_constraints(course, week, department):
     for tutor in possible_tutors_1:
         print(tutor.username)
         week_partition = complete_tutor_partition_from_constraints(week_partition, week, department, tutor)
+    
+    for tutor in required_supp_1:
+        week_partition.tutor_supp = True
+        week_partition = complete_tutor_partition_from_constraints(week_partition, week, department, tutor)
 
     groups = course.groups.all()
     for group in groups:

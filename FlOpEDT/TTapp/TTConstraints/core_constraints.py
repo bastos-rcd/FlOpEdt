@@ -554,18 +554,38 @@ class ConsiderTutorsUnavailability(TTConstraint):
             :rtype: Partition
 
         """
-        user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__gte=1)
+        if partion.tutor_sup :
+            
+            user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__lt=1)
 
-        if not user_preferences.exists():
-            user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__gte=1)
-        for up in user_preferences:
-            up_day = Day(up.day, week)
-            partition.add_slot(
-                TimeInterval(flopdate_to_datetime(up_day, up.start_time),
-                             flopdate_to_datetime(up_day, up.end_time)),
-                "user_preference",
-                {"value": up.value, "available": True, "forbidden": False, "tutor": up.user.username}
-            )
+            if not user_preferences.exists():
+                user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__lt=1)
+            for up in user_preferences:
+                up_day = Day(up.day, week)
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(up_day, up.start_time),
+                                flopdate_to_datetime(up_day, up.end_time)),
+                    "user_preference",
+                    {"value": up.value, "forbidden": True, "tutor": up.user.username}
+                )
+                    
+        else :
+            
+            user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__gte=1)
+
+            if not user_preferences.exists():
+                user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__gte=1)
+            for up in user_preferences:
+                up_day = Day(up.day, week)
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(up_day, up.start_time),
+                                flopdate_to_datetime(up_day, up.end_time)),
+                    "user_preference",
+                    {"value": up.value, "available": True, "tutor": up.user.username}
+                )
+                    
+        partition.tutor_sup = False            
+
         return partition
 
 

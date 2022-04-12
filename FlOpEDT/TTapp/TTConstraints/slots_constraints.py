@@ -26,7 +26,7 @@
 
 from FlOpEDT.decorators import timer
 from base.partition import Partition
-import base.partition_bis as partition_bis
+import base.partition_with_constraints as partition_bis
 from datetime import timedelta
 
 from django.http.response import JsonResponse

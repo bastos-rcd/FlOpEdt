@@ -129,7 +129,7 @@ class GroupsLunchBreak(TTConstraint):
                 partition.add_slot(TimeInterval(flopdate_to_datetime(day,self.start_time),
                                                 flopdate_to_datetime(day, self.end_time)),
                                    "forbidden",
-                                   {"value": 0, "available": False, "forbidden": True, "group_lunch_break": group.name}
+                                   {"value": 0, "forbidden": True, "group_lunch_break": group.name}
                                    )
 
         return partition
@@ -244,7 +244,7 @@ class TutorsLunchBreak(TTConstraint):
                 partition.add_slot(TimeInterval(flopdate_to_datetime(day,self.start_time),
                                                 flopdate_to_datetime(day, self.end_time)),
                                    "forbidden",
-                                   {"value": 0, "available": False, "forbidden": True, "tutor_lunch_break": tutor.username}
+                                   {"value": 0, "forbidden": True, "tutor_lunch_break": tutor.username}
                                    )
                 print("End complete_tutor_partition (TutorLunchBreak)")
 

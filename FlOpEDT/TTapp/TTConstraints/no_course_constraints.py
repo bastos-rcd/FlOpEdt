@@ -130,14 +130,14 @@ class NoGroupCourseOnDay(NoCourseOnDay):
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                     "forbidden",
-                    {"value": 0, "available": False, "forbidden": True, "group": group.name}
+                    {"value": 0, "forbidden": True, "group": group.name}
                 )
             elif self.period == self.AM:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
                     "forbidden",
-                    {"value": 0, "available": False, "forbidden": True, "group": group.name}
+                    {"value": 0, "forbidden": True, "group": group.name}
                 )
 
             elif self.period == self.PM:
@@ -145,7 +145,7 @@ class NoGroupCourseOnDay(NoCourseOnDay):
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
                                         flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                     "forbidden",
-                    {"value": 0, "available": False, "forbidden": True, "group": group.name}
+                    {"value": 0, "forbidden": True, "group": group.name}
                 )
 
         return partition
@@ -311,7 +311,7 @@ class NoTutorCourseOnDay(NoCourseOnDay):
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
                                         flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                     "forbidden",
-                    {"value": 0, "available": False, "forbidden": True, "tutor": tutor.username}
+                    {"value": 0, "forbidden": True, "tutor": tutor.username}
                 )
 
         return partition
