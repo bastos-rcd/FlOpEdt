@@ -47,7 +47,7 @@ class Partition(object):
         self.intervals = []
         self.type = type
         self.weekend =[]
-        self.tutor_supp = False
+        self.tutor_supp = False # TODO : explain
         self.day_start_time = day_start_time
         self.day_end_time = day_end_time
         self.intervals.append(

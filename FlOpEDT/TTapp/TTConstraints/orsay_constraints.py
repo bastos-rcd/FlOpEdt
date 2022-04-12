@@ -32,6 +32,8 @@ from base.models import Week
 from people.models import Tutor
 
 from django.db import models
+from django.db.models import Q
+
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -122,6 +124,21 @@ class GroupsLunchBreak(TTConstraint):
         return text
     
     def complete_group_partition(self, partition, group, week):
+        """
+            Complete the partition in parameters with informations given by this GroupLunchBreak constraint if it
+        concern the given group and week.
+        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+
+        :param partition: A partition (empty or not) with informations about a group's availability.
+        :type partition: Partition
+        :param tutor: The group from whom the partition is about.
+        :type tutor: StructuralGroup
+        :param week: The week we want to make a pre-analysis on (can be None if all).
+        :type week: Week
+        :return: A partition with new informations if the given tutor is concerned by this GroupLunchBreak constraint.
+        :rtype: Partition
+
+        """
 
         if self.groups.filter(name=group.name): # TODO : ok de faire ca ?
             for weekday in self.weekdays :

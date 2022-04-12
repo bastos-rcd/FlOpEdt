@@ -543,6 +543,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
         """
                 Complete the partition in parameters with informations given by the UserPreferences of the given tutor for the given week.
             This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+            Warning : ConsiderTutorsUnavailability constraint must exist for the given week in the database to consider tutor's preferences.
 
             :param partition: A partition (empty or not) with informations about a tutor's availability.
             :type partition: Partition
