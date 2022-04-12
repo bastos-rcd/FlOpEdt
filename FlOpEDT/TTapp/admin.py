@@ -36,7 +36,7 @@ from TTapp.models import \
     LimitModulesTimePerPeriod, StabilizeTutorsCourses, StabilizeGroupsCourses, \
     MinModulesHalfDays, MinTutorsHalfDays, MinGroupsHalfDays,\
     MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, \
-    CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectBoundPerDay,\
+    CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectMaxHoursPerDay,\
     AvoidBothTimes, LimitedRoomChoices, LimitedStartTimeChoices, \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, GroupsLunchBreak, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
@@ -73,6 +73,13 @@ class CustomConstraintAdmin(DepartmentModelAdmin):
                    ('modules', DropdownFilterRel),
                    )   
 
+class BasicTutorsConstraintAdmin(DepartmentModelAdmin):
+    list_display = ('comment',
+                    'weight',
+                    'is_active')
+    ordering = ()
+    list_filter = (('tutors', DropdownFilterRel),
+                   ('weeks__nb', DropdownFilterAll))
 
 class LimitModulesTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = ('course_type',
@@ -192,15 +199,6 @@ class MinGroupsHalfDaysAdmin(DepartmentModelAdmin):
         return queryset                          
 
 
-class MinNonPreferedTutorsSlotAdmin(DepartmentModelAdmin):
-    list_display = ('comment',
-                    'weight',
-                    'is_active')
-    ordering = ()
-    list_filter = (('weeks__nb', DropdownFilterAll),
-                   ('tutors', DropdownFilterRel),
-                   )
-
 
 class AvoidBothTimesAdmin(DepartmentModelAdmin):
     list_display = ('tutor', 'group', 'time1', 'time2', 'comment',
@@ -226,32 +224,12 @@ class CoursesAdmin(DepartmentModelAdmin):
                    )
 
 
-class RespectBoundPerDayAdmin(DepartmentModelAdmin):
-    list_display = ('comment',
-                    'weight',
-                    'is_active')
-    ordering = ()
-    list_filter = (('weeks__nb', DropdownFilterAll),
-                   ('tutors', DropdownFilterRel),
-                   )
-
-
-class MinimizeBusyDaysAdmin(DepartmentModelAdmin):
-    list_display = ('comment',
-                    'is_active')
-    ordering = ()
-    list_filter = (('weeks__nb', DropdownFilterAll),
-                   ('tutors', DropdownFilterRel),
-                   )
-
-
-class LimitedRoomChoicesAdmin(DepartmentModelAdmin):
+class LimitRoomChoicesAdmin(DepartmentModelAdmin):
     list_display = ('group', 'tutor', 'module', 'course_type',
                     'weight',
                     'is_active')
     ordering = ()
     list_filter = (('weeks__nb', DropdownFilterAll),
-                   ('train_progs', DropdownFilterRel),
                    ('group', DropdownFilterRel),
                    ('tutor', DropdownFilterRel),
                    ('module', DropdownFilterRel),
@@ -292,16 +270,6 @@ class GroupsLunchBreakAdmin(DepartmentModelAdmin):
     list_filter = (('weeks__nb', DropdownFilterAll),
                    ('train_progs', DropdownFilterRel),
                    ('groups', DropdownFilterRel),
-                   )
-
-
-class TutorsLunchBreakAdmin(DepartmentModelAdmin):
-    list_display = ('comment',
-                    'weight',
-                    'is_active')
-    ordering = ()
-    list_filter = (('weeks__nb', DropdownFilterAll),
-                   ('tutors', DropdownFilterRel),
                    )
 
 
@@ -369,19 +337,19 @@ admin.site.register(StabilizeGroupsCourses, StabilizeGroupsCoursesAdmin)
 admin.site.register(MinGroupsHalfDays, MinGroupsHalfDaysAdmin)
 admin.site.register(MinTutorsHalfDays, MinTutorsHalfDaysAdmin)
 admin.site.register(MinModulesHalfDays, MinModulesHalfDaysAdmin)
-admin.site.register(MinNonPreferedTutorsSlot, MinNonPreferedTutorsSlotAdmin)
+admin.site.register(MinNonPreferedTutorsSlot, BasicTutorsConstraintAdmin)
 admin.site.register(MinNonPreferedTrainProgsSlot, BasicConstraintAdmin)
 admin.site.register(SimultaneousCourses, CoursesAdmin)
-admin.site.register(MinimizeBusyDays, MinimizeBusyDaysAdmin)
-admin.site.register(RespectBoundPerDay, RespectBoundPerDayAdmin)
+admin.site.register(MinimizeBusyDays, BasicTutorsConstraintAdmin)
+admin.site.register(RespectMaxHoursPerDay, BasicTutorsConstraintAdmin)
 admin.site.register(LimitedStartTimeChoices, LimitedStartTimeChoicesAdmin)
-admin.site.register(LimitedRoomChoices, LimitedRoomChoicesAdmin)
+admin.site.register(LimitedRoomChoices, LimitRoomChoicesAdmin)
 admin.site.register(LimitModulesTimePerPeriod, LimitModulesTimePerPeriodAdmin)
 admin.site.register(LimitGroupsTimePerPeriod, LimitGroupsTimePerPeriodAdmin)
 admin.site.register(LimitTutorsTimePerPeriod, LimitTutorsTimePerPeriodAdmin)
 admin.site.register(LowerBoundBusyDays, LowerBoundBusyDaysAdmin)
 admin.site.register(GroupsLunchBreak, GroupsLunchBreakAdmin)
-admin.site.register(TutorsLunchBreak, TutorsLunchBreakAdmin)
+admin.site.register(TutorsLunchBreak, BasicTutorsConstraintAdmin)
 admin.site.register(BreakAroundCourseType, GroupsConstraintAdmin)
 admin.site.register(NoGroupCourseOnDay, NoCourseOnDayAdmin)
 admin.site.register(NoTutorCourseOnDay, NoCourseOnDayAdmin)

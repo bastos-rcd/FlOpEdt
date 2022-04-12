@@ -598,6 +598,10 @@ function fill_gp_button(gp) {
   return (is_no_hidden_grp ? "#999999" : (gp.display ? "forestgreen" : "firebrick"));
 }
 
+function class_gp_button(gp) {
+  return (is_no_hidden_grp ? "inactive" : (gp.display ? "active" : "inactive"));
+}
+
 /*--------------------
   ------ MENUS -------
   --------------------*/

@@ -27,7 +27,6 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework import exceptions
 from rest_framework.response import Response
-from rest_framework.decorators import action
 
 from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
@@ -40,8 +39,6 @@ import base.models as bm
 from base import queries, weeks
 import people.models as pm
 import displayweb.models as dwm
-
-import TTapp.TTConstraint as tt
 
 from api.fetch import serializers
 from api.shared.params import dept_param, week_param, year_param, user_param, \

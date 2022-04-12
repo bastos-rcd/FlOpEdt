@@ -184,7 +184,7 @@ function go_filter() {
     success: function (msg) {
       // console.log(msg);
       // console.log("success");
-      console.log(msg.modules);
+      // console.log(msg.modules);
       filtered.mod_prof_gp[0].arr = msg.modules;
       filtered.mod_prof_gp[1].arr = msg.profs;
       filtered.mod_prof_gp[2].arr = msg.groups;
@@ -199,8 +199,8 @@ function go_filter() {
 
 
       for (i = 0; i < 3; i++) {
-        console.log(i);
-        console.log(filtered.mod_prof_gp[i].arr);
+        // console.log(i);
+        // console.log(filtered.mod_prof_gp[i].arr);
         filtered.mod_prof_gp[i].arr.unshift(default_dd);
       }
 
@@ -247,7 +247,7 @@ function go_filter() {
       show_loader(false);
     },
     complete: function (msg) {
-      console.log("complete");
+      // console.log("complete");
       show_loader(false);
     }
   });
@@ -484,7 +484,7 @@ function update_after_first() {
     .append("input")
     .attr("class", "crittop")
     .attr("type", "button")
-    .attr("value", "Valider")
+    .attr("value", gettext("Confirm"))
     .on("click", send_cours);
 }
 
@@ -515,16 +515,18 @@ function send_cours() {
   console.log(JSON.stringify(commit));
 
   if (commit.length == 0) {
-    change_ack("Pas de case cochée, pas de cours décalé !");
+    change_ack(gettext("No checked box, no moved course!"));
     return;
   }
   if (cked == "move" && aim.prof == "") {
-    change_ack("Merci d'affecter le(s) cours à quelqu'un.");
-    return;
+    if (!(window.confirm(gettext('You want these courses to have no tutor, right?')))) {
+      change_ack(gettext("Then please assign these courses to someone."));
+      return;
+    }
   }
 
   if (cked != "cancel" && cked != "move" && cked != "pend") {
-    change_ack("Choisir l'action à effectuer");
+    change_ack(gettext("Chose the action you want to do."));
   } else {
     var tot = {
       os: filtered.week,
@@ -642,7 +644,7 @@ function plot_cours(d) {
     ret += liste_jours[d.d].name + " " + liste_jours[d.d].date + " ";
     ret += min_to_hm_txt(d.t);
   } else {
-    ret += "non placé";
+    ret += gettext("not scheduled");
   }
   ret += ")";
   return ret;

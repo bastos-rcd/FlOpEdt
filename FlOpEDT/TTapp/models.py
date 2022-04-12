@@ -32,8 +32,7 @@ from django.utils.functional import lazy
 
 from django.db import models
 # Import constraints from other files
-
-from TTapp.TTConstraint import TTConstraint, max_weight
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.TTConstraints.core_constraints import ScheduleAllCourses, NoSimultaneousGroupCourses, AssignAllCourses, \
     ConsiderTutorsUnavailability
 from TTapp.TTConstraints.stabilization_constraints import StabilizeTutorsCourses, StabilizeGroupsCourses,\
@@ -41,11 +40,10 @@ from TTapp.TTConstraints.stabilization_constraints import StabilizeTutorsCourses
 from TTapp.TTConstraints.groups_constraints import MinGroupsHalfDays, MinNonPreferedTrainProgsSlot
 from TTapp.TTConstraints.no_course_constraints import NoGroupCourseOnDay, NoTutorCourseOnDay
 from TTapp.TTConstraints.tutors_constraints import MinTutorsHalfDays, MinNonPreferedTutorsSlot, \
-    MinimizeBusyDays, RespectBoundPerDay, LowerBoundBusyDays
+    MinimizeBusyDays, RespectMaxHoursPerDay, LowerBoundBusyDays
 from TTapp.TTConstraints.modules_constraints import MinModulesHalfDays
 from TTapp.TTConstraints.slots_constraints import SimultaneousCourses, AvoidBothTimes, LimitedStartTimeChoices, \
     ConsiderDependencies, ConsiderPivots, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber
-from TTapp.TTConstraints.rooms_constraints import LimitedRoomChoices
 from TTapp.TTConstraints.limit_time_constraints import LimitModulesTimePerPeriod, \
     LimitGroupsTimePerPeriod, LimitTutorsTimePerPeriod, LimitTimePerPeriod
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak, BreakAroundCourseType, TutorsLunchBreak
@@ -53,6 +51,8 @@ from TTapp.TTConstraints.visio_constraints import NoVisio, BoundPhysicalPresence
     VisioOnly, Curfew
 from TTapp.TTConstraints.cosmo_style_constraints import LimitHoles, LimitTutorTimePerWeeks, ModulesByBloc
 
+from TTapp.RoomConstraints.RoomConstraint import ConsiderRoomSorts, LocateAllCourses, LimitedRoomChoices, \
+    LimitGroupMoves, LimitTutorMoves
 #
 #   CustomConstraint
 #
@@ -136,7 +136,7 @@ class CustomConstraint(TTConstraint):
         return _wrapper
 
     @inject_method
-    def enrich_model(self, ttmodel, week, ponderation=1, injected_method=None):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1, injected_method=None):
         """
         Call custom constraint method
         """

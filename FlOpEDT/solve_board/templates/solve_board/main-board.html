@@ -28,11 +28,13 @@
 
 {% csrf_token %}
 
+{% block css %}
+    <link rel="stylesheet" href="{% static "base/header.css" %}"/>
+    <link rel="stylesheet" href="{% static "solve_board/solve.css" %}"/>
+{% endblock %}
 
 {% block title %} {% trans "Schedule Generation" %} {% endblock %}
 {% block content %}
-  <link rel="stylesheet" href="{% static "base/header.css" %}"/>
-  <link rel="stylesheet" href="{% static "solve_board/solve.css" %}"/>
   <script src="{% static "base/d3.v4.min.js" %}"></script>
   <script>
     var text_all = '{{ text_all|safe }}';
@@ -64,7 +66,7 @@
         <div class="header"><span>{% trans "Constraints" %}</span></div>
         <div class="remarks">(*) {% trans "All constraints appearing in bolded - with no weight - will be considered mandatory, the other ones will considered as preferences." %}</div>
         <div id="constraints_list"></div>
-    </div>   
+    </div>
     <div id="settings" class="settings">
       <div class="header">
         <span>{% trans "Configuration" %}</span>
@@ -84,7 +86,7 @@
         <select id="stabilize_selector"></select>
       </div>
       <div>
-        {% if solvers|length > 1 %}  
+        {% if solvers|length > 1 %}
           <label for="solver">{% trans "Solver" %} :</label>
           <select id="solver">
             {% for key, name in solvers %}
@@ -96,7 +98,13 @@
         {% endif %}
       </div>
       <div>
-        <label for="limit">{% trans "Maximum time limit for resolution (minuts)" %} :</label>
+          <input type="checkbox" id="pre-assign-rooms" name="pre-assign-rooms" checked/>
+          <label for="pre-assign-rooms">{% trans "Pre-assign rooms" %}</label><br>
+          <input type="checkbox" id="post-assign-rooms" name="post-assign-rooms"/>
+          <label for="post-assign-rooms">{% trans "Post-assign rooms" %}</label><br>
+      </div>
+      <div>
+        <label for="limit">{% trans "Time limit (minuts)" %} :</label>
         <select id="limit">
           <option value="300" selected>5</option>
           <option value="600">10</option>
@@ -110,7 +118,7 @@
     </div>
     <textarea class="console"></textarea>
   </div>
-  
+
   <script type='text/javascript' src="{% static "solve_board/solve.js" %}"></script>
-  
+
 {% endblock %}

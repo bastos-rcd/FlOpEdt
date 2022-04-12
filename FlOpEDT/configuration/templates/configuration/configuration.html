@@ -82,23 +82,29 @@
                 {{ form_planif }}
                 </br></br>
                 <div id="choose_weeks">
-                    <input type="checkbox" name="choose_weeks"/> {% trans "From week" %}
-                    <input type="number" name="week_nb" style="width: 40px" min="1" max="53" id="1">
-                    {% trans "year" %}
-                    <input type="number" name="year" style="width: 60px" value="{{current_year}}" min="{{current_year}}" max="{{current_year|add:"1"}}" id="3">
-                    </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    {% trans "until week" %}
-                    <input type="number" name="week_nb_end" style="width: 40px" min="1" max="53" id="5">
-                    {% trans "year" %}
+                    <input type="checkbox" id="choose_weeks" name="choose_weeks"/>
+                    <label for="choose_weeks">
+                        {% trans "From week" %}
+                        <input type="number" name="week_nb" style="width: 40px" min="1" max="53" id="1">
+                        {% trans "year" %}
+                        <input type="number" name="year" style="width: 60px" value="{{current_year}}" min="{{current_year}}" max="{{current_year|add:"1"}}" id="3">
+                        </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        {% trans "until week" %}
+                        <input type="number" name="week_nb_end" style="width: 40px" min="1" max="53" id="5">
+                        {% trans "year" %}
+                    </label>
                     <input type="number" name="year_end" style="width: 60px" value="{{current_year|add:"1"}}" min="{{current_year}}" max="{{current_year|add:"1"}}" id="7">
                 </div>
                 </br>
                 <div id="choose_periods">
-                <input type="checkbox" name="choose_periods"/> <span>{% trans "Only for periods " %}</span>
-                <select multiple name="periods" id="dropdown_periods"> </select>
+                <input type="checkbox" id="choose_periods" name="choose_periods"/>
+                    <label for="choose_periods">{% trans "Only for periods " %}
+                        <select multiple name="periods" id="dropdown_periods"> </select>
+                    </label>
                 </div>
                 </br></br>
-                <input type="checkbox" name="stabilize"/> <span>{% trans "Stabilization ?" %}</span>
+                <input type="checkbox" id="stabilize" name="stabilize"/>
+                <label for="stabilize">{% trans "Stabilization ?" %}</label>
                 </br></br>
                 <input type="submit"
                        id="submitImport"

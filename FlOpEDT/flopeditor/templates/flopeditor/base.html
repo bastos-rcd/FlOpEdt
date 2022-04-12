@@ -22,28 +22,15 @@
 <!-- without disclosing the source code of your own applications.          -->
 
 {% extends "base.html" %}
-
 {% load static %}
-<!DOCTYPE html>
+{% block title %}flop!EDITOR - {{ title }}{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'flopeditor/lib/bootstrap-material-design/css/bootstrap-material-design.min.css' %}">
+{#    <link rel="stylesheet" href="{% static 'flopeditor/css/flopeditor.css' %}">#}
+{% endblock %}
+
 {% block content %}
-<html lang="fr-fr" dir="ltr">
-    <head>
-
-        {% block head %}
-
-        {% block meta %}
-        <meta charset="utf-8">
-        <title>{% block title %}flop!EDITOR - {{ title }}{% endblock %}</title>
-
-        {% block link %}
-        <link rel="stylesheet" href="{% static 'flopeditor/lib/bootstrap-material-design/css/bootstrap-material-design.min.css' %}">
-        <link rel="stylesheet" href="{% static 'flopeditor/css/flopeditor.css' %}">
-        {% endblock %}
-
-        {% endblock %}
-
-        {% endblock %}
-    </head>
     <body class="{% block body-class %}bg-grey{% endblock %}">
         {% block body %}
 
@@ -342,6 +329,4 @@
         {% endblock %}
 
         {% endblock %}
-    </body>
-</html>
 {% endblock %}

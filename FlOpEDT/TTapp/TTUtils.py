@@ -29,115 +29,31 @@ from base.models import ScheduledCourse, RoomPreference, EdtVersion, Department,
     TimeGeneralSettings, Room, CourseModification, UserPreference, Week
 from base.timing import str_slot
 from django.db.models import Count, Max, Q, F
-from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, max_weight
+from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
+from TTapp.FlopConstraint import max_weight
 from TTapp.slots import slot_pause
+from TTapp.RoomModel import RoomModel
 from base.views import get_key_course_pl, get_key_course_pp
 from django.core.cache import cache
 from people.models import Tutor
 import json
+from django.utils.translation import gettext_lazy as _
 
 
-def basic_reassign_rooms(department, week, target_work_copy):
-    minimize_moves(department, week, target_work_copy)
-
-
-def minimize_moves(department, week, year, target_work_copy):
-    """
-    Reassign the rooms to minimize moves...
-    """
-    print("reassigning rooms to minimize moves...")
-
-    scheduled_courses_params = {
-        'course__module__train_prog__department': department,
-        'course__week': week,
-        'work_copy': target_work_copy,
-    }
-
-    possible_start_times = set()
-    for c in CourseStartTimeConstraint.objects.filter(course_type__department=department):
-        possible_start_times |= set(c.allowed_start_times)
-    possible_start_times = list(possible_start_times)
-    possible_start_times.sort()
-    days = TimeGeneralSettings.objects.get(department=department).days
-
-    for day in days:
-        for st in possible_start_times:
-            rank = possible_start_times.index(st)
-            if rank == 0:
-                continue
-            nsl = ScheduledCourse.objects.filter(
-                                            start_time=st, day=day,
-                                            **scheduled_courses_params)
-            # print sl
-            for CP in nsl:
-                precedent = ScheduledCourse \
-                    .objects \
-                    .filter(start_time__lte = st - F('course__type__duration'),
-                            start_time__gt = st - F('course__type__duration') - slot_pause,
-                            day=day,
-                            # course__room_type=CP.course.room_type,
-                            course__groups__in=CP.course.groups.all(),
-                            **scheduled_courses_params)
-                if len(precedent) == 0:
-                    precedent = ScheduledCourse \
-                        .objects \
-                        .filter(start_time__lte=st - F('course__type__duration'),
-                                start_time__gt=st - F('course__type__duration') - slot_pause,
-                                day=day,
-                                # course__room_type=CP.course.room_type,
-                                course__tutor=CP.course.tutor,
-                                **scheduled_courses_params)
-                    if len(precedent) == 0:
-                        continue
-                precedent = precedent[0]
-                # print "### has prec, trying to reassign:", precedent, "\n\t",
-                cp_using_prec = ScheduledCourse \
-                    .objects \
-                    .filter(start_time=st,
-                            day=day,
-                            room=precedent.room,
-                            **scheduled_courses_params)
-                # test if lucky
-                if cp_using_prec.count() == 1 and cp_using_prec[0] == CP:
-                    print (CP, ": lucky, no change needed")
-                    continue
-                # test if precedent.room is available
-                prec_is_unavailable = False
-                for r in precedent.room.and_subrooms():
-                    if RoomPreference.objects.filter(week=week, day=day,
-                                                     start_time=st, room=r, value=0).exists():
-                        prec_is_unavailable = True
-
-                    if ScheduledCourse.objects \
-                        .filter(start_time=st,
-                                day=day,
-                                room__in={r}|set(r.subroom_of.exclude(id=precedent.room.id)),
-                                **scheduled_courses_params) \
-                        .exists():
-                            prec_is_unavailable = True
-
-                if prec_is_unavailable:
-                    # print "room is not available"
-                    continue
-
-                # test if precedent.room is used for course of the same room_type and swap
-                if not cp_using_prec.exists():
-                    CP.room = precedent.room
-                    CP.save()
-                    # print "assigned", CP
-                elif cp_using_prec.count() == 1:
-                    sib = cp_using_prec[0]
-                    if CP.room in sib.course.room_type.members.all() and sib.course:
-                            r = CP.room
-                            CP.room = precedent.room
-                            sib.room = r
-                            CP.save()
-                            sib.save()
-                        # print "swapped", CP, " with", sib
-    cache.delete(get_key_course_pl(department.abbrev,
-                                   week,
-                                   target_work_copy))
-    print("done")
+def basic_reassign_rooms(department, week, work_copy, create_new_work_copy):
+    msg = {'status':'OK', 'more':_('Reload...')}
+    result_work_copy = RoomModel(department.abbrev, [week], work_copy).solve(create_new_work_copy=create_new_work_copy)
+    if result_work_copy is not None:
+        if create_new_work_copy:
+            msg['more'] = _(f'Saved in copy {result_work_copy}')
+        else:
+            cache.delete(get_key_course_pl(department.abbrev,
+                                           week,
+                                           work_copy))
+    else:
+        msg['status'] = 'KO'
+        msg['more'] = _("Impossible to assign rooms")
+    return msg
 
 
 def get_shared_tutors(department, week, copy_a):

@@ -114,6 +114,25 @@ class TimeGeneralSettingsViewSet(viewsets.ModelViewSet):
     filterset_class = TimeGeneralFilter
 
 
+class WeeksFilter(filters.FilterSet):
+    class Meta:
+        model = bm.Week
+        fields = ('year',)
+
+
+class WeeksViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all weeks
+
+    Can be filtered as wanted with every field of a Department object.
+    """
+    permission_classes = [IsAdminOrReadOnly]
+
+    queryset = bm.Week.objects.all()
+    serializer_class = serializers.WeeksSerializer
+    filterset_class = WeeksFilter
+
+
 # -------------
 # -- COURSES --
 # -------------
