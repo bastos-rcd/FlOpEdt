@@ -38,7 +38,7 @@ from TTapp.TTConstraints.core_constraints import ScheduleAllCourses, NoSimultane
 from TTapp.TTConstraints.stabilization_constraints import StabilizeTutorsCourses, StabilizeGroupsCourses,\
     StabilizationThroughWeeks
 from TTapp.TTConstraints.groups_constraints import MinGroupsHalfDays, MinNonPreferedTrainProgsSlot
-from TTapp.TTConstraints.no_course_constraints import NoGroupCourseOnDay, NoTutorCourseOnDay
+from TTapp.TTConstraints.no_course_constraints import NoGroupCourseOnDay, NoTutorCourseOnDay, NoGroupCourseTypeOnDay
 from TTapp.TTConstraints.tutors_constraints import MinTutorsHalfDays, MinNonPreferedTutorsSlot, \
     MinimizeBusyDays, RespectMaxHoursPerDay, LowerBoundBusyDays
 from TTapp.TTConstraints.modules_constraints import MinModulesHalfDays

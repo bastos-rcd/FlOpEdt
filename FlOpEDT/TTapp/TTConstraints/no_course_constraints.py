@@ -70,14 +70,10 @@ class NoCourseOnDay(TTConstraint):
 
 class NoGroupCourseOnDay(NoCourseOnDay):
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='no_course_on_days')
 
     def considered_courses(self, ttmodel):
         c_c = set(c for g in considered_basic_groups(self, ttmodel)
                   for c in ttmodel.wdb.courses_for_basic_group[g])
-        if self.course_types.exists():
-            c_c = set(c for c in c_c
-                      if c.type in self.course_types.all())
         return c_c
 
     def considered_sum(self, ttmodel, week):
@@ -89,8 +85,6 @@ class NoGroupCourseOnDay(NoCourseOnDay):
         text = f"Aucun cours le {self.weekday}"
         if self.period != self.FULL_DAY:
             text += f" ({self.period})"
-        if self.course_types.exists():
-            text += f" pour les cours de type" + ', '.join([t.name for t in self.course_types.all()])
         if self.groups.exists():
             text += ' pour les groupes ' + ', '.join([group.name for group in self.groups.all()])
         if self.train_progs.exists():
@@ -155,6 +149,37 @@ class NoGroupCourseOnDay(NoCourseOnDay):
                 )
 
         return partition
+
+
+class NoGroupCourseTypeOnDay(NoCourseOnDay):
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True)
+    course_types = models.ManyToManyField('base.CourseType', related_name='no_course_types_on_days')
+
+    def considered_courses(self, ttmodel):
+        c_c = set(c for g in considered_basic_groups(self, ttmodel)
+                  for c in ttmodel.wdb.courses_for_basic_group[g])
+        if self.course_types.exists():
+            c_c = set(c for c in c_c
+                      if c.type in self.course_types.all())
+        return c_c
+
+    def considered_sum(self, ttmodel, week):
+        return ttmodel.sum(ttmodel.TT[(sl, c)]
+                           for c in self.considered_courses(ttmodel)
+                           for sl in self.considered_slots(ttmodel, week) & ttmodel.wdb.compatible_slots[c])
+
+    def one_line_description(self):
+        text = f"Aucun cours le {self.weekday}"
+        if self.period != self.FULL_DAY:
+            text += f" ({self.period})"
+        if self.course_types.exists():
+            text += f" pour les cours de type" + ', '.join([t.name for t in self.course_types.all()])
+        if self.groups.exists():
+            text += ' pour les groupes ' + ', '.join([group.name for group in self.groups.all()])
+        if self.train_progs.exists():
+            text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+        return text
+
 
 class NoTutorCourseOnDay(NoCourseOnDay):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
