@@ -207,7 +207,6 @@ class TTLimitedRoomChoicesViewSet(viewsets.ModelViewSet):
                                             type=openapi.TYPE_STRING, required = True),
                       ])
                   )
-
 class FlopConstraintViewSet(viewsets.ViewSet):
     """
     ViewSet to see all the constraints and their parameters

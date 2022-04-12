@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 from base.models import CourseStartTimeConstraint, Course, UserPreference, Week
-from TTapp.TTConstraints import TTConstraint
+from TTapp.FlopConstraint import max_weight
 
 
 def split_preferences(tutor, departments=None):
@@ -130,7 +130,7 @@ def split_preferences(tutor, departments=None):
                 if len(pref_time) == 0:
                     pref_time.append(inter[0])
                     pref_time.append(inter[-1])
-                    pref_val.append(TTConstraint.max_weight)
+                    pref_val.append(max_weight)
 
                 for i in range(len(inter) - 1):
                     while j_before + 1 < len(pref_time) \
@@ -139,7 +139,7 @@ def split_preferences(tutor, departments=None):
                         
                     if j_before + 1 == len(pref_time):
                         # out of bounds
-                        val = TTConstraint.max_weight
+                        val = max_weight
                     else:
                         val = pref_val[j_before]
                     

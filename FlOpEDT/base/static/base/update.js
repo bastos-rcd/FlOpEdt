@@ -916,6 +916,7 @@ function go_gp_buttons() {
       .attr("height", butgp_height)
       .merge(cont.select("rect"))
       .attr("fill", fill_gp_button)
+      .attr("class", class_gp_button)
       .attr("stroke-width", 1)
       .attr("stroke", "black");
 

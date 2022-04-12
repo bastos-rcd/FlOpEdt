@@ -435,9 +435,6 @@ class TTModel(FlopModel):
         if not AssignAllCourses.objects.filter(department=self.department).exists():
             AssignAllCourses.objects.create(department=self.department)
 
-        if self.core_only:
-            return
-
         if not ConsiderTutorsUnavailability.objects.filter(department=self.department).exists():
             ConsiderTutorsUnavailability.objects.create(department=self.department)
 
@@ -765,8 +762,6 @@ class TTModel(FlopModel):
                         for cv in courses_avail:
                             cv.week = week
                     if not courses_avail:
-                        print("Course availability problem for %s - %s !" % (
-                            course_type, promo))
                         for availability_slot in week_availability_slots:
                             avail_course[(course_type, promo)][availability_slot] = 1
                             non_preferred_cost_course[(course_type,
@@ -844,9 +839,6 @@ class TTModel(FlopModel):
                 if other_dep_sched_courses:
                     self.avail_room[r][sl] = 0
 
-        if self.core_only:
-            return
-
         for sl in self.wdb.availability_slots:
             # constraint : other_departments_sched_courses instructors are not available
             for i in self.wdb.instructors:
@@ -868,10 +860,12 @@ class TTModel(FlopModel):
                     week=week,
                     # train_prog=promo,
                     is_active=True):
-                print(constr.__class__.__name__, constr.id, end=' - ')
-                timer(constr.enrich_ttmodel)(self, week)
+                if not self.core_only or constr.__class__ in [AssignAllCourses, ScheduleAllCourses,
+                                                              NoSimultaneousGroupCourses]:
+                    print(constr.__class__.__name__, constr.id, end=' - ')
+                    timer(constr.enrich_ttmodel)(self, week)
 
-        if self.pre_assign_rooms:
+        if self.pre_assign_rooms and not self.core_only:
             for week in self.weeks:
                 #Consider RoomConstraints that have enrich_ttmodel method
                 for constr in get_room_constraints(
@@ -910,8 +904,6 @@ class TTModel(FlopModel):
 
         self.add_instructors_constraints()
 
-        if self.core_only:
-            return
         if self.pre_assign_rooms:
             if self.department.mode.visio:
                 self.add_visio_room_constraints()

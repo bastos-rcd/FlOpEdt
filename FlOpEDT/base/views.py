@@ -48,7 +48,7 @@ from django.views.generic import RedirectView
 from FlOpEDT.decorators import dept_admin_required, tutor_required
 
 from people.models import Tutor, UserDepartmentSettings, User, \
-    NotificationsPreferences, UserPreferredLinks, TutorPreference
+    NotificationsPreferences, UserPreferredLinks, TutorPreference, ThemesPreferences
 
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
@@ -65,7 +65,7 @@ from base.models import Course, UserPreference, ScheduledCourse, EdtVersion, \
     CourseModification, Day, Time, Room, RoomType, RoomSort, \
     Regen, RoomPreference, Department, TimeGeneralSettings, CoursePreference, \
     TrainingProgramme, CourseType, Module, StructuralGroup, EnrichedLink, \
-    ScheduledCourseAdditional, GroupPreferredLinks, Week
+    ScheduledCourseAdditional, GroupPreferredLinks, Week, Theme
 import base.queries as queries
 from base.weeks import *
 
@@ -222,6 +222,9 @@ def preferences(req, **kwargs):
 def stype(req, *args, **kwargs):
     err = ''
     user_notifications_pref = queries.get_notification_preference(req.user)
+    themes = []
+    for a in Theme:
+        themes.append(a.value)
     if req.method == 'GET':
         return TemplateResponse(req,
                                 'base/show-stype.html',
@@ -232,6 +235,8 @@ def stype(req, *args, **kwargs):
                                  'usr_max_hours': req.user.tutor.preferences.max_hours_per_day,
                                  'usr_min_hours': req.user.tutor.preferences.min_hours_per_day,
                                  'user_notifications_pref': user_notifications_pref,
+                                 'themes': themes,
+                                 'theme': queries.get_theme_preference(req.user),
                                  'err': err,
                                  'current_year': current_year,
                                  'department_settings': queries.get_department_settings(req.department),
@@ -268,6 +273,7 @@ def stype(req, *args, **kwargs):
                                  'usr_max_hours': req.user.tutor.max_hours_per_day,
                                  'usr_min_hours': req.user.tutor.preferences.min_hours_per_day,
                                  'user_notifications_pref': user_notifications_pref,
+                                 'user_themes_pref': queries.get_theme_preference(req.user),
                                  'err': err,
                                  'current_year': current_year,
                                  'department_settings': queries.get_department_settings(req.department),
@@ -348,14 +354,15 @@ def room_preference(req, department, tutor=None):
 def user_perfect_day_changes(req, username=None, *args, **kwargs):
     if username is not None:
         t = Tutor.objects.get(username=username)
-        preferences = TutorPreference.objects.get_or_create(tutor=t)
+        preferences, created = TutorPreference.objects.get_or_create(tutor=t)
         data = req.POST
         user_pref_hours = int(data['user_pref_hours'][0])
         user_max_hours = int(data['user_max_hours'][0])
-        user_min_hours = int(data['user_min_hours'][0])
         preferences.pref_hours_per_day = user_pref_hours
         preferences.max_hours_per_day = user_max_hours
-        preferences.user_min_hours = user_min_hours
+        # not used for now --> neither in base/show-stype.html
+        # user_min_hours = int(data['user_min_hours'][0])
+        # preferences.min_hours_per_day = user_min_hours
         preferences.save()
     return redirect('base:preferences', req.department)
 
@@ -365,7 +372,7 @@ def fetch_perfect_day(req, username=None, *args, **kwargs):
     perfect_day = {'pref': 4, 'max': 9, 'min': 0}
     if username is not None:
         t = Tutor.objects.get(username=username)
-        preferences = TutorPreference.objects.get_or_create(tutor=t)
+        preferences, created = TutorPreference.objects.get_or_create(tutor=t)
         perfect_day['pref'] = preferences.pref_hours_per_day
         perfect_day['max'] = preferences.max_hours_per_day
         perfect_day['min'] = preferences.min_hours_per_day
@@ -394,6 +401,20 @@ def user_notifications_pref_changes(req, username=None, *args, **kwargs):
         n.save()
     return redirect('base:preferences', req.department)
 
+###
+#
+#   #Allows to save a user's theme
+#
+###
+@login_required
+def user_themes_pref_changes(req, username=None, *args, **kwargs):
+    if username is not None:
+        u = User.objects.get(username=username)
+        t, created = ThemesPreferences.objects.get_or_create(user=u)
+        user_theme_pref = req.POST['user_themes_pref']
+        t.theme = user_theme_pref
+        t.save()
+    return redirect('base:preferences', req.department)
 
 def aide(req, **kwargs):
     return TemplateResponse(req, 'base/help.html')

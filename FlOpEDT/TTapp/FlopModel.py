@@ -221,7 +221,7 @@ class FlopModel(object):
 
         return local_max_wc + 1
 
-    def write_infaisability(self, write_iis=True, write_analysis=True):
+    def write_infaisability(self, write_iis=True, write_analysis=True, presolve=False):
         close_old_connections()
         file_path = "misc/logs/iis"
         filename_suffixe = "_%s_%s" % (self.department.abbrev, self.weeks)
@@ -230,11 +230,15 @@ class FlopModel(object):
             from gurobipy import read, GurobiError
             lp = f"{self.solution_files_prefix()}-pulp.lp"
             m = read(lp)
-            try:
-                mp = m.presolve()
-                mp.computeIIS()
-                mp.write(iis_filename)
-            except GurobiError:
+            if presolve:
+                try:
+                    mp = m.presolve()
+                    mp.computeIIS()
+                    mp.write(iis_filename)
+                except GurobiError:
+                    m.computeIIS()
+                    m.write(iis_filename)
+            else:
                 m.computeIIS()
                 m.write(iis_filename)
         if write_analysis:

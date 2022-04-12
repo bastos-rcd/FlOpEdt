@@ -30,6 +30,7 @@ from base.models import Department
 from base.timing import Day
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+
 # Create your models here.
 
 
@@ -55,33 +56,33 @@ class User(AbstractUser):
     def has_department_perm(self, department, admin=False):
         """
         Does the user have access to a specific department
-        
-        admin=True    Check if the user can access to the 
+
+        admin=True    Check if the user can access to the
                       department admin
         """
         if self.is_superuser:
             return True
-        
-        return (self.is_tutor 
+
+        return (self.is_tutor
                 and department in self.departments.all()
                 and (not admin
                      or
-                     UserDepartmentSettings.objects\
+                     UserDepartmentSettings.objects \
                      .get(user=self,
-                          department=department)\
+                          department=department) \
                      .is_admin
-                    )
-               )
+                     )
+                )
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always
-        return  self.is_staff
+        return self.is_staff
 
     def has_module_perms(self, app_label):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
-        return  self.is_staff
+        return self.is_staff
 
     def uni_extended(self):
         ret = self.username + '<'
@@ -93,15 +94,20 @@ class User(AbstractUser):
         ret += '(' + str(self.rights) + ')'
         return ret
 
+    ###
+    #   #Allows to get the user's preferred theme in the "base.html" file
+    ###
+    @property
+    def get_theme(self):
+        return self.themes_preference.theme
+
     class Meta:
         ordering = ['username', ]
-
-    
 
 
 class UserDepartmentSettings(models.Model):
     """
-    This model allows to add additionnal settings to the 
+    This model allows to add additionnal settings to the
     relation between User and Department
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -213,7 +219,7 @@ class TutorPreference(models.Model):
 
 class Student(User):  # for now: representative
     belong_to = models.ManyToManyField('base.GenericGroup',
-                                               blank=True)
+                                       blank=True)
 
     def __str__(self):
         return str(self.username)
@@ -239,13 +245,13 @@ class Preferences(models.Model):
         return float(self.morning_weight)
 
     def get_evening_weight(self):
-        return float(1-self.morning_weight)
+        return float(1 - self.morning_weight)
 
     def get_free_half_day_weight(self):
         return float(self.free_half_day_weight)
 
     def get_light_day_weight(self):
-        return float(1-self.free_half_day_weight)
+        return float(1 - self.free_half_day_weight)
 
     class Meta:
         abstract = True
@@ -285,10 +291,10 @@ class GroupPreferences(Preferences):
                 local_hole_weight += student_pref.hole_weight
                 local_eat_weight += student_pref.eat_weight
             # To calculate the average of each attributs
-            self.morning_weight = local_morning_weight/nb_student_prefs
-            self.free_half_day_weight = local_free_half_day_weight/nb_student_prefs
-            self.hole_weight = local_hole_weight/nb_student_prefs
-            self.eat_weight = local_eat_weight/nb_student_prefs
+            self.morning_weight = local_morning_weight / nb_student_prefs
+            self.free_half_day_weight = local_free_half_day_weight / nb_student_prefs
+            self.hole_weight = local_hole_weight / nb_student_prefs
+            self.eat_weight = local_eat_weight / nb_student_prefs
             self.save()
 
 
@@ -298,6 +304,14 @@ class NotificationsPreferences(models.Model):
                                 related_name='notifications_preference')
     nb_of_notified_weeks = models.PositiveSmallIntegerField(default=0)
 
+###
+# Save the user's preferred theme in the data base
+###
+class ThemesPreferences(models.Model):
+    user = models.OneToOneField('User',
+                                on_delete=models.CASCADE,
+                                related_name='themes_preference')
+    theme = models.CharField(max_length=50, default='White')
 
 class UserPreferredLinks(models.Model):
     user = models.OneToOneField('User',
@@ -308,7 +322,7 @@ class UserPreferredLinks(models.Model):
 
     def __str__(self):
         return self.user.username + ' : ' + \
-            ' ; '.join([str(l) for l in self.links.all()])
+               ' ; '.join([str(l) for l in self.links.all()])
 
 
 class PhysicalPresence(models.Model):

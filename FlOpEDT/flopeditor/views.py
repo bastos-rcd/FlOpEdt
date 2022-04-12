@@ -91,7 +91,6 @@ def home(request):
                    'has_any_dept_perm': has_any_dept_perm(request),
                   })
 
-@tutor_or_superuser_required
 def flopeditor_help(request):
     """Shows the help page.
                    'status': status,
@@ -105,9 +104,14 @@ def flopeditor_help(request):
     :rtype:  django.http.HttpResponse
 
     """
+    if request.user.is_anonymous:
+        is_admin = False
+    else:
+        is_admin = has_any_dept_perm(request)
+
     return render(request, "flopeditor/help.html", {
         'title': 'Aide',
-        'is_admin': has_any_dept_perm(request),
+        'is_admin': is_admin,
         })
 
 @tutor_or_superuser_required

@@ -37,11 +37,11 @@ from FlOpEDT.decorators import tutor_or_superuser_required
 
 import base.queries as queries
 
-from people.models import Tutor, GroupPreferences, StudentPreferences, Student,\
-    NotificationsPreferences, UserPreferredLinks, PhysicalPresence, User
+from people.models import Tutor, GroupPreferences, StudentPreferences, Student, \
+    NotificationsPreferences, UserPreferredLinks, PhysicalPresence, User, ThemesPreferences
 from people.admin import TutorResource, GroupPreferencesResource, \
     StudentPreferencesResource, UserPreferredLinksResource, PhysicalPresenceResource
-from base.models import TimeGeneralSettings, Department, Week
+from base.models import TimeGeneralSettings, Department, Week, Theme
 
 logger = logging.getLogger(__name__)
 
@@ -77,27 +77,27 @@ def redirect_change_people_kind(req):
 def fetch_tutors(req):
     dataset = TutorResource().export(Tutor.objects.all())
     response = HttpResponse(dataset.csv,
-                                content_type='text/csv')
+                            content_type='text/csv')
     return response
 
 
 def fetch_preferences_group(req):
     dataset = GroupPreferencesResource().export(GroupPreferences.objects.all())
     response = HttpResponse(dataset.csv,
-                                content_type='text/csv')
+                            content_type='text/csv')
     return response
 
 
 def fetch_preferences_students(req):
     dataset = StudentPreferencesResource().export(StudentPreferences.objects.all())
     response = HttpResponse(dataset.csv,
-                                content_type='text/csv')
+                            content_type='text/csv')
     return response
 
 
 @login_required
 def student_preferences(req):
-    if req.method=='POST' :
+    if req.method == 'POST':
         logger.info(f'REQ: student preferences {req}')
         if req.user.is_authenticated and req.user.is_student:
             user = req.user
@@ -117,7 +117,7 @@ def student_preferences(req):
 
             student_pref.save()
             group_pref = None
-            for group in student.belong_to.all() :
+            for group in student.belong_to.all():
                 group_pref, created = GroupPreferences.objects.get_or_create(group=group)
                 if created:
                     group_pref.save()
@@ -136,13 +136,13 @@ def student_preferences(req):
                 student_pref = StudentPreferences(student=student)
                 student_pref.save()
 
-            #To display the correct text once we validate the form without move the input
+            # To display the correct text once we validate the form without move the input
             morning = student_pref.morning_weight
-            morning_txt=""
+            morning_txt = ""
             if morning == 0:
                 morning_txt = 'Commencer le plus tôt possible mais finir tôt'
             if morning == 0.25:
-                morning_txt ='Ne pas commencer trop tard et ne pas finir trop tard'
+                morning_txt = 'Ne pas commencer trop tard et ne pas finir trop tard'
             if morning == 0.5:
                 morning_txt = 'Ni trop tôt ni trop tard'
             if morning == 0.75:
@@ -151,7 +151,7 @@ def student_preferences(req):
                 morning_txt = 'Commencer le plus tard possible mais finir tard'
 
             free_half_day = student_pref.free_half_day_weight
-            free_half_day_txt=""
+            free_half_day_txt = ""
             if free_half_day == 0:
                 free_half_day_txt = 'Avoir toute la semaine des journées allégées'
             if free_half_day == 0.25:
@@ -164,7 +164,7 @@ def student_preferences(req):
                 free_half_day_txt = 'Avoir des journées chargées mais aussi des demi-journées libérées'
 
             hole = student_pref.hole_weight
-            hole_txt=""
+            hole_txt = ""
             if hole == 0:
                 hole_txt = 'Ne pas avoir de trous entre deux cours'
             if hole == 0.5:
@@ -173,7 +173,7 @@ def student_preferences(req):
                 hole_txt = 'Avoir des trous entre deux cours'
 
             eat = student_pref.eat_weight
-            eat_txt=""
+            eat_txt = ""
             if eat == 0:
                 eat_txt = 'Manger plus tôt'
             if eat == 0.5:
@@ -183,7 +183,9 @@ def student_preferences(req):
 
             day = Department.objects.get(abbrev='INFO')
 
-
+            themes = []
+            for a in Theme:
+                themes.append(a.value)
 
             return TemplateResponse(
                 req,
@@ -197,11 +199,14 @@ def student_preferences(req):
                  'selfeat': eat,
                  'eat_txt': eat_txt,
                  'user_notifications_pref':
-                 queries.get_notification_preference(req.user)
-                })
+                     queries.get_notification_preference(req.user),
+                 'themes': themes,
+                 'theme': queries.get_theme_preference(req.user),
+                 })
         else:
             # Make a decorator instead
             raise Http404("Who are you?")
+
 
 def create_user(req):
     logger.info(f'REQ: create user {req.user}')
@@ -210,14 +215,14 @@ def create_user(req):
 
 
 def fetch_user_preferred_links(req, **kwargs):
-    pref = UserPreferredLinks.objects\
-                         .prefetch_related('user__departments')\
-                         .filter(user__departments=req.department)
+    pref = UserPreferredLinks.objects \
+        .prefetch_related('user__departments') \
+        .filter(user__departments=req.department)
     dataset = UserPreferredLinksResource().export(pref)
     response = HttpResponse(dataset.csv,
                             content_type='text/csv')
     return response
-    
+
 
 def fetch_physical_presence(req, year, week, **kwargs):
     presence = PhysicalPresence.objects.filter(user__departments=req.department,
@@ -243,7 +248,6 @@ def change_physical_presence(req, year, week_nb, user):
         bad_response['more'] = _(f'No such user as {user}')
         return JsonResponse(bad_response)
 
-    
     good_response = {'status': 'OK', 'more': ''}
 
     changes = json.loads(req.POST.get('changes', '{}'))
@@ -273,4 +277,3 @@ def change_physical_presence(req, year, week_nb, user):
                                             user=user)
 
     return JsonResponse(good_response)
-

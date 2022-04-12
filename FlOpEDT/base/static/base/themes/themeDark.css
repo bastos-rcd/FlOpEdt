@@ -1,0 +1,87 @@
+body {
+    background: #0D0009;
+}
+
+#menu-edt ul {
+    fill: #0D0009;
+    background: #131313;
+
+}
+
+.cir_wk, .rec_wk {
+    fill: #404040 !important;
+}
+
+svg circle {
+    stroke: white;
+}
+
+.gridsckd .day_am, .gridsckd .day_pm {
+    stroke: #A6A6A6;
+}
+
+.hour-scale .hour-scale-item {
+    fill-opacity: 0 !important;
+}
+
+
+#layout-meg {
+    fill : #5a5a5a;
+    color : white;
+}
+
+.sel_forall {
+    fill: #5a5a5a;
+    color: white;
+}
+
+#layout-catg rect {
+    fill: #5a5a5a;
+    color: white;
+}
+
+#popup-group rect, #popup-tutor rect, #popup-module rect, #popup-room rect{
+    fill: #5a5a5a;
+}
+
+#popup-group text, #popup-tutor text, #popup-module text, #popup-room text{
+    fill: white;
+}
+
+.sel-button {
+    fill: #282828;
+    color: white;
+}
+
+.sel-pop-all {
+    fill: #0D0009;
+    color: white;
+}
+
+section, font {
+    color: white;
+}
+
+.dept_list li {
+    color: white;
+}
+
+#head_logo {
+    color: white;
+}
+
+g.hour-scale rect {
+    fill: none;
+}
+
+rect.active {
+    fill: #483f45 !important;
+}
+
+.txt_scl, .gridscg, .gridsckh, .sel_forall  {
+    fill: white;
+}
+
+.sel-pop-bg, .sel-pop-exit {
+    fill:#0D0009  !important;
+}

@@ -75,8 +75,16 @@ class ConstraintManager:
         constraints_text = constraints_text.split(":")
         id_constraints = [constraints_text[0]]
         for i in range(1, len(constraints_text) - 1):
-            id_constraints.append(constraints_text[i].split("=")[1].split("\n")[1])
-        id_constraints = list(map(lambda constraint: int(constraint[1:]), id_constraints))
+            id_constraints.append(constraints_text[i].split("=")[1].split("\n")[1][1:])
+
+        def try_to_convert_to_number_else_none(string_number):
+            try:
+                return int(string_number)
+            except ValueError:
+                return None
+
+        id_constraints = [try_to_convert_to_number_else_none(string_id) for string_id in id_constraints
+                          if try_to_convert_to_number_else_none(string_id) is not None]
         return self.get_constraints(id_constraints)
 
     def get_occurs(self):
