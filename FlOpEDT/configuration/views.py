@@ -25,18 +25,17 @@
 # without disclosing the source code of your own applications.
 
 import os
-import datetime
 import json
 import logging
 
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.db import transaction
 from django.conf import settings
 
-from FlOpEDT.decorators import dept_admin_required
+from core.decorators import dept_admin_required
 
-from base.models import Department, Course, Period, Week
+from base.models import Department, Period, Week
 
 from configuration.make_planif_file import make_planif_file
 from configuration.extract_planif_file import extract_planif
@@ -44,8 +43,6 @@ from configuration.deploy_database import extract_database_file
 from configuration.file_manipulation import upload_file, check_ext_file
 from configuration.forms import ImportPlanif, ImportConfig
 from base.weeks import current_year
-from django.db.models import Q
-
 
 logger = logging.getLogger(__name__)
 

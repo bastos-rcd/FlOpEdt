@@ -34,7 +34,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseForbidden
 from base.models import Department, TimeGeneralSettings, Day, Mode
 from base.timing import min_to_str, str_to_min
-from FlOpEDT.decorators import superuser_required, \
+from core.decorators import superuser_required, \
     tutor_or_superuser_required, tutor_required
 
 from people.models import Tutor

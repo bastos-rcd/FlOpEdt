@@ -1,12 +1,11 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
 from django.http import HttpResponse
 from django.db import transaction
 
 import os
 
-from FlOpEDT.decorators import superuser_required
+from core.decorators import superuser_required
 
 from base.models import Period, Department
 

@@ -37,9 +37,9 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from base.models import Department, ScheduledCourse
 
-from FlOpEDT.decorators import timer
+from core.decorators import timer
 from django.db import close_old_connections
-from django.db.models import Q, Max, F
+from django.db.models import Q, Max
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.RoomConstraints.RoomConstraint import RoomConstraint

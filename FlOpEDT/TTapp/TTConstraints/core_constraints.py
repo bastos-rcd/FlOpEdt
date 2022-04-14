@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 
-from FlOpEDT.decorators import timer
+from core.decorators import timer
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval

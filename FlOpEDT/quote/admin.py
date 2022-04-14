@@ -30,7 +30,7 @@ from django.contrib import admin
 from .models import Quote, QuoteType
 
 from django.db.models import Max
-from FlOpEDT.filters import DropdownFilterAll, DropdownFilterRel, DropdownFilterCho
+from core.filters import DropdownFilterRel, DropdownFilterCho
 
 from import_export import resources, fields
 from base.admin import MyModelAdmin

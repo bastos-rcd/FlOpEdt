@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 
-from FlOpEDT.decorators import timer
+from core.decorators import timer
 from base.partition import Partition
 from datetime import timedelta
 

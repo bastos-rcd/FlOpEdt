@@ -36,12 +36,12 @@ from TTapp.models import \
     LimitModulesTimePerPeriod, StabilizeTutorsCourses, StabilizeGroupsCourses, \
     MinModulesHalfDays, MinTutorsHalfDays, MinGroupsHalfDays,\
     MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, \
-    CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectMaxHoursPerDay,\
-    AvoidBothTimes, LimitedRoomChoices, LimitedStartTimeChoices, \
-    LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, GroupsLunchBreak, BreakAroundCourseType, \
+    CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectMaxHoursPerDay, \
+    LimitedRoomChoices, LimitedStartTimeChoices, \
+    LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
     NoTutorCourseOnDay, NoGroupCourseOnDay, \
-    ConsiderDependencies, Curfew, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
+    ConsiderDependencies, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
     ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber
@@ -51,8 +51,7 @@ from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
 
 # Register your models here.
 
-from FlOpEDT.filters import DropdownFilterAll, DropdownFilterRel
-from django.conf import settings
+from core.filters import DropdownFilterAll, DropdownFilterRel
 
 
 class BasicConstraintAdmin(DepartmentModelAdmin):

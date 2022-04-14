@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-30 16:24+0000\n"
+"POT-Creation-Date: 2022-04-12 19:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,83 +19,83 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: FlOpEDT/settings/base.py:157
+#: FlOpEDT/settings/base.py:158
 msgid "French"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:158
+#: FlOpEDT/settings/base.py:159
 msgid "English"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:159
+#: FlOpEDT/settings/base.py:160
 msgid "Spanish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:160
+#: FlOpEDT/settings/base.py:161
 msgid "Arabic"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:161
+#: FlOpEDT/settings/base.py:162
 msgid "Basque"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:162
+#: FlOpEDT/settings/base.py:163
 msgid "Breton"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:163
+#: FlOpEDT/settings/base.py:164
 msgid "Catalan"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:164
+#: FlOpEDT/settings/base.py:165
 msgid "Corsican"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:165
+#: FlOpEDT/settings/base.py:166
 msgid "Danish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:166
+#: FlOpEDT/settings/base.py:167
 msgid "German"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:167
+#: FlOpEDT/settings/base.py:168
 msgid "Dutch"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:168
+#: FlOpEDT/settings/base.py:169
 msgid "Greek"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:169
+#: FlOpEDT/settings/base.py:170
 msgid "Italian"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:170
+#: FlOpEDT/settings/base.py:171
 msgid "Latin"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:171
+#: FlOpEDT/settings/base.py:172
 msgid "Norwegian"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:172
+#: FlOpEDT/settings/base.py:173
 msgid "Polish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:173
+#: FlOpEDT/settings/base.py:174
 msgid "Portuguese"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:174
+#: FlOpEDT/settings/base.py:175
 msgid "Swedish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:175
+#: FlOpEDT/settings/base.py:176
 msgid "Chinese"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:176
+#: FlOpEDT/settings/base.py:177
 msgid "Smurf"
 msgstr ""
 
@@ -345,7 +345,7 @@ msgstr ""
 msgid "Half day"
 msgstr ""
 
-#: base/models.py:253
+#: base/models.py:253 notifications/models.py:41
 msgid "Week number"
 msgstr ""
 
@@ -361,7 +361,7 @@ msgstr ""
 msgid "Coop. (worker)"
 msgstr ""
 
-#: base/models.py:455
+#: base/models.py:455 notifications/models.py:47
 msgid "Abbreviation"
 msgstr ""
 
@@ -926,6 +926,62 @@ msgstr ""
 
 #: ics/templates/ics/index.html:95
 msgid "Planned generations"
+msgstr ""
+
+#: notifications/backup_to_notifications.py:169
+#: notifications/notifications.py:168
+msgid "[flop!Scheduler] Changes on your planning"
+msgstr ""
+
+#: notifications/backup_to_notifications.py:180
+#: notifications/backup_to_notifications.py:213
+#: notifications/notifications.py:179 notifications/notifications.py:212
+msgid "Hi "
+msgstr ""
+
+#: notifications/backup_to_notifications.py:181
+#: notifications/backup_to_notifications.py:214
+#: notifications/notifications.py:180 notifications/notifications.py:213
+#, python-format
+msgid "Here are the changes of your planning for the %g following days :"
+msgstr ""
+
+#: notifications/backup_to_notifications.py:192
+#: notifications/notifications.py:191
+#, python-format
+msgid "For the department %s :"
+msgstr ""
+
+#: notifications/notifications.py:140 notifications/notifications.py:153
+msgid "Mode"
+msgstr ""
+
+#: notifications/notifications.py:141 notifications/notifications.py:154
+msgid "Date"
+msgstr ""
+
+#: notifications/notifications.py:142 notifications/notifications.py:155
+msgid "Start time"
+msgstr ""
+
+#: notifications/notifications.py:143 notifications/notifications.py:156
+msgid "Module"
+msgstr ""
+
+#: notifications/notifications.py:144
+msgid "Tutor"
+msgstr ""
+
+#: notifications/notifications.py:145 notifications/notifications.py:159
+msgid "Room"
+msgstr ""
+
+#: notifications/notifications.py:157
+msgid "Train_prog"
+msgstr ""
+
+#: notifications/notifications.py:158
+msgid "Group"
 msgstr ""
 
 #: people/templates/people/login.html:55

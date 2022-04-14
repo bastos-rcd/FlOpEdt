@@ -35,7 +35,7 @@ import django.contrib.auth as auth
 from django.utils.translation import gettext_lazy as _
 
 from people.models import Tutor, User
-from base.models import CourseStartTimeConstraint, Day, StructuralGroup, TransversalGroup, \
+from base.models import CourseStartTimeConstraint, StructuralGroup, TransversalGroup, \
     Room, Module, Course, \
     UserPreference, ScheduledCourse, EdtVersion, CourseModification, \
     TrainingProgramme, Regen, Holiday, TrainingHalfDay, \
@@ -47,7 +47,7 @@ from displayweb.models import TutorDisplay
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
-from FlOpEDT.filters import DropdownFilterAll, DropdownFilterRel, \
+from core.filters import DropdownFilterAll, DropdownFilterRel, \
     DropdownFilterSimple
 
 logger = logging.getLogger('admin')
