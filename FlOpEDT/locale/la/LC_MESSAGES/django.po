@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-12 19:23+0000\n"
+"POT-Creation-Date: 2022-04-15 09:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,87 +17,87 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: FlOpEDT/settings/base.py:158
+#: FlOpEDT/settings/base.py:159
 msgid "French"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:159
+#: FlOpEDT/settings/base.py:160
 msgid "English"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:160
+#: FlOpEDT/settings/base.py:161
 msgid "Spanish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:161
+#: FlOpEDT/settings/base.py:162
 msgid "Arabic"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:162
+#: FlOpEDT/settings/base.py:163
 msgid "Basque"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:163
+#: FlOpEDT/settings/base.py:164
 msgid "Breton"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:164
+#: FlOpEDT/settings/base.py:165
 msgid "Catalan"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:165
+#: FlOpEDT/settings/base.py:166
 msgid "Corsican"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:166
+#: FlOpEDT/settings/base.py:167
 msgid "Danish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:167
+#: FlOpEDT/settings/base.py:168
 msgid "German"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:168
+#: FlOpEDT/settings/base.py:169
 msgid "Dutch"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:169
+#: FlOpEDT/settings/base.py:170
 msgid "Greek"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:170
+#: FlOpEDT/settings/base.py:171
 msgid "Italian"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:171
+#: FlOpEDT/settings/base.py:172
 msgid "Latin"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:172
+#: FlOpEDT/settings/base.py:173
 msgid "Norwegian"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:173
+#: FlOpEDT/settings/base.py:174
 msgid "Polish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:174
+#: FlOpEDT/settings/base.py:175
 msgid "Portuguese"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:175
+#: FlOpEDT/settings/base.py:176
 msgid "Swedish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:176
+#: FlOpEDT/settings/base.py:177
 msgid "Chinese"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:177
+#: FlOpEDT/settings/base.py:178
 msgid "Smurf"
 msgstr ""
 
-#: TTapp/FlopConstraint.py:61
+#: TTapp/FlopConstraint.py:59
 msgid "Is active?"
 msgstr ""
 
@@ -262,23 +262,23 @@ msgstr ""
 msgid "One of the courses has no eligible tutor to lecture it. {dependency}"
 msgstr ""
 
-#: TTapp/TTModel.py:103
+#: TTapp/TTModel.py:100
 #, python-brace-format
 msgid ""
 "\n"
 "Let's start weeks #{self.weeks}"
 msgstr ""
 
-#: TTapp/TTModel.py:113
+#: TTapp/TTModel.py:110
 msgid "Rooms assignment :"
 msgstr ""
 
-#: TTapp/TTModel.py:124
+#: TTapp/TTModel.py:121
 #, python-brace-format
 msgid "Will modify only courses of training programme(s) {train_prog}"
 msgstr ""
 
-#: TTapp/TTModel.py:158
+#: TTapp/TTModel.py:155
 msgid "Relevant warnings :"
 msgstr ""
 
@@ -690,23 +690,23 @@ msgstr ""
 msgid "Create or modify a link"
 msgstr ""
 
-#: base/views.py:1558
+#: base/views.py:1555
 msgid "Not authorized. New link then."
 msgstr ""
 
-#: base/views.py:1561
+#: base/views.py:1558
 msgid "Unknown link. New link then."
 msgstr ""
 
-#: base/views.py:1573
+#: base/views.py:1570
 msgid "Created"
 msgstr ""
 
-#: base/views.py:1573
+#: base/views.py:1570
 msgid "Modified"
 msgstr ""
 
-#: base/views.py:1576
+#: base/views.py:1573
 msgid "Tutor does not exist"
 msgstr ""
 
@@ -926,60 +926,57 @@ msgstr ""
 msgid "Planned generations"
 msgstr ""
 
-#: notifications/backup_to_notifications.py:169
-#: notifications/notifications.py:168
+#: notifications/notifications.py:141 notifications/notifications.py:154
+msgid "Mode"
+msgstr ""
+
+#: notifications/notifications.py:142 notifications/notifications.py:155
+#: notifications/notifications.py:181 notifications/notifications.py:205
+#: notifications/notifications.py:239
+msgid "Date"
+msgstr ""
+
+#: notifications/notifications.py:143 notifications/notifications.py:156
+#: notifications/notifications.py:205 notifications/notifications.py:239
+msgid "Start time"
+msgstr ""
+
+#: notifications/notifications.py:144 notifications/notifications.py:157
+msgid "Module"
+msgstr ""
+
+#: notifications/notifications.py:145
+msgid "Tutor"
+msgstr ""
+
+#: notifications/notifications.py:146 notifications/notifications.py:160
+msgid "Room"
+msgstr ""
+
+#: notifications/notifications.py:158
+msgid "Train_prog"
+msgstr ""
+
+#: notifications/notifications.py:159
+msgid "Group"
+msgstr ""
+
+#: notifications/notifications.py:178
 msgid "[flop!Scheduler] Changes on your planning"
 msgstr ""
 
-#: notifications/backup_to_notifications.py:180
-#: notifications/backup_to_notifications.py:213
-#: notifications/notifications.py:179 notifications/notifications.py:212
+#: notifications/notifications.py:194 notifications/notifications.py:227
 msgid "Hi "
 msgstr ""
 
-#: notifications/backup_to_notifications.py:181
-#: notifications/backup_to_notifications.py:214
-#: notifications/notifications.py:180 notifications/notifications.py:213
+#: notifications/notifications.py:195 notifications/notifications.py:228
 #, python-format
 msgid "Here are the changes of your planning for the %g following days :"
 msgstr ""
 
-#: notifications/backup_to_notifications.py:192
-#: notifications/notifications.py:191
+#: notifications/notifications.py:206
 #, python-format
 msgid "For the department %s :"
-msgstr ""
-
-#: notifications/notifications.py:140 notifications/notifications.py:153
-msgid "Mode"
-msgstr ""
-
-#: notifications/notifications.py:141 notifications/notifications.py:154
-msgid "Date"
-msgstr ""
-
-#: notifications/notifications.py:142 notifications/notifications.py:155
-msgid "Start time"
-msgstr ""
-
-#: notifications/notifications.py:143 notifications/notifications.py:156
-msgid "Module"
-msgstr ""
-
-#: notifications/notifications.py:144
-msgid "Tutor"
-msgstr ""
-
-#: notifications/notifications.py:145 notifications/notifications.py:159
-msgid "Room"
-msgstr ""
-
-#: notifications/notifications.py:157
-msgid "Train_prog"
-msgstr ""
-
-#: notifications/notifications.py:158
-msgid "Group"
 msgstr ""
 
 #: people/templates/people/login.html:55
