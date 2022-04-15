@@ -122,8 +122,12 @@ def check_changes(save_json_files=False):
     for change in changes:
         if change in olds:
             mode = "Deleted"
+            #Useful for translation
+            gettext("Deleted")
         else:
             mode = "Created"
+            #Useful for translation
+            gettext("Created")
         group = change.group_name
         department = change.department_abbrev
         train_prog = change.train_prog_name
