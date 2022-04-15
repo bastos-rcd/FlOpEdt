@@ -277,8 +277,8 @@ def send_changes_email(subject, intro_text, html_msg, to_email, from_email=""):
                 padding-right:10px; 
                 padding-left:10px;
             }}
-            .created {{background-color:lightgreen;}}
-            .deleted {{background-color:#ff6d50;}}
+            .Created {{background-color:lightgreen;}}
+            .Deleted {{background-color:#ff6d50;}}
             </style>
            </head>
            <body>
