@@ -177,15 +177,15 @@ def check_changes(save_json_files=False):
     return student_changes_dict, tutor_changes_dict
 
 
+def days_nb_from_today(change):
+    string_date = change[gettext('Date')]
+    datetime_date = datetime.strptime(string_date, "%d/%m/%Y").date()
+    return (datetime_date - date.today()).days
+
+
 def send_notifications():
-    today = date.today()
     student_changes_dict, tutor_changes_dict = check_changes()
     subject = _("[flop!Scheduler] Changes on your planning")
-
-    def days_nb_from_today(change):
-        string_date = change[gettext('Date')]
-        datetime_date = datetime.strptime(string_date, "%d/%m/%Y").date()
-        return (datetime_date - today).days
 
     for tutor_username, dic in tutor_changes_dict.items():
         if tutor_username is None:
@@ -237,7 +237,7 @@ def send_notifications():
         for group in groups:
             student_changes += student_changes_dict[group.train_prog.department.abbrev][group.train_prog.abbrev][group.name]
 
-        filtered_changes = [change for change in changes
+        filtered_changes = [change for change in student_changes
                             if 0 <= days_nb_from_today(change) <= nb_of_notified_days]
         if not filtered_changes:
             continue
