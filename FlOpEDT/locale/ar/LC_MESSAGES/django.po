@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-15 09:12+0000\n"
+"POT-Creation-Date: 2022-04-15 09:49+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -928,55 +928,59 @@ msgstr ""
 msgid "Planned generations"
 msgstr ""
 
-#: notifications/notifications.py:141 notifications/notifications.py:154
+#: notifications/notifications.py:144 notifications/notifications.py:158
 msgid "Mode"
 msgstr ""
 
-#: notifications/notifications.py:142 notifications/notifications.py:155
-#: notifications/notifications.py:181 notifications/notifications.py:205
-#: notifications/notifications.py:239
+#: notifications/notifications.py:145 notifications/notifications.py:159
+#: notifications/notifications.py:186 notifications/notifications.py:210
+#: notifications/notifications.py:244
 msgid "Date"
 msgstr ""
 
-#: notifications/notifications.py:143 notifications/notifications.py:156
-#: notifications/notifications.py:205 notifications/notifications.py:239
+#: notifications/notifications.py:146 notifications/notifications.py:160
+#: notifications/notifications.py:210 notifications/notifications.py:244
 msgid "Start time"
 msgstr ""
 
-#: notifications/notifications.py:144 notifications/notifications.py:157
+#: notifications/notifications.py:147 notifications/notifications.py:161
+msgid "Course Type"
+msgstr ""
+
+#: notifications/notifications.py:148 notifications/notifications.py:162
 msgid "Module"
 msgstr ""
 
-#: notifications/notifications.py:145
+#: notifications/notifications.py:149
 msgid "Tutor"
 msgstr ""
 
-#: notifications/notifications.py:146 notifications/notifications.py:160
+#: notifications/notifications.py:150 notifications/notifications.py:165
 msgid "Room"
 msgstr ""
 
-#: notifications/notifications.py:158
+#: notifications/notifications.py:163
 msgid "Train_prog"
 msgstr ""
 
-#: notifications/notifications.py:159
+#: notifications/notifications.py:164
 msgid "Group"
 msgstr ""
 
-#: notifications/notifications.py:178
+#: notifications/notifications.py:183
 msgid "[flop!Scheduler] Changes on your planning"
 msgstr ""
 
-#: notifications/notifications.py:194 notifications/notifications.py:227
+#: notifications/notifications.py:199 notifications/notifications.py:232
 msgid "Hi "
 msgstr ""
 
-#: notifications/notifications.py:195 notifications/notifications.py:228
+#: notifications/notifications.py:200 notifications/notifications.py:233
 #, python-format
 msgid "Here are the changes of your planning for the %g following days :"
 msgstr ""
 
-#: notifications/notifications.py:206
+#: notifications/notifications.py:211
 #, python-format
 msgid "For the department %s :"
 msgstr ""

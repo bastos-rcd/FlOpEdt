@@ -69,6 +69,7 @@ def backup():
             year = course.week.year
             day = scheduled_course.day
             module = course.module.abbrev
+            course_type = course.type
             #Can have no tutor
             tutor = scheduled_course.tutor.username if scheduled_course.tutor != None else None
             #Can have no supp_tutors
@@ -95,6 +96,7 @@ def backup():
                 line.group_name = group.name
                 line.department_abbrev = department
                 line.train_prog_name = train_prog
+                line.course_type_name = course_type
                 line.save()
     print("Backup done")
     print("Number of courses saved : " + str(BackUpModif.objects.filter(new=True).count()))
@@ -119,14 +121,15 @@ def check_changes(save_json_files=False):
 
     for change in changes:
         if change in olds:
-            mode = "delete"
+            mode = "Deleted"
         else:
-            mode = "create"
+            mode = "Created"
         group = change.group_name
         department = change.department_abbrev
         train_prog = change.train_prog_name
         tutor_username = change.tutor_username
         module = change.module_abbrev
+        course_type = change.course_type_name
         room = change.room_name
         start_time = change.start_time
         week = Week.objects.get(year=change.year, nb=change.week)
@@ -141,6 +144,7 @@ def check_changes(save_json_files=False):
         student_object = {gettext('Mode'): mode,
                           gettext('Date'): change_datetime.date().strftime('%d/%m/%Y'),
                           gettext('Start time'): french_format(start_time),
+                          gettext('Course Type'): course_type,
                           gettext('Module'): module,
                           gettext('Tutor'): tutor_username,
                           gettext('Room'): room}
@@ -154,6 +158,7 @@ def check_changes(save_json_files=False):
         tutor_object = {gettext('Mode'): mode,
                         gettext('Date'): change_datetime.date().strftime('%d/%m/%Y'),
                         gettext('Start time'): french_format(start_time),
+                        gettext('Course Type'): course_type,
                         gettext('Module'): module,
                         gettext('Train_prog'): train_prog,
                         gettext('Group'): group,
@@ -245,14 +250,14 @@ def html_table_with_changes(filtered_changes):
     msg = "<table>"
     titles = filtered_changes[0].keys()
     msg += f"<tr> "
-    for title in list(titles)[1:]:
+    for title in list(titles):
         msg += f"<th> {_(title)} </th>"
     msg+= "</tr>\n"
     for fc in filtered_changes:
         values = list(fc.values())
         mode = values[0]
-        date = values[1]
         msg += f"<tr class='{mode}'>"
+        msg += f"<td> {gettext(mode)} </td>"
         for value in values[1:]:
             msg += f"<td> {value} </td>"
         msg += "</tr>\n"
@@ -272,8 +277,8 @@ def send_changes_email(subject, intro_text, html_msg, to_email, from_email=""):
                 padding-right:10px; 
                 padding-left:10px;
             }}
-            .create {{background-color:lightgreen;}}
-            .delete {{background-color:#ffcccb;}}
+            .created {{background-color:lightgreen;}}
+            .deleted {{background-color:#ff6d50;}}
             </style>
            </head>
            <body>

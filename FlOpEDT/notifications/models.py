@@ -51,6 +51,8 @@ class BackUpModif(models.Model):
     start_time = models.PositiveSmallIntegerField()
     room_name = models.CharField(max_length=50,
                                  null=True)
+    course_type_name = models.CharField(max_length=50,
+                                        null=True)
     group_name = models.CharField(max_length=100)
     department_abbrev = models.CharField(max_length=7)
     train_prog_name = models.CharField(max_length=50)
@@ -65,12 +67,12 @@ class BackUpModif(models.Model):
         return self.week == other.week and self.year == other.year and self.day == other.day \
                and self.module_abbrev == other.module_abbrev and self.tutor_username == other.tutor_username \
                and self.supp_tutor_usernames == other.supp_tutor_usernames and self.start_time == other.start_time \
-               and self.group_name == other.group_name \
+               and self.group_name == other.group_name and self.course_type_name == other.course_type_name \
                and self.department_abbrev == other.department_abbrev and self.train_prog_name == other.train_prog_name
         # and self.room_name == other.room_name \
 
     def __hash__(self):
-        return hash(f"{self.week} {self.year} {self.day} {self.module_abbrev} {self.tutor_username} "
+        return hash(f"{self.week} {self.year} {self.day}  {self.course_type_name} {self.module_abbrev} {self.tutor_username} "
                     f"{self.supp_tutor_usernames} {self.start_time} {self.group_name} "
                     f"{self.department_abbrev} {self.train_prog_name}")
 
