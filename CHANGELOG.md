@@ -9,15 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - RoomModel to assign Rooms
 - Method reassign_rooms uses RoomModel
 - Possibility to pre-assign rooms and/or post-assign rooms in TTModel
-
 - Possibility to add a preferred theme in the use's preferences
+- Notification system: model for backup, email notification, django-crontab for notification
 
 ### Changed
 
 ### TBD
 - right permissions in TTapp/views
-- Modification proposal: id for modification bunch, modification
-  applicability, email notification
 - Room preferences: user interface improvement, room exclusion
 
 ## [0.4.0] - 2021-09-07
