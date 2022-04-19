@@ -60,17 +60,21 @@ class NoCourseOnDay(TTConstraint):
         raise NotImplementedError
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
-        if self.weight is None:
-            ttmodel.add_constraint(self.considered_sum(ttmodel, week),
-                                   '==', 0,
-                                   Constraint(constraint_type=ConstraintType.NO_COURSE_ON_DAY, weeks=week))
-        else:
-            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, week), week)
+        raise NotImplementedError
 
 
 class NoGroupCourseOnDay(NoCourseOnDay):
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
     course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='no_course_on_days')
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+        if self.weight is None:
+            ttmodel.add_constraint(self.considered_sum(ttmodel, week),
+                                   '==', 0,
+                                   Constraint(constraint_type=ConstraintType.NO_GROUP_COURSE_ON_DAY, weeks=week,
+                                              groups=considered_basic_groups(self, ttmodel)))
+        else:
+            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, week), week)
 
     def considered_courses(self, ttmodel):
         c_c = set(c for g in considered_basic_groups(self, ttmodel)
@@ -97,9 +101,19 @@ class NoGroupCourseOnDay(NoCourseOnDay):
             text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
         return text
 
+
 class NoTutorCourseOnDay(NoCourseOnDay):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
     tutor_status = models.CharField(max_length=2, choices=Tutor.TUTOR_CHOICES, null=True, blank=True)
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+        if self.weight is None:
+            ttmodel.add_constraint(self.considered_sum(ttmodel, week),
+                                   '==', 0,
+                                   Constraint(constraint_type=ConstraintType.NO_TUTOR_COURSE_ON_DAY, weeks=week,
+                                              instructors=self.considered_tutors(ttmodel)))
+        else:
+            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, week), week)
 
     def considered_tutors(self, ttmodel):
         if self.tutors.exists():
