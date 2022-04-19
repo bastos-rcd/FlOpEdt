@@ -461,7 +461,7 @@ class TTModel(FlopModel):
                          for sl in slots_filter(self.wdb.compatible_slots[c],
                                                 week=mtr.week)
                          ),
-                '==', mtr.courses_nb, Constraint()
+                '==', mtr.courses_nb, Constraint(constraint_type=ConstraintType.MODULETUTORREPARTITION)
             )
 
     @timer
@@ -530,7 +530,7 @@ class TTModel(FlopModel):
                                                    & self.wdb.compatible_courses[s_sl]
                                                    )
                 self.add_constraint(
-                    expr, '<=', bound, Constraint()
+                    expr, '<=', bound, Constraint(constraint_type=ConstraintType.ROOMTYPE_BOUND)
                 )
 
     @timer

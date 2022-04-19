@@ -65,6 +65,8 @@ class ConstraintType(Enum):
     DEPARTEMENT_BLOQUE_SLOT = "Les autres départements bloquent le slot"
     PROFESSEUR_A_DEJA_COURS_EN_AUTRE_DEPARTEMENT = "Le professeur a déjà un cours dans un autre département"
     PROFESSEUR_A_DEJA_COURS_EN_AUTRE_DEPARTEMENT_IBD = "Le professeur a déjà un cours dans un autre département IBD"
+    MODULETUTORREPARTITION = "Module Tutor Repartition"
+    ROOMTYPE_BOUND = "ROOMTYPE_BOUND"
 
     # Visio
     VISIO = "Visio"
