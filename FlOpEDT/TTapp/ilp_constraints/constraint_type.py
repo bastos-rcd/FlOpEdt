@@ -43,6 +43,8 @@ class ConstraintType(Enum):
     GBHD_SUP = "GBHD_supérieur"
     CONJONCTION = "Conjonction"
     SEUIL = "Seuil"
+    CEILING_BOUND = "CEILING_BOUND"
+    FLOOR_BOUND = "FLOOR_BOUND"
     SI_A_ALORS_NON_B = "Si a alors non b"
 
     # CORE
@@ -152,6 +154,7 @@ class ConstraintType(Enum):
     jours_de_repos_par_semaine = "jours_de_repos_par_semaine"
     COSMO = "Cosmo - to be defined"
     TRAVAILLE_ASSEZ = "TRAVAILLE_ASSEZ"
+    TRAVAILLE_ASSEZ_PAR_SEMAINE = "TRAVAILLE_ASSEZ_PAR_SEMAINE"
     MOD_PER_DAY = "MOD_PER_DAY"
     TUTOR_PER_DAY = "TUTOR_PER_DAY"
     module_by_bloc = "module_by_bloc"

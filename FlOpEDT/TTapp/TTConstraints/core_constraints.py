@@ -266,7 +266,7 @@ class AssignAllCourses(TTConstraint):
     course_types = models.ManyToManyField('base.CourseType', blank=True)
     pre_assigned_only = models.BooleanField(default=False, verbose_name=_('Pre-assigned courses only'))
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=100):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(c for bg in relevant_basic_groups
                                  for c in ttmodel.wdb.all_courses_for_basic_group[bg])
