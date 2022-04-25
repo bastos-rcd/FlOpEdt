@@ -267,16 +267,11 @@ class ConsiderDependencies(TTConstraint):
             ok_so_far = True
             # Setting up empty partitions for both courses
 
-            # TODO : modif
-            # week_partition_course1 = Partition.get_available_partition_for_course(dependency.course1, week, self.department)
-            # week_partition_course2 = Partition.get_available_partition_for_course(dependency.course2, week, self.department)
-
             week_partition_course1 = partition_bis.create_course_partition_from_constraints(dependency.course1, week,
                                                                                             self.department)
             week_partition_course2 = partition_bis.create_course_partition_from_constraints(dependency.course2, week,
                                                                                             self.department)
 
-            # TODO end
             if week_partition_course1 and week_partition_course2:
                 # Retrieving possible start times for both courses
                 course1_start_times = CourseStartTimeConstraint.objects.get(course_type = dependency.course1.type).allowed_start_times
@@ -284,9 +279,8 @@ class ConsiderDependencies(TTConstraint):
                 # Retrieving only TimeInterval for each course
                 course1_slots = week_partition_course1.find_all_available_timeinterval_with_key_starting_at("user_preference", course1_start_times, dependency.course1.type.duration)
                 course2_slots = week_partition_course2.find_all_available_timeinterval_with_key_starting_at("user_preference", course2_start_times, dependency.course2.type.duration)
-                print("COURSE1-----------------------\n",course1_slots)
-                print("COURSE2-----------------------\n",course2_slots)
                 if course1_slots and course2_slots:
+                    print(course2_slots[0].end < course1_slots[0].start + timedelta(hours = dependency.course1.type.duration/60+dependency.course2.type.duration/60))
                     while course2_slots[0].end < course1_slots[0].start + timedelta(hours = dependency.course1.type.duration/60+dependency.course2.type.duration/60):
                         course2_slots.pop(0)
                         if not course2_slots:

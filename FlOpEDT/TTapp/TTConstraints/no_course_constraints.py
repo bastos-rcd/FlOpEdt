@@ -134,12 +134,11 @@ class NoGroupCourseOnDay(NoCourseOnDay):
 
         """
         
-        if self.groups.filter(name=group.name): # TODO : ok de faire ca ? non ...?
+        if self.groups.filter(name=group.name): 
             
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
 
-            # TODO : verifier si value à 0 ou à 8, si forbidden
             if self.period == self.FULL_DAY:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
@@ -301,11 +300,10 @@ class NoTutorCourseOnDay(NoCourseOnDay):
 
         """
         
-        if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ? non ...?
+        if self.tutors.filter(username=tutor.username): 
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
 
-            # TODO : verifier si value à 0 ou à 8, si forbidden
             if self.period == self.FULL_DAY:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),

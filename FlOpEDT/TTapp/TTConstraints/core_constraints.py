@@ -71,23 +71,9 @@ class NoSimultaneousGroupCourses(TTConstraint):
         considered_basic_groups = pre_analysis_considered_basic_groups(self)
         
         for bg in considered_basic_groups:
-            print(bg)
+            
             # Retrieving information about general time settings and creating the partition
-            #group_partition = Partition.get_partition_of_week(week, bg.type.department,True)
             group_partition = partition_bis.create_group_partition_from_constraints(week=week, department=bg.type.department, group=bg)
-            ############
-            
-            # Taking NoGroupCourseOnDay constraint in account in the partition's construction
-            
-            '''no_course_group = NoGroupCourseOnDay.objects.filter(Q(groups=bg))
-            forbidden_days = ""
-            if no_course_group.exists():
-                for constraint in no_course_group:
-                    forbidden_days += constraint.weekday+'-'+constraint.period+', '
-                    slot = constraint.get_slot_constraint(week, forbidden = True)
-                    if slot:
-                        group_partition.add_slot(slot[0],"no_course_tutor",slot[1])'''
-            ############
             
             ### Coloration ###
             tuple_graph = coloration_ordered(bg)
@@ -185,9 +171,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                                                         "group": bg.id, "type": "NoSimultaneousGroupCourses"})
                             return jsondict
                     
-                    # To try to avoid conflict we are looking if there are enough slots for all courses at all start times
-                    # possible for the minimum duration of all courses. Not always find an infeasibility but can quickly
-                    # find conflict in some case.
+                    '''To try to avoid conflict we are looking if there are enough slots for all courses at all start times possible for the minimum duration of all courses. Not always find an infeasibility but can quickly find conflict in some case.'''
                                 
                     all_allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(min_duration, all_start_times)
 
@@ -394,21 +378,8 @@ class ConsiderTutorsUnavailability(TTConstraint):
             courses = Course.objects.filter(Q(tutor = tutor) | Q(supp_tutor = tutor), week = week)
             if not courses.filter(type__department=self.department):
                 continue
-            print("Hello 1 !")
+    
             tutor_partition = partition_bis.create_tutor_partition_from_constraints(week=week, department=self.department, tutor=tutor)
-            print(tutor_partition.intervals)
-            #tutor_partition = Partition.get_partition_of_week(week, self.department, True)
-            #user_preferences = UserPreference.objects.filter(user = tutor, week = week, value__gte=1)
-            #if not user_preferences.exists():
-            #    user_preferences = UserPreference.objects.filter(user = tutor, week = None, value__gte=1)
-            #for up in user_preferences:
-            #        up_day = Day(up.day, week)
-            #        tutor_partition.add_slot(
-            #            TimeInterval(flopdate_to_datetime(up_day, up.start_time),
-            #            flopdate_to_datetime(up_day, up.end_time)),
-            #            "user_preference",
-            #            {"value" : up.value, "available" : True, "tutor" : up.user.username}
-            #        )
 
             if tutor_partition.available_duration < sum(c.type.duration for c in courses):
                 message = _(f"Tutor {tutor} has {tutor_partition.available_duration} minutes of available time.")
@@ -555,7 +526,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
             :rtype: Partition
 
         """
-        if partion.tutor_sup :
+        if partition.tutor_supp :
             
             user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__lt=1)
 
@@ -585,7 +556,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     {"value": up.value, "available": True, "tutor": up.user.username}
                 )
                     
-        partition.tutor_sup = False            
+        partition.tutor_supp = False            
 
         return partition
 

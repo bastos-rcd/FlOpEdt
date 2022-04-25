@@ -38,6 +38,16 @@ from django.utils.translation import gettext as _
 
 def pre_analysis_considered_basic_groups(group_ttconstraint):
     
+    """
+    Return a set of group who are the basic_group concerned by the constraint group_ttconstraint
+
+    :param group_ttconstraint: A constraint who want to analyze
+    :type group_ttconstraint: TTConstraints
+    :return: A set of group who are basic_group and concerned by the constraint
+    :rtype: set of StructuralGroup
+
+    """
+    
     groups = set(StructuralGroup.objects.filter(train_prog__in=group_ttconstraint.train_progs.all()))
     basic_groups = set()
     
@@ -56,14 +66,6 @@ def pre_analysis_considered_basic_groups(group_ttconstraint):
         basic_groups &= basic_groups_constraint
         
     return basic_groups
-'''
-    basic_groups_to_consider = set()
-    for g in basic_groups:
-        if ttmodel.wdb.courses_for_basic_group[g]:
-            basic_groups_to_consider.add(g)
-'''
-
-
 
 def considered_basic_groups(group_ttconstraint, ttmodel):
     if group_ttconstraint.train_progs.exists():

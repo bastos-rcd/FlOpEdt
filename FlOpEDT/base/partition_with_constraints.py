@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from django.db.models import Q
 import copy
 
-# TODO : move ?
+# TODO : modified (modifier si week = None)
 def create_tutor_partition_from_constraints(week, department, tutor):
     """
         Create a partition and add information in some slots about all constraints implementing complete_tutor_partition.
@@ -22,8 +22,7 @@ def create_tutor_partition_from_constraints(week, department, tutor):
     on defined constraints in the database.
 
     """
-    print("Hello 2 !")
-
+    
     # Init partition
     partition = Partition.get_partition_of_week(week, department, True)
 
@@ -44,7 +43,7 @@ def create_tutor_partition_from_constraints(week, department, tutor):
 
     return partition
 
-
+# TODO : modified (modifier si week = None)
 def complete_tutor_partition_from_constraints(partition, week, department, tutor):
     """
 
@@ -53,8 +52,8 @@ def complete_tutor_partition_from_constraints(partition, week, department, tutor
     :param department:
     :param tutor:
     :return:
+    
     """
-    print("Hello 2 !")
 
     # Init partition
     # partition = Partition.get_partition_of_week(week, department, True)
@@ -76,8 +75,7 @@ def complete_tutor_partition_from_constraints(partition, week, department, tutor
 
     return partition
 
-
-# TODO : a bouger dans partition ?
+# TODO : modified (modifier si week = None)
 def create_group_partition_from_constraints(week, department, group):
     """
             Create a partition and add information in some slots about all constraints implementing complete_group_partition.
@@ -109,6 +107,7 @@ def create_group_partition_from_constraints(week, department, group):
 
     return partition
 
+# TODO : modified (modifier si week = None)
 def complete_group_partition_from_constraints(partition, week, department, group):
 
     # Init partition
@@ -142,7 +141,6 @@ def create_course_partition_from_constraints(course, week, department):
     if course.tutor is not None:
         possible_tutors_1.add(course.tutor)
         
-    # TODO revoir cette partie
     elif ModulePossibleTutors.objects.filter(module=course.module).exists():
         possible_tutors_1 = set(ModulePossibleTutors.objects.get(module=course.module).possible_tutors.all())
     else:
@@ -163,68 +161,5 @@ def create_course_partition_from_constraints(course, week, department):
     for group in groups:
         print(group.name)
         week_partition = complete_group_partition_from_constraints(week_partition, week, department, group)
-
-
-    '''D1 = UserPreference.objects.filter(user__in=possible_tutors_1, week=week, value__gte=1)
-    if not D1:
-        D1 = UserPreference.objects.filter(user__in=possible_tutors_1, week=None, value__gte=1)
-    if D1:
-        # Retrieving constraints for days were tutors shouldn't be working
-        # TODO : week_partition = completeTutorPartitionFromTTConstraints
-        no_course_tutor1 = (NoTutorCourseOnDay.objects
-            .filter(Q(tutors__in = required_supp_1.union(possible_tutors_1))
-                | Q(tutor_status = [pt.status for pt in required_supp_1.union(possible_tutors_1)]),
-                weeks = week))
-        if not no_course_tutor1:
-            no_course_tutor1 = (NoTutorCourseOnDay.objects
-            .filter(Q(tutors__in = required_supp_1.union(possible_tutors_1))
-                | Q(tutor_status = [pt.status for pt in required_supp_1.union(possible_tutors_1)]),
-                weeks = None))
-
-        # Adding all user preferences to the partition
-        for up in D1:
-            up_day = Day(up.day, week)
-            week_partition.add_slot(
-                TimeInterval(flopdate_to_datetime(up_day, up.start_time),
-                flopdate_to_datetime(up_day, up.end_time)),
-                "user_preference",
-                {"value" : up.value, "available" : True, "tutor" : up.user}
-            )
-
-        # Retrieving no tutor course constraint slots and adding them to the partition
-        # Slots are not set to be forbidden
-        for constraint in no_course_tutor1:
-            slot = constraint.get_slot_constraint(week)
-            if slot:
-                week_partition.add_slot(
-                    slot[0],
-                    "no_course_tutor",
-                    slot[1]
-                )
-
-        for interval in week_partition.intervals:
-            if not NoTutorCourseOnDay.tutor_and_supp(interval, required_supp_1, possible_tutors_1):
-                interval[1]["available"] = False
-
-        if required_supp_1:
-            # Retrieving and adding user preferences for the required tutors
-            RUS1 = UserPreference.objects.filter(user__in=required_supp_1, week=week, value__gte=1)
-            if not RUS1:
-                RUS1 = UserPreference.objects.filter(user__in=required_supp_1, week=None, value__gte=1)
-
-            for up in RUS1:
-                up_day = Day(up.day, week)
-                week_partition.add_slot(
-                    TimeInterval(flopdate_to_datetime(up_day, up.start_time),
-                                 flopdate_to_datetime(up_day, up.end_time)),
-                    "user_preference",
-                    {"value": up.value, "available": True, "tutor": up.user}
-                )
-
-            for interval in week_partition.intervals:
-                if not NoTutorCourseOnDay.tutor_and_supp(interval, required_supp_1, possible_tutors_1):
-                    interval[1]["available"] = False
-        return week_partition
-    return None'''
     
     return week_partition

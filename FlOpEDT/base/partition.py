@@ -565,36 +565,6 @@ class Partition(object):
                     i += 2
                     interval.start = self.intervals[i][0].start
         return True
-    #TODO : remove, only test
-    def add_lunch_break_for_day(self, weekday, start_time, end_time):
-        '''Add forbidden lunch time to each day of the partition
-
-        Parameters:
-            start_time (int): the starting time in minutes from midnight of the lunch_break
-            end_time (int): the ending time in minutes from midnight of the lunch_break'''
-        print("H0")
-        nb_days = {"m": 0, "tu": 1, "w": 2, "th": 3, "f": 4, "sa": 5, "su": 6}
-        day = self.intervals[0][0].start + timedelta(days=nb_days[weekday])
-        end_hours = end_time // 60
-        end_minutes = end_time % 60
-        start_hours = start_time // 60
-        start_minutes = start_time % 60
-
-        if day < self.intervals[len(self.intervals) - 1][0].end:
-            self.add_slot(
-                TimeInterval(
-                    datetime(day.year, day.month, day.day, start_hours, start_minutes, 0),
-                    datetime(day.year, day.month, day.day, end_hours, end_minutes, 0)
-                ), "lunch_break",
-                {"forbidden": True, "lunch_break": True})
-        if self.intervals[0][0].start > self.intervals[len(self.intervals) - 1][0].end:
-            self.add_slot(
-                TimeInterval(
-                    datetime(day.year, day.month, day.day, start_hours, start_minutes, 0),
-                    datetime(day.year, day.month, day.day, end_hours, end_minutes, 0)
-                ), "lunch_break",
-                {"forbidden": True, "lunch_break": True})
-        return True
 
     def add_data(self, data_type, data, interval_index):
         '''Adds some data to an interval
@@ -747,8 +717,7 @@ class Partition(object):
             D1 = UserPreference.objects.filter(user__in=possible_tutors_1, week=None, value__gte=1)
         if D1:
             # Retrieving constraints for days were tutors shouldn't be working
-            #TODO : week_partition = completeTutorPartitionFromTTConstraints
-            '''no_course_tutor1 = (NoTutorCourseOnDay.objects
+            no_course_tutor1 = (NoTutorCourseOnDay.objects
                 .filter(Q(tutors__in = required_supp_1.union(possible_tutors_1))
                     | Q(tutor_status = [pt.status for pt in required_supp_1.union(possible_tutors_1)]),
                     weeks = week))
@@ -777,7 +746,7 @@ class Partition(object):
                         slot[0],
                         "no_course_tutor",
                         slot[1]
-                    )'''
+                    )
 
             for interval in week_partition.intervals:
                     if not NoTutorCourseOnDay.tutor_and_supp(interval, required_supp_1, possible_tutors_1):
