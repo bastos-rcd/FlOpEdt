@@ -34,6 +34,7 @@ from TTapp.slots import slots_filter
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from .groups_constraints import considered_basic_groups
+from django.db.models import Q
 
 
 class NoCourseOnDay(TTConstraint):
@@ -133,9 +134,8 @@ class NoGroupCourseOnDay(NoCourseOnDay):
         :rtype: Partition
 
         """
-        
-        if self.groups.filter(name=group.name): 
-            
+        if self.groups.filter(name=group.name) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
+
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
 
@@ -300,7 +300,7 @@ class NoTutorCourseOnDay(NoCourseOnDay):
 
         """
         
-        if self.tutors.filter(username=tutor.username): 
+        if self.tutors.filter(username=tutor.username) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
 

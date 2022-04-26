@@ -24,8 +24,7 @@
 # without disclosing the source code of your own applications.
 
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
-import TTapp.TTConstraints.tools_centralized_preanalysis as tools
-from base.models import CourseStartTimeConstraint, ModulePossibleTutors, ScheduledCourse, TimeGeneralSettings, UserPreference
+from base.models import ModulePossibleTutors, ScheduledCourse, TimeGeneralSettings, UserPreference
 from base.timing import TimeInterval, Day, days_index, flopdate_to_datetime, time_to_floptime
 from datetime import datetime, timedelta
 from django.db.models import Q
@@ -516,7 +515,6 @@ class Partition(object):
             - "scheduled_course" : with key "forbidden"
             - "holiday" : with key "forbidden"
             - "all" : with any key in it """
-        print("Entering add_slots ...")
         i = 0
         #Check if we are in the interval range
         if (interval.start >= self.intervals[len(self.intervals)-1][0].end

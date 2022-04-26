@@ -39,12 +39,12 @@ from django.utils.translation import gettext as _
 def pre_analysis_considered_basic_groups(group_ttconstraint):
     
     """
-    Return a set of group who are the basic_group concerned by the constraint group_ttconstraint
+    Returns a set of groups which are basic_group concerned by the constraint group_ttconstraint
 
-    :param group_ttconstraint: A constraint who want to analyze
-    :type group_ttconstraint: TTConstraints
-    :return: A set of group who are basic_group and concerned by the constraint
-    :rtype: set of StructuralGroup
+    :param group_ttconstraint: A constraint we want to analyze.
+    :type group_ttconstraint: TTConstraint
+    :return: A set of groups which are basic_group and concerned by the constraint.
+    :rtype: A set of StructuralGroup
 
     """
     

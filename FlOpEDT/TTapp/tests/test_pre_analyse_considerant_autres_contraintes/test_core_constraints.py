@@ -71,13 +71,36 @@ class NoSimultaneousGroupCoursesWithConstraintsTestCase(ConstraintTestCase):
         # Weeks
         self.week_30_2022 = Week.objects.get(year=2022, nb=30)
         self.week_31_2022 = Week.objects.get(year=2022, nb=31)
+        self.week_32_2022 = Week.objects.get(year=2022, nb=32)
+        self.week_33_2022 = Week.objects.get(year=2022, nb=33)
+        self.week_34_2022 = Week.objects.get(year=2022, nb=34)
+        self.week_35_2022 = Week.objects.get(year=2022, nb=35)
 
 
-    def test_consider_group_lunch_break(self):
+
+    def test_(self):
         # Test 1 : OK case : .
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_20_2022)
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_30_2022)
         self.assertJsonResponseIsKO("1", json_response_dict)
 
         # Test 2 : KO case : .
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_21_2022)
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_31_2022)
         self.assertJsonResponseIsOK("2", json_response_dict)
+
+    def test_(self):
+        # Test 3 : OK case : .
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_32_2022)
+        self.assertJsonResponseIsKO("3", json_response_dict)
+
+        # Test 4 : KO case : .
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_33_2022)
+        self.assertJsonResponseIsOK("4", json_response_dict)
+
+    def test_(self):
+        # Test 5 : OK case : .
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_34_2022)
+        self.assertJsonResponseIsKO("5", json_response_dict)
+
+        # Test 6 : KO case : .
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_35_2022)
+        self.assertJsonResponseIsOK("6", json_response_dict)

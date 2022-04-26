@@ -265,7 +265,7 @@ class ConsiderDependencies(TTConstraint):
         jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year} }
         for dependency in dependencies:
             ok_so_far = True
-            # Setting up empty partitions for both courses
+            # Setting up partitions with data about other constraints for both courses
 
             week_partition_course1 = partition_bis.create_course_partition_from_constraints(dependency.course1, week,
                                                                                             self.department)
