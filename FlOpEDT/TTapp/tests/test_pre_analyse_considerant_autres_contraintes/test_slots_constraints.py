@@ -2,6 +2,7 @@
 import django
 django.setup()
 # end
+from unittest import skip
 from TTapp.tests.tools_test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
 from TTapp.TTConstraints.slots_constraints import ConsiderDependencies
@@ -34,6 +35,7 @@ class ConsiderDependenciesWithConstraintsTestCase(ConstraintTestCase):
         self.week_44_2022 = Week.objects.get(year=2022, nb=44)
         self.week_45_2022 = Week.objects.get(year=2022, nb=45)
 
+    @skip
     def test_consider_one_tutor_unavailabilities(self):
         # Test 1 : OK case : bibiTU teaches TDdep1 and TDdep2 (both can start only at 10am and 2pm). TDdep1 has to be
         # done before TDdep2 and in the same day. bibiTU is unavailable on tuesdays and wednesdays (NoTutorCourseOnDay),
@@ -45,6 +47,6 @@ class ConsiderDependenciesWithConstraintsTestCase(ConstraintTestCase):
         # Test 2 : KO case : same as Test 1 but TutorLunchBreak is from 11am until 1pm, so TDdep1 and TDdep2 can only be
         # given at the same time : beginning at 2pm, wich is impossible because bibiTU can not teach two courses
         # at the same time.
-        #json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_41_2022)
-        #self.assertJsonResponseIsKO("2", json_response_dict)
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_41_2022)
+        self.assertJsonResponseIsKO("2", json_response_dict)
 
