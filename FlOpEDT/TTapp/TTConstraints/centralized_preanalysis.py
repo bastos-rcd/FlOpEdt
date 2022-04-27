@@ -1,7 +1,7 @@
 import django
 django.setup()
 
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from base.models import Week, Department
 
 from django.db.models import Q

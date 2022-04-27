@@ -1,4 +1,4 @@
-from TTapp.TTConstraint import TTConstraint
+from TTapp.TTConstraints.TTConstraint import TTConstraint
 from django.db.models import Q
 
 

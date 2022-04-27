@@ -24,7 +24,6 @@
 # without disclosing the source code of your own applications.
 
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
-import TTapp.TTConstraints.tools_centralized_preanalysis as tools
 from base.models import CourseStartTimeConstraint, ModulePossibleTutors, ScheduledCourse, TimeGeneralSettings, UserPreference
 from base.timing import TimeInterval, Day, days_index, flopdate_to_datetime, time_to_floptime
 from datetime import datetime, timedelta
