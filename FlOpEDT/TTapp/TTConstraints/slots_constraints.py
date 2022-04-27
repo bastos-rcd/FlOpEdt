@@ -83,8 +83,8 @@ class SimultaneousCourses(TTConstraint):
         partition = None
         for course in considered_courses :
             if partition == None : # Here we build the partition of the first teacher
-                partition = partition_bis.get_available_partition_for_course(course,week,course.type.department)
-            new_partition = partition_bis.get_available_partition_for_course(course,week,course.type.department)
+                partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department)
+            new_partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department)
             """
             Then, for each interval (named interval1) available and not forbidden of the main partition (named partition) 
             we watch if the interval of another teacher (named interval2) is also available and not forbidden 

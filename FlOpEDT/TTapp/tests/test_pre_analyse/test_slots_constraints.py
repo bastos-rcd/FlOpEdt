@@ -5,7 +5,7 @@ django.setup()
 from TTapp.tests.tools_test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
 from TTapp.TTConstraints.slots_constraints import ConsiderDependencies, SimultaneousCourses
-
+from django.db.models import Q
 
 # In this python file we test (class by class) pre_analyse's function for constraints in slots_constraints.py and assert
 # the correct result is returned
@@ -109,13 +109,17 @@ class SimultaneousCoursesTestCase(ConstraintTestCase):
         # Departments
         self.default_dep = Department.objects.get(abbrev="default")
 
-        # Constraints by departments
-        self.constraint_default_dep = ConsiderDependencies.objects.get(department=self.default_dep)
-
         # Weeks
         self.week_1_2022 = Week.objects.get(year=2022, nb=1)
         self.week_2_2022 = Week.objects.get(year=2022, nb=2)
         self.week_3_2022 = Week.objects.get(year=2022, nb=3)
+
+        # Constraints by departments
+        self.constraint_default_dep1 = SimultaneousCourses.objects.filter(Q(weeks=self.week_1_2022)& Q(department=self.default_dep))
+        self.constraint_default_dep2 = SimultaneousCourses.objects.filter(Q(weeks=self.week_2_2022)& Q(department=self.default_dep))
+        self.constraint_default_dep3 = SimultaneousCourses.objects.filter(Q(weeks=self.week_3_2022)& Q(department=self.default_dep))
+
+
 
 
 
@@ -123,8 +127,9 @@ class SimultaneousCoursesTestCase(ConstraintTestCase):
         # Test 1 : OK case : Many groups/tutors doing courses simultaneously :
         #                    01-2022 TD1/TD2
         #                    01-2022 TD2/TP11/TP12
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_1_2022)
-        self.assertJsonResponseIsOK("1", json_response_dict)
+        for c in self.constraint_default_dep1 :
+            json_response_dict = c.pre_analyse(week=self.week_1_2022)
+            self.assertJsonResponseIsOK("1", json_response_dict)
 
     def test_KO_case(self):
         # Test 2 : KO case : Tutor doing more than one course simultaneously :
@@ -133,12 +138,14 @@ class SimultaneousCoursesTestCase(ConstraintTestCase):
         #                       02-2022 TD2(professeur) // TD2(teacher) => KO (Same group)
         #                    No common time for courses to be done simultaneously :
         #                       02-2022 TD2/TP11/TP12 => KO (no available common time)
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_2_2022)
-        self.assertJsonResponseIsKO("2", json_response_dict)
+        for c in self.constraint_default_dep2:
+            json_response_dict = c.pre_analyse(week=self.week_2_2022)
+            self.assertJsonResponseIsKO("2", json_response_dict)
 
     def test_KO2_case(self):
         # Test 3 : KO case : Many groups/tutors doing courses simultaneously :
         #                       03-2022 TD1(professeur/teacher/educateur)/TD2 (professeur/teacher/educateur)
         #                           => KO (test many groups/tutors)
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_3_2022)
-        self.assertJsonResponseIsOK("3", json_response_dict)
+        for c in self.constraint_default_dep3:
+            json_response_dict = c.pre_analyse(week=self.week_3_2022)
+            self.assertJsonResponseIsKO("3", json_response_dict)
