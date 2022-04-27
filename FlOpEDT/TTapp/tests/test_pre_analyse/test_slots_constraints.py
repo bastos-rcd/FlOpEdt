@@ -4,7 +4,7 @@ django.setup()
 # end
 from TTapp.tests.tools_test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
-from TTapp.TTConstraints.slots_constraints import ConsiderDependencies
+from TTapp.TTConstraints.slots_constraints import ConsiderDependencies, SimultaneousCourses
 
 
 # In this python file we test (class by class) pre_analyse's function for constraints in slots_constraints.py and assert
@@ -96,4 +96,37 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
         #          the 2 courses can not be done one after another.
         json_response_dict = self.constraint_dep_2.pre_analyse(week=self.week_19_2022)
         self.assertJsonResponseIsKO("8", json_response_dict)
+
+class SimultaneousCoursesTestCase(ConstraintTestCase):
+
+    fixtures = ['data_test_constraints.json']
+
+    def setUp(self):
+        # Set constraint's type
+        ConstraintTestCase.setUp(self)
+        self.constraint_type = "SimultaneousCourses"
+
+        # Departments
+        self.default_dep = Department.objects.get(abbrev="default")
+
+        # Constraints by departments
+        self.constraint_default_dep = ConsiderDependencies.objects.get(department=self.default_dep)
+
+        # Weeks
+        self.week_1_2022 = Week.objects.get(year=2022, nb=1)
+        self.week_2_2022 = Week.objects.get(year=2022, nb=2)
+
+
+
+    def test_OK_case(self):
+        # Test 1 : OK case : Many groups/tutors doing courses simultaneously
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_1_2022)
+        self.assertJsonResponseIsOK("1", json_response_dict)
+
+    def test_KO_case(self):
+        # Test 2 : KO case : Tutor(s) doing more than one course simultaneously
+        #                    Group(s) doing more than one course simultaneously
+        #                    No common time for courses to be done simultaneously
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_1_2022)
+        self.assertJsonResponseIsKO("2", json_response_dict)
 

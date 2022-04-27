@@ -83,8 +83,8 @@ class SimultaneousCourses(TTConstraint):
         partition = None
         for course in considered_courses :
             if partition == None : # Here we build the partition of the first teacher
-                partition = Partition.get_available_partition_for_course(course,week,course.type.department)
-            new_partition = Partition.get_available_partition_for_course(course,week,course.type.department)
+                partition = partition_bis.get_available_partition_for_course(course,week,course.type.department)
+            new_partition = partition_bis.get_available_partition_for_course(course,week,course.type.department)
             """
             Then, for each interval (named interval1) available and not forbidden of the main partition (named partition) 
             we watch if the interval of another teacher (named interval2) is also available and not forbidden 
@@ -243,26 +243,8 @@ class LimitedStartTimeChoices(TTConstraint):
     possible_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
 
-<<<<<<< HEAD
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
-=======
-    def pre_analyse(self, week):
-        jsondict = {"status": _("OK"), "messages": [], "period": {"week": week.nb, "year": week.year}}
-        tutor = self.tutor
-        course_type = self.course_type
-        #todo : return a list of course_type courses with the concerned tutor
-        tutor_partition = None # TODO : retrieve tutor's partition for the week
-
-        print("Tutors : ", self.tutor)
-        print("Module : ", self.module)
-        print("Group : ", self.group)
-        print("Course type : ", self.course_type)
-        print("possible_week_days", self.possible_week_days)
-        print("possible_start_time : ", self.possible_start_times)
-        return jsondict
-
-    def enrich_model(self, ttmodel, week, ponderation=1.):
->>>>>>> b7e95304 (pre-analyse simultaneousCourses)
         fc = self.get_courses_queryset_by_attributes(ttmodel, week)
         pst = self.possible_start_times
         if not pst:
