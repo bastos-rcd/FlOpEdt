@@ -115,18 +115,30 @@ class SimultaneousCoursesTestCase(ConstraintTestCase):
         # Weeks
         self.week_1_2022 = Week.objects.get(year=2022, nb=1)
         self.week_2_2022 = Week.objects.get(year=2022, nb=2)
+        self.week_3_2022 = Week.objects.get(year=2022, nb=3)
 
 
 
     def test_OK_case(self):
-        # Test 1 : OK case : Many groups/tutors doing courses simultaneously
+        # Test 1 : OK case : Many groups/tutors doing courses simultaneously :
+        #                    01-2022 TD1/TD2
+        #                    01-2022 TD2/TP11/TP12
         json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_1_2022)
         self.assertJsonResponseIsOK("1", json_response_dict)
 
     def test_KO_case(self):
-        # Test 2 : KO case : Tutor(s) doing more than one course simultaneously
-        #                    Group(s) doing more than one course simultaneously
-        #                    No common time for courses to be done simultaneously
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_1_2022)
+        # Test 2 : KO case : Tutor doing more than one course simultaneously :
+        #                       02-2022 TP12(professeur) // TD2(professeur) => KO (Same teacher)
+        #                    Group doing more than one course simultaneously :
+        #                       02-2022 TD2(professeur) // TD2(teacher) => KO (Same group)
+        #                    No common time for courses to be done simultaneously :
+        #                       02-2022 TD2/TP11/TP12 => KO (no available common time)
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_2_2022)
         self.assertJsonResponseIsKO("2", json_response_dict)
 
+    def test_KO2_case(self):
+        # Test 3 : KO case : Many groups/tutors doing courses simultaneously :
+        #                       03-2022 TD1(professeur/teacher/educateur)/TD2 (professeur/teacher/educateur)
+        #                           => KO (test many groups/tutors)
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_3_2022)
+        self.assertJsonResponseIsOK("3", json_response_dict)
