@@ -99,7 +99,7 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
 
 class SimultaneousCoursesTestCase(ConstraintTestCase):
 
-    fixtures = ['data_test_constraints.json']
+    fixtures = ['data_test_constraints_SimultaneousCourses.json']
 
     def setUp(self):
         # Set constraint's type
