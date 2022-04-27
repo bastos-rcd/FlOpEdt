@@ -70,9 +70,7 @@ class SimultaneousCourses(TTConstraint):
         jsondict = {"status": _("OK"), "messages": [], "period": {"week": week.nb, "year": week.year}}
 
         # pre_analyse's week simultaneous courses retrieval
-        considered_courses = (list(c for c in self.courses.all() if c.week == week ))#or c.week == None))
-
-        print("Week ", week, ", Courses : ", considered_courses)
+        considered_courses = (list(c for c in self.courses.all() if c.week == week ))
 
         #We verify if there is only one course to do simultaneously for each tutor/group
         jsondict,OK = self.maxOneCourse(jsondict, considered_courses)
@@ -383,7 +381,6 @@ class ConsiderDependencies(TTConstraint):
                 course1_slots = week_partition_course1.find_all_available_timeinterval_with_key_starting_at("user_preference", course1_start_times, dependency.course1.type.duration)
                 course2_slots = week_partition_course2.find_all_available_timeinterval_with_key_starting_at("user_preference", course2_start_times, dependency.course2.type.duration)
                 if course1_slots and course2_slots:
-                    print(course2_slots[0].end < course1_slots[0].start + timedelta(hours = dependency.course1.type.duration/60+dependency.course2.type.duration/60))
                     while course2_slots[0].end < course1_slots[0].start + timedelta(hours = dependency.course1.type.duration/60+dependency.course2.type.duration/60):
                         course2_slots.pop(0)
                         if not course2_slots:
