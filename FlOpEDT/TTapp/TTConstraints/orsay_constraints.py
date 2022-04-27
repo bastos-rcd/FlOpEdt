@@ -140,7 +140,7 @@ class GroupsLunchBreak(TTConstraint):
 
         """
 
-        if self.groups.filter(name=group.name): # TODO : ok de faire ca ?
+        if self.groups.filter(name=group.name) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
             for weekday in self.weekdays :
                 day = Day(weekday,week)
                 partition.add_slot(TimeInterval(flopdate_to_datetime(day,self.start_time),
@@ -252,7 +252,7 @@ class TutorsLunchBreak(TTConstraint):
 
         """
 
-        if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ?
+        if self.tutors.filter(username=tutor.username) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
             print("Ok1")
             for weekday in self.weekdays :
                 print("Ok2")

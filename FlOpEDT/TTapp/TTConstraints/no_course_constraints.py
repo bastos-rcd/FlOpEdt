@@ -34,6 +34,7 @@ from TTapp.slots import slots_filter
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from .groups_constraints import considered_basic_groups
+from django.db.models import Q
 
 
 class NoCourseOnDay(TTConstraint):
@@ -133,13 +134,11 @@ class NoGroupCourseOnDay(NoCourseOnDay):
         :rtype: Partition
 
         """
-        
-        if self.groups.filter(name=group.name): # TODO : ok de faire ca ? non ...?
-            
+        if self.groups.filter(name=group.name) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
+
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
 
-            # TODO : verifier si value à 0 ou à 8, si forbidden
             if self.period == self.FULL_DAY:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
@@ -301,11 +300,10 @@ class NoTutorCourseOnDay(NoCourseOnDay):
 
         """
         
-        if self.tutors.filter(username=tutor.username): # TODO : ok de faire ca ? non ...?
+        if self.tutors.filter(username=tutor.username) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
 
-            # TODO : verifier si value à 0 ou à 8, si forbidden
             if self.period == self.FULL_DAY:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
