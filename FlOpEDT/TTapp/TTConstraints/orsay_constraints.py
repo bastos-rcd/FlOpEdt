@@ -253,17 +253,13 @@ class TutorsLunchBreak(TTConstraint):
         """
 
         if self.tutors.filter(username=tutor.username) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
-            print("Ok1")
             for weekday in self.weekdays :
-                print("Ok2")
                 day = Day(weekday,week)
-                print("Ok3")
                 partition.add_slot(TimeInterval(flopdate_to_datetime(day,self.start_time),
                                                 flopdate_to_datetime(day, self.end_time)),
                                    "forbidden",
                                    {"value": 0, "forbidden": True, "tutor_lunch_break": tutor.username}
                                    )
-                print("End complete_tutor_partition (TutorLunchBreak)")
 
         return partition
 
