@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-20 08:38+0000\n"
+"POT-Creation-Date: 2022-05-02 20:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -606,13 +606,13 @@ msgstr "从周开始"
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
-#: configuration/templates/configuration/configuration.html:89
-#: configuration/templates/configuration/configuration.html:94
+#: configuration/templates/configuration/configuration.html:111
+#: configuration/templates/configuration/configuration.html:116
 msgid "year"
 msgstr "年"
 
 #: base/templates/base/show-stype.html:100
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:114
 msgid "until week"
 msgstr "到周"
 
@@ -767,7 +767,6 @@ msgid "Configuration file canvas"
 msgstr "配置文件大纲"
 
 #: configuration/templates/configuration/configuration.html:19
-#: configuration/templates/configuration/configuration.html:54
 msgid "Download and then complete the file below."
 msgstr "下载并完成以下文件"
 
@@ -776,7 +775,7 @@ msgid "Click to download the configuration file"
 msgstr "点击下载配置文件"
 
 #: configuration/templates/configuration/configuration.html:21
-#: configuration/templates/configuration/configuration.html:62
+#: configuration/templates/configuration/configuration.html:61
 msgid "Download"
 msgstr "下载"
 
@@ -789,7 +788,7 @@ msgid "Upload the completed configuration file."
 msgstr "上传完成的配置文件"
 
 #: configuration/templates/configuration/configuration.html:27
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Only xlsx format is accepted."
 msgstr "仅接受xlsx格式。"
 
@@ -808,13 +807,13 @@ msgid "Edit"
 msgstr "编辑"
 
 #: configuration/templates/configuration/configuration.html:36
-#: configuration/templates/configuration/configuration.html:116
+#: configuration/templates/configuration/configuration.html:138
 #: templates/base.html:115
 msgid "Import"
 msgstr "输入"
 
 #: configuration/templates/configuration/configuration.html:41
-#: configuration/templates/configuration/configuration.html:120
+#: configuration/templates/configuration/configuration.html:142
 msgid "Verdict :"
 msgstr "定论："
 
@@ -848,29 +847,53 @@ msgstr "第2步-计划课程（在哪一周的哪门课程，哪位老师教哪�
 msgid "Template for the planning file from the configuration file"
 msgstr "配置文件中计划文件的模板"
 
-#: configuration/templates/configuration/configuration.html:55
-msgid "Click to download the planning file outline"
+#: configuration/templates/configuration/configuration.html:54
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to download the current planning file outline"
 msgstr "点击下载计划文件大纲"
 
-#: configuration/templates/configuration/configuration.html:69
+#: configuration/templates/configuration/configuration.html:64
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to make and download a new blank planning file outline"
+msgstr "点击下载计划文件大纲"
+
+#: configuration/templates/configuration/configuration.html:65
+#: configuration/templates/configuration/configuration.html:76
+msgid " (it may last several minuts)."
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:72
+#: configuration/templates/configuration/configuration.html:83
+msgid "Make_and_download"
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:75
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to make and download a new fullfilled planning file outline"
+msgstr "点击下载计划文件大纲"
+
+#: configuration/templates/configuration/configuration.html:91
 msgid "Completed planning file"
 msgstr "完成的计划文件"
 
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Upload the completed planning file."
 msgstr "上传完成的计划文件。"
 
-#: configuration/templates/configuration/configuration.html:87
+#: configuration/templates/configuration/configuration.html:109
 #, fuzzy
 #| msgid "from week"
 msgid "From week"
 msgstr "从周开始"
 
-#: configuration/templates/configuration/configuration.html:101
+#: configuration/templates/configuration/configuration.html:123
 msgid "Only for periods "
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:107
+#: configuration/templates/configuration/configuration.html:129
 msgid "Stabilization ?"
 msgstr "稳定？"
 

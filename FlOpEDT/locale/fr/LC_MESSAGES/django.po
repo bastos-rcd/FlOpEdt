@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-20 08:38+0000\n"
+"POT-Creation-Date: 2022-05-02 20:30+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -244,7 +244,7 @@ msgstr "Mininimise les créneaux indésirables des groupes"
 #: TTapp/TTConstraints/orsay_constraints.py:184
 #, python-brace-format
 msgid "Not able to eat in other departments on {day}-{week}"
-msgstr ""
+msgstr "Ne pourra pas manger dans un autre département {day}-{week}"
 
 #: TTapp/TTConstraints/slots_constraints.py:290
 #: TTapp/TTConstraints/slots_constraints.py:297
@@ -625,13 +625,13 @@ msgstr "de la semaine"
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
-#: configuration/templates/configuration/configuration.html:89
-#: configuration/templates/configuration/configuration.html:94
+#: configuration/templates/configuration/configuration.html:111
+#: configuration/templates/configuration/configuration.html:116
 msgid "year"
 msgstr "année"
 
 #: base/templates/base/show-stype.html:100
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:114
 msgid "until week"
 msgstr "à la semaine"
 
@@ -787,7 +787,6 @@ msgid "Configuration file canvas"
 msgstr "Canevas du fichier de configuration"
 
 #: configuration/templates/configuration/configuration.html:19
-#: configuration/templates/configuration/configuration.html:54
 msgid "Download and then complete the file below."
 msgstr "Téléchargez puis remplissez le fichier ci-dessous."
 
@@ -796,7 +795,7 @@ msgid "Click to download the configuration file"
 msgstr "Cliquez pour télécharger le fichier de configuration"
 
 #: configuration/templates/configuration/configuration.html:21
-#: configuration/templates/configuration/configuration.html:62
+#: configuration/templates/configuration/configuration.html:61
 msgid "Download"
 msgstr "Télécharger"
 
@@ -809,7 +808,7 @@ msgid "Upload the completed configuration file."
 msgstr "Téléversez le fichier de configuration rempli."
 
 #: configuration/templates/configuration/configuration.html:27
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Only xlsx format is accepted."
 msgstr "Seul le format xlsx est accepté."
 
@@ -828,13 +827,13 @@ msgid "Edit"
 msgstr "Modifier"
 
 #: configuration/templates/configuration/configuration.html:36
-#: configuration/templates/configuration/configuration.html:116
+#: configuration/templates/configuration/configuration.html:138
 #: templates/base.html:115
 msgid "Import"
 msgstr "Importer"
 
 #: configuration/templates/configuration/configuration.html:41
-#: configuration/templates/configuration/configuration.html:120
+#: configuration/templates/configuration/configuration.html:142
 msgid "Verdict :"
 msgstr "Verdict :"
 
@@ -873,27 +872,49 @@ msgid "Template for the planning file from the configuration file"
 msgstr ""
 "Canevas du fichier de planification à partir du fichier de configuration"
 
-#: configuration/templates/configuration/configuration.html:55
-msgid "Click to download the planning file outline"
-msgstr "Cliquez pour télécharger le canevas du fichier de planification"
+#: configuration/templates/configuration/configuration.html:54
+msgid "Click to download the current planning file outline"
+msgstr "Cliquez pour télécharger le canevas de fichier de planification actuel"
 
-#: configuration/templates/configuration/configuration.html:69
+#: configuration/templates/configuration/configuration.html:64
+msgid "Click to make and download a new blank planning file outline"
+msgstr ""
+"Cliquez pour créer et télécharger un nouveau canevas de fichier de "
+"planification vierge"
+
+#: configuration/templates/configuration/configuration.html:65
+#: configuration/templates/configuration/configuration.html:76
+msgid " (it may last several minuts)."
+msgstr " (ça peut prendre plusieurs minutes...)"
+
+#: configuration/templates/configuration/configuration.html:72
+#: configuration/templates/configuration/configuration.html:83
+msgid "Make_and_download"
+msgstr "Créer_et_télécharger"
+
+#: configuration/templates/configuration/configuration.html:75
+msgid "Click to make and download a new fullfilled planning file outline"
+msgstr ""
+"Cliquez pour créer et télécharger un nouveau canevas de fichier de "
+"planification rempli"
+
+#: configuration/templates/configuration/configuration.html:91
 msgid "Completed planning file"
 msgstr "Fichier de planification des cours complété"
 
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Upload the completed planning file."
 msgstr "Téléversez le fichier de planification rempli."
 
-#: configuration/templates/configuration/configuration.html:87
+#: configuration/templates/configuration/configuration.html:109
 msgid "From week"
 msgstr "De la semaine"
 
-#: configuration/templates/configuration/configuration.html:101
+#: configuration/templates/configuration/configuration.html:123
 msgid "Only for periods "
 msgstr "Uniquement les périodes "
 
-#: configuration/templates/configuration/configuration.html:107
+#: configuration/templates/configuration/configuration.html:129
 msgid "Stabilization ?"
 msgstr "Stabilisation ?"
 
@@ -1016,6 +1037,11 @@ msgid "[flop!Scheduler] Changes on your planning"
 msgstr "[flop!EDT] Modifications de votre planning"
 
 #: notifications/notifications.py:203
+#, fuzzy, python-format
+#| msgid ""
+#| "This email is automatically generated by flop!Scheduler. To manage your "
+#| "notifications settings, please <a href='%(urlgit /edt/%(dept)s/semaine-"
+#| "type'> click here <a/>."
 msgid ""
 "This email is automatically generated by flop!Scheduler. To manage your "
 "notifications settings, please <a href='%(url)s/edt/%(dept)s/semaine-type'> "

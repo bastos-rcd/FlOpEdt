@@ -178,7 +178,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 if self.dept is None:
                     self.dept = self.tutor.departments.first()
             else:
-                self.dept = self.groups[0].train_prog.department
+                self.dept = list(self.groups)[0].train_prog.department
         if self.dept.mode.cosmo:
             return serializers.ScheduledCoursesCosmoSerializer
         else:

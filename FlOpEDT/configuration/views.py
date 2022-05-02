@@ -159,7 +159,7 @@ def get_config_file(req, **kwargs):
 
 
 @dept_admin_required
-def get_planif_file(req, **kwargs):
+def get_planif_file(req, with_courses=False, **kwargs):
     """
     Send an empty planification's file.
     Rely on the configuration step if it was taken.
@@ -169,7 +169,11 @@ def get_planif_file(req, **kwargs):
     logger.debug(req.GET['departement'])
     filename = os.path.join(settings.MEDIA_ROOT,
                              'configuration',
-                             f"planif_file_{req.GET['departement']}.xlsx")
+                             f"planif_file_{req.GET['departement']}")
+    if with_courses:
+        filename += '_with_courses'
+    filename += ".xlsx"
+
     if not os.path.exists(filename):
         filename = os.path.join(settings.MEDIA_ROOT,
                                 'configuration',
@@ -179,6 +183,21 @@ def get_planif_file(req, **kwargs):
     response['Content-Disposition'] = 'attachment; filename="planif_file.xlsx"'
     f.close()
     return response
+
+
+@dept_admin_required
+def mk_and_dl_planif(req, with_courses, **kwargs):
+    logger.debug(req.GET['departement'])
+    dept_abbrev = req.GET['departement']
+    dept = Department.objects.get(abbrev=dept_abbrev)
+    source = os.path.join(settings.MEDIA_ROOT,
+                          'configuration',
+                          'empty_planif_file.xlsx')
+    target_repo = os.path.join(settings.MEDIA_ROOT,
+                               'configuration')
+    logger.info("start planif")
+    make_planif_file(dept, empty_bookname=source, target_repo=target_repo, with_courses=with_courses)
+    return get_planif_file(req, with_courses, **kwargs)
 
 
 @dept_admin_required

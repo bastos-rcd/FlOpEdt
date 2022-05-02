@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-20 08:38+0000\n"
+"POT-Creation-Date: 2022-05-02 20:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -596,13 +596,13 @@ msgstr ""
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
-#: configuration/templates/configuration/configuration.html:89
-#: configuration/templates/configuration/configuration.html:94
+#: configuration/templates/configuration/configuration.html:111
+#: configuration/templates/configuration/configuration.html:116
 msgid "year"
 msgstr ""
 
 #: base/templates/base/show-stype.html:100
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:114
 msgid "until week"
 msgstr ""
 
@@ -754,7 +754,6 @@ msgid "Configuration file canvas"
 msgstr ""
 
 #: configuration/templates/configuration/configuration.html:19
-#: configuration/templates/configuration/configuration.html:54
 msgid "Download and then complete the file below."
 msgstr ""
 
@@ -763,7 +762,7 @@ msgid "Click to download the configuration file"
 msgstr ""
 
 #: configuration/templates/configuration/configuration.html:21
-#: configuration/templates/configuration/configuration.html:62
+#: configuration/templates/configuration/configuration.html:61
 msgid "Download"
 msgstr ""
 
@@ -776,7 +775,7 @@ msgid "Upload the completed configuration file."
 msgstr ""
 
 #: configuration/templates/configuration/configuration.html:27
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Only xlsx format is accepted."
 msgstr ""
 
@@ -795,13 +794,13 @@ msgid "Edit"
 msgstr ""
 
 #: configuration/templates/configuration/configuration.html:36
-#: configuration/templates/configuration/configuration.html:116
+#: configuration/templates/configuration/configuration.html:138
 #: templates/base.html:115
 msgid "Import"
 msgstr ""
 
 #: configuration/templates/configuration/configuration.html:41
-#: configuration/templates/configuration/configuration.html:120
+#: configuration/templates/configuration/configuration.html:142
 msgid "Verdict :"
 msgstr ""
 
@@ -835,27 +834,45 @@ msgstr ""
 msgid "Template for the planning file from the configuration file"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:55
-msgid "Click to download the planning file outline"
+#: configuration/templates/configuration/configuration.html:54
+msgid "Click to download the current planning file outline"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:69
+#: configuration/templates/configuration/configuration.html:64
+msgid "Click to make and download a new blank planning file outline"
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:65
+#: configuration/templates/configuration/configuration.html:76
+msgid " (it may last several minuts)."
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:72
+#: configuration/templates/configuration/configuration.html:83
+msgid "Make_and_download"
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:75
+msgid "Click to make and download a new fullfilled planning file outline"
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:91
 msgid "Completed planning file"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Upload the completed planning file."
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:87
+#: configuration/templates/configuration/configuration.html:109
 msgid "From week"
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:101
+#: configuration/templates/configuration/configuration.html:123
 msgid "Only for periods "
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:107
+#: configuration/templates/configuration/configuration.html:129
 msgid "Stabilization ?"
 msgstr ""
 

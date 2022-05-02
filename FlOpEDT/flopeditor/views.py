@@ -206,6 +206,23 @@ def department_parameters_edit(request, department_abbrev):
 
 
 @superuser_required
+def department_delete(request, department_abbrev):
+    """Parameters edit view of flop!EDITOR.
+
+    :param request:           Client request.
+    :param department_abbrev: Department abbreviation.
+    :type request:            django.http.HttpRequest
+    :type department_abbrev:  str
+    :return: delete department and return page rendered from the home template of flop!EDITOR.
+    :rtype:  django.http.HttpResponse
+
+    """
+    department = get_object_or_404(Department, abbrev=department_abbrev)
+    department.delete()
+    return redirect('flopeditor:flopeditor-home')
+
+
+@superuser_required
 def ajax_create_department(request):
     """Ajax url for department creation
 

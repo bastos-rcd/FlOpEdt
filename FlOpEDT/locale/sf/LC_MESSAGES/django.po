@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-20 08:38+0000\n"
+"POT-Creation-Date: 2022-05-02 20:30+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -639,13 +639,13 @@ msgstr "de la semaine"
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
-#: configuration/templates/configuration/configuration.html:89
-#: configuration/templates/configuration/configuration.html:94
+#: configuration/templates/configuration/configuration.html:111
+#: configuration/templates/configuration/configuration.html:116
 msgid "year"
 msgstr "année"
 
 #: base/templates/base/show-stype.html:100
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:114
 msgid "until week"
 msgstr "à la semaine"
 
@@ -803,7 +803,6 @@ msgid "Configuration file canvas"
 msgstr "Canevas du fichier de configuration"
 
 #: configuration/templates/configuration/configuration.html:19
-#: configuration/templates/configuration/configuration.html:54
 msgid "Download and then complete the file below."
 msgstr "Téléchargez puis remplissez le fichier ci-dessous."
 
@@ -812,7 +811,7 @@ msgid "Click to download the configuration file"
 msgstr "Cliquez pour télécharger le fichier de configuration"
 
 #: configuration/templates/configuration/configuration.html:21
-#: configuration/templates/configuration/configuration.html:62
+#: configuration/templates/configuration/configuration.html:61
 msgid "Download"
 msgstr "Télécharger"
 
@@ -825,7 +824,7 @@ msgid "Upload the completed configuration file."
 msgstr "Téléversez le fichier de configuration rempli."
 
 #: configuration/templates/configuration/configuration.html:27
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Only xlsx format is accepted."
 msgstr "Seul le format xlsx est accepté."
 
@@ -844,13 +843,13 @@ msgid "Edit"
 msgstr "Modifier"
 
 #: configuration/templates/configuration/configuration.html:36
-#: configuration/templates/configuration/configuration.html:116
+#: configuration/templates/configuration/configuration.html:138
 #: templates/base.html:115
 msgid "Import"
 msgstr "Importer"
 
 #: configuration/templates/configuration/configuration.html:41
-#: configuration/templates/configuration/configuration.html:120
+#: configuration/templates/configuration/configuration.html:142
 msgid "Verdict :"
 msgstr "Verdict :"
 
@@ -889,29 +888,53 @@ msgid "Template for the planning file from the configuration file"
 msgstr ""
 "Canevas du fichier de planification à partir du fichier de configuration"
 
-#: configuration/templates/configuration/configuration.html:55
-msgid "Click to download the planning file outline"
+#: configuration/templates/configuration/configuration.html:54
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to download the current planning file outline"
 msgstr "Cliquez pour schtroumpfer le canevas du fichier de planification"
 
-#: configuration/templates/configuration/configuration.html:69
+#: configuration/templates/configuration/configuration.html:64
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to make and download a new blank planning file outline"
+msgstr "Cliquez pour schtroumpfer le canevas du fichier de planification"
+
+#: configuration/templates/configuration/configuration.html:65
+#: configuration/templates/configuration/configuration.html:76
+msgid " (it may last several minuts)."
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:72
+#: configuration/templates/configuration/configuration.html:83
+msgid "Make_and_download"
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:75
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to make and download a new fullfilled planning file outline"
+msgstr "Cliquez pour schtroumpfer le canevas du fichier de planification"
+
+#: configuration/templates/configuration/configuration.html:91
 msgid "Completed planning file"
 msgstr "Fichier de planification des cours complété"
 
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Upload the completed planning file."
 msgstr "Téléversez le schtroumpf de planification rempli."
 
-#: configuration/templates/configuration/configuration.html:87
+#: configuration/templates/configuration/configuration.html:109
 #, fuzzy
 #| msgid "from week"
 msgid "From week"
 msgstr "de la semaine"
 
-#: configuration/templates/configuration/configuration.html:101
+#: configuration/templates/configuration/configuration.html:123
 msgid "Only for periods "
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:107
+#: configuration/templates/configuration/configuration.html:129
 msgid "Stabilization ?"
 msgstr "Stabilisation ?"
 
