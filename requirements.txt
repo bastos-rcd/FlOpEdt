@@ -31,4 +31,5 @@ django-filter
 drf-yasg
 django-cors-headers
 pyprof2calltree
+django-crontab
 

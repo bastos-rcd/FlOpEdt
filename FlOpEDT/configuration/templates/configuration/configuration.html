@@ -51,9 +51,8 @@
     <h1>{% trans "Step 2 - Plan the lessons (which lesson in which week, which teacher gives which lesson)" %}</h1>
     <div class="step">
     <h3>{% trans "Template for the planning file from the configuration file" %}</h3>
-        <p>{% trans "Download and then complete the file below." %}</p>
-        {% trans "Click to download the planning file outline" %}
-        <form action="{% url "configuration:dl_planif" %}">
+        {% trans "Click to download the current planning file outline" %}
+        <form action="{% url 'configuration:dl_planif' %}">
         <select name="departement"  id="dropdown_dpt_1">
             {% for depart in departements %}
                 <option value={{ depart.abbrev }} >{{ depart.name }}</option>
@@ -61,6 +60,29 @@
         </select>
         <input id="btn_dl_planif" type="submit" value={% trans "Download" %}>
         </form>
+        <br/>
+        {% trans "Click to make and download a new blank planning file outline" %}
+        {% trans " (it may last several minuts)." %}
+        <form action="{% url 'configuration:mk_and_dl_blank_planif' %}">
+        <select name="departement"  id="dropdown_dpt_1">
+            {% for depart in departements %}
+                <option value={{ depart.abbrev }} >{{ depart.name }}</option>
+            {% endfor %}
+        </select>
+        <input id="btn_dl_planif" type="submit" value={% trans "Make_and_download" %}>
+        </form>
+        <br/>
+        {% trans "Click to make and download a new fullfilled planning file outline" %}
+        {% trans " (it may last several minuts)." %}
+        <form action="{% url 'configuration:mk_and_dl_fullfilled_planif' %}">
+        <select name="departement"  id="dropdown_dpt_1">
+            {% for depart in departements %}
+                <option value={{ depart.abbrev }} >{{ depart.name }}</option>
+            {% endfor %}
+        </select>
+        <input id="btn_dl_planif" type="submit" value={% trans "Make_and_download" %}>
+        </form>
+
     </div>
 
     <div class="step">

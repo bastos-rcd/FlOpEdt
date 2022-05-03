@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # This file is part of the FlOpEDT/FlOpScheduler project.
 # Copyright (c) 2017
 # Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.
@@ -21,32 +23,12 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from .base import *
 
-STATIC_ROOT = '/var/www/edt/static/'
+import django
+from notifications.notifications import backup, send_notifications
 
-SECRET_KEY = 'your_secret_key'
 
-DEBUG = False
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'flop_database',
-        'USER': 'flop_user',
-        'PASSWORD': 'your_password',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
-}
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
-    }
-}
-
-CRONJOBS = [
-    ('0 4 * * *', 'notifications.cron.backup_and_notify')
-]
+def backup_and_notify():
+    django.utils.translation.activate('fr')
+    backup()
+    send_notifications()

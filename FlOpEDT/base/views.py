@@ -25,27 +25,24 @@
 
 from django.db.models import Q
 import json
-from collections import namedtuple
-from itertools import chain
-from random import randint
 import logging
 
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import EmailMessage
 from django.db import transaction
 from django.db.models import Sum
-from django.http import HttpResponse, Http404, JsonResponse, HttpRequest
+from django.http import HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_page
 from django.views.generic import RedirectView
 
-from FlOpEDT.decorators import dept_admin_required, tutor_required
+from core.decorators import dept_admin_required, tutor_required
 
 from people.models import Tutor, UserDepartmentSettings, User, \
     NotificationsPreferences, UserPreferredLinks, TutorPreference, ThemesPreferences
@@ -53,17 +50,17 @@ from people.models import Tutor, UserDepartmentSettings, User, \
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
 
-from base.admin import CoursResource, DispoResource, VersionResource, \
-    CoursPlaceResource, UnavailableRoomsResource, TutorCoursesResource, \
+from base.admin import DispoResource, VersionResource, \
+    TutorCoursesResource, \
     CoursePreferenceResource, MultiDepartmentTutorResource, \
     SharedRoomsResource, RoomPreferenceResource, ModuleRessource, \
     TutorRessource, ModuleDescriptionResource, AllDispoResource, \
-    GroupPreferredLinksResource, CoursPlaceResourceCosmo
-from base.forms import ContactForm, PerfectDayForm, ModuleDescriptionForm, \
+    GroupPreferredLinksResource
+from base.forms import ContactForm, ModuleDescriptionForm, \
     EnrichedLinkForm
 from base.models import Course, UserPreference, ScheduledCourse, EdtVersion, \
-    CourseModification, Day, Time, Room, RoomType, RoomSort, \
-    Regen, RoomPreference, Department, TimeGeneralSettings, CoursePreference, \
+    CourseModification, Room, RoomType, RoomSort, \
+    RoomPreference, Department, CoursePreference, \
     TrainingProgramme, CourseType, Module, StructuralGroup, EnrichedLink, \
     ScheduledCourseAdditional, GroupPreferredLinks, Week, Theme
 import base.queries as queries

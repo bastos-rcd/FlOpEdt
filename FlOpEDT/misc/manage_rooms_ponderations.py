@@ -1,4 +1,4 @@
-from FlOpEDT.decorators import timer
+from core.decorators import timer
 from base.models import RoomPonderation, RoomType
 from django.db import transaction
 

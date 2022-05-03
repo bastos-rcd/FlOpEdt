@@ -262,7 +262,10 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                                 courses_weeks = type_courses.distinct('week').exclude(week__nb=0)
                                 for course_week in courses_weeks:
                                     local_week = course_week.week
-                                    week_col = week_col_dict[local_week.nb]
+                                    try:
+                                        week_col = week_col_dict[local_week.nb]
+                                    except KeyError:
+                                        continue
                                     week_tutor_group_courses_nb = tutor_group_courses.filter(week=local_week).count()
                                     sheet.cell(row=rank, column=week_col).value = week_tutor_group_courses_nb
                                 rank += 1
@@ -422,5 +425,10 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
 
     new_book.remove(new_book['empty_recap'])
     new_book.remove(new_book['empty'])
-    filename = f'{target_repo}/planif_file_' + department.abbrev + '.xlsx'
+
+    filename = f'{target_repo}/planif_file_' + department.abbrev
+    if with_courses:
+        filename += '_with_courses'
+    filename += '.xlsx'
+
     new_book.save(filename=filename)

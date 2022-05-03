@@ -30,8 +30,6 @@ from django.utils.translation import gettext_lazy as _
 
 from django.db import models
 
-from FlOpEDT.decorators import timer
-
 max_weight = 8
 
 

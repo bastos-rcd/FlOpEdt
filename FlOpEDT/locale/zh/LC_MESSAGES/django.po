@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-30 16:24+0000\n"
+"POT-Creation-Date: 2022-05-02 20:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,89 +17,89 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: FlOpEDT/settings/base.py:157
+#: FlOpEDT/settings/base.py:159
 msgid "French"
 msgstr "法语"
 
-#: FlOpEDT/settings/base.py:158
+#: FlOpEDT/settings/base.py:160
 msgid "English"
 msgstr "英语"
 
-#: FlOpEDT/settings/base.py:159
+#: FlOpEDT/settings/base.py:161
 msgid "Spanish"
 msgstr "西班牙语"
 
-#: FlOpEDT/settings/base.py:160
+#: FlOpEDT/settings/base.py:162
 msgid "Arabic"
 msgstr "阿拉伯语"
 
-#: FlOpEDT/settings/base.py:161
+#: FlOpEDT/settings/base.py:163
 msgid "Basque"
 msgstr "巴斯克语"
 
-#: FlOpEDT/settings/base.py:162
+#: FlOpEDT/settings/base.py:164
 msgid "Breton"
 msgstr "布列塔尼语"
 
-#: FlOpEDT/settings/base.py:163
+#: FlOpEDT/settings/base.py:165
 msgid "Catalan"
 msgstr "加泰罗尼亚语"
 
-#: FlOpEDT/settings/base.py:164
+#: FlOpEDT/settings/base.py:166
 msgid "Corsican"
 msgstr "科西嘉语"
 
-#: FlOpEDT/settings/base.py:165
+#: FlOpEDT/settings/base.py:167
 msgid "Danish"
 msgstr "丹麦语"
 
-#: FlOpEDT/settings/base.py:166
+#: FlOpEDT/settings/base.py:168
 msgid "German"
 msgstr "德语"
 
-#: FlOpEDT/settings/base.py:167
+#: FlOpEDT/settings/base.py:169
 msgid "Dutch"
 msgstr "荷兰语"
 
-#: FlOpEDT/settings/base.py:168
+#: FlOpEDT/settings/base.py:170
 msgid "Greek"
 msgstr "希腊语"
 
-#: FlOpEDT/settings/base.py:169
+#: FlOpEDT/settings/base.py:171
 msgid "Italian"
 msgstr "意大利语"
 
-#: FlOpEDT/settings/base.py:170
+#: FlOpEDT/settings/base.py:172
 msgid "Latin"
 msgstr "拉丁文"
 
-#: FlOpEDT/settings/base.py:171
+#: FlOpEDT/settings/base.py:173
 msgid "Norwegian"
 msgstr "挪威语"
 
-#: FlOpEDT/settings/base.py:172
+#: FlOpEDT/settings/base.py:174
 #, fuzzy
 #| msgid "English"
 msgid "Polish"
 msgstr "英语"
 
-#: FlOpEDT/settings/base.py:173
+#: FlOpEDT/settings/base.py:175
 msgid "Portuguese"
 msgstr "葡萄牙语"
 
-#: FlOpEDT/settings/base.py:174
+#: FlOpEDT/settings/base.py:176
 msgid "Swedish"
 msgstr "瑞典语"
 
-#: FlOpEDT/settings/base.py:175
+#: FlOpEDT/settings/base.py:177
 msgid "Chinese"
 msgstr "中文"
 
-#: FlOpEDT/settings/base.py:176
+#: FlOpEDT/settings/base.py:178
 msgid "Smurf"
 msgstr "蓝精灵语"
 
-#: TTapp/FlopConstraint.py:61
+#: TTapp/FlopConstraint.py:59
 msgid "Is active?"
 msgstr ""
 
@@ -264,23 +264,23 @@ msgstr ""
 msgid "One of the courses has no eligible tutor to lecture it. {dependency}"
 msgstr ""
 
-#: TTapp/TTModel.py:103
+#: TTapp/TTModel.py:100
 #, python-brace-format
 msgid ""
 "\n"
 "Let's start weeks #{self.weeks}"
 msgstr ""
 
-#: TTapp/TTModel.py:113
+#: TTapp/TTModel.py:110
 msgid "Rooms assignment :"
 msgstr ""
 
-#: TTapp/TTModel.py:124
+#: TTapp/TTModel.py:121
 #, python-brace-format
 msgid "Will modify only courses of training programme(s) {train_prog}"
 msgstr ""
 
-#: TTapp/TTModel.py:158
+#: TTapp/TTModel.py:155
 msgid "Relevant warnings :"
 msgstr ""
 
@@ -349,7 +349,7 @@ msgstr "基本组？"
 msgid "Half day"
 msgstr "半天"
 
-#: base/models.py:253
+#: base/models.py:253 notifications/models.py:41
 msgid "Week number"
 msgstr ""
 
@@ -365,7 +365,7 @@ msgstr ""
 msgid "Coop. (worker)"
 msgstr ""
 
-#: base/models.py:455
+#: base/models.py:455 notifications/models.py:47
 msgid "Abbreviation"
 msgstr "缩写"
 
@@ -606,13 +606,13 @@ msgstr "从周开始"
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
-#: configuration/templates/configuration/configuration.html:89
-#: configuration/templates/configuration/configuration.html:94
+#: configuration/templates/configuration/configuration.html:111
+#: configuration/templates/configuration/configuration.html:116
 msgid "year"
 msgstr "年"
 
 #: base/templates/base/show-stype.html:100
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:114
 msgid "until week"
 msgstr "到周"
 
@@ -705,23 +705,23 @@ msgstr ""
 msgid "Create or modify a link"
 msgstr "创建或修改链接"
 
-#: base/views.py:1558
+#: base/views.py:1555
 msgid "Not authorized. New link then."
 msgstr "未经授权。创建一个新的链接。"
 
-#: base/views.py:1561
+#: base/views.py:1558
 msgid "Unknown link. New link then."
 msgstr "未知链接。创建一个新的链接。"
 
-#: base/views.py:1573
+#: base/views.py:1570 notifications/notifications.py:129
 msgid "Created"
 msgstr "已创建"
 
-#: base/views.py:1573
+#: base/views.py:1570
 msgid "Modified"
 msgstr "已修改"
 
-#: base/views.py:1576
+#: base/views.py:1573
 msgid "Tutor does not exist"
 msgstr "该教师不存在"
 
@@ -767,7 +767,6 @@ msgid "Configuration file canvas"
 msgstr "配置文件大纲"
 
 #: configuration/templates/configuration/configuration.html:19
-#: configuration/templates/configuration/configuration.html:54
 msgid "Download and then complete the file below."
 msgstr "下载并完成以下文件"
 
@@ -776,7 +775,7 @@ msgid "Click to download the configuration file"
 msgstr "点击下载配置文件"
 
 #: configuration/templates/configuration/configuration.html:21
-#: configuration/templates/configuration/configuration.html:62
+#: configuration/templates/configuration/configuration.html:61
 msgid "Download"
 msgstr "下载"
 
@@ -789,7 +788,7 @@ msgid "Upload the completed configuration file."
 msgstr "上传完成的配置文件"
 
 #: configuration/templates/configuration/configuration.html:27
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Only xlsx format is accepted."
 msgstr "仅接受xlsx格式。"
 
@@ -808,13 +807,13 @@ msgid "Edit"
 msgstr "编辑"
 
 #: configuration/templates/configuration/configuration.html:36
-#: configuration/templates/configuration/configuration.html:116
+#: configuration/templates/configuration/configuration.html:138
 #: templates/base.html:115
 msgid "Import"
 msgstr "输入"
 
 #: configuration/templates/configuration/configuration.html:41
-#: configuration/templates/configuration/configuration.html:120
+#: configuration/templates/configuration/configuration.html:142
 msgid "Verdict :"
 msgstr "定论："
 
@@ -848,29 +847,53 @@ msgstr "第2步-计划课程（在哪一周的哪门课程，哪位老师教哪�
 msgid "Template for the planning file from the configuration file"
 msgstr "配置文件中计划文件的模板"
 
-#: configuration/templates/configuration/configuration.html:55
-msgid "Click to download the planning file outline"
+#: configuration/templates/configuration/configuration.html:54
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to download the current planning file outline"
 msgstr "点击下载计划文件大纲"
 
-#: configuration/templates/configuration/configuration.html:69
+#: configuration/templates/configuration/configuration.html:64
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to make and download a new blank planning file outline"
+msgstr "点击下载计划文件大纲"
+
+#: configuration/templates/configuration/configuration.html:65
+#: configuration/templates/configuration/configuration.html:76
+msgid " (it may last several minuts)."
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:72
+#: configuration/templates/configuration/configuration.html:83
+msgid "Make_and_download"
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:75
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to make and download a new fullfilled planning file outline"
+msgstr "点击下载计划文件大纲"
+
+#: configuration/templates/configuration/configuration.html:91
 msgid "Completed planning file"
 msgstr "完成的计划文件"
 
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Upload the completed planning file."
 msgstr "上传完成的计划文件。"
 
-#: configuration/templates/configuration/configuration.html:87
+#: configuration/templates/configuration/configuration.html:109
 #, fuzzy
 #| msgid "from week"
 msgid "From week"
 msgstr "从周开始"
 
-#: configuration/templates/configuration/configuration.html:101
+#: configuration/templates/configuration/configuration.html:123
 msgid "Only for periods "
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:107
+#: configuration/templates/configuration/configuration.html:129
 msgid "Stabilization ?"
 msgstr "稳定？"
 
@@ -944,6 +967,87 @@ msgstr "名字"
 #: ics/templates/ics/index.html:95
 msgid "Planned generations"
 msgstr "计划好的生成"
+
+#: notifications/notifications.py:125
+msgid "Deleted"
+msgstr ""
+
+#: notifications/notifications.py:147 notifications/notifications.py:161
+msgid "Mode"
+msgstr ""
+
+#: notifications/notifications.py:148 notifications/notifications.py:162
+#: notifications/notifications.py:184 notifications/notifications.py:232
+#: notifications/notifications.py:267
+#, fuzzy
+#| msgid "Date "
+msgid "Date"
+msgstr "日期 "
+
+#: notifications/notifications.py:149 notifications/notifications.py:163
+#: notifications/notifications.py:232 notifications/notifications.py:267
+msgid "Start time"
+msgstr ""
+
+#: notifications/notifications.py:150 notifications/notifications.py:164
+msgid "Course Type"
+msgstr ""
+
+#: notifications/notifications.py:151 notifications/notifications.py:165
+#, fuzzy
+#| msgid "Modules"
+msgid "Module"
+msgstr "模块"
+
+#: notifications/notifications.py:152
+#, fuzzy
+#| msgid "Tutors"
+msgid "Tutor"
+msgstr "教师"
+
+#: notifications/notifications.py:153 notifications/notifications.py:168
+#, fuzzy
+#| msgid "Rooms"
+msgid "Room"
+msgstr "教室"
+
+#: notifications/notifications.py:166
+#, fuzzy
+#| msgid "Training program"
+msgid "Train_prog"
+msgstr "培训项目"
+
+#: notifications/notifications.py:167
+#, fuzzy
+#| msgid "Groups"
+msgid "Group"
+msgstr "组"
+
+#: notifications/notifications.py:200
+msgid "[flop!Scheduler] Changes on your planning"
+msgstr ""
+
+#: notifications/notifications.py:203
+#, python-format
+msgid ""
+"This email is automatically generated by flop!Scheduler. To manage your "
+"notifications settings, please <a href='%(url)s/edt/%(dept)s/semaine-type'> "
+"click here <a/>."
+msgstr ""
+
+#: notifications/notifications.py:224 notifications/notifications.py:254
+msgid "Hi "
+msgstr ""
+
+#: notifications/notifications.py:225 notifications/notifications.py:255
+#, python-format
+msgid "Here are the changes of your planning for the %g following days :"
+msgstr ""
+
+#: notifications/notifications.py:233
+#, python-format
+msgid "For the department %s :"
+msgstr ""
 
 #: people/templates/people/login.html:55
 msgid "Forgot password?"
@@ -1151,6 +1255,21 @@ msgstr "登出"
 #: templates/base.html:133
 msgid "Signed in as "
 msgstr "登入为"
+
+#, fuzzy
+#~| msgid "Modules"
+#~ msgid "module"
+#~ msgstr "模块"
+
+#, fuzzy
+#~| msgid "Tutors"
+#~ msgid "tutor"
+#~ msgstr "教师"
+
+#, fuzzy
+#~| msgid "Groups"
+#~ msgid "group"
+#~ msgstr "组"
 
 #~ msgid "Maximum time limit for resolution (minuts)"
 #~ msgstr "解析的最大时间限制（分钟）"
