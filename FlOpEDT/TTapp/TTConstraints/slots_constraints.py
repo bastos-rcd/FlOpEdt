@@ -58,7 +58,7 @@ class SimultaneousCourses(TTConstraint):
         """
         Pre-analysis of the constraint
         Firstly verify if there is only one course per group/tutor to be done simultaneously
-        Then built a partition comparing each tutor availability
+        Then built a partition comparing each tutor availability (Can be optimized)
         At the end, try to find an available slot in the week for the considered_courses
 
         Parameters :
@@ -77,34 +77,35 @@ class SimultaneousCourses(TTConstraint):
         if not(OK) :
             return jsondict
 
-        # We build a week's partition comparing partition of each tutors
-        partition = None
-        for course in considered_courses :
-            if partition == None : # Here we build the partition of the first teacher
-                partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department)
-            new_partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department)
-            """
-            Then, for each interval (named interval1) available and not forbidden of the main partition (named partition) 
-            we watch if the interval of another teacher (named interval2) is also available and not forbidden 
-            """
-            for interval1 in partition.intervals :
-                if interval1[1]["available"] and not(interval1[1]["forbidden"]):
-                    for interval2 in new_partition.intervals :
-                        if not(interval1[0].start >= interval2[0].end\
-                                or interval1[0].end <= interval2[0].start) :
-                            interval1[1]["available"] = interval2[1]["available"]
-                            interval1[1]["forbidden"] = interval2[1]["forbidden"]
+        # No course in the constraint case
+        if len(considered_courses) == 0 :
+            jsondict["status"] = _("KO")
+            message = _(f"No partition created : maybe there is no courses or it's wrong the week")
+            jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
+            return jsondict
+
+        # We build a week partition comparing partition of each tutors
+        partition = partition_bis.create_course_partition_from_constraints(considered_courses[0],week,considered_courses[0].type.department)
+        if len(considered_courses)>1 :
+            for course in considered_courses[1:] :
+                new_partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department)
+                """
+                Then, for each interval (named interval1) available and not forbidden of the main partition (named partition) 
+                we watch if the interval of another teacher (named interval2) is also available and not forbidden 
+                """
+                for interval1 in partition.intervals :
+                    if interval1[1]["available"] and not(interval1[1]["forbidden"]):
+                        for interval2 in new_partition.intervals :
+                            if not(interval1[0].start >= interval2[0].end\
+                                    or interval1[0].end <= interval2[0].start) :
+                                interval1[1]["available"] = interval2[1]["available"]
+                                interval1[1]["forbidden"] = interval2[1]["forbidden"]
 
         max_duration = 0
         # Here we find the maximal duration of the simultaneous courses
         for course in considered_courses :
             max_duration = max(max_duration,course.type.duration)
 
-        if partition == None :
-            jsondict["status"] = _("KO")
-            message = _(f"No partition created : maybe there is no courses or it's the week is wrong")
-            jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
-            return jsondict
 
         # Here we search for an available slot in the week
         if partition.nb_slots_available_of_duration(max_duration) < 1:
