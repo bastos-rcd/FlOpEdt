@@ -37,9 +37,9 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from base.models import Department, ScheduledCourse
 
-from FlOpEDT.decorators import timer
+from core.decorators import timer
 from django.db import close_old_connections
-from django.db.models import Q, Max, F
+from django.db.models import Q, Max
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
@@ -155,9 +155,9 @@ class FlopModel(object):
         """
         l_floor = self.add_var()
         self.add_constraint(expr - l_floor * floor, '>=', 0,
-                            Constraint(constraint_type=ConstraintType.SEUIL))
+                            Constraint(constraint_type=ConstraintType.FLOOR_BOUND))
         self.add_constraint(l_floor * bound - expr, '>=', 1 - floor,
-                            Constraint(constraint_type=ConstraintType.SEUIL))
+                            Constraint(constraint_type=ConstraintType.CEILING_BOUND))
         return l_floor
 
     def add_if_var_a_then_not_vars_b_constraint(self, var_a, vars_b_list):

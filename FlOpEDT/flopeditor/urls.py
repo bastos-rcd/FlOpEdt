@@ -67,6 +67,8 @@ urlpatterns = [
          name='flopeditor-department-parameters'),
     path('<slug:department_abbrev>/parameters/edit', views.department_parameters_edit,
          name='flopeditor-department-parameters-edit'),
+    path('<slug:department_abbrev>/delete', views.department_delete,
+         name='flopeditor-department-delete'),
 
 
 

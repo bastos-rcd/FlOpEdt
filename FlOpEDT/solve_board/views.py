@@ -25,32 +25,20 @@
 
 from TTapp.TTConstraints.slots_constraints import ConsiderDependencies
 from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability, NoSimultaneousGroupCourses
-from multiprocessing import Process
-from io import StringIO
-import os
-import sys
 import json
 import pulp
 
-from django.shortcuts import render
-from django.contrib.admin.views.decorators import staff_member_required
-from django.http import Http404, JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from django.db.models import Q
 # from channels import Group
 from django.template.response import TemplateResponse
 
-from FlOpEDT.decorators import dept_admin_required
+from core.decorators import dept_admin_required
 
-from base import weeks
 from base.models import TrainingProgramme, ScheduledCourse, Week
 from base.core.period_weeks import PeriodWeeks
-from people.models import FullStaff
-from MyFlOp.MyTTModel import MyTTModel
-from TTapp.models import TTConstraint
 from TTapp.TTModel import get_ttconstraints
 
-from solve_board.models import SolveRun
 # from solve_board.consumers import ws_add
 
 # String used to specify all filter

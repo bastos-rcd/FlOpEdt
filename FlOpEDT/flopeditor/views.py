@@ -34,7 +34,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseForbidden
 from base.models import Department, TimeGeneralSettings, Day, Mode
 from base.timing import min_to_str, str_to_min
-from FlOpEDT.decorators import superuser_required, \
+from core.decorators import superuser_required, \
     tutor_or_superuser_required, tutor_required
 
 from people.models import Tutor
@@ -203,6 +203,23 @@ def department_parameters_edit(request, department_abbrev):
         'has_any_dept_perm': has_any_dept_perm(request),
         'mode': department.mode
     })
+
+
+@superuser_required
+def department_delete(request, department_abbrev):
+    """Parameters edit view of flop!EDITOR.
+
+    :param request:           Client request.
+    :param department_abbrev: Department abbreviation.
+    :type request:            django.http.HttpRequest
+    :type department_abbrev:  str
+    :return: delete department and return page rendered from the home template of flop!EDITOR.
+    :rtype:  django.http.HttpResponse
+
+    """
+    department = get_object_or_404(Department, abbrev=department_abbrev)
+    department.delete()
+    return redirect('flopeditor:flopeditor-home')
 
 
 @superuser_required

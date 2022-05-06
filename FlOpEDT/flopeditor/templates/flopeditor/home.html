@@ -31,7 +31,10 @@
           <div class="btn-group mb-3" role="group">
             <a href="{% url 'flopeditor:flopeditor-department-default' department_abbrev=dept.abbrev %}" style="min-width: 200px;" type="button" class="btn btn-raised btn-secondary">{{ dept.name }}</a>
             {% if request.user.is_superuser %}
-            <button type="button" class="btn btn-raised btn-secondary" title="Modifier" data-toggle="modal" data-target="#modal-update-department-{{ dept.abbrev }}"><i class="fas fa-pencil-alt"></i></button>
+                <button type="button" class="btn btn-raised btn-secondary" title="Modifier" data-toggle="modal" data-target="#modal-update-department-{{ dept.abbrev }}"><i class="fas fa-pencil-alt"></i></button>
+                <a type="button"  href="{% url 'flopeditor:flopeditor-department-delete' department_abbrev=dept.abbrev %}"
+                   onclick="return confirm('Voulez-vous vraiment supprimer ce département? (Cette action est irréversible...)')"
+                   class="btn btn-raised btn-secondary" title="Supprimer"> <i class="fas fa-times"></i></a>
             {% endif %}
           </div>
         </div>

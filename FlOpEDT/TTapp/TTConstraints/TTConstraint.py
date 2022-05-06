@@ -23,18 +23,12 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import TimeGeneralSettings
-from django.core.validators import MinValueValidator, MaxValueValidator
-
-from django.utils.translation import gettext_lazy as _
-
 from django.db import models
 
-from FlOpEDT.decorators import timer
+from core.decorators import timer
 
 from TTapp.FlopConstraint import FlopConstraint
 
-from people.models import Tutor
 
 class TTConstraint(FlopConstraint):
     """

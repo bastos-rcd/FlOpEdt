@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-15 11:50+0000\n"
+"POT-Creation-Date: 2022-05-02 20:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -81,6 +81,30 @@ msgstr "Déplacer en semaine "
 #: base/static/base/decale.js:361
 msgid "by "
 msgstr "par "
+
+#: base/static/base/decale.js:487
+msgid "Confirm"
+msgstr "Valider"
+
+#: base/static/base/decale.js:518
+msgid "No checked box, no moved course!"
+msgstr "Aucune case cochée, aucun cours déplacé"
+
+#: base/static/base/decale.js:522
+msgid "You want these courses to have no tutor, right?"
+msgstr "Vous voulez que ces cours n'aient pas de prof, c'est bien ça?"
+
+#: base/static/base/decale.js:523
+msgid "Then please assign these courses to someone."
+msgstr "Dans ce cas assignez ces cours à une personne."
+
+#: base/static/base/decale.js:529
+msgid "Chose the action you want to do."
+msgstr "Choisissez l'action que vous voulez faire."
+
+#: base/static/base/decale.js:647
+msgid "not scheduled"
+msgstr "pas placé"
 
 #: base/static/base/logo.js:84
 msgid ""
@@ -179,19 +203,19 @@ msgstr "C'est parfait"
 msgid "Thank you for adding some."
 msgstr "Merci d'en ajouter "
 
-#: base/static/base/update.js:1327
+#: base/static/base/update.js:1328
 msgid "No planned re-generation"
 msgstr "Pas de regénération prévue"
 
-#: base/static/base/update.js:1331
+#: base/static/base/update.js:1332
 msgid "Full (minor) generation planned on "
 msgstr "Regénération totale (mineure) le"
 
-#: base/static/base/update.js:1334
+#: base/static/base/update.js:1335
 msgid "Full generation planned (probably on "
 msgstr "Regénération totale prévue (probablement le"
 
-#: base/static/base/update.js:1337
+#: base/static/base/update.js:1338
 msgid "Minor generation planned (probably on "
 msgstr "Regénération mineure prévue (probablement le"
 
@@ -311,7 +335,6 @@ msgid "year"
 msgstr "année"
 
 #: configuration/static/configuration/configuration_vars.js:4
-
 msgid "until week"
 msgstr "à la semaine"
 

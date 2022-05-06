@@ -77,6 +77,8 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'drf_yasg',
     'corsheaders',
+    'notifications',
+    'django_crontab'
 ]
 
 MIDDLEWARE = [

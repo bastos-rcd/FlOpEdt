@@ -46,3 +46,7 @@ CACHES = {
         'LOCATION': '127.0.0.1:11211',
     }
 }
+
+CRONJOBS = [
+    ('0 4 * * *', 'notifications.cron.backup_and_notify')
+]
