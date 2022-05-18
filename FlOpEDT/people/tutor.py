@@ -34,7 +34,7 @@ from base.models import TimeGeneralSettings, Department, UserPreference, Day
 
 from .forms import AddFullStaffTutorForm, AddSupplyStaffTutorForm, AddBIATOSTutorForm
 from .forms import ChangeFullStaffTutorForm, ChangeSupplyStaffTutorForm, ChangeBIATOSTutorForm
-from .models import User, FullStaff, SupplyStaff, BIATOS
+from .models import User, FullStaff, SupplyStaff, BIATOS, TutorPreference
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +48,7 @@ class AddFullStaffTutor(CreateView):
     def form_valid(self, form):
         user = form.save()
         fill_default_user_preferences(user)
+        TutorPreference.objects.create(tutor=user)
         user.is_tutor = True
         user.is_staff = True
         user.save()
@@ -63,6 +64,7 @@ class AddSupplyStaffTutor(CreateView):
     def form_valid(self, form):
         user = form.save()
         fill_default_user_preferences(user)
+        TutorPreference.objects.create(tutor=user)
         login(self.request, user)
         next = self.request.GET.get('next', '/')
         return redirect(next)
@@ -75,6 +77,7 @@ class AddBIATOSTutor(CreateView):
     def form_valid(self, form):
         user = form.save()
         fill_default_user_preferences(user)
+        TutorPreference.objects.create(tutor=user)
         login(self.request, user)
         next = self.request.GET.get('next', '/')
         return redirect(next)

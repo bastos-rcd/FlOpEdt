@@ -537,7 +537,8 @@ class Course(models.Model):
         return self.__class__ == other.__class__ \
                and self.type == other.type \
                and self.tutor == other.tutor \
-               and self.groups == other.groups \
+               and self.room_type == other.room_type \
+               and list(self.groups.all()) == list(other.groups.all()) \
                and self.module == other.module
 
     def get_week(self):

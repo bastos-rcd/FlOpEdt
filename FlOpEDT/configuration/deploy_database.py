@@ -37,7 +37,7 @@ from base.models import RoomType, Room, TrainingProgramme,\
     StructuralGroup, TransversalGroup, Module, GroupType, Period, Time, Day, CourseType, \
     Department, CourseStartTimeConstraint, TimeGeneralSettings, UserPreference, CoursePreference
 
-from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
+from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings, TutorPreference
 from people.tutor import fill_default_user_preferences
 
 from configuration.database_description_xlsx import database_description_load_xlsx_file
@@ -116,6 +116,7 @@ def people_extract(department, people, fill_default_preferences):
                 UserDepartmentSettings.objects.create(department=department, user=tutor)
                 if fill_default_preferences:
                     fill_default_user_preferences(tutor, dept=department)
+                TutorPreference.objects.create(tutor=tutor)
 
             except IntegrityError as ie :
                 logger.warning("A constraint has not been respected while creating the Professor : \n", ie)

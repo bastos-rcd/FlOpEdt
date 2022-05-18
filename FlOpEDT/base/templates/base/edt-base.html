@@ -81,6 +81,8 @@
     url_swap = url_swap.slice(0, -5) ;
     var url_reassign_rooms = "{% url 'TTapp:reassign_rooms' department 0 0 0 %}" ;
     url_reassign_rooms = url_reassign_rooms.slice(0, -5) ;
+    var url_duplicate_in_other_weeks = "{% url 'TTapp:duplicate_in_other_weeks' department 0 0 0 %}" ;
+    url_duplicate_in_other_weeks = url_duplicate_in_other_weeks.slice(0, -5) ;
     var url_fetch_extra_sched = "{% url 'api:fetch:extrasched-list' %}" ;
     {% comment %} url_fetch_extra_sched = url_fetch_extra_sched.slice(0, -3) ; {% endcomment %}
     var url_fetch_shared_rooms = "{% url 'base:fetch_shared_rooms' department 0 0 %}" ;
