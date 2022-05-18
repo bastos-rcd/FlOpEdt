@@ -309,7 +309,7 @@ var ack_side_panel = {
   'delete_all_unused':{id: 'delete_all_unused'},
   'duplicate': {id: 'duplicate'},
   'reassign_rooms': {id: 'reassign_rooms'},
-  'duplicate_in_other_week': {id: 'duplicate_in_other_week'}
+  'duplicate_in_other_weeks': {id: 'duplicate_in_other_weeks'}
 };
 for (key in ack_side_panel) {
   ack_side_panel[key].id = '#ack-' + ack_side_panel[key].id;
