@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-02 20:30+0000\n"
+"POT-Creation-Date: 2022-05-18 15:08+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -331,6 +331,11 @@ msgstr ""
 msgid "Impossible to assign rooms"
 msgstr "Réassigner les salles"
 
+#: TTapp/TTUtils.py:413
+#, python-format
+msgid "%s, "
+msgstr ""
+
 #: base/admin.py:614 base/admin.py:640 base/admin.py:653
 msgid "Week"
 msgstr "Semaine"
@@ -407,35 +412,35 @@ msgstr "Noté ?"
 msgid "Suspens?"
 msgstr "En suspens?"
 
-#: base/models.py:556
+#: base/models.py:557
 msgid "Graded?"
 msgstr "Noté ?"
 
-#: base/models.py:939
+#: base/models.py:940
 msgid "Successives?"
 msgstr "Successifs ?"
 
-#: base/models.py:940 base/models.py:951
+#: base/models.py:941 base/models.py:952
 msgid "On different days"
 msgstr "Des jours différents"
 
-#: base/models.py:941
+#: base/models.py:942
 msgid "Minimal day gap between courses"
 msgstr "Délai minimal (en schtroumpfs) entre deux cours"
 
-#: base/models.py:969
+#: base/models.py:970
 msgid "Full"
 msgstr "Totale"
 
-#: base/models.py:971
+#: base/models.py:972
 msgid "Full generation date"
 msgstr "Date de regénération"
 
-#: base/models.py:972
+#: base/models.py:973
 msgid "Stabilized"
 msgstr "Stabilisée"
 
-#: base/models.py:974
+#: base/models.py:975
 msgid "Partial generation date"
 msgstr "Date de regénération partielle"
 
@@ -624,6 +629,10 @@ msgstr "Supprimer toutes les schtroumpfs sauf la 0"
 #: base/templates/base/show-edt.html:69
 msgid "Reassign rooms"
 msgstr "Réassigner les salles"
+
+#: base/templates/base/show-edt.html:73
+msgid "Duplicate (what can be) in other weeks"
+msgstr ""
 
 #: base/templates/base/show-stype.html:95
 msgid "Weeks"

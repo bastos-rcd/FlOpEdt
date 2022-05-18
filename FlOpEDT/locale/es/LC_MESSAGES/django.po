@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-02 20:30+0000\n"
+"POT-Creation-Date: 2022-05-18 15:08+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -298,6 +298,11 @@ msgstr ""
 msgid "Impossible to assign rooms"
 msgstr ""
 
+#: TTapp/TTUtils.py:413
+#, python-format
+msgid "%s, "
+msgstr ""
+
 #: base/admin.py:614 base/admin.py:640 base/admin.py:653
 #, fuzzy
 #| msgid "Weeks"
@@ -380,35 +385,35 @@ msgstr ""
 msgid "Suspens?"
 msgstr ""
 
-#: base/models.py:556
+#: base/models.py:557
 msgid "Graded?"
 msgstr ""
 
-#: base/models.py:939
+#: base/models.py:940
 msgid "Successives?"
 msgstr ""
 
-#: base/models.py:940 base/models.py:951
+#: base/models.py:941 base/models.py:952
 msgid "On different days"
 msgstr ""
 
-#: base/models.py:941
+#: base/models.py:942
 msgid "Minimal day gap between courses"
 msgstr ""
 
-#: base/models.py:969
+#: base/models.py:970
 msgid "Full"
 msgstr ""
 
-#: base/models.py:971
+#: base/models.py:972
 msgid "Full generation date"
 msgstr ""
 
-#: base/models.py:972
+#: base/models.py:973
 msgid "Stabilized"
 msgstr ""
 
-#: base/models.py:974
+#: base/models.py:975
 msgid "Partial generation date"
 msgstr ""
 
@@ -599,6 +604,10 @@ msgstr ""
 
 #: base/templates/base/show-edt.html:69
 msgid "Reassign rooms"
+msgstr ""
+
+#: base/templates/base/show-edt.html:73
+msgid "Duplicate (what can be) in other weeks"
 msgstr ""
 
 #: base/templates/base/show-stype.html:95
