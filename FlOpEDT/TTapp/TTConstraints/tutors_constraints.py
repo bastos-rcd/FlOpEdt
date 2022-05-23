@@ -205,18 +205,19 @@ class RespectMaxHoursPerDay(TTConstraint):
                                                  for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
                                                  if sc.course.week == week and sc.day == d.day) / 60
                 max_hours_nb = max(tutor.preferences.max_hours_per_day - other_departments_hours_nb, 0)
-                ttmodel.add_constraint(ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.duration / 60
-                                                   for c in ttmodel.wdb.possible_courses[tutor]
-                                                   for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=d)) +
-                                       ttmodel.sum(ttmodel.TT[sl, c] * sl.duration / 60
-                                                   for c in ttmodel.wdb.courses_for_supp_tutor[tutor]
-                                                   for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=d)
-                                                   ),
-                                       '<=',
-                                       max_hours_nb,
-                                       Constraint(constraint_type=ConstraintType.BOUND_HOURS_PER_DAY,
-                                                  instructors=tutor,
-                                                  days=d))
+                if self.weight is None:
+                    ttmodel.add_constraint(tutor_teaching_time_by_day_expression(ttmodel, tutor, d),
+                                           '<=',
+                                           max_hours_nb,
+                                           Constraint(constraint_type=ConstraintType.MAX_HOURS_PER_DAY,
+                                                      instructors=tutor,
+                                                      days=d))
+                else:
+                    undesired_situation = ttmodel.add_floor(tutor_teaching_time_by_day_expression(ttmodel, tutor, d),
+                                                            max_hours_nb,
+                                                            100000)
+                    ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * undesired_situation,
+                                             week=week)
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
@@ -236,6 +237,61 @@ class RespectMaxHoursPerDay(TTConstraint):
 
     class Meta:
         verbose_name_plural = "Respect max hours per day"
+
+
+class RespectMinHoursPerDay(TTConstraint):
+    """
+    Respect the min_hours_per_day declared
+    """
+    tutors = models.ManyToManyField('people.Tutor', blank=True)
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+        """
+        avoid situations in which a teaching day has less hours than min declared
+        """
+        tutors = considered_tutors(self, ttmodel)
+
+        for tutor in tutors:
+            for d in days_filter(ttmodel.wdb.days, week=week):
+                other_departments_hours_nb = sum(sc.course.type.duration
+                                                 for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
+                                                 if sc.course.week == week and sc.day == d.day) / 60
+                min_hours_nb = max(tutor.preferences.min_hours_per_day - other_departments_hours_nb, 0)
+                if min_hours_nb == 0:
+                    continue
+                has_enough_time = ttmodel.add_floor(tutor_teaching_time_by_day_expression(ttmodel, tutor, d),
+                                                    min_hours_nb,
+                                                    100000)
+                undesired_situation = ttmodel.IBD[(tutor, d)] - has_enough_time
+                if self.weight is None:
+                    ttmodel.add_constraint(undesired_situation,
+                                           '==',
+                                           0,
+                                           Constraint(constraint_type=ConstraintType.MIN_HOURS_PER_DAY,
+                                                      instructors=tutor,
+                                                      days=d))
+                else:
+                    ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * undesired_situation,
+                                             week=week)
+
+    def get_viewmodel(self):
+        view_model = super().get_viewmodel()
+        details = view_model['details']
+
+        if self.tutors.exists():
+            details.update({'tutors': ', '.join([tutor.username for tutor in self.tutors.all()])})
+        else:
+            details.update({'tutors': 'All'})
+        return view_model
+
+    def one_line_description(self):
+        """
+        You can give a contextual explanation about what this constraint doesnt
+        """
+        return "Respect min hours per day"
+
+    class Meta:
+        verbose_name_plural = "Respect min hours per day"
 
 
 class LowerBoundBusyDays(TTConstraint):
@@ -264,3 +320,12 @@ class LowerBoundBusyDays(TTConstraint):
         })
 
         return view_model
+
+
+def tutor_teaching_time_by_day_expression(ttmodel, tutor, day):
+    return ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.duration / 60
+                       for c in ttmodel.wdb.possible_courses[tutor]
+                       for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day)) \
+           + ttmodel.sum(ttmodel.TT[sl, c] * sl.duration / 60
+                         for c in ttmodel.wdb.courses_for_supp_tutor[tutor]
+                         for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day))

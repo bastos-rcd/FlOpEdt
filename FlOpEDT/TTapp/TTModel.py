@@ -36,7 +36,7 @@ from people.models import Tutor
 from TTapp.models import MinNonPreferedTutorsSlot, StabilizeTutorsCourses, MinNonPreferedTrainProgsSlot, \
     NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, ConsiderTutorsUnavailability, \
     MinimizeBusyDays, MinGroupsHalfDays, RespectMaxHoursPerDay, ConsiderDependencies, ConsiderPivots, \
-    StabilizeGroupsCourses
+    StabilizeGroupsCourses, RespectMinHoursPerDay
 
 from TTapp.FlopConstraint import max_weight
 
@@ -408,6 +408,10 @@ class TTModel(FlopModel):
         # Check if RespectBound constraint is in database, and add it if not
         if not RespectMaxHoursPerDay.objects.filter(department=self.department).exists():
             RespectMaxHoursPerDay.objects.create(department=self.department)
+
+        # Check if RespectMinHours constraint is in database, and add it if not
+        if not RespectMinHoursPerDay.objects.filter(department=self.department).exists():
+            RespectMinHoursPerDay.objects.create(department=self.department)
 
         # Check if MinimizeBusyDays constraint is in database, and add it if not
         if not MinimizeBusyDays.objects.filter(department=self.department).exists():

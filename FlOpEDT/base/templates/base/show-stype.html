@@ -128,12 +128,9 @@
     <form action='{% url "base:user_perfect_day_changes" department user.username %}'  method='POST' id="form-perfect_day" >
         {% csrf_token %}
         <p style="text-align: center;">{% trans "This is the total number of teaching hours I would like to give every teaching day:" %} <br>
-            {% trans "Maximum" %} <input id="user_max_hours_per_day" type="number" name="user_max_hours" style="width: 30px" min="1" max="12" value="{{ usr_max_hours }}">
+            {% trans "Minimum" %} <input id="user_min_hours_per_day" type="number" name="user_min_hours" style="width: 30px" min="0" max="12" value="{{ usr_min_hours }}">
             &nbsp;&nbsp;{% trans "Preferred" %} <input id="user_pref_hours_per_day" type="number" name="user_pref_hours" style="width: 30px" min="1" max="12" value="{{ usr_pref_hours }}">
-            {% comment %}
-            Not used for now. See base.views.user_perfect_day_changes
-            &nbsp;&nbsp;{% trans "Minimum" %} <input id="user_min_hours_per_day" type="number" name="user_min_hours" style="width: 30px" min="0" max="12" value="{{ usr_min_hours }}">
-            {% endcomment %}
+            &nbsp;&nbsp;{% trans "Maximum" %} <input id="user_max_hours_per_day" type="number" name="user_max_hours" style="width: 30px" min="1" max="12" value="{{ usr_max_hours }}">
         <br>
         </p>
         <input type="submit" name="save_perfect_day" value="{% trans "button_save" %}">

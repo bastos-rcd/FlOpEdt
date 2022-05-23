@@ -86,7 +86,8 @@ class ConstraintType(Enum):
 
 
     # From iut
-    BOUND_HOURS_PER_DAY = "Bound_hours per day"
+    MAX_HOURS_PER_DAY = "Max hours per day"
+    MIN_HOURS_PER_DAY = "Min hours per day"
     PAS_COURS_JEUDI_APREM = "Pas_de_cours_le_jeudi_aprem"
     PAS_SPORT_SAUF_LUNDI_ET_MARDI = "Pas de sport sauf lundi et mardi"
     PAS_COURS_PROMO1_SPORT = "pas de cours de promo1 sur un creneau de sport"
