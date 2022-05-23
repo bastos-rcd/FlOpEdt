@@ -492,6 +492,7 @@ class CourseType(models.Model):
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, null=True)
     duration = models.PositiveSmallIntegerField(default=90)
+    pay_duration = models.PositiveSmallIntegerField(null=True, blank=True)
     group_types = models.ManyToManyField(GroupType,
                                          blank=True,
                                          related_name="compatible_course_types")
@@ -518,7 +519,9 @@ class Course(models.Model):
     groups = models.ManyToManyField('base.GenericGroup', related_name='courses', blank=True)
     module = models.ForeignKey(
         'Module', related_name='courses', on_delete=models.CASCADE)
-    modulesupp = models.ForeignKey('Module', related_name='modulesupp',
+    modulesupp = models.ForeignKey('Module', related_name='courses_as_modulesupp',
+                                   null=True, blank=True, on_delete=models.CASCADE)
+    pay_module = models.ForeignKey('Module', related_name='courses_as_pay_module',
                                    null=True, blank=True, on_delete=models.CASCADE)
     week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     suspens = models.BooleanField(verbose_name=_('Suspens?'), default=False)
