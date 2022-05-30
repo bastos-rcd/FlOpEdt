@@ -492,6 +492,45 @@ class Partition(object):
             i+=1
         return result
 
+    def find_all_available_timeinterval_starting_at(self, start_times, duration=None):
+        """Find all time intervals in the partition with a specific key in their data and with specific starting times
+
+        Parameters:
+            key (any): the key searched in the data dictionary of the intervals
+            duration (int) [Optionnal]: the minimum duration of the time intervals we want to find
+            start_times (list(int)): the list of times in minutes from midnight when the slots can start
+
+        Returns:
+            (list(TimeInterval)): the time intervals found"""
+        start = None
+        i = 0
+        result = []
+        while i < len(self.intervals):
+            if self.intervals[i][1]["available"] and not self.intervals[i][1][
+                "forbidden"]:
+                for st in start_times:
+                    if time_to_floptime(self.intervals[i][0].start.time()) <= st and time_to_floptime(
+                            self.intervals[i][0].end.time()) > st:
+                        dif = st - time_to_floptime(self.intervals[i][0].start.time())
+                        datetime_start = self.intervals[i][0].start + timedelta(hours=dif / 60)
+                        start = st
+                        break
+                else:
+                    i += 1
+                    continue
+                current_duration = self.intervals[i][0].duration - (
+                            start - time_to_floptime(self.intervals[i][0].start.time()))
+                i += 1
+                while i < len(self.intervals) and self.intervals[i][1][
+                    "available"] and not self.intervals[i][1]["forbidden"]:
+                    current_duration += self.intervals[i][0].duration
+                    i += 1
+                if (duration == None or current_duration >= duration):
+                    result.append(TimeInterval(datetime_start, self.intervals[i - 1][0].end))
+                start = None
+            i += 1
+        return result
+
 
     def add_slot(self, interval, data_type, data):
         """Add an interval of time with data related to it to the Partition.
