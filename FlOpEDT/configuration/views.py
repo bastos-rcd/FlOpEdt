@@ -25,18 +25,17 @@
 # without disclosing the source code of your own applications.
 
 import os
-import datetime
 import json
 import logging
 
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.db import transaction
 from django.conf import settings
 
-from FlOpEDT.decorators import dept_admin_required
+from core.decorators import dept_admin_required
 
-from base.models import Department, Course, Period, Week
+from base.models import Department, Period, Week
 
 from configuration.make_planif_file import make_planif_file
 from configuration.extract_planif_file import extract_planif
@@ -44,8 +43,6 @@ from configuration.deploy_database import extract_database_file
 from configuration.file_manipulation import upload_file, check_ext_file
 from configuration.forms import ImportPlanif, ImportConfig
 from base.weeks import current_year
-from django.db.models import Q
-
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +159,7 @@ def get_config_file(req, **kwargs):
 
 
 @dept_admin_required
-def get_planif_file(req, **kwargs):
+def get_planif_file(req, with_courses=False, **kwargs):
     """
     Send an empty planification's file.
     Rely on the configuration step if it was taken.
@@ -172,7 +169,11 @@ def get_planif_file(req, **kwargs):
     logger.debug(req.GET['departement'])
     filename = os.path.join(settings.MEDIA_ROOT,
                              'configuration',
-                             f"planif_file_{req.GET['departement']}.xlsx")
+                             f"planif_file_{req.GET['departement']}")
+    if with_courses:
+        filename += '_with_courses'
+    filename += ".xlsx"
+
     if not os.path.exists(filename):
         filename = os.path.join(settings.MEDIA_ROOT,
                                 'configuration',
@@ -182,6 +183,21 @@ def get_planif_file(req, **kwargs):
     response['Content-Disposition'] = 'attachment; filename="planif_file.xlsx"'
     f.close()
     return response
+
+
+@dept_admin_required
+def mk_and_dl_planif(req, with_courses, **kwargs):
+    logger.debug(req.GET['departement'])
+    dept_abbrev = req.GET['departement']
+    dept = Department.objects.get(abbrev=dept_abbrev)
+    source = os.path.join(settings.MEDIA_ROOT,
+                          'configuration',
+                          'empty_planif_file.xlsx')
+    target_repo = os.path.join(settings.MEDIA_ROOT,
+                               'configuration')
+    logger.info("start planif")
+    make_planif_file(dept, empty_bookname=source, target_repo=target_repo, with_courses=with_courses)
+    return get_planif_file(req, with_courses, **kwargs)
 
 
 @dept_admin_required

@@ -29,19 +29,19 @@ import logging
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext as _
 
-from FlOpEDT.decorators import tutor_or_superuser_required
+from core.decorators import tutor_or_superuser_required
 
 import base.queries as queries
 
 from people.models import Tutor, GroupPreferences, StudentPreferences, Student, \
-    NotificationsPreferences, UserPreferredLinks, PhysicalPresence, User, ThemesPreferences
+    UserPreferredLinks, PhysicalPresence, User
 from people.admin import TutorResource, GroupPreferencesResource, \
     StudentPreferencesResource, UserPreferredLinksResource, PhysicalPresenceResource
-from base.models import TimeGeneralSettings, Department, Week, Theme
+from base.models import Department, Week, Theme
 
 logger = logging.getLogger(__name__)
 

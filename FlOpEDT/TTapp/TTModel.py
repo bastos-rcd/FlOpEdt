@@ -26,7 +26,7 @@
 
 from django.core.mail import EmailMessage
 
-from base.models import RoomType, RoomPreference, ScheduledCourse, Department, TrainingProgramme, \
+from base.models import RoomType, RoomPreference, ScheduledCourse, TrainingProgramme, \
     TutorCost, GroupFreeHalfDay, GroupCost, TimeGeneralSettings, ModuleTutorRepartition, ScheduledCourseAdditional
 
 from base.timing import Time
@@ -38,8 +38,7 @@ from TTapp.models import MinNonPreferedTutorsSlot, StabilizeTutorsCourses, MinNo
     MinimizeBusyDays, MinGroupsHalfDays, RespectMaxHoursPerDay, ConsiderDependencies, ConsiderPivots, \
     StabilizeGroupsCourses
 
-from TTapp.TTConstraints.TTConstraint import TTConstraint
-from TTapp.FlopConstraint import max_weight, all_subclasses
+from TTapp.FlopConstraint import max_weight
 
 from TTapp.slots import slots_filter, days_filter
 
@@ -47,9 +46,7 @@ from TTapp.WeeksDatabase import WeeksDatabase
 
 
 from django.db import close_old_connections
-from django.db.models import Q, F
-
-import datetime
+from django.db.models import F
 
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -57,7 +54,7 @@ from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
 
 from TTapp.ilp_constraints.constraints.slotInstructorConstraint import SlotInstructorConstraint
 
-from FlOpEDT.decorators import timer
+from core.decorators import timer
 
 from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_ttconstraints, get_room_constraints
 from TTapp.RoomModel import RoomModel
@@ -464,7 +461,7 @@ class TTModel(FlopModel):
                          for sl in slots_filter(self.wdb.compatible_slots[c],
                                                 week=mtr.week)
                          ),
-                '==', mtr.courses_nb, Constraint()
+                '==', mtr.courses_nb, Constraint(constraint_type=ConstraintType.MODULETUTORREPARTITION)
             )
 
     @timer
@@ -533,7 +530,7 @@ class TTModel(FlopModel):
                                                    & self.wdb.compatible_courses[s_sl]
                                                    )
                 self.add_constraint(
-                    expr, '<=', bound, Constraint()
+                    expr, '<=', bound, Constraint(constraint_type=ConstraintType.ROOMTYPE_BOUND)
                 )
 
     @timer

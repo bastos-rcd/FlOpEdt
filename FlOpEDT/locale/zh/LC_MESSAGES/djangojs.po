@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-15 11:50+0000\n"
+"POT-Creation-Date: 2022-05-02 20:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,6 +78,30 @@ msgstr "移至星期"
 #: base/static/base/decale.js:361
 msgid "by "
 msgstr "通过"
+
+#: base/static/base/decale.js:487
+msgid "Confirm"
+msgstr ""
+
+#: base/static/base/decale.js:518
+msgid "No checked box, no moved course!"
+msgstr ""
+
+#: base/static/base/decale.js:522
+msgid "You want these courses to have no tutor, right?"
+msgstr ""
+
+#: base/static/base/decale.js:523
+msgid "Then please assign these courses to someone."
+msgstr ""
+
+#: base/static/base/decale.js:529
+msgid "Chose the action you want to do."
+msgstr ""
+
+#: base/static/base/decale.js:647
+msgid "not scheduled"
+msgstr ""
 
 #: base/static/base/logo.js:84
 msgid ""
@@ -188,21 +212,21 @@ msgstr "没问题"
 msgid "Thank you for adding some."
 msgstr "感谢您添加一些。"
 
-#: base/static/base/update.js:1327
+#: base/static/base/update.js:1328
 #, fuzzy
 #| msgid "No regeneration planned"
 msgid "No planned re-generation"
 msgstr "没有计划(再)生成"
 
-#: base/static/base/update.js:1331
+#: base/static/base/update.js:1332
 msgid "Full (minor) generation planned on "
 msgstr "完整的(次要的)生成计划在"
 
-#: base/static/base/update.js:1334
+#: base/static/base/update.js:1335
 msgid "Full generation planned (probably on "
 msgstr "完整的生成计划(可能在"
 
-#: base/static/base/update.js:1337
+#: base/static/base/update.js:1338
 msgid "Minor generation planned (probably on "
 msgstr "次要的生成计划(可能在"
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-30 16:24+0000\n"
+"POT-Creation-Date: 2022-05-02 20:30+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,87 +18,87 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Translated-Using: django-rosetta 0.9.5\n"
 
-#: FlOpEDT/settings/base.py:157
+#: FlOpEDT/settings/base.py:159
 msgid "French"
 msgstr "Français"
 
-#: FlOpEDT/settings/base.py:158
+#: FlOpEDT/settings/base.py:160
 msgid "English"
 msgstr "Anglais"
 
-#: FlOpEDT/settings/base.py:159
+#: FlOpEDT/settings/base.py:161
 msgid "Spanish"
 msgstr "Espagnol"
 
-#: FlOpEDT/settings/base.py:160
+#: FlOpEDT/settings/base.py:162
 msgid "Arabic"
 msgstr "Arabe"
 
-#: FlOpEDT/settings/base.py:161
+#: FlOpEDT/settings/base.py:163
 msgid "Basque"
 msgstr "Basque"
 
-#: FlOpEDT/settings/base.py:162
+#: FlOpEDT/settings/base.py:164
 msgid "Breton"
 msgstr "Breton"
 
-#: FlOpEDT/settings/base.py:163
+#: FlOpEDT/settings/base.py:165
 msgid "Catalan"
 msgstr "Catalan"
 
-#: FlOpEDT/settings/base.py:164
+#: FlOpEDT/settings/base.py:166
 msgid "Corsican"
 msgstr "Corse"
 
-#: FlOpEDT/settings/base.py:165
+#: FlOpEDT/settings/base.py:167
 msgid "Danish"
 msgstr "Espagnol"
 
-#: FlOpEDT/settings/base.py:166
+#: FlOpEDT/settings/base.py:168
 msgid "German"
 msgstr "Allemand"
 
-#: FlOpEDT/settings/base.py:167
+#: FlOpEDT/settings/base.py:169
 msgid "Dutch"
 msgstr "Néerlandais"
 
-#: FlOpEDT/settings/base.py:168
+#: FlOpEDT/settings/base.py:170
 msgid "Greek"
 msgstr "Grec"
 
-#: FlOpEDT/settings/base.py:169
+#: FlOpEDT/settings/base.py:171
 msgid "Italian"
 msgstr "Italien"
 
-#: FlOpEDT/settings/base.py:170
+#: FlOpEDT/settings/base.py:172
 msgid "Latin"
 msgstr "Latin"
 
-#: FlOpEDT/settings/base.py:171
+#: FlOpEDT/settings/base.py:173
 msgid "Norwegian"
 msgstr "Norvégien"
 
-#: FlOpEDT/settings/base.py:172
+#: FlOpEDT/settings/base.py:174
 msgid "Polish"
 msgstr "Polonais"
 
-#: FlOpEDT/settings/base.py:173
+#: FlOpEDT/settings/base.py:175
 msgid "Portuguese"
 msgstr "Portugais"
 
-#: FlOpEDT/settings/base.py:174
+#: FlOpEDT/settings/base.py:176
 msgid "Swedish"
 msgstr "Suédois"
 
-#: FlOpEDT/settings/base.py:175
+#: FlOpEDT/settings/base.py:177
 msgid "Chinese"
 msgstr "Chinois"
 
-#: FlOpEDT/settings/base.py:176
+#: FlOpEDT/settings/base.py:178
 msgid "Smurf"
 msgstr "Schtroumpf"
 
-#: TTapp/FlopConstraint.py:61
+#: TTapp/FlopConstraint.py:59
 msgid "Is active?"
 msgstr "est active"
 
@@ -244,7 +244,7 @@ msgstr "Mininimise les créneaux indésirables des groupes"
 #: TTapp/TTConstraints/orsay_constraints.py:184
 #, python-brace-format
 msgid "Not able to eat in other departments on {day}-{week}"
-msgstr ""
+msgstr "Ne pourra pas manger dans un autre département {day}-{week}"
 
 #: TTapp/TTConstraints/slots_constraints.py:290
 #: TTapp/TTConstraints/slots_constraints.py:297
@@ -284,7 +284,7 @@ msgstr ""
 msgid "One of the courses has no eligible tutor to lecture it. {dependency}"
 msgstr "Un des cours n'a pas de professeur attribué. {dependency}"
 
-#: TTapp/TTModel.py:103
+#: TTapp/TTModel.py:100
 #, python-brace-format
 msgid ""
 "\n"
@@ -293,16 +293,16 @@ msgstr ""
 "\n"
 "C'est parti pour les semaines suivantes: {self.weeks}"
 
-#: TTapp/TTModel.py:113
+#: TTapp/TTModel.py:110
 msgid "Rooms assignment :"
 msgstr "Assignation des salles :"
 
-#: TTapp/TTModel.py:124
+#: TTapp/TTModel.py:121
 #, python-brace-format
 msgid "Will modify only courses of training programme(s) {train_prog}"
 msgstr "Ne modifie que les cours des promos {train_prog}"
 
-#: TTapp/TTModel.py:158
+#: TTapp/TTModel.py:155
 msgid "Relevant warnings :"
 msgstr "Avertissements importants :"
 
@@ -367,7 +367,7 @@ msgstr "Groupe basique?"
 msgid "Half day"
 msgstr "Demie-journée"
 
-#: base/models.py:253
+#: base/models.py:253 notifications/models.py:41
 msgid "Week number"
 msgstr "Numéro de semaine"
 
@@ -383,7 +383,7 @@ msgstr "Coop. (poste)"
 msgid "Coop. (worker)"
 msgstr "Coop. (salarié)"
 
-#: base/models.py:455
+#: base/models.py:455 notifications/models.py:47
 msgid "Abbreviation"
 msgstr "Abbréviation"
 
@@ -625,13 +625,13 @@ msgstr "de la semaine"
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
-#: configuration/templates/configuration/configuration.html:89
-#: configuration/templates/configuration/configuration.html:94
+#: configuration/templates/configuration/configuration.html:111
+#: configuration/templates/configuration/configuration.html:116
 msgid "year"
 msgstr "année"
 
 #: base/templates/base/show-stype.html:100
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:114
 msgid "until week"
 msgstr "à la semaine"
 
@@ -674,7 +674,8 @@ msgid ""
 "This is the total number of teaching hours I would like to give every "
 "teaching day:"
 msgstr ""
-"Chaque jour travaillé, voici le nombre d'heures de cours que je souhaite donner :"
+"Chaque jour travaillé, voici le nombre d'heures de cours que je souhaite "
+"donner :"
 
 #: base/templates/base/show-stype.html:132
 msgid "Preferred"
@@ -722,23 +723,23 @@ msgstr "Votre thème est"
 msgid "Create or modify a link"
 msgstr "Créer ou modifier un lien"
 
-#: base/views.py:1558
+#: base/views.py:1555
 msgid "Not authorized. New link then."
 msgstr "Non autorisé. Création d'un nouveau lien."
 
-#: base/views.py:1561
+#: base/views.py:1558
 msgid "Unknown link. New link then."
 msgstr "Lien inconnu. Création d'un nouveau lien."
 
-#: base/views.py:1573
+#: base/views.py:1570 notifications/notifications.py:129
 msgid "Created"
 msgstr "Créé"
 
-#: base/views.py:1573
+#: base/views.py:1570
 msgid "Modified"
 msgstr "Modifié"
 
-#: base/views.py:1576
+#: base/views.py:1573
 msgid "Tutor does not exist"
 msgstr "L'utilisateur n'existe pas."
 
@@ -786,7 +787,6 @@ msgid "Configuration file canvas"
 msgstr "Canevas du fichier de configuration"
 
 #: configuration/templates/configuration/configuration.html:19
-#: configuration/templates/configuration/configuration.html:54
 msgid "Download and then complete the file below."
 msgstr "Téléchargez puis remplissez le fichier ci-dessous."
 
@@ -795,7 +795,7 @@ msgid "Click to download the configuration file"
 msgstr "Cliquez pour télécharger le fichier de configuration"
 
 #: configuration/templates/configuration/configuration.html:21
-#: configuration/templates/configuration/configuration.html:62
+#: configuration/templates/configuration/configuration.html:61
 msgid "Download"
 msgstr "Télécharger"
 
@@ -808,7 +808,7 @@ msgid "Upload the completed configuration file."
 msgstr "Téléversez le fichier de configuration rempli."
 
 #: configuration/templates/configuration/configuration.html:27
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Only xlsx format is accepted."
 msgstr "Seul le format xlsx est accepté."
 
@@ -827,13 +827,13 @@ msgid "Edit"
 msgstr "Modifier"
 
 #: configuration/templates/configuration/configuration.html:36
-#: configuration/templates/configuration/configuration.html:116
+#: configuration/templates/configuration/configuration.html:138
 #: templates/base.html:115
 msgid "Import"
 msgstr "Importer"
 
 #: configuration/templates/configuration/configuration.html:41
-#: configuration/templates/configuration/configuration.html:120
+#: configuration/templates/configuration/configuration.html:142
 msgid "Verdict :"
 msgstr "Verdict :"
 
@@ -872,27 +872,49 @@ msgid "Template for the planning file from the configuration file"
 msgstr ""
 "Canevas du fichier de planification à partir du fichier de configuration"
 
-#: configuration/templates/configuration/configuration.html:55
-msgid "Click to download the planning file outline"
-msgstr "Cliquez pour télécharger le canevas du fichier de planification"
+#: configuration/templates/configuration/configuration.html:54
+msgid "Click to download the current planning file outline"
+msgstr "Cliquez pour télécharger le canevas de fichier de planification actuel"
 
-#: configuration/templates/configuration/configuration.html:69
+#: configuration/templates/configuration/configuration.html:64
+msgid "Click to make and download a new blank planning file outline"
+msgstr ""
+"Cliquez pour créer et télécharger un nouveau canevas de fichier de "
+"planification vierge"
+
+#: configuration/templates/configuration/configuration.html:65
+#: configuration/templates/configuration/configuration.html:76
+msgid " (it may last several minuts)."
+msgstr " (ça peut prendre plusieurs minutes...)"
+
+#: configuration/templates/configuration/configuration.html:72
+#: configuration/templates/configuration/configuration.html:83
+msgid "Make_and_download"
+msgstr "Créer_et_télécharger"
+
+#: configuration/templates/configuration/configuration.html:75
+msgid "Click to make and download a new fullfilled planning file outline"
+msgstr ""
+"Cliquez pour créer et télécharger un nouveau canevas de fichier de "
+"planification rempli"
+
+#: configuration/templates/configuration/configuration.html:91
 msgid "Completed planning file"
 msgstr "Fichier de planification des cours complété"
 
-#: configuration/templates/configuration/configuration.html:70
+#: configuration/templates/configuration/configuration.html:92
 msgid "Upload the completed planning file."
 msgstr "Téléversez le fichier de planification rempli."
 
-#: configuration/templates/configuration/configuration.html:87
+#: configuration/templates/configuration/configuration.html:109
 msgid "From week"
 msgstr "De la semaine"
 
-#: configuration/templates/configuration/configuration.html:101
+#: configuration/templates/configuration/configuration.html:123
 msgid "Only for periods "
 msgstr "Uniquement les périodes "
 
-#: configuration/templates/configuration/configuration.html:107
+#: configuration/templates/configuration/configuration.html:129
 msgid "Stabilization ?"
 msgstr "Stabilisation ?"
 
@@ -966,6 +988,84 @@ msgstr "Nom"
 #: ics/templates/ics/index.html:95
 msgid "Planned generations"
 msgstr "Générations prévues"
+
+#: notifications/notifications.py:125
+msgid "Deleted"
+msgstr "Supprimé"
+
+#: notifications/notifications.py:147 notifications/notifications.py:161
+msgid "Mode"
+msgstr "Mode"
+
+#: notifications/notifications.py:148 notifications/notifications.py:162
+#: notifications/notifications.py:184 notifications/notifications.py:232
+#: notifications/notifications.py:267
+msgid "Date"
+msgstr "Date "
+
+#: notifications/notifications.py:149 notifications/notifications.py:163
+#: notifications/notifications.py:232 notifications/notifications.py:267
+msgid "Start time"
+msgstr "Heure"
+
+#: notifications/notifications.py:150 notifications/notifications.py:164
+msgid "Course Type"
+msgstr "Type"
+
+#: notifications/notifications.py:151 notifications/notifications.py:165
+msgid "Module"
+msgstr "Module"
+
+#: notifications/notifications.py:152
+msgid "Tutor"
+msgstr "Prof"
+
+#: notifications/notifications.py:153 notifications/notifications.py:168
+msgid "Room"
+msgstr "Salle"
+
+#: notifications/notifications.py:166
+msgid "Train_prog"
+msgstr "Promo"
+
+#: notifications/notifications.py:167
+msgid "Group"
+msgstr "Groupe"
+
+#: notifications/notifications.py:200
+msgid "[flop!Scheduler] Changes on your planning"
+msgstr "[flop!EDT] Modifications de votre planning"
+
+#: notifications/notifications.py:203
+#, fuzzy, python-format
+#| msgid ""
+#| "This email is automatically generated by flop!Scheduler. To manage your "
+#| "notifications settings, please <a href='%(urlgit /edt/%(dept)s/semaine-"
+#| "type'> click here <a/>."
+msgid ""
+"This email is automatically generated by flop!Scheduler. To manage your "
+"notifications settings, please <a href='%(url)s/edt/%(dept)s/semaine-type'> "
+"click here <a/>."
+msgstr ""
+"Ce mail est généré automatiquement par flop!EDT. Pour gérer vos paramètres "
+"de notifications, merci de cliquer sur <a href='%(url)s/edt/%(dept)s/semaine-"
+"type'> ce lien <a/>."
+
+#: notifications/notifications.py:224 notifications/notifications.py:254
+msgid "Hi "
+msgstr "Bonjour "
+
+#: notifications/notifications.py:225 notifications/notifications.py:255
+#, python-format
+msgid "Here are the changes of your planning for the %g following days :"
+msgstr ""
+"Voici les changements dans votre emploi du temps pour les %g prochains "
+"jours :"
+
+#: notifications/notifications.py:233
+#, python-format
+msgid "For the department %s :"
+msgstr "Concernant le département %s :"
 
 #: people/templates/people/login.html:55
 msgid "Forgot password?"
@@ -1172,6 +1272,24 @@ msgstr "Déconnexion"
 #: templates/base.html:133
 msgid "Signed in as "
 msgstr "Connecté·e sous "
+
+#~ msgid "mode"
+#~ msgstr "mode"
+
+#~ msgid "date"
+#~ msgstr "date"
+
+#~ msgid "module"
+#~ msgstr "module"
+
+#~ msgid "tutor"
+#~ msgstr "prof"
+
+#~ msgid "room"
+#~ msgstr "salle"
+
+#~ msgid "group"
+#~ msgstr "groupe"
 
 #~ msgid "There is no tutor assigned to {self.course1.full_name()}"
 #~ msgstr "Il n'y a pas d'enseignant⋅e assignée à {self.course1.full_name()}"

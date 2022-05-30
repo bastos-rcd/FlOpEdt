@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 
-from FlOpEDT.decorators import timer
+from core.decorators import timer
 from base.partition import Partition
 import base.partition_with_constraints as partition_bis
 from datetime import timedelta
@@ -60,7 +60,7 @@ class SimultaneousCourses(TTConstraint):
         """
         Pre-analysis of the constraint
         Firstly verify if there is only one course per group/tutor to be done simultaneously
-        Then built a partition comparing each tutor availability
+        Then built a partition comparing each tutor availability (Can be optimized)
         At the end, try to find an available slot in the week for the considered_courses
 
         Parameters :
@@ -77,6 +77,13 @@ class SimultaneousCourses(TTConstraint):
         #We verify if there is only one course to do simultaneously for each tutor/group
         jsondict,OK = self.maxOneCourse(jsondict, considered_courses)
         if not(OK) :
+            return jsondict
+
+        # No course in the constraint case
+        if len(considered_courses) == 0:
+            jsondict["status"] = _("KO")
+            message = _(f"No partition created : maybe there is no courses or it's wrong the week")
+            jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
             return jsondict
 
         # We build a week's partition comparing partition of each tutors
@@ -103,11 +110,6 @@ class SimultaneousCourses(TTConstraint):
         for course in considered_courses :
             max_duration = max(max_duration,course.type.duration)
 
-        if partition == None :
-            jsondict["status"] = _("KO")
-            message = _(f"No partition created : maybe there is no courses or it's the week is wrong")
-            jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
-            return jsondict
 
         # Here we search for an available slot in the week
         if partition.nb_slots_available_of_duration(max_duration) < 1:

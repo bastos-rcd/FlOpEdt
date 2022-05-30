@@ -24,7 +24,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import RoomPreference, ScheduledCourse, Department, TimeGeneralSettings, RoomSort, Room, Course
+from base.models import RoomPreference, ScheduledCourse, TimeGeneralSettings, RoomSort, Room, Course
 
 from base.timing import Day
 import base.queries as queries
@@ -36,12 +36,13 @@ from django.db.models import F, Q
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 
-from FlOpEDT.decorators import timer
+from core.decorators import timer
 
 from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints
-from TTapp.RoomConstraints.RoomConstraint import RoomConstraint, LocateAllCourses, \
+from TTapp.RoomConstraints.RoomConstraint import LocateAllCourses, \
     LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts
-from TTapp.FlopConstraint import max_weight, all_subclasses
+from TTapp.FlopConstraint import max_weight
+
 
 class RoomModel(FlopModel):
     @timer
