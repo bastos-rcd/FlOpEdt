@@ -32,7 +32,7 @@ import copy
 
 class Partition(object):
     '''Partition class to analyse data related by time'''
-    def __init__(self, type, date_start, date_end, day_start_time = None, day_end_time = None):
+    def __init__(self, type, date_start, date_end, day_start_time = None, day_end_time = None, available = False):
         '''Partition's constructor
         
         Parameters:
@@ -51,7 +51,7 @@ class Partition(object):
         self.day_end_time = day_end_time
         self.intervals.append(
             (TimeInterval(date_start, date_end),
-                {"available" : False, "forbidden" : False}))
+                {"available" : available, "forbidden" : False}))
         if day_start_time and day_end_time:
             self.add_night_time(day_start_time, day_end_time)
 
@@ -613,7 +613,7 @@ class Partition(object):
                     self.intervals[interval_index][1][key] = value
 
     @staticmethod
-    def get_partition_of_week(week, department, with_day_time = False):
+    def get_partition_of_week(week, department, with_day_time = False, available = False):
         """Considering a week and a department we built and return a partition with minimum data in it
         Complexity on O(1)
 
@@ -629,7 +629,7 @@ class Partition(object):
         day_end_week = Day(time_settings.days[len(time_settings.days)-1], week)
         start_week = flopdate_to_datetime(day_start_week, time_settings.day_start_time)
         end_week = flopdate_to_datetime(day_end_week, time_settings.day_finish_time)
-        considered_week_partition = Partition("None", start_week, end_week)
+        considered_week_partition = Partition("None", start_week, end_week, available = available)
         if with_day_time:
             considered_week_partition.add_lunch_break(time_settings.lunch_break_start_time, time_settings.lunch_break_finish_time)
             considered_week_partition.add_night_time(time_settings.day_start_time, time_settings.day_finish_time)

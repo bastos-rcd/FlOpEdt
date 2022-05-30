@@ -69,11 +69,11 @@ class NoSimultaneousGroupCourses(TTConstraint):
         jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year }}
         
         considered_basic_groups = pre_analysis_considered_basic_groups(self)
-        
+        no_user_pref = not ConsiderTutorsUnavailability.objects.filter(weeks=week).exists()
         for bg in considered_basic_groups:
 
             # Retrieving information about general time settings and creating the partition with information about other constraints
-            group_partition = partition_bis.create_group_partition_from_constraints(week=week, department=bg.type.department, group=bg)
+            group_partition = partition_bis.create_group_partition_from_constraints(week=week, department=bg.type.department, group=bg, available = no_user_pref)
 
             ### Coloration ###
             tuple_graph = coloration_ordered(bg)

@@ -41,6 +41,8 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter, Slot
 from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability
+
 from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
 from django.utils.translation import gettext as _
 from django.core.validators import MaxValueValidator
@@ -79,10 +81,11 @@ class SimultaneousCourses(TTConstraint):
 
         # We build a week's partition comparing partition of each tutors
         partition = None
+        no_user_pref = not ConsiderTutorsUnavailability.objects.filter(weeks=week).exists()
         for course in considered_courses :
             if partition == None : # Here we build the partition of the first teacher
-                partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department)
-            new_partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department)
+                partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department,available=no_user_pref)
+            new_partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department,available=no_user_pref)
             """
             Then, for each interval (named interval1) available and not forbidden of the main partition (named partition) 
             we watch if the interval of another teacher (named interval2) is also available and not forbidden 

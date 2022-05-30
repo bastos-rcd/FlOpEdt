@@ -2,7 +2,7 @@ import TTapp.GlobalPreAnalysis.tools_centralized_preanalysis as tools
 from base.partition import Partition
 from base.models import ModulePossibleTutors
 
-def create_tutor_partition_from_constraints(week, department, tutor):
+def create_tutor_partition_from_constraints(week, department, tutor, available = False):
     """
         Create a partition and add information in some slots about all constraints implementing complete_tutor_partition.
     Those constraints are retrieved in the database and taken in account if they are applied on the week and
@@ -18,7 +18,7 @@ def create_tutor_partition_from_constraints(week, department, tutor):
     """
     
     # Init partition
-    partition = Partition.get_partition_of_week(week, department, True)
+    partition = Partition.get_partition_of_week(week, department, True, available = available)
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
     # week and department
@@ -62,7 +62,7 @@ def complete_tutor_partition_from_constraints(partition, week, department, tutor
     return partition
 
 
-def create_group_partition_from_constraints(week, department, group):
+def create_group_partition_from_constraints(week, department, group, available = False):
     """
         Create a partition and add information in some slots about all constraints implementing complete_group_partition.
     Those constraints are retrieved in the database and taken in account if they are applied on the week and
@@ -77,7 +77,7 @@ def create_group_partition_from_constraints(week, department, group):
 
     """
     # Init partition
-    partition = Partition.get_partition_of_week(week=week, department=department, with_day_time=True)
+    partition = Partition.get_partition_of_week(week=week, department=department, with_day_time=True, available = available)
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
     # week and department
@@ -122,7 +122,7 @@ def complete_group_partition_from_constraints(partition, week, department, group
     return partition
 
 
-def create_course_partition_from_constraints(course, week, department):
+def create_course_partition_from_constraints(course, week, department, available = False):
     """
         Create a partition with information about the tutors' and supp tutors' availabilities and the group's
     availabilities concerned by the course given in parameters. Those availabilities are given by existing constraints
@@ -136,7 +136,7 @@ def create_course_partition_from_constraints(course, week, department):
     """
 
     # Init
-    week_partition = Partition.get_partition_of_week(week, department, True)
+    week_partition = Partition.get_partition_of_week(week, department, True, available = available)
     possible_tutors_1 = set()
     required_supp_1 = set()
 
