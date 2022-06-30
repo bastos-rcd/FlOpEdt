@@ -98,25 +98,11 @@ def num_all_days(y, w, dept):
 
 def week_list():
     li = []
-    if actual_year == 2017:
-        for i in list(range(36, 44)) + list(range(45, 52)):
-            li.append({'week': i, 'year': 2017})
-        for i in list(range(2, 9)) + list(range(10, 16)) + list(range(18, 31)):
-            li.append({'week': i, 'year': 2018})
-        return li
-    elif actual_year == 2018:
-        for i in list(range(36, 44)) + list(range(45, 52)):
-            li.append({'week': i, 'year': 2018})
-        for i in list(range(2, 10)) + list(range(11, 17)) + list(range(19, 31)):
-            li.append({'week': i, 'year': 2019})
-        return li
-    else:
-        # should start 1 week before the first week
-        for i in list(range(35, 53)):
-            li.append({'week': i, 'year': actual_year})
-        for i in list(range(1, 31)):
-            li.append({'week': i, 'year': actual_year+1})
-        return li
+    for i in list(range(35, 53)):
+        li.append({'week': i, 'year': actual_year})
+    for i in list(range(1, 53)):
+        li.append({'week': i, 'year': actual_year+1})
+    return li
 
 
 def year_by_week(week):

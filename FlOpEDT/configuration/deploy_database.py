@@ -35,7 +35,7 @@ from displayweb.models import TrainingProgrammeDisplay
 
 from base.models import RoomType, Room, TrainingProgramme,\
     StructuralGroup, TransversalGroup, Module, GroupType, Period, Time, Day, CourseType, \
-    Department, CourseStartTimeConstraint, TimeGeneralSettings, UserPreference, CoursePreference
+    Department, CourseStartTimeConstraint, TimeGeneralSettings, UserPreference, CoursePreference, GenericGroup
 
 from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings, TutorPreference
 from people.tutor import fill_default_user_preferences
@@ -197,6 +197,10 @@ def rooms_extract(department, room_groups, room_categories, rooms):
 
 
 def groups_extract(department, promotions, group_types, groups, transversal_groups):
+    if GenericGroup.objects.exists():
+        available_generic_group_id = GenericGroup.objects.latest('id').id + 1
+    else:
+        available_generic_group_id = 0
 
     logger.info('Groups extraction : start')
     for id_, name in promotions.items():
@@ -240,8 +244,10 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
                 promotion = TrainingProgramme.objects.get(abbrev=promotion_id,
                                                           department=department)
                 groupType = GroupType.objects.get(name=group['group_type'], department=department)
-                group = StructuralGroup(name=id_, size=0, train_prog=promotion, type=groupType)
+                group = StructuralGroup(name=id_, size=0, train_prog=promotion, type=groupType,
+                                        id=available_generic_group_id)
                 group.save()
+                available_generic_group_id += 1
 
             except IntegrityError as ie:
                 logger.warning(f"A constraint has not been respected creating the group '{id_}' : {ie}")
@@ -282,8 +288,10 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
 
                 promotion = TrainingProgramme.objects.get(abbrev=promotion_id,
                                                           department=department)
-                trans_group = TransversalGroup(name=id_, size=0, train_prog=promotion)
+                trans_group = TransversalGroup(name=id_, size=0, train_prog=promotion,
+                                               id=available_generic_group_id)
                 trans_group.save()
+                available_generic_group_id += 1
 
             except IntegrityError as ie:
                 logger.warning(f"A constraint has not been respected creating the transversal group '{id_}' : {ie}")
@@ -320,7 +328,6 @@ def modules_extract(department, modules):
                                       train_prog__abbrev=module['promotion'],
                                       train_prog__department=department,
                                       period__name=module['period'])
-
 
         if not verif.exists():
 
