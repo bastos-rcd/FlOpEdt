@@ -38,6 +38,7 @@ from core.decorators import dept_admin_required
 from base.models import Department, Period, Week
 
 from configuration.make_planif_file import make_planif_file
+from configuration.make_filled_database_file import make_filled_database_file
 from configuration.extract_planif_file import extract_planif
 from configuration.deploy_database import extract_database_file
 from configuration.file_manipulation import upload_file, check_ext_file
@@ -184,6 +185,31 @@ def get_planif_file(req, with_courses=False, **kwargs):
     f.close()
     return response
 
+@dept_admin_required
+def get_filled_database_file(req, **kwargs):
+    """
+    Send an filled database file.
+    Rely on the configuration step if it was taken.
+    :param req:
+    :return:
+    """
+    logger.debug(req.GET['departement'])
+    basic_filename = f"database_file_{req.GET['departement']}"
+    filename = os.path.join(settings.MEDIA_ROOT,
+                             'configuration',
+                             basic_filename)
+    filename += ".xlsx"
+
+    if not os.path.exists(filename):
+        filename = os.path.join(settings.MEDIA_ROOT,
+                                'configuration',
+                                f"empty_database_file.xlsx")
+    f = open(filename, "rb")
+    response = HttpResponse(f, content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="planif_file.xlsx"'
+    f.close()
+    return response
+
 
 @dept_admin_required
 def mk_and_dl_planif(req, with_courses, **kwargs):
@@ -198,6 +224,16 @@ def mk_and_dl_planif(req, with_courses, **kwargs):
     logger.info("start planif")
     make_planif_file(dept, empty_bookname=source, target_repo=target_repo, with_courses=with_courses)
     return get_planif_file(req, with_courses, **kwargs)
+
+
+@dept_admin_required
+def mk_and_dl_database_file(req, **kwargs):
+    logger.debug(req.GET['departement'])
+    dept_abbrev = req.GET['departement']
+    dept = Department.objects.get(abbrev=dept_abbrev)
+    logger.info("start filled database file")
+    make_filled_database_file(dept)
+    return get_filled_database_file(req, **kwargs)
 
 
 @dept_admin_required

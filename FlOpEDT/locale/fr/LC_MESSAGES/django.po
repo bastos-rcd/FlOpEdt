@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-18 15:08+0000\n"
+"POT-Creation-Date: 2022-07-01 22:46+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -360,7 +360,7 @@ msgstr "Cette personne n'existe pas."
 msgid "Ideally"
 msgstr "Idéalement"
 
-#: base/forms.py:64 base/templates/base/show-stype.html:131
+#: base/forms.py:64 base/templates/base/show-stype.html:133
 msgid "Maximum"
 msgstr "Maximum"
 
@@ -392,43 +392,43 @@ msgstr "Coop. (salarié)"
 msgid "Abbreviation"
 msgstr "Abbréviation"
 
-#: base/models.py:498
+#: base/models.py:499
 msgid "graded?"
 msgstr "Noté ?"
 
-#: base/models.py:524
+#: base/models.py:527
 msgid "Suspens?"
 msgstr "En suspens?"
 
-#: base/models.py:557
+#: base/models.py:560
 msgid "Graded?"
 msgstr "Noté ?"
 
-#: base/models.py:940
+#: base/models.py:943
 msgid "Successives?"
 msgstr "Successifs ?"
 
-#: base/models.py:941 base/models.py:952
+#: base/models.py:944 base/models.py:955
 msgid "On different days"
 msgstr "Des jours différents"
 
-#: base/models.py:942
+#: base/models.py:945
 msgid "Minimal day gap between courses"
 msgstr "Nombre de jours minimum entre plusieurs cours"
 
-#: base/models.py:970
+#: base/models.py:973
 msgid "Full"
 msgstr "Totale"
 
-#: base/models.py:972
+#: base/models.py:975
 msgid "Full generation date"
 msgstr "Date de regénération"
 
-#: base/models.py:973
+#: base/models.py:976
 msgid "Stabilized"
 msgstr "Stabilisée"
 
-#: base/models.py:975
+#: base/models.py:978
 msgid "Partial generation date"
 msgstr "Date de regénération partielle"
 
@@ -634,13 +634,13 @@ msgstr "de la semaine"
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
-#: configuration/templates/configuration/configuration.html:111
-#: configuration/templates/configuration/configuration.html:116
+#: configuration/templates/configuration/configuration.html:123
+#: configuration/templates/configuration/configuration.html:128
 msgid "year"
 msgstr "année"
 
 #: base/templates/base/show-stype.html:100
-#: configuration/templates/configuration/configuration.html:114
+#: configuration/templates/configuration/configuration.html:126
 msgid "until week"
 msgstr "à la semaine"
 
@@ -657,7 +657,7 @@ msgid "Update my default week"
 msgstr "Redéfinir ma semaine type"
 
 #: base/templates/base/show-stype.html:112
-#: base/templates/base/show-stype.html:140
+#: base/templates/base/show-stype.html:136
 msgid "button_save"
 msgstr "Sauvegarder"
 
@@ -670,7 +670,7 @@ msgid "Create a link"
 msgstr "Créer un lien visio"
 
 #: base/templates/base/show-stype.html:124
-#: base/templates/base/show-stype.html:152
+#: base/templates/base/show-stype.html:148
 msgid "button_change"
 msgstr "Modifier"
 
@@ -686,33 +686,37 @@ msgstr ""
 "Chaque jour travaillé, voici le nombre d'heures de cours que je souhaite "
 "donner :"
 
+#: base/templates/base/show-stype.html:131
+msgid "Minimum"
+msgstr "Minimum"
+
 #: base/templates/base/show-stype.html:132
 msgid "Preferred"
 msgstr "Idéalement"
 
-#: base/templates/base/show-stype.html:149
+#: base/templates/base/show-stype.html:145
 msgid "My favorite rooms"
 msgstr "Mes préférences de salles"
 
-#: base/templates/base/show-stype.html:150
+#: base/templates/base/show-stype.html:146
 msgid "Select my favorite rooms"
 msgstr "Choisir mes salles préférées"
 
-#: base/templates/base/show-stype.html:175
+#: base/templates/base/show-stype.html:171
 msgid "Teachers"
 msgstr "Enseignant·e⋅s"
 
-#: base/templates/base/show-stype.html:176
-#: base/templates/base/show-stype.html:196
+#: base/templates/base/show-stype.html:172
+#: base/templates/base/show-stype.html:192
 msgid "Transformation in : "
 msgstr "Tranformation en : "
 
-#: base/templates/base/show-stype.html:182
-#: base/templates/base/show-stype.html:188
+#: base/templates/base/show-stype.html:178
+#: base/templates/base/show-stype.html:184
 msgid "Types of classes"
 msgstr "Type de cours"
 
-#: base/templates/base/show-stype.html:195 ics/templates/ics/index.html:82
+#: base/templates/base/show-stype.html:191 ics/templates/ics/index.html:82
 msgid "Rooms"
 msgstr "Salles"
 
@@ -732,23 +736,23 @@ msgstr "Votre thème est"
 msgid "Create or modify a link"
 msgstr "Créer ou modifier un lien"
 
-#: base/views.py:1555
+#: base/views.py:1554
 msgid "Not authorized. New link then."
 msgstr "Non autorisé. Création d'un nouveau lien."
 
-#: base/views.py:1558
+#: base/views.py:1557
 msgid "Unknown link. New link then."
 msgstr "Lien inconnu. Création d'un nouveau lien."
 
-#: base/views.py:1570 notifications/notifications.py:129
+#: base/views.py:1569 notifications/notifications.py:129
 msgid "Created"
 msgstr "Créé"
 
-#: base/views.py:1570
+#: base/views.py:1569
 msgid "Modified"
 msgstr "Modifié"
 
-#: base/views.py:1573
+#: base/views.py:1572
 msgid "Tutor does not exist"
 msgstr "L'utilisateur n'existe pas."
 
@@ -800,75 +804,93 @@ msgid "Download and then complete the file below."
 msgstr "Téléchargez puis remplissez le fichier ci-dessous."
 
 #: configuration/templates/configuration/configuration.html:20
-msgid "Click to download the configuration file"
-msgstr "Cliquez pour télécharger le fichier de configuration"
+msgid "Click to download the empty configuration file"
+msgstr "Cliquez pour télécharger le fichier de configuration vierge"
 
 #: configuration/templates/configuration/configuration.html:21
-#: configuration/templates/configuration/configuration.html:61
+#: configuration/templates/configuration/configuration.html:73
 msgid "Download"
 msgstr "Télécharger"
 
+#: configuration/templates/configuration/configuration.html:24
+msgid "Click to make and download a new fullfilled database file"
+msgstr ""
+"Cliquez pour créer et télécharger un nouveau fichier de "
+"configuration rempli"
+
 #: configuration/templates/configuration/configuration.html:25
+#: configuration/templates/configuration/configuration.html:77
+#: configuration/templates/configuration/configuration.html:88
+msgid " (it may last several minuts)."
+msgstr " (ça peut prendre plusieurs minutes...)"
+
+#: configuration/templates/configuration/configuration.html:32
+#: configuration/templates/configuration/configuration.html:84
+#: configuration/templates/configuration/configuration.html:95
+msgid "Make_and_download"
+msgstr "Créer_et_télécharger"
+
+#: configuration/templates/configuration/configuration.html:37
 msgid "Configuration file completed"
 msgstr "Fichier de configuration complété"
 
-#: configuration/templates/configuration/configuration.html:26
+#: configuration/templates/configuration/configuration.html:38
 msgid "Upload the completed configuration file."
 msgstr "Téléversez le fichier de configuration rempli."
 
-#: configuration/templates/configuration/configuration.html:27
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:39
+#: configuration/templates/configuration/configuration.html:104
 msgid "Only xlsx format is accepted."
 msgstr "Seul le format xlsx est accepté."
 
-#: configuration/templates/configuration/configuration.html:31
+#: configuration/templates/configuration/configuration.html:43
 #: ics/templates/ics/index.html:98
 msgid "Department"
 msgstr "Département"
 
-#: configuration/templates/configuration/configuration.html:32
+#: configuration/templates/configuration/configuration.html:44
 #: people/templates/people/login.html:86
 msgid "Create"
 msgstr "Créer"
 
-#: configuration/templates/configuration/configuration.html:33
+#: configuration/templates/configuration/configuration.html:45
 msgid "Edit"
 msgstr "Modifier"
 
-#: configuration/templates/configuration/configuration.html:36
-#: configuration/templates/configuration/configuration.html:138
+#: configuration/templates/configuration/configuration.html:48
+#: configuration/templates/configuration/configuration.html:150
 #: templates/base.html:115
 msgid "Import"
 msgstr "Importer"
 
-#: configuration/templates/configuration/configuration.html:41
-#: configuration/templates/configuration/configuration.html:142
+#: configuration/templates/configuration/configuration.html:53
+#: configuration/templates/configuration/configuration.html:154
 msgid "Verdict :"
 msgstr "Verdict :"
 
-#: configuration/templates/configuration/configuration.html:45
+#: configuration/templates/configuration/configuration.html:57
 msgid "Option B: With Flopeditor"
 msgstr "Option B : Avec Flopeditor"
 
-#: configuration/templates/configuration/configuration.html:47
+#: configuration/templates/configuration/configuration.html:59
 msgid "Click here"
 msgstr "Cliquer ici"
 
-#: configuration/templates/configuration/configuration.html:47
+#: configuration/templates/configuration/configuration.html:59
 msgid " to go to Flopeditor."
 msgstr "pour vous rendre sur Flopeditor."
 
-#: configuration/templates/configuration/configuration.html:48
+#: configuration/templates/configuration/configuration.html:60
 msgid "If you need help, you can consult the Flopeditor documentation on "
 msgstr ""
 "Si vous avez besoin d'aide, vous pouvez consulter la documentation de "
 "Flopeditor sur "
 
-#: configuration/templates/configuration/configuration.html:48
+#: configuration/templates/configuration/configuration.html:60
 msgid "this page."
 msgstr "cette page."
 
-#: configuration/templates/configuration/configuration.html:51
+#: configuration/templates/configuration/configuration.html:63
 msgid ""
 "Step 2 - Plan the lessons (which lesson in which week, which teacher gives "
 "which lesson)"
@@ -876,54 +898,44 @@ msgstr ""
 "Étape 2 - Planifier les cours (quel cours dans quelle semaine, quel prof "
 "donne quel cours)"
 
-#: configuration/templates/configuration/configuration.html:53
+#: configuration/templates/configuration/configuration.html:65
 msgid "Template for the planning file from the configuration file"
 msgstr ""
 "Canevas du fichier de planification à partir du fichier de configuration"
 
-#: configuration/templates/configuration/configuration.html:54
+#: configuration/templates/configuration/configuration.html:66
 msgid "Click to download the current planning file outline"
 msgstr "Cliquez pour télécharger le canevas de fichier de planification actuel"
 
-#: configuration/templates/configuration/configuration.html:64
+#: configuration/templates/configuration/configuration.html:76
 msgid "Click to make and download a new blank planning file outline"
 msgstr ""
 "Cliquez pour créer et télécharger un nouveau canevas de fichier de "
 "planification vierge"
 
-#: configuration/templates/configuration/configuration.html:65
-#: configuration/templates/configuration/configuration.html:76
-msgid " (it may last several minuts)."
-msgstr " (ça peut prendre plusieurs minutes...)"
-
-#: configuration/templates/configuration/configuration.html:72
-#: configuration/templates/configuration/configuration.html:83
-msgid "Make_and_download"
-msgstr "Créer_et_télécharger"
-
-#: configuration/templates/configuration/configuration.html:75
+#: configuration/templates/configuration/configuration.html:87
 msgid "Click to make and download a new fullfilled planning file outline"
 msgstr ""
 "Cliquez pour créer et télécharger un nouveau canevas de fichier de "
 "planification rempli"
 
-#: configuration/templates/configuration/configuration.html:91
+#: configuration/templates/configuration/configuration.html:103
 msgid "Completed planning file"
 msgstr "Fichier de planification des cours complété"
 
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:104
 msgid "Upload the completed planning file."
 msgstr "Téléversez le fichier de planification rempli."
 
-#: configuration/templates/configuration/configuration.html:109
+#: configuration/templates/configuration/configuration.html:121
 msgid "From week"
 msgstr "De la semaine"
 
-#: configuration/templates/configuration/configuration.html:123
+#: configuration/templates/configuration/configuration.html:135
 msgid "Only for periods "
 msgstr "Uniquement les périodes "
 
-#: configuration/templates/configuration/configuration.html:129
+#: configuration/templates/configuration/configuration.html:141
 msgid "Stabilization ?"
 msgstr "Stabilisation ?"
 
@@ -1046,6 +1058,7 @@ msgid "[flop!Scheduler] Changes on your planning"
 msgstr "[flop!EDT] Modifications de votre planning"
 
 #: notifications/notifications.py:203
+#, python-format
 msgid ""
 "This email is automatically generated by flop!Scheduler. To manage your "
 "notifications settings, please <a href='%(url)s/edt/%(dept)s/semaine-type'> "

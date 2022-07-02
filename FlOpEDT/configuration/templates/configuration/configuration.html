@@ -17,8 +17,20 @@
     <div class="step">
         <h3>{% trans "Configuration file canvas" %}</h3>
         <p>{% trans "Download and then complete the file below." %}</p>
-            {% trans "Click to download the configuration file" %}
+            {% trans "Click to download the empty configuration file" %}
             <a href="{% url "configuration:dl_config" %}"><button id="btn_config_1">{% trans "Download"%}</button></a>
+        <br/>
+        <br/>
+        {% trans "Click to make and download a new fullfilled database file" %}
+        {% trans " (it may last several minuts)." %}
+        <form action="{% url 'configuration:mk_and_dl_fullfilled_database_file' %}">
+        <select name="departement"  id="dropdown_dpt_1">
+            {% for depart in departements %}
+                <option value={{ depart.abbrev }} >{{ depart.name }}</option>
+            {% endfor %}
+        </select>
+        <input id="btn_dl_database_file" type="submit" value={% trans "Make_and_download" %}>
+        </form>
     </div>
 
     <div class="step">

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-18 15:08+0000\n"
+"POT-Creation-Date: 2022-07-01 22:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -342,7 +342,7 @@ msgstr "此人不存在"
 msgid "Ideally"
 msgstr "理想地"
 
-#: base/forms.py:64 base/templates/base/show-stype.html:131
+#: base/forms.py:64 base/templates/base/show-stype.html:133
 msgid "Maximum"
 msgstr "最大限度"
 
@@ -374,43 +374,43 @@ msgstr ""
 msgid "Abbreviation"
 msgstr "缩写"
 
-#: base/models.py:498
+#: base/models.py:499
 msgid "graded?"
 msgstr "评分的？"
 
-#: base/models.py:524
+#: base/models.py:527
 msgid "Suspens?"
 msgstr "未解决的？"
 
-#: base/models.py:557
+#: base/models.py:560
 msgid "Graded?"
 msgstr "评分的？"
 
-#: base/models.py:940
+#: base/models.py:943
 msgid "Successives?"
 msgstr "连续的？"
 
-#: base/models.py:941 base/models.py:952
+#: base/models.py:944 base/models.py:955
 msgid "On different days"
 msgstr "在不同的日子"
 
-#: base/models.py:942
+#: base/models.py:945
 msgid "Minimal day gap between courses"
 msgstr ""
 
-#: base/models.py:970
+#: base/models.py:973
 msgid "Full"
 msgstr "满"
 
-#: base/models.py:972
+#: base/models.py:975
 msgid "Full generation date"
 msgstr "完整的生成日期"
 
-#: base/models.py:973
+#: base/models.py:976
 msgid "Stabilized"
 msgstr "稳定的"
 
-#: base/models.py:975
+#: base/models.py:978
 msgid "Partial generation date"
 msgstr "部分的生成日期"
 
@@ -615,13 +615,13 @@ msgstr "从周开始"
 
 #: base/templates/base/show-stype.html:98
 #: base/templates/base/show-stype.html:101
-#: configuration/templates/configuration/configuration.html:111
-#: configuration/templates/configuration/configuration.html:116
+#: configuration/templates/configuration/configuration.html:123
+#: configuration/templates/configuration/configuration.html:128
 msgid "year"
 msgstr "年"
 
 #: base/templates/base/show-stype.html:100
-#: configuration/templates/configuration/configuration.html:114
+#: configuration/templates/configuration/configuration.html:126
 msgid "until week"
 msgstr "到周"
 
@@ -638,7 +638,7 @@ msgid "Update my default week"
 msgstr "更新我的默认周"
 
 #: base/templates/base/show-stype.html:112
-#: base/templates/base/show-stype.html:140
+#: base/templates/base/show-stype.html:136
 msgid "button_save"
 msgstr "保存键"
 
@@ -651,7 +651,7 @@ msgid "Create a link"
 msgstr "创建链接"
 
 #: base/templates/base/show-stype.html:124
-#: base/templates/base/show-stype.html:152
+#: base/templates/base/show-stype.html:148
 msgid "button_change"
 msgstr "修改键"
 
@@ -668,33 +668,39 @@ msgid ""
 "teaching day:"
 msgstr "这是我每天想要提供的总教学时间："
 
+#: base/templates/base/show-stype.html:131
+#, fuzzy
+#| msgid "Maximum"
+msgid "Minimum"
+msgstr "最大限度"
+
 #: base/templates/base/show-stype.html:132
 msgid "Preferred"
 msgstr "优先的"
 
-#: base/templates/base/show-stype.html:149
+#: base/templates/base/show-stype.html:145
 msgid "My favorite rooms"
 msgstr "我最喜欢的教室"
 
-#: base/templates/base/show-stype.html:150
+#: base/templates/base/show-stype.html:146
 msgid "Select my favorite rooms"
 msgstr "选择我最喜欢的教室"
 
-#: base/templates/base/show-stype.html:175
+#: base/templates/base/show-stype.html:171
 msgid "Teachers"
 msgstr "老师"
 
-#: base/templates/base/show-stype.html:176
-#: base/templates/base/show-stype.html:196
+#: base/templates/base/show-stype.html:172
+#: base/templates/base/show-stype.html:192
 msgid "Transformation in : "
 msgstr "转换为："
 
-#: base/templates/base/show-stype.html:182
-#: base/templates/base/show-stype.html:188
+#: base/templates/base/show-stype.html:178
+#: base/templates/base/show-stype.html:184
 msgid "Types of classes"
 msgstr "课程类型"
 
-#: base/templates/base/show-stype.html:195 ics/templates/ics/index.html:82
+#: base/templates/base/show-stype.html:191 ics/templates/ics/index.html:82
 msgid "Rooms"
 msgstr "教室"
 
@@ -714,23 +720,23 @@ msgstr ""
 msgid "Create or modify a link"
 msgstr "创建或修改链接"
 
-#: base/views.py:1555
+#: base/views.py:1554
 msgid "Not authorized. New link then."
 msgstr "未经授权。创建一个新的链接。"
 
-#: base/views.py:1558
+#: base/views.py:1557
 msgid "Unknown link. New link then."
 msgstr "未知链接。创建一个新的链接。"
 
-#: base/views.py:1570 notifications/notifications.py:129
+#: base/views.py:1569 notifications/notifications.py:129
 msgid "Created"
 msgstr "已创建"
 
-#: base/views.py:1570
+#: base/views.py:1569
 msgid "Modified"
 msgstr "已修改"
 
-#: base/views.py:1573
+#: base/views.py:1572
 msgid "Tutor does not exist"
 msgstr "该教师不存在"
 
@@ -780,129 +786,139 @@ msgid "Download and then complete the file below."
 msgstr "下载并完成以下文件"
 
 #: configuration/templates/configuration/configuration.html:20
-msgid "Click to download the configuration file"
+#, fuzzy
+#| msgid "Click to download the configuration file"
+msgid "Click to download the empty configuration file"
 msgstr "点击下载配置文件"
 
 #: configuration/templates/configuration/configuration.html:21
-#: configuration/templates/configuration/configuration.html:61
+#: configuration/templates/configuration/configuration.html:73
 msgid "Download"
 msgstr "下载"
 
+#: configuration/templates/configuration/configuration.html:24
+#, fuzzy
+#| msgid "Click to download the planning file outline"
+msgid "Click to make and download a new fullfilled database file"
+msgstr "点击下载计划文件大纲"
+
 #: configuration/templates/configuration/configuration.html:25
+#: configuration/templates/configuration/configuration.html:77
+#: configuration/templates/configuration/configuration.html:88
+msgid " (it may last several minuts)."
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:32
+#: configuration/templates/configuration/configuration.html:84
+#: configuration/templates/configuration/configuration.html:95
+msgid "Make_and_download"
+msgstr ""
+
+#: configuration/templates/configuration/configuration.html:37
 msgid "Configuration file completed"
 msgstr "配置文件完成"
 
-#: configuration/templates/configuration/configuration.html:26
+#: configuration/templates/configuration/configuration.html:38
 msgid "Upload the completed configuration file."
 msgstr "上传完成的配置文件"
 
-#: configuration/templates/configuration/configuration.html:27
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:39
+#: configuration/templates/configuration/configuration.html:104
 msgid "Only xlsx format is accepted."
 msgstr "仅接受xlsx格式。"
 
-#: configuration/templates/configuration/configuration.html:31
+#: configuration/templates/configuration/configuration.html:43
 #: ics/templates/ics/index.html:98
 msgid "Department"
 msgstr "部门"
 
-#: configuration/templates/configuration/configuration.html:32
+#: configuration/templates/configuration/configuration.html:44
 #: people/templates/people/login.html:86
 msgid "Create"
 msgstr "创建"
 
-#: configuration/templates/configuration/configuration.html:33
+#: configuration/templates/configuration/configuration.html:45
 msgid "Edit"
 msgstr "编辑"
 
-#: configuration/templates/configuration/configuration.html:36
-#: configuration/templates/configuration/configuration.html:138
+#: configuration/templates/configuration/configuration.html:48
+#: configuration/templates/configuration/configuration.html:150
 #: templates/base.html:115
 msgid "Import"
 msgstr "输入"
 
-#: configuration/templates/configuration/configuration.html:41
-#: configuration/templates/configuration/configuration.html:142
+#: configuration/templates/configuration/configuration.html:53
+#: configuration/templates/configuration/configuration.html:154
 msgid "Verdict :"
 msgstr "定论："
 
-#: configuration/templates/configuration/configuration.html:45
+#: configuration/templates/configuration/configuration.html:57
 msgid "Option B: With Flopeditor"
 msgstr "选项B：使用Flopeditor"
 
-#: configuration/templates/configuration/configuration.html:47
+#: configuration/templates/configuration/configuration.html:59
 msgid "Click here"
 msgstr "点击这里"
 
-#: configuration/templates/configuration/configuration.html:47
+#: configuration/templates/configuration/configuration.html:59
 msgid " to go to Flopeditor."
 msgstr "跳转至Flopeditor"
 
-#: configuration/templates/configuration/configuration.html:48
+#: configuration/templates/configuration/configuration.html:60
 msgid "If you need help, you can consult the Flopeditor documentation on "
 msgstr "如果需要帮助，可以查阅Flopeditor文档在"
 
-#: configuration/templates/configuration/configuration.html:48
+#: configuration/templates/configuration/configuration.html:60
 msgid "this page."
 msgstr "此页面"
 
-#: configuration/templates/configuration/configuration.html:51
+#: configuration/templates/configuration/configuration.html:63
 msgid ""
 "Step 2 - Plan the lessons (which lesson in which week, which teacher gives "
 "which lesson)"
 msgstr "第2步-计划课程（在哪一周的哪门课程，哪位老师教哪门课程）"
 
-#: configuration/templates/configuration/configuration.html:53
+#: configuration/templates/configuration/configuration.html:65
 msgid "Template for the planning file from the configuration file"
 msgstr "配置文件中计划文件的模板"
 
-#: configuration/templates/configuration/configuration.html:54
+#: configuration/templates/configuration/configuration.html:66
 #, fuzzy
 #| msgid "Click to download the planning file outline"
 msgid "Click to download the current planning file outline"
 msgstr "点击下载计划文件大纲"
 
-#: configuration/templates/configuration/configuration.html:64
+#: configuration/templates/configuration/configuration.html:76
 #, fuzzy
 #| msgid "Click to download the planning file outline"
 msgid "Click to make and download a new blank planning file outline"
 msgstr "点击下载计划文件大纲"
 
-#: configuration/templates/configuration/configuration.html:65
-#: configuration/templates/configuration/configuration.html:76
-msgid " (it may last several minuts)."
-msgstr ""
-
-#: configuration/templates/configuration/configuration.html:72
-#: configuration/templates/configuration/configuration.html:83
-msgid "Make_and_download"
-msgstr ""
-
-#: configuration/templates/configuration/configuration.html:75
+#: configuration/templates/configuration/configuration.html:87
 #, fuzzy
 #| msgid "Click to download the planning file outline"
 msgid "Click to make and download a new fullfilled planning file outline"
 msgstr "点击下载计划文件大纲"
 
-#: configuration/templates/configuration/configuration.html:91
+#: configuration/templates/configuration/configuration.html:103
 msgid "Completed planning file"
 msgstr "完成的计划文件"
 
-#: configuration/templates/configuration/configuration.html:92
+#: configuration/templates/configuration/configuration.html:104
 msgid "Upload the completed planning file."
 msgstr "上传完成的计划文件。"
 
-#: configuration/templates/configuration/configuration.html:109
+#: configuration/templates/configuration/configuration.html:121
 #, fuzzy
 #| msgid "from week"
 msgid "From week"
 msgstr "从周开始"
 
-#: configuration/templates/configuration/configuration.html:123
+#: configuration/templates/configuration/configuration.html:135
 msgid "Only for periods "
 msgstr ""
 
-#: configuration/templates/configuration/configuration.html:129
+#: configuration/templates/configuration/configuration.html:141
 msgid "Stabilization ?"
 msgstr "稳定？"
 
