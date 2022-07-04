@@ -240,9 +240,9 @@ def make_filled_database_file(department, filename=None):
         sheet.cell(row=row, column=col, value=gp.name)
         sheet.cell(row=row, column=col+1, value=gp.train_prog.abbrev)
         col += 2
-        for i, confl_group in enumerate(conflicting_groups):
+        for i, confl_group in enumerate(conflicting_groups.all()):
             sheet.cell(row=row, column=col + 2 + i, value=confl_group.name)
-        for i, parallel_group in enumerate(parallel_groups):
+        for i, parallel_group in enumerate(parallel_groups.all()):
             sheet.cell(row=row, column=col + 9 + i, value=parallel_group.name)
 
 
