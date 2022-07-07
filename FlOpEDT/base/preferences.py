@@ -36,18 +36,11 @@ def split_preferences(tutor, departments=None):
 
     # compute all possible times of events in the departments
     for dpt in departments:
-        courses = \
-            Course.objects.select_related('module__train_prog__department')\
-                          .filter(module__train_prog__department=dpt)\
-                          .distinct('type')
-        for course_type in [c.type for c in courses]:
-            for time_constraints in \
-                CourseStartTimeConstraint.objects\
-                                         .filter(course_type=course_type):
-                splits |= set(time_constraints.allowed_start_times)
-                splits |= \
-                    set([start + course_type.duration
-                         for start in time_constraints.allowed_start_times])
+        for time_constraints in CourseStartTimeConstraint.objects.filter(course_type__department=dpt):
+            splits |= set(time_constraints.allowed_start_times)
+            splits |= \
+                set([start + time_constraints.course_type.duration
+                     for start in time_constraints.allowed_start_times])
 
         days |= set(dpt.timegeneralsettings.days)
 
