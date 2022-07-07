@@ -26,6 +26,7 @@
 import logging
 
 from base.models import Time, TimeGeneralSettings
+from people.models import GroupPreferences
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import slots_filter
@@ -152,7 +153,7 @@ class MinHalfDaysHelperGroup(MinHalfDaysHelperBase):
         return expression, courses
 
     def add_cost(self, cost):
-        g_pref = self.group.preferences
+        g_pref, created = GroupPreferences.objects.get(group = self.group)
         g_pref.calculate_fields()
         free_half_day_weight = g_pref.get_free_half_day_weight()
         self.ttmodel.add_to_group_cost(self.group, free_half_day_weight * cost, self.week)
