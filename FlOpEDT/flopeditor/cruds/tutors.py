@@ -29,6 +29,7 @@ without disclosing the source code of your own applications.
 
 from django.http import JsonResponse
 from base.models import Department
+from base.preferences import split_preferences
 from people.models import Tutor, SupplyStaff, User, FullStaff, BIATOS
 from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_tutor_values
 from flopeditor.db_requests import get_status_of_tutor, TUTOR_CHOICES_LIST, TUTOR_CHOICES_DICT
@@ -300,6 +301,7 @@ def create(request, entries):
 
             if has_rights_to_create_tutor(request.user, tutor, entries):
                 tutor.save()
+                split_preferences(tutor)
                 entries['result'].append([OK_RESPONSE])
             else:
                 tutor.delete()
@@ -333,9 +335,11 @@ def update(request, entries):
             ])
         else:
             try:
+                tutor_to_update = Tutor.objects.get(
+                    username=entries['old_values'][i][0])
+                old_departments = set(tutor_to_update.departments.all())
+                new_departments = Department.objects.filter(name__in=entries['new_values'][i][8])
                 if entries['new_values'][i][3] != entries['old_values'][i][3]:
-                    tutor_to_update = Tutor.objects.get(
-                        username=entries['old_values'][i][0])
                     if entries['new_values'][i][3] == TUTOR_CHOICES_DICT[Tutor.SUPP_STAFF]:
                         new = SupplyStaff(tutor_ptr_id=tutor_to_update.id)
                         new.__dict__.update(tutor_to_update.__dict__)
@@ -356,8 +360,7 @@ def update(request, entries):
                     new.last_name = entries['new_values'][i][2]
                     new.email = entries['new_values'][i][4]
                     new.rights = list_to_user_rights(entries['new_values'][i][7])
-                    new.departments.set(Department.objects.filter(
-                        name__in=entries['new_values'][i][8]))
+                    new.departments.set(new_departments)
                     new.save()
 
                     if entries['old_values'][i][3] == TUTOR_CHOICES_DICT[Tutor.SUPP_STAFF]:
@@ -366,11 +369,7 @@ def update(request, entries):
                         FullStaff.objects.get(id=tutor_to_update.id).delete(keep_parents=True)
                     else:
                         BIATOS.objects.get(id=tutor_to_update.id).delete(keep_parents=True)
-                    entries['result'].append([OK_RESPONSE])
                 else:
-                    tutor_to_update = Tutor.objects.get(
-                        username=entries['old_values'][i][0])
-
                     if entries['new_values'][i][3] == TUTOR_CHOICES_DICT[Tutor.SUPP_STAFF]:
                         tutor_to_update.status = Tutor.SUPP_STAFF
                         tutor_to_update = SupplyStaff.objects.get(
@@ -387,12 +386,13 @@ def update(request, entries):
                     tutor_to_update.last_name = entries['new_values'][i][2]
                     tutor_to_update.email = entries['new_values'][i][4]
                     tutor_to_update.rights = list_to_user_rights(entries['new_values'][i][7])
-                    tutor_to_update.departments.set(Department.objects.filter(
-                        name__in=entries['new_values'][i][8]))
-
+                    tutor_to_update.departments.set(new_departments)
                     tutor_to_update.save()
+                    new = tutor_to_update
 
-                    entries['result'].append([OK_RESPONSE])
+                if old_departments != set(new_departments):
+                    split_preferences(new)
+                entries['result'].append([OK_RESPONSE])
             except Tutor.DoesNotExist:
                 entries['result'].append(
                     [ERROR_RESPONSE,
