@@ -37,7 +37,7 @@ from TTapp.models import \
     MinModulesHalfDays, MinTutorsHalfDays, MinGroupsHalfDays,\
     MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, \
     CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectMaxHoursPerDay, RespectMinHoursPerDay, \
-    LimitedRoomChoices, LimitedStartTimeChoices, \
+    LimitedRoomChoices, LimitedStartTimeChoices, LimitCourseTypeTimePerPeriod, \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
     NoTutorCourseOnDay, NoGroupCourseOnDay, \
@@ -347,6 +347,7 @@ admin.site.register(LimitedRoomChoices, LimitRoomChoicesAdmin)
 admin.site.register(LimitModulesTimePerPeriod, LimitModulesTimePerPeriodAdmin)
 admin.site.register(LimitGroupsTimePerPeriod, LimitGroupsTimePerPeriodAdmin)
 admin.site.register(LimitTutorsTimePerPeriod, LimitTutorsTimePerPeriodAdmin)
+admin.site.register(LimitCourseTypeTimePerPeriod, BasicConstraintAdmin)
 admin.site.register(LowerBoundBusyDays, LowerBoundBusyDaysAdmin)
 admin.site.register(GroupsLunchBreak, GroupsLunchBreakAdmin)
 admin.site.register(TutorsLunchBreak, BasicTutorsConstraintAdmin)

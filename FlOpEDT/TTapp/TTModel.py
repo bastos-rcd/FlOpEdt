@@ -123,9 +123,6 @@ class TTModel(FlopModel):
         self.stabilize_work_copy = stabilize_work_copy
         self.wdb = self.wdb_init()
         self.courses = self.wdb.courses
-        if not self.wdb.courses.exists():
-            print('There are no course to be scheduled...')
-            return
         self.possible_apms = self.wdb.possible_apms
         self.cost_I, self.FHD_G, self.cost_G, self.cost_SL, self.generic_cost = self.costs_init()
         self.TT, self.TTinstructors = self.TT_vars_init()
@@ -158,6 +155,10 @@ class TTModel(FlopModel):
 
         if self.send_mails:
             self.send_lack_of_availability_mail()
+
+        if not self.wdb.courses.exists():
+            print('There are no course to be scheduled...')
+            return
 
     @timer
     def wdb_init(self):

@@ -319,5 +319,50 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
             text += " pour tous les profs "
         if self.train_progs.exists():
             text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+        return text
 
+
+class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
+    """
+    Bound the number of course time (of type 'type') per day/half day
+    """
+
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
+        self.enrich_model_for_one_object(ttmodel, week, ponderation)
+
+    def full_name(self):
+        return "Limit Course Type Time Per Period"
+
+    @classmethod
+    def get_viewmodel_prefetch_attributes(cls):
+        attributes = super().get_viewmodel_prefetch_attributes()
+        attributes.extend(['course_type'])
+        return attributes
+
+    def get_viewmodel(self):
+        view_model = super().get_viewmodel()
+        if self.course_type is not None:
+            type_value = self.course_type.name
+        else:
+            type_value = 'Any'
+
+        view_model['details'].update({
+            'course_type': type_value})
+
+        return view_model
+
+    def one_line_description(self):
+        text = "Pas plus de " + str(self.max_hours) + ' heures '
+        if self.course_type is not None:
+            text += 'de ' + str(self.course_type)
+        text += " par "
+        if self.period == self.FULL_DAY:
+            text += 'jour'
+        else:
+            text += 'demie-journée'
+        if self.train_progs.exists():
+            text += ' pour ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+        else:
+            text += " pour toutes les promos."
         return text
