@@ -259,6 +259,8 @@ def import_planif_file(req, **kwargs):
                         response = {'status': 'error', 'data': str(e)}
                         return HttpResponse(json.dumps(response), content_type='application/json')
                     stabilize_courses = "stabilize" in req.POST
+                    assign_colors = "assign_colors" in req.POST
+                    print("AAAAA", assign_colors)
                     choose_weeks = "choose_weeks" in req.POST
                     choose_periods = "choose_periods" in req.POST
                     if choose_weeks:
@@ -289,7 +291,7 @@ def import_planif_file(req, **kwargs):
                         periods = None
 
                     extract_planif(dept, bookname=path, from_week=from_week, until_week=until_week, periods=periods,
-                                   stabilize_courses=stabilize_courses)
+                                   stabilize_courses=stabilize_courses, assign_colors=assign_colors)
                     logger.info("Extract file OK")
                     rep = "OK !"
 

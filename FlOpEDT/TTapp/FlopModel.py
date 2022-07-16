@@ -50,15 +50,31 @@ pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
 GUROBI = 'GUROBI'
 GUROBI_NAME = 'GUROBI_CMD'
 solution_files_path = "misc/logs/solutions"
+iis_files_path = "misc/logs/iis"
+
+
+class FlopVar:
+    def __init__(self, id, name):
+        self.name = name
+        self.id = id
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
 
 
 class FlopModel(object):
-    def __init__(self, department_abbrev, weeks, keep_many_solution_files=False):
+    def __init__(self, department_abbrev, weeks, keep_many_solution_files=False, use_flop_vars=False):
+        self.use_flop_vars = use_flop_vars
         self.department = Department.objects.get(abbrev=department_abbrev)
         self.weeks = weeks
         self.model = LpProblem(self.solution_files_prefix(), LpMinimize)
         self.keep_many_solution_files = keep_many_solution_files
         self.var_nb = 0
+        if self.use_flop_vars:
+            self.vars = {}
         self.constraintManager = ConstraintManager()
         self.one_var = self.add_var()
         self.add_constraint(self.one_var, '==', 1, Constraint(constraint_type=ConstraintType.TECHNICAL))
@@ -70,6 +86,8 @@ class FlopModel(object):
         Create a PuLP binary variable
         """
         self.var_nb += 1
+        if self.use_flop_vars:
+            self.vars[self.var_nb] = FlopVar(self.var_nb, name)
         return LpVariable(str(self.var_nb), cat=LpBinary)
 
     def add_constraint(self, expr, relation, value, constraint=Constraint()):
@@ -141,6 +159,9 @@ class FlopModel(object):
         """
         Create a new var that is the conjunction of v1 and v2 and add it to the model
         """
+        name = ""
+        if self.use_flop_vars:
+            name = f"{v1} ET {v2}"
         l_conj_var = self.add_var()
         self.add_constraint(l_conj_var - (v1 + v2), '>=', -1,
                             Constraint(constraint_type=ConstraintType.CONJONCTION))
@@ -151,12 +172,15 @@ class FlopModel(object):
     def add_floor(self, expr, floor, bound):
         """
         Add a variable that equals 1 if expr >= floor, if integer expr is
-        known to be within [0, bound]
+        known to be within [0, bound], and floor >= 1
         """
-        l_floor = self.add_var()
+        name = ""
+        if self.use_flop_vars:
+            name = f"({' + '.join([v.name for v in expr])} >= {floor})"
+        l_floor = self.add_var(name)
         self.add_constraint(expr - l_floor * floor, '>=', 0,
                             Constraint(constraint_type=ConstraintType.FLOOR_BOUND))
-        self.add_constraint(l_floor * bound - expr, '>=', 1 - floor,
+        self.add_constraint(expr - l_floor * bound, '<=', floor - 0.001,
                             Constraint(constraint_type=ConstraintType.CEILING_BOUND))
         return l_floor
 
@@ -221,11 +245,15 @@ class FlopModel(object):
 
         return local_max_wc + 1
 
+    def iis_filename_suffixe(self):
+        return "_%s_%s" % (self.department.abbrev, self.weeks)
+
+    def iis_filename(self):
+        return "%s/IIS%s.ilp" % (iis_files_path, self.iis_filename_suffixe())
+
     def write_infaisability(self, write_iis=True, write_analysis=True, presolve=False):
         close_old_connections()
-        file_path = "misc/logs/iis"
-        filename_suffixe = "_%s_%s" % (self.department.abbrev, self.weeks)
-        iis_filename = "%s/IIS%s.ilp" % (file_path, filename_suffixe)
+        iis_filename = self.iis_filename()
         if write_iis:
             from gurobipy import read, GurobiError
             lp = f"{self.solution_files_prefix()}-pulp.lp"
@@ -242,7 +270,9 @@ class FlopModel(object):
                 m.computeIIS()
                 m.write(iis_filename)
         if write_analysis:
-            self.constraintManager.handle_reduced_result(iis_filename, file_path, filename_suffixe)
+            self.constraintManager.handle_reduced_result(iis_filename,
+                                                         iis_files_path,
+                                                         self.iis_filename_suffixe())
 
     @timer
     def optimize(self, time_limit, solver, presolve=2, threads=None, ignore_sigint=True):
