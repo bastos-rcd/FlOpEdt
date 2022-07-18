@@ -84,8 +84,8 @@ def get_pulp_solvers_viewmodel():
     # Build a dictionnary of supported solver 
     # classnames and readable names
 
-    # Get available solvers only on production environment
-    solvers = get_pulp_solvers(not settings.DEBUG)
+    # Get available solvers only on production environment TODO : WHY???
+    solvers = get_pulp_solvers() #if so : get_pulp_solvers(not settings.DEBUG)
     
     # Get readable solver name from solver class name
     viewmodel = []
