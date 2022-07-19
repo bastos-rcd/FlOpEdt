@@ -262,9 +262,12 @@ class TTModel(FlopModel):
                     IBHD[(i, d, apm)] = self.add_var()
                     # Linking the variable to the TT
                     card = 2 * len(halfdayslots)
-                    self.add_constraint(card * IBHD[i, d, apm] - self.sum(IBS[i, sl] for sl in halfdayslots), '>=',
+                    expr = card * IBHD[i, d, apm] - self.sum(IBS[i, sl] for sl in halfdayslots)
+                    self.add_constraint(expr, '>=',
                                         0,
                                         Constraint(constraint_type=ConstraintType.IBHD_INF, instructors=i, days=d))
+                    self.add_constraint(expr, '<=', card - 1,
+                                        Constraint(constraint_type=ConstraintType.IBHD_SUP, instructors=i, days=d))
 
         forced_IBD = {}
         for i in self.wdb.instructors:

@@ -50,6 +50,7 @@ from people.models import Tutor, PhysicalPresence
 from misc.manage_rooms_ponderations import register_ponderations_in_database
 
 from TTapp.slots import Slot, CourseSlot, slots_filter, days_filter
+from TTapp.models import AssignAllCourses
 
 from django.db.models import Q, Max, F
 
@@ -493,10 +494,6 @@ class WeeksDatabase(object):
 
     def possible_courses_tutor_init(self):
         possible_tutors = {}
-        try:
-            no_tut = Tutor.objects.get(username='---')
-        except:
-            no_tut = None
         for m in self.modules:
             if ModulePossibleTutors.objects.filter(module=m).exists():
                 possible_tutors[m] = set(ModulePossibleTutors.objects.get(module=m).possible_tutors.all())
@@ -505,15 +502,20 @@ class WeeksDatabase(object):
         for c in self.courses:
             if c.tutor is not None:
                 possible_tutors[c] = {c.tutor}
-            elif CoursePossibleTutors.objects.filter(course=c).exists():
+            else:
+                possible_tutors[c] = set()
+            # TODO : better gesture of this not pre-assigned only case
+            if AssignAllCourses.objects.filter(department=self.department,
+                                               pre_assigned_only=True,
+                                               is_active=True).exists():
+                continue
+            if CoursePossibleTutors.objects.filter(course=c).exists():
                 possible_tutors[c] = set(CoursePossibleTutors.objects.get(course=c).possible_tutors.all())
             elif ModuleTutorRepartition.objects.filter(course_type=c.type, module=c.module,
                                                        week=c.week).exists():
                 possible_tutors[c] = set(mtr.tutor for mtr in
                                          ModuleTutorRepartition.objects.filter(course_type=c.type, module=c.module,
                                                                                week=c.week))
-                if no_tut is not None:
-                    possible_tutors[c].add(no_tut)
             else:
                 possible_tutors[c] = possible_tutors[c.module]
 
