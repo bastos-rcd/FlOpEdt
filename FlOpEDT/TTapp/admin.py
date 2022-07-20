@@ -60,7 +60,7 @@ class RoomConstraintAdmin(DepartmentModelAdmin):
                     'weight',
                     'is_active')
     ordering = ()
-    list_filter = (('weeks__nb', DropdownFilterAll))
+    list_filter = (('weeks__nb', DropdownFilterAll),)
 
 
 class BasicConstraintAdmin(DepartmentModelAdmin):
