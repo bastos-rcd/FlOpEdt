@@ -55,6 +55,14 @@ from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
 from core.filters import DropdownFilterAll, DropdownFilterRel
 
 
+class RoomConstraintAdmin(DepartmentModelAdmin):
+    list_display = ('comment',
+                    'weight',
+                    'is_active')
+    ordering = ()
+    list_filter = (('weeks__nb', DropdownFilterAll))
+
+
 class BasicConstraintAdmin(DepartmentModelAdmin):
     list_display = ('comment',
                     'weight',
@@ -369,9 +377,9 @@ admin.site.register(LimitTutorTimePerWeeks, BasicConstraintAdmin)
 admin.site.register(ModulesByBloc, BasicConstraintAdmin)
 admin.site.register(LimitUndesiredSlotsPerWeek, BasicConstraintAdmin)
 admin.site.register(LimitSimultaneousCoursesNumber, BasicConstraintAdmin)
-admin.site.register(LocateAllCourses, BasicConstraintAdmin)
-admin.site.register(LimitTutorMoves, BasicConstraintAdmin)
-admin.site.register(LimitGroupMoves, BasicConstraintAdmin)
-admin.site.register(ConsiderRoomSorts, BasicConstraintAdmin)
+admin.site.register(LocateAllCourses, RoomConstraintAdmin)
+admin.site.register(LimitTutorMoves, RoomConstraintAdmin)
+admin.site.register(LimitGroupMoves, RoomConstraintAdmin)
+admin.site.register(ConsiderRoomSorts, RoomConstraintAdmin)
 
 
