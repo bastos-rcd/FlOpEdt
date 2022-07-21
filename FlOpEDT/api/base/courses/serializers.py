@@ -108,6 +108,7 @@ class CoursesSerializer(serializers.Serializer):
     groups = Group_C_Serializer(many=True)
     module = Module_C_Serializer()
     modulesupp = Module_C_Serializer()
+    pay_module = Module_C_Serializer()
 
     def get_week(self, obj):
         if(obj.week is not None):
@@ -124,7 +125,7 @@ class CoursesSerializer(serializers.Serializer):
     class Meta:
         model = bm.Course
         fields = ['id', 'week', 'year', 'no', 'department', 'type',
-                  'room_type', 'tutor', 'supp_tutor', 'groups', 'module', 'modulesupp']
+                  'room_type', 'tutor', 'supp_tutor', 'groups', 'module', 'modulesupp', 'pay_module']
 
 
 

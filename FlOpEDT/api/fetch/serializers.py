@@ -88,6 +88,7 @@ class Course_SC_Serializer(serializers.Serializer):
     groups = Group_SC_Serializer(many=True)
     supp_tutor = Tutor_Serializer(many=True)
     module = Module_SC_Serializer()
+    pay_module = Module_SC_Serializer()
     is_graded = serializers.BooleanField()
 
     def get_week(self, obj):
@@ -106,7 +107,7 @@ class Course_SC_Serializer(serializers.Serializer):
     class Meta:
         model = bm.Course
         fields = ['id', 'type', 'room_type', 'week', 'year', 'module', 'groups',
-                  'is_graded', 'supp_tutor']
+                  'is_graded', 'supp_tutor', 'pay_module']
 
 
 class ScheduledCoursesSerializer(serializers.Serializer):
