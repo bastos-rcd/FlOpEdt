@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-02 20:03+0000\n"
+"POT-Creation-Date: 2022-07-23 10:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -340,6 +340,38 @@ msgstr ""
 
 #: configuration/static/configuration/configuration_vars.js:8
 msgid "All"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:575
+#: cstmanager/static/cstmanager/js/script.js:648
+msgid "Strong constraint"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:950
+msgid "Required"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:1071
+#: cstmanager/static/cstmanager/js/script.js:1082
+msgid "Strong constraints"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:1075
+#: cstmanager/static/cstmanager/js/script.js:1084
+msgid "Preferences"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:1093
+#: cstmanager/static/cstmanager/js/script.js:1099
+msgid "All constraints"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:1293
+msgid "Edit"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:1295
+msgid "Duplicate"
 msgstr ""
 
 #: people/static/people/student_preferences.js:9

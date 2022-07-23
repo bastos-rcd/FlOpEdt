@@ -25,34 +25,102 @@ getMethods = (obj) => Object.getOwnPropertyNames(obj).filter(item => typeof obj[
 
 // useful to avoid d3 to redefine 'this'
 function hard_bind(obj) {
-  var methods = getMethods(obj);
-  for (var i = 0; i < methods.length; i++) {
-    obj[methods[i]] = obj[methods[i]].bind(obj);
-  }
+    var methods = getMethods(obj);
+    for (var i = 0; i < methods.length; i++) {
+        obj[methods[i]] = obj[methods[i]].bind(obj);
+    }
 }
 
 
 function get_transition(immediate) {
-  if (immediate) {
-    return d3.transition()
-      .duration(0);
-  } else {
-    return d3.transition();
-  }
+    if (immediate) {
+        return d3.transition()
+            .duration(0);
+    } else {
+        return d3.transition();
+    }
 }
 
 
 // add get parameters to the url
 function build_url(url, ...contexts) {
-  let full_context = contexts.reduce(
-    function(acc, val) {
-      return Object.assign(acc, val) ;
-    },
-    {}
-  );
-  return url + "?" + Object.keys(full_context).map(
-    function (p) {
-      return p + "=" + full_context[p] ;
+    let full_context = contexts.reduce(
+        function (acc, val) {
+            return Object.assign(acc, val);
+        },
+        {}
+    );
+    return url + "?" + Object.keys(full_context).map(
+        function (p) {
+            return p + "=" + full_context[p];
+        }
+    ).join("&");
+}
+
+function getCookie(name) {
+    if (!document.cookie) {
+        return null;
     }
-  ).join("&");
+
+    const xsrfCookies = document.cookie.split(';')
+        .map(c => c.trim())
+        .filter(c => c.startsWith(name + '='));
+
+    if (xsrfCookies.length === 0) {
+        return null;
+    }
+    return decodeURIComponent(xsrfCookies[0].split('=')[1]);
+}
+
+const csrfToken = getCookie('csrftoken');
+
+async function postData(url = '', data = {}) {
+    // Default options are marked with *
+    const response = await fetch(`${url}${data.name}/`, {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        redirect: 'follow', // manual, *follow, error
+        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
+    });
+    return response.json(); // parses JSON response into native JavaScript objects
+}
+
+async function deleteData(url = '', data = {}) {
+    const response = await fetch(`${url}${data.name}/${data.id}`, {
+        method: 'DELETE',
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'same-origin',
+        headers: {
+            'X-CSRFToken': csrfToken,
+        },
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer',
+    });
+    return response.json();
+}
+
+async function putData(url = '', data = {}) {
+    const response = await fetch(`${url}${data.name}/${data.id}/`, {
+        method: 'PUT',
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer',
+        body: JSON.stringify(data),
+    });
+    return response.json();
 }

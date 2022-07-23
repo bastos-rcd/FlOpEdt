@@ -34,7 +34,7 @@ from people.models import GroupPreferences
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 def pre_analysis_considered_basic_groups(group_ttconstraint):
     if group_ttconstraint.train_progs.exists():
@@ -80,6 +80,10 @@ class MinGroupsHalfDays(TTConstraint):
     """
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
 
+    class Meta:
+        verbose_name = _('Minimize busy half-days for groups')
+        verbose_name_plural = verbose_name
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         helper = MinHalfDaysHelperGroup(ttmodel, self, week, ponderation)
         for group in considered_basic_groups(self, ttmodel):
@@ -118,6 +122,11 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
     Minimize the use of unprefered Slots for groups.
     Make impossible the use of forbidden slots.
     """
+
+    class Meta:
+        verbose_name = _('Minimize undesired slots for groups')
+        verbose_name_plural = verbose_name
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=None):
         if ponderation is None:
             ponderation = ttmodel.min_ups_c

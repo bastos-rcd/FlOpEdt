@@ -503,35 +503,47 @@ class IDTutorSerializer(serializers.ModelSerializer):
         model = pm.Tutor
         fields = ['id', 'name']
 
+
 class IDTrainProgSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TrainingProgramme
-        fields = ['id', 'name']
-        
+        fields = ['id', 'abbrev', 'name']
+
+
 class IDModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Module
-        fields = ['id', 'name']
+        fields = ['id', 'abbrev', 'name']
+
 
 class IDCourseTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.CourseType
         fields = ['id', 'name']
 
+
 class IDGroupSerializer(serializers.ModelSerializer):
+    train_prog = serializers.CharField()
+
+    def get_train_ptorg(self, obj):
+        return obj.train_prog.abbrev
+
     class Meta:
         model = bm.GenericGroup
-        fields = ['id', 'name'] 
+        fields = ['id', 'name', 'train_prog']
+
 
 class IDGroupTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.GroupType
         fields = ['id', 'name'] 
 
+
 class IDRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Room
         fields = ['id', 'name']
+
 
 class IDRoomTypeSerializer(serializers.ModelSerializer):
     class Meta:

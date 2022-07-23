@@ -29,6 +29,7 @@ from django.db import models
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperModule
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
+from django.utils.translation import gettext_lazy as _
 
 
 class MinModulesHalfDays(TTConstraint):
@@ -36,6 +37,10 @@ class MinModulesHalfDays(TTConstraint):
     All courses will fit in a minimum of half days
     """
     modules = models.ManyToManyField('base.Module', blank=True)
+
+    class Meta:
+        verbose_name = _('Minimize used half-days for modules')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         considered_modules = set(ttmodel.wdb.modules)

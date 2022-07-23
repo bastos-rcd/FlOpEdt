@@ -52,6 +52,10 @@ class MinTutorsHalfDays(TTConstraint):
         verbose_name='If a tutor has 2 or 4 courses only, join it?',
         default=False)
 
+    class Meta:
+        verbose_name = _('Minimize busy half days for tutors')
+        verbose_name_plural = verbose_name
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
 
         helper = MinHalfDaysHelperTutor(ttmodel, self, week, ponderation)
@@ -87,6 +91,10 @@ class MinNonPreferedTutorsSlot(TTConstraint):
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True,
                                     related_name='min_non_prefered_tutors_slots_constraints')
+
+    class Meta:
+        verbose_name = _('Minimize undesired slots for tutors')
+        verbose_name_plural = verbose_name
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -126,6 +134,10 @@ class MinimizeBusyDays(TTConstraint):
     The module can contains several custom constraints.
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
+
+    class Meta:
+        verbose_name = _('Minimize tutors busy days')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=None):
         """
@@ -192,6 +204,10 @@ class RespectMaxHoursPerDay(TTConstraint):
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
 
+    class Meta:
+        verbose_name = _('Respect max hours per days bounds')
+        verbose_name_plural = verbose_name
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         """
         Minimize the number of busy days for tutor with cost
@@ -235,15 +251,16 @@ class RespectMaxHoursPerDay(TTConstraint):
         """
         return "Respect max hours per day"
 
-    class Meta:
-        verbose_name_plural = "Respect max hours per day"
-
 
 class RespectMinHoursPerDay(TTConstraint):
     """
     Respect the min_hours_per_day declared
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
+
+    class Meta:
+        verbose_name = _('Respect min hours per day bounds')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         """
@@ -290,9 +307,6 @@ class RespectMinHoursPerDay(TTConstraint):
         """
         return "Respect min hours per day"
 
-    class Meta:
-        verbose_name_plural = "Respect min hours per day"
-
 
 class LowerBoundBusyDays(TTConstraint):
     """
@@ -301,6 +315,10 @@ class LowerBoundBusyDays(TTConstraint):
     tutor = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
     min_days_nb = models.PositiveSmallIntegerField()
     lower_bound_hours = models.PositiveSmallIntegerField()
+
+    class Meta:
+        verbose_name = _('Lower bound tutor busy days')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         relevant_courses = self.get_courses_queryset_by_attributes(ttmodel, week)

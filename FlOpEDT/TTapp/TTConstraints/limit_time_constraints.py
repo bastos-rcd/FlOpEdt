@@ -29,6 +29,8 @@ from TTapp.slots import days_filter, slots_filter
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
+from django.utils.translation import gettext_lazy as _
+
 
 def build_period_slots(ttmodel, day, period):
     if period is None:
@@ -115,6 +117,10 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
                                     blank=True,
                                     related_name="Course_type_limits")
 
+    class Meta:
+        verbose_name = _('Limit groups busy time per period')
+        verbose_name_plural = verbose_name
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
 
         # if self.groups.exists():
@@ -180,6 +186,10 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
     modules = models.ManyToManyField('base.Module',
                                      blank=True,
                                      related_name="Course_type_limits")
+
+    class Meta:
+        verbose_name = _('Limit modules busy time per period')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
 
@@ -259,6 +269,10 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
     tutors = models.ManyToManyField('people.Tutor',
                                     blank=True,
                                     related_name="Course_type_limits")
+
+    class Meta:
+        verbose_name = _('Limit tutors busy time per period')
+        verbose_name_plural = verbose_name
 
     def build_period_expression(self, ttmodel, day, period, considered_courses, tutor=None):
         expr = ttmodel.lin_expr()

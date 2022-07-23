@@ -41,7 +41,7 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter, Slot
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxValueValidator
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
 
@@ -109,7 +109,8 @@ class SimultaneousCourses(TTConstraint):
         return f"Les cours {self.courses.all()} doivent être simultanés !"
 
     class Meta:
-        verbose_name_plural = "Simultaneous courses"
+        verbose_name = _('Simultaneous courses')
+        verbose_name_plural = verbose_name
 
 
 class LimitedStartTimeChoices(TTConstraint):
@@ -139,6 +140,10 @@ class LimitedStartTimeChoices(TTConstraint):
                                     on_delete=models.CASCADE)
     possible_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Limited start time choices')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
         fc = self.get_courses_queryset_by_attributes(ttmodel, week)
@@ -247,6 +252,10 @@ class ConsiderDependencies(TTConstraint):
     If there is a weight, it's a preference, else it's a constraint...
     """
     modules = models.ManyToManyField('base.Module', blank=True)
+
+    class Meta:
+        verbose_name = _('Consider dependecies')
+        verbose_name_plural = verbose_name
 
     @timer
     def pre_analyse(self, week):
@@ -399,6 +408,10 @@ class ConsiderPivots(TTConstraint):
     """
     modules = models.ManyToManyField('base.Module', blank=True)
 
+    class Meta:
+        verbose_name = _('Consider pivots')
+        verbose_name_plural = verbose_name
+
     def one_line_description(self):
         text = f"Prend en compte les pivots enregistrées en base."
         if self.train_progs.exists():
@@ -472,6 +485,10 @@ class AvoidBothTimes(TTConstraint):
                               default=None,
                               on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = _('Avoid using both times')
+        verbose_name_plural = verbose_name
+
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
@@ -520,10 +537,14 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
     start_time and end_time are in minuts from 0:00 AM
     """
 
-    tutors = models.ManyToManyField('people.Tutor', blank=True)
+    tutors = models.ManyToManyField('people.Tutor', blank=True, verbose_name=_('Tutors'))
     slot_start_time = models.PositiveSmallIntegerField()
     slot_end_time = models.PositiveSmallIntegerField()
     max_number = models.PositiveSmallIntegerField(validators=[MaxValueValidator(7)])
+
+    class Meta:
+        verbose_name = _('Limit undesired slots per week')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         tutor_to_be_considered = considered_tutors(self, ttmodel)
@@ -574,6 +595,10 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
     modules = models.ManyToManyField('base.Module',
                                      blank=True,
                                      related_name="limit_simultaneous")
+
+    class Meta:
+        verbose_name = _('Limit simultaneous courses number')
+        verbose_name_plural = verbose_name
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):

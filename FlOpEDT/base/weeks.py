@@ -98,7 +98,7 @@ def num_all_days(y, w, dept):
 
 def week_list():
     li = []
-    for i in list(range(35, 53)):
+    for i in list(range(1, 53)):
         li.append({'week': i, 'year': actual_year})
     for i in list(range(1, 53)):
         li.append({'week': i, 'year': actual_year+1})

@@ -1,0 +1,356 @@
+* {
+    font-family: Arial, sans-serif;
+    user-select: none;
+}
+
+.transition {
+    transition: 0s;
+}
+
+:root {
+    --whitish: #f7f8f3;
+    /* --whitish: transparent; */
+    --white: #fff;
+    /* --white: transparent; */
+    --primary1: #2c83c6;
+    --primary2: #39a8f0;
+    --primary3: #62beef;
+    --primary4: #a6d4ec;
+    --danger1: #c33726;
+    --danger2: #e24c33;
+    --danger3: #dd6d55;
+    --danger4: #e1a793;
+    --neutral: #e3e3e3;
+    --dark: #333;
+    --green: #2ec229;
+    --greeny: #259e21;
+}
+
+body>div {
+    margin: 0;
+    min-height: 100vh;
+}
+
+.search-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.filters {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+
+.text-field {
+    padding: 5px;
+    border: 1px solid var(--dark);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: inherit;
+    outline: none;
+    width: 180px;
+}
+
+/* .button {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+}
+
+.button button {
+    border-radius: 5px;
+    border: none;
+}
+
+.button.neutral {
+
+} */
+
+#constraints-header {
+    position: sticky;
+    z-index: 100;
+    height: 100px;
+    top: 0;
+}
+
+.element-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    margin-left: 5px;
+}
+
+.element-info.title {
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+    justify-content: space-between;
+}
+
+.element-info.grow {
+    flex-grow: 1;
+    /* width: 600px; */
+    margin: 0 20px;
+    /* border-left: solid 1px var(--dark);
+    border-right: solid 1px var(--dark); */
+    min-width: max-content;
+    /* width: max-content; */
+    max-width: 960px;
+}
+
+#constraint-header-title {
+    font-weight: bold;
+}
+
+#constraint-header-comment {
+    font-size: 80% !important;
+}
+
+.info-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.constraint-card-disabled {
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+.constraint-card-info-disabled {
+    padding: 5px;
+    border: solid 3px var(--neutral);
+    border-radius: 5px;
+    min-width: 300px;
+    min-height: 70px;
+    max-width: 300px;
+    max-height: 70px;
+    height: 50px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.constraint-card:hover {
+    cursor: pointer;
+}
+
+.constraint-card-info-disabled:hover {
+    cursor: pointer;
+}
+
+.selected {
+    background-color: var(--primary2);
+}
+
+.selected:hover {
+    background-color: var(--primary1);
+    border-color: var(--primary1);
+}
+
+.unselected {
+    background-color: var(--white);
+}
+
+.unselected:hover, .constraint-card:hover:not(.selected) {
+    background-color: var(--whitish);
+}
+
+.icon-text {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-div {
+    height: 24px;
+    width: 24px;
+}
+
+.icon-div * {
+    padding: 2px;
+}
+
+.icon-info {
+    height: 24px;
+    width: 24px;
+}
+
+.neutral {
+    background-color: var(--primary2);
+}
+
+.neutral:hover {
+    background-color: var(--primary1);
+}
+
+.danger {
+    background-color: var(--danger2);
+}
+
+.danger:hover {
+    background-color: var(--danger1);
+}
+
+.green {
+    background-color: var(--green);
+}
+
+.green:hover {
+    background-color: var(--greeny);
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+.divbutton {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+}
+
+.divslider {
+    display: flex;
+    flex-direction: row;
+}
+
+.divslider div {
+    text-align: center;
+}
+
+.divtext {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding-top: 4px;
+}
+
+.ver-sep {
+    width: 10px;
+}
+
+.ver-bar {
+    height: 1px;
+    margin: 4px 0;
+    background-color: var(--dark);
+}
+
+.hor-bar {
+    margin: 0 4px;
+    width: 1px;
+    background-color: var(--dark);
+}
+
+input:hover {
+    cursor: pointer;
+}
+
+.icon-checkbox {
+    background-color: transparent;
+}
+
+.float {
+    position: fixed;
+    right: -125px;
+    width: 150px;
+    height: 80px;
+    background-color: var(--greeny);
+    transition: 0.1s;
+    text-align: left;
+}
+
+.float:hover {
+    right: -10px;
+}
+
+#show-disabled {
+    top: 320px;
+}
+
+#show-solver {
+    top: 380px;
+}
+
+.display-none {
+    display: none;
+}
+
+.bar-button {
+    width: 150px;
+}
+
+.constraints-section {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: stretch;
+    align-items: stretch;
+}
+
+.constraints-section-title {
+    font-size: 140%;
+    font-weight: bold;
+}
+
+.div-popup {
+    position: absolute;
+    z-index: 100;
+    width: 400px;
+    left: -160px;
+    top: 35px;
+    min-height: 100px;
+    background-color: var(--white);
+    border: 2px solid var(--dark);
+    border-radius: 5px;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    /* align-items: center; */
+    padding: 5px;
+}
+
+.buttons-for-parameters {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-around;
+}
+
+#params button {
+    position: relative;
+}
+
+.accordion-button-no-icon:after {
+    content: none;
+}
+
+/* Weeks banner */
+
+.cir_wk {
+  fill: darkgreen;
+  cursor: pointer;
+  font-size: 2em;
+  font-weight: bold
+}
+
+.rec_wk {
+  fill: darkgreen;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.sel_wk {
+  fill: none;
+  stroke: darkkhaki;
+  stroke-width: 4
+}

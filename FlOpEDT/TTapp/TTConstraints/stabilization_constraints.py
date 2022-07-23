@@ -37,6 +37,7 @@ from TTapp.slots import slots_filter
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
+from django.utils.translation import gettext_lazy as _
 
 
 class StabilizeTutorsCourses(TTConstraint):
@@ -50,6 +51,10 @@ class StabilizeTutorsCourses(TTConstraint):
     work_copy = models.PositiveSmallIntegerField(default=0)
     fixed_days = ArrayField(models.CharField(max_length=2,
                                              choices=Day.CHOICES), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Stabilize tutors courses')
+        verbose_name_plural = verbose_name
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -114,6 +119,10 @@ class StabilizeGroupsCourses(TTConstraint):
     fixed_days = ArrayField(models.CharField(max_length=2,
                                              choices=Day.CHOICES), blank=True, null=True)
 
+    class Meta:
+        verbose_name = _('Stabilize groups courses')
+        verbose_name_plural = verbose_name
+
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
@@ -160,6 +169,10 @@ class StabilizeGroupsCourses(TTConstraint):
 
 class StabilizationThroughWeeks(TTConstraint):
     courses = models.ManyToManyField('base.Course')
+
+    class Meta:
+        verbose_name = _('Stabilization through weeks')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         if week != ttmodel.weeks[0]:

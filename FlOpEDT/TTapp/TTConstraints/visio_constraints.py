@@ -34,6 +34,7 @@ from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from base.timing import Day, Time, min_to_str
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.translation import gettext_lazy as _
 
 
 class NoVisio(TTConstraint):
@@ -42,6 +43,9 @@ class NoVisio(TTConstraint):
     course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='no_visio')
     modules = models.ManyToManyField('base.Module', blank=True, related_name='no_visio')
 
+    class Meta:
+        verbose_name = _('No visio courses')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1000000):
         if not self.department.mode.visio:
@@ -103,6 +107,10 @@ class VisioOnly(TTConstraint):
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='visio_only')
     course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='visio_only')
     modules = models.ManyToManyField('base.Module', blank=True, related_name='visio_only')
+
+    class Meta:
+        verbose_name = _('Only visio courses')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1000000):
         if not self.department.mode.visio:
@@ -167,6 +175,10 @@ class LimitGroupsPhysicalPresence(TTConstraint):
     percentage = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
 
+    class Meta:
+        verbose_name = _('Limit simultaneous physical presence')
+        verbose_name_plural = verbose_name
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1000):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore LimitGroupsPhysicalPresence constraint")
@@ -215,6 +227,10 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
     nb_max = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(14)], default=14)
     nb_min = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(14)], default=0)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='bound_physical_presence_half_days')
+
+    class Meta:
+        verbose_name = _('Bound physical presence half days')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         if not self.department.mode.visio:
@@ -266,6 +282,10 @@ class Curfew(TTConstraint):
     """
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     curfew_time = models.PositiveSmallIntegerField(validators=[MaxValueValidator(24*60)])
+
+    class Meta:
+        verbose_name = _('Curfew')
+        verbose_name_plural = verbose_name
 
     def one_line_description(self):
         text = f"Curfew after {min_to_str(self.curfew_time)}"

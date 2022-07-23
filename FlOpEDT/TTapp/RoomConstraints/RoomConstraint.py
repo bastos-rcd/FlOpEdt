@@ -33,6 +33,7 @@ from TTapp.TTConstraints.TTConstraint import TTConstraint
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
+from django.utils.translation import gettext_lazy as _
 
 
 class RoomConstraint(FlopConstraint):
@@ -127,6 +128,10 @@ class LimitedRoomChoices(RoomConstraint):
                               on_delete=models.CASCADE)
     possible_rooms = models.ManyToManyField('base.Room')
 
+    class Meta:
+        verbose_name = _('Limited room choices')
+        verbose_name_plural = verbose_name
+
     def enrich_room_model(self, room_model, week, ponderation=1.):
         filtered_courses = self.get_courses_queryset_by_attributes(room_model, week)
         possible_rooms = self.possible_rooms.all()
@@ -185,6 +190,10 @@ class LimitedRoomChoices(RoomConstraint):
 class ConsiderRoomSorts(RoomConstraint):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
 
+    class Meta:
+        verbose_name = _("Consider tutors rooms sorts")
+        verbose_name_plural = verbose_name
+
     def enrich_room_model(self, room_model, week, ponderation=1.):
         for tutor in considered_tutors(self, room_model):
             tutor_courses = room_model.courses_for_tutor[tutor] & room_model.courses_for_week[week]
@@ -209,6 +218,10 @@ class LocateAllCourses(RoomConstraint):
     modules = models.ManyToManyField('base.Module', blank=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
     course_types = models.ManyToManyField('base.CourseType', blank=True)
+
+    class Meta:
+        verbose_name = _('Assign a room to the courses')
+        verbose_name_plural = verbose_name
 
     def enrich_room_model(self, room_model, week, ponderation=1):
         considered_courses = room_model.courses_for_week[week]
@@ -261,6 +274,10 @@ class LimitMoves(RoomConstraint):
 class LimitGroupMoves(LimitMoves):
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
 
+    class Meta:
+        verbose_name = _('Limit room moves for groups')
+        verbose_name_plural = verbose_name
+
     def objects_to_consider(self, room_model):
         return considered_basic_groups(self, room_model)
 
@@ -276,6 +293,10 @@ class LimitGroupMoves(LimitMoves):
 
 class LimitTutorMoves(LimitMoves):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
+
+    class Meta:
+        verbose_name = _('Limit room moves for tutors')
+        verbose_name_plural = verbose_name
 
     def objects_to_consider(self, room_model):
         return considered_tutors(self, room_model)

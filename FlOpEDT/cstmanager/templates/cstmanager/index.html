@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %} {% trans "Constraints manager" %} {% endblock %}
+{% load static %}
+{% block content %}
+    <link rel="stylesheet" href="{% static 'cstmanager/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'cstmanager/css/style.css' %}">
+    <script>
+        const department = "{{ dept }}";
+        const urlAcceptableValues = "{% url 'api:ttapp:constraints_fields-list' %}";
+        const urlConstraints = "{% url 'api:ttapp:constraint-list' %}";
+        const urlDetailConstraint = "{% url 'api:ttapp:constraint-detail' 'a' 0 %}".replace('/a/0', '');
+        const urlDepartments = "{% url 'api:fetch:dept-list' %}";
+        const urlGroups = "{% url 'api:fetch:idgroup-list' %}";
+        const urlTutors = "{% url 'api:people:tutor-list' %}";
+        const urlModules = "{% url 'api:fetch:idmodule-list' %}";
+        const urlCourseTypes = "{% url 'api:fetch:idcoursetype-list' %}";
+        const urlTutorsID = "{% url 'api:fetch:idtutor-list' %}";
+        const urlWeeks = "{% url 'api:base:weeks-list' %}";
+        const urlTrainingPrograms = "{% url 'api:fetch:idtrainprog-list' %}";
+        const urlConstraintTypes = "{% url 'api:ttapp:constraint_types-list' %}";
+        const weeks = {{ all_weeks | safe }};
+        const week_init = {{ week}};
+        const year_init = {{ year }};
+    </script>
+    <div class="container-fluid">
+        <!-- Content -->
+        <div class="row">
+            <!-- Search column -->
+            <div class="col col-2 border-end border-top border-dark pt-5">
+                <div class="mb-3">
+                    <button id="nav-new-constraint" type="button" class="btn btn-primary w-100">
+                        {% trans "New Constraint" %}
+                    </button>
+                </div>
+                <div class="mb-3">
+                    <button id="discard-changes" type="button" class="btn btn-danger w-100">
+                        {% trans "Discard Changes" %}
+                    </button>
+                </div>
+                <div class="mb-3">
+                    <button id="apply-changes" type="button" class="btn btn-success w-100">
+                        {% trans "Commit Changes" %}
+                    </button>
+                </div>
+                <div class="mb-3">
+                    <button id="fetch-constraints" type="button" class="btn btn-primary w-100">
+                        {% trans "Reload Constraints" %}
+                    </button>
+                </div>
+                <div class="search-bar mb-3">
+                    <input type="text" class="form-control" id="input-search" placeholder="Search">
+                </div>
+                <div id="filters" class="search-bar pad-children mb-3">
+                    <input type="text" class="form-control mb-3" id="input-tutor" placeholder="Tutor">
+                    <input type="text" class="form-control mb-3" id="input-module" placeholder="Module">
+                    <input type="text" class="form-control mb-3" id="input-course" placeholder="Course">
+                    <!-- See all weeks -->
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="filter-all-weeks" onchange="onChangeAllWeeksFilter()">
+                        <label class="form-check-label" for="filter-all-weeks">{% trans "See all weeks" %}</label>
+                    </div>
+                </div>
+                <div class="mb-3 text-center">
+                    <button class="btn btn-info" id="clear-filters">
+                        {% trans "Clear Filters" %}
+                    </button>
+                </div>
+                <div class="search-bar mb-3">
+                    <div class="form-check">
+                        <label for="constraints-group-mode">{% trans "Gathering :" %}</label>
+                        <select name="group-mode" id="constraints-group-mode">
+                            <option value="status">{% trans "by status" %}</option>
+                            <option value="class">{% trans "by class" %}</option>
+                            <option value="none">{% trans "None" %}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- Edit constraint modal -->
+            <div class="modal fade" id="constraint-edit-popup" data-bs-backdrop="static" data-bs-keyboard="false"
+                 tabindex="-1"
+                 aria-labelledby="constraint-edit-popup-label" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="constraint-edit-popup-label">{% trans "Edit constraint" %}</h5>
+                        </div>
+                        <div class="modal-body">
+                            <div id="constraint-edit-alert-container"></div>
+                            <!-- Type -->
+                            <div class="mb-3">
+                                <select id="constraint-edit-type" class="form-select" aria-label="Type de contrainte"
+                                        onchange="updateParamsListNewConstraint()">
+                                    <option selected disabled>{% trans "Select type..." %}</option>
+                                </select>
+                            </div>
+                            <!-- Title -->
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="constraint-edit-title">
+                                <label for="constraint-edit-title">{% trans "Title" %}</label>
+                            </div>
+                            <!-- Comment -->
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="constraint-edit-comment"></input>
+                                <label for="constraint-edit-comment">{% trans "Comment" %}</label>
+                            </div>
+                            <!-- Parameters -->
+                            <div id="constraint-edit-params" class="accordion mb-3">
+
+                            </div>
+                            <!-- Activation -->
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch" value=""
+                                       id="constraint-edit-activation">
+                                <label class="form-check-label ps-1" for="constraint-edit-activation">
+                                    {% trans "Activated?" %}
+                                </label>
+                            </div>
+                            <!-- Weight -->
+                            <div class="mb-3">
+                                <label for="constraint-edit-weight-slider"
+                                       class="form-label text-center">{% trans "Weight :" %}</label>
+                                <input type="range" class="form-range" min="1" max="9" step="1"
+                                       id="constraint-edit-weight-slider"
+                                       oninput="updateEditConstraintWeightDisplay('constraint-edit-weight-value', value)"
+                                >
+                                <div id="constraint-edit-weight-value" class="text-center">1</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" id="cancel-edit-constraint" class="btn btn-secondary">
+                                {% trans "Cancel" %}
+                            </button>
+                            <button type="button" id="confirm-edit-constraint" class="btn btn-primary">
+                                {% trans "Save changes" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Constraints column -->
+            <div class="col container w-auto" id="constraints-body">
+                <button id="show-disabled" class="float">{% trans "Show Disabled" %}</button>
+                <button id="show-solver" class="float">{% trans "Preanalyse" %}</button>
+                <!-- Weeks banner -->
+                <div id="svg" class="text-center py-2">
+                </div>
+                <div id="constraints-all" class="row container-fluid">
+                    <div class="row">
+                        <div id="constraints-enabled" class="col-9 border-end border-dark"></div>
+                        <div id="constraints-disabled" class="col-3 constraints-disabled"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer -->
+        <div id="constraints-footer" class="row p-2 pb-0 border-top border-dark">
+            <div class="container col-auto">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="constraints-select-all">
+                    <label class="form-check-label" for="constraints-select-all">
+                        {% trans "Select all" %}
+                    </label>
+                </div>
+            </div>
+            <div class="col">
+                <div>{% trans "Selected constraints :" %}</div>
+                <div id="num-selected-constraints">0</div>
+            </div>
+            <div class="col-auto">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-auto">
+                            <label for="selected-constraints-edit-weight-slider"
+                                   class="form-label text-center">{% trans "Weight :" %}</label>
+                        </div>
+                        <div class="col-auto">
+                            <div id="selected-constraints-edit-weight-value" class="text-center">1</div>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <input type="range" class="form-range" min="1" max="9" step="1"
+                               id="selected-constraints-edit-weight-slider"
+                               oninput="updateEditConstraintWeightDisplay('selected-constraints-edit-weight-value', value)"
+                               value="1">
+                    </div>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="btn-group" role="group" aria-label="Edit selected constraints">
+                    <button class="btn btn-primary w-auto" id="selected-constraints-edit-weight">
+                        {% trans "Set weight" %}
+                    </button>
+                    <button class="btn btn-danger w-auto" id="selected-constraints-delete">
+                        {% trans "Delete" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+        <img id="icon-weight" style="display: none;" src="{% static 'cstmanager/icons/icon_weight.png' %}">
+        <img id="icon-gears" style="display: none;" src="{% static 'cstmanager/icons/icon_gears.png' %}">
+        <img id="icon-check" style="display: none;" src="{% static 'cstmanager/icons/icon_check.png' %}">
+    </div>
+{% endblock %} {% block javascript %}
+    <script type="text/javascript" src="{% static 'base/helpers.js' %}"></script>
+    <script type="text/javascript" src="{% static 'base/svg.js' %}"></script>
+    <script type="text/javascript" src="{% static 'base/weeks.js' %}"></script>
+    <script type="text/javascript" src="{% static 'cstmanager/js/weeks_banner.js' %}"></script>
+    <script type="text/javascript" src="{% static 'cstmanager/js/popper.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'cstmanager/js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'cstmanager/js/mockup_request.js' %}"></script>
+    <script type="text/javascript" src="{% static 'cstmanager/js/script.js' %}"></script>
+{% endblock %}
