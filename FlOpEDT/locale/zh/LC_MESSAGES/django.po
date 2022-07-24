@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-23 10:33+0000\n"
+"POT-Creation-Date: 2022-07-24 10:19+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -401,6 +401,12 @@ msgstr ""
 msgid "Stabilization through weeks"
 msgstr "稳定？"
 
+#: TTapp/TTConstraints/tutors_constraints.py:50
+#, fuzzy
+#| msgid "Tutors"
+msgid "tutors"
+msgstr "教师"
+
 #: TTapp/TTConstraints/tutors_constraints.py:56
 msgid "Minimize busy half days for tutors"
 msgstr ""
@@ -413,15 +419,15 @@ msgstr ""
 msgid "Minimize tutors busy days"
 msgstr ""
 
-#: TTapp/TTConstraints/tutors_constraints.py:208
+#: TTapp/TTConstraints/tutors_constraints.py:205
 msgid "Respect max hours per days bounds"
 msgstr ""
 
-#: TTapp/TTConstraints/tutors_constraints.py:262
+#: TTapp/TTConstraints/tutors_constraints.py:259
 msgid "Respect min hours per day bounds"
 msgstr ""
 
-#: TTapp/TTConstraints/tutors_constraints.py:320
+#: TTapp/TTConstraints/tutors_constraints.py:317
 msgid "Lower bound tutor busy days"
 msgstr ""
 
@@ -461,7 +467,7 @@ msgstr ""
 msgid "Will modify only courses of training programme(s) {train_prog}"
 msgstr ""
 
-#: TTapp/TTModel.py:155
+#: TTapp/TTModel.py:152
 msgid "Relevant warnings :"
 msgstr ""
 
@@ -567,31 +573,35 @@ msgstr "未解决的？"
 msgid "Graded?"
 msgstr "评分的？"
 
-#: base/models.py:943
+#: base/models.py:561
+msgid "Over time"
+msgstr ""
+
+#: base/models.py:944
 msgid "Successives?"
 msgstr "连续的？"
 
-#: base/models.py:944 base/models.py:955
+#: base/models.py:945 base/models.py:956
 msgid "On different days"
 msgstr "在不同的日子"
 
-#: base/models.py:945
+#: base/models.py:946
 msgid "Minimal day gap between courses"
 msgstr ""
 
-#: base/models.py:973
+#: base/models.py:974
 msgid "Full"
 msgstr "满"
 
-#: base/models.py:975
+#: base/models.py:976
 msgid "Full generation date"
 msgstr "完整的生成日期"
 
-#: base/models.py:976
+#: base/models.py:977
 msgid "Stabilized"
 msgstr "稳定的"
 
-#: base/models.py:978
+#: base/models.py:979
 msgid "Partial generation date"
 msgstr "部分的生成日期"
 
@@ -1023,13 +1033,13 @@ msgid "Edit"
 msgstr "编辑"
 
 #: configuration/templates/configuration/configuration.html:48
-#: configuration/templates/configuration/configuration.html:150
+#: configuration/templates/configuration/configuration.html:153
 #: templates/base.html:116
 msgid "Import"
 msgstr "输入"
 
 #: configuration/templates/configuration/configuration.html:53
-#: configuration/templates/configuration/configuration.html:154
+#: configuration/templates/configuration/configuration.html:157
 msgid "Verdict :"
 msgstr "定论："
 
@@ -1102,6 +1112,12 @@ msgstr ""
 #: configuration/templates/configuration/configuration.html:141
 msgid "Stabilization ?"
 msgstr "稳定？"
+
+#: configuration/templates/configuration/configuration.html:144
+#, fuzzy
+#| msgid "Reassign rooms"
+msgid "(Re)assign colors ?"
+msgstr "重新分配教室"
 
 #: cstmanager/templates/cstmanager/index.html:3
 #, fuzzy
@@ -1582,11 +1598,6 @@ msgstr "登入为"
 #~| msgid "Modules"
 #~ msgid "module"
 #~ msgstr "模块"
-
-#, fuzzy
-#~| msgid "Tutors"
-#~ msgid "tutor"
-#~ msgstr "教师"
 
 #, fuzzy
 #~| msgid "Groups"

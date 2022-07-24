@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-23 10:33+0000\n"
+"POT-Creation-Date: 2022-07-24 10:19+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -417,6 +417,10 @@ msgstr "Stabiliser les cours des groupes"
 msgid "Stabilization through weeks"
 msgstr "Stabilisation ?"
 
+#: TTapp/TTConstraints/tutors_constraints.py:50
+msgid "tutors"
+msgstr "profs"
+
 #: TTapp/TTConstraints/tutors_constraints.py:56
 msgid "Minimize busy half days for tutors"
 msgstr "Minimiser les demies-journées de présence des profs"
@@ -429,15 +433,15 @@ msgstr "Minimiser les créneaux non désirés des profs"
 msgid "Minimize tutors busy days"
 msgstr "Minimise les jours de présence des profs"
 
-#: TTapp/TTConstraints/tutors_constraints.py:208
+#: TTapp/TTConstraints/tutors_constraints.py:205
 msgid "Respect max hours per days bounds"
 msgstr "Respecter le nombre max d'heures par jour"
 
-#: TTapp/TTConstraints/tutors_constraints.py:262
+#: TTapp/TTConstraints/tutors_constraints.py:259
 msgid "Respect min hours per day bounds"
 msgstr "Respecter le nombre min d'heures par jour"
 
-#: TTapp/TTConstraints/tutors_constraints.py:320
+#: TTapp/TTConstraints/tutors_constraints.py:317
 msgid "Lower bound tutor busy days"
 msgstr "Imposer un nombre minimal de jours de présence"
 
@@ -479,7 +483,7 @@ msgstr "Assignation des salles :"
 msgid "Will modify only courses of training programme(s) {train_prog}"
 msgstr "Ne modifie que les cours des promos {train_prog}"
 
-#: TTapp/TTModel.py:155
+#: TTapp/TTModel.py:152
 msgid "Relevant warnings :"
 msgstr "Avertissements importants :"
 
@@ -581,31 +585,37 @@ msgstr "En suspens?"
 msgid "Graded?"
 msgstr "Noté ?"
 
-#: base/models.py:943
+#: base/models.py:561
+#, fuzzy
+#| msgid "Start time"
+msgid "Over time"
+msgstr "Heure"
+
+#: base/models.py:944
 msgid "Successives?"
 msgstr "Successifs ?"
 
-#: base/models.py:944 base/models.py:955
+#: base/models.py:945 base/models.py:956
 msgid "On different days"
 msgstr "Des jours différents"
 
-#: base/models.py:945
+#: base/models.py:946
 msgid "Minimal day gap between courses"
 msgstr "Nombre de jours minimum entre plusieurs cours"
 
-#: base/models.py:973
+#: base/models.py:974
 msgid "Full"
 msgstr "Totale"
 
-#: base/models.py:975
+#: base/models.py:976
 msgid "Full generation date"
 msgstr "Date de regénération"
 
-#: base/models.py:976
+#: base/models.py:977
 msgid "Stabilized"
 msgstr "Stabilisée"
 
-#: base/models.py:978
+#: base/models.py:979
 msgid "Partial generation date"
 msgstr "Date de regénération partielle"
 
@@ -1034,13 +1044,13 @@ msgid "Edit"
 msgstr "Modifier"
 
 #: configuration/templates/configuration/configuration.html:48
-#: configuration/templates/configuration/configuration.html:150
+#: configuration/templates/configuration/configuration.html:153
 #: templates/base.html:116
 msgid "Import"
 msgstr "Importer"
 
 #: configuration/templates/configuration/configuration.html:53
-#: configuration/templates/configuration/configuration.html:154
+#: configuration/templates/configuration/configuration.html:157
 msgid "Verdict :"
 msgstr "Verdict :"
 
@@ -1114,6 +1124,12 @@ msgstr "Uniquement les périodes "
 #: configuration/templates/configuration/configuration.html:141
 msgid "Stabilization ?"
 msgstr "Stabilisation ?"
+
+#: configuration/templates/configuration/configuration.html:144
+#, fuzzy
+#| msgid "Reassign rooms"
+msgid "(Re)assign colors ?"
+msgstr "Réassigner les salles"
 
 #: cstmanager/templates/cstmanager/index.html:3
 msgid "Constraints manager"
@@ -1583,9 +1599,6 @@ msgstr "Connecté·e sous "
 
 #~ msgid "module"
 #~ msgstr "module"
-
-#~ msgid "tutor"
-#~ msgstr "prof"
 
 #~ msgid "room"
 #~ msgstr "salle"

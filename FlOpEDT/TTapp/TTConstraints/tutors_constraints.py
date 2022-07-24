@@ -47,7 +47,7 @@ class MinTutorsHalfDays(TTConstraint):
     All courses will fit in a minimum of half days
     Optional: if 2 courses only, possibility to join it
     """
-    tutors = models.ManyToManyField('people.Tutor', blank=True)
+    tutors = models.ManyToManyField('people.Tutor', blank=True, verbose_name=_('tutors'))
     join2courses = models.BooleanField(
         verbose_name='If a tutor has 2 or 4 courses only, join it?',
         default=False)
@@ -193,9 +193,6 @@ class MinimizeBusyDays(TTConstraint):
         You can give a contextual explanation about what this constraint doesnt
         """
         return "MinimizeBusyDays online description"
-
-    class Meta:
-        verbose_name_plural = "Minimize busy days"
 
 
 class RespectMaxHoursPerDay(TTConstraint):

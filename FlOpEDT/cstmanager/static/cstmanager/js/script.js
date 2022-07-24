@@ -128,7 +128,6 @@ let changeEvents = {
 
         constraint_list = Object.keys(constraints);
         selected_constraints = selected_constraints.filter(id => id !== pageid);
-        filter.reset();
         refreshConstraints();
     },
     editConstraint: (constraint) => {
@@ -764,7 +763,7 @@ let elementBuilder = (tag, args = {}) => {
 }
 
 // returns the corresponding database table based on the parameter given
-let getCorrespondantDatabase = (param) => {
+let getCorrespondingDatabase = (param) => {
     switch (param) {
         case 'group':
         case 'groups':
@@ -789,7 +788,8 @@ let getCorrespondantDatabase = (param) => {
 }
 
 // returns the information needed from a parameter and a constraint id given
-let getCorrespondantInfo = (id, param, db) => {
+let getCorrespondingInfo = (id, param) => {
+    let db = getCorrespondingDatabase(param);
     switch (param) {
         case 'group':
         case 'groups':
@@ -854,8 +854,7 @@ let createSelectedParameterPopup = (constraint, parameter) => {
 
     let createCheckboxAndLabel = (ele, inputType) => {
         let temp_id = 'acceptable' + ele.toString();
-        let db = getCorrespondantDatabase(parameter);
-        let str = getCorrespondantInfo(ele, parameter, db);
+        let str = getCorrespondingInfo(ele, parameter);
 
         let checked = isParameterValueSelectedInConstraint(constraint, parameter, ele);
 
@@ -1293,7 +1292,20 @@ let constraintCardBuilder = (constraint) => {
     let editButton = `<button type="button" class="btn btn-primary" onclick="editSelectedConstraint('${constraint.pageid}')">${gettext('Edit')}</button>`;
     let deleteButton = `<button type="button" class="btn btn-danger" onclick="deleteSelectedConstraint('${constraint.pageid}')">${gettext('Delete')}</button>`;
     let duplicateButton = `<button type="button" class="btn btn-info" onclick="duplicateSelectedConstraint('${constraint.pageid}')">${gettext('Duplicate')}</button>`;
-    let popover_content = `<div class="btn-group" role="group" aria-label="Constraint edit">${duplicateButton}${editButton}${deleteButton}`;
+    let popover_content = ''
+    constraint.parameters.forEach((param) => {
+        if (param.name==='department'){
+            return
+        }
+        if (param.id_list.length >0){
+            popover_content += gettext(param.name) + ' : '
+            param.id_list.forEach((id) =>
+                popover_content += getCorrespondingInfo(id, param.name) + ', '
+            )
+            popover_content += '</br>'
+        }
+        })
+    popover_content += `<div class="btn-group" role="group" aria-label="Constraint edit">${duplicateButton}${editButton}${deleteButton}</div>`;
 
     const wrapper = divBuilder({
         'class': 'card border border-3 border-primary me-1 mb-1 constraint-card h-25',
