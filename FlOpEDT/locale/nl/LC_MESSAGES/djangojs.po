@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-23 10:57+0000\n"
+"POT-Creation-Date: 2022-07-25 22:09+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -341,35 +341,41 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:575
-#: cstmanager/static/cstmanager/js/script.js:648
+#: cstmanager/static/cstmanager/js/script.js:568
+#: cstmanager/static/cstmanager/js/script.js:585
+#: cstmanager/static/cstmanager/js/script.js:670
 msgid "Strong constraint"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:950
+#: cstmanager/static/cstmanager/js/script.js:585
+#: cstmanager/static/cstmanager/js/script.js:672
+msgid "Weight : "
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:1013
 msgid "Required"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1071
-#: cstmanager/static/cstmanager/js/script.js:1082
+#: cstmanager/static/cstmanager/js/script.js:1134
+#: cstmanager/static/cstmanager/js/script.js:1145
 msgid "Strong constraints"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1075
-#: cstmanager/static/cstmanager/js/script.js:1084
+#: cstmanager/static/cstmanager/js/script.js:1138
+#: cstmanager/static/cstmanager/js/script.js:1147
 msgid "Preferences"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1093
-#: cstmanager/static/cstmanager/js/script.js:1099
+#: cstmanager/static/cstmanager/js/script.js:1156
+#: cstmanager/static/cstmanager/js/script.js:1162
 msgid "All constraints"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1293
+#: cstmanager/static/cstmanager/js/script.js:1355
 msgid "Edit"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1295
+#: cstmanager/static/cstmanager/js/script.js:1357
 msgid "Duplicate"
 msgstr ""
 
