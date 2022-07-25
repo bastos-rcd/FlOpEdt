@@ -39,6 +39,10 @@ from base.models import TrainingProgramme, ScheduledCourse, Week
 from base.core.period_weeks import PeriodWeeks
 from TTapp.TTModel import get_ttconstraints
 
+from django.utils.functional import Promise
+from django.utils.encoding import force_text
+from django.core.serializers.json import DjangoJSONEncoder
+
 # from solve_board.consumers import ws_add
 
 # String used to specify all filter
@@ -132,7 +136,7 @@ def get_context(department, year, week, train_prog=None):
 def fetch_context(req, train_prog, year, week, **kwargs):
 
     context = get_context(req.department, year, week, train_prog)
-    return HttpResponse(json.dumps(context), content_type='text/json')
+    return HttpResponse(json.dumps(context, cls=LazyEncoder), content_type='text/json')
 
 @dept_admin_required
 def launch_pre_analyse(req, train_prog, year, week, type, **kwargs):
@@ -196,7 +200,14 @@ def main_board(req, **kwargs):
     # Get contextual datas (constraints, work_copies)
     if len(week_list) > 0:
         data_context = get_context(department, year=week_list[0][0], week=week_list[0][1])
-        view_context.update({ k:json.dumps(v) for k, v in data_context.items()})
+        print(data_context.items())
+        view_context.update({k:json.dumps(v, cls=LazyEncoder) for k, v in data_context.items()})
     
     return TemplateResponse(req, 'solve_board/main-board.html', view_context)
 
+
+class LazyEncoder(DjangoJSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Promise):
+            return force_text(obj)
+        return super(LazyEncoder, self).default(obj)

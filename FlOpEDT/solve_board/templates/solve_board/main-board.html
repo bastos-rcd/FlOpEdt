@@ -45,7 +45,7 @@
     var analyse_url_template = '{% url "solve_board:pre_analyse" department 'tp' 1111 11 'constraint'%}';
     var courses_id_url = '{% url "api:course:id-list" %}';
     var group_id_url = '{% url "api:groups:structural-list" %}';
-    var tutor_id_url = '{% url "api:tutor-list" %}';
+    var tutor_id_url = '{% url "api:people:tutor-list" %}';
     var constraints = JSON.parse('{{ constraints|escapejs }}');
     var work_copies = JSON.parse('{{ work_copies|escapejs }}');
   </script>

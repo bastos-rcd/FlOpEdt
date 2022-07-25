@@ -130,9 +130,6 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         for group in considered_basic_groups(self,ttmodel):
             self.enrich_model_for_one_object(ttmodel, week, ponderation, group=group)
 
-    def full_name(self):
-        return "Limit Groups Course Type Per Period"
-
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
@@ -207,9 +204,6 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         for module in considered_modules:
             for group in considered_basic_groups:
                 self.enrich_model_for_one_object(ttmodel, week, ponderation, module=module, group=group)
-
-    def full_name(self):
-        return "Limit Modules Course Type Per Period"
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -292,9 +286,6 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
         for tutor in considered_tutors:
             self.enrich_model_for_one_object(ttmodel, week, ponderation, tutor=tutor)
 
-    def full_name(self):
-        return "Limit Tutors Time Per Period"
-
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
@@ -344,9 +335,6 @@ class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
         self.enrich_model_for_one_object(ttmodel, week, ponderation)
-
-    def full_name(self):
-        return "Limit Course Type Time Per Period"
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
