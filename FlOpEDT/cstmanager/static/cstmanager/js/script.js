@@ -624,7 +624,7 @@ let extractConstraintFromPopup = (constraint) => {
             // Store the selected values
             let tag = document.getElementById('collapse-parameter-' + param.name);
             tag.querySelectorAll('input').forEach((value, key, parent) => {
-                if (value.type === 'text') {
+                if (value.type === 'text' && value.value!=='') {
                     param.id_list.push(value.value);
                 } else {
                     if (value.checked) {
