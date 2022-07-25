@@ -17,6 +17,7 @@
         const urlCourseTypes = "{% url 'api:fetch:idcoursetype-list' %}";
         const urlTutorsID = "{% url 'api:fetch:idtutor-list' %}";
         const urlWeeks = "{% url 'api:base:weeks-list' %}";
+        const urlRooms = "{% url 'api:rooms:room-list' %}";
         const urlTrainingPrograms = "{% url 'api:fetch:idtrainprog-list' %}";
         const urlConstraintTypes = "{% url 'api:ttapp:constraint_types-list' %}";
         const weeks = {{ all_weeks | safe }};
@@ -119,8 +120,6 @@
                             </div>
                             <!-- Weight -->
                             <div class="mb-3">
-                                <label for="constraint-edit-weight-slider"
-                                       class="form-label text-center">{% trans "Weight :" %}</label>
                                 <input type="range" class="form-range" min="1" max="9" step="1"
                                        id="constraint-edit-weight-slider"
                                        oninput="updateEditConstraintWeightDisplay('constraint-edit-weight-value', value)"
@@ -172,11 +171,7 @@
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-auto">
-                            <label for="selected-constraints-edit-weight-slider"
-                                   class="form-label text-center">{% trans "Weight :" %}</label>
-                        </div>
-                        <div class="col-auto">
-                            <div id="selected-constraints-edit-weight-value" class="text-center">1</div>
+                            <div id="selected-constraints-edit-weight-value" class="text-center">Weight</div>
 
                         </div>
                     </div>

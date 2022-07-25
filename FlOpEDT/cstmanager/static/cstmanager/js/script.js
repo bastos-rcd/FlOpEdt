@@ -354,7 +354,18 @@ let fetchers = {
             });
     },
     fetchRooms: (e) => {
-        // TODO
+        fetch(build_url(urlRooms, {"dept": department}))
+            .then(resp => resp.json())
+            .then(jsonObj => {
+                database['rooms'] = {};
+                Object.values(jsonObj).forEach(obj => {
+                    database['rooms'][obj['id']] = obj;
+                });
+            })
+            .catch(err => {
+                console.error("something went wrong while fetching courses");
+                console.error(err);
+            });
     },
     fetchTutorsIDs: (e) => {
         fetch(build_url(urlTutorsID, {"dept": department}))
@@ -552,9 +563,9 @@ let fillEditConstraintPopup = constraint => {
         type.disabled = false;
         title.value = "";
         comment.value = "";
-        activation.checked = false;
-        weightSlider.value = 1;
-        weightValue.innerText = weightSlider.value;
+        activation.checked = true;
+        weightSlider.value = 9;
+        weightValue.innerText = gettext("Strong constraint");
         params.innerHTML = '';
     } else {
         let localName = findConstraintLocalNameFromClass(constraint.name);
@@ -571,7 +582,7 @@ let fillEditConstraintPopup = constraint => {
         comment.value = constraint.comment ?? "";
         activation.checked = constraint.is_active;
         weightSlider.value = constraint.weight ?? 9;
-        weightValue.innerText = constraint.weight ?? gettext("Strong constraint");
+        weightValue.innerText = constraint.weight ? gettext('Weight : ') + constraint.weight : gettext("Strong constraint");
         updateParamsListExistingConstraint(constraint);
     }
 };
@@ -623,15 +634,27 @@ let extractConstraintFromPopup = (constraint) => {
         } else {
             // Store the selected values
             let tag = document.getElementById('collapse-parameter-' + param.name);
-            tag.querySelectorAll('input').forEach((value, key, parent) => {
-                if (value.type === 'text' && value.value!=='') {
-                    param.id_list.push(value.value);
-                } else {
-                    if (value.checked) {
-                        param.id_list.push(value.getAttribute('element-id'));
-                    }
+            let select = tag.querySelector('select')
+            if (select!==null){
+                let selected_value = select.options[select.selectedIndex].value
+                if (selected_value!==''){
+                    param.id_list.push(selected_value)
                 }
-            });
+            }
+            else{
+                tag.querySelectorAll('input').forEach((value, key, parent) => {
+                    if (value.type === 'text' && value.value!=='') {
+                        param.id_list.push(value.value);
+                    } else {
+                        if (value.checked) {
+                            param.id_list.push(value.getAttribute('element-id'));
+                        }
+                    }
+                });
+            }
+
+
+
         }
 
         if (param.required && param.id_list.length === 0) {
@@ -646,7 +669,7 @@ let extractConstraintFromPopup = (constraint) => {
 let updateEditConstraintWeightDisplay = (labelID, value) => {
     let weightText = gettext("Strong constraint");
     if (value <= 8) {
-        weightText = value.toString();
+        weightText = gettext("Weight : ") + value.toString();
     }
     document.getElementById(labelID).innerText = weightText;
 }
@@ -762,6 +785,25 @@ let elementBuilder = (tag, args = {}) => {
     return ele;
 }
 
+let selectBuilder = (param_name, args = {}, id_to_select) => {
+    let ele = elementBuilder('select', args);
+    let options = database.acceptable_values[param_name].acceptable
+    let opt = document.createElement('option')
+    opt.value = ''
+    opt.innerHTML = ''
+    ele.appendChild(opt)
+    for (let i=0; i<options.length; i++){
+        let opt = document.createElement('option')
+        let option_id = options[i]
+        opt.value = option_id
+        opt.innerHTML = getCorrespondingInfo(option_id, param_name)
+        ele.appendChild(opt)
+    }
+    let optionToSelect = Array.from(ele.options).find(item => item.value === id_to_select);
+    optionToSelect.selected = true;
+    return ele;
+}
+
 // returns the corresponding database table based on the parameter given
 let getCorrespondingDatabase = (param) => {
     switch (param) {
@@ -780,6 +822,10 @@ let getCorrespondingDatabase = (param) => {
         case 'tutor':
         case 'tutors':
             return database['tutors_ids'];
+        case "rooms":
+        case "possible_rooms":
+        case "room":
+            return database['rooms']
         case 'weeks':
             return database['weeks'];
         default:
@@ -801,6 +847,9 @@ let getCorrespondingInfo = (id, param) => {
             return db[id]['abbrev'];
         case 'tutors':
         case 'tutor':
+        case "rooms":
+        case "possible_rooms":
+        case "room":
             return db[id]['name'];
         case 'course_type':
         case 'course_types':
@@ -884,7 +933,22 @@ let createSelectedParameterPopup = (constraint, parameter) => {
         acceptableValues.forEach(ele => {
             createCheckboxAndLabel(ele, 'checkbox');
         });
-    } else {
+    } else if(param_obj.type.includes('.')){
+        let temp_id = parameter + '-value';
+
+        let form = divBuilder({
+            'class': 'form-floating',
+        })
+        let select = selectBuilder(parameter, {
+            'id': temp_id,
+            'element-id': 0,
+            'name': 'elementsParameter',
+        }, param_obj.id_list[0]===undefined ? '' : param_obj.id_list[0]);
+
+        form.append(select);
+        divs.append(form);
+    }
+    else {
         let temp_id = parameter + '-value';
 
         let form = divBuilder({
@@ -1280,7 +1344,6 @@ let duplicateSelectedConstraint = (pageid) => {
     let newConstraint = copyObj(constraint);
     newConstraint.id = getNewConstraintID(newConstraint.name);
     newConstraint.pageid = newConstraint.name + newConstraint.id;
-    console.log(newConstraint);
     openNewConstraintPopup(newConstraint);
 }
 
@@ -1399,6 +1462,7 @@ fetchers.fetchTrainingPrograms(null);
 fetchers.fetchStructuralGroups(null);
 fetchers.fetchTutors(null);
 fetchers.fetchModules(null);
+fetchers.fetchRooms(null);
 fetchers.fetchCourseTypes(null);
 fetchers.fetchTutorsIDs(null);
 //fetchers.fetchCourses(null);
