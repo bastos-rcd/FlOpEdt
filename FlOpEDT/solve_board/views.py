@@ -200,7 +200,6 @@ def main_board(req, **kwargs):
     # Get contextual datas (constraints, work_copies)
     if len(week_list) > 0:
         data_context = get_context(department, year=week_list[0][0], week=week_list[0][1])
-        print(data_context.items())
         view_context.update({k:json.dumps(v, cls=LazyEncoder) for k, v in data_context.items()})
     
     return TemplateResponse(req, 'solve_board/main-board.html', view_context)

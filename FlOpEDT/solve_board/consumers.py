@@ -110,7 +110,8 @@ class SolverConsumer(WebsocketConsumer):
                 data['solver'],
                 data['pre_assign_rooms'],
                 data['post_assign_rooms'],
-                stabilize_work_copy=stabilize
+                stabilize_work_copy=stabilize,
+                all_weeks_together=data['all_weeks_together']
                 ).start()
 
         elif data['action'] == 'stop':
@@ -138,7 +139,7 @@ def solver_subprocess_SIGINT_handler(sig, stack):
 
 class Solve():
     def __init__(self, department_abbrev, weeks, timestamp, training_programme, chan, time_limit, solver,
-                 pre_assign_rooms, post_assign_rooms, stabilize_work_copy=None):
+                 pre_assign_rooms, post_assign_rooms, stabilize_work_copy=None, all_weeks_together=True):
         super(Solve, self).__init__()
         self.department_abbrev = department_abbrev
         self.weeks = weeks
@@ -149,6 +150,7 @@ class Solve():
         self.stabilize_work_copy = stabilize_work_copy
         self.pre_assign_rooms = pre_assign_rooms
         self.post_assign_rooms = post_assign_rooms
+        self.all_weeks_together = all_weeks_together
 
         # if all train progs are called, training_programme=''
         try:
@@ -169,12 +171,21 @@ class Solve():
                 os.dup2(wd,1)   # redirect stdout
                 os.dup2(wd,2)   # redirect stderr
                 try:
-                    t = MyTTModel(self.department_abbrev, self.weeks, train_prog=self.training_programme,
-                                  stabilize_work_copy = self.stabilize_work_copy,
-                                  pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
-                    os.setpgid(os.getpid(), os.getpid())
-                    signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
-                    t.solve(time_limit=self.time_limit, solver=self.solver)
+                    if self.all_weeks_together:
+                        t = MyTTModel(self.department_abbrev, weeks=self.weeks, train_prog=self.training_programme,
+                                      stabilize_work_copy=self.stabilize_work_copy,
+                                      pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
+                        os.setpgid(os.getpid(), os.getpid())
+                        signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
+                        t.solve(time_limit=self.time_limit, solver=self.solver)
+                    else:
+                        for w in self.weeks:
+                            t = MyTTModel(self.department_abbrev, [w], train_prog=self.training_programme,
+                                          stabilize_work_copy = self.stabilize_work_copy,
+                                          pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
+                            os.setpgid(os.getpid(), os.getpid())
+                            signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
+                            t.solve(time_limit=self.time_limit, solver=self.solver)
                 except:
                     traceback.print_exc()
                     print("solver aborting...")

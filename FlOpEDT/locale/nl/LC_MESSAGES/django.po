@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-25 22:23+0000\n"
+"POT-Creation-Date: 2022-07-27 21:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1436,31 +1436,35 @@ msgstr ""
 msgid "Week⋅s"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:81
+#: solve_board/templates/solve_board/main-board.html:82
+msgid "All weeks together ?"
+msgstr ""
+
+#: solve_board/templates/solve_board/main-board.html:86
 msgid "Training Program"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:85
+#: solve_board/templates/solve_board/main-board.html:90
 msgid "Stabilization"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:90
+#: solve_board/templates/solve_board/main-board.html:95
 msgid "Solver"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:102
+#: solve_board/templates/solve_board/main-board.html:107
 msgid "Pre-assign rooms"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:104
+#: solve_board/templates/solve_board/main-board.html:109
 msgid "Post-assign rooms"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:107
+#: solve_board/templates/solve_board/main-board.html:112
 msgid "Time limit (minuts)"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:113
+#: solve_board/templates/solve_board/main-board.html:118
 msgid "Unlimited"
 msgstr ""
 
