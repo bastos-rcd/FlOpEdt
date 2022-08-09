@@ -218,14 +218,14 @@ class TutorPreference(models.Model):
 
 
 class Student(User):  # for now: representative
-    belong_to = models.ManyToManyField('base.GenericGroup',
-                                       blank=True)
+    generic_groups = models.ManyToManyField('base.GenericGroup',
+                                            blank=True)
 
     def __str__(self):
         return str(self.username)
 
     def __repr__(self):
-        return str(self.username) + ' (G:' + ', '.join([group.name for group in self.belong_to.all()]) + ')'
+        return str(self.username) + ' (G:' + ', '.join([group.name for group in self.generic_groups.all()]) + ')'
 
     class Meta:
         verbose_name = 'Student'
@@ -270,7 +270,7 @@ class GroupPreferences(Preferences):
 
     def calculate_fields(self):
         # To pull students from the group
-        students_preferences = StudentPreferences.objects.filter(student__belong_to=self.group)
+        students_preferences = StudentPreferences.objects.filter(student__generic_groups=self.group)
 
         # To initialise variables and getting the divider to get the average
         local_morning_weight = 0

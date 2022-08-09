@@ -112,7 +112,7 @@ class StudentPreferencesResource(resources.ModelResource):
 
     student_group = fields.Field(column_name='student_group',
                                  attribute='student',
-                                 widget=ForeignKeyWidget('Student', 'belong_to'))
+                                 widget=ForeignKeyWidget('Student', 'generic_groups'))
 
     class Meta:
         model = StudentPreferences
