@@ -80,6 +80,15 @@ class StudentsViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.StudentsSerializer
 
 
+class StudentInfoViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all info of one student
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = pm.Student.objects.all()
+    serializer_class = serializers.StudentInfoSerializer
+
+
 # class StudentPreferencesViewSet(viewsets.ModelViewSet):
 #     """
 #     ViewSet to see all the students' preferences.
