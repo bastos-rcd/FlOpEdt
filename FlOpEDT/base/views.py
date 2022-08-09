@@ -223,14 +223,23 @@ def stype(req, *args, **kwargs):
     for a in Theme:
         themes.append(a.value)
     if req.method == 'GET':
+        t = req.user.tutor
+        if TutorPreference.objects.filter(tutor=t).exists():
+            usr_pref_hours = req.user.tutor.preferences.pref_hours_per_day
+            usr_max_hours = req.user.tutor.preferences.max_hours_per_day
+            usr_min_hours = req.user.tutor.preferences.min_hours_per_day
+        else:
+            usr_pref_hours = 6
+            usr_max_hours = 9
+            usr_min_hours = 0
         return TemplateResponse(req,
                                 'base/show-stype.html',
                                 {'date_deb': current_week(),
                                  'date_fin': current_week(),
                                  'name_usr': req.user.username,
-                                 'usr_pref_hours': req.user.tutor.preferences.pref_hours_per_day,
-                                 'usr_max_hours': req.user.tutor.preferences.max_hours_per_day,
-                                 'usr_min_hours': req.user.tutor.preferences.min_hours_per_day,
+                                 'usr_pref_hours': usr_pref_hours,
+                                 'usr_max_hours': usr_max_hours,
+                                 'usr_min_hours': usr_min_hours,
                                  'user_notifications_pref': user_notifications_pref,
                                  'themes': themes,
                                  'theme': queries.get_theme_preference(req.user),
@@ -1033,23 +1042,6 @@ def edt_changes(req, **kwargs):
 
             cache.delete(get_key_course_pl(department.abbrev, week, work_copy))
             cache.delete(get_key_course_pp(department.abbrev, week, work_copy))
-
-        if work_copy == 0:
-            subject = '[Modif sur tierce] ' + \
-                initiator.username + ' a déplacé '
-            for inst in impacted_inst:
-                subject += inst.username + ' '
-
-            if initiator in impacted_inst:
-                impacted_inst.remove(initiator)
-            if len(impacted_inst) > 0:
-                email = EmailMessage(
-                    subject,
-                    msg,
-                    to=['edt.info.iut.blagnac@gmail.com']
-                )
-                # email.send()
-                logger.info(email)
 
         return JsonResponse(good_response)
     else:
