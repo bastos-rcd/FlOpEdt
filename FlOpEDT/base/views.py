@@ -1413,10 +1413,8 @@ def contact(req, tutor=None, **kwargs):
                           dat.get("sender")]
             try:
                 email = EmailMessage(
-                    '[EdT IUT Blagnac] ' + dat.get("subject"),
-                    "(Cet e-mail vous a été envoyé depuis le site des emplois"
-                    " du temps de l'IUT de Blagnac)\n\n"
-                    + dat.get("message"),
+                    dat.get("subject"),
+                    dat.get("message"),
                     to=recip_send,
                     reply_to=[dat.get("sender")]
                 )
