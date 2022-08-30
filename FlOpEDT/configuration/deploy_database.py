@@ -38,7 +38,7 @@ from base.models import RoomType, Room, TrainingProgramme,\
     Department, CourseStartTimeConstraint, TimeGeneralSettings, UserPreference, CoursePreference, GenericGroup
 
 from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings, TutorPreference
-from people.tutor import fill_default_user_preferences
+from base.preferences import split_preferences
 
 from configuration.database_description_xlsx import database_description_load_xlsx_file
 
@@ -115,7 +115,7 @@ def people_extract(department, people, fill_default_preferences):
 
                 UserDepartmentSettings.objects.create(department=department, user=tutor)
                 if fill_default_preferences:
-                    fill_default_user_preferences(tutor, dept=department)
+                    split_preferences(tutor)
                 TutorPreference.objects.create(tutor=tutor)
 
             except IntegrityError as ie :
