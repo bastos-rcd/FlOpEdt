@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-25 22:09+0000\n"
+"POT-Creation-Date: 2022-08-30 15:40+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -105,11 +105,11 @@ msgstr ""
 
 #: base/static/base/logo.js:84
 msgid ""
-"Schedule manager <span id=\"flopGreen\">fl</span>exible and <span id="
-"\"flopGreen\">op</span>enSource"
+"Schedule manager <span id=\"flopGreen\">fl</span>exible and <span "
+"id=\"flopGreen\">op</span>enSource"
 msgstr ""
-"日程管理者 <span id=\"flopGreen\">fl</span>exible 且 <span id=\"flopGreen"
-"\">op</span>enSource"
+"日程管理者 <span id=\"flopGreen\">fl</span>exible 且 <span "
+"id=\"flopGreen\">op</span>enSource"
 
 #: base/static/base/logo.js:85
 #, fuzzy
@@ -117,8 +117,8 @@ msgstr ""
 #| "\"Who want to manage the <span id=\"flopRed\">schedules</span> this year?"
 #| "\" ...  ... <span id=\"flopGreen\">flop</span> !"
 msgid ""
-"\"Who want to manage schedules this year?\" ...  ... <span id=\"flopGreen"
-"\">flop</span>!"
+"\"Who want to manage schedules this year?\" ...  ... <span "
+"id=\"flopGreen\">flop</span>!"
 msgstr "谁想管理今年的时间表？ ...  ... <span id=\"flopGreen\">flop</span> !"
 
 #: base/static/base/logo.js:86
@@ -363,41 +363,63 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:568
-#: cstmanager/static/cstmanager/js/script.js:585
-#: cstmanager/static/cstmanager/js/script.js:670
+#: cstmanager/static/cstmanager/js/script.js:367
+#, fuzzy
+#| msgid "Groups"
+msgid "All groups"
+msgstr "组"
+
+#: cstmanager/static/cstmanager/js/script.js:400
+#: cstmanager/static/cstmanager/js/script.js:811
+#: cstmanager/static/cstmanager/js/script.js:1736
+#: cstmanager/static/cstmanager/js/script.js:1740
+msgid "All tutors"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:679
+#: cstmanager/static/cstmanager/js/script.js:696
+#: cstmanager/static/cstmanager/js/script.js:784
 msgid "Strong constraint"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:585
-#: cstmanager/static/cstmanager/js/script.js:672
+#: cstmanager/static/cstmanager/js/script.js:696
+#: cstmanager/static/cstmanager/js/script.js:786
 msgid "Weight : "
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1013
+#: cstmanager/static/cstmanager/js/script.js:1252
 msgid "Required"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1134
-#: cstmanager/static/cstmanager/js/script.js:1145
+#: cstmanager/static/cstmanager/js/script.js:1309
+#: cstmanager/static/cstmanager/js/script.js:1735
+msgid "Tutor"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:1397
+#: cstmanager/static/cstmanager/js/script.js:1408
 msgid "Strong constraints"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1138
-#: cstmanager/static/cstmanager/js/script.js:1147
+#: cstmanager/static/cstmanager/js/script.js:1401
+#: cstmanager/static/cstmanager/js/script.js:1410
 msgid "Preferences"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1156
-#: cstmanager/static/cstmanager/js/script.js:1162
+#: cstmanager/static/cstmanager/js/script.js:1419
+#: cstmanager/static/cstmanager/js/script.js:1425
 msgid "All constraints"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1355
+#: cstmanager/static/cstmanager/js/script.js:1618
 msgid "Edit"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1357
+#: cstmanager/static/cstmanager/js/script.js:1619
+msgid "Delete"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:1620
 msgid "Duplicate"
 msgstr ""
 

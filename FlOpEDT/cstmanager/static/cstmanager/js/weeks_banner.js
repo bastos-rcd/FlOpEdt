@@ -49,7 +49,7 @@ WeekBanner.prototype.apply_wk_change = function (d, i) {
 
     selected_week = getWeek(d.year, d.week).id;
     filter.by_week(selected_week);
-    refreshConstraints();
+    filter.reapply();
 
     this.update(false);
 };

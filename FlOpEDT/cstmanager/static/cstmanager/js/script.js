@@ -2,7 +2,6 @@ const popoverAllowList = bootstrap.Tooltip.Default.allowList;
 popoverAllowList.button = [];
 popoverAllowList['*'].push('onclick');
 
-
 // helper function to extract a parameter object from a given constraint
 let get_parameter_from_constraint = (cst, name) => {
     let ret = {};
@@ -30,7 +29,12 @@ let htmlElements = {
     enabledConstraintsList: document.getElementById('constraints-enabled'),
     disabledConstraintsList: document.getElementById('constraints-disabled'),
     filtersElement: document.getElementById('filters'),
+    filterSearch: document.getElementById('input-search'),
+    filterTutor: document.getElementById('filter-tutor'),
+    filterTutorList: document.getElementById('filter-tutor-list'),
+    filterGroup: document.getElementById('filter-group'),
     filterAllWeeks: document.getElementById('filter-all-weeks'),
+    showInactiveConstraints: document.getElementById('show-inactive-constraints'),
     numberSelectedConstraints: document.getElementById('num-selected-constraints'),
     commitChangesButton: document.getElementById('apply-changes'),
     fetchConstraintsButton: document.getElementById('fetch-constraints'),
@@ -40,6 +44,11 @@ let htmlElements = {
     selectedConstraintsEditWeightSlider: document.getElementById('selected-constraints-edit-weight-slider'),
     selectedConstraintsEditWeightButton: document.getElementById('selected-constraints-edit-weight'),
     selectedConstraintsDeleteButton: document.getElementById('selected-constraints-delete'),
+};
+
+htmlElements.filterSearch.oninput = () => {
+    filter.by_search(htmlElements.filterSearch.value);
+    filter.reapply();
 };
 
 const State = Object.freeze({
@@ -61,20 +70,100 @@ let currentPopover;
 
 // object containing functions that involve filtering
 let filter = {
+    current: {
+        search: '',
+        tutor: null,
+        group: null,
+        week: null,
+    },
     reset: () => {
         filtered_constraint_list = [...constraint_list];
     },
-    by_week: week_id => {
-        if (htmlElements.filterAllWeeks.checked) {
-            filter.reset();
-        } else {
-            filtered_constraint_list = constraint_list.filter(pageid => {
-                let param = constraints[pageid].parameters.find(parameter => parameter.name === 'weeks');
-                return (param.id_list.length === 0 || param.id_list.includes('' + week_id));
-            });
+    by_search: search => {
+        filter.current.search = search;
+
+        if (search.length === 0) {
+            // No search text provided so not filtered
+            return;
         }
+
+        filtered_constraint_list = filtered_constraint_list.filter(pageid => {
+            let constraint = constraints[pageid];
+            let name = (constraint.title ?? database.constraint_types[constraint.name].local_name).toLowerCase();
+            let comment = (constraint.comment ?? "").toLowerCase();
+            return (name.includes(search) || comment?.includes(search));
+        });
     },
-}
+    by_tutor: tutorID => {
+        filter.current.tutor = tutorID;
+
+        if (tutorID === null) {
+            // No tutor provided so not filtered
+            return;
+        }
+
+        tutorID = '' + tutorID;
+
+        // Filter the constraints with the search
+        filtered_constraint_list = filtered_constraint_list.filter(pageid => {
+            let constraint = constraints[pageid];
+
+            // Keep only constraints having a 'tutors' parameter with at least one tutor
+            let paramTutor = constraint.parameters.find(parameter => parameter.name === 'tutors');
+            if (!paramTutor || paramTutor.id_list.length === 0) {
+                return false;
+            }
+
+            // Keep the constraint if one of their tutors matches the provided ID
+            return paramTutor.id_list.includes(tutorID);
+        });
+    },
+    by_week: week_id => {
+        filter.current.week = week_id;
+
+        if (week_id === null) {
+            // No week provided so not filtered
+            return;
+        }
+
+        filtered_constraint_list = filtered_constraint_list.filter(pageid => {
+            let param = constraints[pageid].parameters.find(parameter => parameter.name === 'weeks');
+            return (param.id_list.length === 0 || param.id_list.includes('' + week_id));
+        });
+    },
+    by_group: groupID => {
+        filter.current.group = groupID;
+
+        if (groupID === null) {
+            // No module provided so not filtered
+            return;
+        }
+
+        groupID = '' + groupID;
+
+        // Filter the constraints with the search
+        filtered_constraint_list = filtered_constraint_list.filter(pageid => {
+            let constraint = constraints[pageid];
+
+            // Keep only constraints having a 'groups' parameter with at least one tutor
+            let paramGroup = constraint.parameters.find(parameter => parameter.name === 'groups');
+            if (!paramGroup || paramGroup.id_list.length === 0) {
+                return false;
+            }
+
+            // Keep the constraint if one of their groups matches the provided ID
+            return paramGroup.id_list.includes(groupID);
+        });
+    },
+    reapply: () => {
+        filter.reset();
+        filter.by_week(filter.current.week);
+        filter.by_search(filter.current.search);
+        filter.by_tutor(filter.current.tutor);
+        filter.by_group(filter.current.group);
+        refreshConstraints();
+    },
+};
 
 let visibility = {
     setElementVisible: (htmlElement, isVisible) => {
@@ -105,7 +194,7 @@ let changeEvents = {
         constraints[constraint.pageid] = constraint;
         actionChanges.add[constraint.pageid] = constraint;
         constraint_list = Object.keys(constraints);
-        filter.reset();
+        filter.reapply();
     },
     deleteConstraint: (pageid) => {
         let constraint = constraints[pageid];
@@ -128,7 +217,7 @@ let changeEvents = {
 
         constraint_list = Object.keys(constraints);
         selected_constraints = selected_constraints.filter(id => id !== pageid);
-        refreshConstraints();
+        filter.reapply();
     },
     editConstraint: (constraint) => {
         constraints[constraint.pageid] = constraint;
@@ -225,8 +314,9 @@ let fetchers = {
                 selected_constraints = [];
                 lastSelectedConstraint = null;
                 constraint_list = Object.keys(constraints);
-                filter.by_week(getWeek(year_init, week_init));
-                refreshConstraints();
+                selected_week = getWeek(year_init, week_init).id;
+                filter.by_week(selected_week);
+                filter.reapply();
             })
             .catch(err => {
                 console.error("something went wrong while fetching constraints");
@@ -269,8 +359,29 @@ let fetchers = {
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['groups'] = {};
+
+                htmlElements.filterGroup.innerHTML = '';
+                let option = elementBuilder('option', {
+                    'value': -1,
+                });
+                option.text = gettext('All groups');
+                option.onclick = () => {
+                    filter.by_group(null);
+                    filter.reapply();
+                };
+                htmlElements.filterGroup.append(option);
                 Object.values(jsonObj).forEach(obj => {
-                    database['groups'][obj['id']] = obj;
+                    database['groups'][obj.id] = obj;
+
+                    option = elementBuilder('option', {
+                        'value': obj.id,
+                    });
+                    option.innerText = `${obj.train_prog}-${obj.name}`;
+                    option.onclick = () => {
+                        filter.by_group(obj.id);
+                        filter.reapply();
+                    };
+                    htmlElements.filterGroup.append(option);
                 });
             })
             .catch(err => {
@@ -286,6 +397,7 @@ let fetchers = {
                 Object.values(jsonObj).forEach(obj => {
                     database['tutors'][obj['username']] = obj;
                 });
+                htmlElements.filterTutor.value = gettext('All tutors');
             })
             .catch(err => {
                 console.error("something went wrong while fetching tutors");
@@ -427,10 +539,9 @@ let copyObj = (obj) => {
 }
 
 // toggle the tab for disabled constraints
-let toggleDisabledDiv = (e) => {
-    htmlElements.disabledConstraintsList.classList.toggle('display-none');
+let onChangeInactiveConstraintsFilter = (e) => {
+    htmlElements.disabledConstraintsList.style.display = htmlElements.showInactiveConstraints.checked ? 'block' : 'none';
 }
-document.getElementById('show-disabled').addEventListener('click', toggleDisabledDiv);
 
 // returns a copy of the original constraints
 let copyFromOriginalConstraints = () => {
@@ -485,7 +596,7 @@ let database = {
 
 let findConstraintClassFromLocalName = (localName) => {
     return Object.values(database.constraint_types).find(obj => {
-        return obj.local_name === localName;
+        return obj.local_name.trim() === localName.trim();
     });
 };
 
@@ -588,8 +699,8 @@ let fillEditConstraintPopup = constraint => {
 };
 
 let onChangeAllWeeksFilter = () => {
-    filter.by_week(selected_week);
-    refreshConstraints();
+    filter.by_week(htmlElements.filterAllWeeks.checked ? null : selected_week);
+    filter.reapply();
 };
 
 // Replaces given constraint's values with entered from user
@@ -615,54 +726,57 @@ let extractConstraintFromPopup = (constraint) => {
 
     constraint.comment = htmlElements.constraintEditComment.value;
     constraint.is_active = htmlElements.constraintEditActivation.checked;
-    constraint.weight = parseInt(htmlElements.constraintEditWeightSlider.value)===9 ? null : parseInt(htmlElements.constraintEditWeightSlider.value)
+    constraint.weight = parseInt(htmlElements.constraintEditWeightSlider.value) === 9 ? null : parseInt(htmlElements.constraintEditWeightSlider.value)
 
     let isValid = true;
 
     Object.values(constraint.parameters).forEach(param => {
-        // Ignore immutable parameters
-        if (param.name === 'department') {
-            return;
-        }
+            // Ignore immutable parameters
+            if (param.name === 'department') {
+                return;
+            }
 
-        // Clear the previously selected values (only keep the latest save)
-        param.id_list = [];
+            // Clear the previously selected values (only keep the latest save)
+            param.id_list = [];
 
-        if (param.type.includes('Boolean')) {
-            let tag = document.getElementById('param-check-' + param.name);
-            param.id_list.push(tag.checked);
-        } else {
-            // Store the selected values
-            let tag = document.getElementById('collapse-parameter-' + param.name);
-            let select = tag.querySelector('select')
-            if (select!==null){
-                let selected_value = select.options[select.selectedIndex].value
-                if (selected_value!==''){
-                    param.id_list.push(selected_value)
+            if (param.type.includes('Boolean')) {
+                let tag = document.getElementById('param-check-' + param.name);
+                param.id_list.push(tag.checked);
+            } else {
+                if (param.name === 'tutors') {
+                    let tag = document.getElementById('param-select-' + param.name);
+                    tag.querySelectorAll('li').forEach((value, key, parent) => {
+                        param.id_list.push(value.getAttribute('data-param-id'));
+                    });
+                } else {
+                    // Store the selected values
+                    let tag = document.getElementById('collapse-parameter-' + param.name);
+                    let select = tag.querySelector('select')
+                    if (select !== null) {
+                        let selected_value = select.options[select.selectedIndex].value
+                        if (selected_value !== '') {
+                            param.id_list.push(selected_value)
+                        }
+                    } else {
+                        tag.querySelectorAll('input').forEach((value, key, parent) => {
+                            if (value.type === 'text' && value.value !== '') {
+                                param.id_list.push(value.value);
+                            } else {
+                                if (value.checked) {
+                                    param.id_list.push(value.getAttribute('element-id'));
+                                }
+                            }
+                        });
+                    }
+                }
+
+                if (param.required && param.id_list.length === 0) {
+                    isValid = false;
+                    alert(`Parameter ${param.name} is required!`, 'danger');
                 }
             }
-            else{
-                tag.querySelectorAll('input').forEach((value, key, parent) => {
-                    if (value.type === 'text' && value.value!=='') {
-                        param.id_list.push(value.value);
-                    } else {
-                        if (value.checked) {
-                            param.id_list.push(value.getAttribute('element-id'));
-                        }
-                    }
-                });
-            }
-
-
-
         }
-
-        if (param.required && param.id_list.length === 0) {
-            isValid = false;
-            alert(`Parameter ${param.name} is required!`, 'danger');
-        }
-    });
-
+    );
     return isValid;
 };
 
@@ -681,7 +795,7 @@ let discardChanges = (e) => {
     constraint_list = Object.keys(constraints);
     selected_constraints = [];
     lastSelectedConstraint = null;
-    refreshConstraints();
+    filter.reapply();
 }
 document.getElementById('discard-changes').addEventListener('click', discardChanges);
 
@@ -693,12 +807,15 @@ let applyChanges = (e) => {
 
 // clear input fields for filters
 let clearFilters = (e) => {
-    document.getElementById('input-search').value = '';
-    document.getElementById('input-tutor').value = '';
-    document.getElementById('input-module').value = '';
-    document.getElementById('input-date').value = '';
-    filtered_constraint_list = [...constraint_list]
-    refreshConstraints();
+    htmlElements.filterSearch.value = '';
+    htmlElements.filterTutor.value = gettext('All tutors');
+    htmlElements.filterGroup.value = '-1';
+    htmlElements.filterAllWeeks.checked = false;
+    filter.current.search = '';
+    filter.current.tutor = null;
+    filter.current.group = null;
+    filter.by_week(selected_week);
+    filter.reapply();
 }
 
 let saveConstraintChanges = () => {
@@ -748,7 +865,7 @@ let saveConstraintChanges = () => {
     setState(State.Nothing);
 
     // Refresh
-    refreshConstraints();
+    filter.reapply();
 };
 
 htmlElements.confirmEditConstraintButton.addEventListener('click', saveConstraintChanges);
@@ -792,7 +909,7 @@ let selectBuilder = (param_name, args = {}, id_to_select) => {
     opt.value = ''
     opt.innerHTML = ''
     ele.appendChild(opt)
-    for (let i=0; i<options.length; i++){
+    for (let i = 0; i < options.length; i++) {
         let opt = document.createElement('option')
         let option_id = options[i]
         opt.value = option_id
@@ -803,6 +920,129 @@ let selectBuilder = (param_name, args = {}, id_to_select) => {
     optionToSelect.selected = true;
     return ele;
 }
+
+/**
+ * Creates a custom select with an input and a list.
+ **/
+let createSelect = (placeholder, label, searchMethod, result_interpret, additional_onclick, first_option_text = '', first_option_on_click = null, should_close_on_input_click = true) => {
+    let container = divBuilder({});
+    let input = elementBuilder('input', {
+        'type': 'text',
+        'class': 'form-control mt-3',
+        'placeholder': placeholder,
+        'aria-label': label,
+    });
+    let list = divBuilder({
+        'class': 'list-group w-auto custom-v-select-list',
+        'style': 'display: none;',
+    });
+    if (should_close_on_input_click) {
+        input.onclick = () => {
+            if (list.style.display !== 'none') {
+                list.style.display = 'none';
+            }
+        };
+    }
+    input.oninput = () => {
+        let search_value = input.value;
+
+        list.innerHTML = '';
+
+        let search_results = searchMethod(search_value);
+
+        let create_option = () => {
+            return elementBuilder('a', {
+                'href': "#",
+                'class': 'list-group-item list-group-item-action fs-6 lh-1',
+            });
+        };
+
+        if (first_option_text.length > 0) {
+            let option = create_option();
+            option.text = first_option_text;
+            if (first_option_on_click) {
+                let element = {'id': null};
+                option.onclick = () => {
+                    additional_onclick(element, input, list);
+                };
+            }
+            list.append(option);
+        }
+
+        search_results.forEach(element => {
+            let option = create_option();
+            option.text = result_interpret(element);
+            option.onclick = () => {
+                additional_onclick(element, input, list);
+            };
+            list.append(option);
+        });
+        list.style.display = 'block';
+    }
+    container.append(input, list);
+    return container;
+};
+
+let createSelectSingle = (label_text, searchMethod, result_interpret, option_on_click, first_option_text = '') => {
+    let container = divBuilder();
+
+    let on_click = (element, input, list) => {
+        input.value = result_interpret(element);
+        list.style.display = 'none';
+        option_on_click(element, input, list);
+    };
+
+    container.append(createSelect(`${label_text}...`, label_text, searchMethod, result_interpret, on_click, first_option_text, true));
+    return container;
+};
+
+let createSelectMultiple = (label_text, searchMethod, result_interpret, result_simple_interpret, selected_elements_id = '', already_selected = []) => {
+    let container = divBuilder();
+
+    let selected_elements = elementBuilder('ul', {
+        'id': selected_elements_id,
+        'class': 'list-group list-group-horizontal custom-h-select-list border border-solid',
+    });
+
+    let createSelected = (element) => {
+        let selected_element = elementBuilder('li', {
+            'class': 'list-group-item fs-6',
+            'style': 'text-align: center',
+            'data-param-id': element.id,
+        });
+        let content = divBuilder({
+            'data-bs-toggle': 'tooltip',
+            'data-bs-title': result_interpret(element),
+            'data-bs-placement': 'top',
+        });
+        const tooltip = bootstrap.Tooltip.getOrCreateInstance(content);
+        tooltip.enable();
+
+        content.innerHTML = result_simple_interpret(element);
+        let remove_badge = elementBuilder('span', {
+            'class': 'badge bg-danger rounded-pill',
+            'style': 'cursor: pointer',
+        });
+        remove_badge.innerHTML = 'X';
+        remove_badge.onclick = () => {
+            selected_elements.removeChild(selected_element);
+        };
+        selected_element.append(content, remove_badge);
+        return selected_element;
+    };
+
+    let on_click = (element, input, list) => {
+        let selected_element = createSelected(element);
+        selected_elements.append(selected_element);
+    };
+
+    already_selected.forEach(element => {
+        selected_elements.append(createSelected(element));
+    });
+
+    container.append(selected_elements, createSelect(`${label_text}...`, label_text, searchMethod, result_interpret, on_click, false));
+    return container;
+};
 
 // returns the corresponding database table based on the parameter given
 let getCorrespondingDatabase = (param) => {
@@ -933,7 +1173,7 @@ let createSelectedParameterPopup = (constraint, parameter) => {
         acceptableValues.forEach(ele => {
             createCheckboxAndLabel(ele, 'checkbox');
         });
-    } else if(param_obj.type.includes('.')){
+    } else if (param_obj.type.includes('.')) {
         let temp_id = parameter + '-value';
 
         let form = divBuilder({
@@ -943,12 +1183,11 @@ let createSelectedParameterPopup = (constraint, parameter) => {
             'id': temp_id,
             'element-id': 0,
             'name': 'elementsParameter',
-        }, param_obj.id_list[0]===undefined ? '' : param_obj.id_list[0]);
+        }, param_obj.id_list[0] === undefined ? '' : param_obj.id_list[0]);
 
         form.append(select);
         divs.append(form);
-    }
-    else {
+    } else {
         let temp_id = parameter + '-value';
 
         let form = divBuilder({
@@ -960,7 +1199,7 @@ let createSelectedParameterPopup = (constraint, parameter) => {
             'id': temp_id,
             'element-id': 0,
             'name': 'elementsParameter',
-            'value': param_obj.id_list[0]===undefined ? '' : param_obj.id_list[0]
+            'value': param_obj.id_list[0] === undefined ? '' : param_obj.id_list[0]
         });
 
         let label = elementBuilder('label', {
@@ -1064,8 +1303,32 @@ let buttonWithDropBuilder = (constraint, parameter) => {
         button.innerText = parameter.name;
         button.append(badge);
 
-        let elements = createSelectedParameterPopup(constraint, parameter.name);
+        let elements;
 
+        if (parameter.name === 'tutors') {
+            let label_text = gettext('Tutor');
+
+            let searchMethod = searchTutors;
+            let result_interpret = element => {
+                return `${element.tutor.username} - ${element.tutor.first_name} ${element.tutor.last_name}`;
+            };
+            let result_simple_interpret = element => {
+                return element.tutor.username;
+            };
+
+            let param_obj = (constraint.parameters.filter(o => o.name === parameter.name))[0];
+
+            let selected = param_obj.id_list.map(id => {
+                let tutor = database.tutors[database.tutors_ids[id].name];
+                return {'tutor': tutor, 'id': id};
+            });
+
+            let id = `param-select-${parameter.name}`;
+
+            elements = createSelectMultiple(label_text, searchMethod, result_interpret, result_simple_interpret, id, selected);
+        } else {
+            elements = createSelectedParameterPopup(constraint, parameter.name);
+        }
         let body = divBuilder({
             'class': 'accordion-body',
         });
@@ -1111,7 +1374,7 @@ let buildConstraintsSections = () => {
     htmlElements.enabledConstraintsList.innerHTML = "";
 
     if (filtered_constraint_list == null) {
-        filter.reset();
+        filter.reapply()
     }
 
     let dict = {};
@@ -1355,19 +1618,19 @@ let constraintCardBuilder = (constraint) => {
     let editButton = `<button type="button" class="btn btn-primary" onclick="editSelectedConstraint('${constraint.pageid}')">${gettext('Edit')}</button>`;
     let deleteButton = `<button type="button" class="btn btn-danger" onclick="deleteSelectedConstraint('${constraint.pageid}')">${gettext('Delete')}</button>`;
     let duplicateButton = `<button type="button" class="btn btn-info" onclick="duplicateSelectedConstraint('${constraint.pageid}')">${gettext('Duplicate')}</button>`;
-    let popover_content = ''
+    let popover_content = '';
     constraint.parameters.forEach((param) => {
-        if (param.name==='department'){
+        if (param.name === 'department') {
             return
         }
-        if (param.id_list.length >0){
+        if (param.id_list.length > 0) {
             popover_content += gettext(param.name) + ' : '
             param.id_list.forEach((id) =>
                 popover_content += getCorrespondingInfo(id, param.name) + ', '
             )
             popover_content += '</br>'
         }
-        })
+    })
     popover_content += `<div class="btn-group" role="group" aria-label="Constraint edit">${duplicateButton}${editButton}${deleteButton}</div>`;
 
     const wrapper = divBuilder({
@@ -1449,11 +1712,35 @@ let editSelectedConstraintsWeight = () => {
     refreshConstraints();
 }
 
+let searchTutors = tutorSearch => {
+    // Find all the tutors with matching search
+    let tutors = Object.values(database.tutors);
+    let tutors_match_search = tutors.filter(tutor =>
+        tutor.first_name.toLowerCase().includes(tutorSearch)
+        || tutor.last_name.toLowerCase().includes(tutorSearch)
+        || tutor.username.toLowerCase().includes(tutorSearch));
+
+    // Return the matching tutors' id
+    return tutors_match_search.map(tutor => {
+        let t = Object.values(database.tutors_ids).find(t => t.name === tutor.username);
+        if (t) {
+            return {'tutor': tutor, 'id': t.id};
+        }
+    })
+};
+
 htmlElements.selectedConstraintsEditWeightButton.onclick = editSelectedConstraintsWeight;
 htmlElements.selectedConstraintsDeleteButton.onclick = deleteSelectedConstraints;
 
+htmlElements.filterTutor.append(createSelectSingle(gettext('Tutor'), searchTutors, element => {
+    return element.id === null ? gettext('All tutors') : `${element.tutor.username} - ${element.tutor.first_name} ${element.tutor.last_name}`
+}, (element, input, list) => {
+    filter.by_tutor(element.id);
+    filter.reapply();
+}, gettext('All tutors')));
+
 let constraint_list = null;
-let filtered_constraint_list = null;
+let filtered_constraint_list = [];
 let constraint_metadata = null;
 
 // fetch data from database

@@ -50,16 +50,29 @@
                     </button>
                 </div>
                 <div class="search-bar mb-3">
-                    <input type="text" class="form-control" id="input-search" placeholder="Search">
+                    <input type="text" class="form-control" id="input-search" placeholder="{% trans "Search" %}">
                 </div>
-                <div id="filters" class="search-bar pad-children mb-3">
-                    <input type="text" class="form-control mb-3" id="input-tutor" placeholder="Tutor">
-                    <input type="text" class="form-control mb-3" id="input-module" placeholder="Module">
-                    <input type="text" class="form-control mb-3" id="input-course" placeholder="Course">
+                <div id="filters" class="pad-children mb-3">
+                    <!-- Tutor -->
+                    <div id="filter-tutor">
+                    </div>
+
+                    <!-- Group -->
+                    <div>
+                        <select id="filter-group" class="form-select mt-3" aria-label="Group filter">
+                        </select>
+                    </div>
                     <!-- See all weeks -->
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="filter-all-weeks" onchange="onChangeAllWeeksFilter()">
+                        <input class="form-check-input" type="checkbox" role="switch" id="filter-all-weeks"
+                               onchange="onChangeAllWeeksFilter()">
                         <label class="form-check-label" for="filter-all-weeks">{% trans "See all weeks" %}</label>
+                    </div>
+                    <!-- See inactive constraints -->
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="show-inactive-constraints"
+                               onchange="onChangeInactiveConstraintsFilter()" checked>
+                        <label class="form-check-label" for="show-inactive-constraints">{% trans "Show Disabled" %}</label>
                     </div>
                 </div>
                 <div class="mb-3 text-center">
@@ -140,7 +153,6 @@
             </div>
             <!-- Constraints column -->
             <div class="col container w-auto" id="constraints-body">
-                <button id="show-disabled" class="float">{% trans "Show Disabled" %}</button>
                 <button id="show-solver" class="float">{% trans "Preanalyse" %}</button>
                 <!-- Weeks banner -->
                 <div id="svg" class="text-center py-2">
