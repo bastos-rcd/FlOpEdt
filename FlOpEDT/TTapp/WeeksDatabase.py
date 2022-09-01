@@ -503,21 +503,15 @@ class WeeksDatabase(object):
             if c.tutor is not None:
                 possible_tutors[c] = {c.tutor}
             else:
-                possible_tutors[c] = set()
-            # TODO : better gesture of this not pre-assigned only case
-            if AssignAllCourses.objects.filter(department=self.department,
-                                               pre_assigned_only=True,
-                                               is_active=True).exists():
-                continue
-            if CoursePossibleTutors.objects.filter(course=c).exists():
-                possible_tutors[c] = set(CoursePossibleTutors.objects.get(course=c).possible_tutors.all())
-            elif ModuleTutorRepartition.objects.filter(course_type=c.type, module=c.module,
-                                                       week=c.week).exists():
-                possible_tutors[c] = set(mtr.tutor for mtr in
-                                         ModuleTutorRepartition.objects.filter(course_type=c.type, module=c.module,
-                                                                               week=c.week))
-            else:
-                possible_tutors[c] = possible_tutors[c.module]
+                if CoursePossibleTutors.objects.filter(course=c).exists():
+                    possible_tutors[c] = set(CoursePossibleTutors.objects.get(course=c).possible_tutors.all())
+                elif ModuleTutorRepartition.objects.filter(course_type=c.type, module=c.module,
+                                                           week=c.week).exists():
+                    possible_tutors[c] = set(mtr.tutor for mtr in
+                                             ModuleTutorRepartition.objects.filter(course_type=c.type, module=c.module,
+                                                                                   week=c.week))
+                else:
+                    possible_tutors[c] = possible_tutors[c.module]
 
         possible_modules = {}
         for i in self.instructors:
