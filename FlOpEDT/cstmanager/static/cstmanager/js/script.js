@@ -650,10 +650,15 @@ let updateParamsListExistingConstraint = (constraint) => {
     }
 
     // Fill parameters
-    database.constraint_types[constraint.name].parameters.sort((a, b) => (a.required && !b.required) ? -1 : (!a.required && b.required) ? 1 : 0);
-    database.constraint_types[constraint.name].parameters.forEach(param => {
+    constraint.parameters.sort((a, b) => (a.required && !b.required) ? -1 : (!a.required && b.required) ? 1 : b.id_list?.length - a.id_list?.length);
+    constraint.parameters.forEach(param => {
+        if (param.name === 'department') {
+            return;
+        }
         // Add empty id_list as selected elements (none when constraint has just been created)
-        param.id_list = [];
+        if (!param.id_list) {
+            param.id_list = [];
+        }
 
         let button = buttonWithDropBuilder(constraint, param);
         div.append(button);
@@ -1105,6 +1110,12 @@ let isParameterValueSelectedInConstraint = (constraint, parameter, value) => {
     return constraint.parameters.find(param => param.name === parameter).id_list.includes(value);
 };
 
+let getContraintFilledParametersCount = (constraint) => {
+    return constraint.parameters.filter(param => {
+        return !param.required && param.id_list.length > 0;
+    }).length;
+};
+
 // returns the parameter object from a constraint obejct
 let getParamObj = (constraint, param) => {
     for (p of constraint.parameters) {
@@ -1292,8 +1303,12 @@ let buttonWithDropBuilder = (constraint, parameter) => {
         label.innerText = parameter.name;
         button.append(check, label, badge);
     } else {
+        let color = '';
+        if (parameter.id_list.length > 0) {
+            color = 'text-success';
+        }
         button = elementBuilder('button', {
-            'class': 'accordion-button collapsed',
+            'class': `accordion-button collapsed ${color}`,
             'type': 'button',
             'data-bs-toggle': 'collapse',
             'data-bs-target': '#' + collapseID,
@@ -1653,7 +1668,7 @@ let constraintCardBuilder = (constraint) => {
         `    <h7 class="card-subtitle mt-0 mb-1 text-muted">${constraint.comment ?? ''}</h7>`,
         `    <div class="container-fluid">`,
         '        <div class="row">',
-        `        <div class="col">${iconTextBuilder(htmlElements.iconGears.src, constraint.parameters.length, 'parameters').outerHTML}</div>`,
+        `        <div class="col">${iconTextBuilder(htmlElements.iconGears.src, getContraintFilledParametersCount(constraint), 'parameters').outerHTML}</div>`,
         `        <div class="col">${iconTextBuilder(htmlElements.iconWeight.src, constraint.weight, 'weight').outerHTML}</div>`,
         `        <div class="col text-end"><input type="checkbox" data-cst-id="${constraint.pageid}" ${checkText} onchange="toggleConstraint(this)"></div>`,
         '</div>',
