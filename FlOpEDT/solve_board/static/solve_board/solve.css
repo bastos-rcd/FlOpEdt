@@ -188,3 +188,7 @@
   .remarks{
     margin-bottom: 15px;
   }
+
+  #all-weeks-together{
+    display: none;
+  }

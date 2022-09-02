@@ -51,7 +51,7 @@ class AddStudentForm(UserCreationForm):
         student = super(AddStudentForm, self).save(commit=False)
         student.is_student = True
         student.save()
-        student.belong_to.add(*self.cleaned_data.get('gps'))
+        student.generic_groups.add(*self.cleaned_data.get('gps'))
         # save_m2m is automatically called
         return student
 

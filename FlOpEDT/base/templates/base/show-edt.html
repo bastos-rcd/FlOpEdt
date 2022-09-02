@@ -64,10 +64,15 @@
     <p onclick="delete_all_unused_work_copies()" class="btn_panel">
         {% trans "Delete all copies except the 0" %}
     </p>
-    <p id="ack-delete-all-unused"></p>
+    <p id="ack-delete_all_unused"></p>
     <p onclick="reassign_rooms()" class="btn_panel">
         {% trans "Reassign rooms" %}
     </p>
     <p id="ack-reassign_rooms"></p>
+    <p onclick="duplicate_in_other_weeks()" class="btn_panel">
+        {% trans "Duplicate (what can be) in other weeks" %}
+    </p>
+    <p id="ack-duplicate_in_other_weeks"></p>
+
 
 {% endblock%}

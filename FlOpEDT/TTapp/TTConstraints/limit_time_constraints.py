@@ -29,6 +29,8 @@ from TTapp.slots import days_filter, slots_filter
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
+from django.utils.translation import gettext_lazy as _
+
 
 def build_period_slots(ttmodel, day, period):
     if period is None:
@@ -115,6 +117,10 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
                                     blank=True,
                                     related_name="Course_type_limits")
 
+    class Meta:
+        verbose_name = _('Limit groups busy time per period')
+        verbose_name_plural = verbose_name
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
 
         # if self.groups.exists():
@@ -123,9 +129,6 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         #     considered_groups = ttmodel.wdb.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
         for group in considered_basic_groups(self,ttmodel):
             self.enrich_model_for_one_object(ttmodel, week, ponderation, group=group)
-
-    def full_name(self):
-        return "Limit Groups Course Type Per Period"
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -181,6 +184,10 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
                                      blank=True,
                                      related_name="Course_type_limits")
 
+    class Meta:
+        verbose_name = _('Limit modules busy time per period')
+        verbose_name_plural = verbose_name
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
 
         if self.modules.exists():
@@ -197,9 +204,6 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         for module in considered_modules:
             for group in considered_basic_groups:
                 self.enrich_model_for_one_object(ttmodel, week, ponderation, module=module, group=group)
-
-    def full_name(self):
-        return "Limit Modules Course Type Per Period"
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -260,6 +264,10 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
                                     blank=True,
                                     related_name="Course_type_limits")
 
+    class Meta:
+        verbose_name = _('Limit tutors busy time per period')
+        verbose_name_plural = verbose_name
+
     def build_period_expression(self, ttmodel, day, period, considered_courses, tutor=None):
         expr = ttmodel.lin_expr()
         for slot in build_period_slots(ttmodel, day, period):
@@ -277,9 +285,6 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
 
         for tutor in considered_tutors:
             self.enrich_model_for_one_object(ttmodel, week, ponderation, tutor=tutor)
-
-    def full_name(self):
-        return "Limit Tutors Time Per Period"
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -319,5 +324,47 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
             text += " pour tous les profs "
         if self.train_progs.exists():
             text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+        return text
 
+
+class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
+    """
+    Bound the number of course time (of type 'type') per day/half day
+    """
+
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
+        self.enrich_model_for_one_object(ttmodel, week, ponderation)
+
+    @classmethod
+    def get_viewmodel_prefetch_attributes(cls):
+        attributes = super().get_viewmodel_prefetch_attributes()
+        attributes.extend(['course_type'])
+        return attributes
+
+    def get_viewmodel(self):
+        view_model = super().get_viewmodel()
+        if self.course_type is not None:
+            type_value = self.course_type.name
+        else:
+            type_value = 'Any'
+
+        view_model['details'].update({
+            'course_type': type_value})
+
+        return view_model
+
+    def one_line_description(self):
+        text = "Pas plus de " + str(self.max_hours) + ' heures '
+        if self.course_type is not None:
+            text += 'de ' + str(self.course_type)
+        text += " par "
+        if self.period == self.FULL_DAY:
+            text += 'jour'
+        else:
+            text += 'demie-journée'
+        if self.train_progs.exists():
+            text += ' pour ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+        else:
+            text += " pour toutes les promos."
         return text

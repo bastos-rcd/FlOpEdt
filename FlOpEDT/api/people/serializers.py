@@ -75,3 +75,31 @@ class GroupPreferencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.Preferences
         fields = ['group', 'morning_weight', 'free_half_day_weight']
+
+class StudentInfoSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    department = serializers.SerializerMethodField()
+    train_prog = serializers.SerializerMethodField()
+    groups = serializers.SerializerMethodField()
+
+    def get_department(self, obj):
+        if obj.generic_groups.exists():
+            return obj.generic_groups.first().train_prog.department.abbrev
+        else:
+            return
+
+    def get_train_prog(self, obj):
+        if obj.generic_groups.exists():
+            return obj.generic_groups.first().train_prog.abbrev
+        else:
+            return
+
+    def get_groups(self, obj):
+        if obj.generic_groups.exists():
+            return [{'id':g.id, 'name':g.name} for g in obj.generic_groups.all()]
+        else:
+            return

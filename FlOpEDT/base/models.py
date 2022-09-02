@@ -457,7 +457,7 @@ class RoomPonderation(models.Model):
 
 
 class Module(models.Model):
-    name = models.CharField(max_length=100, null=True)
+    name = models.CharField(max_length=200, null=True)
     abbrev = models.CharField(max_length=100, verbose_name=_('Abbreviation'))
     head = models.ForeignKey('people.Tutor',
                              null=True,
@@ -465,7 +465,7 @@ class Module(models.Model):
                              blank=True,
                              on_delete=models.CASCADE,
                              verbose_name='responsable')
-    ppn = models.CharField(max_length=8, default='M')
+    ppn = models.CharField(max_length=30, default='M')
     train_prog = models.ForeignKey(
         'TrainingProgramme', on_delete=models.CASCADE)
     period = models.ForeignKey('Period', on_delete=models.CASCADE)
@@ -498,6 +498,7 @@ class CourseType(models.Model):
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, null=True)
     duration = models.PositiveSmallIntegerField(default=90)
+    pay_duration = models.PositiveSmallIntegerField(null=True, blank=True)
     group_types = models.ManyToManyField(GroupType,
                                          blank=True,
                                          related_name="compatible_course_types")
@@ -524,7 +525,9 @@ class Course(models.Model):
     groups = models.ManyToManyField('base.GenericGroup', related_name='courses', blank=True)
     module = models.ForeignKey(
         'Module', related_name='courses', on_delete=models.CASCADE)
-    modulesupp = models.ForeignKey('Module', related_name='modulesupp',
+    modulesupp = models.ForeignKey('Module', related_name='courses_as_modulesupp',
+                                   null=True, blank=True, on_delete=models.CASCADE)
+    pay_module = models.ForeignKey('Module', related_name='courses_as_pay_module',
                                    null=True, blank=True, on_delete=models.CASCADE)
     week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     suspens = models.BooleanField(verbose_name=_('Suspens?'), default=False)
@@ -543,7 +546,8 @@ class Course(models.Model):
         return self.__class__ == other.__class__ \
                and self.type == other.type \
                and self.tutor == other.tutor \
-               and self.groups == other.groups \
+               and self.room_type == other.room_type \
+               and list(self.groups.all()) == list(other.groups.all()) \
                and self.module == other.module
 
     def get_week(self):
@@ -560,6 +564,7 @@ class Course(models.Model):
 class CourseAdditional(models.Model):
     course = models.OneToOneField('Course', on_delete=models.CASCADE, related_name='additional')
     graded = models.BooleanField(verbose_name=_('Graded?'), default=False)
+    over_time = models.BooleanField(verbose_name=_('Over time'), default=False)
     visio_preference_value = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(8)],
                                                       default=1)
 

@@ -26,12 +26,12 @@
 # without disclosing the source code of your own applications.
 import functools
 
-
 from TTapp.TTUtils import basic_reassign_rooms, basic_swap_version, \
-    basic_delete_work_copy, basic_duplicate_work_copy, basic_delete_all_unused_work_copies
+    basic_delete_work_copy, basic_duplicate_work_copy, basic_delete_all_unused_work_copies, \
+    duplicate_what_can_be_in_other_weeks
 from base.models import ScheduledCourse, Department, Week
 from people.models import Tutor
-#from TTapp.forms import *
+
 
 def resolve_department(func):
 
@@ -99,3 +99,9 @@ def delete_all_unused_work_copies(department, week_nb, year):
 def duplicate_work_copy(department, week_nb, year, work_copy):
     week = Week.objects.get(nb=week_nb, year=year)
     return basic_duplicate_work_copy(department, week, work_copy)
+
+
+@resolve_department
+def duplicate_in_other_weeks(department, week_nb, year, work_copy):
+    week = Week.objects.get(nb=week_nb, year=year)
+    return duplicate_what_can_be_in_other_weeks(department, week, work_copy)

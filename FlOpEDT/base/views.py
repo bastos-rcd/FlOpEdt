@@ -223,14 +223,23 @@ def stype(req, *args, **kwargs):
     for a in Theme:
         themes.append(a.value)
     if req.method == 'GET':
+        t = req.user.tutor
+        if TutorPreference.objects.filter(tutor=t).exists():
+            usr_pref_hours = req.user.tutor.preferences.pref_hours_per_day
+            usr_max_hours = req.user.tutor.preferences.max_hours_per_day
+            usr_min_hours = req.user.tutor.preferences.min_hours_per_day
+        else:
+            usr_pref_hours = 6
+            usr_max_hours = 9
+            usr_min_hours = 0
         return TemplateResponse(req,
                                 'base/show-stype.html',
                                 {'date_deb': current_week(),
                                  'date_fin': current_week(),
                                  'name_usr': req.user.username,
-                                 'usr_pref_hours': req.user.tutor.preferences.pref_hours_per_day,
-                                 'usr_max_hours': req.user.tutor.preferences.max_hours_per_day,
-                                 'usr_min_hours': req.user.tutor.preferences.min_hours_per_day,
+                                 'usr_pref_hours': usr_pref_hours,
+                                 'usr_max_hours': usr_max_hours,
+                                 'usr_min_hours': usr_min_hours,
                                  'user_notifications_pref': user_notifications_pref,
                                  'themes': themes,
                                  'theme': queries.get_theme_preference(req.user),
@@ -357,9 +366,8 @@ def user_perfect_day_changes(req, username=None, *args, **kwargs):
         user_max_hours = int(data['user_max_hours'][0])
         preferences.pref_hours_per_day = user_pref_hours
         preferences.max_hours_per_day = user_max_hours
-        # not used for now --> neither in base/show-stype.html
-        # user_min_hours = int(data['user_min_hours'][0])
-        # preferences.min_hours_per_day = user_min_hours
+        user_min_hours = int(data['user_min_hours'][0])
+        preferences.min_hours_per_day = user_min_hours
         preferences.save()
     return redirect('base:preferences', req.department)
 
@@ -1035,23 +1043,6 @@ def edt_changes(req, **kwargs):
             cache.delete(get_key_course_pl(department.abbrev, week, work_copy))
             cache.delete(get_key_course_pp(department.abbrev, week, work_copy))
 
-        if work_copy == 0:
-            subject = '[Modif sur tierce] ' + \
-                initiator.username + ' a déplacé '
-            for inst in impacted_inst:
-                subject += inst.username + ' '
-
-            if initiator in impacted_inst:
-                impacted_inst.remove(initiator)
-            if len(impacted_inst) > 0:
-                email = EmailMessage(
-                    subject,
-                    msg,
-                    to=['edt.info.iut.blagnac@gmail.com']
-                )
-                # email.send()
-                logger.info(email)
-
         return JsonResponse(good_response)
     else:
         bad_response['more'] = f"Version: {version} VS {old_version}"
@@ -1422,10 +1413,8 @@ def contact(req, tutor=None, **kwargs):
                           dat.get("sender")]
             try:
                 email = EmailMessage(
-                    '[EdT IUT Blagnac] ' + dat.get("subject"),
-                    "(Cet e-mail vous a été envoyé depuis le site des emplois"
-                    " du temps de l'IUT de Blagnac)\n\n"
-                    + dat.get("message"),
+                    dat.get("subject"),
+                    dat.get("message"),
                     to=recip_send,
                     reply_to=[dat.get("sender")]
                 )

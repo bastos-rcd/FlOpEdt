@@ -45,7 +45,7 @@
     var analyse_url_template = '{% url "solve_board:pre_analyse" department 'tp' 1111 11 'constraint'%}';
     var courses_id_url = '{% url "api:course:id-list" %}';
     var group_id_url = '{% url "api:groups:structural-list" %}';
-    var tutor_id_url = '{% url "api:tutor-list" %}';
+    var tutor_id_url = '{% url "api:people:tutor-list" %}';
     var constraints = JSON.parse('{{ constraints|escapejs }}');
     var work_copies = JSON.parse('{{ work_copies|escapejs }}');
   </script>
@@ -68,54 +68,59 @@
         <div id="constraints_list"></div>
     </div>
     <div id="settings" class="settings">
-      <div class="header">
-        <span>{% trans "Configuration" %}</span>
-        <input type="button" id="analyse" name="analyse" value="Analyse Week"/>
-        <input type="button" id="launch" name="action" value="Go"/>
-      </div>
-      <div>
-        <label for="opti_date">{% trans "Week⋅s" %} :</label>
-        <select multiple="" size="10" id="opti_date"></select>
-      </div>
-      <div>
-        <label for="opti_train_prog">{% trans "Training Program" %} : </label>
-        <select id="opti_train_prog"></select>
-      </div>
-      <div id="stabilize">
-        <label for="stabilize_selector">{% trans "Stabilization" %} : </label>
-        <select id="stabilize_selector"></select>
-      </div>
-      <div>
-        {% if solvers|length > 1 %}
-          <label for="solver">{% trans "Solver" %} :</label>
-          <select id="solver">
-            {% for key, name in solvers %}
-              <option value="{{ key }}">{{ name }}</option>
-            {% endfor %}
-          </select>
-        {% else  %}
-          <input type="hidden" id="solver" value="{{ solvers.0.0 }}"/>
-        {% endif %}
-      </div>
-      <div>
-          <input type="checkbox" id="pre-assign-rooms" name="pre-assign-rooms" checked/>
-          <label for="pre-assign-rooms">{% trans "Pre-assign rooms" %}</label><br>
-          <input type="checkbox" id="post-assign-rooms" name="post-assign-rooms"/>
-          <label for="post-assign-rooms">{% trans "Post-assign rooms" %}</label><br>
-      </div>
-      <div>
-        <label for="limit">{% trans "Time limit (minuts)" %} :</label>
-        <select id="limit">
-          <option value="300" selected>5</option>
-          <option value="600">10</option>
-          <option value="1800">30</option>
-          <option value="3600">60</option>
-          <option value="0">{% trans "Unlimited" %}</option>
-        </select>
-        <label id="completion" style="visibility : hidden">Analyze Completed !</label>
-      </div>
-      <div id="divAnalyse"></div>
-    </div>
+        <div class="header">
+            <span>{% trans "Configuration" %}</span>
+            <input type="button" id="analyse" name="analyse" value="Analyse Week"/>
+            <input type="button" id="launch" name="action" value="Go"/>
+        </div>
+        <div>
+            <label for="opti_date">{% trans "Week⋅s" %} :</label>
+            <select multiple="" size="10" id="opti_date"></select>
+        </div>
+        <div id="all-weeks-together">
+            <input type="checkbox" id="all-weeks-together-checkbox" name="all-weeks-together-checkbox" checked/>
+            <label for="all-weeks-together-checkbox">{% trans "All weeks together ?" %} </label>
+
+        </div>
+        <div>
+            <label for="opti_train_prog">{% trans "Training Program" %} : </label>
+            <select id="opti_train_prog"></select>
+        </div>
+          <div id="stabilize">
+            <label for="stabilize_selector">{% trans "Stabilization" %} : </label>
+            <select id="stabilize_selector"></select>
+          </div>
+          <div>
+            {% if solvers|length > 1 %}
+              <label for="solver">{% trans "Solver" %} :</label>
+              <select id="solver">
+                {% for key, name in solvers %}
+                  <option value="{{ key }}">{{ name }}</option>
+                {% endfor %}
+              </select>
+            {% else  %}
+              <input type="hidden" id="solver" value="{{ solvers.0.0 }}"/>
+            {% endif %}
+          </div>
+          <div>
+              <input type="checkbox" id="pre-assign-rooms" name="pre-assign-rooms" checked/>
+              <label for="pre-assign-rooms">{% trans "Pre-assign rooms" %}</label><br>
+              <input type="checkbox" id="post-assign-rooms" name="post-assign-rooms"/>
+              <label for="post-assign-rooms">{% trans "Post-assign rooms" %}</label><br>
+          </div>
+          <div>
+            <label for="limit">{% trans "Time limit (minuts)" %} :</label>
+            <select id="limit">
+              <option value="300" selected>5</option>
+              <option value="600">10</option>
+              <option value="1800">30</option>
+              <option value="3600">60</option>
+              <option value="0">{% trans "Unlimited" %}</option>
+            </select>
+            <label id="completion" style="visibility : hidden">Analyze Completed !</label>
+          </div>
+          <div id="divAnalyse"></div>
+        </div>
     <textarea class="console"></textarea>
   </div>
 

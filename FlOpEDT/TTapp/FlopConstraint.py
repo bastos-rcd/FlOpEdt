@@ -67,10 +67,6 @@ class FlopConstraint(models.Model):
     class Meta:
         abstract = True
 
-    def full_name(self):
-        # Return a human readable constraint name
-        return str(self)
-
     def description(self):
         # Return a human readable constraint name
         return self.__doc__ or str(self)
@@ -90,7 +86,7 @@ class FlopConstraint(models.Model):
             'model': self.__class__.__name__,
             'pk': self.pk,
             'is_active': self.is_active,
-            'name': self.full_name(),
+            'name': self._meta.verbose_name,
             'description': self.description(),
             'explanation': self.one_line_description(),
             'comment': self.comment,

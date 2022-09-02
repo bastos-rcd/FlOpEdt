@@ -88,6 +88,7 @@ class Course_SC_Serializer(serializers.Serializer):
     groups = Group_SC_Serializer(many=True)
     supp_tutor = Tutor_Serializer(many=True)
     module = Module_SC_Serializer()
+    pay_module = Module_SC_Serializer()
     is_graded = serializers.BooleanField()
 
     def get_week(self, obj):
@@ -106,7 +107,7 @@ class Course_SC_Serializer(serializers.Serializer):
     class Meta:
         model = bm.Course
         fields = ['id', 'type', 'room_type', 'week', 'year', 'module', 'groups',
-                  'is_graded', 'supp_tutor']
+                  'is_graded', 'supp_tutor', 'pay_module']
 
 
 class ScheduledCoursesSerializer(serializers.Serializer):
@@ -502,35 +503,47 @@ class IDTutorSerializer(serializers.ModelSerializer):
         model = pm.Tutor
         fields = ['id', 'name']
 
+
 class IDTrainProgSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TrainingProgramme
-        fields = ['id', 'name']
-        
+        fields = ['id', 'abbrev', 'name']
+
+
 class IDModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Module
-        fields = ['id', 'name']
+        fields = ['id', 'abbrev', 'name']
+
 
 class IDCourseTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.CourseType
         fields = ['id', 'name']
 
+
 class IDGroupSerializer(serializers.ModelSerializer):
+    train_prog = serializers.CharField()
+
+    def get_train_ptorg(self, obj):
+        return obj.train_prog.abbrev
+
     class Meta:
         model = bm.GenericGroup
-        fields = ['id', 'name'] 
+        fields = ['id', 'name', 'train_prog']
+
 
 class IDGroupTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.GroupType
         fields = ['id', 'name'] 
 
+
 class IDRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Room
         fields = ['id', 'name']
+
 
 class IDRoomTypeSerializer(serializers.ModelSerializer):
     class Meta:

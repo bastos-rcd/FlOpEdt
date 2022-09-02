@@ -35,6 +35,7 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from .groups_constraints import considered_basic_groups
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
 
 class NoCourseOnDay(TTConstraint):
@@ -164,6 +165,10 @@ class NoGroupCourseTypeOnDay(NoCourseOnDay):
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
     course_types = models.ManyToManyField('base.CourseType', related_name='no_course_types_on_days')
 
+    class Meta:
+        verbose_name = _('No courses on declared days for groups')
+        verbose_name_plural = verbose_name
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         if self.weight is None:
             ttmodel.add_constraint(self.considered_sum(ttmodel, week),
@@ -202,6 +207,10 @@ class NoGroupCourseTypeOnDay(NoCourseOnDay):
 class NoTutorCourseOnDay(NoCourseOnDay):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
     tutor_status = models.CharField(max_length=2, choices=Tutor.TUTOR_CHOICES, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('No courses on declared days for tutors')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         if self.weight is None:

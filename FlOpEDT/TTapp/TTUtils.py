@@ -26,7 +26,7 @@
 # without disclosing the source code of your own applications.
 
 from base.models import ScheduledCourse, RoomPreference, EdtVersion, Department, CourseStartTimeConstraint,\
-    TimeGeneralSettings, Room, CourseModification, UserPreference, Week
+    TimeGeneralSettings, Room, CourseModification, UserPreference, Week, Course
 from base.timing import str_slot
 from django.db.models import Count, Max, Q, F
 from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
@@ -383,3 +383,46 @@ def load_dispos(json_filename):
 
     if exceptions:
         print("The following tutor do not exist:", exceptions)
+
+
+def duplicate_what_can_be_in_other_weeks(department, week, work_copy=0):
+    result = {'status': 'OK', 'more': ''}
+    try:
+        sched_week = ScheduledCourse.objects.filter(course__type__department=department,
+                                                    course__week=week,
+                                                    work_copy=work_copy)
+        other_weeks_courses = Course.objects.filter(type__department=department).exclude(week=week)
+        other_weeks = set(c.week for c in other_weeks_courses.distinct('week'))
+        new_dico = {}
+        for ow in other_weeks:
+            done = False
+            target_work_copy = first_free_work_copy(department, ow)
+            courses_ow = set(other_weeks_courses.filter(week=ow))
+            new_dico[ow] = []
+            for sc in sched_week:
+                filtered_c_ow = [c for c in courses_ow if sc.course.equals(c)]
+                if filtered_c_ow:
+                    corresponding_course = filtered_c_ow[0]
+                    courses_ow.remove(corresponding_course)
+                    sc.pk=None
+                    sc.course=corresponding_course
+                    sc.work_copy=target_work_copy
+                    sc.save()
+                    done = True
+            if done:
+                result['more'] += _('%s, ') % ow
+        return result
+    except:
+        result['status'] = 'KO'
+        return result
+
+
+def first_free_work_copy(department, week):
+    local_max_wc = ScheduledCourse \
+        .objects \
+        .filter(course__week=week, course__type__department=department) \
+        .aggregate(Max('work_copy'))['work_copy__max']
+    if local_max_wc is not None:
+        return local_max_wc + 1
+    else:
+        return 0

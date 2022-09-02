@@ -297,20 +297,19 @@ def extract_period(department, book, period, stabilize_courses=False, year=actua
 
 @transaction.atomic
 def extract_planif(department, bookname=None, stabilize_courses=False, year=actual_year,
-                   from_week=None, until_week=None, periods=None, assign_colors=False):
+                   from_week=None, until_week=None, periods=None, assign_colors=True):
     '''
     Generate the courses from bookname; the school year starts in actual_year
     '''
     if bookname is None:
         bookname = 'media/configuration/planif_file_'+department.abbrev+'.xlsx'
     book = load_workbook(filename=bookname, data_only=True)
-    if periods is None:
-        periods = Period.objects.filter(department=department)
+    periods = define_periods(department, book, periods)
     for period in periods:
         extract_period(department, book, period, stabilize_courses, year=year,
                        from_week=from_week, until_week=until_week)
     if assign_colors:
-        assign_module_color(department, overwrite=False)
+        assign_module_color(department, overwrite=True)
 
 
 @transaction.atomic
@@ -318,10 +317,19 @@ def extract_planif_weeks(week_year_list, department, bookname=None, periods = No
     if bookname is None:
         bookname = 'media/configuration/planif_file_'+department.abbrev+'.xlsx'
     book = load_workbook(filename=bookname, data_only=True)
-    if periods == None:
-        periods = Period.objects.filter(department=department)
+    periods = define_periods(department, book, periods)
     for period in periods:
         for s in week_year_list:
             w = s['week']
             y = s['year']
             ReadPlanifWeek(department, book, period.name, w, y)
+
+
+def define_periods(department, book, periods):
+    if periods is None:
+        periods = Period.objects.filter(department=department)
+    ok_periods = []
+    for period in periods:
+        if period.name in book:
+            ok_periods.append(period)
+    return ok_periods

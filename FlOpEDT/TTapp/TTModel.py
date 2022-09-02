@@ -36,7 +36,7 @@ from people.models import Tutor
 from TTapp.models import MinNonPreferedTutorsSlot, StabilizeTutorsCourses, MinNonPreferedTrainProgsSlot, \
     NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, ConsiderTutorsUnavailability, \
     MinimizeBusyDays, MinGroupsHalfDays, RespectMaxHoursPerDay, ConsiderDependencies, ConsiderPivots, \
-    StabilizeGroupsCourses
+    StabilizeGroupsCourses, RespectMinHoursPerDay
 
 from TTapp.FlopConstraint import max_weight
 
@@ -123,9 +123,6 @@ class TTModel(FlopModel):
         self.stabilize_work_copy = stabilize_work_copy
         self.wdb = self.wdb_init()
         self.courses = self.wdb.courses
-        if not self.wdb.courses.exists():
-            print('There are no course to be scheduled...')
-            return
         self.possible_apms = self.wdb.possible_apms
         self.cost_I, self.FHD_G, self.cost_G, self.cost_SL, self.generic_cost = self.costs_init()
         self.TT, self.TTinstructors = self.TT_vars_init()
@@ -158,6 +155,10 @@ class TTModel(FlopModel):
 
         if self.send_mails:
             self.send_lack_of_availability_mail()
+
+        if not self.wdb.courses.exists():
+            print('There are no course to be scheduled...')
+            return
 
     @timer
     def wdb_init(self):
@@ -261,9 +262,12 @@ class TTModel(FlopModel):
                     IBHD[(i, d, apm)] = self.add_var()
                     # Linking the variable to the TT
                     card = 2 * len(halfdayslots)
-                    self.add_constraint(card * IBHD[i, d, apm] - self.sum(IBS[i, sl] for sl in halfdayslots), '>=',
+                    expr = card * IBHD[i, d, apm] - self.sum(IBS[i, sl] for sl in halfdayslots)
+                    self.add_constraint(expr, '>=',
                                         0,
                                         Constraint(constraint_type=ConstraintType.IBHD_INF, instructors=i, days=d))
+                    self.add_constraint(expr, '<=', card - 1,
+                                        Constraint(constraint_type=ConstraintType.IBHD_SUP, instructors=i, days=d))
 
         forced_IBD = {}
         for i in self.wdb.instructors:
@@ -408,6 +412,10 @@ class TTModel(FlopModel):
         # Check if RespectBound constraint is in database, and add it if not
         if not RespectMaxHoursPerDay.objects.filter(department=self.department).exists():
             RespectMaxHoursPerDay.objects.create(department=self.department)
+
+        # Check if RespectMinHours constraint is in database, and add it if not
+        if not RespectMinHoursPerDay.objects.filter(department=self.department).exists():
+            RespectMinHoursPerDay.objects.create(department=self.department)
 
         # Check if MinimizeBusyDays constraint is in database, and add it if not
         if not MinimizeBusyDays.objects.filter(department=self.department).exists():

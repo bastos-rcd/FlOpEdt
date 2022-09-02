@@ -131,6 +131,7 @@ function open_connection() {
         var time_limit = parseInt(time_limit_select.value);
         var pre_assign_rooms = pre_assign_rooms_checkbox.checked;
         var post_assign_rooms = post_assign_rooms_checkbox.checked;
+        var all_weeks_together = all_weeks_together_checkbox.checked;
 
         // Get working copy number for stabilization
         var stabilize_working_copy = stabilize_select.value;
@@ -148,7 +149,8 @@ function open_connection() {
             'time_limit': time_limit,
             'solver': solver,
             'pre_assign_rooms': pre_assign_rooms,
-            'post_assign_rooms': post_assign_rooms
+            'post_assign_rooms': post_assign_rooms,
+            'all_weeks_together': all_weeks_together
         }))
     }
 
@@ -237,6 +239,7 @@ function init_work_copies(work_copies) {
     else {
         stabilize_div.style("display", "block");
     }
+
 
     // Update working copies list
     stabilize_sel = stabilize_div.select("select");
@@ -371,6 +374,7 @@ function get_constraints_url(train_prog, year, week) {
   This doesn't apply if more than one week is selected
 */
 function fetch_context() {
+    all_weeks_together_div = d3.select("#all-weeks-together");
     if (week_year_sel.length == 1) {
       week = week_year_sel[0].week
       year = week_year_sel[0].year
@@ -390,8 +394,13 @@ function fetch_context() {
               console.log("complete");
           }
       });
+      all_weeks_together_div.style("display", "none");
     } else {
-      update_context_view();
+        update_context_view();
+        if (week_year_sel.length > 1) {
+            // Display or hide all weeks together checkbox
+            all_weeks_together_div.style("display", "block");
+        }
     }
 }
 
@@ -680,6 +689,7 @@ var stabilize_select = document.querySelector("#stabilize select");
 document.getElementById("divAnalyse").style.overflow = "scroll";
 var pre_assign_rooms_checkbox = document.querySelector("#pre-assign-rooms");
 var post_assign_rooms_checkbox = document.querySelector("#post-assign-rooms");
+var all_weeks_together_checkbox = document.querySelector("#all-weeks-together-checkbox");
 
 time_limit_select = document.querySelector("#limit");
 txt_area = document.getElementsByTagName("textarea")[0];

@@ -578,7 +578,7 @@ class IDTutorViewSet(viewsets.ReadOnlyModelViewSet):
                   )
 class IDTrainProgViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ViewSet to see the ID and name of every TrainingProgramme
+    ViewSet to see the ID, abbreviation and name of every TrainingProgramme
 
     """
     permission_classes = [IsAdminOrReadOnly]
@@ -604,7 +604,7 @@ class IDTrainProgViewSet(viewsets.ReadOnlyModelViewSet):
                   )
 class IDModuleViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ViewSet to see the ID and name of every Module
+    ViewSet to see the ID, abbreviation and name of every Module
 
     """
     permission_classes = [IsAdminOrReadOnly]

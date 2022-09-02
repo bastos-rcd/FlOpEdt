@@ -275,6 +275,31 @@ function reassign_rooms() {
   });
 }
 
+// reassign rooms and reload
+function duplicate_in_other_weeks() {
+  var cur_week = wdw_weeks.get_selected();
+
+  show_loader(true);
+  $.ajax({
+    type: "GET",
+    dataType: 'json',
+    url: url_duplicate_in_other_weeks + cur_week.url() + '/' + num_copie,
+    async: true,
+    contentType: "application/json; charset=utf-8",
+    success: function (msg) {
+      console.log(msg);
+      format_acks(msg, 'duplicate_in_other_weeks');
+      fetch_all(false, true);
+      show_loader(false);
+    },
+    error: function (msg) {
+      ack_side_panel['duplicate_in_other_weeks'].txt = 'Problème côté serveur';
+      console.log("error");
+      show_loader(false);
+    }
+  });
+}
+
 
 
 var ack_side_panel = {
@@ -283,7 +308,8 @@ var ack_side_panel = {
   'delete':{id:'delete'},
   'delete_all_unused':{id: 'delete_all_unused'},
   'duplicate': {id: 'duplicate'},
-  'reassign_rooms': {id: 'reassign_rooms'}
+  'reassign_rooms': {id: 'reassign_rooms'},
+  'duplicate_in_other_weeks': {id: 'duplicate_in_other_weeks'}
 };
 for (key in ack_side_panel) {
   ack_side_panel[key].id = '#ack-' + ack_side_panel[key].id;

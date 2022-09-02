@@ -117,7 +117,7 @@ def student_preferences(req):
 
             student_pref.save()
             group_pref = None
-            for group in student.belong_to.all():
+            for group in student.generic_groups.all():
                 group_pref, created = GroupPreferences.objects.get_or_create(group=group)
                 if created:
                     group_pref.save()

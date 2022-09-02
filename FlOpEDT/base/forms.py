@@ -34,8 +34,8 @@ class ContactForm(forms.Form):
                               required=True)
     recipient = forms.CharField(
         label=_('Recipient :'),
-        max_length=4,
-        help_text=_("Pseudo : 4 characters max"))
+        max_length=20,
+        help_text=_("Pseudo"))
     subject = forms.CharField(
         label=_('Subject of the e-mail :'),
         max_length=100,

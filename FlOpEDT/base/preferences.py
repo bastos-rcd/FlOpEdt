@@ -25,9 +25,13 @@
 
 from base.models import CourseStartTimeConstraint, Course, UserPreference, Week
 from TTapp.FlopConstraint import max_weight
+from people.tutor import fill_default_user_preferences
 
 
 def split_preferences(tutor, departments=None):
+    user_preferences = UserPreference.objects.filter(user=tutor)
+    if not user_preferences.exists():
+        fill_default_user_preferences(tutor)
     splits = set()
     days = set()
     if departments is None:
@@ -36,18 +40,11 @@ def split_preferences(tutor, departments=None):
 
     # compute all possible times of events in the departments
     for dpt in departments:
-        courses = \
-            Course.objects.select_related('module__train_prog__department')\
-                          .filter(module__train_prog__department=dpt)\
-                          .distinct('type')
-        for course_type in [c.type for c in courses]:
-            for time_constraints in \
-                CourseStartTimeConstraint.objects\
-                                         .filter(course_type=course_type):
-                splits |= set(time_constraints.allowed_start_times)
-                splits |= \
-                    set([start + course_type.duration
-                         for start in time_constraints.allowed_start_times])
+        for time_constraints in CourseStartTimeConstraint.objects.filter(course_type__department=dpt):
+            splits |= set(time_constraints.allowed_start_times)
+            splits |= \
+                set([start + time_constraints.course_type.duration
+                     for start in time_constraints.allowed_start_times])
 
         days |= set(dpt.timegeneralsettings.days)
 
@@ -69,12 +66,7 @@ def split_preferences(tutor, departments=None):
         split_pm = [min_pm] + pm + [max_day]
         intervals = [split_am, split_pm]
 
-    considered_user_pref = UserPreference\
-        .objects\
-        .filter(user=tutor)\
-        .distinct('week')
-
-    weeks = [user_pref.week for user_pref in considered_user_pref]
+    weeks = [user_pref.week for user_pref in user_preferences.distinct('week')]
 
     # create typical week if non existing
     if None not in weeks:
@@ -98,8 +90,7 @@ def split_preferences(tutor, departments=None):
             # and delete them from the database
             pref_time = []
             pref_val = []
-            pref_slots = UserPreference.objects\
-                                       .filter(user=tutor, day=d, week=week)\
+            pref_slots = user_preferences.filter(day=d, week=week)\
                                        .order_by('start_time')
 
             for slot in pref_slots:

@@ -49,7 +49,7 @@ class ChangeStudent(UpdateView):
     model = Student
     from_class = ChangeStudentForm
     template_name = 'people/changeuser.html'
-    fields = ('username', 'email', 'belong_to',)
+    fields = ('username', 'email', 'generic_groups',)
     success_url = '/'
 
     def get_object(self, queryset=None):

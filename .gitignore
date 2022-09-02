@@ -14,3 +14,7 @@ docker/env/web.prod.env
 docker/env/db.prod.env
 global.env
 venv/*
+FlOpEDT/media/configuration*
+!FlOpEDT/media/configuration/empty_database_file.xlsx
+!FlOpEDT/media/configuration/empty_planif_file.xlsx
+FlOpEDT/misc/logs

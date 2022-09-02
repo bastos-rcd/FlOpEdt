@@ -128,16 +128,25 @@ class CourseTypeNameViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
+class CourseFilterSet(filters.FilterSet):
+    dept = filters.CharFilter(field_name='module__train_prog__department__abbrev', required=False)
+
+    class Meta:
+        model = bm.Course
+        fields = ['dept']
+
+
 class CoursesViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the courses
 
     Can be filtered as wanted with every field of a Course object.
     """
-    queryset = bm.Course.objects.all()
+    queryset = bm.Course.objects.all() \
+    .prefetch_related('week', 'type', 'room_type', 'groups', 'module', 'modulesupp')
     serializer_class = serializers.CoursesSerializer
+    filter_class = CourseFilterSet
 
     filterset_fields = '__all__'
 
     permission_classes = [IsAdminOrReadOnly]
-

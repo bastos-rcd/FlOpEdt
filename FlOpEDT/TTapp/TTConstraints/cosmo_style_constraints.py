@@ -61,6 +61,10 @@ class LimitHoles(TTConstraint):
     max_holes_per_day = models.PositiveSmallIntegerField(null=True, blank=True)
     max_holes_per_week = models.PositiveSmallIntegerField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = _('Limit holes')
+        verbose_name_plural = verbose_name
+
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
         details = view_model['details']
@@ -156,6 +160,10 @@ class LimitTutorTimePerWeeks(TTConstraint):
     max_time_per_period = models.PositiveSmallIntegerField(null=True, blank=True)
     tolerated_margin = models.PositiveSmallIntegerField(validators=[MaxValueValidator(100)], null=True, blank=True)
     number_of_weeks = models.PositiveSmallIntegerField(default=1, verbose_name=_("Number of weeks"))
+
+    class Meta:
+        verbose_name = _('Limit time per weeks for tutors')
+        verbose_name_plural = verbose_name
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
@@ -253,6 +261,10 @@ class ModulesByBloc(TTConstraint):
     Except for suspens courses
     """
     modules = models.ManyToManyField('base.Module', blank=True)
+
+    class Meta:
+        verbose_name = _('Gather courses of considered modules')
+        verbose_name_plural = verbose_name
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
