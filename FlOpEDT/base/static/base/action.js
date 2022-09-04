@@ -2100,6 +2100,9 @@ function show_detailed_courses(cours) {
   if (cours.mod in modules_info){
     modinfo.name = modules_info[cours.mod].name;
     modinfo.url = modules_info[cours.mod].url;
+    if (cours.pay_mod!=null){
+    modinfo.name += ' (' + cours.pay_mod+ ')';
+  }
   } else {
     if (cours.mod == null) {
       modinfo.name = 'Pas de module';

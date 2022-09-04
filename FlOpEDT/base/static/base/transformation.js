@@ -828,9 +828,6 @@ function cours_txt_top_y(c) {
 }
 function cours_txt_top_txt(c) {
   var ret = c.mod;
-  if (c.pay_mod!=null){
-    ret += ' (' + c.pay_mod+ ')';
-  }
   return ret;
 }
 function cours_txt_mid_y(c) {
