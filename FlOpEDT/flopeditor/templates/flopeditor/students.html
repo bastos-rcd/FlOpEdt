@@ -1,0 +1,8 @@
+{% extends "flopeditor/student_group_types.html" %}
+{% load static %}
+
+{% block card-nav-classes-student-group-types %}{% endblock %}
+{% block card-nav-classes-students %}active{% endblock %}
+
+{% block crud_js_url %}{% url 'flopeditor:flopeditor-crud-students' department_abbrev=department.abbrev %}{% endblock %}
+

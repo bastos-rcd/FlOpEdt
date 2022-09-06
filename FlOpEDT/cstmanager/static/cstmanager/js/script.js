@@ -68,6 +68,57 @@ let setState = (newState) => {
 
 let currentPopover;
 
+let currentSelectList = {
+    list: null,
+    input: null,
+    index: -1,
+    _elements_list: [],
+    reset: (newList = null, newInput = null) => {
+        currentSelectList.list = newList;
+        currentSelectList.index = -1;
+        currentSelectList.input = newInput;
+        if (newList) {
+            let list_id = newList.id;
+            currentSelectList._elements_list = document.getElementById(list_id).children;
+        }
+    },
+    _entry_changed: (previous_index, next_index) => {
+        if (next_index >= currentSelectList._elements_list.length) {
+            return;
+        }
+
+        if (previous_index >= 0) {
+            currentSelectList._elements_list[previous_index].classList.remove('active');
+        }
+        let next = currentSelectList._elements_list[next_index];
+        next.classList.add('active');
+        document.getElementById(next.id).scrollIntoView({behavior: "auto", block: "nearest", inline: "nearest"});
+    },
+    previous_entry: () => {
+        if (currentSelectList.index > 0) {
+            currentSelectList._entry_changed(currentSelectList.index, --currentSelectList.index);
+        }
+    },
+    next_entry: () => {
+        if (currentSelectList.index < currentSelectList._elements_list.length - 1) {
+            currentSelectList._entry_changed(currentSelectList.index, ++currentSelectList.index);
+        }
+    },
+    press_entry: () => {
+        let index = currentSelectList.index;
+        if (index >= 0 && index <= currentSelectList._elements_list.length - 1) {
+            let entry = currentSelectList._elements_list[index];
+            entry.onclick();
+        }
+    },
+    close: () => {
+        if (!currentSelectList.input) {
+            return;
+        }
+        currentSelectList.input.onclick();
+    },
+};
+
 // object containing functions that involve filtering
 let filter = {
     current: {
@@ -929,7 +980,7 @@ let selectBuilder = (param_name, args = {}, id_to_select) => {
 /**
  * Creates a custom select with an input and a list.
  **/
-let createSelect = (placeholder, label, searchMethod, result_interpret, additional_onclick, first_option_text = '', first_option_on_click = null, should_close_on_input_click = true) => {
+let createSelect = (id, placeholder, label, searchMethod, result_interpret, additional_onclick, first_option_text = '', first_option_on_click = null, should_close_on_input_click = true) => {
     let container = divBuilder({});
     let input = elementBuilder('input', {
         'type': 'text',
@@ -938,13 +989,16 @@ let createSelect = (placeholder, label, searchMethod, result_interpret, addition
         'aria-label': label,
     });
     let list = divBuilder({
+        'id': `custom-list-${id}`,
         'class': 'list-group w-auto custom-v-select-list',
         'style': 'display: none;',
+        'tabindex': '0',
     });
     if (should_close_on_input_click) {
         input.onclick = () => {
             if (list.style.display !== 'none') {
                 list.style.display = 'none';
+                currentSelectList.reset();
             }
         };
     }
@@ -955,15 +1009,18 @@ let createSelect = (placeholder, label, searchMethod, result_interpret, addition
 
         let search_results = searchMethod(search_value);
 
-        let create_option = () => {
+        let create_option = (link) => {
+            let option_id = `${id}-${link.replace(' ', '-')}`;
             return elementBuilder('a', {
-                'href': "#",
+                'id': option_id,
+                'href': `#${option_id}`,
                 'class': 'list-group-item list-group-item-action fs-6 lh-1',
+                'tabindex': '-1',
             });
         };
 
         if (first_option_text.length > 0) {
-            let option = create_option();
+            let option = create_option(first_option_text);
             option.text = first_option_text;
             if (first_option_on_click) {
                 let element = {'id': null};
@@ -975,14 +1032,16 @@ let createSelect = (placeholder, label, searchMethod, result_interpret, addition
         }
 
         search_results.forEach(element => {
-            let option = create_option();
-            option.text = result_interpret(element);
+            let title = result_interpret(element);
+            let option = create_option(title);
+            option.text = title;
             option.onclick = () => {
                 additional_onclick(element, input, list);
             };
             list.append(option);
         });
         list.style.display = 'block';
+        currentSelectList.reset(list, input);
     }
     container.append(input, list);
     return container;
@@ -997,8 +1056,35 @@ let createSelectSingle = (label_text, searchMethod, result_interpret, option_on_
         option_on_click(element, input, list);
     };
 
-    container.append(createSelect(`${label_text}...`, label_text, searchMethod, result_interpret, on_click, first_option_text, true));
+    container.append(createSelect(label_text, `${label_text}...`, label_text, searchMethod, result_interpret, on_click, first_option_text, true));
     return container;
+};
+
+let createSelectedElement = (element, selected_elements, element_title, element_name) => {
+    let selected_element = elementBuilder('li', {
+        'class': 'list-group-item fs-6',
+        'style': 'text-align: center',
+        'data-param-id': element.id,
+    });
+    let content = divBuilder({
+        'data-bs-toggle': 'tooltip',
+        'data-bs-title': element_title,
+        'data-bs-placement': 'top',
+    });
+    const tooltip = bootstrap.Tooltip.getOrCreateInstance(content);
+    tooltip.enable();
+
+    content.innerHTML = element_name;
+    let remove_badge = elementBuilder('span', {
+        'class': 'badge bg-danger rounded-pill',
+        'style': 'cursor: pointer',
+    });
+    remove_badge.innerHTML = 'X';
+    remove_badge.onclick = () => {
+        selected_elements.removeChild(selected_element);
+    };
+    selected_element.append(content, remove_badge);
+    return selected_element;
 };
 
 let createSelectMultiple = (label_text, searchMethod, result_interpret, result_simple_interpret, selected_elements_id = '', already_selected = []) => {
@@ -1009,43 +1095,16 @@ let createSelectMultiple = (label_text, searchMethod, result_interpret, result_s
         'class': 'list-group list-group-horizontal custom-h-select-list border border-solid',
     });
 
-    let createSelected = (element) => {
-        let selected_element = elementBuilder('li', {
-            'class': 'list-group-item fs-6',
-            'style': 'text-align: center',
-            'data-param-id': element.id,
-        });
-        let content = divBuilder({
-            'data-bs-toggle': 'tooltip',
-            'data-bs-title': result_interpret(element),
-            'data-bs-placement': 'top',
-        });
-        const tooltip = bootstrap.Tooltip.getOrCreateInstance(content);
-        tooltip.enable();
-
-        content.innerHTML = result_simple_interpret(element);
-        let remove_badge = elementBuilder('span', {
-            'class': 'badge bg-danger rounded-pill',
-            'style': 'cursor: pointer',
-        });
-        remove_badge.innerHTML = 'X';
-        remove_badge.onclick = () => {
-            selected_elements.removeChild(selected_element);
-        };
-        selected_element.append(content, remove_badge);
-        return selected_element;
-    };
-
     let on_click = (element, input, list) => {
-        let selected_element = createSelected(element);
+        let selected_element = createSelectedElement(element, selected_elements, result_interpret(element), result_simple_interpret(element));
         selected_elements.append(selected_element);
     };
 
     already_selected.forEach(element => {
-        selected_elements.append(createSelected(element));
+        selected_elements.append(createSelectedElement(element, selected_elements, result_interpret(element), result_simple_interpret(element)));
     });
 
-    container.append(selected_elements, createSelect(`${label_text}...`, label_text, searchMethod, result_interpret, on_click, false));
+    container.append(selected_elements, createSelect(selected_elements_id, `${label_text}...`, label_text, searchMethod, result_interpret, on_click, false));
     return container;
 };
 
@@ -1152,6 +1211,8 @@ let createSelectedParameterPopup = (constraint, parameter) => {
     let param_obj = (constraint.parameters.filter(o => o.name === parameter))[0];
     let divs = divBuilder();
 
+    let values = divBuilder();
+
     let createCheckboxAndLabel = (ele, inputType) => {
         let temp_id = 'acceptable' + ele.toString();
         let str = getCorrespondingInfo(ele, parameter);
@@ -1176,14 +1237,67 @@ let createSelectedParameterPopup = (constraint, parameter) => {
         });
         label.innerHTML = str;
         form.append(input, label);
-        divs.append(form);
+        values.append(form);
     };
 
     if (param_obj.multiple) {
-        let acceptableValues = database.acceptable_values[parameter].acceptable;
-        acceptableValues.forEach(ele => {
-            createCheckboxAndLabel(ele, 'checkbox');
+        let acceptable_values = database.acceptable_values[parameter].acceptable;
+
+        let create_and_fill_selected = () => {
+            acceptable_values.forEach(ele => {
+                createCheckboxAndLabel(ele, 'checkbox');
+            });
+        };
+
+        let select_all = () => {
+            divs.querySelectorAll('input').forEach(element => {
+                element.checked = true;
+            });
+        };
+
+        let remove_all = () => {
+            divs.querySelectorAll('input').forEach(element => {
+                element.checked = false;
+            });
+        };
+
+        create_and_fill_selected();
+
+        let select_all_button = elementBuilder('button', {
+            'type': 'button',
+            'class': 'btn btn-primary',
         });
+        select_all_button.innerHTML = gettext('Select all');
+        select_all_button.onclick = () => {
+            select_all();
+        };
+
+        let remove_all_button = elementBuilder('button', {
+            'type': 'button',
+            'class': 'btn btn-danger',
+        });
+        remove_all_button.innerHTML = gettext('Remove all');
+        remove_all_button.onclick = () => {
+            remove_all();
+        };
+
+        let cancel_button = elementBuilder('button', {
+            'type': 'button',
+            'class': 'btn btn-secondary',
+        });
+        cancel_button.innerHTML = gettext('Cancel');
+        cancel_button.onclick = () => {
+            values.innerHTML = '';
+            create_and_fill_selected();
+        };
+
+        let buttons = divBuilder({
+            'class': 'mt-3 btn-group w-100',
+            'role': 'group',
+        });
+
+        buttons.append(select_all_button, remove_all_button, cancel_button);
+        divs.append(values, buttons);
     } else if (param_obj.type.includes('.')) {
         let temp_id = parameter + '-value';
 
@@ -1322,6 +1436,7 @@ let buttonWithDropBuilder = (constraint, parameter) => {
 
         if (parameter.name === 'tutors') {
             let label_text = gettext('Tutor');
+            let acceptable_values = database.acceptable_values.tutor.acceptable;
 
             let searchMethod = searchTutors;
             let result_interpret = element => {
@@ -1333,14 +1448,65 @@ let buttonWithDropBuilder = (constraint, parameter) => {
 
             let param_obj = (constraint.parameters.filter(o => o.name === parameter.name))[0];
 
+            let element_obj = (tutor_id) => {
+                let tutor = database.tutors[database.tutors_ids[tutor_id].name];
+                return {'tutor': tutor, 'id': tutor_id};
+            };
+
             let selected = param_obj.id_list.map(id => {
-                let tutor = database.tutors[database.tutors_ids[id].name];
-                return {'tutor': tutor, 'id': id};
+                return element_obj(id);
             });
 
             let id = `param-select-${parameter.name}`;
+            let select = createSelectMultiple(label_text, searchMethod, result_interpret, result_simple_interpret, id, selected);
 
-            elements = createSelectMultiple(label_text, searchMethod, result_interpret, result_simple_interpret, id, selected);
+            let select_all_button = elementBuilder('button', {
+                'type': 'button',
+                'class': 'btn btn-primary',
+            });
+            select_all_button.innerHTML = gettext('Select all');
+            select_all_button.onclick = () => {
+                let selected_list = document.getElementById(id);
+                selected_list.innerHTML = '';
+                acceptable_values.forEach(tutor_id => {
+                    let element = element_obj(tutor_id);
+                    selected_list.append(createSelectedElement(element, selected_list, result_interpret(element), result_simple_interpret(element)));
+                });
+            };
+
+            let remove_all_button = elementBuilder('button', {
+                'type': 'button',
+                'class': 'btn btn-danger',
+            });
+            remove_all_button.innerHTML = gettext('Remove all');
+            remove_all_button.onclick = () => {
+                let selected_list = document.getElementById(id);
+                selected_list.innerHTML = '';
+            };
+
+            let cancel_button = elementBuilder('button', {
+                'type': 'button',
+                'class': 'btn btn-secondary',
+            });
+            cancel_button.innerHTML = gettext('Cancel');
+            cancel_button.onclick = () => {
+                let selected_list = document.getElementById(id);
+                selected_list.innerHTML = '';
+                selected.forEach(element => {
+                    selected_list.append(createSelectedElement(element, selected_list, result_interpret(element), result_simple_interpret(element)));
+                });
+            };
+
+            elements = divBuilder();
+
+            let buttons = divBuilder({
+                'class': 'mt-3 btn-group w-100',
+                'role': 'group',
+            });
+
+            buttons.append(select_all_button, remove_all_button, cancel_button);
+
+            elements.append(select, buttons);
         } else {
             elements = createSelectedParameterPopup(constraint, parameter.name);
         }
@@ -1662,6 +1828,8 @@ let constraintCardBuilder = (constraint) => {
 
     let checkText = constraint.is_active ? 'checked' : "";
 
+    let weight = (constraint.weight && constraint.weight < 9) ? `<div class="col">${iconTextBuilder(htmlElements.iconWeight.src, constraint.weight, 'weight').outerHTML}</div>` : '';
+
     wrapper.innerHTML = [
         `<h6 class="card-header py-1">${constraint.title || localName}</h6>`,
         '<div class="card-body py-0">',
@@ -1669,8 +1837,11 @@ let constraintCardBuilder = (constraint) => {
         `    <div class="container-fluid">`,
         '        <div class="row">',
         `        <div class="col">${iconTextBuilder(htmlElements.iconGears.src, getContraintFilledParametersCount(constraint), 'parameters').outerHTML}</div>`,
-        `        <div class="col">${iconTextBuilder(htmlElements.iconWeight.src, constraint.weight, 'weight').outerHTML}</div>`,
-        `        <div class="col text-end"><input type="checkbox" data-cst-id="${constraint.pageid}" ${checkText} onchange="toggleConstraint(this)"></div>`,
+        `        ${weight}`,
+        `        <div class="col-auto text-end">`,
+        `            <input type="checkbox" id="cst-check-${constraint.pageid}" data-cst-id="${constraint.pageid}" ${checkText} onchange="toggleConstraint(this)">`,
+        `            <label class="form-check-label" for="cst-check-${constraint.pageid}">${constraint.is_active ? gettext('Active') : gettext('Inactive')}</label>`,
+        '        </div>',
         '</div>',
     ].join('');
 
@@ -1728,6 +1899,8 @@ let editSelectedConstraintsWeight = () => {
 }
 
 let searchTutors = tutorSearch => {
+    tutorSearch = tutorSearch.toLowerCase();
+
     // Find all the tutors with matching search
     let tutors = Object.values(database.tutors);
     let tutors_match_search = tutors.filter(tutor =>
@@ -1775,5 +1948,29 @@ fetchers.fetchConstraints(null);
 document.addEventListener('click', (e) => {
     if (currentPopover && !currentPopover.tip.contains(e.target)) {
         visibility.hidePopover();
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' && currentSelectList.list) {
+        e.preventDefault();
+        currentSelectList.previous_entry();
+    }
+
+    if (e.key === 'ArrowDown' && currentSelectList.list) {
+        e.preventDefault();
+        currentSelectList.next_entry();
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter' && currentSelectList.list) {
+        e.preventDefault();
+        currentSelectList.press_entry();
+    }
+
+    if (e.key === 'Escape' && currentSelectList.list) {
+        e.preventDefault();
+        currentSelectList.close();
     }
 });

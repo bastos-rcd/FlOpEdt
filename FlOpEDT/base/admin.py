@@ -41,7 +41,7 @@ from base.models import CourseStartTimeConstraint, StructuralGroup, TransversalG
     TrainingProgramme, Regen, Holiday, TrainingHalfDay, \
     CoursePreference, Dependency, Department, CourseType, \
     ScheduledCourseAdditional, CourseAdditional, RoomPreference, RoomSort, RoomType, EnrichedLink, GroupPreferredLinks, \
-    Mode
+    Mode, Period
 from displayweb.models import ModuleDisplay
 from displayweb.models import TutorDisplay
 from import_export import resources, fields
@@ -718,3 +718,4 @@ admin.site.register(GroupPreferredLinks, GroupPreferredLinksAdmin)
 admin.site.register(CourseStartTimeConstraint, CourseStartTimeConstraintAdmin)
 admin.site.register(Mode, DepartmentModelAdmin)
 admin.site.register(CourseType, DepartmentModelAdmin)
+admin.site.register(Period, DepartmentModelAdmin)

@@ -32,7 +32,7 @@ to manage a department statistics for FlOpEDT.
 import re
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from base.models import Department
+from base.models import Department, GenericGroup
 from people.models import Tutor, SupplyStaff, FullStaff, BIATOS
 
 
@@ -557,3 +557,54 @@ def validate_tutor_values(entry, entries):
     else:
         return True
     return False
+
+
+def validate_student_values(entry, entries):
+    """Validate parameters for tutor CRUD
+
+    :param abbrev: data returned by crudJS
+    :type abbrev: list
+    :param entries: list that is returned to CrudJS
+    :type abbrev: list
+    :return: boolean are the paramaters valid
+    """
+    idregex = re.compile(r'^[\w.@+-]+$')
+    if not entry[0]:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le login ne peut pas être vide."])
+    elif len(entry[0]) > 30:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le login est trop long."])
+    elif not idregex.match(entry[0]):
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le login n'est pas valide"])
+    elif not entry[1]:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le prénom ne peut pas être vide."])
+    elif len(entry[1]) > 30:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le prénom est trop long."])
+    elif not entry[2]:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le nom ne peut pas être vide."])
+    elif len(entry[2]) > 30:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le nom est trop long."])
+    elif not entry[2]:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "L'email' ne doit pas être vide."])
+    else:
+        return True
+    return False
+
+
+def student_groups_from_full_names(full_names, department):
+    gp_to_return = set()
+    for gp_full_name in full_names:
+        if gp_full_name.count('-') >= 2:
+            pass
+
+        tp, gp = gp_full_name.split('-')
+        gg = GenericGroup.objects.get(train_prog__abbrev=tp, name=gp, train_prog__department=department)
+        gp_to_return.add(gg)
+    return gp_to_return

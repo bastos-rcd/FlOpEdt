@@ -50,6 +50,12 @@
             Groupes transversaux
         </a>
     </li>
+        <li class="nav-item">
+        <a  class="nav-link {% block card-nav-classes-students %}{% endblock %}"
+            href="{% url 'flopeditor:flopeditor-department-students' department_abbrev=department.abbrev %}">
+            Etudiant⋅e⋅s
+        </a>
+    </li>
 {% endblock %}
 
 {% block crud_js_url %}{% url 'flopeditor:flopeditor-crud-student-group-type' department_abbrev=department.abbrev %}{% endblock %}

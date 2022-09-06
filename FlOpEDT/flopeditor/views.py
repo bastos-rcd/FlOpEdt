@@ -476,6 +476,21 @@ def department_course_types(request, department_abbrev):
 
 
 @tutor_or_superuser_required
+def department_students(request, department_abbrev):
+    """students view of flop!EDITOR.
+
+    :param request:           Client request.
+    :param department_abbrev: Department abbreviation.
+    :type request:            django.http.HttpRequest
+    :type department_abbrev:  str
+    :return: Page rendered from the template of flop!EDITOR.
+    :rtype:  django.http.HttpResponse
+
+    """
+    return crud_view(request, department_abbrev, "flopeditor/students.html", "Etudiant⋅e⋅s")
+
+
+@tutor_or_superuser_required
 def department_modules(request, department_abbrev):
     """Modules view of flop!EDITOR.
 
