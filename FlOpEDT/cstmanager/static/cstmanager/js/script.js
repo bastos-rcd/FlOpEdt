@@ -2,6 +2,8 @@ const popoverAllowList = bootstrap.Tooltip.Default.allowList;
 popoverAllowList.button = [];
 popoverAllowList['*'].push('onclick');
 
+const list_close = new Event('list-close');
+
 // helper function to extract a parameter object from a given constraint
 let get_parameter_from_constraint = (cst, name) => {
     let ret = {};
@@ -112,10 +114,10 @@ let currentSelectList = {
         }
     },
     close: () => {
-        if (!currentSelectList.input) {
+        if (!currentSelectList.list) {
             return;
         }
-        currentSelectList.input.onclick();
+        currentSelectList.list.dispatchEvent(list_close);
     },
 };
 
@@ -980,34 +982,25 @@ let selectBuilder = (param_name, args = {}, id_to_select) => {
 /**
  * Creates a custom select with an input and a list.
  **/
-let createSelect = (id, placeholder, label, searchMethod, result_interpret, additional_onclick, first_option_text = '', first_option_on_click = null, should_close_on_input_click = true) => {
-    let container = divBuilder({});
-    let input = elementBuilder('input', {
-        'type': 'text',
-        'class': 'form-control mt-3',
-        'placeholder': placeholder,
-        'aria-label': label,
-    });
-    let list = divBuilder({
-        'id': `custom-list-${id}`,
-        'class': 'list-group w-auto custom-v-select-list',
-        'style': 'display: none;',
-        'tabindex': '0',
-    });
-    if (should_close_on_input_click) {
-        input.onclick = () => {
-            if (list.style.display !== 'none') {
-                list.style.display = 'none';
-                currentSelectList.reset();
-            }
-        };
-    }
-    input.oninput = () => {
-        let search_value = input.value;
-
-        list.innerHTML = '';
-
-        let search_results = searchMethod(search_value);
+let createSelect = (id, placeholder, label, searchMethod, result_interpret, additional_onclick, {
+        first_option_text = '',
+        first_option_on_click = null,
+        select_once: select_once = false
+    }) => {
+        let container = divBuilder({});
+        let input = elementBuilder('input', {
+            'id': `custom-list-input-${id}`,
+            'type': 'text',
+            'class': 'form-control mt-3',
+            'placeholder': placeholder,
+            'aria-label': label,
+        });
+        let list = divBuilder({
+            'id': `custom-list-${id}`,
+            'class': 'list-group w-auto custom-v-select-list',
+            'style': 'display: none;',
+            'tabindex': '0',
+        });
 
         let create_option = (link) => {
             let option_id = `${id}-${link.replace(' ', '-')}`;
@@ -1019,48 +1012,93 @@ let createSelect = (id, placeholder, label, searchMethod, result_interpret, addi
             });
         };
 
-        if (first_option_text.length > 0) {
-            let option = create_option(first_option_text);
-            option.text = first_option_text;
-            if (first_option_on_click) {
-                let element = {'id': null};
-                option.onclick = () => {
-                    additional_onclick(element, input, list);
-                };
-            }
-            list.append(option);
-        }
+        let show_list = () => {
+            list.style.display = 'block';
+            currentSelectList.reset(list, input);
+        };
 
-        search_results.forEach(element => {
-            let title = result_interpret(element);
-            let option = create_option(title);
-            option.text = title;
-            option.onclick = () => {
-                additional_onclick(element, input, list);
-            };
-            list.append(option);
-        });
-        list.style.display = 'block';
-        currentSelectList.reset(list, input);
+        let hide_list = () => {
+            list.style.display = 'none';
+            currentSelectList.reset();
+        };
+
+        let refresh_list = (search_value) => {
+            list.innerHTML = '';
+
+            if (first_option_text.length > 0) {
+                let option = create_option(first_option_text);
+                option.text = first_option_text;
+                if (first_option_on_click) {
+                    let element = {'id': null};
+                    option.onclick = (e) => {
+                        e?.stopPropagation();
+                        additional_onclick(element, input, list);
+                        if (select_once) {
+                            refresh_list(input.value);
+                        }
+                    };
+                }
+                list.append(option);
+            }
+
+            let search_results = searchMethod(search_value);
+
+            search_results.forEach(element => {
+                let title = result_interpret(element);
+                let option = create_option(title);
+                option.text = title;
+                option.onclick = (e) => {
+                    e?.stopPropagation();
+                    additional_onclick(element, input, list);
+                    if (select_once) {
+                        refresh_list(input.value);
+                    }
+                };
+                list.append(option);
+            });
+            show_list();
+        };
+
+        let close_listener = (e) => {
+            if (list.style.display !== 'none') {
+                hide_list();
+            }
+        };
+
+        list.addEventListener('list-close', close_listener);
+
+        input.onclick = () => {
+            if (list.style.display === 'none') {
+                refresh_list(input.value);
+            }
+        };
+
+        input.oninput = () => {
+            refresh_list(input.value);
+        };
+
+        container.append(input, list);
+        return container;
     }
-    container.append(input, list);
-    return container;
-};
+;
 
 let createSelectSingle = (label_text, searchMethod, result_interpret, option_on_click, first_option_text = '') => {
     let container = divBuilder();
 
     let on_click = (element, input, list) => {
         input.value = result_interpret(element);
-        list.style.display = 'none';
+        list.dispatchEvent(list_close);
         option_on_click(element, input, list);
     };
 
-    container.append(createSelect(label_text, `${label_text}...`, label_text, searchMethod, result_interpret, on_click, first_option_text, true));
+    container.append(createSelect(label_text, `${label_text}...`, label_text, searchMethod, result_interpret, on_click, {
+        first_option_text: first_option_text,
+        first_option_on_click: true
+    }));
     return container;
 };
 
-let createSelectedElement = (element, selected_elements, element_title, element_name) => {
+let createSelectedElement = (element, selected_elements_html, selected_elements, element_title, element_name) => {
     let selected_element = elementBuilder('li', {
         'class': 'list-group-item fs-6',
         'style': 'text-align: center',
@@ -1081,13 +1119,18 @@ let createSelectedElement = (element, selected_elements, element_title, element_
     });
     remove_badge.innerHTML = 'X';
     remove_badge.onclick = () => {
-        selected_elements.removeChild(selected_element);
-    };
+        selected_elements_html.removeChild(selected_element);
+        let index = selected_elements.findIndex(selected_element => selected_element.id === element.id);
+        if (index === -1) {
+            return;
+        }
+        selected_elements.splice(index, 1);
+    }
     selected_element.append(content, remove_badge);
     return selected_element;
 };
 
-let createSelectMultiple = (label_text, searchMethod, result_interpret, result_simple_interpret, selected_elements_id = '', already_selected = []) => {
+let createSelectMultiple = (label_text, searchMethod, result_interpret, result_simple_interpret, selected_elements_id = '', already_selected = [], select_once = false) => {
     let container = divBuilder();
 
     let selected_elements = elementBuilder('ul', {
@@ -1096,15 +1139,27 @@ let createSelectMultiple = (label_text, searchMethod, result_interpret, result_s
     });
 
     let on_click = (element, input, list) => {
-        let selected_element = createSelectedElement(element, selected_elements, result_interpret(element), result_simple_interpret(element));
+        let selected_element = createSelectedElement(element, selected_elements, already_selected, result_interpret(element), result_simple_interpret(element));
         selected_elements.append(selected_element);
+        already_selected.push(element);
     };
 
     already_selected.forEach(element => {
-        selected_elements.append(createSelectedElement(element, selected_elements, result_interpret(element), result_simple_interpret(element)));
+        selected_elements.append(createSelectedElement(element, selected_elements, already_selected, result_interpret(element), result_simple_interpret(element)));
     });
 
-    container.append(selected_elements, createSelect(selected_elements_id, `${label_text}...`, label_text, searchMethod, result_interpret, on_click, false));
+    let new_searchMethod = (search) => {
+        let result = searchMethod(search)
+        if (select_once) {
+            let selected_ids = already_selected.map(selected => selected.id);
+            result = result.filter(element => {
+                return !selected_ids.includes(element.id);
+            });
+        }
+        return result;
+    }
+
+    container.append(selected_elements, createSelect(selected_elements_id, `${label_text}...`, label_text, new_searchMethod, result_interpret, on_click, {select_once: select_once}));
     return container;
 };
 
@@ -1438,27 +1493,26 @@ let buttonWithDropBuilder = (constraint, parameter) => {
             let label_text = gettext('Tutor');
             let acceptable_values = database.acceptable_values.tutor.acceptable;
 
+            let element_obj = (tutor_id) => {
+                let tutor = database.tutors[database.tutors_ids[tutor_id].name];
+                return {'element': tutor, 'id': tutor_id};
+            };
+
             let searchMethod = searchTutors;
             let result_interpret = element => {
-                return `${element.tutor.username} - ${element.tutor.first_name} ${element.tutor.last_name}`;
+                return `${element.element.username} - ${element.element.first_name} ${element.element.last_name}`;
             };
             let result_simple_interpret = element => {
-                return element.tutor.username;
+                return element.element.username;
             };
 
             let param_obj = (constraint.parameters.filter(o => o.name === parameter.name))[0];
 
-            let element_obj = (tutor_id) => {
-                let tutor = database.tutors[database.tutors_ids[tutor_id].name];
-                return {'tutor': tutor, 'id': tutor_id};
-            };
-
-            let selected = param_obj.id_list.map(id => {
-                return element_obj(id);
-            });
+            let selected = param_obj.id_list.map(id => element_obj(id));
 
             let id = `param-select-${parameter.name}`;
-            let select = createSelectMultiple(label_text, searchMethod, result_interpret, result_simple_interpret, id, selected);
+
+            let select = createSelectMultiple(label_text, searchMethod, result_interpret, result_simple_interpret, id, selected, true);
 
             let select_all_button = elementBuilder('button', {
                 'type': 'button',
@@ -1470,7 +1524,7 @@ let buttonWithDropBuilder = (constraint, parameter) => {
                 selected_list.innerHTML = '';
                 acceptable_values.forEach(tutor_id => {
                     let element = element_obj(tutor_id);
-                    selected_list.append(createSelectedElement(element, selected_list, result_interpret(element), result_simple_interpret(element)));
+                    selected_list.append(createSelectedElement(element, selected_list, selected, result_interpret(element), result_simple_interpret(element)));
                 });
             };
 
@@ -1493,7 +1547,7 @@ let buttonWithDropBuilder = (constraint, parameter) => {
                 let selected_list = document.getElementById(id);
                 selected_list.innerHTML = '';
                 selected.forEach(element => {
-                    selected_list.append(createSelectedElement(element, selected_list, result_interpret(element), result_simple_interpret(element)));
+                    selected_list.append(createSelectedElement(element, selected_list, selected, result_interpret(element), result_simple_interpret(element)));
                 });
             };
 
@@ -1912,7 +1966,7 @@ let searchTutors = tutorSearch => {
     return tutors_match_search.map(tutor => {
         let t = Object.values(database.tutors_ids).find(t => t.name === tutor.username);
         if (t) {
-            return {'tutor': tutor, 'id': t.id};
+            return {'element': tutor, 'id': '' + t.id};
         }
     })
 };
@@ -1921,7 +1975,7 @@ htmlElements.selectedConstraintsEditWeightButton.onclick = editSelectedConstrain
 htmlElements.selectedConstraintsDeleteButton.onclick = deleteSelectedConstraints;
 
 htmlElements.filterTutor.append(createSelectSingle(gettext('Tutor'), searchTutors, element => {
-    return element.id === null ? gettext('All tutors') : `${element.tutor.username} - ${element.tutor.first_name} ${element.tutor.last_name}`
+    return element.id === null ? gettext('All tutors') : `${element.element.username} - ${element.element.first_name} ${element.element.last_name}`
 }, (element, input, list) => {
     filter.by_tutor(element.id);
     filter.reapply();
@@ -1945,10 +1999,39 @@ fetchers.fetchWeeks();
 fetchers.fetchConstraintTypes();
 fetchers.fetchConstraints(null);
 
+let check_list_event = (e) => {
+    let node_contains = (node, content) => {
+        return node === content || node.contains(content)
+    };
+
+    let list = currentSelectList.list;
+    if (!list) {
+        return;
+    }
+    let list_node = document.getElementById(list.id);
+    if (!list_node) {
+        return;
+    }
+    let input = currentSelectList.input;
+
+    if (!input) {
+        return;
+    }
+    let input_node = document.getElementById(input.id);
+    if (!input_node) {
+        return;
+    }
+    if (!(node_contains(list_node, e.target) || node_contains(input_node, e.target))) {
+        list.dispatchEvent(list_close);
+    }
+};
+
 document.addEventListener('click', (e) => {
     if (currentPopover && !currentPopover.tip.contains(e.target)) {
         visibility.hidePopover();
     }
+
+    check_list_event(e);
 });
 
 document.addEventListener('keydown', (e) => {
