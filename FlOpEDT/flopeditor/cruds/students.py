@@ -33,7 +33,7 @@ from django.http import JsonResponse
 from base.models import StructuralGroup, TrainingProgramme, GroupType, TransversalGroup, GenericGroup
 from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, \
     validate_student_values, student_groups_from_full_names
-from people.models import Student, User
+from people.models import Student, User, UserDepartmentSettings
 
 
 def read(department):
@@ -112,7 +112,6 @@ def create(entries, department):
                     "username déjà utilisé par quelqu'un·e d'autre."
                 ])
             else:
-                tutor = None
                 student = Student.objects.create(
                     username=entries['new_values'][i][0],
                     first_name=entries['new_values'][i][1],
@@ -120,6 +119,10 @@ def create(entries, department):
                     email=entries['new_values'][i][3])
                 gp_to_be_set = student_groups_from_full_names(entries['new_values'][i][4], department)
                 student.generic_groups.set(gp_to_be_set)
+                student.is_student = True
+                student.save()
+                UserDepartmentSettings(user=student, department=department).save()
+
     return entries
 
 
