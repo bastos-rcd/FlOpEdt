@@ -37,7 +37,8 @@ from TTapp.ilp_constraints.constraints.instructorConstraint import InstructorCon
 from TTapp.ilp_constraints.constraints.slotInstructorConstraint import SlotInstructorConstraint
 from TTapp.ilp_constraints.constraints.simulSlotGroupConstraint import SimulSlotGroupConstraint
 from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
-from django.utils.translation import gettext_lazy as _
+from TTapp.ilp_constraints.constraint import Constraint
+from django.utils.translation import gettext as _
 from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups, pre_analysis_considered_basic_groups
 from base.models import Course, UserPreference, Holiday
@@ -283,6 +284,7 @@ class AssignAllCourses(TTConstraint):
         considered_courses = set(c for bg in relevant_basic_groups
                                  for c in ttmodel.wdb.all_courses_for_basic_group[bg])
         if self.pre_assigned_only:
+            no_tutor_courses = set(c for c in considered_courses if c.tutor is None)
             considered_courses = set(c for c in considered_courses if c.tutor is not None)
         if self.modules.exists():
             considered_courses = set(c for c in considered_courses if c.module in self.modules.all())
@@ -305,6 +307,16 @@ class AssignAllCourses(TTConstraint):
                                                slot=sl, course=c))
                     assigned = ttmodel.add_floor(relevant_sum, 0, 1000)
                     ttmodel.add_to_generic_cost((1-assigned) * self.local_weight() * ponderation, week)
+        if self.pre_assigned_only:
+            possible_useless_assignations_sum = \
+                ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
+                            for c in no_tutor_courses
+                            for sl in ttmodel.wdb.compatible_slots[c]
+                            for i in ttmodel.wdb.possible_tutors[c])
+            ttmodel.add_constraint(possible_useless_assignations_sum,
+                                   '==',
+                                   0,
+                                   Constraint(constraint_type=ConstraintType.PRE_ASSIGNED_TUTORS_ONLY))
 
     def one_line_description(self):
         text = f"Assigne tous les cours "

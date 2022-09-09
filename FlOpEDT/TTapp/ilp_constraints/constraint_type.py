@@ -51,6 +51,7 @@ class ConstraintType(Enum):
     PAS_PLUS_1_COURS_PAR_CRENEAU = "Pas plus d'un cours par créneau"
     COURS_DOIT_ETRE_PLACE = "Le cours doit être placé"
     COURS_DOIT_AVOIR_PROFESSEUR = "Le cours doit avoir un professeur"
+    PRE_ASSIGNED_TUTORS_ONLY = "PRE_ASSIGNED_TUTORS_ONLY"
     PROFESSEUR_NE_PEUT_DONNER_2_COURS_EN_MEME_TEMPS = "Le professeur ne peut pas donner 2 cours en même temps"
     CORE_ROOMS = "Core rooms"
     SUPP_TUTOR = "Supp tutor"
