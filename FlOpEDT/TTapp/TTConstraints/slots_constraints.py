@@ -44,6 +44,7 @@ from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyCon
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxValueValidator
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
+from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 
 
 
@@ -471,7 +472,7 @@ class ConsiderPivots(TTConstraint):
 # Ex TTConstraints that have to be re-written.....
 
 
-class AvoidBothTimes(TTConstraint):
+class AvoidBothTimesSameDay(TTConstraint):
     """
     Avoid the use of two slots
     Idéalement, on pourrait paramétrer slot1, et slot2 à partir de slot1... Genre slot1
@@ -479,51 +480,55 @@ class AvoidBothTimes(TTConstraint):
     """
     time1 = models.PositiveSmallIntegerField()
     time2 = models.PositiveSmallIntegerField()
-    group = models.ForeignKey('base.StructuralGroup', null=True, on_delete=models.CASCADE)
-    tutor = models.ForeignKey('people.Tutor',
-                              null=True,
-                              default=None,
-                              on_delete=models.CASCADE)
+    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True)
 
     class Meta:
-        verbose_name = _('Avoid using both times')
+        verbose_name = _('Avoid using both times on same day')
         verbose_name_plural = verbose_name
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['group', 'tutor'])
+        attributes.extend(['groups', 'weekdays'])
         return attributes
 
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
-        fc = self.get_courses_queryset_by_attributes(ttmodel, week)
+        considered_groups = considered_basic_groups(self, ttmodel)
+        days = days_filter(ttmodel.wdb.days, week=week)
         slots1 = set([slot for slot in ttmodel.wdb.courses_slots
                       if slot.start_time <= self.time1 < slot.end_time])
         slots2 = set([slot for slot in ttmodel.wdb.courses_slots
                       if slot.start_time <= self.time2 < slot.end_time])
-        for c1 in fc:
-            for c2 in fc.exclude(id__lte=c1.id):
-                for sl1 in slots1:
-                    for sl2 in slots2:
-                        if self.weight is not None:
-                            conj_var = ttmodel.add_conjunct(
-                                ttmodel.TT[(sl1, c1)],
-                                ttmodel.TT[(sl2, c2)])
-                            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * conj_var, week=week)
-                        else:
-                            ttmodel.add_constraint(ttmodel.TT[(sl1, c1)]
-                                                   + ttmodel.TT[(sl2, c2)],
-                                                   '<=',
-                                                   1,
-                                                   Constraint(constraint_type=ConstraintType.AVOID_BOTH_TIME,
-                                                              instructors=self.tutor, groups=self.group))
+        if self.weekdays:
+            days = days_filter(days, day_in=self.weekdays)
+        for day in days:
+            day_slots1 = slots_filter(slots1, day=day)
+            day_slots2 = slots_filter(slots2, day=day)
+            for group in considered_groups:
+                considered_courses = self.get_courses_queryset_by_parameters(ttmodel, week, group=group)
+                sum1 = ttmodel.sum(ttmodel.TT[sl,c]
+                                   for c in considered_courses
+                                   for sl in day_slots1 & ttmodel.wdb.compatible_slots[c])
+                sum2 = ttmodel.sum(ttmodel.TT[sl,c]
+                                   for c in considered_courses
+                                   for sl in day_slots2 & ttmodel.wdb.compatible_slots[c])
+                BS1 = ttmodel.add_floor(sum1, 1, 100000)
+                BS2 = ttmodel.add_floor(sum2, 1, 100000)
+                both = ttmodel.add_conjunct(BS1, BS2)
+                if self.weight is None:
+                    ttmodel.add_constraint(both,
+                                           '==',
+                                           0,
+                                           Constraint(constraint_type=ConstraintType.AVOID_BOTH_TIME_SAME_DAY,
+                                                      groups=group, days=day, weeks=week))
+                else:
+                    ttmodel.add_to_group_cost(group, self.local_weight() * ponderation * both, week=week)
+
 
     def one_line_description(self):
         text = f"Pas à la fois à {french_format(self.time1)} et à {french_format(self.time2)}"
-        if self.tutor:
-            text += ' pour ' + str(self.tutor)
-        if self.group:
-            text += ' avec le groupe ' + str(self.group)
         if self.train_progs.exists():
             text += ' des promos ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
         else:

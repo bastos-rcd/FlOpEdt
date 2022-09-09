@@ -143,6 +143,7 @@ class ConstraintType(Enum):
     Undesired_slots_limit = "Undesired_slots_limit"
     LimitSimultaneousCoursesNumber = "LimitSimultaneousCoursesNumber"
     MinimizeBusyDays = "MinimizeBusyDays"
+    AVOID_BOTH_TIME_SAME_DAY = "AVOID_BOTH_TIME_SAME_DAY"
 
     # From minhalfdays
     MIN_HALF_DAYS_LIMIT = "Min Half Days limit"
