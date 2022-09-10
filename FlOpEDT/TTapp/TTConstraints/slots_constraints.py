@@ -490,7 +490,7 @@ class AvoidBothTimesSameDay(TTConstraint):
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['groups', 'weekdays'])
+        attributes.extend(['groups'])
         return attributes
 
 
