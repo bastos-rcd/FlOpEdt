@@ -2203,6 +2203,7 @@ function select_entry_cm() {
   room_tutor_change.cm_settings = entry_cm_settings;
   var fake_id = new Date();
   fake_id = fake_id.getMilliseconds() + "-" + pending.wanted_course.id_course;
+
   room_tutor_change.proposal = [
     {
       fid: fake_id,
@@ -2211,12 +2212,18 @@ function select_entry_cm() {
     {
       fid: fake_id,
       content: "Salle"
-    },
-    {
+    }] ;
+  if (department_settings.mode.visio) {
+    room_tutor_change.proposal.push({
       fid: fake_id,
       content: "Visio"
-    },
-  ];
+    }) ;
+  }
+  room_tutor_change.proposal.push({
+    fid: fake_id,
+    content: "Autre"
+  }) ;
+
   update_change_cm_nlin() ;
 }
 
@@ -2237,9 +2244,13 @@ function def_cm_change() {
       // don't consider other constraints than tutor's
       pending.pass.room = true;
       select_tutor_module_change();
-    } else {
+    } else if (d.content == 'Visio') {
       pending.pass.tutor = true ;
       select_pref_links_change();
+    } else {
+      pending.pass.tutor = true ;
+      pending.pass.room = true ;
+      select_course_attributes() ;
     }
     go_cm_room_tutor_change();
   };
@@ -2310,6 +2321,24 @@ function def_cm_change() {
     go_cm_room_tutor_change();
   };
 
+  course_cm_settings.click = function (d) {
+    context_menu.room_tutor_hold = true;
+    let c = pending.wanted_course ;
+    if (d.content == "Non noté") {
+      c.graded = false ;
+      check_pending_course() ;
+    } else if (d.content == "Noté") {
+      c.graded = true ;
+      check_pending_course() ;
+    } else if (d.content == "Type") {
+      
+    }
+    room_tutor_change.proposal = [] ;
+    update_change_cm_nlin() ;
+
+    go_cm_room_tutor_change() ;
+    //go_courses();
+  }
 }
 
 

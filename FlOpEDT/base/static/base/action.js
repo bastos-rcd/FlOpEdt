@@ -593,6 +593,36 @@ function go_select_tutors() {
 }
 
 
+/*--------------------------
+  ------- COURSES ------
+  --------------------------*/
+function select_course_attributes () {
+  room_tutor_change.cm_settings = course_cm_settings;
+  room_tutor_change.proposal = [] ;
+
+  let fake_id = new Date();
+  fake_id = fake_id.getMilliseconds() + "-";
+
+  let c = pending.wanted_course ;
+  let grade_it = {fid: fake_id, content: "Noté"} ;
+  if (c.graded) {
+    grade_it.content = "Non noté" ;
+  }
+
+  room_tutor_change.proposal.push(grade_it) ;
+
+  /* TODO change type of course
+  room_tutor_change.proposal.push({
+    fid: fake_id,
+    content: "Type"
+  }) ;
+  */
+
+  update_change_cm_nlin() ;
+
+}
+
+
 /*----------------------
   ------- GROUPS -------
   ----------------------*/
@@ -939,6 +969,7 @@ function compute_changes(changes, conc_tutors, gps) {
         id: id,
         day: cur_course.day,
         start: cur_course.start,
+        graded: cur_course.graded,
         room: cur_course.room,
         tutor: null, 
         id_visio: cur_course.id_visio
@@ -1968,6 +1999,7 @@ function add_bouge(pending) {
       id: pending.init_course.id_course,
       day: pending.init_course.day,
       start: pending.init_course.start,
+      graded: pending.init_course.graded,
       room: pending.init_course.room,
       tutors: pending.init_course.tutors.slice(),
       id_visio: pending.init_course.id_visio
@@ -1976,6 +2008,7 @@ function add_bouge(pending) {
       if (c.id_course == pending.wanted_course.id_course) {
         c.day = pending.wanted_course.day ;
         c.start = pending.wanted_course.start ;
+        c.graded = pending.wanted_course.graded ;
         c.room = pending.wanted_course.room ;
         c.tutors = pending.wanted_course.tutors.slice() ;
         id_visio = pending.wanted_course.id_visio ;
@@ -1988,6 +2021,7 @@ function add_bouge(pending) {
 function has_changed(cb, c) {
   let except_tutors = cb.day != c.day
     || cb.start != c.start
+    || cb.graded != c.graded
     || cb.room != c.room
     || cb.id_visio != c.id_visio;
   if (except_tutors) {

@@ -1200,10 +1200,10 @@ function go_courses(quick) {
      incg
        .append("text")
        .attr("st", "p")
-       .attr("font-weight", cours_txt_weight)
        .attr("font-size", cours_txt_size)
        .merge(cg.select("[st=p]"))
        .transition(t)
+       .attr("font-weight", cours_txt_weight)
        .attr("fill", cours_txt_fill)
        .attr("x", cours_txt_x)
        .attr("y", cours_txt_mid_y)
@@ -1215,10 +1215,10 @@ function go_courses(quick) {
      incg
        .append("text")
        .attr("st", "p")
-       .attr("font-weight", cours_txt_weight)
-       .attr("font-size", cours_txt_size)
        .merge(cg.select("[st=p]"))
        .transition(t)
+       .attr("font-size", cours_txt_size)
+       .attr("font-weight", cours_txt_weight)
        .attr("fill", cours_txt_fill)
        .attr("x", cours_txt_x)
        .attr("y", cours_txt_mid_y)
@@ -1235,11 +1235,11 @@ function go_courses(quick) {
       .attr("x", cours_txt_x)
       .attr("y", cours_txt_top_y)
       .text(cours_txt_top_txt)
-      .attr("font-weight", cours_txt_weight)
-      .attr("font-size", cours_txt_size)
       .merge(cg.select("[st=m]"))
       .attr("fill", cours_txt_fill)
       .transition(t)
+      .attr("font-size", cours_txt_size)
+      .attr("font-weight", cours_txt_weight)
       .attr("x", cours_txt_x)
       .attr("y", cours_txt_top_y);
 

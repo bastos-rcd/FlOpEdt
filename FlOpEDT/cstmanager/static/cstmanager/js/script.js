@@ -46,6 +46,7 @@ let htmlElements = {
     selectedConstraintsEditWeightSlider: document.getElementById('selected-constraints-edit-weight-slider'),
     selectedConstraintsEditWeightButton: document.getElementById('selected-constraints-edit-weight'),
     selectedConstraintsDeleteButton: document.getElementById('selected-constraints-delete'),
+    messagesBanner: document.getElementById('messages'),
 };
 
 htmlElements.filterSearch.oninput = () => {
@@ -180,6 +181,9 @@ let filter = {
         }
 
         filtered_constraint_list = filtered_constraint_list.filter(pageid => {
+            if (!(pageid in constraints)) {
+                return false;
+            }
             let param = constraints[pageid].parameters.find(parameter => parameter.name === 'weeks');
             return (param.id_list.length === 0 || param.id_list.includes('' + week_id));
         });
@@ -297,19 +301,31 @@ let changeEvents = {
             return;
         }
 
+        let success = true;
+
+        let failed = (constraint, reason) => {
+            let message = `Constraint ${constraint.pageid} could not be saved for the following reasons:`;
+            Object.keys(reason).forEach(key => {
+                message += `\n${key}: ${reason[key]}`;
+            });
+            console.error(message);
+            alertMessage.error(message);
+            success = false;
+        };
+
         // Send new constraints
         await Promise.all(toAdd.map(async (constraint) => {
             constraint.department = department;
-            await postData(urlConstraints, constraint).then(r => console.log(r)).catch(reason => {
-                console.error(reason);
+            await postData(urlConstraints, constraint).then(r => console.log(r), reason => {
+                failed(constraint, reason);
             });
         }));
 
         // Send existing constraints updates
         await Promise.all(toEdit.map(async (constraint) => {
             constraint.department = department;
-            await putData(urlConstraints, constraint).then(r => console.log(r)).catch(reason => {
-                console.error(reason);
+            await putData(urlConstraints, constraint).then(r => console.log(r), reason => {
+                failed(constraint, reason);
             });
         }));
 
@@ -318,16 +334,19 @@ let changeEvents = {
             await deleteData(urlDetailConstraint, {
                 'name': constraint.name,
                 'id': constraint.id
-            }).then(r => console.log(r)).catch(reason => {
-                console.error(reason);
+            }).then(r => console.log(r), reason => {
+                failed(constraint, reason);
             });
         }));
 
-        // Reset changes as everything has been accepted
-        resetActionChanges();
-
-        // Reload the constraints (new constraints can have different IDs when inserted)
-        fetchers.fetchConstraints();
+        if (success) {
+            // Reset changes as everything has been accepted
+            resetActionChanges();
+            // Reload the constraints (new constraints can have different IDs when inserted)
+            fetchers.fetchConstraints();
+            alertMessage.clearAll();
+            alertMessage.success(gettext('All changes have been saved.'));
+        }
     },
 }
 
@@ -850,10 +869,12 @@ let updateEditConstraintWeightDisplay = (labelID, value) => {
 // data to the original state
 let discardChanges = (e) => {
     constraints = copyFromOriginalConstraints();
+    resetActionChanges();
     constraint_list = Object.keys(constraints);
     selected_constraints = [];
     lastSelectedConstraint = null;
     filter.reapply();
+    alertMessage.clearAll();
 }
 document.getElementById('discard-changes').addEventListener('click', discardChanges);
 
@@ -1998,6 +2019,37 @@ fetchers.fetchTutorsIDs(null);
 fetchers.fetchWeeks();
 fetchers.fetchConstraintTypes();
 fetchers.fetchConstraints(null);
+
+let alertMessage = {
+    _builder: (type, message) => {
+        let container = divBuilder({
+            'class': `alert alert-${type} alert-dismissible fade show`,
+            'role': 'alert',
+        });
+        let message_container = elementBuilder('h6');
+        message_container.innerText = message;
+        let close_button = elementBuilder('button', {
+            'type': 'button',
+            'class': 'btn-close',
+            'data-bs-dismiss': 'alert',
+            'aria-label': 'Close',
+        });
+        container.append(message_container, close_button);
+        return container;
+    },
+    info: (message) => {
+        htmlElements.messagesBanner.append(alertMessage._builder('primary', message));
+    },
+    error: (message) => {
+        htmlElements.messagesBanner.append(alertMessage._builder('danger', message));
+    },
+    success: (message) => {
+        htmlElements.messagesBanner.append(alertMessage._builder('success', message));
+    },
+    clearAll: () => {
+        htmlElements.messagesBanner.innerHTML = '';
+    },
+};
 
 let check_list_event = (e) => {
     let node_contains = (node, content) => {

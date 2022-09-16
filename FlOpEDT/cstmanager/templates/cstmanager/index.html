@@ -72,7 +72,8 @@
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" role="switch" id="show-inactive-constraints"
                                onchange="onChangeInactiveConstraintsFilter()" checked>
-                        <label class="form-check-label" for="show-inactive-constraints">{% trans "Show Disabled" %}</label>
+                        <label class="form-check-label"
+                               for="show-inactive-constraints">{% trans "Show Disabled" %}</label>
                     </div>
                 </div>
                 <div class="mb-3 text-center">
@@ -111,12 +112,12 @@
                             </div>
                             <!-- Title -->
                             <div class="form-floating mb-3">
-                                <input type="text" class="form-control" id="constraint-edit-title">
+                                <input type="text" class="form-control" id="constraint-edit-title" maxlength="30">
                                 <label for="constraint-edit-title">{% trans "Title" %}</label>
                             </div>
                             <!-- Comment -->
                             <div class="form-floating mb-3">
-                                <input type="text" class="form-control" id="constraint-edit-comment"></input>
+                                <input type="text" class="form-control" id="constraint-edit-comment" maxlength="100">
                                 <label for="constraint-edit-comment">{% trans "Comment" %}</label>
                             </div>
                             <!-- Parameters -->
@@ -157,6 +158,8 @@
                 <!-- Weeks banner -->
                 <div id="svg" class="text-center py-2">
                 </div>
+                <!-- Message banner -->
+                <div id="messages"></div>
                 <div id="constraints-all" class="row container-fluid">
                     <div class="row">
                         <div id="constraints-enabled" class="col-9 border-end border-dark"></div>
@@ -183,7 +186,8 @@
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-auto">
-                            <div id="selected-constraints-edit-weight-value" class="text-center">{% trans "Weight"%}</div>
+                            <div id="selected-constraints-edit-weight-value"
+                                 class="text-center">{% trans "Weight" %}</div>
 
                         </div>
                     </div>

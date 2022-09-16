@@ -90,7 +90,11 @@ async function postData(url = '', data = {}) {
         referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
         body: JSON.stringify(data) // body data type must match "Content-Type" header
     });
-    return response.json(); // parses JSON response into native JavaScript objects
+    let body = await response.json() // parses JSON response into native JavaScript objects
+    if (!(response.ok)) {
+        return Promise.reject(body)
+    }
+    return body;
 }
 
 async function deleteData(url = '', data = {}) {
@@ -105,7 +109,11 @@ async function deleteData(url = '', data = {}) {
         redirect: 'follow',
         referrerPolicy: 'no-referrer',
     });
-    return response.json();
+    let body = await response.json() // parses JSON response into native JavaScript objects
+    if (!(response.ok)) {
+        return Promise.reject(body)
+    }
+    return body;
 }
 
 async function putData(url = '', data = {}) {
@@ -122,5 +130,9 @@ async function putData(url = '', data = {}) {
         referrerPolicy: 'no-referrer',
         body: JSON.stringify(data),
     });
-    return response.json();
+    let body = await response.json() // parses JSON response into native JavaScript objects
+    if (!(response.ok)) {
+        return Promise.reject(body)
+    }
+    return body;
 }

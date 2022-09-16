@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-06 10:27+0000\n"
+"POT-Creation-Date: 2022-09-13 09:27+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -341,83 +341,88 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:367
+#: cstmanager/static/cstmanager/js/script.js:348
+msgid "All changes have been saved."
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:439
 msgid "All groups"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:400
-#: cstmanager/static/cstmanager/js/script.js:816
-#: cstmanager/static/cstmanager/js/script.js:1852
-#: cstmanager/static/cstmanager/js/script.js:1856
+#: cstmanager/static/cstmanager/js/script.js:472
+#: cstmanager/static/cstmanager/js/script.js:890
+#: cstmanager/static/cstmanager/js/script.js:1999
+#: cstmanager/static/cstmanager/js/script.js:2003
 msgid "All tutors"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:684
-#: cstmanager/static/cstmanager/js/script.js:701
-#: cstmanager/static/cstmanager/js/script.js:789
+#: cstmanager/static/cstmanager/js/script.js:756
+#: cstmanager/static/cstmanager/js/script.js:773
+#: cstmanager/static/cstmanager/js/script.js:861
 msgid "Strong constraint"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:701
-#: cstmanager/static/cstmanager/js/script.js:791
+#: cstmanager/static/cstmanager/js/script.js:773
+#: cstmanager/static/cstmanager/js/script.js:863
 msgid "Weight : "
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1211
-#: cstmanager/static/cstmanager/js/script.js:1407
+#: cstmanager/static/cstmanager/js/script.js:1346
+#: cstmanager/static/cstmanager/js/script.js:1542
 msgid "Select all"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1220
-#: cstmanager/static/cstmanager/js/script.js:1422
+#: cstmanager/static/cstmanager/js/script.js:1355
+#: cstmanager/static/cstmanager/js/script.js:1556
 msgid "Remove all"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1229
+#: cstmanager/static/cstmanager/js/script.js:1364
+#: cstmanager/static/cstmanager/js/script.js:1566
 msgid "Cancel"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1318
+#: cstmanager/static/cstmanager/js/script.js:1453
 msgid "Required"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1379
-#: cstmanager/static/cstmanager/js/script.js:1851
+#: cstmanager/static/cstmanager/js/script.js:1514
+#: cstmanager/static/cstmanager/js/script.js:1998
 msgid "Tutor"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1506
-#: cstmanager/static/cstmanager/js/script.js:1517
+#: cstmanager/static/cstmanager/js/script.js:1653
+#: cstmanager/static/cstmanager/js/script.js:1664
 msgid "Strong constraints"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1510
-#: cstmanager/static/cstmanager/js/script.js:1519
+#: cstmanager/static/cstmanager/js/script.js:1657
+#: cstmanager/static/cstmanager/js/script.js:1666
 msgid "Preferences"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1528
-#: cstmanager/static/cstmanager/js/script.js:1534
+#: cstmanager/static/cstmanager/js/script.js:1675
+#: cstmanager/static/cstmanager/js/script.js:1681
 msgid "All constraints"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1727
+#: cstmanager/static/cstmanager/js/script.js:1874
 msgid "Edit"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1728
+#: cstmanager/static/cstmanager/js/script.js:1875
 msgid "Delete"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1729
+#: cstmanager/static/cstmanager/js/script.js:1876
 msgid "Duplicate"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1771
+#: cstmanager/static/cstmanager/js/script.js:1918
 msgid "Active"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1771
+#: cstmanager/static/cstmanager/js/script.js:1918
 msgid "Inactive"
 msgstr ""
 

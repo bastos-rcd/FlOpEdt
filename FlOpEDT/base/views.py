@@ -62,7 +62,7 @@ from base.models import Course, UserPreference, ScheduledCourse, EdtVersion, \
     CourseModification, Room, RoomType, RoomSort, \
     RoomPreference, Department, CoursePreference, \
     TrainingProgramme, CourseType, Module, StructuralGroup, EnrichedLink, \
-    ScheduledCourseAdditional, GroupPreferredLinks, Week, Theme
+    ScheduledCourseAdditional, GroupPreferredLinks, Week, Theme, CourseAdditional
 import base.queries as queries
 from base.weeks import *
 
@@ -935,6 +935,17 @@ def clean_change(week, old_version, change, work_copy=0, initiator=None, apply=F
             ret['course'].tutor = tutor
     except ObjectDoesNotExist:
         raise Exception(f"Problème : prof {change['tutor']} inconnu")
+
+    # Grade
+    try:
+        additional = CourseAdditional.objects.get(course=course)
+    except CourseAdditional.DoesNotExist:
+        additional = None
+        if change['graded']:
+            additional = CourseAdditional(course=course)
+    if additional is not None:
+        additional.graded = change['graded']
+        additional.save()
 
     if apply:
         ret['course'].save()

@@ -987,6 +987,18 @@ var salarie_cm_settings = {
 //       1: tous les salaries
 var salarie_cm_level = 0;
 
+var course_cm_settings = {
+  type: 'course',
+  w: 100,
+  h: 18,
+  fs: 10,
+  mx: 5,
+  my: 3,
+  ncol: 1,
+  nlin: 0,
+  txt_intro: {'default':gettext('What to change ?')}
+};
+
 var room_tutor_change = {
   course: [],    // 1-cell array for d3.js
   proposal: [],
