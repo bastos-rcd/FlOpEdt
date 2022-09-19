@@ -225,7 +225,7 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name = _('Schedule once all considered courses')
         verbose_name_plural = verbose_name
                                 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=100):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(c for bg in relevant_basic_groups
                                  for c in ttmodel.wdb.all_courses_for_basic_group[bg])
@@ -244,7 +244,7 @@ class ScheduleAllCourses(TTConstraint):
                                        CourseConstraint(c))
             else:
                 not_scheduled = ttmodel.add_floor(relevant_sum, 1, max_slots_nb)
-                ttmodel.add_to_generic_cost((1-not_scheduled) * self.local_weight() * ponderation, week)
+                ttmodel.add_to_generic_cost((ttmodel.one_var - not_scheduled) * self.local_weight() * ponderation, week)
 
     def one_line_description(self):
         text = f"Planifie tous les cours "
