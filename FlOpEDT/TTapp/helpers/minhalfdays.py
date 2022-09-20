@@ -74,19 +74,15 @@ class MinHalfDaysHelperBase():
 
     def add_constraint(self, expression, courses):
         limit = self.minimal_half_days_number(courses)
-        # TODO : change 2*5 in number of possible half_days
-        max_diff = min(len(courses), 2 * len(self.ttmodel.wdb.days)) - limit
-        if max_diff < 1:
-            return
-        excess_of_half_days = {i : self.ttmodel.add_floor(expression, limit + i, 100) for i in range(1, max_diff+1)}
+        half_days = {i: self.ttmodel.add_floor(expression, i, 100)
+                     for i in range(2, 2 * len(self.ttmodel.wdb.days) + 1)}
         if self.constraint.weight is None:
-            self.ttmodel.add_constraint(excess_of_half_days[1], '==', 0,
+            self.ttmodel.add_constraint(half_days[limit + 1], '==', 0,
                                         Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_LIMIT))
-        else:
-            cost = self.ttmodel.lin_expr()
-            for i in excess_of_half_days:
-                cost += self.constraint.local_weight() * self.ponderation * excess_of_half_days[i]
-            self.add_cost(cost)
+        cost = self.ttmodel.lin_expr()
+        for i in half_days:
+            cost += self.constraint.local_weight() * self.ponderation * half_days[i]
+        self.add_cost(cost)
 
     def enrich_model(self, **args):
         expression, courses = self.build_variables()

@@ -56,7 +56,7 @@ class MinTutorsHalfDays(TTConstraint):
         verbose_name = _('Minimize busy half days for tutors')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=5):
 
         helper = MinHalfDaysHelperTutor(ttmodel, self, week, ponderation)
         for tutor in considered_tutors(self, ttmodel):

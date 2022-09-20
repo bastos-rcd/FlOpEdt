@@ -279,6 +279,17 @@ class AssignAllCourses(TTConstraint):
         verbose_name = _('Each course is assigned to one tutor (max)')
         verbose_name_plural = verbose_name
 
+    def no_tutor_courses(self, courses):
+        result_courses = courses
+        relevant_basic_groups = considered_basic_groups(self)
+        result_courses = set(c for bg in relevant_basic_groups
+                             for c in result_courses if bg.and_ancestors() & set(c.groups.all()))
+        if self.modules.exists():
+            result_courses = set(c for c in result_courses if c.module in self.modules.all())
+        if self.course_types.exists():
+            result_courses = set(c for c in result_courses if c.type in self.course_types.all())
+        return result_courses
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=100):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(c for bg in relevant_basic_groups

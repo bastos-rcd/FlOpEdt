@@ -56,22 +56,29 @@ def pre_analysis_considered_basic_groups(group_ttconstraint):
 '''
 
 
-
-def considered_basic_groups(group_ttconstraint, ttmodel):
-    if group_ttconstraint.train_progs.exists():
-        ttmodel_basic_groups = set(ttmodel.wdb.basic_groups.filter(train_prog__in=group_ttconstraint.train_progs.all()))
+def considered_basic_groups(group_ttconstraint, ttmodel=None):
+    if ttmodel is None:
+        basic_groups = StructuralGroup.objects.filter(train_prog__department=group_ttconstraint.department,
+                                                              basic=True)
     else:
-        ttmodel_basic_groups = set(ttmodel.wdb.basic_groups)
+        basic_groups = ttmodel.wdb.basic_groups
+    if group_ttconstraint.train_progs.exists():
+        basic_groups = set(basic_groups.filter(train_prog__in=group_ttconstraint.train_progs.all()))
+    else:
+        basic_groups = set(basic_groups)
     if group_ttconstraint.groups.exists():
-        basic_groups = set()
+        constraint_basic_groups = set()
         for g in group_ttconstraint.groups.all():
-            basic_groups |= g.basic_groups()
-        ttmodel_basic_groups &= basic_groups
-    basic_groups_to_consider = set()
-    for g in ttmodel_basic_groups:
-        if ttmodel.wdb.courses_for_basic_group[g]:
-            basic_groups_to_consider.add(g)
-    return basic_groups_to_consider
+            constraint_basic_groups |= g.basic_groups()
+        basic_groups &= constraint_basic_groups
+    if ttmodel is None:
+        return basic_groups
+    else:
+        ttmodel_basic_groups_to_consider = set()
+        for g in basic_groups:
+            if ttmodel.wdb.courses_for_basic_group[g]:
+                ttmodel_basic_groups_to_consider.add(g)
+        return ttmodel_basic_groups_to_consider
 
 
 class MinGroupsHalfDays(TTConstraint):
