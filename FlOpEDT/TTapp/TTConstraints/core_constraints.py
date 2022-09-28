@@ -38,7 +38,7 @@ from TTapp.ilp_constraints.constraints.slotInstructorConstraint import SlotInstr
 from TTapp.ilp_constraints.constraints.simulSlotGroupConstraint import SimulSlotGroupConstraint
 from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
 from TTapp.ilp_constraints.constraint import Constraint
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups, pre_analysis_considered_basic_groups
 from base.models import Course, UserPreference, Holiday

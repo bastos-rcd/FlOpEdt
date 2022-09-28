@@ -77,8 +77,9 @@ class MinHalfDaysHelperBase():
         half_days = {i: self.ttmodel.add_floor(expression, i, 100)
                      for i in range(2, 2 * len(self.ttmodel.wdb.days) + 1)}
         if self.constraint.weight is None:
-            self.ttmodel.add_constraint(half_days[limit + 1], '==', 0,
-                                        Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_LIMIT))
+            if limit + 1 in half_days:
+                self.ttmodel.add_constraint(half_days[limit + 1], '==', 0,
+                                            Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_LIMIT))
         cost = self.ttmodel.lin_expr()
         for i in half_days:
             cost += self.constraint.local_weight() * self.ponderation * half_days[i]

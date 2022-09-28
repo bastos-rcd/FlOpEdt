@@ -78,7 +78,7 @@ class TTMinNonPreferedSlotsSerializer(serializers.ModelSerializer):
 
 class TTAvoidBothTimesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ttm.AvoidBothTimes
+        model = ttm.AvoidBothTimesSameDay
         fields = '__all__'
 
 

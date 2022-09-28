@@ -136,11 +136,11 @@ class TTMinNonPreferedSlotsViewSet(viewsets.ModelViewSet):
 
 class TTAvoidBothTimesViewSet(viewsets.ModelViewSet):
     
-    ViewSet to see all the AvoidBothTimes.
+    ViewSet to see all the AvoidBothTimesSameDay.
 
     Can be filtered as wanted with every field of a AvoidBothTime object.
     
-    queryset = ttm.AvoidBothTimes.objects.all()
+    queryset = ttm.AvoidBothTimesSameDay.objects.all()
     serializer_class = serializers.TTAvoidBothTimesSerializer
     permission_classes = [IsAdminOrReadOnly]
 

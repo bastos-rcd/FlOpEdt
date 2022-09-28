@@ -45,7 +45,7 @@ from TTapp.models import \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
     ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber, \
-    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts
+    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts,AvoidBothTimesSameDay
 
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
@@ -204,19 +204,16 @@ class MinGroupsHalfDaysAdmin(DepartmentModelAdmin):
         if queryset and db_field.name == 'groups':
             return queryset.filter(basic=True).distinct()
 
-        return queryset                          
-
+        return queryset
 
 
 class AvoidBothTimesAdmin(DepartmentModelAdmin):
-    list_display = ('tutor', 'group', 'time1', 'time2', 'comment',
+    list_display = ('time1', 'time2', 'comment',
                     'weight',
                     'is_active')
     ordering = ()
     list_filter = (('weeks__nb', DropdownFilterAll),
                    ('train_progs', DropdownFilterRel),
-                   ('tutor', DropdownFilterRel),
-                   ('group', DropdownFilterRel),
                    ('time1', DropdownFilterRel),
                    ('time2', DropdownFilterRel),
                    )
@@ -380,6 +377,6 @@ admin.site.register(LimitSimultaneousCoursesNumber, BasicConstraintAdmin)
 admin.site.register(LocateAllCourses, RoomConstraintAdmin)
 admin.site.register(LimitTutorMoves, RoomConstraintAdmin)
 admin.site.register(LimitGroupMoves, RoomConstraintAdmin)
-admin.site.register(ConsiderRoomSorts, RoomConstraintAdmin)
+admin.site.register(AvoidBothTimesSameDay, AvoidBothTimesAdmin)
 
 
