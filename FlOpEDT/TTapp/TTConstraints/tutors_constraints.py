@@ -113,7 +113,7 @@ class MinNonPreferedTutorsSlot(TTConstraint):
                     slot_vars_sum = ttmodel.sum(ttmodel.TTinstructors[(sl2, c, tutor)]
                                                 for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
                                                                         simultaneous_to=sl))
-                    cost = (float(self.local_weight()) / max_weight) \
+                    cost = self.local_weight() \
                         * ponderation * slot_vars_sum \
                         * ttmodel.unp_slot_cost[tutor][sl]
                     ttmodel.add_to_inst_cost(tutor, cost, week=week)
