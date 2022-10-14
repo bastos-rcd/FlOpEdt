@@ -1,4 +1,5 @@
 #Ignorer tous les fichiers pyc
+env/
 *.pyc
 *~
 *.bak
