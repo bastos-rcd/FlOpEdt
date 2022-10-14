@@ -1,5 +1,5 @@
 matplotlib
-Django~=3.0.5
+Django==3.2.*
 django_redis~=4.9.0
 django-import-export~=2.0.2
 django-extensions~=2.2.9
@@ -9,7 +9,6 @@ psycopg2-binary~=2.8.5
 requests~=2.23.0
 numpy
 pyclustering
-asgiref~=3.2.7 # comes with django
 daphne~=2.4.1
 channels-redis~=2.4.2
 channels~=2.4.0
@@ -32,4 +31,3 @@ drf-yasg
 django-cors-headers
 pyprof2calltree
 django-crontab
-
