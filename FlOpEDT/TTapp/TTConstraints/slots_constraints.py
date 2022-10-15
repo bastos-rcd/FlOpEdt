@@ -140,7 +140,7 @@ class LimitedStartTimeChoices(TTConstraint):
                                     default=None,
                                     on_delete=models.CASCADE)
     possible_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
+    possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)  # FIXME : time with TimeField or DurationField
 
     class Meta:
         verbose_name = _('Limited start time choices')
@@ -478,8 +478,8 @@ class AvoidBothTimesSameDay(TTConstraint):
     Idéalement, on pourrait paramétrer slot1, et slot2 à partir de slot1... Genre slot1
     c'est 8h n'importe quel jour, et slot2 14h le même jour...
     """
-    time1 = models.PositiveSmallIntegerField()
-    time2 = models.PositiveSmallIntegerField()
+    time1 = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    time2 = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
 
@@ -543,8 +543,8 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
     """
 
     tutors = models.ManyToManyField('people.Tutor', blank=True, verbose_name=_('Tutors'))
-    slot_start_time = models.PositiveSmallIntegerField()
-    slot_end_time = models.PositiveSmallIntegerField()
+    slot_start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    slot_end_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     max_number = models.PositiveSmallIntegerField(validators=[MaxValueValidator(7)])
 
     class Meta:

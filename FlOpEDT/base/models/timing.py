@@ -96,13 +96,13 @@ class Week(models.Model):
 
 class TimeGeneralSettings(models.Model):
     department = models.OneToOneField('base.Department', on_delete=models.CASCADE)
-    day_start_time = models.PositiveSmallIntegerField()
-    day_finish_time = models.PositiveSmallIntegerField()
-    lunch_break_start_time = models.PositiveSmallIntegerField()
-    lunch_break_finish_time = models.PositiveSmallIntegerField()
+    day_start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    day_finish_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    lunch_break_start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    lunch_break_finish_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     days = ArrayField(models.CharField(max_length=2,
                                        choices=DAY_CHOICES))
-    default_preference_duration = models.PositiveSmallIntegerField(default=90)
+    default_preference_duration = models.PositiveSmallIntegerField(default=90)  # FIXME : time with TimeField or DurationField
 
     def __str__(self):
         return f"Dept {self.department.abbrev}: " + \

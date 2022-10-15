@@ -17,8 +17,8 @@ class UserPreference(Preference):
     week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     day = models.CharField(
         max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    start_time = models.PositiveSmallIntegerField()
-    duration = models.PositiveSmallIntegerField()
+    start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    duration = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     value = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(8)],
         default=8)
@@ -89,8 +89,8 @@ class CoursePreference(Preference):
     week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     day = models.CharField(
         max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    start_time = models.PositiveSmallIntegerField()
-    duration = models.PositiveSmallIntegerField()
+    start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    duration = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     value = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(8)],
         default=8)
@@ -105,8 +105,8 @@ class RoomPreference(models.Model):
     room = models.ForeignKey('Room', on_delete=models.CASCADE, default=None, null=True)
     week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
     day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    start_time = models.PositiveSmallIntegerField()
-    duration = models.PositiveSmallIntegerField()
+    start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    duration = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     value = models.SmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(8)], default=8)
 
     def __str__(self):

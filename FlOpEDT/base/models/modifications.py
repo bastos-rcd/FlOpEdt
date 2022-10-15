@@ -26,7 +26,7 @@ class CourseModification(models.Model):
         'Room', blank=True, null=True, on_delete=models.CASCADE)
     day_old = models.CharField(
         max_length=2, choices=Day.CHOICES, default=None, null=True)
-    start_time_old = models.PositiveSmallIntegerField(default=None, null=True)
+    start_time_old = models.PositiveSmallIntegerField(default=None, null=True)  # FIXME : time with TimeField or DurationField
     tutor_old = models.ForeignKey('people.Tutor',
                                   related_name='impacted_by_course_modif',
                                   null=True,

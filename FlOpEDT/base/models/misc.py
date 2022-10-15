@@ -33,7 +33,7 @@ class CourseStartTimeConstraint(models.Model):
     course_type = models.ForeignKey(
         'CourseType', null=True, default=None, on_delete=models.CASCADE)
     allowed_start_times = ArrayField(
-        models.PositiveSmallIntegerField(), blank=True)
+        models.PositiveSmallIntegerField(), blank=True)  # FIXME : time with TimeField or DurationField
 
 
 class Regen(models.Model):

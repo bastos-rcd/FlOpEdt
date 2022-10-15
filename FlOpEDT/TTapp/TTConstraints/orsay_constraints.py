@@ -48,11 +48,11 @@ class GroupsLunchBreak(TTConstraint):
     Ensures time for lunch in a given interval for given groups (all if groups is Null)
     """
 
-    start_time = models.PositiveSmallIntegerField()
-    end_time = models.PositiveSmallIntegerField()
+    start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    end_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     # ArrayField unusable with django-import-export
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    lunch_length = models.PositiveSmallIntegerField()
+    lunch_length = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='lunch_breaks_constraints')
 
     class Meta:
@@ -125,10 +125,10 @@ class TutorsLunchBreak(TTConstraint):
     """
     Ensures time for lunch in a given interval for given groups (all if groups is Null)
     """
-    start_time = models.PositiveSmallIntegerField()
-    end_time = models.PositiveSmallIntegerField()
+    start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    end_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    lunch_length = models.PositiveSmallIntegerField()
+    lunch_length = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints')
 
     class Meta:
@@ -230,7 +230,7 @@ class BreakAroundCourseType(TTConstraint):
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='amphi_break_constraint')
     course_type = models.ForeignKey('base.CourseType', related_name='amphi_break_constraint', on_delete=models.CASCADE)
-    min_break_length = models.PositiveSmallIntegerField(default=15)
+    min_break_length = models.PositiveSmallIntegerField(default=15)  # FIXME : time with TimeField or DurationField
 
     class Meta:
         verbose_name = _('A break around some type courses')

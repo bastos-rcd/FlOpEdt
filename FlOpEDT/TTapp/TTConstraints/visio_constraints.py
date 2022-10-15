@@ -281,7 +281,7 @@ class Curfew(TTConstraint):
         Defines a curfew (after which only Visio courses are allowed)
     """
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    curfew_time = models.PositiveSmallIntegerField(validators=[MaxValueValidator(24*60)])
+    curfew_time = models.PositiveSmallIntegerField(validators=[MaxValueValidator(24*60)])  # FIXME : time with TimeField or DurationField
 
     class Meta:
         verbose_name = _('Curfew')
