@@ -36,10 +36,10 @@ from base.models import ScheduledCourse, Department, TrainingProgramme, Week
 
 from api.permissions import IsTutorOrReadOnly
 from api.shared.params import dept_param
-from api.myflop.serializers import VolumeAgrege, ScheduledCoursePaySerializer
+from api.myflop.serializers import VolumeAgrege, ScheduledCoursePaySerializer, DailyVolumeSerializer
 
 import datetime
-from base.timing import days_list
+from base.timing import days_list, flopday_to_date, Day
 
 
 @method_decorator(name='list',
@@ -150,8 +150,8 @@ class PayViewSet(viewsets.ViewSet):
                 supp_filters['train_prog'] = train_prog
             except TrainingProgramme.DoesNotExist:
                 raise APIException(detail='Unknown training programme')
-        
-        
+
+
         # clean status
         status_dict = {
             'p': [Tutor.FULL_STAFF],
@@ -209,6 +209,7 @@ class PayViewSet(viewsets.ViewSet):
         agg_list = []
 
         if volumes.exists():
+            print(volumes[0])
             agg_list.append(VolumeAgrege(volumes[0]))
             agg_list[0].formation_reguliere = 0
             agg_list[0].formation_continue = 0
@@ -224,7 +225,92 @@ class PayViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-def scheduled_courses_of_the_month(department, year, month):
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False),
+                          openapi.Parameter('month',
+                                            openapi.IN_QUERY,
+                                            description="month",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=True),
+                          openapi.Parameter('year',
+                                            openapi.IN_QUERY,
+                                            description="year",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=True),
+                          openapi.Parameter('tutor',
+                                            openapi.IN_QUERY,
+                                            description="tutor username",
+                                            type=openapi.TYPE_STRING,
+                                            required=True),
+                      ])
+                  )
+class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
+    """
+    Volume de cours par jour pour un intervenant
+    """
+    permission_classes = [IsTutorOrReadOnly]
+
+    def list(self, request):
+        param_exception = NotAcceptable(
+            detail=f"Les champs mois, annee et prof sont requis"
+        )
+        wanted_param = ['month', 'year', 'tutor']
+
+        # check that all parameters are given
+        for param in wanted_param:
+            if param not in request.GET:
+                raise param_exception
+
+        dept = self.request.query_params.get('dept', None)
+        if dept is not None:
+            try:
+                dept = Department.objects.get(abbrev=dept)
+            except Department.DoesNotExist:
+                raise APIException(detail='Unknown department')
+
+        tutor = self.request.query_params.get('tutor', None)
+        if tutor is not None:
+            try:
+                tutor = Tutor.objects.get(username=tutor)
+            except Tutor.DoesNotExist:
+                raise APIException(detail='Unknown tutor')
+
+        year = int(self.request.query_params.get('year'))
+        month = int(self.request.query_params.get('month'))
+
+        day_volumes_list = []
+
+        sched_courses = scheduled_courses_of_the_month(year=year, month=month, department=dept, tutor=tutor)
+        for dayschedcourse in sched_courses.distinct("course__week", "day"):
+            week = dayschedcourse.course.week
+            week_day = dayschedcourse.day
+            day_scheduled_courses = sched_courses.filter(course__week=week, day=week_day)
+            tds = day_scheduled_courses.filter(course__type__name='TD')
+            tps = day_scheduled_courses.filter(course__type__name='TP')
+            other = day_scheduled_courses.exclude(course__type__name__in=['TD', "TP"])
+
+            other = sum(sc.course.type.pay_duration for sc in other)/60
+            td = sum(sc.course.type.pay_duration for sc in tds)/60
+            tp = sum(sc.course.type.pay_duration for sc in tps)/60
+
+            date = flopday_to_date(Day(week=week, day=week_day))
+
+            day_volume = {
+                "date": date.isoformat(),
+                "other": other,
+                "td": td,
+                "tp": tp
+            }
+
+            day_volumes_list.append(day_volume)
+            day_volumes_list.sort(key=lambda x: x["date"])
+        serializer = DailyVolumeSerializer(day_volumes_list, many=True)
+        return Response(serializer.data)
+
+
+def scheduled_courses_of_the_month(year, month, department=None, tutor=None):
     start_month = datetime.datetime(year, month, 1)
     start_year, start_week_nb, start_day = start_month.isocalendar()
     if month < 12:
@@ -239,7 +325,11 @@ def scheduled_courses_of_the_month(department, year, month):
     else:
         intermediate_weeks = Week.objects.filter(Q(year=start_year, nb__gt=start_week_nb)
                                                  | Q(year=end_year, nb__lt=end_week_nb))
-    relevant_scheduled_courses = ScheduledCourse.objects.filter(course__type__department=department, work_copy=0)
+    relevant_scheduled_courses = ScheduledCourse.objects.filter(work_copy=0)
+    if department is not None:
+        relevant_scheduled_courses = relevant_scheduled_courses.filter(course__type__department=department)
+    if tutor is not None:
+        relevant_scheduled_courses = relevant_scheduled_courses.filter(tutor=tutor)
     query = Q(course__week__in=intermediate_weeks) | \
             Q(course__week=start_week, day__in=days_list[start_day-1:]) | \
             Q(course__week=end_week, day__in=days_list[:end_day])

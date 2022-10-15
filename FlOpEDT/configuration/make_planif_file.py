@@ -142,10 +142,7 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
     last_row = {}
     last_column_letter = {}
     first_column_letter = {}
-    if department.abbrev in ['INFO', 'RT', 'GIM', 'CS']:
-        CT = order_CT(department)
-    else:
-        CT = CourseType.objects.filter(department=department)
+    CT = order_CT(department)
     # We go through each period and create a sheet for each period
     for p in Period.objects.filter(department=department):
         logger.info(p)
