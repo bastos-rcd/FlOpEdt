@@ -94,7 +94,7 @@ function initiate() {
     .data(week_year_list)
     .enter()
     .append("option")
-    .text(function (d) { return d['week']; });
+    .text(function (d) { return d['year']+'-'+d['week']; });
 
 
   // data selection
@@ -369,7 +369,7 @@ function create_dd() {
     .enter()
     .append("option")
     .attr("value", function (d) { return d['week']; })
-    .text(function (d) { return d['week']; });
+    .text(function (d) { return d['year']+'-'+d['week']; });
 
   go_dd_aim();
 
