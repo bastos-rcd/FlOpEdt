@@ -114,11 +114,7 @@ class SimultaneousCourses(TTConstraint):
         verbose_name_plural = verbose_name
 
 
-class LimitedStartTimeChoices(TTConstraint):
-    """
-    Limit the possible start times
-    """
-
+class StartTimeConstraint(TTConstraint):
     module = models.ForeignKey('base.Module',
                                null=True,
                                blank=True,
@@ -139,23 +135,16 @@ class LimitedStartTimeChoices(TTConstraint):
                                     blank=True,
                                     default=None,
                                     on_delete=models.CASCADE)
-    possible_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
 
     class Meta:
-        verbose_name = _('Limited start time choices')
-        verbose_name_plural = verbose_name
+        abstract = True
+
+    def excluded_slots(self, ttmodel):
+        raise NotImplementedError
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
         fc = self.get_courses_queryset_by_attributes(ttmodel, week)
-        pst = self.possible_start_times
-        if not pst:
-            pst = set(sl.start_time for sl in ttmodel.wdb.courses_slots)
-        pwd = self.possible_week_days
-        if not pwd:
-            pwd = list(c[0] for c in Day.CHOICES)
-        excluded_slots = set(sl for sl in ttmodel.wdb.courses_slots
-                             if (sl.start_time not in pst or sl.day.day not in pwd))
+        excluded_slots = self.excluded_slots(ttmodel)
         if self.tutor is None:
             relevant_sum = ttmodel.sum(ttmodel.TT[(sl, c)]
                                        for c in fc
@@ -170,6 +159,34 @@ class LimitedStartTimeChoices(TTConstraint):
             ttmodel.add_constraint(relevant_sum, '==', 0,
                                    Constraint(constraint_type=ConstraintType.LIMITED_START_TIME_CHOICES,
                                               instructors=self.tutor, groups=self.group, modules=self.module,))
+
+
+class LimitStartTimeChoices(StartTimeConstraint):
+    """
+    Limit the possible start times
+    """
+
+    possible_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
+    possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Limited start time choices')
+        verbose_name_plural = verbose_name
+
+    def considered_start_times(self, ttmodel):
+        if self.possible_start_times:
+            return self.possible_start_times
+        return set(sl.start_time for sl in ttmodel.wdb.courses_slots)
+
+    def considered_week_days(self):
+        if self.possible_week_days:
+            return self.possible_week_days
+        return list(c[0] for c in Day.CHOICES)
+
+    def excluded_slots(self, ttmodel):
+        return set(sl for sl in ttmodel.wdb.courses_slots
+                   if (sl.start_time not in self.considered_start_times(ttmodel)
+                       or sl.day.day not in self.considered_week_days()))
 
     def one_line_description(self):
         text = "Les "
@@ -199,6 +216,64 @@ class LimitedStartTimeChoices(TTConstraint):
                 text += ', '.join([french_format(pst) for pst in self.possible_start_times])
         text += '.'
         return text
+
+
+class AvoidStartTimes(StartTimeConstraint):
+    """
+    Avoid some start times
+    """
+
+    forbidden_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
+    forbidden_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Avoid considered start times')
+        verbose_name_plural = verbose_name
+
+    def considered_start_times(self, ttmodel):
+        if self.forbidden_start_times:
+            return self.forbidden_start_times
+        return set(sl.start_time for sl in ttmodel.wdb.courses_slots)
+
+    def considered_week_days(self):
+        if self.forbidden_week_days:
+            return self.forbidden_week_days
+        return list(c[0] for c in Day.CHOICES)
+
+    def excluded_slots(self, ttmodel):
+        return set(sl for sl in ttmodel.wdb.courses_slots
+                   if (sl.start_time in self.considered_start_times(ttmodel)
+                       and sl.day.day in self.considered_week_days()))
+
+    def one_line_description(self):
+        text = "Les "
+        if self.course_type:
+            text += str(self.course_type)
+        else:
+            text += "cours"
+        if self.module:
+            text += " de " + str(self.module)
+        if self.tutor:
+            text += ' de ' + str(self.tutor)
+        if self.train_progs.exists():
+            text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+        else:
+            text += " pour toutes les promos"
+        if self.group:
+            text += ' avec le groupe ' + str(self.group)
+        text += " ne peuvent pas avoir lieu"
+        if not (self.forbidden_week_days or self.forbidden_start_times):
+            text += ' ... Tout le temps!'
+        else:
+            if self.possible_week_days:
+                text += ' les '
+                text += ', '.join(self.forbidden_week_days)
+            if self.possible_start_times:
+                text += ' à '
+                text += ', '.join([french_format(pst) for pst in self.forbidden_start_times])
+        text += '.'
+        return text
+
 
 ################    ConsiderDependencies FUNCTIONS      ################
 def find_successive_slots(course_slot1, course_slot2, course1_duration, course2_duration):
@@ -243,6 +318,7 @@ def find_day_gap_slots(course_slots1, course_slots2, day_gap):
         if cs2.start > day_slot:
             return True
     return False
+
 
 class ConsiderDependencies(TTConstraint):
     """

@@ -37,7 +37,7 @@ from TTapp.models import \
     MinModulesHalfDays, MinTutorsHalfDays, MinGroupsHalfDays,\
     MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, \
     CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectMaxHoursPerDay, RespectMinHoursPerDay, \
-    LimitedRoomChoices, LimitedStartTimeChoices, LimitCourseTypeTimePerPeriod, \
+    LimitedRoomChoices, LimitStartTimeChoices, LimitCourseTypeTimePerPeriod, \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
     NoTutorCourseOnDay, NoGroupCourseOnDay, \
@@ -45,7 +45,7 @@ from TTapp.models import \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
     ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber, \
-    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts,AvoidBothTimesSameDay
+    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts,AvoidBothTimesSameDay, AvoidStartTimes
 
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
@@ -242,7 +242,7 @@ class LimitRoomChoicesAdmin(DepartmentModelAdmin):
                    )
 
 
-class LimitedStartTimeChoicesAdmin(DepartmentModelAdmin):
+class StartTimeChoicesAdmin(DepartmentModelAdmin):
     list_display = ('group', 'tutor', 'module', 'course_type', 'comment',
                     'weight',
                     'is_active')
@@ -348,7 +348,8 @@ admin.site.register(SimultaneousCourses, CoursesAdmin)
 admin.site.register(MinimizeBusyDays, BasicTutorsConstraintAdmin)
 admin.site.register(RespectMaxHoursPerDay, BasicTutorsConstraintAdmin)
 admin.site.register(RespectMinHoursPerDay, BasicTutorsConstraintAdmin)
-admin.site.register(LimitedStartTimeChoices, LimitedStartTimeChoicesAdmin)
+admin.site.register(LimitStartTimeChoices, StartTimeChoicesAdmin)
+admin.site.register(AvoidStartTimes, StartTimeChoicesAdmin)
 admin.site.register(LimitedRoomChoices, LimitRoomChoicesAdmin)
 admin.site.register(LimitModulesTimePerPeriod, LimitModulesTimePerPeriodAdmin)
 admin.site.register(LimitGroupsTimePerPeriod, LimitGroupsTimePerPeriodAdmin)
