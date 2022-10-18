@@ -59,8 +59,9 @@
 - Valentin Da Cruz
 - William Touzani
 - David Gond
-
+- Thomas Demarty
 
 # TRANSLATORS:
+- Thomas Demarty
 
 # ALL THOSE OF YOU THAT MADE PREVIOUS RELEASES POSSIBLE
