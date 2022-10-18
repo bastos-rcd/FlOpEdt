@@ -28,3 +28,4 @@ from api.myflop import views
 routerMyFlop = routers.SimpleRouter()
 
 routerMyFlop.register(r'pay', views.PayViewSet, basename='pay')
+routerMyFlop.register(r'monthly_volume', views.MonthlyVolumeByDayViewSet, basename='monthly_volume')

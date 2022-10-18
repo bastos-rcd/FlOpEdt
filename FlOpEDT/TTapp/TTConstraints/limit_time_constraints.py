@@ -331,7 +331,9 @@ class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
     """
     Bound the number of course time (of type 'type') per day/half day
     """
-
+    class Meta:
+        verbose_name = _('Limit course type time, regardless of tutor, module or group')
+        verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
         self.enrich_model_for_one_object(ttmodel, week, ponderation)

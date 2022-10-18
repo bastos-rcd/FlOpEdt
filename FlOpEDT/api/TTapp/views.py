@@ -408,20 +408,23 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                 typename = type(field).__name__
 
                 # Récupère les validators dans acceptable
-                if typename == 'CharField':
-                    choices = field.choices
-                    if "day" in field.name:
-                        acceptable = department.timegeneralsettings.days
-                    elif choices is not None:
-                        acceptable = [c[0] for c in choices]
                 if typename == 'BooleanField':
                     acceptable = [True, False]
 
-                if type(field) is ArrayField:
+                elif typename == 'CharField':
+                    choices = field.choices
+                    if "day" in field.name:
+                        acceptable = department.timegeneralsettings.days
+                    if "start_time" in field.name:
+                        acceptable = all_possible_start_times(department)
+                    elif choices is not None:
+                        acceptable = choices
+
+                elif type(field) is ArrayField:
                     typename = type(field.base_field).__name__
                     # Récupère les choices de l'arrayfield dans acceptable
                     choices = field.base_field.choices
-                    if field.name == "possible_start_times":
+                    if "start_time" in field.name:
                         acceptable = all_possible_start_times(department)
                     elif "day" in field.name:
                         acceptable = department.timegeneralsettings.days
