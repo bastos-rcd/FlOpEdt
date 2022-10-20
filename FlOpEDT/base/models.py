@@ -24,24 +24,21 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.core.checks.messages import Error
-from colorfield.fields import ColorField
+from enum import Enum
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models.signals import post_save
 from django.db import models
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-from base.timing import hhmm, str_slot, Day, Time, days_list, days_index
-import base.weeks
-
 from django.utils.translation import gettext_lazy as _
 
-from enum import Enum
+import base.weeks
+from base.timing import hhmm, str_slot, Day, Time, days_list, days_index
 
 slot_pause = 30
+
 
 ###
 #
@@ -58,6 +55,7 @@ class Theme(Enum):
     BRUME = 'Brume'
     PRESTIGE = 'Prestige Edition'
     PINK = 'Pink'
+
 
 # <editor-fold desc="GROUPS">
 # ------------
@@ -364,6 +362,46 @@ class RoomType(models.Model):
         return s
 
 
+class RoomAttribute(models.Model):
+    name = models.CharField(max_length=20)
+    description = models.TextField(null=True)
+
+    def is_boolean(self):
+        return hasattr(self, "booleanroomattribute")
+
+    def is_numeric(self):
+        return hasattr(self, "numericroomattribute")
+
+    def __str__(self):
+        return self.name
+
+
+class BooleanRoomAttribute(RoomAttribute):
+    attribute = models.OneToOneField(RoomAttribute, parent_link=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name + ' (boolean)'
+
+
+class NumericRoomAttribute(RoomAttribute):
+    attribute = models.OneToOneField(RoomAttribute, parent_link=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name + ' (numeric)'
+
+
+class BooleanRoomAttributeValue(models.Model):
+    room = models.ForeignKey('Room', on_delete=models.CASCADE)
+    attribute = models.ForeignKey('BooleanRoomAttribute', on_delete=models.CASCADE)
+    value = models.BooleanField()
+
+
+class NumericRoomAttributeValue(models.Model):
+    room = models.ForeignKey('Room', on_delete=models.CASCADE)
+    attribute = models.ForeignKey('NumericRoomAttribute', on_delete=models.CASCADE)
+    value = models.DecimalField(max_digits=7, decimal_places=2)
+
+
 class Room(models.Model):
     name = models.CharField(max_length=50)
     types = models.ManyToManyField(RoomType,
@@ -591,6 +629,9 @@ class ScheduledCourse(models.Model):
 
     def __str__(self):
         return f"{self.course}{self.no}:{self.day}-t{self.start_time}-{self.room}"
+
+    def unique_name(self):
+        return f"{self.course.type}_{self.room}_{self.tutor.username}_{self.day}_{self.start_time}_{self.end_time}"
 
     @property
     def end_time(self):

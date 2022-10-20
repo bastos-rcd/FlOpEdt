@@ -21,20 +21,17 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets
 import django_filters.rest_framework as filters
-
 from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import viewsets
 
 import base.models as bm
-from base import queries
-
 from api.base.rooms import serializers
+from api.permissions import IsAdminOrReadOnly
 from api.shared.params import dept_param
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
-
+from base import queries
 
 
 class RoomTypesViewSet(viewsets.ModelViewSet):
@@ -51,10 +48,9 @@ class RoomTypesViewSet(viewsets.ModelViewSet):
 
 
 class RoomFilterSet(filters.FilterSet):
-
     permission_classes = [IsAdminOrReadOnly]
 
-    dept = filters.CharFilter(field_name='departments__abbrev', required=True)
+    dept = filters.CharFilter(field_name='departments__abbrev', required=False)
 
     class Meta:
         model = bm.Room
@@ -72,7 +68,7 @@ class RoomViewSet(viewsets.ModelViewSet):
     queryset = bm.Room.objects.all()
     serializer_class = serializers.RoomSerializer
     filter_class = RoomFilterSet
-    
+
 
 class RoomNameViewSet(viewsets.ModelViewSet):
     """
@@ -118,3 +114,56 @@ class RoomSortsViewSet(viewsets.ModelViewSet):
     filterset_fields = '__all__'
 
 
+class RoomAttributeViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the boolean room attributes.
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = bm.RoomAttribute.objects.all()
+    serializer_class = serializers.RoomAttributeSerializer
+
+    filterset_fields = '__all__'
+
+
+class BooleanRoomAttributeViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the boolean room attributes.
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = bm.BooleanRoomAttribute.objects.all()
+    serializer_class = serializers.BooleanRoomAttributeSerializer
+
+    filterset_fields = '__all__'
+
+
+class NumericRoomAttributeViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the boolean room attributes.
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = bm.NumericRoomAttribute.objects.all()
+    serializer_class = serializers.NumericRoomAttributeSerializer
+
+    filterset_fields = '__all__'
+
+
+class BooleanRoomAttributeValuesViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the boolean room attribute values.
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = bm.BooleanRoomAttributeValue.objects.all()
+    serializer_class = serializers.BooleanRoomAttributeValuesSerializer
+
+    filterset_fields = '__all__'
+
+
+class NumericRoomAttributeValuesViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the boolean room attribute values.
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = bm.NumericRoomAttributeValue.objects.all()
+    serializer_class = serializers.NumericRoomAttributeValuesSerializer
+
+    filterset_fields = '__all__'

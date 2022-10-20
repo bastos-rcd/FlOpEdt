@@ -35,7 +35,7 @@ routerBase.register(r'trainingprogram/name', views.TrainingProgrammeNameViewSet,
 # routerBase.register(r'holidays', views.HolidaysViewSet)
 # routerBase.register(r'traininghalfdays', views.TrainingHalfDaysViewSet)
 # routerBase.register(r'periods', views.PeriodsViewSet)
-# routerBase.register(r'timesettings', views.TimeGeneralSettingsViewSet)
+routerBase.register(r'timesettings', views.TimeGeneralSettingsViewSet, basename='timesettings')
 routerBase.register(r'weeks', views.WeeksViewSet, basename='weeks')
 
 # routerBase.register(r'edtversions', views.EdtVersionsViewSet)

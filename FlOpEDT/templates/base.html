@@ -114,6 +114,7 @@
               <li><a href="{% url "flopeditor:flopeditor-department-default" department %}">{% trans 'flop!EDITOR' %}</a></li>
               {# <li><a href="{% url "base:statistics" department %}">{% trans 'Statistics' %}</a></li>#}
               <li><a href="{% url "configuration:configuration" %}">{% trans 'Import'%}</a></li>
+              <li><a href="{% url "roomreservation:roomreservation" department %}">{% trans 'Reservations'%}</a></li>
               <li><a href="{% url "admin:index" %}">{% trans 'Admin'%}</a></li>
           {% endif %}
       {% endif %}

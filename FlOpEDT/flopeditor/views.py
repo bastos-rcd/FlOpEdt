@@ -391,7 +391,7 @@ def department_rooms(request, department_abbrev):
 
 @tutor_or_superuser_required
 def department_room_types(request, department_abbrev):
-    """Student groups view of flop!EDITOR.
+    """Room categories view of flop!EDITOR.
 
     :param request:           Client request.
     :param department_abbrev: Department abbreviation.
@@ -405,6 +405,24 @@ def department_room_types(request, department_abbrev):
                      department_abbrev,
                      "flopeditor/room_types.html",
                      "Catégories de salles")
+
+
+@tutor_or_superuser_required
+def department_room_attributes(request, department_abbrev):
+    """Rooms attributes view of flop!EDITOR.
+
+    :param request:           Client request.
+    :param department_abbrev: Department abbreviation.
+    :type request:            django.http.HttpRequest
+    :type department_abbrev:  str
+    :return: Page rendered from the template of flop!EDITOR.
+    :rtype:  django.http.HttpResponse
+
+    """
+    return crud_view(request,
+                     department_abbrev,
+                     "flopeditor/room_attributes.html",
+                     "Attributs de salles")
 
 
 @tutor_or_superuser_required

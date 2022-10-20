@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Possibility to pre-assign rooms and/or post-assign rooms in TTModel
 - Possibility to add a preferred theme in the use's preferences
 - Notification system: model for backup, email notification, django-crontab for notification
+- TTConstraints manager interface: CRUD
+- RoomReservation interface : gesture of room attributes, reservation types, periodicity
 
 ### Changed
 

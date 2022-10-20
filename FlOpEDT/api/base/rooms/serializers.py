@@ -21,9 +21,11 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import base.models as bm
-
 from rest_framework import serializers
+
+import base.models as bm
+from api.fetch.serializers import IDRoomSerializer
+
 
 class RoomTypesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,9 +34,11 @@ class RoomTypesSerializer(serializers.ModelSerializer):
 
 
 class RoomSerializer(serializers.ModelSerializer):
+    basic_rooms = IDRoomSerializer(many=True)
+
     class Meta:
         model = bm.Room
-        fields = '__all__'  # ['id', 'name', 'subroom_of', 'departments']
+        fields = ['id', 'name', 'subroom_of', 'departments', 'is_basic', 'basic_rooms']
 
 
 class RoomNameSerializer(serializers.ModelSerializer):
@@ -49,3 +53,32 @@ class RoomSortsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RoomAttributeSerializer(serializers.ModelSerializer):
+    class Meta:
+        abstract = True
+        model = bm.RoomAttribute
+        fields = '__all__'
+
+
+class BooleanRoomAttributeSerializer(RoomAttributeSerializer):
+    class Meta:
+        model = bm.BooleanRoomAttribute
+        fields = '__all__'
+
+
+class NumericRoomAttributeSerializer(RoomAttributeSerializer):
+    class Meta:
+        model = bm.NumericRoomAttribute
+        fields = '__all__'
+
+
+class BooleanRoomAttributeValuesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.BooleanRoomAttributeValue
+        fields = '__all__'
+
+
+class NumericRoomAttributeValuesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.NumericRoomAttributeValue
+        fields = '__all__'

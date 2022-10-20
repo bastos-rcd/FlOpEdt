@@ -130,10 +130,12 @@ class CourseTypeNameViewSet(viewsets.ModelViewSet):
 
 class CourseFilterSet(filters.FilterSet):
     dept = filters.CharFilter(field_name='module__train_prog__department__abbrev', required=False)
+    week = filters.NumberFilter(field_name='week__nb', required=False)
+    year = filters.NumberFilter(field_name='week__year', required=False)
 
     class Meta:
         model = bm.Course
-        fields = ['dept']
+        fields = ['dept', 'week', 'year']
 
 
 class CoursesViewSet(viewsets.ModelViewSet):

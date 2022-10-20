@@ -29,7 +29,7 @@ from django.core.mail import EmailMessage
 from base.models import RoomType, RoomPreference, ScheduledCourse, TrainingProgramme, \
     TutorCost, GroupFreeHalfDay, GroupCost, TimeGeneralSettings, ModuleTutorRepartition, ScheduledCourseAdditional
 
-from base.timing import Time
+from base.timing import Time, flopday_to_date, floptime_to_time
 
 from people.models import Tutor
 
@@ -37,6 +37,8 @@ from TTapp.models import MinNonPreferedTutorsSlot, StabilizeTutorsCourses, MinNo
     NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, ConsiderTutorsUnavailability, \
     MinimizeBusyDays, MinGroupsHalfDays, RespectMaxHoursPerDay, ConsiderDependencies, ConsiderPivots, \
     StabilizeGroupsCourses, RespectMinHoursPerDay
+
+from roomreservation.models import RoomReservation
 
 from TTapp.FlopConstraint import max_weight
 
@@ -807,6 +809,12 @@ class TTModel(FlopModel):
                         day=sl.day.day,
                         week=sl.day.week,
                         room=room, value=0).exists():
+                    avail_room[room][sl] = 0
+                elif RoomReservation.objects.filter(
+                        start_time__lt=floptime_to_time(sl.start_time + sl.duration),
+                        end_time__gt=floptime_to_time(sl.start_time),
+                        date=flopday_to_date(sl.day),
+                        room=room).exists():
                     avail_room[room][sl] = 0
                 else:
                     avail_room[room][sl] = 1
