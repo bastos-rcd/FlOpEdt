@@ -43,7 +43,7 @@ function createRequestHeader(method: string): RequestInit {
         credentials: 'same-origin',
         headers: requestHeaders,
         redirect: 'follow',
-        referrerPolicy: 'no-referrer',
+        referrerPolicy: 'same-origin',
     }
 }
 

@@ -109,7 +109,7 @@ async function sendData<T>(method: string, url: string, optional: { data?: unkno
         credentials: 'same-origin',
         headers: requestHeaders,
         redirect: 'follow',
-        referrerPolicy: 'no-referrer',
+        referrerPolicy: 'same-origin',
     }
     if (optional.data) {
         requestInit.body = JSON.stringify(optional.data)

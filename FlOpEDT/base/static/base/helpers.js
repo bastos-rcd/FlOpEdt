@@ -87,7 +87,7 @@ async function postData(url = '', data = {}) {
             // 'Content-Type': 'application/x-www-form-urlencoded',
         },
         redirect: 'follow', // manual, *follow, error
-        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        referrerPolicy: 'same-origin', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
         body: JSON.stringify(data) // body data type must match "Content-Type" header
     });
     let body = await response.json() // parses JSON response into native JavaScript objects
@@ -107,7 +107,7 @@ async function deleteData(url = '', data = {}) {
             'X-CSRFToken': csrfToken,
         },
         redirect: 'follow',
-        referrerPolicy: 'no-referrer',
+        referrerPolicy: 'same-origin',
     });
     let body = await response.json() // parses JSON response into native JavaScript objects
     if (!(response.ok)) {
@@ -127,7 +127,7 @@ async function putData(url = '', data = {}) {
             'X-CSRFToken': csrfToken,
         },
         redirect: 'follow',
-        referrerPolicy: 'no-referrer',
+        referrerPolicy: 'same-origin',
         body: JSON.stringify(data),
     });
     let body = await response.json() // parses JSON response into native JavaScript objects
