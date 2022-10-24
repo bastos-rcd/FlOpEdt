@@ -659,7 +659,9 @@ function fetch_cours() {
         cours_pl = [] ;
 
         parsed_msg.forEach(function(sched_course) {
-          sched_course.room = sched_course.room.name??null
+          if (sched_course.room!==null){
+            sched_course.room = sched_course.room.name
+          }
           translate_cours_pl_from_json(sched_course, cours_pl);
         });
 
