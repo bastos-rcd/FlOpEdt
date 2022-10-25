@@ -291,9 +291,9 @@ class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
             tps = day_scheduled_courses.filter(course__type__name='TP')
             other = day_scheduled_courses.exclude(course__type__name__in=['TD', "TP"])
 
-            other = sum(sc.course.type.pay_duration for sc in other)/60
-            td = sum(sc.course.type.pay_duration for sc in tds)/60
-            tp = sum(sc.course.type.pay_duration for sc in tps)/60
+            other = sum(sc.pay_duration for sc in other)/60
+            td = sum(sc.pay_duration for sc in tds)/60
+            tp = sum(sc.pay_duration for sc in tps)/60
 
             date = flopday_to_date(Day(week=week, day=week_day))
 
@@ -373,7 +373,7 @@ class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
             week = dayschedcourse.course.week
             week_day = dayschedcourse.day
             day_scheduled_courses = sched_courses.filter(course__week=week, day=week_day)
-            volume = sum(sc.course.type.pay_duration for sc in day_scheduled_courses)/60
+            volume = sum(sc.pay_duration for sc in day_scheduled_courses)/60
 
             date = flopday_to_date(Day(week=week, day=week_day))
 

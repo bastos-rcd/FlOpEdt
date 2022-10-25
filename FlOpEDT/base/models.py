@@ -646,6 +646,15 @@ class ScheduledCourse(models.Model):
     def is_simultaneous_to(self, other):
         return self.has_same_day(other) and self.start_time < other.end_time and other.start_time < self.end_time
 
+    @property
+    def duration(self):
+        return self.course.type.duration
+
+    @property
+    def pay_duration(self):
+        if self.course.type.pay_duration is not None:
+            return self.course.type.pay_duration
+        return self.duration
 
 class ScheduledCourseAdditional(models.Model):
     scheduled_course = models.OneToOneField(
