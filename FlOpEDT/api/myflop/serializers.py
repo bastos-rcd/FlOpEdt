@@ -90,7 +90,13 @@ class ScheduledCoursePaySerializer(serializers.Serializer):
 
 
 class DailyVolumeSerializer(serializers.Serializer):
+    month = serializers.CharField()
     date = serializers.DateField()
     other = serializers.FloatField()
     td = serializers.FloatField()
     tp = serializers.FloatField()
+
+
+class RoomDailyVolumeSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    volume = serializers.FloatField()

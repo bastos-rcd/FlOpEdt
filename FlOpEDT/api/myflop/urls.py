@@ -29,3 +29,4 @@ routerMyFlop = routers.SimpleRouter()
 
 routerMyFlop.register(r'pay', views.PayViewSet, basename='pay')
 routerMyFlop.register(r'monthly_volume', views.MonthlyVolumeByDayViewSet, basename='monthly_volume')
+routerMyFlop.register(r'room_monthly_volume', views.RoomMonthlyVolumeByDayViewSet, basename='room_monthly_volume')
