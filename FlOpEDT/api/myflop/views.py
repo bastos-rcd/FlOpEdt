@@ -36,7 +36,8 @@ from base.models import ScheduledCourse, Department, TrainingProgramme, Week, Ro
 
 from api.permissions import IsTutorOrReadOnly
 from api.shared.params import dept_param
-from api.myflop.serializers import VolumeAgrege, ScheduledCoursePaySerializer, DailyVolumeSerializer
+from api.myflop.serializers import VolumeAgrege, ScheduledCoursePaySerializer, DailyVolumeSerializer, \
+    RoomDailyVolumeSerializer
 
 import datetime
 from base.timing import days_list, flopday_to_date, Day
