@@ -32,7 +32,7 @@ from django.utils.decorators import method_decorator
 from django.db.models import Count, F, Sum, Q
 
 from people.models import Tutor
-from base.models import ScheduledCourse, Department, TrainingProgramme, Week
+from base.models import ScheduledCourse, Department, TrainingProgramme, Week, Room
 
 from api.permissions import IsTutorOrReadOnly
 from api.shared.params import dept_param
