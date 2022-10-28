@@ -39,55 +39,11 @@ from .models import User, FullStaff, SupplyStaff, BIATOS, TutorPreference
 logger = logging.getLogger(__name__)
 
 
-
-class AddFullStaffTutor(CreateView):
-    model = FullStaff
-    form_class = AddFullStaffTutorForm
-    template_name = 'people/adduser.html'
-
-    def form_valid(self, form):
-        user = form.save()
-        fill_default_user_preferences(user)
-        TutorPreference.objects.create(tutor=user)
-        user.is_tutor = True
-        user.is_staff = True
-        user.save()
-        login(self.request, user)
-        next = self.request.GET.get('next', '/')
-        return redirect(next)
-
-class AddSupplyStaffTutor(CreateView):
-    model = SupplyStaff
-    form_class = AddSupplyStaffTutorForm
-    template_name = 'people/adduser.html'
-
-    def form_valid(self, form):
-        user = form.save()
-        fill_default_user_preferences(user)
-        TutorPreference.objects.create(tutor=user)
-        login(self.request, user)
-        next = self.request.GET.get('next', '/')
-        return redirect(next)
-
-class AddBIATOSTutor(CreateView):
-    model = BIATOS
-    form_class = AddBIATOSTutorForm
-    template_name = 'people/adduser.html'
-
-    def form_valid(self, form):
-        user = form.save()
-        fill_default_user_preferences(user)
-        TutorPreference.objects.create(tutor=user)
-        login(self.request, user)
-        next = self.request.GET.get('next', '/')
-        return redirect(next)
-
-
 class ChangeFullStaffTutor(UpdateView):
     model = FullStaff
     from_class = ChangeFullStaffTutorForm
     template_name = 'people/changeuser.html'
-    fields = ('username', 'email', 'is_iut', )
+    fields = ('email', 'is_iut', )
     success_url = '/'
     
     def get_object(self, queryset=None):
@@ -98,7 +54,7 @@ class ChangeSupplyStaffTutor(UpdateView):
     model = SupplyStaff
     from_class = ChangeSupplyStaffTutorForm
     template_name = 'people/changeuser.html'
-    fields = ('username', 'email', 'employer', 'position', 'field', )
+    fields = ('email', 'employer', 'position', 'field', )
     success_url = '/'
     
     def get_object(self, queryset=None):
@@ -109,7 +65,7 @@ class ChangeBIATOSTutor(UpdateView):
     model = BIATOS
     from_class = ChangeBIATOSTutorForm
     template_name = 'people/changeuser.html'
-    fields = ('username', 'email', )
+    fields = ('email', )
     success_url = '/'
     
     def get_object(self, queryset=None):

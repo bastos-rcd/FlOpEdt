@@ -31,25 +31,11 @@ from .forms import AddStudentForm, ChangeStudentForm
 from .models import User, Student
 
 
-class AddStudent(CreateView):
-    model = Student
-    form_class = AddStudentForm
-    template_name = 'people/adduser.html'
-
-    def form_valid(self, form):
-        user = form.save()
-        user.is_student = True
-        user.save()
-        login(self.request, user)
-        next = self.request.GET.get('next', '/')
-        return redirect(next)
-
-
 class ChangeStudent(UpdateView):
     model = Student
     from_class = ChangeStudentForm
     template_name = 'people/changeuser.html'
-    fields = ('username', 'email', 'generic_groups',)
+    fields = ('email', 'generic_groups',)
     success_url = '/'
 
     def get_object(self, queryset=None):

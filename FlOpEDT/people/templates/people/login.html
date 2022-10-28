@@ -27,9 +27,6 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static "base/better.css" %}"/>
-<script>
-  var url_add = "{% url 'people:add_redirect' '' %}" ;
-</script>
   
   
 <div id="tools-main" style="padding:10px;">
@@ -73,32 +70,5 @@
     {% endif %}
     <p></p>
   </div>
-<!--  <br style="clear: both" />-->
-  
-  <fieldset style="width:300px">
-    <legend>{% trans 'Sign up' %}</legend>
-    {% trans 'I am' %}
-    <form name="add">
-      <input type="radio" id="stud" name="create" checked="checked">{% trans 'A student' %}</input><br/>
-      <input type="radio" id="full" name="create">{% trans 'A teacher' %}</input><br/>
-      <input type="radio" id="supp" name="create">{% trans 'A temporary teacher' %}</input><br/>
-      <input type="radio" id="BIAT" name="create">{% trans 'A tech or administrative staff' %}</input><br/>
-      <input style="float:right" type="button" value="{% trans 'Create' %}" onClick="create_user()"/>
-    </form>
-    <!--<p><a href="{ % url 'add_user' % }">Créer un nouveau compte</a></p>-->
-  </fieldset>
-
-  <script>
-    function create_user() {
-	var iam = document.forms['add'];
-	var i = 0;
-	while (!iam[i].checked) {
-	    i++ ;
-	}
-	var url_go_add = url_add + iam[i].id ;
-	console.log(url_go_add);
-	window.location.href = url_go_add ;
-    }
-  </script>
-  
+</div>
 {% endblock %}
