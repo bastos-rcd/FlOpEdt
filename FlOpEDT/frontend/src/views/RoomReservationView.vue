@@ -1083,7 +1083,7 @@ function reservationRemoveCurrentAndFutureSamePeriodicity(reservation: RoomReser
                     break
             }
             // Finally apply the patch
-            return apiCall(periodicity.id, { end: dayBefore.toLocaleDateString() })
+            return apiCall(periodicity.id, { end: dayBefore.toISOString().split('T')[0] })
         })
         ?.then((_) => {
             updateRoomReservations(selectedDate.value)
@@ -1191,7 +1191,7 @@ function handleDrag(drag: CalendarDragEvent) {
         end_time: drag.endTime.text,
         id: newReservationId--,
         periodicity: null,
-        reservation_type: -1,
+        reservation_type: roomReservationTypes.list.value[0].id,
         responsible: currentUserId,
         room: selectedRoom.value?.id ?? -1,
         start_time: drag.startTime.text,
@@ -1215,7 +1215,7 @@ function handleNewSlot(date: Date, roomId: string) {
         end_time: new Date(now.getTime() + newReservationDefaultDuration * 60000).toTimeString(),
         id: newReservationId--,
         periodicity: null,
-        reservation_type: -1,
+        reservation_type: roomReservationTypes.list.value[0].id,
         responsible: currentUserId,
         room: parseInt(roomId, 10),
         start_time: now.toTimeString(),
@@ -1297,6 +1297,9 @@ onMounted(() => {
     })
 
     api.value.fetch.roomReservationTypes().then((value) => {
+        if (value.length === 0) {
+            value = ['Unknown']
+        }
         roomReservationTypes.list.value = value
     })
 

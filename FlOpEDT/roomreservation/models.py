@@ -23,7 +23,8 @@ class RoomReservation(models.Model):
         return f"{self.room}-{self.date}  {self.start_time}/{self.end_time}"
 
     def unique_name(self):
-        return f"{self.date}_{self.reservation_type.name}_{self.room}_{self.responsible.username}_{self.start_time}_{self.end_time}"
+        typeName = self.reservation_type.name if self.reservation_type else 'noType'
+        return f"{self.date}_{typeName}_{self.room}_{self.responsible.username}_{self.start_time}_{self.end_time}"
 
     @property
     def duration(self):

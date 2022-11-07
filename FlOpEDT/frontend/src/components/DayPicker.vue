@@ -62,7 +62,8 @@ const selectDate: Ref<Date> = computed({
         const month = toStringAtLeastTwoDigits(refDate.getMonth() + 1)
         const year = refDate.getFullYear()
 
-        emit('update:date', `${year}/${month}/${day}`)
+        // TODO: Value should be formatted with Moment.js according to the browser's locale
+        emit('update:date', `${year}-${month}-${day}`)
         emit('update:week', Math.ceil(days / 7))
         emit('update:year', year)
     },

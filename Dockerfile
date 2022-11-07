@@ -1,4 +1,5 @@
-FROM python:3.7-slim
+ARG BASE_IMG=python:3.7
+FROM $BASE_IMG
 
 # see output in our console 
 ENV PYTHONUNBUFFERED 1
@@ -17,7 +18,5 @@ RUN apt-get update \
     && pip install --no-cache-dir -r /requirements.$CONFIG.txt \
     && apt-get purge -y --auto-remove gcc python3-dev apt-utils
 
-RUN mkdir /code
-WORKDIR /code
-
-COPY . /code/
+ARG GRB_LICENSE_FILE
+ENV GRB_LICENSE_FILE $GRB_LICENSE_FILE

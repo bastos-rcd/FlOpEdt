@@ -9,6 +9,7 @@ module.exports = {
         devMiddleware: {
             // see https://github.com/webpack/webpack-dev-server/issues/2958
             writeToDisk: true,
+            publicPath: 'http://localhost/static/vue/dist/',
         },
     },
 }

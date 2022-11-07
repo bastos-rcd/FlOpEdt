@@ -88,7 +88,7 @@ urlpatterns += i18n_patterns(
     re_path(r'^cstmanager/', include('cstmanager.urls')),
     path('api/', include('api.urls')),
     re_path(r'^roomreservation/(?P<department>[a-zA-Z]\w{0,6})/', include('roomreservation.urls')),
-
+    url(r'^.well-known/acme-challenge/', include('acme_challenge.urls')),
 )
 
 if settings.DEBUG:

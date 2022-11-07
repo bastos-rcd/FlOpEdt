@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'notifications',
     'django_crontab',
     'roomreservation',
+    'acme_challenge',
 ]
 
 MIDDLEWARE = [
@@ -196,7 +197,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "var/static")
 
 # Folders used to find some additional static files
-STATICFILES_DIRS = ['static']
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
@@ -246,6 +247,8 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
 
+# Use the host domain and port instead of Django's
+USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # LOG IN-AND-OUT

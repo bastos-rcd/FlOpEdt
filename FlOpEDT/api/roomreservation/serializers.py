@@ -1,3 +1,4 @@
+from django.db.models import Max
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 
@@ -14,7 +15,7 @@ class PeriodicityField(serializers.Field):
         serialized = ReservationPeriodicitySerializer.get_serializer(periodicity)(data=periodicity)
         if serialized.is_valid():
             return serialized.validated_data
-        raise ValidationError(serialized.errors())
+        raise ValidationError(serialized.errors)
 
     def get_attribute(self, instance):
         return instance
@@ -105,6 +106,10 @@ def create_reservations_if_possible(periodicity, original_reservation, create_re
     # Get the corresponding periodicity model
     model = ReservationPeriodicitySerializer.get_model(periodicity)
     # Create a new periodicity instance
+    if periodicity['id'] < 0:
+        # Generate a new ID if negative
+        max_periodicity_id = rm.ReservationPeriodicity.objects.aggregate(max_id=Max('pk')).get('max_id')
+        periodicity['id'] = 1 if max_periodicity_id is None else max_periodicity_id
     periodicity_instance = model.objects.create(**periodicity)
     # Create the future reservations
     for reservation in ok_reservations:
@@ -168,18 +173,25 @@ class RoomReservationSerializer(serializers.ModelSerializer):
         # Add the reservation id to ignore conflicts with its previous date
         reservation_data = validated_data
         reservation_data['id'] = instance.id
+
+        # Check if we should create repeated reservations
+        create_repetitions = False
+        if 'create_repetitions' in validated_data:
+            create_repetitions = validated_data.pop('create_repetitions')
+
         # Get the periodicity
         periodicity = validated_data.pop('periodicity', instance.periodicity)
         if periodicity:
             # Has a periodicity
             # Get its data
             periodicity = periodicity['periodicity']
-            if 'id' in periodicity:
+            if 'id' in periodicity and periodicity['id'] > 0:
                 # The changes do not concern the periodicity, check if they can be applied
                 check_reservation_possible(reservation_data)
             else:
-                # If 'id' is not in the periodicity that means a new periodicity for the reservation
-                periodicity_instance = create_reservations_if_possible(periodicity, reservation_data)
+                # If 'id' is not in the periodicity or the id is present and negative that means a new periodicity
+                # for the reservation
+                periodicity_instance = create_reservations_if_possible(periodicity, reservation_data, create_repetitions)
                 instance.periodicity = periodicity_instance
         else:
             # Does not have a periodicity, check if the reservation is possible

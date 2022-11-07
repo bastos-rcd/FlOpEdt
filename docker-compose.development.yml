@@ -1,22 +1,30 @@
-version: '3'
+version: '3.8'
 
 services:
   db:
     image: postgres
+    profiles:
+      - full
     environment:
       PGDATA: /var/lib/postgresql/data/flopedt-${BRANCH:-master}
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5445:5432"
+
   redis:
     image: redis:latest
+    profiles:
+      - full
     ports:
       - "${REDIS_PORT-6379}:6379"
+
   web:
     build:
       context: .
       args:
         CONFIG: development
+    profiles:
+      - full
     env_file: 
       - ./docker/env/db.env
       - ./docker/env/web.env
@@ -29,7 +37,23 @@ services:
     volumes:
       - .:/code
     ports:
-      - "${PORT-80}:8000"
+      - "${PORT}:8000"
     depends_on:
       - db
       - redis
+      - vue
+
+  vue:
+    build:
+      dockerfile: ./Dockerfile-Vue
+    profiles:
+      - full
+    user: "${UID}:${GID}"
+    environment:
+      - CONFIG=development
+    volumes:
+      - ./FlOpEDT:/code/FlOpEDT/
+      - ./docker:/code/docker
+    ports:
+      - "8080:8000"
+    entrypoint: /code/docker/script/init-vue.sh

@@ -1,19 +1,23 @@
-version: '3'
+version: '3.8'
 
 services:
 
   memcached:
     image: memcached
+    profiles:
+      - full
 
   db:
     restart: always
     image: postgres
+    profiles:
+      - full
     env_file:
       - ./docker/env/db.env
       - ./docker/env/db.prod.env
     volumes:
-      - "db-data:/var/lib/postgresql/data"
-      - "db-backup:/backup"
+      - db-data:/var/lib/postgresql/data
+      - db-backup:/backup
     deploy:
       resources:
         limits:
@@ -22,16 +26,23 @@ services:
   nginx:
     restart: always
     image: "nginx"
+    profiles:
+      - full
     ports:
-      - "${PORT-80}:80"
+      - "${PORT}:${PORT}"
     volumes:
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./docker/nginx/templates:/etc/nginx/templates
       - static-volume:/static
+      - certificates:/etc/ssl/fedt
+    env_file:
+      - ./docker/env/global.env
     depends_on:
       - web
 
   redis:
     image: redis:latest
+    profiles:
+      - full
  
   web:
     restart: always
@@ -39,28 +50,64 @@ services:
     build: 
       context: .
       args:
-        CONFIG: production    
+        CONFIG: production
+        BASE_IMG: ${WEB_IMG:-python:3.7}
+    profiles:
+      - full
     env_file:
       - ./docker/env/db.env
       - ./docker/env/db.prod.env      
       - ./docker/env/web.env
       - ./docker/env/web.prod.env
+      - ./docker/env/global.env
     environment:
       - DJANGO_SETTINGS_MODULE=FlOpEDT.settings.production
       - START_SERVER=${START_SERVER:-on}
       - DJANGO_LOADDATA
       - CONFIG=production
+      - GRB_LICENSE_FILE=/opt/gurobi/gurobi.lic:ro
     volumes:
-      - static-volume:/code/FlOpEDT/static
+      - static-volume:/code/FlOpEDT/var/static
       - media-volume:/code/FlOpEDT/media
+      - .:/code
+      - type: bind
+        source: ./gurobi.lic
+        target: /opt/gurobi/gurobi.lic:ro
+        read_only: true
     depends_on:
-      - db
-      - redis      
-      - memcached
-    entrypoint: /code/docker/script/init.sh  
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
+      memcached:
+        condition: service_started
+    entrypoint: /code/docker/script/init.sh
+
+  vue:
+    build:
+      dockerfile: ./Dockerfile-Vue
+    user: "${UID}:${GID}"
+    environment:
+      - CONFIG=production
+    profiles:
+      - vue
+    volumes:
+      - ./FlOpEDT:/code/FlOpEDT/
+      - ./docker:/code/docker
+    entrypoint: /code/docker/script/init-vue.sh
+
+  certif-create:
+    image: zerossl/client
+    profiles: # Use a profile to not run it with other services, as this service should run alone
+      - ssl
+    volumes:
+      - certificates:/data
+      - ./FlOpEDT/acme_challenge/token:/webroot
+    command: --key account.key --csr ${FLOP_HOST}.csr --csr-key ${FLOP_HOST}.key --crt ${FLOP_HOST}.crt --domains "${FLOP_HOST}" --generate-missing --path /webroot --unlink --live ${CERTIF_RENEW}
 
 volumes:
   media-volume:
   static-volume:
   db-data:
   db-backup:
+  certificates:

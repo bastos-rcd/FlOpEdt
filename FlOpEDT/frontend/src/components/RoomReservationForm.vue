@@ -363,7 +363,7 @@ import { Time } from '@/assets/js/types'
 import DayPicker from '@/components/DayPicker.vue'
 import ModalForm from '@/components/ModalForm.vue'
 import TimePicker from '@/components/TimePicker.vue'
-import { computed, defineProps, Ref, ref, watch, watchEffect } from 'vue'
+import { computed, ComputedRef, defineProps, Ref, ref, watch, watchEffect } from 'vue'
 import PeriodicitySelect from '@/components/PeriodicitySelect.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
 import type { Room } from '@/stores/room'
@@ -477,11 +477,14 @@ const isCreatingPeriodicity = ref(false)
 const initPeriodicity = computed(() => (props.reservation.periodicity ? props.reservation.periodicity : null))
 const periodicityStart = ref(initPeriodicity.value ? initPeriodicity.value.periodicity.start : props.reservation.date)
 const periodicityEndMinDate = computed(() => {
-    const startDate = new Date(periodicityStart.value)
-    return new Date(`${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate() + 1}`)
+    const dayAfter = new Date(periodicityStart.value)
+    dayAfter.setDate(dayAfter.getDate() + 1)
+    return dayAfter
 })
 const periodicityEnd = ref(
-    initPeriodicity.value ? initPeriodicity.value.periodicity.end : periodicityEndMinDate.value.toLocaleDateString()
+    initPeriodicity.value
+        ? initPeriodicity.value.periodicity.end
+        : periodicityEndMinDate.value.toISOString().split('T')[0]
 )
 
 const currentDay = new Date(props.reservation.date).getDay()
@@ -493,7 +496,7 @@ const currentWeekdayRef = computed(() => {
 const selectedPeriodicityType = ref<ReservationPeriodicityType | undefined>(
     initPeriodicity.value
         ? props.periodicityTypes.find((t) => t[0] === initPeriodicity.value?.periodicity.periodicity_type)
-        : undefined
+        : props.periodicityTypes[0]
 )
 
 // Update the reservation periodicity form if the provided periodicity have changed
@@ -510,7 +513,7 @@ watch(
         } else {
             selectedPeriodicityType.value = undefined
             periodicityStart.value = props.reservation.date
-            periodicityEnd.value = periodicityEndMinDate.value.toLocaleDateString()
+            periodicityEnd.value = periodicityEndMinDate.value.toISOString().split('T')[0]
         }
     }
 )
@@ -522,9 +525,9 @@ watch(isWholeDay, (wholeDay) => {
     }
 })
 
-const periodicityData: Ref<ReservationPeriodicityData | null> = ref(
-    initPeriodicity.value ? initPeriodicity.value.periodicity : null
-)
+const periodicityData: ComputedRef<ReservationPeriodicityData | null> = computed(() => {
+    return initPeriodicity.value ? initPeriodicity.value.periodicity : null
+})
 
 const requiredClass = 'border border-danger rounded'
 
@@ -620,7 +623,6 @@ function resetValues() {
     selectedResponsible.value = props.reservation.responsible
     selectedRoom.value = props.reservation.room
     selectedType.value = props.reservation.reservation_type
-    periodicityData.value = initPeriodicity.value ? initPeriodicity.value.periodicity : null
     email.value = props.reservation.email
     startTime.value = ReservationTime.fromString(props.reservation.start_time)
     endTime.value = ReservationTime.fromString(props.reservation.end_time)
@@ -629,6 +631,7 @@ function resetValues() {
     shouldDayPickerReset.value = true
     shouldStartTimePickerReset.value = true
     shouldEndTimePickerReset.value = true
+    isCreatingPeriodicity.value = false
 }
 
 function onFormCancel() {
@@ -638,7 +641,7 @@ function onFormCancel() {
 
 async function onFormSave() {
     isFormLocked.value = true
-    if (!props.isNew && selectedPeriodicityType.value) {
+    if (!props.isNew && props.reservation.periodicity && props.reservation.periodicity.periodicity.id >= 0) {
         switchToEditDialog()
     } else {
         saveReservation()
@@ -651,8 +654,8 @@ function onPeriodicityDeletionCancel() {
 
 function onPeriodicityDeletionConfirm() {
     isDialogLocked.value = true
+    isCreatingPeriodicity.value = false
     props.onPeriodicityDelete(props.reservation).then((_) => {
-        periodicityData.value = null
         isDialogLocked.value = false
         switchToForm()
     })
@@ -683,11 +686,12 @@ function onReservationConflictAcceptCreation() {
         switchToForm()
         return
     }
+    isReservationConflictDialogOpen.value = false
     saveReservation(true)
 }
 
 function extractPeriodicity(): ReservationPeriodicityData | null {
-    if (!selectedPeriodicityType.value) {
+    if (!selectedPeriodicityType.value || !isCreatingPeriodicity.value) {
         return null
     }
 
@@ -704,6 +708,7 @@ function extractPeriodicity(): ReservationPeriodicityData | null {
             periodicityToUpdate = periodicityChoice.value.BM
             break
     }
+    periodicityToUpdate.end = periodicityEnd.value
     return periodicityToUpdate
 }
 
@@ -787,6 +792,7 @@ function removePeriodicity() {
     }
     // ...otherwise just cancel the creation
     isCreatingPeriodicity.value = false
+    selectedPeriodicityType.value = undefined
 }
 
 function switchToPeriodicityDeletionDialog() {

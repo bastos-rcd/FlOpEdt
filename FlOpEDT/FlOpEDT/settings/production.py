@@ -96,4 +96,3 @@ DEBUG = False
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS','localhost').split(',')
 
 SECRET_KEY = os.environ['SECRET_KEY']
-
