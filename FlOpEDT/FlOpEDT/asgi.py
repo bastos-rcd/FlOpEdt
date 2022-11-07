@@ -7,6 +7,6 @@ import os
 import django
 from channels.routing import get_default_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "FlOpEDT.settings.production")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "FlOpEDT.settings.dockerless-production")
 django.setup()
 application = get_default_application()
