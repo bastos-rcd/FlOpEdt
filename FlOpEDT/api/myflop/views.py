@@ -171,7 +171,7 @@ class PayViewSet(viewsets.ViewSet):
                 .filter(Q_filter_week,
                         course__module__train_prog__department=dept,
                         work_copy=0,
-                        course__tutor__status__in=status_set,
+                        tutor__status__in=status_set,
                         **supp_filters)\
                 .annotate(
                     department=F('course__type__department__abbrev'),
