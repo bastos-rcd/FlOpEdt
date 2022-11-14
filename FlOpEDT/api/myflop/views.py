@@ -230,11 +230,16 @@ class PayViewSet(viewsets.ViewSet):
                   decorator=swagger_auto_schema(
                       manual_parameters=[
                           dept_param(required=False),
-                          openapi.Parameter('month',
+                          openapi.Parameter('from_month',
                                             openapi.IN_QUERY,
-                                            description="month",
+                                            description="from_month",
                                             type=openapi.TYPE_INTEGER,
-                                            required=True),
+                                            required=False),
+                          openapi.Parameter('to_month',
+                                            openapi.IN_QUERY,
+                                            description="to_month",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=False),
                           openapi.Parameter('year',
                                             openapi.IN_QUERY,
                                             description="year",
@@ -255,9 +260,9 @@ class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
 
     def list(self, request):
         param_exception = NotAcceptable(
-            detail=f"Les champs mois, annee et prof sont requis"
+            detail=f"Les champs annee et prof sont requis"
         )
-        wanted_param = ['month', 'year', 'tutor']
+        wanted_param = ['year', 'tutor']
 
         # check that all parameters are given
         for param in wanted_param:
@@ -279,11 +284,13 @@ class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
                 raise APIException(detail='Unknown tutor')
 
         year = int(self.request.query_params.get('year'))
-        month = int(self.request.query_params.get('month'))
+        from_month = int(self.request.query_params.get('from_month', 1))
+        to_month = int(self.request.query_params.get('to_month', 12))
 
         day_volumes_list = []
 
-        sched_courses = scheduled_courses_of_the_month(year=year, month=month, department=dept, tutor=tutor)
+        sched_courses = scheduled_courses_of_the_month(year=year, from_month=from_month, to_month=to_month,
+                                                       department=dept, tutor=tutor)
         for dayschedcourse in sched_courses.distinct("course__week", "day"):
             week = dayschedcourse.course.week
             week_day = dayschedcourse.day
@@ -316,11 +323,16 @@ class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
                   decorator=swagger_auto_schema(
                       manual_parameters=[
                           dept_param(required=False),
-                          openapi.Parameter('month',
+                          openapi.Parameter('from_month',
                                             openapi.IN_QUERY,
-                                            description="month",
+                                            description="from_month",
                                             type=openapi.TYPE_INTEGER,
-                                            required=True),
+                                            required=False),
+                          openapi.Parameter('to_month',
+                                            openapi.IN_QUERY,
+                                            description="to_month",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=False),
                           openapi.Parameter('year',
                                             openapi.IN_QUERY,
                                             description="year",
@@ -341,7 +353,7 @@ class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
 
     def list(self, request):
         param_exception = NotAcceptable(
-            detail=f"Les champs month, year et room sont requis"
+            detail=f"Les champs year et room sont requis"
         )
         wanted_param = ['month', 'year', 'room']
 
@@ -365,11 +377,13 @@ class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
                 raise APIException(detail='Unknown tutor')
 
         year = int(self.request.query_params.get('year'))
-        month = int(self.request.query_params.get('month'))
+        from_month = int(self.request.query_params.get('from_month', 1))
+        to_month = int(self.request.query_params.get('to_month', 12))
 
         day_volumes_list = []
 
-        sched_courses = scheduled_courses_of_the_month(year=year, month=month, department=dept, room=room)
+        sched_courses = scheduled_courses_of_the_month(year=year, from_month=from_month, to_month=to_month,
+                                                       department=dept, room=room)
         for dayschedcourse in sched_courses.distinct("course__week", "day"):
             week = dayschedcourse.course.week
             week_day = dayschedcourse.day
@@ -390,15 +404,21 @@ class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
 
 
 
-
-def scheduled_courses_of_the_month(year, month, department=None, tutor=None, room=None):
-    start_month = datetime.datetime(year, month, 1)
-    start_year, start_week_nb, start_day = start_month.isocalendar()
-    if month < 12:
-        end_month = datetime.datetime(year, month+1, 1) - datetime.timedelta(1)
+def scheduled_courses_of_the_month(year, from_month=None, to_month=None, department=None, tutor=None, room=None):
+    if from_month is None:
+        start_month = datetime.datetime(year, 1, 1)
     else:
-        end_month = datetime.datetime(year+1, 1, 1) - datetime.timedelta(1)
+        start_month = datetime.datetime(year, from_month, 1)
+    start_year, start_week_nb, start_day = start_month.isocalendar()
+
+    if to_month is None:
+        end_month = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(1)
+    elif to_month == 12:
+        end_month = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(1)
+    else:
+        end_month = datetime.datetime(year, to_month+1, 1) - datetime.timedelta(1)
     end_year, end_week_nb, end_day = end_month.isocalendar()
+
     start_week = Week.objects.get(nb=start_week_nb, year=start_year)
     end_week = Week.objects.get(nb=end_week_nb, year=end_year)
     if start_year == end_year:
