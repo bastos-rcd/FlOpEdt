@@ -1009,7 +1009,8 @@ def edt_changes(req, **kwargs):
 
     recv_changes = json.loads(req.POST.get('tab', []))
 
-    msg = ''
+    intro = f'Bonjour,\n\n{initiator.first_name} {initiator.last_name} a effectué les modifications suivantes \n\n'
+    msg = {}
 
     logger.info(f"REQ: edt change; W{week} WC{work_copy} V{old_version} "
                 f"by {initiator.username}")
@@ -1036,7 +1037,8 @@ def edt_changes(req, **kwargs):
                     if work_copy == 0:
                         same, changed = new_courses['log'].strs_course_changes(
                         )
-                        msg += str(new_courses['log'])
+                        impacted_tutor = new_courses['sched'].tutor
+                        msg[impacted_tutor] = str(new_courses['log'])
                         impacted_inst.add(new_courses['course'].tutor)
                         impacted_inst.add(new_courses['sched'].tutor)
                         if None in impacted_inst:
@@ -1053,6 +1055,23 @@ def edt_changes(req, **kwargs):
 
             cache.delete(get_key_course_pl(department.abbrev, week, work_copy))
             cache.delete(get_key_course_pp(department.abbrev, week, work_copy))
+
+        if work_copy == 0:
+            subject = '[flop!EDT] ' + initiator.username + ' a changé votre EDT'
+
+            if initiator in impacted_inst:
+                impacted_inst.remove(initiator)
+            for tutor in impacted_inst:
+                notif_pref, created = NotificationsPreferences.objects.get_or_create(user=tutor)
+                if notif_pref.notify_other_user_modifications:
+                    email = EmailMessage(
+                        subject,
+                        msg[tutor],
+                        to=[tutor.email]
+                    )
+                    #email.send()
+                    print(msg[tutor])
+                    logger.info(email)
 
         return JsonResponse(good_response)
     else:
