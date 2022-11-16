@@ -50,7 +50,7 @@ from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak, BreakAroundC
 from TTapp.TTConstraints.visio_constraints import NoVisio, BoundPhysicalPresenceHalfDays, LimitGroupsPhysicalPresence, \
     VisioOnly, Curfew
 from TTapp.TTConstraints.cosmo_style_constraints import LimitHoles, LimitTutorTimePerWeeks, ModulesByBloc
-
+from TTapp.TTConstraints.simultaneity_constraints import NotAloneForTheseCouseTypes
 from TTapp.RoomConstraints.RoomConstraint import ConsiderRoomSorts, LocateAllCourses, LimitedRoomChoices, \
     LimitGroupMoves, LimitTutorMoves
 #

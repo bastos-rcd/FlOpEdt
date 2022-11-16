@@ -45,7 +45,8 @@ from TTapp.models import \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
     ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber, \
-    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts,AvoidBothTimesSameDay, AvoidStartTimes
+    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts,AvoidBothTimesSameDay, AvoidStartTimes, \
+    NotAloneForTheseCouseTypes
 
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
@@ -375,6 +376,7 @@ admin.site.register(LimitTutorTimePerWeeks, BasicConstraintAdmin)
 admin.site.register(ModulesByBloc, BasicConstraintAdmin)
 admin.site.register(LimitUndesiredSlotsPerWeek, BasicConstraintAdmin)
 admin.site.register(LimitSimultaneousCoursesNumber, BasicConstraintAdmin)
+admin.site.register(NotAloneForTheseCouseTypes, BasicConstraintAdmin)
 admin.site.register(LocateAllCourses, RoomConstraintAdmin)
 admin.site.register(LimitTutorMoves, RoomConstraintAdmin)
 admin.site.register(LimitGroupMoves, RoomConstraintAdmin)
