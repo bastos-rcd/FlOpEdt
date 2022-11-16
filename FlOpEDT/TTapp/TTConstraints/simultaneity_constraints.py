@@ -97,7 +97,7 @@ class NotAloneForTheseCouseTypes(TTConstraint):
         tutors_to_consider = considered_tutors(self, ttmodel)
         guides_to_consider = set(ttmodel.wdb.instructors)
         if self.guide_tutors.exists():
-            guides_to_consider &= set(self.tutors.all())
+            guides_to_consider &= set(self.guide_tutors.all())
         for tutor in tutors_to_consider:
             for ct in considered_course_types:
                 for m in considered_modules:
