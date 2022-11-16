@@ -24,7 +24,6 @@
 # without disclosing the source code of your own applications.
 
 from django.db import models
-from base.models import Module
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
@@ -87,18 +86,20 @@ class NotAloneForTheseCouseTypes(TTConstraint):
 
         return text
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
-        considered_course_types = self.course_types.all()
-        if considered_course_types is None:
-            considered_course_types = ttmodel.department.coursetype_set.all()
-        considered_modules = self.modules.all()
-        if considered_modules is None:
-            considered_modules = Module.objects.filter(period__department=ttmodel.department)
+    def enrich_ttmodel(self, ttmodel, week, ponderation=10):
+        considered_course_types = ttmodel.wdb.course_types
+        if self.course_types.exists():
+            considered_course_types &= set(self.course_types.all())
+        considered_modules = ttmodel.wdb.modules
+        if self.modules.exists():
+            considered_modules &= set(self.modules.all())
         tutors_to_consider = considered_tutors(self, ttmodel)
         guides_to_consider = set(ttmodel.wdb.instructors)
         if self.guide_tutors.exists():
             guides_to_consider &= set(self.guide_tutors.all())
+
         for tutor in tutors_to_consider:
+            possible_tutor_guides = guides_to_consider - {tutor}
             for ct in considered_course_types:
                 for m in considered_modules:
                     courses = set(ttmodel.wdb.courses.filter(module=m, type=ct, week=week))
@@ -109,10 +110,11 @@ class NotAloneForTheseCouseTypes(TTConstraint):
                         tutor_sum = ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor]
                                                 for c in tutor_courses & ttmodel.wdb.compatible_courses[sl])
                         guide_tutors_sum = ttmodel.sum(ttmodel.TTinstructors[sl, c, g]
-                                                       for g in guides_to_consider
+                                                       for g in possible_tutor_guides
                                                        for c in courses & ttmodel.wdb.compatible_courses[sl]
                                                        & ttmodel.wdb.possible_courses[g]
                                                        )
+                        print(sl, tutor_sum, guide_tutors_sum)
                         if self.weight is None:
                             ttmodel.add_constraint(tutor_sum - guide_tutors_sum, '<=', 0,
                                                    Constraint(constraint_type=ConstraintType.NOT_ALONE,
@@ -120,10 +122,13 @@ class NotAloneForTheseCouseTypes(TTConstraint):
                                                    )
                         else:
                             tutor_without_a_guide = ttmodel.add_var()
-                            ttmodel.add_constraint(100 * tutor_without_a_guide + guide_tutors_sum - tutor_sum, '<=',
-                                                   100)
+                            # if new_var is 1, then not_ok
+                            ttmodel.add_constraint(100 * tutor_without_a_guide + (guide_tutors_sum - tutor_sum),
+                                                   '<=',
+                                                   99)
 
-                            ttmodel.add_constraint(tutor_sum - guide_tutors_sum - 100 * tutor_without_a_guide,
+                            # if not_ok (t_s > g_t_s) then new_var is 1
+                            ttmodel.add_constraint((tutor_sum - guide_tutors_sum) - 100 * tutor_without_a_guide,
                                                    '<=',
                                                    0)
-                            ttmodel.add_to_inst_cost(tutor, 100*tutor_without_a_guide)
+                            ttmodel.add_to_inst_cost(tutor, self.local_weight()*ponderation*tutor_without_a_guide)
