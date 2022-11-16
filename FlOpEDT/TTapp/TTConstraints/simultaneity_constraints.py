@@ -105,7 +105,7 @@ class NotAloneForTheseCouseTypes(TTConstraint):
                     tutor_courses = courses & ttmodel.wdb.possible_courses[tutor]
                     if not ttmodel.wdb.possible_courses[tutor] & courses:
                         continue
-                    for sl in slots_filter(ttmodel.wdb.slots, course_type=ct, week=week):
+                    for sl in slots_filter(ttmodel.wdb.courses_slots, week=week):
                         tutor_sum = ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor]
                                                 for c in tutor_courses & ttmodel.wdb.compatible_courses[sl])
                         guide_tutors_sum = ttmodel.sum(ttmodel.TTinstructors[sl, c, g]
