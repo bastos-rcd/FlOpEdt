@@ -14,7 +14,13 @@
                 :is-new="props.data.reservation.id < 0"
                 :rooms="props.data.rooms"
                 :reservation-types="props.data.reservationTypes"
+                :periodicity-types="props.data.periodicityTypes"
                 :users="props.data.users"
+                :weekdays="props.data.weekdays"
+                :periodicity="props.data.periodicity"
+                :on-periodicity-delete="props.data.onPeriodicityDelete"
+                :day-start="props.data.dayStart"
+                :day-end="props.data.dayEnd"
                 @closed="closeEdit"
                 @saved="onSave"
                 @cancelled="onCancel"
@@ -43,7 +49,7 @@ import type {
     CalendarSlotInterface,
     RoomReservation,
 } from '@/assets/js/types'
-import CalendarSlotContextMenu from '@/components/calendar/CalendarSlotContextMenu.vue'
+import CalendarSlotContextMenu from '@/components/CalendarSlotContextMenu.vue'
 import RoomReservationForm from '@/components/RoomReservationForm.vue'
 import { onMounted, ref } from 'vue'
 

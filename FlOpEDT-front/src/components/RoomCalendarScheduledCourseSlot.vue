@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import CalendarScheduledCourseSlot from '@/components/calendar/CalendarScheduledCourseSlot.vue'
+import CalendarScheduledCourseSlot from '@/components/CalendarScheduledCourseSlot.vue'
 import type { CalendarScheduledCourseSlotData } from '@/assets/js/types'
 
 interface Props {

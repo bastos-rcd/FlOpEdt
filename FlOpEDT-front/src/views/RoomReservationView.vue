@@ -1,6 +1,14 @@
 <template>
     <div>
         <div class="loader" v-if="loaderIsVisible"></div>
+        <DeletePeriodicReservationDialog
+            :is-open="isReservationDeletionDialogOpen"
+            :reservation="reservationToDelete"
+            :on-confirm-current="reservationDeletionConfirmed"
+            :on-confirm-all="reservationRemoveAllSamePeriodicity"
+            :on-confirm-future="reservationRemoveCurrentAndFutureSamePeriodicity"
+            :on-cancel="closeReservationDeletionDialog"
+        ></DeletePeriodicReservationDialog>
         <div class="container-fluid">
             <div class="row">
                 <!-- Week picker and filters -->
@@ -10,49 +18,76 @@
                         <!-- Filters -->
                         <div class="col">
                             <!-- Room filter -->
-                            <div class="mb-3">
+                            <div class="row mb-3">
                                 <label for="select-room" class="form-label">Room:</label>
-                                <select
-                                    id="select-room"
-                                    v-model="selectedRoom"
-                                    class="form-select w-auto"
-                                    aria-label="Select room"
-                                >
-                                    <option :value="undefined">All rooms</option>
-                                    <option
-                                        v-for="room in Object.values(rooms.perIdFilterBySelectedDepartments.value)
-                                            .filter((r) => r.is_basic)
-                                            .sort((r1, r2) => {
-                                                return r1.name.toLowerCase().localeCompare(r2.name.toLowerCase())
-                                            })"
-                                        :key="room.id"
-                                        :value="room"
+                                <div v-if="selectedRoom" class="col-auto pe-0">
+                                    <button type="button" class="btn-close" @click="handleRoomNameClick(-1)"></button>
+                                </div>
+
+                                <div class="col-auto">
+                                    <select
+                                        id="select-room"
+                                        v-model="selectedRoom"
+                                        class="form-select w-auto"
+                                        aria-label="Select room"
                                     >
-                                        {{ room.name }}
-                                    </option>
-                                </select>
+                                        <option :value="undefined">All rooms</option>
+                                        <option
+                                            v-for="room in Object.values(rooms.perIdFilterBySelectedDepartments.value)
+                                                .filter((r) => r.is_basic)
+                                                .sort((r1, r2) => {
+                                                    return r1.name.toLowerCase().localeCompare(r2.name.toLowerCase())
+                                                })"
+                                            :key="room.id"
+                                            :value="room"
+                                        >
+                                            {{ room.name }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                             <!-- Department filter -->
-                            <div class="mb-3">
+                            <div class="row mb-3">
                                 <label for="select-department" class="form-label">Department:</label>
-                                <select
-                                    id="select-department"
-                                    v-model="selectedDepartment"
-                                    class="form-select w-auto ms-1"
-                                    aria-label="Select department"
-                                >
-                                    <option :value="undefined">All departments</option>
-                                    <option v-for="dept in departments.list.value" :key="dept.id" :value="dept">
-                                        {{ dept.abbrev }}
-                                    </option>
-                                </select>
+                                <div v-if="selectedDepartment" class="col-auto pe-0">
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        @click="handleDepartmentNameClick(-1)"
+                                    ></button>
+                                </div>
+
+                                <div class="col-auto">
+                                    <select
+                                        id="select-department"
+                                        v-model="selectedDepartment"
+                                        class="form-select w-auto ms-1"
+                                        aria-label="Select department"
+                                    >
+                                        <option :value="undefined">All departments</option>
+                                        <option
+                                            v-for="dept in departmentStore.departments"
+                                            :key="dept.id"
+                                            :value="dept"
+                                        >
+                                            {{ dept.abbrev }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
-                            <!-- Room attribute filters -->
-                            <div v-if="!selectedRoom">
+                            <!-- Room attribute and name filters -->
+                            <div v-if="!selectedRoom" class="row">
+                                <div class="mb-3">
+                                    <ClearableInput
+                                        :input-id="'filter-input-roomName'"
+                                        :label="'Filter by room name:'"
+                                        v-model:text="roomNameFilter"
+                                    ></ClearableInput>
+                                </div>
                                 <div class="mb-3">
                                     <DynamicSelect
                                         v-bind="{
-                                            id: 'select-attribute-bool',
+                                            id: 'filter-select-attribute',
                                             label: 'Filter by attributes:',
                                             values: createFiltersValues(),
                                         }"
@@ -65,8 +100,22 @@
                 </div>
                 <!-- Calendar -->
                 <div class="col">
+                    <!-- Caption -->
+                    <div class="row">
+                        <div class="col-auto">
+                            <div><span :style="{ color: scheduledCourseColor }">■ </span>Course</div>
+                        </div>
+                        <div v-for="type in roomReservationTypes.list.value" :key="type.id" class="col-auto">
+                            <div><span :style="{ color: type.bg_color }">■ </span>{{ type.name }}</div>
+                        </div>
+                    </div>
                     <HourCalendar v-if="selectedRoom" @drag="handleDrag" :values="hourCalendarValues"></HourCalendar>
-                    <RoomCalendar v-else @new-slot="handleNewSlot" :values="roomCalendarValues"></RoomCalendar>
+                    <RoomCalendar
+                        v-else
+                        @new-slot="handleNewSlot"
+                        :values="roomCalendarValues"
+                        @row-header-click="handleRoomNameClick"
+                    ></RoomCalendar>
                 </div>
             </div>
         </div>
@@ -75,8 +124,8 @@
 
 <script setup lang="ts">
 import type { FlopAPI } from '@/assets/js/api'
-import { convertDecimalTimeToHuman, listGroupBy, parseReason, toStringAtLeastTwoDigits } from '@/assets/js/helpers'
-import { apiKey, apiToken, currentWeekKey, requireInjection } from '@/assets/js/keys'
+import { createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits } from '@/helpers'
+import { apiKey, currentWeekKey, requireInjection } from '@/assets/js/keys'
 import type {
     BooleanRoomAttributeValue,
     CalendarDragEvent,
@@ -85,14 +134,14 @@ import type {
     CalendarScheduledCourseSlotData,
     CalendarSlot,
     CourseType,
-    Department,
     DynamicSelectElementBooleanValue,
     DynamicSelectElementNumericValue,
     DynamicSelectElementValue,
     FlopWeek,
     HourCalendarProps,
     NumericRoomAttributeValue,
-    Room,
+    ReservationPeriodicity,
+    ReservationPeriodicityType,
     RoomAttribute,
     RoomAttributeValue,
     RoomCalendarProps,
@@ -102,25 +151,29 @@ import type {
     User,
     WeekDay,
 } from '@/assets/js/types'
-import { ScheduledCourse, Time } from '@/assets/js/types'
-import HourCalendar from '@/components/calendar/HourCalendar.vue'
+import type { ScheduledCourse, Time } from '@/assets/js/types'
+import HourCalendar from '@/components/HourCalendar.vue'
 import WeekPicker from '@/components/WeekPicker.vue'
-import { getDepartment } from '@/main'
 import type { ComputedRef, Ref } from 'vue'
 import { computed, markRaw, onMounted, ref, shallowRef, watchEffect } from 'vue'
-import RoomCalendar from '@/components/calendar/RoomCalendar.vue'
-import HourCalendarRoomReservationSlot from '@/components/calendar/HourCalendarRoomReservationSlot.vue'
-import RoomCalendarRoomReservationSlot from '@/components/calendar/RoomCalendarRoomReservationSlot.vue'
-import HourCalendarScheduledCourseSlot from '@/components/calendar/HourCalendarScheduledCourseSlot.vue'
-import RoomCalendarScheduledCourseSlot from '@/components/calendar/RoomCalendarScheduledCourseSlot.vue'
-import DynamicSelect from '@/components/dynamicSelect/DynamicSelect.vue'
-import DynamicSelectedElementNumeric from '@/components/dynamicSelect/DynamicSelectedElementNumeric.vue'
-import DynamicSelectedElementBoolean from '@/components/dynamicSelect/DynamicSelectedElementBoolean.vue'
+import RoomCalendar from '@/components/RoomCalendar.vue'
+import HourCalendarRoomReservationSlot from '@/components/HourCalendarRoomReservationSlot.vue'
+import RoomCalendarRoomReservationSlot from '@/components/RoomCalendarRoomReservationSlot.vue'
+import HourCalendarScheduledCourseSlot from '@/components/HourCalendarScheduledCourseSlot.vue'
+import RoomCalendarScheduledCourseSlot from '@/components/RoomCalendarScheduledCourseSlot.vue'
+import DynamicSelect from '@/components/DynamicSelect.vue'
+import DynamicSelectedElementNumeric from '@/components/DynamicSelectedElementNumeric.vue'
+import DynamicSelectedElementBoolean from '@/components/DynamicSelectedElementBoolean.vue'
+import ClearableInput from '@/components/ClearableInput.vue'
+import DeletePeriodicReservationDialog from '@/components/DeletePeriodicReservationDialog.vue'
+import type { Department } from '@/stores/department'
+import { useDepartmentStore } from '@/stores/department'
+import { type Room, useRoomStore } from '@/stores/room'
 
 const api = ref<FlopAPI>(requireInjection(apiKey))
-const authToken = requireInjection(apiToken)
 const currentWeek = ref(requireInjection(currentWeekKey))
-const currentDepartment = getDepartment()
+let currentDepartment = ''
+let currentUserId = -1
 let loadingCounter = 0
 
 interface RoomAttributeEntry {
@@ -129,12 +182,9 @@ interface RoomAttributeEntry {
 }
 
 interface Rooms {
-    list: ComputedRef<Array<Room>>
-    perDepartment: Ref<{ [departmentId: string]: Array<Room> }>
     perDepartmentFilterBySelectedDepartments: ComputedRef<{ [departmentId: string]: Array<Room> }>
     listFilterBySelectedDepartments: ComputedRef<Array<Room>>
     perIdFilterBySelectedDepartments: ComputedRef<{ [roomId: string]: Room }>
-    perId: ComputedRef<{ [roomId: string]: Room }>
     listFilterBySelectedDepartmentsAndFilters: ComputedRef<Array<Room>>
 }
 
@@ -156,15 +206,16 @@ interface CourseTypes {
 interface RoomReservations {
     list: Ref<Array<RoomReservation>>
     perDay: ComputedRef<{ [day: string]: Array<RoomReservation> }>
-    perDayFilterByDepartmentsAndRooms: ComputedRef<{ [day: string]: Array<RoomReservation> }>
-    perDayPerRoomFilterBySelectedDepartments: ComputedRef<{
-        [day: string]: { [roomId: string]: Array<RoomReservation> }
-    }>
 }
 
 interface RoomReservationTypes {
     list: Ref<Array<RoomReservationType>>
     perId: ComputedRef<{ [typeId: string]: RoomReservationType }>
+}
+
+interface ReservationPeriodicities {
+    list: Ref<Array<ReservationPeriodicity>>
+    perId: ComputedRef<{ [periodicityId: string]: ReservationPeriodicity }>
 }
 
 interface Users {
@@ -182,31 +233,26 @@ interface RoomAttributeValues {
     numericList: Ref<Array<NumericRoomAttributeValue>>
 }
 
-// API data
-const departments = {
-    list: ref<Array<Department>>([]),
-}
+const departmentStore = useDepartmentStore()
+const roomStore = useRoomStore()
 
 const weekDays = {
     list: ref<Array<WeekDay>>([]),
 }
 
 const rooms: Rooms = {
-    list: computed(() => {
-        const out: Array<Room> = []
-        Object.values(rooms.perDepartment.value).forEach((rooms) => {
-            out.push(...rooms.filter((room) => !out.includes(room)))
-        })
-        return out
-    }),
-    perDepartment: ref({}),
     perDepartmentFilterBySelectedDepartments: computed(() => {
-        return filterBySelectedDepartments(rooms.perDepartment.value)
+        return filterBySelectedDepartments(roomStore.perDepartment)
     }),
     listFilterBySelectedDepartments: computed(() => {
         const out: Array<Room> = []
         Object.values(rooms.perDepartmentFilterBySelectedDepartments.value).forEach((rooms) => {
             out.push(...rooms.filter((room) => !out.find((r) => r.id === room.id)))
+        })
+        roomStore.rooms.forEach((room) => {
+            if (room.departments.length === 0 && out.findIndex((r) => r.id === room.id) < 0) {
+                out.push(room)
+            }
         })
         return out
     }),
@@ -220,11 +266,8 @@ const rooms: Rooms = {
                 .map((r) => [r.id, r])
         )
     }),
-    perId: computed(() => {
-        return Object.fromEntries(rooms.list.value.map((r) => [r.id, r]))
-    }),
     listFilterBySelectedDepartmentsAndFilters: computed(() => {
-        const filters: Array<
+        const attributeFilters: Array<
             [
                 Array<DynamicSelectElementValue>,
                 Array<RoomAttributeValue>,
@@ -246,11 +289,18 @@ const rooms: Rooms = {
                 },
             ],
         ]
-        return Object.values(rooms.perIdFilterBySelectedDepartments.value).filter((room) => {
+
+        // Filter by room name
+        let out = Object.values(rooms.perIdFilterBySelectedDepartments.value).filter((room) =>
+            room.name.toLowerCase().includes(roomNameFilter.value.toLowerCase())
+        )
+
+        // Filter by attributes
+        out = out.filter((room) => {
             const roomId = room.id
             let matchFilters = true
 
-            filters.forEach((filterEntry) => {
+            attributeFilters.forEach((filterEntry) => {
                 if (!matchFilters) {
                     // Skip the next checks if one failed
                     return
@@ -280,6 +330,7 @@ const rooms: Rooms = {
             })
             return matchFilters
         })
+        return out
     }),
 }
 
@@ -292,7 +343,9 @@ const scheduledCourses: ScheduledCourses = {
         return Object.fromEntries(
             Object.entries(scheduledCourses.perDepartment.value).map((entry) => [
                 entry[0],
-                entry[1].filter((course) => isRoomSelected(course.room) && isRoomInSelectedDepartments(course.room)),
+                entry[1].filter(
+                    (course) => isRoomSelected(course.room.id) && isRoomInSelectedDepartments(course.room.id)
+                ),
             ])
         )
     }),
@@ -313,7 +366,7 @@ const scheduledCourses: ScheduledCourses = {
                 const dept = getScheduledCourseDepartment(course)
                 return dept && selectedDepartments.value.includes(dept)
             })
-            out[day] = listGroupBy(courses, (course) => `${course.room}`)
+            out[day] = listGroupBy(courses, (course) => `${course.room.id}`)
         })
         return out
     }),
@@ -334,33 +387,6 @@ const roomReservations: RoomReservations = {
             return createDateId(date.getDate(), date.getMonth() + 1)
         })
     }),
-    perDayFilterByDepartmentsAndRooms: computed(() => {
-        const out: { [day: string]: Array<RoomReservation> } = Object.fromEntries(
-            Object.entries(roomReservations.perDay.value).map((entry) => {
-                return [
-                    entry[0], // Keep the day as id
-                    entry[1].filter((reservation) => {
-                        // Apply the filter
-                        return isRoomInSelectedDepartments(reservation.room) && isRoomSelected(reservation.room)
-                    }),
-                ]
-            })
-        )
-        return out
-    }),
-    perDayPerRoomFilterBySelectedDepartments: computed(() => {
-        const out: { [day: string]: { [roomId: string]: Array<RoomReservation> } } = {}
-        Object.entries(roomReservations.perDayFilterByDepartmentsAndRooms.value).forEach(
-            (entry: [string, RoomReservation[]]) => {
-                const day = entry[0]
-                out[day] = {}
-                entry[1].forEach((reservation) => {
-                    addTo(out[day], `${reservation.room}`, reservation)
-                })
-            }
-        )
-        return out
-    }),
 }
 
 const roomReservationTypes: RoomReservationTypes = {
@@ -369,6 +395,15 @@ const roomReservationTypes: RoomReservationTypes = {
         return Object.fromEntries(roomReservationTypes.list.value.map((t) => [t.id, t]))
     }),
 }
+
+const reservationPeriodicities: ReservationPeriodicities = {
+    list: ref([]),
+    perId: computed(() => {
+        return Object.fromEntries(reservationPeriodicities.list.value.map((p) => [p.periodicity.id, p]))
+    }),
+}
+
+const reservationPeriodicityTypes = ref<Array<ReservationPeriodicityType>>([])
 
 const users: Users = {
     list: ref([]),
@@ -397,6 +432,9 @@ const lunchBreakFinishTime = ref<Time>({ value: 0, text: '' })
 // Duration of new reservations by default, in minutes
 const newReservationDefaultDuration = 60
 
+// Background color of the course slots
+const scheduledCourseColor = '#3399ff'
+
 // Fill with current date, uses date picker afterwards
 const selectedDate = ref<FlopWeek>({
     week: currentWeek.value.week,
@@ -405,6 +443,9 @@ const selectedDate = ref<FlopWeek>({
 
 const loaderIsVisible = ref(false)
 
+const reservationToDelete = ref<RoomReservation>()
+const isReservationDeletionDialogOpen = ref(false)
+
 const selectedRoom = ref<Room>()
 const selectedDepartment = ref<Department>()
 const selectedDepartments = computed(() => {
@@ -412,11 +453,11 @@ const selectedDepartments = computed(() => {
 
     if (!selectedDepartment.value) {
         // All departments
-        if (!departments.list.value) {
+        if (!departmentStore.departments) {
             // No department fetched, cannot continue
             return []
         }
-        selected = departments.list.value
+        selected = departmentStore.departments
     } else {
         // Department selected, get its name
         selected.push(selectedDepartment.value)
@@ -440,42 +481,61 @@ const selectedNumericAttributes = computed(() => {
         .map((entry) => entry.value)
 })
 
+const roomNameFilter = ref('')
+
 /**
  * Computes the slots to display all the room reservations, grouped by day.
  */
 
 interface RoomReservationSlots {
-    filterBySelectedDepartments: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
+    list: ComputedRef<Array<CalendarSlot>>
+    perDay: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
+    perDayFilterBySelectedDepartmentsAndRooms: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
     perDayPerRoomFilterBySelectedDepartments: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
 }
 
 const roomReservationSlots: RoomReservationSlots = {
-    filterBySelectedDepartments: computed(() => {
+    list: computed(() => {
+        return roomReservations.list.value.map(createRoomReservationSlot)
+    }),
+    perDay: computed(() => {
         const out: { [day: string]: Array<CalendarSlot> } = Object.fromEntries(
-            Object.entries(roomReservations.perDayFilterByDepartmentsAndRooms.value).map((entry) => [
-                // Keep the day as key
+            Object.entries(
+                listGroupBy(roomReservationSlots.list.value, (slot) => {
+                    const date = new Date((slot.slotData as CalendarRoomReservationSlotData).reservation.date)
+                    return createDateId(date.getDate(), date.getMonth() + 1)
+                })
+            )
+        )
+        return out
+    }),
+    perDayFilterBySelectedDepartmentsAndRooms: computed(() => {
+        const out: { [day: string]: Array<CalendarSlot> } = Object.fromEntries(
+            Object.entries(roomReservationSlots.perDay.value).map((entry) => [
                 entry[0],
-                // Create a slot for each of the reservations
-                entry[1].map(createRoomReservationSlot),
+                entry[1].filter((slot) => {
+                    const room = (slot.slotData as CalendarRoomReservationSlotData).reservation.room
+                    return isRoomSelected(room) && isRoomInSelectedDepartments(room)
+                }),
             ])
         )
         return out
     }),
     perDayPerRoomFilterBySelectedDepartments: computed(() => {
-        const out: { [day: string]: { [roomId: string]: Array<CalendarSlot> } } = {}
-        Object.entries(roomReservations.perDayPerRoomFilterBySelectedDepartments.value).forEach((entry) => {
-            const day = entry[0]
-            const reservations = entry[1]
-            if (!(day in out)) {
-                out[day] = {}
-            }
-            Object.values(reservations)
-                .flat(1)
-                .forEach((reservation) => {
-                    const slot = createRoomReservationSlot(reservation)
-                    addTo(out[day], `${reservation.room}`, slot)
-                })
-        })
+        const out: { [day: string]: { [roomId: string]: Array<CalendarSlot> } } = Object.fromEntries(
+            Object.entries(roomReservationSlots.perDay.value).map((entry) => [
+                // First value is the day
+                entry[0],
+                // Group the list by room
+                listGroupBy(
+                    // Filter the rooms not in the selected departments
+                    entry[1].filter((slot) =>
+                        isRoomInSelectedDepartments((slot.slotData as CalendarRoomReservationSlotData).reservation.room)
+                    ),
+                    (slot) => `${(slot.slotData as CalendarRoomReservationSlotData).reservation.room}`
+                ),
+            ])
+        )
         return out
     }),
 }
@@ -484,12 +544,14 @@ const roomReservationSlots: RoomReservationSlots = {
  * Computes the slots to display all the scheduled courses, grouped by day.
  */
 interface ScheduledCourseSlots {
-    perDepartmentFilterBySelectedDepartments: ComputedRef<{ [departmentId: string]: Array<CalendarSlot> }>
+    perDepartmentFilterBySelectedDepartmentsAndRooms: ComputedRef<{
+        [departmentId: string]: Array<CalendarSlot>
+    }>
     perDayPerRoomFilterBySelectedDepartments: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
 }
 
 const scheduledCoursesSlots: ScheduledCourseSlots = {
-    perDepartmentFilterBySelectedDepartments: computed(() => {
+    perDepartmentFilterBySelectedDepartmentsAndRooms: computed(() => {
         const out: { [date: string]: Array<CalendarSlot> } = {}
         Object.entries(scheduledCourses.perDepartmentFilterByDepartmentsAndRooms.value).map((entry) => {
             const deptId = entry[0]
@@ -523,7 +585,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                     const slots: Array<CalendarSlot> = []
                     e[1].forEach((course) => {
                         // Make sure the course's room is in the selected departments
-                        if (!isRoomInSelectedDepartments(course.room)) {
+                        if (!isRoomInSelectedDepartments(course.room.id)) {
                             return
                         }
 
@@ -595,8 +657,8 @@ const hourCalendarValues = computed<HourCalendarProps>(() => {
     const slots: { [index: string]: Array<CalendarSlot> } = {}
 
     for (const obj of [
-        roomReservationSlots.filterBySelectedDepartments.value,
-        scheduledCoursesSlots.perDepartmentFilterBySelectedDepartments.value,
+        roomReservationSlots.perDayFilterBySelectedDepartmentsAndRooms.value,
+        scheduledCoursesSlots.perDepartmentFilterBySelectedDepartmentsAndRooms.value,
         temporaryCalendarSlots.perDay.value,
     ]) {
         Object.keys(obj).forEach((key) => {
@@ -611,8 +673,8 @@ const hourCalendarValues = computed<HourCalendarProps>(() => {
     return Object.assign(
         {
             slots: slots,
-            startTime: dayStartTime.value.value - (60 + (dayStartTime.value.value % 60)),
-            endTime: dayFinishTime.value.value + (60 - (dayFinishTime.value.value % 60)),
+            startTime: dayStartTime.value.value,
+            endTime: dayFinishTime.value.value,
         },
         calendarValues.value
     )
@@ -659,7 +721,7 @@ const roomCalendarValues = computed<RoomCalendarProps>(() => {
 // Update weekDays
 watchEffect(() => {
     console.log('Updating Week days')
-    fetchWeekDays(selectedDate.value.week, selectedDate.value.year).then((value) => {
+    api.value.fetch.weekdays({ week: selectedDate.value.week, year: selectedDate.value.year }).then((value) => {
         weekDays.list.value = value
     })
 })
@@ -676,10 +738,10 @@ watchEffect(() => {
     console.log('Updating Scheduled courses')
     const date = selectedDate.value
 
-    if (!departments.list.value) {
+    if (!departmentStore.departments) {
         return
     }
-    updateScheduledCourses(date, departments.list.value)
+    updateScheduledCourses(date, departmentStore.departments)
 })
 
 // Time settings watcher
@@ -724,11 +786,6 @@ function onTimeSettingsChanged(timeSettings?: Array<TimeSettings>) {
     lunchBreakFinishTime.value = createTime(maxLunchBreakFinishTime)
 }
 
-function createTime(time: number): Time {
-    const text = convertDecimalTimeToHuman(time / 60)
-    return new Time(time, text)
-}
-
 function createRoomReservationSlot(reservation: RoomReservation): CalendarSlot {
     const startTimeRaw = reservation.start_time.split(':')
     const startTimeValue = parseInt(startTimeRaw[0]) * 60 + parseInt(startTimeRaw[1])
@@ -748,12 +805,28 @@ function createRoomReservationSlot(reservation: RoomReservation): CalendarSlot {
         rooms: rooms.perIdFilterBySelectedDepartments.value,
         users: users.perId.value,
         reservationTypes: Object.values(roomReservationTypes.list.value),
+        periodicityTypes: reservationPeriodicityTypes.value,
+        periodicity: reservation.periodicity,
+        weekdays: weekDays.list.value,
         day: reservation.date,
         startTime: startTime,
         endTime: endTime,
+        dayStart: dayStartTime.value,
+        dayEnd: dayFinishTime.value,
         title: reservation.title,
         id: `roomreservation-${reservation.id}`,
         displayStyle: { background: backgroundColor },
+        onPeriodicityDelete: () => {
+            if (!reservation.periodicity) {
+                return Promise.resolve()
+            }
+            const periodicityId = reservation.periodicity.periodicity.id
+            const reservationsRemovalPromise = reservationRemoveFutureSamePeriodicity(reservation)
+            if (!reservationsRemovalPromise) {
+                return Promise.reject(`Could not remove the reservations with periodicity id ${periodicityId}`)
+            }
+            return reservationsRemovalPromise.then((_) => deleteReservationPeriodicity(periodicityId))
+        },
     }
     return {
         slotData: slotData,
@@ -770,17 +843,13 @@ function createScheduledCourseSlot(course: ScheduledCourse, courseType: CourseTy
     const endTime = createTime(course.start_time + courseType.duration)
 
     let departmentName = ''
-    if (departments.list.value) {
-        const department = departments.list.value.find((dept) => `${dept.id}` === deptId)
+    if (departmentStore.departments) {
+        const department = departmentStore.departments.find((dept) => `${dept.id}` === deptId)
         if (department) {
             departmentName = department.abbrev
         }
     }
-    const type = Object.values(roomReservationTypes.list.value).find((type) => type.name === 'Course')
-    let backgroundColor = '#ffffff'
-    if (type) {
-        backgroundColor = type.bg_color
-    }
+
     const slotData: CalendarScheduledCourseSlotData = {
         course: course,
         department: departmentName,
@@ -788,9 +857,9 @@ function createScheduledCourseSlot(course: ScheduledCourse, courseType: CourseTy
         day: course.day,
         startTime: startTime,
         endTime: endTime,
-        title: course.course.module.abbrev,
+        title: course.course.module.abbrev + 'AAA',
         id: `scheduledcourse-${course.course.id}`,
-        displayStyle: { background: backgroundColor },
+        displayStyle: { background: scheduledCourseColor },
     }
     return {
         slotData: slotData,
@@ -821,15 +890,20 @@ function createFiltersValues(): Array<RoomAttributeEntry> {
     )
     out.push(
         ...roomAttributes.numericList.value.map((attribute) => {
+            const values = roomAttributeValues.numericList.value
+                .filter((att) => att.attribute === attribute.id)
+                .map((att) => att.value)
+            const min = Math.min(...values)
+            const max = Math.max(...values)
             return {
                 component: markRaw(DynamicSelectedElementNumeric),
                 value: {
                     id: attribute.id,
                     name: attribute.name,
-                    min: 0,
-                    max: 50,
-                    initialMin: 0,
-                    initialMax: 50,
+                    min: min,
+                    max: max,
+                    initialMin: min,
+                    initialMax: max,
                 },
             }
         })
@@ -844,16 +918,16 @@ function addTo<T>(collection: { [p: string]: Array<T> }, id: string | number, el
     collection[id].push(element)
 }
 
-function updateRoomReservations(date: FlopWeek) {
+function updateRoomReservations(date: FlopWeek): Promise<void> {
     const week = date.week
     const year = date.year
 
     showLoading()
-    fetchRoomReservations(week, year, {}).then((value) => {
+    return api.value.fetch.roomReservations({ week: week, year: year }).then((value) => {
         roomReservations.list.value = value
+        temporaryReservation.value = undefined
         hideLoading()
     })
-    temporaryReservation.value = undefined
 }
 
 function updateScheduledCourses(date: FlopWeek, departments: Array<Department>) {
@@ -871,7 +945,7 @@ function updateScheduledCourses(date: FlopWeek, departments: Array<Department>) 
 
     const coursesList: { [p: string]: ScheduledCourse[] } = {}
     departments.forEach((dept) => {
-        fetchScheduledCourses(week, year, dept.abbrev).then((value) => {
+        api.value.fetch.scheduledCourses({ week: week, year: year, department: dept.abbrev }).then((value) => {
             coursesList[dept.id] = value
             if (--count === 0) {
                 scheduledCourses.perDepartment.value = coursesList
@@ -881,15 +955,29 @@ function updateScheduledCourses(date: FlopWeek, departments: Array<Department>) 
     })
 }
 
+function updateReservationPeriodicities() {
+    return api.value.fetch.reservationPeriodicities().then((value) => {
+        reservationPeriodicities.list.value = value
+    })
+}
+
 function updateRoomReservation(newData: CalendarRoomReservationSlotData, oldData: CalendarRoomReservationSlotData) {
     const newReservation = newData.reservation
     const oldReservation = oldData.reservation
 
     if (oldReservation.id < 0) {
         // The reservation is a new one, just add it to the list
-        roomReservations.list.value.push(newData.reservation)
+        roomReservations.list.value.push(newReservation)
+
         // Clear the temporary slot
         temporaryReservation.value = undefined
+
+        if (newReservation.periodicity != oldReservation.periodicity) {
+            // The reservation has a periodicity, new reservations might have been created.
+            // Update the lists of reservations and periodicity
+            updateRoomReservations(selectedDate.value)
+            updateReservationPeriodicities()
+        }
         return
     }
 
@@ -901,6 +989,14 @@ function updateRoomReservation(newData: CalendarRoomReservationSlotData, oldData
         console.error(`Could not find reservation with id: ${oldReservation.id}`)
         return
     }
+
+    if (newReservation.periodicity != oldReservation.periodicity) {
+        // The reservation has a new periodicity, new reservations might have been created.
+        // Update the lists of reservations and periodicities
+        updateRoomReservations(selectedDate.value)
+        updateReservationPeriodicities()
+    }
+
     // Replace the reservation at index
     roomReservations.list.value[index] = newReservation
 }
@@ -912,14 +1008,129 @@ function handleReason(level: string, message: string) {
 function deleteRoomReservationSlot(toDelete: CalendarRoomReservationSlotData) {
     const reservation = toDelete.reservation
 
+    // Target reservation is a temporary one, just remove the slot
     if (reservation.id < 0) {
         temporaryReservation.value = undefined
         return
     }
 
-    // Target reservation is in the database, so we need to remove it first
-    api.value.delete
-        .roomReservation(reservation.id, authToken)
+    if (reservation.periodicity && reservation.periodicity.periodicity.id >= 0) {
+        // The reservation is linked to a periodicity,
+        // we must ask if we remove other reservations related to this periodicity
+        reservationToDelete.value = reservation
+        isReservationDeletionDialogOpen.value = true
+        return
+    }
+
+    reservationDeletionConfirmed(reservation)
+}
+
+function reservationRemoveAllSamePeriodicity(reservation: RoomReservation) {
+    if (!reservation.periodicity || reservation.periodicity.periodicity.id < 0) {
+        return
+    }
+    const periodicityId = reservation.periodicity.periodicity.id
+
+    // Get the list of all the reservations to delete, which are those who share the periodicity ID
+    api.value.fetch.roomReservations({ periodicityId: periodicityId }).then((deletionList) => {
+        // Delete each reservation in the list
+        deleteRoomReservations(deletionList)
+            .then((_) => {
+                // Remove the associated periodicity
+                api.value.delete.reservationPeriodicity(periodicityId)
+            })
+            // Close the dialog when all the reservations have been deleted
+            .finally(closeReservationDeletionDialog)
+    })
+}
+
+function reservationRemoveCurrentAndFutureSamePeriodicity(reservation: RoomReservation) {
+    if (!reservation.periodicity || reservation.periodicity.periodicity.id < 0) {
+        return
+    }
+
+    const periodicityId = reservation.periodicity.periodicity.id
+    const reservationDate = new Date(reservation.date)
+    // Remove all the future reservations of the same periodicity
+    reservationRemoveFutureSamePeriodicity(reservation)
+        // Remove the current reservation
+        ?.then((_) => {
+            deleteRoomReservation(reservation)
+        })
+        // Reduce the periodicity end date to the day before the current reservation
+        .then((_) => {
+            // Get the day before the reservation
+            const dayBefore = new Date(reservationDate)
+            dayBefore.setDate(dayBefore.getDate() - 1)
+
+            // Get the periodicity data
+            const periodicity = reservationPeriodicities.perId.value[periodicityId].periodicity
+            if (periodicity.periodicity_type === '') {
+                // Should never arrive here as an existing periodicity always has a type. Written for the type checks.
+                return
+            }
+            // Match the api path with the periodicity type
+            let apiCall
+            switch (periodicity.periodicity_type) {
+                case 'BM':
+                    apiCall = api.value.patch.reservationPeriodicityByMonth
+                    break
+                case 'EM':
+                    apiCall = api.value.patch.reservationPeriodicityEachMonthSameDate
+                    break
+                case 'BW':
+                    apiCall = api.value.patch.reservationPeriodicityByWeek
+                    break
+            }
+            // Finally apply the patch
+            return apiCall(periodicity.id, { end: dayBefore.toISOString().split('T')[0] })
+        })
+        ?.then((_) => {
+            updateRoomReservations(selectedDate.value)
+            updateReservationPeriodicities()
+        })
+        .finally(closeReservationDeletionDialog)
+}
+
+/**
+ * Removes all the reservations having the same periodicity as the provided reservation and happening at a later date.
+ * @param reservation The reservation to base the periodicity removal.
+ */
+function reservationRemoveFutureSamePeriodicity(reservation: RoomReservation) {
+    if (!reservation.periodicity || reservation.periodicity.periodicity.id < 0) {
+        return
+    }
+
+    const periodicityId = reservation.periodicity.periodicity.id
+    const reservationDate = new Date(reservation.date)
+    const reservationTime = reservationDate.getTime()
+
+    // Get the list of all the reservations to delete, which are those who share the periodicity ID and are later than
+    // the selected
+    return api.value.fetch.roomReservations({ periodicityId: periodicityId }).then((deletionList) => {
+        // Filter the older reservations
+        deletionList = deletionList.filter((reserv) => new Date(reserv.date).getTime() > reservationTime)
+        return deleteRoomReservations(deletionList)
+    })
+}
+
+function deleteReservationPeriodicity(periodicityId: number): Promise<void> {
+    return api.value.delete
+        .reservationPeriodicity(periodicityId)
+        .then((_) => {
+            updateReservationPeriodicities()
+        })
+        .then((_) => updateRoomReservations(selectedDate.value))
+}
+
+function closeReservationDeletionDialog() {
+    reservationToDelete.value = undefined
+    isReservationDeletionDialogOpen.value = false
+}
+
+function deleteRoomReservation(reservation: RoomReservation): Promise<void> {
+    return api.value.delete
+        .roomReservation(reservation.id)
         .then(
             (_) => {
                 // Filter the list of reservations
@@ -928,6 +1139,19 @@ function deleteRoomReservationSlot(toDelete: CalendarRoomReservationSlotData) {
             (reason) => parseReason(reason, handleReason)
         )
         .catch((reason) => parseReason(reason, handleReason))
+}
+
+async function deleteRoomReservations(deletionList: Array<RoomReservation>) {
+    await Promise.all(
+        deletionList.map(async (reserv) => {
+            return await deleteRoomReservation(reserv)
+        })
+    )
+}
+
+function reservationDeletionConfirmed(reservation: RoomReservation) {
+    deleteRoomReservation(reservation)
+    closeReservationDeletionDialog()
 }
 
 function hideLoading(): void {
@@ -939,6 +1163,14 @@ function hideLoading(): void {
 function showLoading(): void {
     ++loadingCounter
     loaderIsVisible.value = true
+}
+
+function handleRoomNameClick(roomId: number) {
+    selectedRoom.value = roomStore.rooms.find((r) => r.id === roomId)
+}
+
+function handleDepartmentNameClick(deptId: number) {
+    selectedDepartment.value = departmentStore.departments.find((dept) => dept.id === deptId)
 }
 
 let newReservationId = -1
@@ -955,12 +1187,12 @@ function handleDrag(drag: CalendarDragEvent) {
     temporaryReservation.value = {
         date: date,
         description: '',
-        email: true,
+        email: false,
         end_time: drag.endTime.text,
         id: newReservationId--,
-        periodicity: -1,
-        reservation_type: -1,
-        responsible: 553,
+        periodicity: null,
+        reservation_type: roomReservationTypes.list.value[0].id,
+        responsible: currentUserId,
         room: selectedRoom.value?.id ?? -1,
         start_time: drag.startTime.text,
         title: '',
@@ -979,12 +1211,12 @@ function handleNewSlot(date: Date, roomId: string) {
     temporaryReservation.value = {
         date: reservDate,
         description: '',
-        email: true,
+        email: false,
         end_time: new Date(now.getTime() + newReservationDefaultDuration * 60000).toTimeString(),
         id: newReservationId--,
-        periodicity: -1,
-        reservation_type: -1,
-        responsible: 553,
+        periodicity: null,
+        reservation_type: roomReservationTypes.list.value[0].id,
+        responsible: currentUserId,
         room: parseInt(roomId, 10),
         start_time: now.toTimeString(),
         title: '',
@@ -1002,13 +1234,13 @@ function createDateId(day: string | number, month: string | number): string {
  */
 function isRoomInSelectedDepartments(roomId: number): boolean {
     const room = rooms.listFilterBySelectedDepartments.value.find((r) => r.id === roomId)
-    return !(!room || !room.basic_rooms.find((r) => r.id === roomId))
+    return !(!room || !room.basic_rooms.find((r: { id: number }) => r.id === roomId))
 }
 
 function isRoomSelected(roomId: number): boolean {
     if (selectedRoom.value) {
         // Return false if the course's sub rooms are not selected
-        if (!rooms.perId.value[roomId]?.basic_rooms.find((val) => val.id === selectedRoom.value.id)) {
+        if (!roomStore.perId[roomId]?.basic_rooms.find((val) => val.id === selectedRoom.value.id)) {
             return false
         }
     }
@@ -1021,37 +1253,33 @@ function getScheduledCourseDepartment(course: ScheduledCourse): Department | und
     })
     if (departmentEntry) {
         const deptId = departmentEntry[0]
-        return departments.list.value.find((dept) => `${dept.id}` === deptId)
+        return departmentStore.departments.find((dept) => `${dept.id}` === deptId)
     }
     return undefined
 }
 
 onMounted(() => {
-    fetchDepartments().then((value) => {
-        departments.list.value = value
+    const dbDataElement = document.getElementById('json_data')
+    if (dbDataElement && dbDataElement.textContent) {
+        const data = JSON.parse(dbDataElement.textContent)
 
+        if ('dept' in data) {
+            currentDepartment = data.dept
+        }
+        if ('user_id' in data) {
+            currentUserId = data.user_id
+        }
+    }
+    departmentStore.remote.fetch().then((value) => {
         // Select the current department by default
-        if (departments.list.value) {
-            selectedDepartment.value = departments.list.value.find((dept) => dept.abbrev === currentDepartment)
+        if (value) {
+            selectedDepartment.value = value.find((dept) => dept.abbrev === currentDepartment)
 
-            rooms.perDepartment.value = {}
             courseTypes.perDepartment.value = {}
-            const roomsList: { [key: string]: Array<Room> } = {}
             const typesList: { [key: string]: Array<CourseType> } = {}
-            const departmentsCount = departments.list.value.length
-            let roomsCounter = departmentsCount
-            let typesCounter = departmentsCount
-            departments.list.value.forEach((dept) => {
-                // Fetch the rooms of each selected department
-                fetchRooms(dept.abbrev).then((value) => {
-                    roomsList[dept.id] = value
-                    if (--roomsCounter === 0) {
-                        // Update the rooms list ref only once every department is handled
-                        rooms.perDepartment.value = roomsList
-                    }
-                })
-
-                fetchCourseTypes(dept.abbrev).then((value) => {
+            let typesCounter = departmentStore.departments.length
+            value.forEach((dept) => {
+                api.value.fetch.courseTypes({ department: dept.abbrev }).then((value) => {
                     typesList[dept.id] = value
                     if (--typesCounter === 0) {
                         // Update the course types list ref only once every department is handled
@@ -1062,87 +1290,45 @@ onMounted(() => {
         }
     })
 
-    fetchTimeSettings().then((value) => {
+    roomStore.remote.fetch()
+
+    api.value.fetch.timeSettings().then((value) => {
         timeSettings.value = value
     })
 
-    fetchRoomReservationTypes().then((value) => {
+    api.value.fetch.roomReservationTypes().then((value) => {
+        if (value.length === 0) {
+            value = ['Unknown']
+        }
         roomReservationTypes.list.value = value
     })
 
-    fetchUsers().then((value) => {
+    updateReservationPeriodicities()
+
+    api.value.fetch.reservationPeriodicityTypes().then((value) => {
+        reservationPeriodicityTypes.value = value
+    })
+
+    api.value.fetch.users().then((value) => {
         users.list.value = value
     })
 
-    fetchBooleanRoomAttributes().then((value) => {
+    api.value.fetch.booleanRoomAttributes().then((value) => {
         roomAttributes.booleanList.value = value
     })
 
-    fetchNumericRoomAttributes().then((value) => {
+    api.value.fetch.numericRoomAttributes().then((value) => {
         roomAttributes.numericList.value = value
     })
 
-    fetchBooleanRoomAttributeValues().then((value) => {
+    api.value.fetch.booleanRoomAttributeValues().then((value) => {
         roomAttributeValues.booleanList.value = value
     })
 
-    fetchNumericRoomAttributeValues().then((value) => {
+    api.value.fetch.numericRoomAttributeValues().then((value) => {
         roomAttributeValues.numericList.value = value
     })
 })
-
-// Fetch functions
-async function fetchDepartments() {
-    return await api.value.fetch.all.departments()
-}
-
-async function fetchWeekDays(week: number, year: number) {
-    return await api.value.fetch.target.weekdays(week, year)
-}
-
-async function fetchRooms(department: string) {
-    return await api.value.fetch.all.rooms(department)
-}
-
-async function fetchTimeSettings() {
-    return await api.value.fetch.all.timeSettings()
-}
-
-async function fetchRoomReservations(week: number, year: number, params: { roomId?: number }) {
-    return await api.value.fetch.target.roomReservations(week, year, params)
-}
-
-async function fetchRoomReservationTypes() {
-    return await api.value.fetch.all.roomReservationTypes()
-}
-
-async function fetchScheduledCourses(week: number, year: number, department: string) {
-    return await api.value.fetch.target.scheduledCourses(week, year, department)
-}
-
-async function fetchCourseTypes(department: string) {
-    return await api.value.fetch.all.courseTypes(department)
-}
-
-async function fetchUsers() {
-    return await api.value.fetch.all.users()
-}
-
-async function fetchBooleanRoomAttributes() {
-    return await api.value.fetch.all.booleanRoomAttributes()
-}
-
-async function fetchNumericRoomAttributes() {
-    return await api.value.fetch.all.numericRoomAttributes()
-}
-
-async function fetchBooleanRoomAttributeValues() {
-    return await api.value.fetch.all.booleanRoomAttributeValues()
-}
-
-async function fetchNumericRoomAttributeValues() {
-    return await api.value.fetch.all.numericRoomAttributeValues()
-}
 </script>
 
 <script lang="ts">

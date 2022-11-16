@@ -21,12 +21,13 @@
 </template>
 
 <script setup lang="ts">
-import { apiKey, requireInjection } from '@/assets/js/keys'
-import type { Department } from '@/assets/js/types'
 import { routeNames } from '@/router'
+import { useDepartmentStore, type Department } from '@/stores/department'
 import { ref } from 'vue'
 
-const api = requireInjection(apiKey)
+const deptStore = useDepartmentStore()
 const departments = ref<Array<Department>>()
-api.fetch.all.departments().then((value) => (departments.value = value))
+deptStore.remote.fetch().then(() => {
+    departments.value = deptStore.departments
+})
 </script>

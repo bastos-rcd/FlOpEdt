@@ -1,3 +1,5 @@
+import { Time } from '@/assets/js/types'
+
 export function convertDecimalTimeToHuman(time: number): string {
     const hours = Math.trunc(time)
     const minutes = Math.round((time - hours) * 60)
@@ -29,7 +31,7 @@ export function parseReason(reason: unknown, onAlert?: (level: string, message: 
             onAlert?.('danger', `${key}: ${reasonObj[key]}`)
         })
     } else {
-        onAlert?.('danger', `${reason}. Please contact an administrator.`)
+        onAlert?.('danger', `${reason}.`)
     }
 }
 
@@ -49,4 +51,17 @@ export function listGroupBy<T>(list: Array<T>, keyPredicate: (value: T) => strin
         out[key].push(value)
     })
     return out
+}
+
+export function createTime(time: number): Time {
+    const text = convertDecimalTimeToHuman(time / 60)
+    return new Time(time, text)
+}
+
+/**
+ * Accepts an array of objects having an id and returns an array containing only those ids.
+ * @param list
+ */
+export function mapListId(list: Array<{ id: number }>): Array<number> {
+    return list.map((element) => element.id)
 }

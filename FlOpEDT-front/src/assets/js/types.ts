@@ -1,4 +1,6 @@
 import type { ShallowRef } from 'vue'
+import type { Department } from '@/stores/department'
+import type { Room } from '@/stores/room'
 
 export interface FlopWeek {
     week: number
@@ -33,11 +35,6 @@ export interface WeekDay {
     ref: string
 }
 
-export interface Department {
-    id: number
-    abbrev: string
-}
-
 export interface User {
     id: number
     password: string
@@ -58,16 +55,6 @@ export interface User {
     departments: Array<Department>
 }
 
-export interface Room {
-    departments: Array<number>
-    id: number
-    name: string
-    subroom_of: Array<Room>
-    types: Array<number>
-    is_basic: boolean
-    basic_rooms: Array<{ id: number; name: string }>
-}
-
 export interface RoomReservation {
     date: string
     description: string
@@ -79,7 +66,8 @@ export interface RoomReservation {
     reservation_type: number
     start_time: string
     title: string
-    periodicity: number
+    periodicity: ReservationPeriodicity | null
+    create_repetitions?: boolean
 }
 
 export interface RoomReservationType {
@@ -120,7 +108,7 @@ export class Course {
 
 export class ScheduledCourse {
     id: number
-    room: number
+    room?: { id: number; name: string }
     start_time: number
     day: string
     course: {
@@ -154,7 +142,10 @@ export class ScheduledCourse {
 
     constructor() {
         this.id = 0
-        this.room = 0
+        this.room = {
+            id: 0,
+            name: '',
+        }
         this.start_time = 0
         this.day = ''
         this.course = {
@@ -256,6 +247,12 @@ export interface CalendarRoomReservationSlotData extends CalendarSlotData {
     rooms: { [roomId: number]: Room }
     reservationTypes: Array<RoomReservationType>
     users: { [userId: number]: User }
+    periodicityTypes: Array<ReservationPeriodicityType>
+    weekdays: Array<WeekDay>
+    periodicity: ReservationPeriodicity | null
+    onPeriodicityDelete: (reservation: RoomReservation) => Promise<void>
+    dayStart: Time
+    dayEnd: Time
 }
 
 export interface CalendarScheduledCourseSlotData extends CalendarSlotData {
@@ -273,6 +270,10 @@ export interface FormInterface {
     close: () => void
     addAlert: (level: string, message: string) => void
     dismissAlerts: () => void
+}
+
+export interface DialogInterface {
+    close: () => void
 }
 
 export interface FormAlert {
@@ -314,4 +315,33 @@ export interface DynamicSelectElementNumericValue extends DynamicSelectElementVa
     initialMax: number
     min: number
     max: number
+}
+
+export type ReservationPeriodicityTypeName = 'BM' | 'BW' | 'EM'
+
+export type ReservationPeriodicityType = [ReservationPeriodicityTypeName, string]
+
+export interface ReservationPeriodicityData {
+    id: number
+    start: string
+    end: string
+    periodicity_type: ReservationPeriodicityTypeName | ''
+}
+
+export interface ReservationPeriodicityByWeek extends ReservationPeriodicityData {
+    bw_weekdays: Array<string>
+    bw_weeks_interval: number
+}
+
+export type ReservationPeriodicityEachMonthSameDate = ReservationPeriodicityData
+
+export type ReservationPeriodicityByMonthXChoice = [number, string]
+
+export interface ReservationPeriodicityByMonth extends ReservationPeriodicityData {
+    bm_x_choice: number
+    bm_day_choice: string
+}
+
+export interface ReservationPeriodicity {
+    periodicity: ReservationPeriodicityData
 }

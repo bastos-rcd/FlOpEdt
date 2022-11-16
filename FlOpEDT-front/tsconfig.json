@@ -18,7 +18,7 @@
     "isolatedModules": true,
     "strict": true,
     "lib": [
-      "es2021",
+      "es2022",
       "dom"
     ]
   },

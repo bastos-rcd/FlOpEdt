@@ -1,10 +1,10 @@
-import { api } from '@/assets/js/api'
-import { apiKey, apiToken, currentWeekKey } from '@/assets/js/keys'
+import { currentWeekKey } from '@/assets/js/keys'
 import type { FlopWeek } from '@/assets/js/types'
 // Import Bootstrap CSS
 import '@/assets/scss/styles.scss'
 import router from '@/router'
 import '@vuepic/vue-datepicker/dist/main.css'
+import { createPinia } from 'pinia'
 import type { Ref } from 'vue'
 import { createApp, readonly, ref } from 'vue'
 import { useRoute } from 'vue-router'
@@ -14,9 +14,6 @@ import App from './App.vue'
 const app = createApp(App)
 
 app.use(router)
-
-// Provide the api access
-app.provide(apiKey, readonly(api))
 
 // Provide the current week and year
 const now = new Date()
@@ -30,6 +27,9 @@ const currentWeek: Ref<FlopWeek> = ref({
 })
 app.provide(currentWeekKey, readonly(currentWeek.value))
 
+const pinia = createPinia()
+app.use(pinia)
+
 export function getDepartment(): string | null {
     const dept = useRoute().params.dept
     if (dept instanceof Array) {
@@ -41,8 +41,5 @@ export function getDepartment(): string | null {
     return dept
 }
 
-api.fetch.target.token('DavidG', 'PASSE').then((value) => {
-    app.provide(apiToken, value.token)
-    app.component('PopperComponent', Popper)
-    app.mount('#app')
-})
+app.component('PopperComponent', Popper)
+app.mount('#app')

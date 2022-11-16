@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import DynamicSelectedElement from '@/components/dynamicSelect/DynamicSelectedElement.vue'
+import DynamicSelectedElement from '@/components/DynamicSelectedElement.vue'
 import type { DynamicSelectElementBooleanValue } from '@/assets/js/types'
 import { computed, ref } from 'vue'
 

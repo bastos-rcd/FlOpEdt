@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import DynamicSelectedElement from '@/components/dynamicSelect/DynamicSelectedElement.vue'
+import DynamicSelectedElement from '@/components/DynamicSelectedElement.vue'
 import { ref, watch } from 'vue'
 import type { DynamicSelectElementNumericValue } from '@/assets/js/types'
 import DoubleThumbSlider from '@/components/DoubleThumbSlider.vue'

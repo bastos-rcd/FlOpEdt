@@ -8,8 +8,16 @@
                         {{ day.name }} {{ day.date }}
                     </th>
                 </tr>
-                <tr v-for="room in props.values.rooms" :key="room.id" class="border-dark border align-top">
-                    <td>{{ room.name }}</td>
+                <tr v-for="room in props.values.rooms" :key="room.id" class="border-dark border align-top h-100">
+                    <td class="h-100">
+                        <button
+                            type="button"
+                            class="btn btn-outline-dark h-100 w-100 align-middle rounded-0"
+                            @click="$emit('rowHeaderClick', room.id)"
+                        >
+                            {{ room.name }}
+                        </button>
+                    </td>
                     <td
                         v-for="day in props.values.days"
                         :key="day.date"
@@ -39,7 +47,7 @@
 
 <script setup lang="ts">
 import type { CalendarSlotInterface, RoomCalendarProps } from '@/assets/js/types'
-import BaseCalendar from '@/components/calendar/BaseCalendar.vue'
+import BaseCalendar from '@/components/BaseCalendar.vue'
 import { ref } from 'vue'
 
 interface Props {
@@ -50,6 +58,8 @@ const props = defineProps<Props>()
 
 interface Emits {
     (e: 'newSlot', day: Date, roomId: string): void
+
+    (e: 'rowHeaderClick', id: number): void
 }
 
 const emit = defineEmits<Emits>()

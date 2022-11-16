@@ -2,9 +2,7 @@ import type {
     BooleanRoomAttributeValue,
     Course,
     CourseType,
-    Department,
     NumericRoomAttributeValue,
-    Room,
     RoomAttribute,
     RoomReservation,
     RoomReservationType,
@@ -161,7 +159,6 @@ function deleteData(url: string, id: number, authToken?: string) {
 
 const urls = {
     departments: 'fetch/alldepts',
-    rooms: 'rooms/room',
     weekdays: 'fetch/weekdays',
     timesettings: 'base/timesettings',
     roomreservation: 'roomreservations/reservation',
@@ -193,8 +190,6 @@ function buildUrl(base: string, uri: string) {
 export interface FlopAPI {
     fetch: {
         all: {
-            departments(): Promise<Array<Department>>
-            rooms(department: string): Promise<Array<Room>>
             timeSettings(): Promise<Array<TimeSettings>>
             courseTypes(department: string): Promise<Array<CourseType>>
             roomReservationTypes(): Promise<Array<RoomReservationType>>
@@ -205,7 +200,6 @@ export interface FlopAPI {
             numericRoomAttributeValues(): Promise<Array<NumericRoomAttributeValue>>
         }
         target: {
-            room(id: number, additionalParams?: object): Promise<Room>
             weekdays(week: number, year: number, additionalParams?: object): Promise<Array<WeekDay>>
             roomReservations(
                 week: number,
@@ -242,12 +236,6 @@ export interface FlopAPI {
 const api: FlopAPI = {
     fetch: {
         all: {
-            departments() {
-                return fetcher(urls.departments)
-            },
-            rooms(department: string) {
-                return fetcher(urls.rooms, { dept: department })
-            },
             timeSettings() {
                 return fetcher(urls.timesettings)
             },
@@ -274,9 +262,6 @@ const api: FlopAPI = {
             },
         },
         target: {
-            room(id: number, additionalParams?: object) {
-                return fetcher(buildUrl(urls.rooms, id.toString()), additionalParams)
-            },
             weekdays(week: number, year: number, additionalParams?: object) {
                 return fetcher(
                     urls.weekdays,

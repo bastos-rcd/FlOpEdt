@@ -24,7 +24,7 @@
                 </div>
                 <div class="modal-body">
                     <!-- Alerts -->
-                    <div>
+                    <div class="sticky-top">
                         <div
                             v-for="alert in alerts"
                             :key="alert.message"
@@ -81,6 +81,8 @@ watch(
     (newValue) => {
         if (newValue) {
             open()
+        } else {
+            close()
         }
     }
 )

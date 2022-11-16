@@ -1,12 +1,5 @@
 <template>
-    <Datepicker
-        v-model="time"
-        time-picker
-        :transitions="false"
-        :clearable="false"
-        hours-increment="-1"
-        minutes-increment="-1"
-    >
+    <Datepicker v-model="time" time-picker :transitions="false" :clearable="false">
         <template #dp-input="{ value }">
             <slot name="input" :value="value"></slot>
         </template>
@@ -15,7 +8,7 @@
 
 <script setup lang="ts">
 import Datepicker from '@vuepic/vue-datepicker'
-import { ref, watch, watchEffect } from 'vue'
+import { computed, watch } from 'vue'
 
 interface Props {
     hours: number
@@ -33,13 +26,13 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
-const time = ref({
-    hours: props.hours,
-    minutes: props.minutes,
-})
-
-watchEffect(() => {
-    emit('updateTime', { hours: time.value.hours, minutes: time.value.minutes })
+const time = computed({
+    get() {
+        return { hours: props.hours, minutes: props.minutes }
+    },
+    set(value) {
+        emit('updateTime', { hours: value.hours, minutes: value.minutes })
+    },
 })
 
 watch(
