@@ -48,7 +48,7 @@ class NotAloneForTheseCouseTypes(TTConstraint):
 
 
     class Meta:
-        verbose_name = _('Not alone for those course types')
+        verbose_name = _('Not alone for these course types')
         verbose_name_plural = verbose_name
 
     def get_viewmodel(self):

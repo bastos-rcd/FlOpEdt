@@ -833,7 +833,7 @@ let extractConstraintFromPopup = (constraint) => {
                 let tag = document.getElementById('param-check-' + param.name);
                 param.id_list.push(tag.checked);
             } else {
-                if (param.name === 'tutors') {
+                if (param.name.includes('tutors')) {
                     let tag = document.getElementById('param-select-' + param.name);
                     tag.querySelectorAll('li').forEach((value, key, parent) => {
                         param.id_list.push(value.getAttribute('data-param-id'));
@@ -1214,6 +1214,7 @@ let getCorrespondingDatabase = (param) => {
             return database['train_progs'];
         case 'tutor':
         case 'tutors':
+        case 'guide_tutors':
             return database['tutors_ids'];
         case 'rooms':
         case 'possible_rooms':
@@ -1239,6 +1240,7 @@ let getCorrespondingInfo = (id, param) => {
         case 'train_progs':
             return db[id]['abbrev'];
         case 'tutors':
+        case 'guide_tutors':
         case 'tutor':
         case 'rooms':
         case 'possible_rooms':
@@ -1523,8 +1525,13 @@ let buttonWithDropBuilder = (constraint, parameter) => {
 
         let elements;
 
-        if (parameter.name === 'tutors') {
-            let label_text = gettext('Tutor');
+        if (parameter.name.includes('tutors')) {
+            let label_text = "";
+            if (parameter.name === 'guide_tutors') {
+                label_text = gettext('Guide tutor');}
+            else{
+                label_text = gettext('Tutor');
+            }
             let acceptable_values = database.acceptable_values.tutor.acceptable;
 
             let element_obj = (tutor_id) => {
