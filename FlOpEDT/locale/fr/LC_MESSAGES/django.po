@@ -1189,7 +1189,7 @@ msgstr "par statut"
 
 #: cstmanager/templates/cstmanager/index.html:89
 msgid "by class"
-msgstr "par classe"
+msgstr "par type"
 
 #: cstmanager/templates/cstmanager/index.html:90
 msgid "None"
