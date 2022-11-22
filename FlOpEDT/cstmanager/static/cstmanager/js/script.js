@@ -363,6 +363,19 @@ let changeEvents = {
     },
 }
 
+
+// convert floptime to readable time for labels
+function floptime_to_str_time(floptime){
+    let min_from_midnight= parseInt(floptime)
+    let minutes = min_from_midnight%60
+    let hours = (min_from_midnight - minutes) /60
+    let str_minutes = "0" + minutes.toString()
+    let str_hours = hours.toString()
+    let formattedTime = str_hours + ':' + str_minutes.substr(-2)
+    return formattedTime
+}
+
+
 // object containing functions that fetch data from the database
 let fetchers = {
     fetchAcceptableValues: (e) => {
@@ -1251,6 +1264,11 @@ let getCorrespondingInfo = (id, param) => {
             return db[id];
         case 'weeks':
             return `${db[id]['year']}-${db[id]['nb']}`;
+        case 'start_time':
+        case 'start_times':
+        case 'possible_start_times':
+        case 'allowed_start_times':
+            return floptime_to_str_time(id);
         default:
             return id;
     }
