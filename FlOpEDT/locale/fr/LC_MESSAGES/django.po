@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-22 14:18+0000\n"
+"POT-Creation-Date: 2022-11-24 08:25+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -294,6 +294,10 @@ msgstr "Minimiser le nombre de créneaux non désirés"
 msgid "Minimize groups non-preferred slots"
 msgstr "Mininimise les créneaux non-désirés des groupes"
 
+#: TTapp/TTConstraints/limit_time_constraints.py:51
+msgid "fhd_period"
+msgstr "Période"
+
 #: TTapp/TTConstraints/limit_time_constraints.py:121
 msgid "Limit groups busy time per period"
 msgstr "Limiter le nb d'heures par jour (groupes)"
@@ -313,6 +317,22 @@ msgstr "Limiter le nombre d'heures, indépendamment du prof, module ou groupe"
 #: TTapp/TTConstraints/modules_constraints.py:42
 msgid "Minimize used half-days for modules"
 msgstr "Minimise les demies-journées des modules"
+
+#: TTapp/TTConstraints/no_course_constraints.py:44
+msgid "Full day"
+msgstr "journée entière"
+
+#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:143
+msgid "AM"
+msgstr "matin"
+
+#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:143
+msgid "PM"
+msgstr "après-midi"
+
+#: TTapp/TTConstraints/no_course_constraints.py:45
+msgid "fampm_period"
+msgstr "Période"
 
 #: TTapp/TTConstraints/no_course_constraints.py:72
 msgid "No courses on declared days for groups"
@@ -349,7 +369,7 @@ msgid "guide tutors"
 msgstr "accompagnatrice·eur"
 
 #: TTapp/TTConstraints/simultaneity_constraints.py:51
-msgid "Not alone for those course types"
+msgid "Not alone for these course types"
 msgstr "Pas seul·e pour ces types de cours"
 
 #: TTapp/TTConstraints/slots_constraints.py:113
@@ -937,6 +957,34 @@ msgstr "Votre thème est"
 #: base/templates/base/visio.html:31
 msgid "Create or modify a link"
 msgstr "Créer ou modifier un lien"
+
+#: base/timing.py:209
+msgid "monday"
+msgstr "lundi"
+
+#: base/timing.py:209
+msgid "tuesday"
+msgstr "mardi"
+
+#: base/timing.py:210
+msgid "wednesday"
+msgstr "mercredi"
+
+#: base/timing.py:210
+msgid "thursday"
+msgstr "jeudi"
+
+#: base/timing.py:211
+msgid "friday"
+msgstr "vendredi"
+
+#: base/timing.py:211
+msgid "saturday"
+msgstr "samedi"
+
+#: base/timing.py:212
+msgid "sunday"
+msgstr "dimanche"
 
 #: base/views.py:1574
 msgid "Not authorized. New link then."

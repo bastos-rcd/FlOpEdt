@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-22 14:18+0000\n"
+"POT-Creation-Date: 2022-11-24 08:25+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -315,6 +315,10 @@ msgstr "Minimize les créneaux non-schtroumpfés pour les groupes"
 msgid "Minimize groups non-preferred slots"
 msgstr "Minimize les créneaux non-schtroumpfés pour les groupes"
 
+#: TTapp/TTConstraints/limit_time_constraints.py:51
+msgid "fhd_period"
+msgstr ""
+
 #: TTapp/TTConstraints/limit_time_constraints.py:121
 msgid "Limit groups busy time per period"
 msgstr ""
@@ -336,6 +340,24 @@ msgstr ""
 #| msgid "Minimize groups half-days"
 msgid "Minimize used half-days for modules"
 msgstr "Minimise les demis-schtroumpfs pour les groupes"
+
+#: TTapp/TTConstraints/no_course_constraints.py:44
+#, fuzzy
+#| msgid "Full"
+msgid "Full day"
+msgstr "Totale"
+
+#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:143
+msgid "AM"
+msgstr ""
+
+#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:143
+msgid "PM"
+msgstr ""
+
+#: TTapp/TTConstraints/no_course_constraints.py:45
+msgid "fampm_period"
+msgstr ""
 
 #: TTapp/TTConstraints/no_course_constraints.py:72
 msgid "No courses on declared days for groups"
@@ -376,7 +398,7 @@ msgid "guide tutors"
 msgstr "Enseignant⋅e⋅s"
 
 #: TTapp/TTConstraints/simultaneity_constraints.py:51
-msgid "Not alone for those course types"
+msgid "Not alone for these course types"
 msgstr ""
 
 #: TTapp/TTConstraints/slots_constraints.py:113
@@ -987,6 +1009,34 @@ msgstr ""
 #: base/templates/base/visio.html:31
 msgid "Create or modify a link"
 msgstr "Créer ou schtroumpfer un lien"
+
+#: base/timing.py:209
+msgid "monday"
+msgstr ""
+
+#: base/timing.py:209
+msgid "tuesday"
+msgstr ""
+
+#: base/timing.py:210
+msgid "wednesday"
+msgstr ""
+
+#: base/timing.py:210
+msgid "thursday"
+msgstr ""
+
+#: base/timing.py:211
+msgid "friday"
+msgstr ""
+
+#: base/timing.py:211
+msgid "saturday"
+msgstr ""
+
+#: base/timing.py:212
+msgid "sunday"
+msgstr ""
 
 #: base/views.py:1574
 msgid "Not authorized. New link then."

@@ -48,13 +48,13 @@ class LimitTimePerPeriod(TTConstraint):
     FULL_DAY = 'fd'
     HALF_DAY = 'hd'
     PERIOD_CHOICES = ((FULL_DAY, 'Full day'), (HALF_DAY, 'Half day'))
-    period = models.CharField(max_length=2, choices=PERIOD_CHOICES)
+    fhd_period = models.CharField(max_length=2, choices=PERIOD_CHOICES, verbose_name=_("fhd_period"))
 
     class Meta:
         abstract = True
 
     def build_period_by_day(self, ttmodel, week):
-        if self.period == self.FULL_DAY:
+        if self.fhd_period == self.FULL_DAY:
             periods = [None]
         else:
             periods = ttmodel.possible_apms
@@ -159,7 +159,7 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         if self.course_type is not None:
             text += 'de ' + str(self.course_type)
         text += " par "
-        if self.period == self.FULL_DAY:
+        if self.fhd_period == self.FULL_DAY:
             text += 'jour'
         else:
             text += 'demie-journée'
@@ -237,7 +237,7 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         if self.course_type:
             text += ' de ' + str(self.course_type)
         text += " par "
-        if self.period == self.FULL_DAY:
+        if self.fhd_period == self.FULL_DAY:
             text += 'jour'
         else:
             text += 'demie-journée'
@@ -314,7 +314,7 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
         if self.course_type:
             text += ' de ' + str(self.course_type)
         text += " par "
-        if self.period == self.FULL_DAY:
+        if self.fhd_period == self.FULL_DAY:
             text += 'jour'
         else:
             text += 'demie-journée'
@@ -361,7 +361,7 @@ class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
         if self.course_type is not None:
             text += 'de ' + str(self.course_type)
         text += " par "
-        if self.period == self.FULL_DAY:
+        if self.fhd_period == self.FULL_DAY:
             text += 'jour'
         else:
             text += 'demie-journée'
