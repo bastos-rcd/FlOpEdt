@@ -141,10 +141,15 @@ class RoomModel(FlopModel):
         for tutor in tutors:
             courses_for_tutor[tutor] = set(self.courses.filter(Q(tutor=tutor) | Q(supp_tutor=tutor)))
 
+        common_room_sorts = RoomSort.objects.filter(for_type__department=self.department,
+                                                    tutor__isnull=True)
         tutor_room_sorts = {}
         for tutor in tutors:
-            tutor_room_sorts[tutor] = RoomSort.objects.filter(for_type__department=self.department,
-                                                              tutor=tutor)
+            declared_room_sorts = RoomSort.objects.filter(for_type__department=self.department,
+                                                          tutor=tutor)
+            declared_types = set([rs.for_type for rs in declared_room_sorts.distinct('for_type')])
+            tutor_room_sorts[tutor] = set(declared_room_sorts) | \
+                set(common_room_sorts.exclude(for_type__in=declared_types))
 
         groups = set()
         for course in self.courses.distinct("groups"):

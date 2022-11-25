@@ -114,7 +114,6 @@ class NotAloneForTheseCouseTypes(TTConstraint):
                                                        for c in courses & ttmodel.wdb.compatible_courses[sl]
                                                        & ttmodel.wdb.possible_courses[g]
                                                        )
-                        print(sl, tutor_sum, guide_tutors_sum)
                         if self.weight is None:
                             ttmodel.add_constraint(tutor_sum - guide_tutors_sum, '<=', 0,
                                                    Constraint(constraint_type=ConstraintType.NOT_ALONE,

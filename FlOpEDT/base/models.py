@@ -457,7 +457,7 @@ class RoomSort(models.Model):
                               on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.for_type}-pref-{self.prefer}-to-{self.unprefer}"
+        return f"{self.for_type}: {self.tutor} prefers {self.prefer} to {self.unprefer}"
 
 
 class RoomPonderation(models.Model):
