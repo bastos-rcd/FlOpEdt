@@ -298,7 +298,7 @@ class GroupsLunchBreakResource(resources.ModelResource):
 
     class Meta:
         model = GroupsLunchBreak
-        fields = ('start_time', 'end_time', 'lunch_length', 'groups')
+        fields = ('start_lunch_time', 'end_lunch_time', 'lunch_length', 'groups')
 
 
 class NoCourseOnDayAdmin(DepartmentModelAdmin):
