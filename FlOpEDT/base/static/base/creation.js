@@ -2093,8 +2093,8 @@ function fetch_lunch_constraints() {
 
 function translate_group_lunch_constraints(d) {
   let ret = {
-    start: +d.start_time,
-    end: +d.end_time,
+    start: +d.start_lunch_time,
+    end: +d.end_lunch_time,
     min_length: +d.lunch_length,
     groups: []
   };
