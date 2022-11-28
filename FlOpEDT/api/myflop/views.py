@@ -29,7 +29,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 from django.utils.decorators import method_decorator
-from django.db.models import Count, F, Sum, Q
+from django.db.models import Count, F, Sum, Q, Case, When
 
 from people.models import Tutor
 from base.models import ScheduledCourse, Department, TrainingProgramme, Week, Room
@@ -176,13 +176,20 @@ class PayViewSet(viewsets.ViewSet):
                 .annotate(
                     department=F('course__type__department__abbrev'),
                     course_type_id=F('course__type__id'),
-                    module_id=F('course__module__id'),
-                    module_ppn=F('course__module__ppn'),
+                    # if pay_module is not null, consider it, else consider module
+                    module_id=Case(
+                        When(course__pay_module__isnull=False, then=F('course__pay_module__id')),
+                        When(course__pay_module__isnull=True, then=F('course__module__id'))),
+                    module_ppn=Case(
+                        When(course__pay_module__isnull=False, then=F('course__pay_module__ppn')),
+                        When(course__pay_module__isnull=True, then=F('course__module__ppn'))),
+                    nom_matiere=Case(
+                        When(course__pay_module__isnull=False, then=F('course__pay_module__name')),
+                        When(course__pay_module__isnull=True, then=F('course__module__name'))),
                     train_prog_abbrev=F('course__groups__train_prog__abbrev'),
                     group_name=F('course__groups__name'),
                     type_cours=F('course__type__name'),
                     type_id=F('course__type__id'),
-                    nom_matiere=F('course__module__name'),
                     abbrev_intervenant=F('tutor__username'),
                     prenom_intervenant=F('tutor__first_name'),
                     nom_intervenant=F('tutor__last_name'))\
