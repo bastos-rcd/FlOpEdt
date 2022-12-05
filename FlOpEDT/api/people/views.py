@@ -161,7 +161,8 @@ class TutorViewSet(viewsets.ModelViewSet):
             return pm.Tutor.objects.filter(
                 pk__in=bm.ScheduledCourse.objects.filter(
                     course__week__nb=week,
-                    course__week__year=year) \
+                    course__week__year=year,
+                    work_copy=0) \
                     .distinct('tutor').values('tutor')
             )
         else:

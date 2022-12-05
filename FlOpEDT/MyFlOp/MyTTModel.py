@@ -28,7 +28,7 @@ import importlib
 
 from TTapp.TTModel import TTModel, GUROBI_NAME
 
-from MyFlOp.MyTTUtils import print_differences
+from MyFlOp.MyTTUtils import print_differences, number_courses
 
 
 class MyTTModel(TTModel):
@@ -81,7 +81,7 @@ class MyTTModel(TTModel):
         TTModel.add_specific_constraints(self)
 
     def solve(self, time_limit=None, target_work_copy=None,
-              solver=GUROBI_NAME, threads=None, ignore_sigint=True):
+              solver=GUROBI_NAME, threads=None, ignore_sigint=True, with_numerotation=True):
         """
         If you shall add pre (or post) processing apps, you may write them down
         here.
@@ -95,5 +95,8 @@ class MyTTModel(TTModel):
         if result_work_copy is not None and self.stabilize_work_copy is not None:
             print_differences(self.department, self.weeks,
                               self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
+        if with_numerotation:
+            number_courses(self.department, from_week=self.weeks[0], until_week=self.weeks[-1],
+                           work_copy=result_work_copy)
         return result_work_copy
 

@@ -26,14 +26,15 @@
 # without disclosing the source code of your own applications.
 
 from base.models import ScheduledCourse, RoomPreference, EdtVersion, Department, CourseStartTimeConstraint,\
-    TimeGeneralSettings, Room, CourseModification, UserPreference, Week, Course
-from base.timing import str_slot
+    TimeGeneralSettings, Room, CourseModification, UserPreference, Week, Course, Module, CourseType, TrainingProgramme,\
+    Period
+from base.timing import str_slot, days_index
 from django.db.models import Count, Max, Q, F
 from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
 from TTapp.FlopConstraint import max_weight
 from TTapp.slots import slot_pause
 from TTapp.RoomModel import RoomModel
-from base.views import get_key_course_pl, get_key_course_pp
+import base.views as base_views
 from django.core.cache import cache
 from people.models import Tutor
 import json
@@ -47,7 +48,7 @@ def basic_reassign_rooms(department, week, work_copy, create_new_work_copy):
         if create_new_work_copy:
             msg['more'] = _(f'Saved in copy {result_work_copy}')
         else:
-            cache.delete(get_key_course_pl(department.abbrev,
+            cache.delete(base_views.get_key_course_pl(department.abbrev,
                                            week,
                                            work_copy))
     else:
@@ -247,19 +248,20 @@ def basic_swap_version(department, week, copy_a, copy_b=0):
 
     if copy_a == 0 or copy_b == 0:
         CourseModification.objects.filter(course__week=week).delete()
+        number_courses(department)
         version_copy.version += 1
         version_copy.save()
 
-    cache.delete(get_key_course_pl(department.abbrev,
+    cache.delete(base_views.get_key_course_pl(department.abbrev,
                                    week,
                                    copy_a))
-    cache.delete(get_key_course_pl(department.abbrev,
+    cache.delete(base_views.get_key_course_pl(department.abbrev,
                                    week,
                                    copy_b))
-    cache.delete(get_key_course_pp(department.abbrev,
+    cache.delete(base_views.get_key_course_pp(department.abbrev,
                                    week,
                                    copy_a))
-    cache.delete(get_key_course_pp(department.abbrev,
+    cache.delete(base_views.get_key_course_pp(department.abbrev,
                                    week,
                                    copy_b))
 
@@ -285,7 +287,7 @@ def basic_delete_work_copy(department, week, work_copy):
 
     sc_to_delete.delete()
 
-    cache.delete(get_key_course_pl(department.abbrev,
+    cache.delete(base_views.get_key_course_pl(department.abbrev,
                                    week,
                                    work_copy))
     return result
@@ -426,3 +428,58 @@ def first_free_work_copy(department, week):
         return local_max_wc + 1
     else:
         return 0
+
+
+def convert_into_set(declared_object_or_iterable):
+    if hasattr(declared_object_or_iterable, '__iter__'):
+        return set(declared_object_or_iterable)
+    else:
+        return {declared_object_or_iterable}
+
+
+def intersect_with_declared_objects(considered_queryset, declared_object_or_iterable):
+    result_set = considered_queryset
+    if declared_object_or_iterable is not None:
+        result_set = set(result_set) & convert_into_set(declared_object_or_iterable)
+    return result_set
+
+
+def sorted_by_start_time(schedule_courses_iterable):
+    sc_list = list(schedule_courses_iterable)
+    return sorted(sc_list, key= lambda x: (x.course.week, days_index[x.day], x.start_time))
+
+
+def number_courses(department, modules=None, course_types=None, periods=None, train_progs=None,
+                   from_week=None, until_week=None, work_copy=0):
+    considered_train_progs = intersect_with_declared_objects(TrainingProgramme.objects.filter(department=department),
+                                                             train_progs)
+    considered_periods = intersect_with_declared_objects(Period.objects.filter(department=department),
+                                                         periods)
+    considered_modules = intersect_with_declared_objects(Module.objects.filter(train_prog__in=considered_train_progs,
+                                                                               period__in=considered_periods),
+                                                         modules)
+    considered_course_types = intersect_with_declared_objects(CourseType.objects.filter(department=department),
+                                                              course_types)
+    for module in considered_modules:
+        for course_type in considered_course_types:
+            considered_courses = Course.objects.filter(module=module, type=course_type)
+            for c_group in considered_courses.distinct('groups'):
+                group = c_group.groups.first()
+                group_courses = considered_courses.filter(groups=group)
+                total_number = len(group_courses)
+                if from_week is not None:
+                    group_courses = group_courses.filter(week__gte=from_week)
+                    past_courses_number = len(group_courses.filter(week__lt=from_week))
+                else:
+                    past_courses_number = 0
+                if until_week is not None:
+                    group_courses = group_courses.filter(week__lte=until_week)
+                sorted_sched_courses = sorted_by_start_time(ScheduledCourse.objects.filter(course__in=group_courses,
+                                                                                           work_copy=work_copy))
+                for i, sc in enumerate(sorted_sched_courses):
+                    sc.number = past_courses_number + i + 1
+                    sc.save()
+
+
+
+

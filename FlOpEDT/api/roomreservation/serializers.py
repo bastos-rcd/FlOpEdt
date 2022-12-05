@@ -2,6 +2,9 @@ from django.db.models import Max
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 
+from api.people.serializers import ShortUsersSerializer
+from api.fetch.serializers import IDRoomSerializer
+
 import roomreservation.models as rm
 from roomreservation.check_periodicity import check_periodicity, check_reservation
 
@@ -203,6 +206,15 @@ class RoomReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = rm.RoomReservation
         fields = '__all__'
+
+
+class ShortRoomReservationSerializer(serializers.ModelSerializer):
+    responsible = ShortUsersSerializer()
+    room = IDRoomSerializer()
+
+    class Meta:
+        model = rm.RoomReservation
+        fields = ('date', 'start_time', 'end_time', 'title', 'room', 'responsible')
 
 
 class RoomReservationTypeSerializer(serializers.ModelSerializer):

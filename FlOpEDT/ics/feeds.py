@@ -33,7 +33,7 @@ class EventFeed(ICalFeed):
     def item_title(self, scourse):
         course = scourse.course
         gp_str, plural = str_groups(course)
-        return (f'{course.module.abbrev} {course.type.name} - ' + gp_str)
+        return f'{course.module.abbrev} {course.type.name} - ' + gp_str
 
     def item_description(self, scourse):
         location = scourse.room.name if scourse.room is not None else ''
@@ -80,7 +80,7 @@ class TutorEventFeed(EventFeed):
         course = scourse.course
         location = scourse.room.name if scourse.room is not None else ''
         gp_str, plural = str_groups(course)
-        return (f'{course.module.abbrev} {course.type.name} '
+        return (f'{course.module.abbrev} {course.type.name} {"N°"+str(scourse.number) if scourse.number else ""} '
                 f'- {gp_str} '
                 f'- {location}'
         )

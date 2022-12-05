@@ -151,7 +151,7 @@ import type {
     User,
     WeekDay,
 } from '@/assets/js/types'
-import { ScheduledCourse, Time } from '@/assets/js/types'
+import type { ScheduledCourse, Time } from '@/assets/js/types'
 import HourCalendar from '@/components/HourCalendar.vue'
 import WeekPicker from '@/components/WeekPicker.vue'
 import type { ComputedRef, Ref } from 'vue'
@@ -168,7 +168,7 @@ import ClearableInput from '@/components/ClearableInput.vue'
 import DeletePeriodicReservationDialog from '@/components/DeletePeriodicReservationDialog.vue'
 import type { Department } from '@/stores/department'
 import { useDepartmentStore } from '@/stores/department'
-import { Room, useRoomStore } from '@/stores/room'
+import { type Room, useRoomStore } from '@/stores/room'
 
 const api = ref<FlopAPI>(requireInjection(apiKey))
 const currentWeek = ref(requireInjection(currentWeekKey))
@@ -584,32 +584,75 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                 Object.entries(entry[1]).map((e) => {
                     const slots: Array<CalendarSlot> = []
                     e[1].forEach((course) => {
-                        // Make sure the course's room is in the selected departments
-                        if (!isRoomInSelectedDepartments(course.room.id)) {
-                            return
-                        }
-
                         // Make sure the course type belongs to the selected departments
                         const courseType = courseTypes.listFilterBySelectedDepartments.value.find((courseType) => {
                             return courseType.name === course.course.type
                         })
                         if (!courseType) {
+                            console.log('is not of a good type')
                             return
                         }
 
                         // Get the course's department
                         const dept = getScheduledCourseDepartment(course)
                         if (!dept) {
+                            console.log('has no department')
                             return
                         }
                         const deptId = `${dept.id}`
-                        slots.push(createScheduledCourseSlot(course, courseType, deptId))
+                        let courseRoom: Room = {
+                            departments: [],
+                            id: -1,
+                            name: '',
+                            subroom_of: [],
+                            is_basic: false,
+                            basic_rooms: [],
+                        }
+                        if (course.room) {
+                            courseRoom = roomStore.perId[course.room.id]
+                            if (courseRoom.is_basic) {
+                                // Make sure the course's room is in the selected departments
+                                if (!isRoomInSelectedDepartments(course.room.id)) {
+                                    console.log('is not in good department')
+                                    return
+                                }
+                                slots.push(createScheduledCourseSlot(course, courseType, deptId))
+                            } else {
+                                let isOneInDepartment = false
+                                courseRoom.basic_rooms.forEach((r) => {
+                                    if (isRoomInSelectedDepartments(r.id)) {
+                                        isOneInDepartment = true
+                                    }
+                                })
+                                if (!isOneInDepartment) {
+                                    console.log('No subrooms in good departments')
+                                    return
+                                }
+                                courseRoom.basic_rooms.forEach((r) => {
+                                    const newCourse: ScheduledCourse = JSON.parse(JSON.stringify(course))
+                                    newCourse.room = { id: r.id, name: r.name }
+                                    e[0] = newCourse.room.id.toString()
+                                    slots.push(createScheduledCourseSlot(newCourse, courseType, deptId))
+                                })
+                            }
+                        }
                     })
                     return [e[0], slots]
                 })
             )
         })
-        return out
+        const out2: { [day: string]: { [roomId: string]: Array<CalendarSlot> } } = {}
+        for (const [dayDate, list_rooms] of Object.entries(out)) {
+            out2[dayDate] = {}
+            for (const [roomId, list_subrooms] of Object.entries(list_rooms)) {
+                for (const subroomsData of list_subrooms) {
+                    let index = (subroomsData.slotData as CalendarScheduledCourseSlotData).course.room?.id
+                    if (!index) index = -1
+                    out2[dayDate][index] = [subroomsData]
+                }
+            }
+        }
+        return out2
     }),
 }
 
@@ -682,7 +725,6 @@ const hourCalendarValues = computed<HourCalendarProps>(() => {
 
 const roomCalendarValues = computed<RoomCalendarProps>(() => {
     const slots: { [day: string]: { [roomId: string]: CalendarSlot[] } } = {}
-
     for (const obj of [
         roomReservationSlots.perDayPerRoomFilterBySelectedDepartments.value,
         scheduledCoursesSlots.perDayPerRoomFilterBySelectedDepartments.value,
@@ -942,7 +984,6 @@ function updateScheduledCourses(date: FlopWeek, departments: Array<Department>) 
         hideLoading()
         return
     }
-
     const coursesList: { [p: string]: ScheduledCourse[] } = {}
     departments.forEach((dept) => {
         api.value.fetch.scheduledCourses({ week: week, year: year, department: dept.abbrev }).then((value) => {
@@ -1234,7 +1275,7 @@ function createDateId(day: string | number, month: string | number): string {
  */
 function isRoomInSelectedDepartments(roomId: number): boolean {
     const room = rooms.listFilterBySelectedDepartments.value.find((r) => r.id === roomId)
-    return !(!room || !room.basic_rooms.find((r: { id: number }) => r.id === roomId))
+    return room !== null && room !== undefined
 }
 
 function isRoomSelected(roomId: number): boolean {

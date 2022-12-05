@@ -155,47 +155,54 @@ function fetch_tutor_extra_unavailability() {
 
   let exp_week = wdw_weeks.get_selected();
 
-  show_loader(true);
-  $.ajax({
-    type: "GET", //rest Type
-    dataType: 'text',
-    url: build_url(
-      url_fetch_extra_sched, context_dept, exp_week.as_context(),
-      {'username': user.name}),
-    async: true,
-    contentType: "text/csv",
-    success: function (msg) {
-      //console.log(msg);
-      var sel_week = wdw_weeks.get_selected();
-      if (Week.compare(exp_week, sel_week) == 0) {
-        extra_pref.tutors = {};
-        d3.csvParse(msg, translate_extra_pref_tut_from_csv);
-        sort_preferences(extra_pref.tutors);
-        var tutors = Object.keys(extra_pref.tutors);
-        for (i = 0; i < tutors.length; i++) {
-          var busy_days = Object.keys(extra_pref.tutors[tutors[i]]);
-          for (d = 0; d < busy_days.length; d++) {
-            fill_holes(extra_pref.tutors[tutors[i]][busy_days[d]], 1);
+  // Get tutors that may teach in another department
+  const multi_dept_tutors = [] ;
+  const busy_tutors = Object.keys(tutors_info) ;
+  for (var it = 0 ; it < busy_tutors.length ; it++) {
+    if (tutors_info[busy_tutors[it]].departments.length > 1) {
+      multi_dept_tutors.push(busy_tutors[it]);
+    }
+  }
+
+  // Among these teachers, fetch the actual courses taught in other departments
+  extra_pref.tutors = {};
+  for (var it = 0 ; it < multi_dept_tutors.length ; it += 1) {
+    show_loader(true);
+    $.ajax({
+      type: "GET", //rest Type
+      dataType: 'text',
+      url: build_url(
+        url_fetch_extra_sched, context_dept, exp_week.as_context(),
+        {'user': multi_dept_tutors[it]}),
+      async: true,
+      headers: {Accept: 'text/csv'},
+      success: function (msg) {
+        var sel_week = wdw_weeks.get_selected();
+        if (Week.compare(exp_week, sel_week) == 0) {
+          d3.csvParse(msg, translate_extra_pref_tut_from_csv);
+          sort_preferences(extra_pref.tutors);
+          var tutors = Object.keys(extra_pref.tutors);
+          for (i = 0; i < tutors.length; i++) {
+            var busy_days = Object.keys(extra_pref.tutors[tutors[i]]);
+            for (d = 0; d < busy_days.length; d++) {
+              fill_holes(extra_pref.tutors[tutors[i]][busy_days[d]], 1);
+            }
           }
         }
+        show_loader(false);
+      },
+      error: function (xhr, error) {
+        console.log("error");
+        console.log(xhr);
+        console.log(error);
+        console.log(xhr.responseText);
+        show_loader(false);
+        // window.location.href = url_login;
+        window.location.replace(url_login + "?next=" + url_edt + exp_week.url());
       }
-      show_loader(false);
-
-    },
-    error: function (xhr, error) {
-      console.log("error");
-      console.log(xhr);
-      console.log(error);
-      console.log(xhr.responseText);
-      show_loader(false);
-      // window.location.href = url_login;
-      window.location.replace(url_login + "?next=" + url_edt + exp_week.url());
-    }
-  });
+    });
+  }
 }
-
-
-
 
 function translate_extra_pref_tut_from_csv(d) {
   if (Object.keys(extra_pref.tutors).indexOf(d.tutor) == -1) {
@@ -803,7 +810,6 @@ function translate_cours_pl_from_json(d, result) {
 
 function course_pl_canevas_json_to_obj(d) {
   var p_m = null;
-  console.log(d.course);
   if (d.course.pay_module!=null) {
     p_m = d.course.pay_module.abbrev;
   }
@@ -822,7 +828,8 @@ function course_pl_canevas_json_to_obj(d) {
     graded: d.course.is_graded,
     color_bg: d.color_bg,
     color_txt: d.color_txt,
-    tutors: d.tutors
+    tutors: d.tutors,
+    number: d.number
   };
 }
 
@@ -1522,14 +1529,14 @@ function fetch_tutor() {
   show_loader(true);
   $.ajax({
     type: "GET",
-    headers: {Accept: 'text/csv'},
+    headers: {Accept: 'application/json'},
     dataType: 'text',
     url: build_url(url_tutor, context),
     async: true,
     success: function (msg, ts, req) {
       var sel_week = wdw_weeks.get_selected();
       if (Week.compare(exp_week, sel_week) == 0) {
-        d3.csvParse(msg, translate_tutor_from_csv);
+        translate_tutors_from_json(JSON.parse(msg));
       }
       show_loader(false);
     },
@@ -1540,13 +1547,14 @@ function fetch_tutor() {
     }
   });
 }
-function translate_tutor_from_csv(d) {
-  if (Object.keys(tutors_info).indexOf(d.username) == -1) {
+function translate_tutors_from_json(msg_json) {
+  msg_json.forEach(function(d) {
     tutors_info[d.username] = {
       full_name: d.first_name + " " + d.last_name,
-      email: d.email
-    };
-  }
+      email: d.email,
+      departments: d.departments.map(d => d.abbrev)
+    } ;
+  }) ;
 }
 
 

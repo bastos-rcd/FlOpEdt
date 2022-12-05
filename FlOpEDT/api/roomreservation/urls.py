@@ -4,6 +4,7 @@ from api.roomreservation import views
 routerRoomReservation = routers.SimpleRouter()
 
 routerRoomReservation.register(r'reservation', views.RoomReservationViewSet, basename='reservation')
+routerRoomReservation.register(r'shortreservation', views.ShortRoomReservationViewSet, basename='shortreservation')
 routerRoomReservation.register(r'reservationtype', views.RoomReservationTypeViewSet, basename='reservationtype')
 routerRoomReservation.register(r'reservationperiodicity', views.ReservationPeriodicityViewSet, basename='reservationperiodicity')
 routerRoomReservation.register(r'reservationperiodicitybyweek', views.ReservationPeriodicityByWeekViewSet, basename='reservationperiodicitybyweek')
