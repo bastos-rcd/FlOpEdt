@@ -50,8 +50,6 @@ from people.models import Tutor, UserDepartmentSettings, User, \
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
 
-from TTapp.TTUtils import number_courses
-
 from base.admin import DispoResource, VersionResource, \
     TutorCoursesResource, \
     CoursePreferenceResource, MultiDepartmentTutorResource, \
@@ -887,6 +885,7 @@ def fetch_all_modules_with_desc(req, **kwargs):
 
 def clean_change(week, old_version, change, work_copy=0,
                  initiator=None, apply=False, department=None):
+    from TTapp.TTUtils import number_courses
 
     scheduled_before = True
     renumber = False
@@ -1361,6 +1360,7 @@ def course_preferences_changes(req, year, week, train_prog, course_type, **kwarg
 
 @tutor_required
 def decale_changes(req, **kwargs):
+    from TTapp.TTUtils import number_courses
     bad_response = HttpResponse("KO")
     good_response = HttpResponse("OK")
     print(req)
