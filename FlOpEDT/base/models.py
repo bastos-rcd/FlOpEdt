@@ -627,7 +627,7 @@ class ScheduledCourse(models.Model):
     # les utilisateurs auront acces à la copie publique (0)
 
     def __str__(self):
-        return f"{self.course}{self.no}:{self.day}-t{self.start_time}-{self.room}"
+        return f"{self.course}{self.number}:{self.day}-t{self.start_time}-{self.room}"
 
     def unique_name(self):
         return f"{self.course.type}_{self.room}_{self.tutor.username}_{self.day}_{self.start_time}_{self.end_time}"
