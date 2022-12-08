@@ -33,7 +33,7 @@
     <link rel="stylesheet" href="{% static "solve_board/solve.css" %}"/>
 {% endblock %}
 
-{% block title %} {% trans "Schedule Generation" %} {% endblock %}
+{% block title %} {% translate "Schedule Generation" %} {% endblock %}
 {% block content %}
   <script src="{% static "base/d3.v4.min.js" %}"></script>
   <script>
@@ -63,36 +63,36 @@
 
   <div class="solver">
     <div id="constraints">
-        <div class="header"><span>{% trans "Constraints" %}</span></div>
-        <div class="remarks">(*) {% trans "All constraints appearing in bolded - with no weight - will be considered mandatory, the other ones will considered as preferences." %}</div>
+        <div class="header"><span>{% translate "Constraints" %}</span></div>
+        <div class="remarks">(*) {% translate "All constraints appearing in bolded - with no weight - will be considered mandatory, the other ones will considered as preferences." %}</div>
         <div id="constraints_list"></div>
     </div>
     <div id="settings" class="settings">
         <div class="header">
-            <span>{% trans "Configuration" %}</span>
+            <span>{% translate "Configuration" %}</span>
             <input type="button" id="analyse" name="analyse" value="Analyse Week"/>
             <input type="button" id="launch" name="action" value="Go"/>
         </div>
         <div>
-            <label for="opti_date">{% trans "Week⋅s" %} :</label>
+            <label for="opti_date">{% translate "Week⋅s" %} :</label>
             <select multiple="" size="10" id="opti_date"></select>
         </div>
         <div id="all-weeks-together">
             <input type="checkbox" id="all-weeks-together-checkbox" name="all-weeks-together-checkbox" checked/>
-            <label for="all-weeks-together-checkbox">{% trans "All weeks together ?" %} </label>
+            <label for="all-weeks-together-checkbox">{% translate "All weeks together ?" %} </label>
 
         </div>
         <div>
-            <label for="opti_train_prog">{% trans "Training Program" %} : </label>
+            <label for="opti_train_prog">{% translate "Training Program" %} : </label>
             <select id="opti_train_prog"></select>
         </div>
           <div id="stabilize">
-            <label for="stabilize_selector">{% trans "Stabilization" %} : </label>
+            <label for="stabilize_selector">{% translate "Stabilization" %} : </label>
             <select id="stabilize_selector"></select>
           </div>
           <div>
             {% if solvers|length > 1 %}
-              <label for="solver">{% trans "Solver" %} :</label>
+              <label for="solver">{% translate "Solver" %} :</label>
               <select id="solver">
                 {% for key, name in solvers %}
                   <option value="{{ key }}">{{ name }}</option>
@@ -104,18 +104,18 @@
           </div>
           <div>
               <input type="checkbox" id="pre-assign-rooms" name="pre-assign-rooms" checked/>
-              <label for="pre-assign-rooms">{% trans "Pre-assign rooms" %}</label><br>
+              <label for="pre-assign-rooms">{% translate "Pre-assign rooms" %}</label><br>
               <input type="checkbox" id="post-assign-rooms" name="post-assign-rooms"/>
-              <label for="post-assign-rooms">{% trans "Post-assign rooms" %}</label><br>
+              <label for="post-assign-rooms">{% translate "Post-assign rooms" %}</label><br>
           </div>
           <div>
-            <label for="limit">{% trans "Time limit (minuts)" %} :</label>
+            <label for="limit">{% translate "Time limit (minuts)" %} :</label>
             <select id="limit">
               <option value="300" selected>5</option>
               <option value="600">10</option>
               <option value="1800">30</option>
               <option value="3600">60</option>
-              <option value="0">{% trans "Unlimited" %}</option>
+              <option value="0">{% translate "Unlimited" %}</option>
             </select>
             <label id="completion" style="visibility : hidden">Analyze Completed !</label>
           </div>
