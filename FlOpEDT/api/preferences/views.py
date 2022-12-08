@@ -251,7 +251,7 @@ class RoomPreferenceDefaultViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = [IsTutor]
-    filter_class = RoomPreferenceDefaultFilterSet
+    filterset_class = RoomPreferenceDefaultFilterSet
     queryset = bm.RoomPreference.objects.filter(week=None)
     serializer_class = serializers.RoomPreferencesSerializer
 
@@ -267,6 +267,6 @@ class RoomPreferenceSingularFilterSet(filters.FilterSet):
 class RoomPreferenceSingularViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = [IsTutor]
-    filter_class = RoomPreferenceSingularFilterSet
+    filterset_class = RoomPreferenceSingularFilterSet
     queryset = bm.RoomPreference.objects.filter()
     serializer_class = serializers.RoomPreferencesSerializer

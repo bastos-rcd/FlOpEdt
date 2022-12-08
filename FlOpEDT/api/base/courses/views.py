@@ -106,7 +106,7 @@ class CourseTypeViewSet(viewsets.ModelViewSet):
     """
     queryset = bm.CourseType.objects.all()
     serializer_class = serializers.CourseTypeSerializer
-    filter_class = CourseTypeFilterSet
+    filterset_class = CourseTypeFilterSet
 
     filterset_fields = '__all__'
 
@@ -121,7 +121,7 @@ class CourseTypeNameViewSet(viewsets.ModelViewSet):
     """
     queryset = bm.CourseType.objects.all()
     serializer_class = serializers.CourseTypeNameSerializer
-    filter_class = CourseTypeFilterSet
+    filterset_class = CourseTypeFilterSet
 
     filterset_fields = '__all__'
 
@@ -147,7 +147,7 @@ class CoursesViewSet(viewsets.ModelViewSet):
     queryset = bm.Course.objects.all() \
     .prefetch_related('week', 'type', 'room_type', 'groups', 'module', 'modulesupp')
     serializer_class = serializers.CoursesSerializer
-    filter_class = CourseFilterSet
+    filterset_class = CourseFilterSet
 
     filterset_fields = '__all__'
 

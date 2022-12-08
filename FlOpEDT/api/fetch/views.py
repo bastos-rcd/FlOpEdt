@@ -81,7 +81,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     Request needs a department filter.
     """
     permission_classes = [IsAdminOrReadOnly]
-    filter_class = ScheduledCourseFilterSet
+    filterset_class = ScheduledCourseFilterSet
 
     def get_queryset(self):
         lineage = self.request.query_params.get('lineage', 'false')
@@ -334,7 +334,7 @@ class AllVersionsViewSet(viewsets.ModelViewSet):
 
     queryset = bm.EdtVersion.objects.all()
     serializer_class = serializers.AllVersionsSerializer
-    filter_class = AllVersionsFilterSet
+    filterset_class = AllVersionsFilterSet
 
 
 class DepartmentsViewSet(viewsets.ModelViewSet):
@@ -376,7 +376,7 @@ class TutorCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = serializers.TutorCourses_Serializer
     queryset = pm.UserDepartmentSettings.objects.all()
-    filter_class = TutorCoursesFilterSet
+    filterset_class = TutorCoursesFilterSet
 
 
 @method_decorator(name='list',
@@ -439,7 +439,7 @@ class BKNewsViewSet(viewsets.ModelViewSet):
 
     queryset = dwm.BreakingNews.objects.all()
     serializer_class = serializers.BKNewsSerializer
-    filter_class = BKNewsFilterSet
+    filterset_class = BKNewsFilterSet
 
 
 @method_decorator(name='list',

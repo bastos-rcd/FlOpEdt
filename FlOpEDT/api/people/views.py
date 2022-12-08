@@ -142,7 +142,7 @@ class TutorUsernameViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = pm.Tutor.objects.all()
     serializer_class = serializers.TutorUsernameSerializer
-    filter_class = TutorFilterSet
+    filterset_class = TutorFilterSet
 
 
 @method_decorator(name='list',
@@ -169,5 +169,5 @@ class TutorViewSet(viewsets.ModelViewSet):
             return pm.Tutor.objects.all()
 
     serializer_class = serializers.TutorSerializer
-    filter_class = TutorFilterSet
+    filterset_class = TutorFilterSet
     permission_classes = [IsAdminOrReadOnly]
