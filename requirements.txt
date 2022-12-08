@@ -1,5 +1,5 @@
 matplotlib
-Django==3.1
+Django==3.2.16
 django_redis
 django-import-export
 django-extensions
@@ -9,7 +9,7 @@ psycopg2-binary
 requests
 numpy
 pyclustering
-asgiref~=3.2.10
+asgiref
 daphne
 channels-redis
 channels
