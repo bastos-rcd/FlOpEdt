@@ -96,7 +96,7 @@ class RoomEventFeed(EventFeed):
             ScheduledCourse.objects\
             .filter(room__in=room_groups, work_copy=0) \
             .order_by('-course__week__year', '-course__week__nb')
-        room_reservations = RoomReservation.objects.get(room__in=room_groups)
+        room_reservations = RoomReservation.objects.filter(room__in=room_groups).order_by('-date', '-start_time')
         return list(room_scheduled_courses) + list(room_reservations)
 
     def item_title(self, course_or_reservation):
