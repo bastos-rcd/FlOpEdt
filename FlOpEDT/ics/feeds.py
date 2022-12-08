@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from base.models import ScheduledCourse, Room, StructuralGroup, TransversalGroup, Day, Department, Regen
 from people.models import Tutor
 from django.db.models import Q
+from roomreservation.models import RoomReservation
 
 from django.http import HttpResponse, Http404
 from django.utils.http import http_date
@@ -88,20 +89,30 @@ class TutorEventFeed(EventFeed):
 
 class RoomEventFeed(EventFeed):
     def get_object(self, request, department, room_id):
-        return Room.objects.get(id=room_id).and_subrooms()
+        return Room.objects.get(id=room_id).and_overrooms()
 
     def items(self, room_groups):
-        return ScheduledCourse.objects\
-                              .filter(room__in=room_groups, work_copy=0) \
+        room_scheduled_courses = \
+            ScheduledCourse.objects\
+            .filter(room__in=room_groups, work_copy=0) \
             .order_by('-course__week__year', '-course__week__nb')
+        room_reservations = RoomReservation.objects.get(room__in=room_groups)
+        return list(room_scheduled_courses) + list(room_reservations)
 
-    def item_title(self, scourse):
-        course = scourse.course
-        gp_str, plural = str_groups(course)
-        return (f'{course.module.abbrev} {course.type.name} '
-                f'- {gp_str} '
-                f'- {scourse.tutor.username if scourse.tutor is not None else "x"}'
-        )
+    def item_title(self, course_or_reservation):
+        if type(course_or_reservation) is ScheduledCourse:
+            scourse = course_or_reservation
+            course = scourse.course
+            gp_str, plural = str_groups(course)
+            return (f'{course.module.abbrev} {course.type.name} '
+                    f'- {gp_str} '
+                    f'- {scourse.tutor.username if scourse.tutor is not None else "x"}'
+                    )
+        elif type(course_or_reservation) is RoomReservation:
+            reservation = course_or_reservation
+            return f'{reservation.title} ({reservation.reservation_type.name} - {reservation.responsible.username})'
+        else:
+            raise TypeError("Has to be course or reservation")
 
 
 class GroupEventFeed(EventFeed):
