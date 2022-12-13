@@ -622,7 +622,8 @@ def fetch_room_default_week(req, room, **kwargs):
 
 
 def fetch_decale(req, **kwargs):
-    if not req.is_ajax() or req.method != "GET":
+    if (req.META.get('HTTP_X_REQUESTED_WITH') != 'XMLHttpRequest'
+        or req.method != "GET"):
         return HttpResponse("KO")
 
     week = int(req.GET.get('s', '0'))
@@ -998,7 +999,7 @@ def edt_changes(req, **kwargs):
 
     impacted_inst = set()
 
-    if not req.is_ajax():
+    if req.META.get('HTTP_X_REQUESTED_WITH') != 'XMLHttpRequest':
         bad_response['more'] = "Non ajax"
         return JsonResponse(bad_response)
 
@@ -1149,7 +1150,7 @@ def room_preferences_changes_per_tutor(req, tutor, **kwargs):
     bad_response = {'status': 'KO', 'more': ''}
     good_response = {'status': 'OK', 'more': ''}
 
-    if not req.is_ajax():
+    if req.META.get('HTTP_X_REQUESTED_WITH') != 'XMLHttpRequest':
         bad_response['more'] = "Non ajax"
         return JsonResponse(bad_response)
 
@@ -1262,7 +1263,7 @@ def preferences_changes(req, year, week, helper_pref):
 def check_ajax_post(req):
     response = {'status': 'KO', 'more': ''}
 
-    if not req.is_ajax():
+    if req.META.get('HTTP_X_REQUESTED_WITH') != 'XMLHttpRequest':
         response['more'] = "Non ajax"
         return JsonResponse(response)
 
@@ -1365,7 +1366,7 @@ def decale_changes(req, **kwargs):
     good_response = HttpResponse("OK")
     print(req)
 
-    if not req.is_ajax():
+    if req.META.get('HTTP_X_REQUESTED_WITH') != 'XMLHttpRequest':
         bad_response['reason'] = "Non ajax"
         return bad_response
 
@@ -1497,7 +1498,7 @@ def send_email_proposal(req, **kwargs):
     bad_response = {'status': 'KO', 'more': ''}
     good_response = {'status': 'OK', 'more': ''}
 
-    if not req.is_ajax():
+    if req.META.get('HTTP_X_REQUESTED_WITH') != 'XMLHttpRequest':
         bad_response['more'] = "Non ajax"
         return JsonResponse(bad_response)
 

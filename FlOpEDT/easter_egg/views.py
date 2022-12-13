@@ -30,8 +30,9 @@ def start_game(req):
 @login_required
 def set_score(req, **kwargs):
     bad_response = HttpResponse(status=400)
-    
-    if req.method != "POST" or not req.is_ajax():
+
+    if (req.method != "POST" or
+        req.META.get('HTTP_X_REQUESTED_WITH') != 'XMLHttpRequest'):
         return bad_response
 
     new_score = int(req.POST.get('score', '0'))

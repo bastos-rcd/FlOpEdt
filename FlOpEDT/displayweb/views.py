@@ -10,8 +10,6 @@ from displayweb.admin import TutorDisplayResource, ModuleDisplayResource
 
 # Create your views here.
 def fetch_rectangle_colors(req, **kwargs):
-    #if not req.is_ajax() or req.method != "GET":
-    #    return HttpResponse("KO")
     week = req.GET.get('week', None)
     year = req.GET.get('year', None)
     work_copy = int(req.GET.get('work_copy', '0'))
