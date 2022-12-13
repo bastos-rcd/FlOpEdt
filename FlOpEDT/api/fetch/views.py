@@ -84,6 +84,10 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = ScheduledCourseFilterSet
 
     def get_queryset(self):
+        # avoid warning
+        if getattr(self, 'swagger_fake_view', False):
+            return bm.ScheduledCourse.objects.none()
+
         lineage = self.request.query_params.get('lineage', 'false')
         lineage = True if lineage == 'true' else False
         self.dept = self.request.query_params.get('dept', None)
@@ -154,7 +158,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             if self.dept is None:
                 if self.tutor is None:
                     raise exceptions.NotAcceptable(
-                        detail='You should either a group and a training programme, or a tutor, or a department')
+                        detail='You should either pick a group and a training programme, or a tutor, or a department')
             else:
                 queryset = queryset.filter(
                     course__module__train_prog__department=self.dept)
@@ -165,6 +169,10 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_serializer_class(self):
+        # inaccurate, but avoid warnings
+        if getattr(self, 'swagger_fake_view', False):
+            return serializers.ScheduledCoursesSerializer
+
         # get the department
         if self.dept is None:
             if self.tutor is not None:
