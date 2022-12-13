@@ -277,15 +277,7 @@ function select_room_change() {
       }
     }
 
-
-    if (level == 0) {
-      initial_rg = rooms.roomtypes[c.room_type];
-    } else if (level == 1) {
-      initial_rg = Object.keys(rooms.roomgroups);
-    } else {
-      // should not go here
-      initial_rg = [];
-    }
+    initial_rg = rooms.roomtypes[c.room_type];
 
     if (!is_garbage({ day: c.day, start_time: c.start })) {
       proposed_rg.push.apply(proposed_rg,

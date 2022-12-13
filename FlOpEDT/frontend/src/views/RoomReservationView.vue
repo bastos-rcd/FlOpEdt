@@ -151,7 +151,7 @@ import type {
     User,
     WeekDay,
 } from '@/assets/js/types'
-import { ScheduledCourse, Time } from '@/assets/js/types'
+import type { ScheduledCourse, Time } from '@/assets/js/types'
 import HourCalendar from '@/components/HourCalendar.vue'
 import WeekPicker from '@/components/WeekPicker.vue'
 import type { ComputedRef, Ref } from 'vue'
@@ -168,7 +168,7 @@ import ClearableInput from '@/components/ClearableInput.vue'
 import DeletePeriodicReservationDialog from '@/components/DeletePeriodicReservationDialog.vue'
 import type { Department } from '@/stores/department'
 import { useDepartmentStore } from '@/stores/department'
-import { Room, useRoomStore } from '@/stores/room'
+import { type Room, useRoomStore } from '@/stores/room'
 
 const api = ref<FlopAPI>(requireInjection(apiKey))
 const currentWeek = ref(requireInjection(currentWeekKey))

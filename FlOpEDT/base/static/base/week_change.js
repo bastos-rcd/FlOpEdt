@@ -1193,7 +1193,8 @@ function translate_unavailable_rooms(d) {
   }
   unavailable_rooms[d.room][d.day].push({
     start_time: +d.start_time,
-    duration: +d.duration
+    duration: +d.duration,
+    value: 0
   });
 }
 

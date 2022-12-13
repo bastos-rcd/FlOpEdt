@@ -945,14 +945,6 @@ var room_cm_settings =
     }
   },
   {
-    type: 'room_available_same_type',
-    txt_intro: {
-       '0': gettext('No room available (any type)'),
-      '1': gettext('Room available (any type)'),
-      'default': gettext('Rooms available (any type)')
-    }
-  },
-  {
     type: 'room',
     txt_intro: {
       '0': gettext('No room'),
