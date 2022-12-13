@@ -98,8 +98,8 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
         self.params['week'] = None
 
     def set_singular_params(self):
-        self.params['week__nb'] = int(self.request.query_params.get('week'))
-        self.params['week__year'] = int(self.request.query_params.get('year'))
+        self.params['week__nb'] = self.request.query_params.get('week')
+        self.params['week__year'] = self.request.query_params.get('year')
         self.select.append('week')
 
     def unset_singular_params(self):
