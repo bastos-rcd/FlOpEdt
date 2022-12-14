@@ -281,12 +281,27 @@ class LocateAllCourses(RoomConstraint):
         verbose_name = _('Assign a room to the courses')
         verbose_name_plural = verbose_name
 
-    def enrich_room_model(self, room_model, week, ponderation=1):
-        considered_courses = room_model.courses_for_week[week]
+    def considered_courses(self, courses_of_the_week):
+        courses_to_consider = courses_of_the_week
         if self.modules.exists():
-            considered_courses = set(c for c in considered_courses if c.module in self.modules.all())
+            courses_to_consider = set(c for c in courses_to_consider if c.module in self.modules.all())
         if self.course_types.exists():
-            considered_courses = set(c for c in considered_courses if c.type in self.course_types.all())
+            courses_to_consider = set(c for c in courses_to_consider if c.type in self.course_types.all())
+        return courses_to_consider
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+        considered_courses = self.considered_courses(ttmodel.wdb.courses_by_week[week])
+        for c in considered_courses:
+            for sl in ttmodel.wdb.compatible_slots[c]:
+                ttmodel.add_constraint(
+                    ttmodel.sum(ttmodel.TTrooms[(sl, c, r)]
+                                for r in ttmodel.wdb.course_rg_compat[c])
+                    - ttmodel.TT[(sl, c)],
+                    '==', 0,
+                    Constraint(constraint_type=ConstraintType.LOCATE_ALL_COURSES, slots=sl, courses=c))
+
+    def enrich_room_model(self, room_model, week, ponderation=1):
+        considered_courses = self.considered_courses(room_model.courses_for_week[week])
         for course in considered_courses:
             relevant_sum = room_model.sum(room_model.TTrooms[(course, room)]
                                           for room in room_model.course_room_compat[course])
