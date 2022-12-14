@@ -40,7 +40,7 @@ from TTapp.models import MinNonPreferedTutorsSlot, StabilizeTutorsCourses, MinNo
 
 from roomreservation.models import RoomReservation
 
-from TTapp.RoomConstraints.RoomConstraint import LocateAllCourses, NoSimultaneousRoomCourses
+from TTapp.RoomConstraints.RoomConstraint import LocateAllCourses, LimitSimultaneousRoomCourses
 
 from TTapp.FlopConstraint import max_weight
 
@@ -479,8 +479,8 @@ class TTModel(FlopModel):
     @timer
     def add_rooms_constraints(self):
         # constraint : each Room is only used once on simultaneous slots
-        if not NoSimultaneousRoomCourses.objects.filter(department=self.department).exists():
-            NoSimultaneousRoomCourses.objects.create(department=self.department)
+        if not LimitSimultaneousRoomCourses.objects.filter(department=self.department).exists():
+            LimitSimultaneousRoomCourses.objects.create(department=self.department)
 
         # each course is located into a room
         if not LocateAllCourses.objects.filter(department=self.department).exists():

@@ -40,7 +40,7 @@ from core.decorators import timer
 
 from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints
 from TTapp.RoomConstraints.RoomConstraint import LocateAllCourses, \
-    LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts, NoSimultaneousRoomCourses
+    LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts, LimitSimultaneousRoomCourses
 from TTapp.FlopConstraint import max_weight
 
 from base.timing import  flopday_to_date, floptime_to_time
@@ -299,8 +299,8 @@ class RoomModel(FlopModel):
     @timer
     def add_core_constraints(self):
         # constraint : each Room is used at most once, if available, on every slot
-        if not NoSimultaneousRoomCourses.objects.filter(department=self.department).exists():
-            NoSimultaneousRoomCourses.objects.create(department=self.department)
+        if not LimitSimultaneousRoomCourses.objects.filter(department=self.department).exists():
+            LimitSimultaneousRoomCourses.objects.create(department=self.department)
 
         # each course is located into a room
         if not LocateAllCourses.objects.filter(department=self.department).exists():
