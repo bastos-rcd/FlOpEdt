@@ -2,6 +2,9 @@ from django.db.models import Max
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 
+from api.people.serializers import ShortUsersSerializer
+from api.fetch.serializers import IDRoomSerializer
+
 import roomreservation.models as rm
 from roomreservation.check_periodicity import check_periodicity, check_reservation
 
@@ -106,11 +109,15 @@ def create_reservations_if_possible(periodicity, original_reservation, create_re
     # Get the corresponding periodicity model
     model = ReservationPeriodicitySerializer.get_model(periodicity)
     # Create a new periodicity instance
+    
+    
     if periodicity['id'] < 0:
         # Generate a new ID if negative
-        max_periodicity_id = rm.ReservationPeriodicity.objects.aggregate(max_id=Max('pk')).get('max_id')
-        periodicity['id'] = 1 if max_periodicity_id is None else max_periodicity_id
-    periodicity_instance = model.objects.create(**periodicity)
+        periodicity.pop('id')
+        periodicity_instance = model.objects.create(**periodicity)
+    else:
+        periodicity_instance = model.objects.get(id=periodicity['id'])
+
     # Create the future reservations
     for reservation in ok_reservations:
         # Ignore the current reservation in the list
@@ -203,6 +210,15 @@ class RoomReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = rm.RoomReservation
         fields = '__all__'
+
+
+class ShortRoomReservationSerializer(serializers.ModelSerializer):
+    responsible = ShortUsersSerializer()
+    room = IDRoomSerializer()
+
+    class Meta:
+        model = rm.RoomReservation
+        fields = ('date', 'start_time', 'end_time', 'title', 'room', 'responsible')
 
 
 class RoomReservationTypeSerializer(serializers.ModelSerializer):

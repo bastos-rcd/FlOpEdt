@@ -19,23 +19,19 @@ puisse vous aider...
 Pour l'essentiel, c'est expliqué dans cette [vidéo tuto](https://www.youtube.com/watch?v=4uxITtWVkIs&feature=youtu.be).
 On fera de la doc ici bientôt.
 
-## Ajout des contraintes via l'interface admin
+## Ajout des contraintes via l'interface **Contraintes**
 
 La première étape consiste à lister (sur un feuille de papier ou dans un fichier texte) les contraintes/préférences,
 que l'on souhaiterait voir appliquer.
 Par exemple:
 - pas plus de 4h de maths par jour pour les groupes première année
-- essayer de faire venir les enseignant le moins de demie-journées possibles
+- essayer de faire venir les enseignants le moins de demie-journées possibles
 - ...
 
 Une fois que vous êtes au clair, il s'agit de se connecter avec un user ayant des droits suffisants et 
-de cliquer sur l'onglet admin.
+de cliquer sur l'onglet **Contraintes**.
 
-Dans la rubrique `TTapp` vos trouverez les contraintes prêtes à être en base.
-![TTConstraints](static/TTapp/TTConstraints.png) En voici une description des plus fréquemment utilisées, 
-avec quelques caractéristiques propres. 
-
-:bulb: le paramètre weight définit s'il s'agit d'**une contrainte (si weight est laissé vide)** qui sera toujours respectée
+:bulb: le paramètre `poids` définit s'il s'agit d'**une contrainte (si weight est laissé vide)** qui sera toujours respectée
 ou d'une préférence (avec un degré d'importance de 1 à 8) que le solveur essaiera d'appliquer.
 
 :bulb: Globalement, lorsqu'un paramètre autorise un choix multiple, **n'en prendre aucun signifie les considérer tous**.
@@ -48,7 +44,8 @@ pour une promotion particulière ou pour toutes (laisser vide), etc...
 :bulb: Attention, les contraintes ne sont valables que pour le département via lequel elles sont saisies!
 
 ### Contraintes de base
-Ces contraintes sont enregistrées automatiquement à la première génération puis appliquées par défaut (il est possible néanmoins de les désactiver):
+Ces contraintes sont enregistrées automatiquement à la première génération puis appliquées par défaut 
+(il est possible néanmoins de les désactiver):
 - Assign all courses : affecter un prof à chaque cours (ou seulement à ceux correspondants aux filtres)
 - ConsiderDependencies : prend en compte les dépendance entre cours (Dependecy) enregistrées en base
 - Consider pivots :prend en compte les pivots enregistrées en base
@@ -80,6 +77,7 @@ un ou plusieurs groupes.
 - Stabilize groups courses : évite de changer l'occupation du temps des groupes
 - Stabilize tutors courses : évite de changer l'occupation du temps des profs
 - Lower bound busy days : assure qu'un prof vienne au moins n jours
+- Not alone for these course types : assure qu'un prof soit accompagné d'un autre prof quand il assure ces cours
 
 ### Contraintes spécifiques au mode Visio
 - Bound Physical presence half days: met des bornes (min/max) sur le nombre de demies-journées de présene sur site pour les groupes d'étudiant⋅e⋅s
@@ -110,8 +108,8 @@ puisse vous aider.
 
 
 ## Vérifier que les contraintes sont bien prises en compte
-Une fois enregistrées en base, les contraintes apparaîtront lorsque le⋅a gestionnaire voudra générer un emploi du temps.
-Dans l'onglet `Générer` elles apparaîtront en une phrase compréhensible, lorsqu'une semaine unique est sélectionnée (que la contrainte
+Outre dans l'interface dédiée, les contraintes apparaîtront également lorsque le⋅a gestionnaire voudra 
+générer un emploi du temps, via l'onglet `Générer` : elles apparaîtront en une phrase compréhensible, lorsqu'une semaine unique est sélectionnée (que la contrainte
 concerne uniquement cette semaine, ou qu'elles les concernent toutes.)
 
 ![Solve board](static/TTapp/solve_board.gif)

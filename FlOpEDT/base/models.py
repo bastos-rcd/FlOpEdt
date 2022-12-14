@@ -457,7 +457,7 @@ class RoomSort(models.Model):
                               on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.for_type}-pref-{self.prefer}-to-{self.unprefer}"
+        return f"{self.for_type}: {self.tutor} prefers {self.prefer} to {self.unprefer}"
 
 
 class RoomPonderation(models.Model):
@@ -544,7 +544,6 @@ class Course(models.Model):
     type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     room_type = models.ForeignKey(
         'RoomType', null=True, on_delete=models.CASCADE)
-    no = models.PositiveSmallIntegerField(null=True, blank=True)
     tutor = models.ForeignKey('people.Tutor',
                               related_name='taught_courses',
                               null=True,
@@ -615,7 +614,7 @@ class ScheduledCourse(models.Model):
     start_time = models.PositiveSmallIntegerField()
     room = models.ForeignKey(
         'Room', blank=True, null=True, on_delete=models.SET_NULL)
-    no = models.PositiveSmallIntegerField(null=True, blank=True)
+    number = models.PositiveSmallIntegerField(null=True, blank=True)
     noprec = models.BooleanField(
         verbose_name='vrai si on ne veut pas garder la salle', default=True)
     work_copy = models.PositiveSmallIntegerField(default=0)
@@ -628,7 +627,7 @@ class ScheduledCourse(models.Model):
     # les utilisateurs auront acces à la copie publique (0)
 
     def __str__(self):
-        return f"{self.course}{self.no}:{self.day}-t{self.start_time}-{self.room}"
+        return f"{self.course}{self.number}:{self.day}-t{self.start_time}-{self.room}"
 
     def unique_name(self):
         return f"{self.course.type}_{self.room}_{self.tutor.username}_{self.day}_{self.start_time}_{self.end_time}"
@@ -655,6 +654,7 @@ class ScheduledCourse(models.Model):
         if self.course.type.pay_duration is not None:
             return self.course.type.pay_duration
         return self.duration
+
 
 class ScheduledCourseAdditional(models.Model):
     scheduled_course = models.OneToOneField(

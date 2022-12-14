@@ -303,6 +303,7 @@ class NotificationsPreferences(models.Model):
                                 on_delete=models.CASCADE,
                                 related_name='notifications_preference')
     nb_of_notified_weeks = models.PositiveSmallIntegerField(default=0)
+    notify_other_user_modifications = models.BooleanField(default=False)
 
 ###
 # Save the user's preferred theme in the data base

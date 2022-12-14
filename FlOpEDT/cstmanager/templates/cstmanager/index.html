@@ -215,6 +215,7 @@
         <img id="icon-check" style="display: none;" src="{% static 'cstmanager/icons/icon_check.png' %}">
     </div>
 {% endblock %} {% block javascript %}
+    <script src="{% url 'javascript-catalog' %}"></script>
     <script type="text/javascript" src="{% static 'base/helpers.js' %}"></script>
     <script type="text/javascript" src="{% static 'base/svg.js' %}"></script>
     <script type="text/javascript" src="{% static 'base/weeks.js' %}"></script>

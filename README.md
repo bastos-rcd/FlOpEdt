@@ -36,9 +36,9 @@ maximisent la satisfaction générale.
 Voir le wiki du projet [ici](https://framagit.org/flopedt/FlOpEDT/-/wikis/home).
 
 Vous y trouverez une procédure de lancement 
-[via Docker](https://framagit.org/flopedt/FlOpEDT/-/wikis/installation-linux#installation-et-lancement-sous-docker)
+[via Docker](https://framagit.org/flopedt/FlOpEDT/-/wikis/Installation-en-utilisant-Docker)
 (pour un test ne nécessitant pas d'installation) et le processus
-à suivre pour une [installation de l'application](https://framagit.org/flopedt/FlOpEDT/-/wikis/installation-linux).
+à suivre pour une [installation de l'application](https://framagit.org/flopedt/FlOpEDT/-/wikis/Installation-Linux-(sans-Docker)).
 
 Vous y trouverez également la documentation pour 
 [déployer l'application sur un serveur](https://framagit.org/flopedt/FlOpEDT/-/wikis/deploiement), 

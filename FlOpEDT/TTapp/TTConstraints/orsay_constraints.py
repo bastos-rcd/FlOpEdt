@@ -48,8 +48,8 @@ class GroupsLunchBreak(TTConstraint):
     Ensures time for lunch in a given interval for given groups (all if groups is Null)
     """
 
-    start_time = models.PositiveSmallIntegerField()
-    end_time = models.PositiveSmallIntegerField()
+    start_lunch_time = models.PositiveSmallIntegerField()
+    end_lunch_time = models.PositiveSmallIntegerField()
     # ArrayField unusable with django-import-export
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     lunch_length = models.PositiveSmallIntegerField()
@@ -66,7 +66,7 @@ class GroupsLunchBreak(TTConstraint):
             days = days_filter(days, day_in=self.weekdays)
         for day in days:
             local_slots = [Slot(day=day, start_time=st, end_time=st+self.lunch_length)
-                           for st in range(self.start_time, self.end_time - self.lunch_length + 1,
+                           for st in range(self.start_lunch_time, self.end_lunch_time - self.lunch_length + 1,
                                            15)]
             slots_nb = len(local_slots)
             # pour chaque groupe, au moins un de ces slots ne voit aucun cours lui être simultané
@@ -104,7 +104,7 @@ class GroupsLunchBreak(TTConstraint):
 
     def one_line_description(self):
         text = f"Il faut une pause déjeuner d'au moins {self.lunch_length} minutes " \
-               f"entre {french_format(self.start_time)} et {french_format(self.end_time)}"
+               f"entre {french_format(self.start_lunch_time)} et {french_format(self.end_lunch_time)}"
         try:
             text += " les " + ', '.join([wd for wd in self.weekdays])
         except ObjectDoesNotExist:
@@ -125,8 +125,8 @@ class TutorsLunchBreak(TTConstraint):
     """
     Ensures time for lunch in a given interval for given groups (all if groups is Null)
     """
-    start_time = models.PositiveSmallIntegerField()
-    end_time = models.PositiveSmallIntegerField()
+    start_lunch_time = models.PositiveSmallIntegerField()
+    end_lunch_time = models.PositiveSmallIntegerField()
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     lunch_length = models.PositiveSmallIntegerField()
     tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints')
@@ -144,7 +144,7 @@ class TutorsLunchBreak(TTConstraint):
             days = days_filter(days, day_in=self.weekdays)
         for day in days:
             local_slots = [Slot(day=day, start_time=st, end_time=st+self.lunch_length)
-                           for st in range(self.start_time, self.end_time - self.lunch_length + 1,
+                           for st in range(self.start_lunch_time, self.end_lunch_time - self.lunch_length + 1,
                                            15)]
             slots_nb = len(local_slots)
             # pour chaque groupe, au moins un de ces slots ne voit aucun cours lui être simultané
@@ -211,7 +211,7 @@ class TutorsLunchBreak(TTConstraint):
 
     def one_line_description(self):
         text = f"Il faut une pause déjeuner d'au moins {self.lunch_length} minutes " \
-               f"entre {french_format(self.start_time)} et {french_format(self.end_time)}"
+               f"entre {french_format(self.start_lunch_time)} et {french_format(self.end_lunch_time)}"
         try:
             text += " les " + ', '.join([wd for wd in self.weekdays])
         except ObjectDoesNotExist:

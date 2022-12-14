@@ -1151,6 +1151,9 @@ function warning_check(check_tot) {
     } else if (check.nok == 'room_busy_other_dept') {
       expand = "La salle " + check.more.room
         + " est utilisée par un autre département.";
+    } else if (check.nok == 'room_booked_other_dept') {
+      expand = "La salle " + check.more.room
+        + " a été réservée.";
     } else if (check.nok == 'group_lunch') {
       expand = "Le groupe " + check.more.group
         + " de " + set_promos[check.more.promo]
@@ -1550,6 +1553,23 @@ function check_shared_rooms(issues, possible_conflicts) {
   if (extra_unavailable == 0) {
     issues.push({
       nok: 'room_busy_other_dept',
+      more: { room: wanted_course.room }
+    });
+  }
+
+  extra_unavailable = find_in_pref(
+    unavailable_rooms,
+    wanted_course.room,
+    wanted_course);
+
+  if (extra_unavailable == 0) {
+    // TOBEFIXED
+    // decorrelate booking and preferences
+    // in unavailavble_rooms, there is both:
+    //   - RoomPreference 
+    //   - RoomReservation
+    issues.push({
+      nok: 'room_booked_other_dept',
       more: { room: wanted_course.room }
     });
   }
@@ -2093,8 +2113,8 @@ function fetch_lunch_constraints() {
 
 function translate_group_lunch_constraints(d) {
   let ret = {
-    start: +d.start_time,
-    end: +d.end_time,
+    start: +d.start_lunch_time,
+    end: +d.end_lunch_time,
     min_length: +d.lunch_length,
     groups: []
   };
@@ -2297,7 +2317,7 @@ function def_cm_change() {
     go_cm_room_tutor_change();
   };
 
-  for (var level = 0; level < room_cm_settings.length; level++) {
+  for (let level = 0; level < room_cm_settings.length; level++) {
     room_cm_settings[level].click = function (d) {
       context_menu.room_tutor_hold = true;
       if (d.content == '+') {

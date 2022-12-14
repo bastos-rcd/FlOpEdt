@@ -4,6 +4,36 @@ popoverAllowList['*'].push('onclick');
 
 const list_close = new Event('list-close');
 
+// usefull_translations
+let paramaters_translation=[gettext("time2"), gettext("nb_max"), gettext("weekdays"), gettext("nb_min"),
+    gettext("join2courses"), gettext("slot_start_time"), gettext("curfew_time"), gettext("weeks"),
+    gettext("slot_end_time"), gettext("max_number"), gettext("max_holes_per_day"), gettext("train_progs"),
+    gettext("max_holes_per_week"), gettext("limit"), gettext("min_time_per_period"), gettext("max_time_per_period"),
+    gettext("course_type"), gettext("max_hours"), gettext("fhd_period"), gettext("tolerated_margin"),
+    gettext("number_of_weeks"), gettext("guide_tutors"), gettext("min_days_nb"), gettext("lower_bound_hours"),
+    gettext("work_copy"), gettext("fixed_days"), gettext("module"), gettext("tutor"), gettext("group"),
+    gettext("possible_rooms"), gettext("start_lunch_time"), gettext("end_lunch_time"), gettext("fampm_period"),
+    gettext("weekday"), gettext("lunch_length"), gettext("min_break_length"), gettext("tutor_status"),
+    gettext("course_types"), gettext("possible_week_days"), gettext("groups"), gettext("tutors"),
+    gettext("modules"), gettext("possible_start_times"), gettext("forbidden_week_days"),
+    gettext("forbidden_start_times"), gettext("pre_assigned_only"), gettext("percentage"), gettext("time1")]
+
+//should/could be replaced by django-js-choices
+let choices = {
+    'AM': gettext('AM'),
+    'PM': gettext('PM'),
+    'fd': gettext('fd'),
+    'hd': gettext('hd'),
+    'm': gettext('m'),
+    'tu': gettext('tu'),
+    'w': gettext('w'),
+    'th': gettext('th'),
+    'f': gettext('f'),
+    'sa': gettext('sa'),
+    'su': gettext('su'),
+}
+
+
 // helper function to extract a parameter object from a given constraint
 let get_parameter_from_constraint = (cst, name) => {
     let ret = {};
@@ -323,6 +353,7 @@ let changeEvents = {
             });
             console.error(message);
             alertMessage.error(message);
+            alertMessage.error(message);
             success = false;
         };
 
@@ -362,6 +393,19 @@ let changeEvents = {
         }
     },
 }
+
+
+// convert floptime to readable time for labels
+function floptime_to_str_time(floptime){
+    let min_from_midnight= parseInt(floptime)
+    let minutes = min_from_midnight%60
+    let hours = (min_from_midnight - minutes) /60
+    let str_minutes = "0" + minutes.toString()
+    let str_hours = hours.toString()
+    let formattedTime = str_hours + ':' + str_minutes.substr(-2)
+    return formattedTime
+}
+
 
 // object containing functions that fetch data from the database
 let fetchers = {
@@ -833,7 +877,7 @@ let extractConstraintFromPopup = (constraint) => {
                 let tag = document.getElementById('param-check-' + param.name);
                 param.id_list.push(tag.checked);
             } else {
-                if (param.name === 'tutors') {
+                if (param.name.includes('tutors')) {
                     let tag = document.getElementById('param-select-' + param.name);
                     tag.querySelectorAll('li').forEach((value, key, parent) => {
                         param.id_list.push(value.getAttribute('data-param-id'));
@@ -1214,6 +1258,7 @@ let getCorrespondingDatabase = (param) => {
             return database['train_progs'];
         case 'tutor':
         case 'tutors':
+        case 'guide_tutors':
             return database['tutors_ids'];
         case 'rooms':
         case 'possible_rooms':
@@ -1239,6 +1284,7 @@ let getCorrespondingInfo = (id, param) => {
         case 'train_progs':
             return db[id]['abbrev'];
         case 'tutors':
+        case 'guide_tutors':
         case 'tutor':
         case 'rooms':
         case 'possible_rooms':
@@ -1249,6 +1295,18 @@ let getCorrespondingInfo = (id, param) => {
             return db[id];
         case 'weeks':
             return `${db[id]['year']}-${db[id]['nb']}`;
+        case 'start_time':
+        case 'start_times':
+        case 'possible_start_times':
+        case 'allowed_start_times':
+            return floptime_to_str_time(id);
+        case 'fampm_period':
+        case 'fhd_period':
+        case 'weekday':
+        case 'weekdays':
+        case 'forbidden_week_days':
+        case 'possible_week_days':
+            return choices[id];
         default:
             return id;
     }
@@ -1329,6 +1387,7 @@ let createSelectedParameterPopup = (constraint, parameter) => {
         values.append(form);
     };
 
+    // if param_obj is multiple or this condition should be satisfied!
     if (param_obj.multiple) {
         let acceptable_values = database.acceptable_values[parameter].acceptable;
 
@@ -1387,7 +1446,7 @@ let createSelectedParameterPopup = (constraint, parameter) => {
 
         buttons.append(select_all_button, remove_all_button, cancel_button);
         divs.append(values, buttons);
-    } else if (param_obj.type.includes('.')) {
+    } else if (param_obj.type.includes('.') || database.acceptable_values[parameter].acceptable.length>0) {
         let temp_id = parameter + '-value';
 
         let form = divBuilder({
@@ -1518,13 +1577,20 @@ let buttonWithDropBuilder = (constraint, parameter) => {
             'aria-expanded': 'false',
             'aria-controls': collapseID,
         });
-        button.innerText = parameter.name;
+        console.log(parameter.name);
+        button.innerText = gettext(parameter.name);
+        console.log(gettext(parameter.name));
         button.append(badge);
 
         let elements;
 
-        if (parameter.name === 'tutors') {
-            let label_text = gettext('Tutor');
+        if (parameter.name.includes('tutors')) {
+            let label_text = "";
+            if (parameter.name === 'guide_tutors') {
+                label_text = gettext('Guide tutor');}
+            else{
+                label_text = gettext('Tutor');
+            }
             let acceptable_values = database.acceptable_values.tutor.acceptable;
 
             let element_obj = (tutor_id) => {
@@ -1632,7 +1698,7 @@ let buildSection = (name, list) => {
     let title = divBuilder({'class': 'constraints-section-title'});
     let cards = divBuilder({'class': 'constraints-section ', 'id': 'section-' + name});
     let map = list.map(id => constraintCardBuilder(constraints[id]));
-    title.innerText = name;
+    title.innerText = gettext(name);
     cards.append(...map)
     ret.append(title, cards);
     return ret;
@@ -1893,7 +1959,7 @@ let constraintCardBuilder = (constraint) => {
             return
         }
         if (param.id_list.length > 0) {
-            popover_content += gettext(param.name) + ' : '
+            popover_content += param.name + ' : '
             param.id_list.forEach((id) =>
                 popover_content += getCorrespondingInfo(id, param.name) + ', '
             )

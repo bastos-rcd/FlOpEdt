@@ -45,7 +45,8 @@ from TTapp.models import \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
     ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber, \
-    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts,AvoidBothTimesSameDay, AvoidStartTimes
+    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts,AvoidBothTimesSameDay, AvoidStartTimes, \
+    NotAloneForTheseCouseTypes
 
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
@@ -92,7 +93,7 @@ class BasicTutorsConstraintAdmin(DepartmentModelAdmin):
 class LimitModulesTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = ('course_type',
                     'max_hours',
-                    'period', 
+                    'fhd_period',
                     'comment',
                     'weight',
                     'is_active')
@@ -107,7 +108,7 @@ class LimitModulesTimePerPeriodAdmin(DepartmentModelAdmin):
 class LimitGroupsTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = ('course_type',
                     'max_hours',
-                    'period',
+                    'fhd_period',
                     'comment',
                     'weight',
                     'is_active')
@@ -122,7 +123,7 @@ class LimitGroupsTimePerPeriodAdmin(DepartmentModelAdmin):
 class LimitTutorsTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = ('course_type',
                     'max_hours',
-                    'period',
+                    'fhd_period',
                     'comment',
                     'weight',
                     'is_active')
@@ -297,7 +298,7 @@ class GroupsLunchBreakResource(resources.ModelResource):
 
     class Meta:
         model = GroupsLunchBreak
-        fields = ('start_time', 'end_time', 'lunch_length', 'groups')
+        fields = ('start_lunch_time', 'end_lunch_time', 'lunch_length', 'groups')
 
 
 class NoCourseOnDayAdmin(DepartmentModelAdmin):
@@ -375,6 +376,7 @@ admin.site.register(LimitTutorTimePerWeeks, BasicConstraintAdmin)
 admin.site.register(ModulesByBloc, BasicConstraintAdmin)
 admin.site.register(LimitUndesiredSlotsPerWeek, BasicConstraintAdmin)
 admin.site.register(LimitSimultaneousCoursesNumber, BasicConstraintAdmin)
+admin.site.register(NotAloneForTheseCouseTypes, BasicConstraintAdmin)
 admin.site.register(LocateAllCourses, RoomConstraintAdmin)
 admin.site.register(LimitTutorMoves, RoomConstraintAdmin)
 admin.site.register(LimitGroupMoves, RoomConstraintAdmin)

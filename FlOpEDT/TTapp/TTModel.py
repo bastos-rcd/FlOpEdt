@@ -40,6 +40,8 @@ from TTapp.models import MinNonPreferedTutorsSlot, StabilizeTutorsCourses, MinNo
 
 from roomreservation.models import RoomReservation
 
+from TTapp.RoomConstraints.RoomConstraint import LocateAllCourses, NoSimultaneousRoomCourses
+
 from TTapp.FlopConstraint import max_weight
 
 from TTapp.slots import slots_filter, days_filter
@@ -477,23 +479,12 @@ class TTModel(FlopModel):
     @timer
     def add_rooms_constraints(self):
         # constraint : each Room is only used once on simultaneous slots
-        for r in self.wdb.basic_rooms:
-            for sl in self.wdb.availability_slots:
-                self.add_constraint(self.sum(self.TTrooms[(sl2, c, rg)]
-                                             for (c, rg) in self.wdb.room_course_compat[r]
-                                             for sl2 in slots_filter(self.wdb.compatible_slots[c], simultaneous_to=sl)
-                                             ),
-                                    '<=', self.avail_room[r][sl],
-                                    Constraint(constraint_type=ConstraintType.CORE_ROOMS,
-                                               rooms=r, slots=sl))
+        if not NoSimultaneousRoomCourses.objects.filter(department=self.department).exists():
+            NoSimultaneousRoomCourses.objects.create(department=self.department)
 
-        for sl in self.wdb.courses_slots:
-            # constraint : each course is assigned to a Room
-            for c in self.wdb.compatible_courses[sl]:
-                self.add_constraint(
-                    self.sum(self.TTrooms[(sl, c, r)] for r in self.wdb.course_rg_compat[c]) - self.TT[(sl, c)],
-                    '==', 0,
-                    Constraint(constraint_type=ConstraintType.CORE_ROOMS, slots=sl, courses=c))
+        # each course is located into a room
+        if not LocateAllCourses.objects.filter(department=self.department).exists():
+            LocateAllCourses.objects.create(department=self.department)
 
         for sl in self.wdb.availability_slots:
             # constraint : fixed_courses rooms are not available

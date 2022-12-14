@@ -100,7 +100,6 @@ class CoursesSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     week = serializers.SerializerMethodField()
     year = serializers.SerializerMethodField()
-    no = serializers.IntegerField()
     type = CourseType_C_Serializer()
     room_type = RoomType_C_Serializer()
     tutor = serializers.CharField()
@@ -124,7 +123,7 @@ class CoursesSerializer(serializers.Serializer):
             
     class Meta:
         model = bm.Course
-        fields = ['id', 'week', 'year', 'no', 'department', 'type',
+        fields = ['id', 'week', 'year', 'department', 'type',
                   'room_type', 'tutor', 'supp_tutor', 'groups', 'module', 'modulesupp', 'pay_module']
 
 

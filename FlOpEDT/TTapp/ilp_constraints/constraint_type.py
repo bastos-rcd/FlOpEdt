@@ -144,6 +144,7 @@ class ConstraintType(Enum):
     LimitSimultaneousCoursesNumber = "LimitSimultaneousCoursesNumber"
     MinimizeBusyDays = "MinimizeBusyDays"
     AVOID_BOTH_TIME_SAME_DAY = "AVOID_BOTH_TIME_SAME_DAY"
+    NOT_ALONE = "NOT_ALONE"
 
     # From minhalfdays
     MIN_HALF_DAYS_LIMIT = "Min Half Days limit"

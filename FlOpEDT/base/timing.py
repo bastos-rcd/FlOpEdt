@@ -27,6 +27,7 @@
 """
 from datetime import date, time, datetime
 from enum import Enum
+from django.utils.translation import gettext_lazy as _
 
 def hr_min(t):
     h = t//60
@@ -139,7 +140,7 @@ def datetime_to_floptime(datetime):
 class Time:
     AM = 'AM'
     PM = 'PM'
-    HALF_DAY_CHOICES = ((AM, 'AM'), (PM, 'PM'))
+    HALF_DAY_CHOICES = ((AM, _('AM')), (PM, _('PM')))
 
 class TimeInterval(object):
 
@@ -205,10 +206,10 @@ class Day(object):
   SATURDAY = "sa"
   SUNDAY = "su"
 
-  CHOICES = ((MONDAY, "monday"), (TUESDAY, "tuesday"),
-              (WEDNESDAY, "wednesday"), (THURSDAY, "thursday"),
-              (FRIDAY, "friday"), (SATURDAY, "saturday"),
-              (SUNDAY, "sunday"))
+  CHOICES = ((MONDAY, _("monday")), (TUESDAY, _("tuesday")),
+              (WEDNESDAY, _("wednesday")), (THURSDAY, _("thursday")),
+              (FRIDAY, _("friday")), (SATURDAY, _("saturday")),
+              (SUNDAY, _("sunday")))
 
   def __init__(self, day, week):
       self.day = day

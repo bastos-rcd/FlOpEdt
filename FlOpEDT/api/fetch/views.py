@@ -381,7 +381,9 @@ class TutorCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
 @method_decorator(name='list',
                   decorator=swagger_auto_schema(
-                      manual_parameters=[week_param(), year_param(), user_param(required=True),
+                      manual_parameters=[week_param(required=True),
+                                         year_param(required=True),
+                                         user_param(required=True),
                                          dept_param(required=True)])
                   )
 class ExtraSchedCoursesViewSet(viewsets.ReadOnlyModelViewSet):
@@ -396,31 +398,23 @@ class ExtraSchedCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsTutorOrReadOnly]
 
     def get_queryset(self):
-        qs_esc = bm.ScheduledCourse.objects.all()
         # Getting all the filters
-        user = self.request.query_params.get('username', None)
+        user = self.request.query_params.get('user', None)
         dept = self.request.query_params.get('dept', None)
         week = self.request.query_params.get('week', None)
         year = self.request.query_params.get('year', None)
 
-        # Filtering
-        if user is None:
-            return None
-        if dept is None:
-            return None
-
-        if week is not None:
-            qs_esc = qs_esc.filter(course__week__nb=week)
-        if year is not None:
-            qs_esc = qs_esc.filter(course__week__year=year)
-
-        # Getting all the needed data
-
-        return qs_esc.filter(course__tutor__username=user)\
-                     .exclude(course__module__train_prog__department__abbrev=dept)\
-                     .select_related('course__tutor',
-                                     'course__type__department',
-                                     'course__module__train_prog__department')
+        return (
+            bm.ScheduledCourse.objects\
+            .filter(tutor__username=user,
+                    course__week__nb=week,
+                    course__week__year=year,
+                    work_copy=0)\
+            .exclude(course__module__train_prog__department__abbrev=dept)\
+            .select_related('course__week',
+                            'tutor',
+                            'course__type__department',
+                            'course__module__train_prog__department'))
 
 
 class BKNewsFilterSet(filters.FilterSet):
