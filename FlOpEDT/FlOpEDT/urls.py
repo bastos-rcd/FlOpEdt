@@ -38,12 +38,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf import settings
-from django.urls import path, re_path, include
+from django.urls import path, re_path, include, register_converter
 from django.contrib import admin
 from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 from django.conf.urls.i18n import i18n_patterns
 from django.utils.translation import gettext_lazy as _
+
+from FlOpEDT.converters import FourDigitYearConverter, TwoDigitYearConverter
 
 
 from base import views
@@ -52,6 +54,9 @@ from base import views
 js_info_dict = {
     'packages': ('languages', )
 }
+
+register_converter(FourDigitYearConverter, 'yyyy')
+register_converter(TwoDigitYearConverter, 'ww')
 
 
 urlpatterns = [
