@@ -21,15 +21,15 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.conf.urls import url, include
+from django.urls import re_path
 
 from solve_board import views
 
 app_name="solve_board"
 
 urlpatterns = [
-    url(r'^fetch_context/(?P<train_prog>[a-zA-Z]\w{1,4})/(?P<year>\d{4})/(?P<week>\d{1,2})/$', views.fetch_context, name="fetch_context"),
-    url(r'^main/$', views.main_board, name="main_board"),
-    url(r'^analyse/(?P<train_prog>[a-zA-Z]\w{1,4})/(?P<year>\d{4})/(?P<week>\d{1,2})/(?P<type>[a-zA-Z]\w{1,30})$', views.launch_pre_analyse, name="pre_analyse")
-#    url(r'^run/(?P<timestamp>[0-9-]+)?$', views.run, name="run"),
+    re_path(r'^fetch_context/(?P<train_prog>[a-zA-Z]\w{1,4})/(?P<year>\d{4})/(?P<week>\d{1,2})/$', views.fetch_context, name="fetch_context"),
+    re_path(r'^main/$', views.main_board, name="main_board"),
+    re_path(r'^analyse/(?P<train_prog>[a-zA-Z]\w{1,4})/(?P<year>\d{4})/(?P<week>\d{1,2})/(?P<type>[a-zA-Z]\w{1,30})$', views.launch_pre_analyse, name="pre_analyse")
+#    re_path(r'^run/(?P<timestamp>[0-9-]+)?$', views.run, name="run"),
 ]

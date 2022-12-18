@@ -21,9 +21,8 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.conf.urls import include, url
 from django.contrib.auth.decorators import login_required
-from django.urls import path
+from django.urls import path, re_path, include
 from django.views.generic import TemplateView
 from drf_yasg import openapi
 # from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
@@ -86,9 +85,10 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    url(r'^$', views_base.LoginView.as_view(), name='api_root'),
-    url(r'^logout/$', views_base.LogoutView.as_view()),
-    url(r'^backoffice/$', login_required(TemplateView.as_view(template_name='logout.html'))),
+    path('', views_base.LoginView.as_view(), name='api_root'),
+    path('logout/', views_base.LogoutView.as_view()),
+    path('backoffice/',
+         login_required(TemplateView.as_view(template_name='logout.html'))),
     path('base/', include((routerBase.urls, 'api'), namespace='base')),
     path('user/', include((routerPeople.urls, 'api'), namespace="people")),
     path('display/', include(routerDisplayweb.urls)),
@@ -97,7 +97,9 @@ urlpatterns = [
          include((routerFetch.urls, 'api'), namespace='fetch')),
     path('rest-auth/', include('dj_rest_auth.urls')),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
-    url('doc/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('doc/',
+         schema_view.with_ui('swagger', cache_timeout=0),
+         name='schema-swagger-ui'),
     path('preferences/', include(routerPreferences.urls)),
     path('rooms/',
          include((routerRooms.urls, 'api'), namespace='rooms')),
@@ -110,5 +112,6 @@ urlpatterns = [
     path('myflop/',
          include((routerMyFlop.urls, 'api'), namespace='myflop')),
     path('roomreservations/',
-         include((routerRoomReservation.urls, 'api'), namespace='roomreservations')),
+         include((routerRoomReservation.urls, 'api'),
+                 namespace='roomreservations')),
 ]
