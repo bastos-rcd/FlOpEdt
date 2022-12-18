@@ -119,11 +119,13 @@ urlpatterns = [
     ])),
 
     # from screen to db
-    path('change_edt', views.edt_changes, name="edt_changes"),
-    path('change_user_pref/<int:year>/<int:week>/<str:username>',
+    path('change_edt/', views.edt_changes, name="edt_changes"),
+    path('change_user_pref/<int:year>/<int:week>/<str:username>/',
          views.user_preferences_changes,
          name="user_pref_changes"),
-    path('change_course_pref/<int:year>/<int:week>/<str:train_prog>/<str:course_type>', views.course_preferences_changes, name="course_pref_changes"),
+    path('change_course_pref/<int:year>/<int:week>/<str:train_prog>/'
+         '<str:course_type>/',
+         views.course_preferences_changes, name="course_pref_changes"),
     path('change_room_pref/<int:year>/<int:week>/<str:room>',
          views.room_preferences_changes,
          name="room_pref_changes"),
