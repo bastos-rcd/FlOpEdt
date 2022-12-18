@@ -48,8 +48,8 @@ urlpatterns = [
     path('semaine-type/', views.stype, name="stype"),
     path('aide/', views.aide, name="aide"),
     path('decale/', views.decale, name="decale"),
-    
-    path('contact/<str:tutor>', views.contact, name="contact"),
+    path('contact/', views.contact, name="contact-blank"),
+    path('contact/<str:tutor>/', views.contact, name="contact"),
     re_path(r'^module_description(/(?P<module>\w{1,8}))?/$',
             views.module_description, name="module_description"),
     re_path(r'^((?P<year>\d{4}))?(/(?P<week>\d{1,2}))?/$',
