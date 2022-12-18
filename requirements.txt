@@ -1,6 +1,6 @@
 # python 3.10.8
 matplotlib
-Django==3.2.16
+Django==4.0.8
 django_redis
 django-import-export
 django-extensions
