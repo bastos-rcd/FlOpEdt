@@ -53,7 +53,7 @@
   </table>
 </body>
 <script type="text/javascript">
-  var url_edt = "{% url 'base:edt' department='INFO'%}";
+  var url_edt = "{% url 'base:edt-blank' department='INFO'%}";
   var url_fetch_leaderboard = "{% url 'easter_egg:fetch_leaderboard' %}";
   var url_set_score = "{% url 'easter_egg:set_score' %}";
   var score_list = {{score_list | safe}} ;

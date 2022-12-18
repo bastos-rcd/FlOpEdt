@@ -103,9 +103,8 @@ def index(req):
     """
 
     def redirect_to_edt(department):
-        reverse_url = reverse('base:edt', kwargs={
+        reverse_url = reverse('base:edt-blank', kwargs={
                               'department': department.abbrev})
-        # reverse_url = reverse('base:edt', department=department.abbrev)
         return reverse_url
 
     departments = Department.objects.all()
