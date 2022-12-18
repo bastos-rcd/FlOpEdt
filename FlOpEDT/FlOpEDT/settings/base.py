@@ -73,7 +73,7 @@ INSTALLED_APPS = [
     #    'importation'
     'api',
     'rest_framework.authtoken',
-    'rest_auth',
+    'dj_rest_auth',
     'rest_framework_swagger',
     'drf_yasg',
     'corsheaders',

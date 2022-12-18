@@ -21,7 +21,7 @@ ipython
 openpyxl
 djangorestframework
 djangorestframework-csv
-django-rest-auth
+dj-rest-auth
 django-rest-swagger
 Markdown
 django-debug-toolbar

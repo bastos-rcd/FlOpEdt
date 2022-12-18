@@ -95,7 +95,7 @@ urlpatterns = [
     path('ttapp/', include((routerTTapp.urls, 'api'), namespace='ttapp')),
     path('fetch/',
          include((routerFetch.urls, 'api'), namespace='fetch')),
-    path('rest-auth/', include('rest_auth.urls')),
+    path('rest-auth/', include('dj_rest_auth.urls')),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     url('doc/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('preferences/', include(routerPreferences.urls)),
