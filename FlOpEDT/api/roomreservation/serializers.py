@@ -172,7 +172,7 @@ class RoomReservationSerializer(serializers.ModelSerializer):
             end_time_str = validated_data['end_time'].strftime("%Hh%m")
             title = validated_data['title']
             url = ""
-            subject = f"{room.name} : nouvelle réservation le {date_str}"
+            subject = f"{room.name} réservée par {responsible.username} le {date_str}"
             message = f"{responsible.first_name} {responsible.last_name} a réservé la {room.name}"
             message += f" le {date_str} de {start_time_str} à {end_time_str} "
             if periodicity:
@@ -187,17 +187,16 @@ class RoomReservationSerializer(serializers.ModelSerializer):
                 else:
                     department = bm.Department.objects.first()
                 if not periodicity:
-                    message += "Vous pouvez la supprimer :\n"\
-                               "- via l'interface de réservation : "\
-                               f"{url}/fr/roomreservation/{department.abbrev}/\n"\
-                               "- directement en cliquant ici: " \
-                               f"{url}/fr/api/roomreservations/reservation/{reservation.id}/\n\n"
+                    message += "Vous pouvez la supprimer en cliquant ici: " \
+                               f"{url}/fr/api/roomreservations/reservation/{reservation.id}/\n\n" \
+                               "Vous pouvez aussi la modifier/supprimer via l'interface de réservation : "\
+                               f"{url}/fr/roomreservation/{department.abbrev}/\n\n"
                 else:
-                    message += "Vous pouvez la supprimer via l'interface de réservation : "\
+                    message += "Vous pouvez la modifier/supprimer via l'interface de réservation : "\
                                f"{url}/fr/roomreservation/{department.abbrev}/\n\n"
                     message += "NB : Dans la mesure où il s'agit d'une réservation sur plusieurs jours, il n'est pas " \
                                "possible -pour l'instant- de les supprimer toutes par un lien cliquable. " \
-                               "Sur l'interface, par contre, vous pourrez les supprimez toutes d'un coup."
+                               "Sur l'interface, par contre, vous pourrez les supprimez toutes d'un coup.\n\n"
             message += "Message envoyé automatiquement par flop!EDT."
             for validator in validators:
                 email = EmailMessage(
