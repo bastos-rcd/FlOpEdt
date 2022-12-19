@@ -82,7 +82,7 @@ urlpatterns = [
     path('fetch_all_versions/',
          views.fetch_all_versions, name="fetch_all_versions"),
     path('fetch_departments', views.fetch_departments, name="fetch_departments"),
-    path('fetch_shared_rooms/<int:year>/<int:week>/',
+    path('fetch_shared_rooms/<yyyy:year>/<int:week>/',
          views.fetch_shared_rooms, name="fetch_shared_rooms"),
     path('fetch_perfect_day/<str:username>/',
          views.fetch_perfect_day, name="fetch_perfect_day"),

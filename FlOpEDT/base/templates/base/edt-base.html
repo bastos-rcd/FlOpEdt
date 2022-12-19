@@ -63,7 +63,7 @@
 
     var url_edt_changes = "{% url "base:edt_changes" department %}";
     var url_user_pref_changes = "{% url "base:user_pref_changes" department 0 0 '.' %}";
-    url_user_pref_changes = url_user_pref_changes.slice(0, -5);
+    url_user_pref_changes = url_user_pref_changes.slice(0, -9);
 
     var url_week_infos = "{% url 'api:extra:week-infos-list' %}";
 
@@ -85,7 +85,7 @@
     url_duplicate_in_other_weeks = url_duplicate_in_other_weeks.slice(0, -9) ;
     var url_fetch_extra_sched = "{% url 'api:fetch:extrasched-list' %}" ;
     var url_fetch_shared_rooms = "{% url 'base:fetch_shared_rooms' department 0 0 %}" ;
-    url_fetch_shared_rooms = url_fetch_shared_rooms.slice(0, -3) ;
+    url_fetch_shared_rooms = url_fetch_shared_rooms.slice(0, -7) ;
     var url_mail_auto = "{% url "base:email-proposal" department %}";
     var url_game = "{% url 'easter_egg:start_game' %}" ;
   var url_colors = "{% url 'displayweb:fetch_colors' department %}" ;

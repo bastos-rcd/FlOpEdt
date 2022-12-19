@@ -40,13 +40,13 @@
     var url_fetch_room_dweek = "{% url 'api:room-def-list' %}";
 
     var url_user_pref_changes = "{% url 'base:user_pref_changes' department 0 0 '.' %}";
-    url_user_pref_changes = url_user_pref_changes.slice(0, -5);
+    url_user_pref_changes = url_user_pref_changes.slice(0, -9);
 
     var url_course_pref_changes = "{% url 'base:course_pref_changes' department 0 0 '.' '.' %}";
-    url_course_pref_changes = url_course_pref_changes.slice(0, -7);
+    url_course_pref_changes = url_course_pref_changes.slice(0, -11);
 
     var url_room_pref_changes = "{% url 'base:room_pref_changes' department 0 0 '.' %}";
-    url_room_pref_changes = url_room_pref_changes.slice(0, -5);
+    url_room_pref_changes = url_room_pref_changes.slice(0, -9);
 
     var url_course_types = "{% url 'api:course:type-name-list' %}";
     var url_training_programmes = "{% url 'api:base:trainingprogramme-name-list' %}";
