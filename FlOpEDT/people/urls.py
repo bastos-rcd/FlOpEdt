@@ -102,10 +102,10 @@ urlpatterns = [
         views.student_preferences,
         name="student_preferences"),
     path('profile/', RedirectView.as_view(pattern_name="index", permanent=False)),
-    path('fetch_physical_presence/<str:department>/<int:year>/<int:week>',
+    path('fetch_physical_presence/<str:department>/<yyyy:year>/<int:week>/',
          views.fetch_physical_presence,
          name='fetch_physical_presence'),
-    path('change_physical_presence/<int:year>/<int:week_nb>/<str:user>',
+    path('change_physical_presence/<yyyy:year>/<int:week_nb>/<str:user>/',
          views.change_physical_presence,
          name='change_physical_presence')
     ]

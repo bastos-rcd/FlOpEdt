@@ -94,9 +94,9 @@
   var url_fetch_group_preferred_links = "{% url 'base:fetch_group_preferred_links' department %}" ;
   var url_change_preferred_links = "{% url 'base:visio-pref' department %}" ;
   var url_fetch_physical_presence = "{% url 'people:fetch_physical_presence' department 0 0 %}" ;
-  url_fetch_physical_presence = url_fetch_physical_presence.slice(0, -3) ;
+  url_fetch_physical_presence = url_fetch_physical_presence.slice(0, -7) ;
   var url_change_physical_presence = "{% url 'people:change_physical_presence' 0 0 '.' %}" ;
-  url_change_physical_presence = url_change_physical_presence.slice(0, -5) ;
+  url_change_physical_presence = url_change_physical_presence.slice(0, -9) ;
 
     var department = "{{ dept }}" ;
     var week_year_list = {{ all_weeks| safe }};
