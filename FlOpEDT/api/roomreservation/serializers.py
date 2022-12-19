@@ -167,15 +167,17 @@ class RoomReservationSerializer(serializers.ModelSerializer):
         if rm.RoomReservationValidationEmail.objects.filter(room=room).exists():
             validators = rm.RoomReservationValidationEmail.objects.get(room=room).validators.all()
             responsible = validated_data['responsible']
-            date = validated_data['date']
+            date_str = validated_data['date'].strftime('%d/%m/%Y')
+            start_time_str = validated_data['start_time'].strftime("%Hh%m")
+            end_time_str = validated_data['end_time'].strftime("%Hh%m")
             title = validated_data['title']
             url = ""
-            subject = f"{room.name} : nouvelle réservation le {date}"
+            subject = f"{room.name} : nouvelle réservation le {date_str}"
             message = f"{responsible.first_name} {responsible.last_name} a réservé la {room.name}"
-            message += f" le {date} de {validated_data['start_time']} à {validated_data['end_time']} "
+            message += f" le {date_str} de {start_time_str} à {end_time_str} "
             if periodicity:
                 message += f"(et plusieurs autres jours aux mêmes horaires) "
-            message += f"avec le titre {title}.\n\n"
+            message += f"en indiquant \"{title}\".\n\n"
             # TODO : tester le lien de suppression!
             if url:
                 if responsible.departments.exists():
