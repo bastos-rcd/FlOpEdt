@@ -166,13 +166,13 @@ class RoomReservationSerializer(serializers.ModelSerializer):
             validators = rm.RoomReservationValidationEmail.objects.get(room=room).validators.all()
             responsible = validated_data['responsible']
             date = validated_data['date']
+            title = validated_data['title']
             subject = f"{room.name} : nouvelle réservation le {date}"
             message = f"{responsible.first_name} {responsible.last_name} a réservé la {room.name}"
-            message += f" le {date} de {validated_data['start_time']} à {validated_data['end_time']}"
+            message += f" le {date} de {validated_data['start_time']} à {validated_data['end_time']} "
             if periodicity:
-                message += f" et plusieurs autres jours aux mêmes horaires.\n\n"
-            else:
-                message += ".\n\n"
+                message += f"(et plusieurs autres jours aux mêmes horaires) "
+            message += f"avec le titre {title}.\n\n"
             # TODO : tester le lien de suppression!
             message += "Vous pouvez la supprimer via l'interface ou en cliquant ici: " \
                        f"https://flopedt.iut-blagnac.fr/fr/api/roomreservations/reservation/{reservation.id}/."
