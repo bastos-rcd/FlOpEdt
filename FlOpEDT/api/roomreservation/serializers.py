@@ -167,6 +167,7 @@ class RoomReservationSerializer(serializers.ModelSerializer):
             responsible = validated_data['responsible']
             date = validated_data['date']
             title = validated_data['title']
+            url = ""
             subject = f"{room.name} : nouvelle réservation le {date}"
             message = f"{responsible.first_name} {responsible.last_name} a réservé la {room.name}"
             message += f" le {date} de {validated_data['start_time']} à {validated_data['end_time']} "
@@ -174,8 +175,13 @@ class RoomReservationSerializer(serializers.ModelSerializer):
                 message += f"(et plusieurs autres jours aux mêmes horaires) "
             message += f"avec le titre {title}.\n\n"
             # TODO : tester le lien de suppression!
-            message += "Vous pouvez la supprimer via l'interface ou en cliquant ici: " \
-                       f"https://flopedt.iut-blagnac.fr/fr/api/roomreservations/reservation/{reservation.id}/."
+            if url:
+                message += "Vous pouvez la supprimer :\n"\
+                           "- via l'interface de réservation : "\
+                           f"{url}/fr/roomreservation/{responsible.departments.first().abbrev}/\n"\
+                           "ou en cliquant ici: " \
+                           f"{url}/fr/api/roomreservations/reservation/{reservation.id}/\n\n"
+            message += "Message envoyé automatiquement par flop!EDT."
             for validator in validators:
                 email = EmailMessage(
                     subject=subject,
@@ -185,6 +191,7 @@ class RoomReservationSerializer(serializers.ModelSerializer):
                 )
                 email.send()
         return reservation
+
     def update(self, instance, validated_data):
         """
         Updates the values of given RoomReservation.
