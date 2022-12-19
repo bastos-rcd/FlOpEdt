@@ -260,7 +260,7 @@ WeekDayHeader.prototype.send_change_physical_presence = function () {
 
   show_loader(true);
   $.ajax({
-    url: this.url_change_physical_presence + cur_week.url() + "/" + user.name,
+    url: this.url_change_physical_presence + cur_week.url() + user.name  + "/",
     type: 'POST',
     data: sent_data,
     dataType: 'json',

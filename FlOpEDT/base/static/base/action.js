@@ -1693,7 +1693,7 @@ function send_dis_change() {
     $.ajax({
       url: url_user_pref_changes
         + sel_week.url()
-        + "/" + user.name,
+        + user.name + "/" ,
       type: 'POST',
       //            contentType: 'application/json; charset=utf-8',
       data: sent_data, //JSON.stringify(changes),
