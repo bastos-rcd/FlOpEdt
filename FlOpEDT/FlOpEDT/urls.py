@@ -40,12 +40,11 @@ Including another URLconf
 from django.conf import settings
 from django.urls import path, re_path, include, register_converter
 from django.contrib import admin
-from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 from django.conf.urls.i18n import i18n_patterns
 from django.utils.translation import gettext_lazy as _
 
-from FlOpEDT.converters import FourDigitYearConverter, TwoDigitYearConverter
+from FlOpEDT.converters import FourDigitYearConverter
 
 
 from base import views
@@ -56,8 +55,6 @@ js_info_dict = {
 }
 
 register_converter(FourDigitYearConverter, 'yyyy')
-register_converter(TwoDigitYearConverter, 'ww')
-
 
 urlpatterns = [
 

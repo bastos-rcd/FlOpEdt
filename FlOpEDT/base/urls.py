@@ -51,9 +51,9 @@ urlpatterns = [
     path('module_description/<str:module>/',
             views.module_description, name="module_description"),
     path('', views.edt, name="edt-blank"),
-    path('<yyyy:year>/<ww:week>/', views.edt, name="edt"),
-    re_path(r'^tv(/(?P<year>\d+))?(/(?P<week>\d+))?/$',
-            views.edt_light, name="edt_light"),
+    path('<yyyy:year>/<int:week>/', views.edt, name="edt"),
+    path('tv/', views.edt_light, name="edt-light-blank"),
+    path('tv/<yyyy:year>/<int:week>/', views.edt_light, name="edt-light"),
     path('modules/', views.all_modules_with_desc, name="modules"),
     #Send Email to teacher when student want modify schedule
     path('email-modif/', views.send_email_proposal, name='email-proposal'),
