@@ -71,8 +71,6 @@ urlpatterns = [
     path('fetch_room_default_week/<str:room>/',
          views.fetch_room_default_week, name="fetch_room_dweek"),
     path('fetch_decale', views.fetch_decale, name="fetch_decale"),
-    re_path(r'^fetch_bknews/(?P<year>\d+)/(?P<week>\d+)/$',
-            views.fetch_bknews, name="fetch_bknews"),
     path('fetch_groups/', views.fetch_groups, name="fetch_groups"),
     path('fetch_rooms/', views.fetch_rooms, name="fetch_rooms"),
     path('fetch_flat_rooms/', views.fetch_flat_rooms, name="fetch_flat_rooms"),
@@ -82,16 +80,10 @@ urlpatterns = [
          views.fetch_course_types, name="fetch_course_types"),
     path('fetch_training_programmes/',
          views.fetch_training_programmes, name="fetch_training_programmes"),
-    re_path(r'^fetch_unavailable_rooms/(?P<year>\d+)/(?P<week>\d+)/$',
-            views.fetch_unavailable_rooms, name="fetch_unavailable_rooms"),
     path('fetch_all_tutors/', views.fetch_all_tutors, name="fetch_all_tutors"),
     path('fetch_all_versions/',
          views.fetch_all_versions, name="fetch_all_versions"),
     path('fetch_departments', views.fetch_departments, name="fetch_departments"),
-    path('fetch_tutor_courses/<int:year>/<int:week>/<str:tutor>/',
-         views.fetch_tutor_courses, name="fetch_tutor_courses"),
-    path('fetch_extra_sched/<int:year>/<int:week>/',
-         views.fetch_extra_sched, name="fetch_extra_sched"),
     path('fetch_shared_rooms/<int:year>/<int:week>/',
          views.fetch_shared_rooms, name="fetch_shared_rooms"),
     path('fetch_perfect_day/<str:username>/',
@@ -99,10 +91,6 @@ urlpatterns = [
     path('fetch_user_notifications_pref/<str:username>/',
          views.fetch_user_notifications_pref,
          name="fetch_user_notifications_pref"),
-    re_path(r'^fetch_module/(?P<year>\d+)/(?P<week>\d+)/$',
-            views.fetch_module, name="fetch_module"),
-    re_path(r'^fetch_tutors/(?P<year>\d+)/(?P<week>\d+)/$',
-            views.fetch_tutor, name="fetch_tutor"),
     path('fetch_all_modules_with_desc/',
          views.fetch_all_modules_with_desc, name="fetch_all_modules_with_desc"),
     path('fetch_all_dispos/', views.fetch_all_dispos, name="fetch_all_dispos"),
@@ -145,6 +133,22 @@ urlpatterns = [
 
     # predefined
     # ------------
+
+    # deprecated
+    # ----------
+    re_path(r'^fetch_bknews/(?P<year>\d+)/(?P<week>\d+)/$',
+            views.fetch_bknews, name="fetch_bknews"),
+    re_path(r'^fetch_unavailable_rooms/(?P<year>\d+)/(?P<week>\d+)/$',
+            views.fetch_unavailable_rooms, name="fetch_unavailable_rooms"),
+    path('fetch_tutor_courses/<int:year>/<int:week>/<str:tutor>/',
+         views.fetch_tutor_courses, name="fetch_tutor_courses"),
+    path('fetch_extra_sched/<int:year>/<int:week>/',
+         views.fetch_extra_sched, name="fetch_extra_sched"),
+    re_path(r'^fetch_module/(?P<year>\d+)/(?P<week>\d+)/$',
+            views.fetch_module, name="fetch_module"),
+    re_path(r'^fetch_tutors/(?P<year>\d+)/(?P<week>\d+)/$',
+            views.fetch_tutor, name="fetch_tutor"),
+
 ]
 
 # https://pypi.python.org/pypi/django-live-log
