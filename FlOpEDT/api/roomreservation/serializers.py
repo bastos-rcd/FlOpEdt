@@ -9,6 +9,8 @@ import roomreservation.models as rm
 from roomreservation.check_periodicity import check_periodicity, check_reservation
 
 from django.core.mail import EmailMessage
+import base.models as bm
+
 
 class PeriodicityField(serializers.Field):
     def to_representation(self, value):
@@ -176,10 +178,16 @@ class RoomReservationSerializer(serializers.ModelSerializer):
             message += f"avec le titre {title}.\n\n"
             # TODO : tester le lien de suppression!
             if url:
+                if responsible.departments.exists():
+                    department = responsible.departments.first()
+                elif room.departments.exists():
+                    department = room.departments.first()
+                else:
+                    department = bm.Department.objects.first()
                 message += "Vous pouvez la supprimer :\n"\
                            "- via l'interface de réservation : "\
-                           f"{url}/fr/roomreservation/{responsible.departments.first().abbrev}/\n"\
-                           "ou en cliquant ici: " \
+                           f"{url}/fr/roomreservation/{department.abbrev}/\n"\
+                           "- directement en cliquant ici: " \
                            f"{url}/fr/api/roomreservations/reservation/{reservation.id}/\n\n"
             message += "Message envoyé automatiquement par flop!EDT."
             for validator in validators:
