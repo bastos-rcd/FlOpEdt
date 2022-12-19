@@ -8,6 +8,7 @@ from api.fetch.serializers import IDRoomSerializer
 import roomreservation.models as rm
 from roomreservation.check_periodicity import check_periodicity, check_reservation
 
+from django.core.mail import EmailMessage
 
 class PeriodicityField(serializers.Field):
     def to_representation(self, value):
@@ -159,8 +160,29 @@ class RoomReservationSerializer(serializers.ModelSerializer):
             periodicity_instance = create_reservations_if_possible(periodicity, validated_data, create_repetitions)
             # Store the instance to the reservation
             validated_data['periodicity'] = periodicity_instance
+        room = validated_data['room']
+        if rm.RoomReservationValidationEmail.objects.filter(room=room).exists():
+            validators = rm.RoomReservationValidationEmail.objects.get(room=room).validators.all()
+            responsible = validated_data['responsible']
+            date = validated_data['date']
+            subject = f"{room.name} : nouvelle réservation le {date}"
+            message = f"{responsible.first_name} {responsible.last_name} a réservé la {room.name}"
+            message += f" le {date} de {validated_data['start_time']} à {validated_data['end_time']}"
+            if periodicity:
+                message += f" et plusieurs autres jours aux mêmes horaires.\n\n"
+            else:
+                message += ".\n\n"
+            # TODO : mettre un lien de suppression!
+            message += "Vous pouvez la supprimer via l'interface ou en cliquant ici."
+            for validator in validators:
+                email = EmailMessage(
+                    subject=subject,
+                    body=f"Bonjour {validator.first_name}\n \n" + message,
+                    to=[validator.email],
+                    bcc=[]
+                )
+                email.send()
         return rm.RoomReservation.objects.create(**validated_data)
-
     def update(self, instance, validated_data):
         """
         Updates the values of given RoomReservation.
