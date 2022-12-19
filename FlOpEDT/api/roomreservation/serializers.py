@@ -161,6 +161,7 @@ class RoomReservationSerializer(serializers.ModelSerializer):
             # Store the instance to the reservation
             validated_data['periodicity'] = periodicity_instance
         room = validated_data['room']
+        reservation = rm.RoomReservation.objects.create(**validated_data)
         if rm.RoomReservationValidationEmail.objects.filter(room=room).exists():
             validators = rm.RoomReservationValidationEmail.objects.get(room=room).validators.all()
             responsible = validated_data['responsible']
@@ -172,8 +173,9 @@ class RoomReservationSerializer(serializers.ModelSerializer):
                 message += f" et plusieurs autres jours aux mêmes horaires.\n\n"
             else:
                 message += ".\n\n"
-            # TODO : mettre un lien de suppression!
-            message += "Vous pouvez la supprimer via l'interface ou en cliquant ici."
+            # TODO : tester le lien de suppression!
+            message += "Vous pouvez la supprimer via l'interface ou en cliquant ici: " \
+                       f"https://flopedt.iut-blagnac.fr/fr/api/roomreservations/reservation/{reservation.id}/."
             for validator in validators:
                 email = EmailMessage(
                     subject=subject,
@@ -182,7 +184,7 @@ class RoomReservationSerializer(serializers.ModelSerializer):
                     bcc=[]
                 )
                 email.send()
-        return rm.RoomReservation.objects.create(**validated_data)
+        return reservation
     def update(self, instance, validated_data):
         """
         Updates the values of given RoomReservation.
