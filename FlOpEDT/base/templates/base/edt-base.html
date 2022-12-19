@@ -84,7 +84,6 @@
     var url_duplicate_in_other_weeks = "{% url 'TTapp:duplicate_in_other_weeks' department 0 0 0 %}" ;
     url_duplicate_in_other_weeks = url_duplicate_in_other_weeks.slice(0, -9) ;
     var url_fetch_extra_sched = "{% url 'api:fetch:extrasched-list' %}" ;
-    {% comment %} url_fetch_extra_sched = url_fetch_extra_sched.slice(0, -3) ; {% endcomment %}
     var url_fetch_shared_rooms = "{% url 'base:fetch_shared_rooms' department 0 0 %}" ;
     url_fetch_shared_rooms = url_fetch_shared_rooms.slice(0, -3) ;
     var url_mail_auto = "{% url "base:email-proposal" department %}";

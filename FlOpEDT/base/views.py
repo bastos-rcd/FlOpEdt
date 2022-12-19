@@ -540,8 +540,6 @@ def fetch_unavailable_rooms(req, year, week, **kwargs):
     logger.info(req)
 
     try:
-        week = int(week)
-        year = int(year)
         department = req.department
     except ValueError:
         return HttpResponse("KO")

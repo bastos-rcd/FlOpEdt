@@ -24,8 +24,6 @@
 from django.urls import path, re_path, include
 from . import views
 from . import statistics
-from django.views.generic import RedirectView
-from django.contrib.staticfiles.storage import staticfiles_storage
 
 app_name="base"
 
