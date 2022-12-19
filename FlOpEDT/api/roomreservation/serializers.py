@@ -186,11 +186,18 @@ class RoomReservationSerializer(serializers.ModelSerializer):
                     department = room.departments.first()
                 else:
                     department = bm.Department.objects.first()
-                message += "Vous pouvez la supprimer :\n"\
-                           "- via l'interface de réservation : "\
-                           f"{url}/fr/roomreservation/{department.abbrev}/\n"\
-                           "- directement en cliquant ici: " \
-                           f"{url}/fr/api/roomreservations/reservation/{reservation.id}/\n\n"
+                if not periodicity:
+                    message += "Vous pouvez la supprimer :\n"\
+                               "- via l'interface de réservation : "\
+                               f"{url}/fr/roomreservation/{department.abbrev}/\n"\
+                               "- directement en cliquant ici: " \
+                               f"{url}/fr/api/roomreservations/reservation/{reservation.id}/\n\n"
+                else:
+                    message += "Vous pouvez la supprimer via l'interface de réservation : "\
+                               f"{url}/fr/roomreservation/{department.abbrev}/\n\n"
+                    message += "NB : Dans la mesure où il s'agit d'une réservation sur plusieurs jours, il n'est pas " \
+                               "possible -pour l'instant- de les supprimer toutes par un lien cliquable. " \
+                               "Sur l'interface, par contre, vous pourrez les supprimez toutes d'un coup."
             message += "Message envoyé automatiquement par flop!EDT."
             for validator in validators:
                 email = EmailMessage(
