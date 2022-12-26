@@ -1,4 +1,4 @@
-import type { FlopAPI } from '@/assets/js/api'
+import type { FlopAPI } from '@/composables/api'
 import type { FlopWeek } from '@/assets/js/types'
 import type { InjectionKey } from 'vue'
 import { inject } from 'vue'

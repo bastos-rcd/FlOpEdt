@@ -29,7 +29,7 @@
 import { apiKey, requireInjection } from '@/assets/js/keys'
 import { computed, onMounted, ref } from 'vue'
 import type { ReservationPeriodicityByMonth, ReservationPeriodicityByMonthXChoice } from '@/assets/js/types'
-import { WeekDay } from '@/assets/js/types'
+import type { WeekDay } from '@/assets/js/types'
 
 interface Props {
     weekdays: Array<WeekDay>

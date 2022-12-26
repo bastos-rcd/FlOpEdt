@@ -1,4 +1,4 @@
-import { currentWeekKey } from '@/assets/js/keys'
+import { apiKey, currentWeekKey } from '@/assets/js/keys'
 import type { FlopWeek } from '@/assets/js/types'
 // Import Bootstrap CSS
 import '@/assets/scss/styles.scss'
@@ -10,6 +10,7 @@ import { createApp, readonly, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import Popper from 'vue3-popper'
 import App from './App.vue'
+import { api } from './composables/api'
 
 const app = createApp(App)
 
@@ -26,7 +27,7 @@ const currentWeek: Ref<FlopWeek> = ref({
     year: now.getFullYear(),
 })
 app.provide(currentWeekKey, readonly(currentWeek.value))
-
+app.provide(apiKey, readonly(api))
 const pinia = createPinia()
 app.use(pinia)
 

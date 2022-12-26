@@ -13,6 +13,7 @@
 import CalendarScheduledCourseSlot from '@/components/CalendarScheduledCourseSlot.vue'
 import { computed } from 'vue'
 import type { CalendarScheduledCourseSlotData } from '@/assets/js/types'
+import type { Room } from '@/stores/room'
 
 interface Props {
     data: CalendarScheduledCourseSlotData
@@ -21,8 +22,12 @@ interface Props {
 const props = defineProps<Props>()
 
 const roomName = computed(() => {
-    const r = props.data.rooms[props.data.course.room]
-    return r?.name
+    let r: Room
+    if (props.data.course.room) {
+        r = props.data.rooms[props.data.course.room.id]
+        return r.name
+    }
+    return 'UNKNOWN'
 })
 </script>
 

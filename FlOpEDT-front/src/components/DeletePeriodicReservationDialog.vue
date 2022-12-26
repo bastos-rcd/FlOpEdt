@@ -36,12 +36,12 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { RoomReservation } from '@/assets/js/types'
+import type { RoomReservation } from '@/assets/js/types'
 import ModalDialog from '@/components/ModalDialog.vue'
 
 interface Props {
     isOpen: boolean
-    reservation: RoomReservation
+    reservation: RoomReservation | undefined
     onCancel: () => void
     onConfirmCurrent: (reservation: RoomReservation) => void
     onConfirmAll: (reservation: RoomReservation) => void
@@ -71,17 +71,17 @@ function cancel() {
 
 function confirmCurrent() {
     isCurrentSelected.value = true
-    props.onConfirmCurrent(props.reservation)
+    props.onConfirmCurrent(props.reservation as RoomReservation)
 }
 
 function confirmAll() {
     isAllSelected.value = true
-    props.onConfirmAll(props.reservation)
+    props.onConfirmAll(props.reservation as RoomReservation)
 }
 
 function confirmFuture() {
     isFutureSelected.value = true
-    props.onConfirmFuture(props.reservation)
+    props.onConfirmFuture(props.reservation as RoomReservation)
 }
 
 onMounted(() => {

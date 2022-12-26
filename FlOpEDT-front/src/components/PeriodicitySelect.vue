@@ -46,7 +46,7 @@ type PeriodicityModel = {
 interface Props {
     types: Array<ReservationPeriodicityType>
     weekdays: Array<WeekDay>
-    modelType: ReservationPeriodicityType
+    modelType: ReservationPeriodicityType | undefined
     modelPeriodicity: PeriodicityModel
     isDisabled: boolean
 }
@@ -56,7 +56,7 @@ const props = defineProps<Props>()
 interface Emits {
     (e: 'update:modelPeriodicity', model: PeriodicityModel): void
 
-    (e: 'update:modelType', model: ReservationPeriodicityType): void
+    (e: 'update:modelType', model: ReservationPeriodicityType | undefined): void
 }
 
 const emit = defineEmits<Emits>()

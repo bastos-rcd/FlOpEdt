@@ -359,11 +359,11 @@ import type {
     User,
     WeekDay,
 } from '@/assets/js/types'
-import { Time } from '@/assets/js/types'
+import type { Time } from '@/assets/js/types'
 import DayPicker from '@/components/DayPicker.vue'
 import ModalForm from '@/components/ModalForm.vue'
 import TimePicker from '@/components/TimePicker.vue'
-import { computed, ComputedRef, defineProps, Ref, ref, watch, watchEffect } from 'vue'
+import { computed, type ComputedRef, defineProps, type Ref, ref, watch, watchEffect } from 'vue'
 import PeriodicitySelect from '@/components/PeriodicitySelect.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
 import type { Room } from '@/stores/room'
