@@ -108,7 +108,7 @@
           <li><a href="{% url 'base:aide' department %}">{% trans 'Help' %}</a></li>
           <li><a href="{% url 'base:contact' department %}">{% trans 'Messages' %}</a></li>
           <li><a href="{% url 'base:modules' department %}">{% trans 'Modules' %}</a></li>
-          <li><a href="http://localhost:5173/roomreservation/">{% trans 'Reservations'%}</a></li>
+          <li><a href="http://localhost:5173/roomreservation/INFO">{% trans 'Reservations'%}</a></li>
           {% if request.is_department_admin %}
               <li><a href="{% url 'cstmanager:cstmanager' %}">{% trans 'Constraints'%}</a></li>
               <li><a href="{% url 'solve_board:main_board' department %}">{% trans 'Generate' %}</a></li>
