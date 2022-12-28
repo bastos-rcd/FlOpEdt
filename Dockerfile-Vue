@@ -1,5 +1,15 @@
 FROM node:18-alpine
 
-WORKDIR /code/FlOpEDT/frontend
+WORKDIR /app
 
-RUN yarn global add @vue/cli && yarn install
+COPY FlOpEDT-front /app
+
+RUN rm -rf FlOpEDT-front/node_modules\
+    && rm -rf FlOpEDT-front/dist\
+    && rm -f FlOpEDT-front/package-lock.json
+
+RUN yarn global add vite\
+    && yarn install
+    
+
+CMD ["yarn", "dev"]
