@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import { defineEmits, ref, watchEffect } from 'vue'
+import { ref, watchEffect } from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 
 interface Props {

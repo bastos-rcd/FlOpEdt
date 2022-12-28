@@ -77,7 +77,7 @@ import type {
     Time,
 } from '@/assets/js/types'
 import type { StyleValue } from 'vue'
-import { computed, defineProps, ref } from 'vue'
+import { computed, ref } from 'vue'
 import BaseCalendar from '@/components/BaseCalendar.vue'
 
 interface Emits {

@@ -23,7 +23,7 @@
 import { toStringAtLeastTwoDigits } from '@/helpers'
 import Datepicker from '@vuepic/vue-datepicker'
 import type { Ref } from 'vue'
-import { computed, defineEmits, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 interface Emits {
     (e: 'update:date', value: string): void
