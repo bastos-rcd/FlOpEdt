@@ -299,6 +299,7 @@ def check_promotions(promotions):
     result.extend(check_identifiers(promotions.keys(), "promotions"))
     for id_, name in promotions.items():
         result.extend(check_type(name, str, f"name of promotion '{id_}'"))
+
     return result
 
 
@@ -525,6 +526,14 @@ def check_groups_sheet(database):
         result.append(f"Votre liste de promotions dans '{groups_sheet}' est vide!")
 
     result.extend(check_duplicates(promotions.keys(), f"promotion dans '{groups_sheet}'"))
+
+    for promotion_id in promotions:
+        root_nb = sum(1 for key, value in database['groups'].items()
+                      if key[0] == promotion_id and value['parent'] == set())
+        if root_nb == 0:
+            result.append(f"La promotion '{promotion_id}' n'a pas de groupe racine (sans parent).")
+        elif root_nb > 1:
+            result.append(f"La promotion '{promotion_id}' a {root_nb} groupes racine (sans parent).")
 
     #
     # check group types
