@@ -299,21 +299,33 @@ class TTModel(FlopModel):
                                                                   for d in days_filter(self.wdb.days, week=week)),
                                                          j,
                                                          max_days)
-
+        GBD = {}
         GBHD = {}
         for bg in self.wdb.basic_groups:
             for d in self.wdb.days:
-                # add constraint linking IBD to EDT
+                # add constraint linking GBD to EDT
+                GBD[(bg, d)] = self.add_var()
+                dayslots = slots_filter(self.wdb.courses_slots, day=d)
+                # Linking the variable to the TT
+                card = 2 * len(dayslots)
+                expr = card * GBD[(bg, d)] - self.sum(self.TT[(sl, c)]
+                                                      for sl in dayslots
+                                                      for c in self.wdb.all_courses_for_basic_group[bg] &
+                                                      self.wdb.compatible_courses[sl])
+                self.add_constraint(expr, '>=', 0,
+                                    Constraint(constraint_type=ConstraintType.GBD_INF, groups=bg, days=d))
+                self.add_constraint(expr, '<=', card - 1,
+                                    Constraint(constraint_type=ConstraintType.GBD_SUP, groups=bg, days=d))
+
                 for apm in self.possible_apms:
                     GBHD[(bg, d, apm)] \
                         = self.add_var("GBHD(%s,%s,%s)" % (bg, d, apm))
-                    halfdayslots = slots_filter(self.wdb.courses_slots, day=d, apm=apm)
+                    halfdayslots = slots_filter(dayslots, apm=apm)
                     card = 2 * len(halfdayslots)
-                    expr = self.lin_expr()
-                    expr += card * GBHD[(bg, d, apm)]
-                    for sl in halfdayslots:
-                        for c in self.wdb.all_courses_for_basic_group[bg] & self.wdb.compatible_courses[sl]:
-                            expr -= self.TT[(sl, c)]
+                    expr = card * GBHD[(bg, d, apm)] - self.sum(self.TT[(sl, c)]
+                                                                for sl in halfdayslots
+                                                                for c in self.wdb.all_courses_for_basic_group[bg] &
+                                                                self.wdb.compatible_courses[sl])
                     self.add_constraint(expr, '>=', 0,
                                         Constraint(constraint_type=ConstraintType.GBHD_INF, groups=bg, days=d))
                     self.add_constraint(expr, '<=', card - 1,
