@@ -132,7 +132,7 @@ class TTModel(FlopModel):
         self.TT, self.TTinstructors = self.TT_vars_init()
         if self.pre_assign_rooms:
             self.TTrooms = self.TTrooms_init()
-        self.IBD, self.IBD_GTE, self.IBHD, self.GBHD, self.IBS, self.forced_IBD = self.busy_vars_init()
+        self.IBD, self.IBD_GTE, self.IBHD, self.GBD, self.GBHD, self.IBS, self.forced_IBD = self.busy_vars_init()
         if self.pre_assign_rooms:
             if self.department.mode.visio:
                 self.physical_presence, self.has_visio = self.visio_vars_init()
@@ -331,7 +331,7 @@ class TTModel(FlopModel):
                     self.add_constraint(expr, '<=', card - 1,
                                         Constraint(constraint_type=ConstraintType.GBHD_SUP, groups=bg, days=d))
 
-        return IBD, IBD_GTE, IBHD, GBHD, IBS, forced_IBD
+        return IBD, IBD_GTE, IBHD, GBD, GBHD, IBS, forced_IBD
 
     @timer
     def visio_vars_init(self):
