@@ -40,7 +40,7 @@ from TTapp.TTConstraints.stabilization_constraints import StabilizeTutorsCourses
 from TTapp.TTConstraints.groups_constraints import MinGroupsHalfDays, MinNonPreferedTrainProgsSlot
 from TTapp.TTConstraints.no_course_constraints import NoGroupCourseOnDay, NoTutorCourseOnDay
 from TTapp.TTConstraints.tutors_constraints import MinTutorsHalfDays, MinNonPreferedTutorsSlot, \
-    MinimizeBusyDays, RespectMaxHoursPerDay, LowerBoundBusyDays, RespectMinHoursPerDay
+    MinimizeBusyDays, RespectMaxHoursPerDay, LowerBoundBusyDays, RespectTutorsMinHoursPerDay
 from TTapp.TTConstraints.modules_constraints import MinModulesHalfDays
 from TTapp.TTConstraints.slots_constraints import SimultaneousCourses, AvoidBothTimesSameDay, LimitStartTimeChoices, \
     ConsiderDependencies, ConsiderPivots, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber, AvoidStartTimes

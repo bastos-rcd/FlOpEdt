@@ -249,14 +249,14 @@ class RespectMaxHoursPerDay(TTConstraint):
         return "Respect max hours per day"
 
 
-class RespectMinHoursPerDay(TTConstraint):
+class RespectTutorsMinHoursPerDay(TTConstraint):
     """
     Respect the min_hours_per_day declared
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
 
     class Meta:
-        verbose_name = _('Respect min hours per day bounds')
+        verbose_name = _('Respect tutors min hours per day bounds')
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
@@ -302,7 +302,7 @@ class RespectMinHoursPerDay(TTConstraint):
         """
         You can give a contextual explanation about what this constraint doesnt
         """
-        return "Respect min hours per day"
+        return "Respect tutors min hours per day"
 
 
 class LowerBoundBusyDays(TTConstraint):
