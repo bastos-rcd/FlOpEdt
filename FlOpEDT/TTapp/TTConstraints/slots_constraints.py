@@ -729,7 +729,7 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
         details = view_model['details']
 
         details.update({'limit': self.limit,
-                        'course_type': self.course_type.name,
+                        'course_type': self.course_type.name if self.course_type else None,
                         'modules': ', '.join([m.abbrev for m in self.modules.all()])})
 
         return view_model
