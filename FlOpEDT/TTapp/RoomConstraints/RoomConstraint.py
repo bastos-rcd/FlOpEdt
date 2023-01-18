@@ -346,6 +346,9 @@ class ConsiderRoomSorts(RoomConstraint):
                 considered_courses = tutor_courses & room_model.courses_for_room_type[room_type]
                 preferred = room_sort.prefer
                 unpreferred = room_sort.unprefer
+                members = room_type.members.all()
+                if preferred not in members or unpreferred not in members:
+                    continue
                 preferred_sum = room_model.sum(room_model.TTrooms[(course, preferred)]
                                                for course in considered_courses)
                 unpreferred_sum = room_model.sum(room_model.TTrooms[(course, unpreferred)]
