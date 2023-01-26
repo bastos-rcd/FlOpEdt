@@ -184,12 +184,8 @@ def pref_requirements(department, tutor, year, week_nb):
                  )
 
     # Exclude lunch break TODO
-    tutor_lunch_break_query = tm.TutorsLunchBreak.objects.filter(Q(tutor=tutor) | Q(tutor__isnull=True),
+    tutor_lunch_break_query = tm.TutorsLunchBreak.objects.filter(Q(tutors=tutor) | Q(tutors__isnull=True),
                                                                  Q(weeks=week) | Q(weeks__isnull=True))
-    for day in queries.get_working_days(department):
-        tutor_lunch_break_of_the_day = tutor_lunch_break_query.filter(Q(weekday=day) | Q(weekdays__isnull=True))
-        if tutor_lunch_break_of_the_day.exists():
-            pass
 
     return filled, courses_time
 
