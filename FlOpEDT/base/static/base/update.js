@@ -223,6 +223,17 @@ function compare_required_filled_pref() {
       0
     ) ;
   }
+
+  required_dispos = cours.reduce(
+      function(partial_result, c){
+        let r = partial_result;
+        if (c.tutors.includes(user.name)) {
+          r += c.duration;
+        }
+        return r
+      },
+      0
+  ) ;
 }
 
 

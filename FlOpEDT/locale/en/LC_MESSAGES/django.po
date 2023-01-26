@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-24 08:25+0000\n"
+"POT-Creation-Date: 2023-01-26 13:31+0000\n"
 "PO-Revision-Date: 2020-04-05 18:44+0200\n"
 "Last-Translator: Benoît Roche (benoit.roche@esrf.fr)\n"
 "Language-Team: none\n"
@@ -102,23 +102,27 @@ msgstr ""
 msgid "Is active?"
 msgstr ""
 
-#: TTapp/RoomConstraints/RoomConstraint.py:132
+#: TTapp/RoomConstraints/RoomConstraint.py:109
+msgid "Limit simultaneous courses for rooms"
+msgstr ""
+
+#: TTapp/RoomConstraints/RoomConstraint.py:273
 msgid "Limited room choices"
 msgstr ""
 
-#: TTapp/RoomConstraints/RoomConstraint.py:194
+#: TTapp/RoomConstraints/RoomConstraint.py:335
 msgid "Consider tutors rooms sorts"
 msgstr ""
 
-#: TTapp/RoomConstraints/RoomConstraint.py:223
+#: TTapp/RoomConstraints/RoomConstraint.py:367
 msgid "Assign a room to the courses"
 msgstr ""
 
-#: TTapp/RoomConstraints/RoomConstraint.py:278
+#: TTapp/RoomConstraints/RoomConstraint.py:443
 msgid "Limit room moves for groups"
 msgstr ""
 
-#: TTapp/RoomConstraints/RoomConstraint.py:298
+#: TTapp/RoomConstraints/RoomConstraint.py:463
 msgid "Limit room moves for tutors"
 msgstr ""
 
@@ -264,20 +268,24 @@ msgstr ""
 msgid "Gather courses of considered modules"
 msgstr ""
 
-#: TTapp/TTConstraints/groups_constraints.py:91
+#: TTapp/TTConstraints/groups_constraints.py:93
 msgid "Minimize busy half-days for groups"
 msgstr ""
 
-#: TTapp/TTConstraints/groups_constraints.py:124
+#: TTapp/TTConstraints/groups_constraints.py:126
 msgid "Minimize groups half-days"
 msgstr ""
 
-#: TTapp/TTConstraints/groups_constraints.py:134
+#: TTapp/TTConstraints/groups_constraints.py:136
 msgid "Minimize undesired slots for groups"
 msgstr ""
 
-#: TTapp/TTConstraints/groups_constraints.py:195
+#: TTapp/TTConstraints/groups_constraints.py:197
 msgid "Minimize groups non-preferred slots"
+msgstr ""
+
+#: TTapp/TTConstraints/groups_constraints.py:209
+msgid "Respect groups min hours per day bounds"
 msgstr ""
 
 #: TTapp/TTConstraints/limit_time_constraints.py:51
@@ -308,11 +316,11 @@ msgstr ""
 msgid "Full day"
 msgstr ""
 
-#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:143
+#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:145
 msgid "AM"
 msgstr ""
 
-#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:143
+#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:145
 msgid "PM"
 msgstr ""
 
@@ -345,17 +353,21 @@ msgstr ""
 msgid "A break around some type courses"
 msgstr ""
 
-#: TTapp/TTConstraints/simultaneity_constraints.py:42
+#: TTapp/TTConstraints/simultaneity_constraints.py:43
 #: TTapp/TTConstraints/tutors_constraints.py:50
 msgid "tutors"
 msgstr ""
 
-#: TTapp/TTConstraints/simultaneity_constraints.py:44
+#: TTapp/TTConstraints/simultaneity_constraints.py:45
 msgid "guide tutors"
 msgstr ""
 
-#: TTapp/TTConstraints/simultaneity_constraints.py:51
+#: TTapp/TTConstraints/simultaneity_constraints.py:52
 msgid "Not alone for these course types"
+msgstr ""
+
+#: TTapp/TTConstraints/simultaneity_constraints.py:149
+msgid "Parallelize courses"
 msgstr ""
 
 #: TTapp/TTConstraints/slots_constraints.py:113
@@ -454,7 +466,7 @@ msgid "Respect max hours per days bounds"
 msgstr ""
 
 #: TTapp/TTConstraints/tutors_constraints.py:259
-msgid "Respect min hours per day bounds"
+msgid "Respect tutors min hours per day bounds"
 msgstr ""
 
 #: TTapp/TTConstraints/tutors_constraints.py:317
@@ -481,45 +493,45 @@ msgstr ""
 msgid "Curfew"
 msgstr ""
 
-#: TTapp/TTModel.py:102
+#: TTapp/TTModel.py:104
 #, python-brace-format
 msgid ""
 "\n"
 "Let's start weeks #{self.weeks}"
 msgstr ""
 
-#: TTapp/TTModel.py:112
+#: TTapp/TTModel.py:114
 msgid "Rooms assignment :"
 msgstr ""
 
-#: TTapp/TTModel.py:123
+#: TTapp/TTModel.py:125
 #, python-brace-format
 msgid "Will modify only courses of training programme(s) {train_prog}"
 msgstr ""
 
-#: TTapp/TTModel.py:154
+#: TTapp/TTModel.py:156
 msgid "Relevant warnings :"
 msgstr ""
 
-#: TTapp/TTUtils.py:44
+#: TTapp/TTUtils.py:45
 msgid "Reload..."
 msgstr ""
 
-#: TTapp/TTUtils.py:48
+#: TTapp/TTUtils.py:49
 #, python-brace-format
 msgid "Saved in copy {result_work_copy}"
 msgstr ""
 
-#: TTapp/TTUtils.py:55
+#: TTapp/TTUtils.py:56
 msgid "Impossible to assign rooms"
 msgstr ""
 
-#: TTapp/TTUtils.py:413
+#: TTapp/TTUtils.py:415
 #, python-format
 msgid "%s, "
 msgstr ""
 
-#: base/admin.py:614 base/admin.py:640 base/admin.py:653
+#: base/admin.py:608 base/admin.py:634 base/admin.py:647
 msgid "Week"
 msgstr ""
 
@@ -591,43 +603,43 @@ msgstr ""
 msgid "graded?"
 msgstr ""
 
-#: base/models.py:565
+#: base/models.py:564
 msgid "Suspens?"
 msgstr ""
 
-#: base/models.py:598
+#: base/models.py:597
 msgid "Graded?"
 msgstr ""
 
-#: base/models.py:599
+#: base/models.py:598
 msgid "Over time"
 msgstr ""
 
-#: base/models.py:994
+#: base/models.py:978
 msgid "Successives?"
 msgstr ""
 
-#: base/models.py:995 base/models.py:1006
+#: base/models.py:979 base/models.py:990
 msgid "On different days"
 msgstr ""
 
-#: base/models.py:996
+#: base/models.py:980
 msgid "Minimal day gap between courses"
 msgstr ""
 
-#: base/models.py:1024
+#: base/models.py:1008
 msgid "Full"
 msgstr ""
 
-#: base/models.py:1026
+#: base/models.py:1010
 msgid "Full generation date"
 msgstr ""
 
-#: base/models.py:1027
+#: base/models.py:1011
 msgid "Stabilized"
 msgstr ""
 
-#: base/models.py:1029
+#: base/models.py:1013
 msgid "Partial generation date"
 msgstr ""
 
@@ -926,51 +938,51 @@ msgstr ""
 msgid "Create or modify a link"
 msgstr ""
 
-#: base/timing.py:209
+#: base/timing.py:211
 msgid "monday"
 msgstr ""
 
-#: base/timing.py:209
+#: base/timing.py:211
 msgid "tuesday"
 msgstr ""
 
-#: base/timing.py:210
+#: base/timing.py:212
 msgid "wednesday"
 msgstr ""
 
-#: base/timing.py:210
+#: base/timing.py:212
 msgid "thursday"
 msgstr ""
 
-#: base/timing.py:211
+#: base/timing.py:213
 msgid "friday"
 msgstr ""
 
-#: base/timing.py:211
+#: base/timing.py:213
 msgid "saturday"
 msgstr ""
 
-#: base/timing.py:212
+#: base/timing.py:214
 msgid "sunday"
 msgstr ""
 
-#: base/views.py:1574
+#: base/views.py:1592
 msgid "Not authorized. New link then."
 msgstr ""
 
-#: base/views.py:1577
+#: base/views.py:1595
 msgid "Unknown link. New link then."
 msgstr ""
 
-#: base/views.py:1589 notifications/notifications.py:129
+#: base/views.py:1607 notifications/notifications.py:129
 msgid "Created"
 msgstr ""
 
-#: base/views.py:1589
+#: base/views.py:1607
 msgid "Modified"
 msgstr ""
 
-#: base/views.py:1592
+#: base/views.py:1610
 msgid "Tutor does not exist"
 msgstr ""
 
@@ -1072,7 +1084,7 @@ msgstr ""
 
 #: configuration/templates/configuration/configuration.html:48
 #: configuration/templates/configuration/configuration.html:153
-#: templates/base.html:116
+#: templates/base.html:117
 msgid "Import"
 msgstr ""
 
@@ -1500,7 +1512,7 @@ msgstr ""
 msgid "Schedule Generation"
 msgstr "Schedule "
 
-#: solve_board/templates/solve_board/main-board.html:66 templates/base.html:112
+#: solve_board/templates/solve_board/main-board.html:66 templates/base.html:113
 msgid "Constraints"
 msgstr ""
 
@@ -1586,16 +1598,16 @@ msgstr ""
 msgid "Modules"
 msgstr ""
 
-#: templates/base.html:113
-msgid "Generate"
+#: templates/base.html:111
+msgid "Reservations"
 msgstr ""
 
 #: templates/base.html:114
-msgid "flop!EDITOR"
+msgid "Generate"
 msgstr ""
 
-#: templates/base.html:117
-msgid "Reservations"
+#: templates/base.html:115
+msgid "flop!EDITOR"
 msgstr ""
 
 #: templates/base.html:118

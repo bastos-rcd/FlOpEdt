@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-24 13:21+0000\n"
+"POT-Creation-Date: 2023-01-26 13:34+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: base/static/base/action.js:817
+#: base/static/base/action.js:852
 msgid "The schedule shall be fully regenerated (see downside to the right)."
 msgstr "L'emploi du temps va être regénéré totalement (cf. en bas à droite)."
 
-#: base/static/base/action.js:818
+#: base/static/base/action.js:853
 msgid ""
 "Just update your availabilities : they will be considered for the next "
 "generation."
@@ -38,19 +38,19 @@ msgstr "Cours :"
 msgid "Avail :"
 msgstr "Dispos :"
 
-#: base/static/base/creation.js:1831
+#: base/static/base/creation.js:1851
 msgid "Validate timetable"
 msgstr "Valider EDT"
 
-#: base/static/base/creation.js:1954
+#: base/static/base/creation.js:1974
 msgid "Validate availabilities"
 msgstr "Valider les disponibilités"
 
-#: base/static/base/creation.js:1984
+#: base/static/base/creation.js:2004
 msgid "Apply"
 msgstr "Appliquer"
 
-#: base/static/base/creation.js:1992
+#: base/static/base/creation.js:2012
 msgid "tipical week"
 msgstr "semaine type"
 
@@ -171,7 +171,7 @@ msgstr "Opération réussie"
 msgid "It's a fail. "
 msgstr "C'est un échec. "
 
-#: base/static/base/statistics.js:80 base/static/base/variables.js:959
+#: base/static/base/statistics.js:80 base/static/base/variables.js:951
 msgid "Room"
 msgstr "Salle"
 
@@ -180,42 +180,55 @@ msgid "Number of days"
 msgstr "Nombre de jours"
 
 #: base/static/base/transformation.js:267
+#: base/static/base/transformation_tmp.js:267
+#: base/static/base/transformation_tmp.js:269
 msgid "You have to do  "
 msgstr "Vous devez faire  "
 
 #: base/static/base/transformation.js:269
+#: base/static/base/transformation_tmp.js:272
 msgid "No course for you this week."
 msgstr "Vous n'intervenez pas cette semaine."
 
 #: base/static/base/transformation.js:277
+#: base/static/base/transformation_tmp.js:281
+#: base/static/base/transformation_tmp.js:283
 msgid "You propose   "
 msgstr "Vous en proposez    "
 
 #: base/static/base/transformation.js:290
+#: base/static/base/transformation_tmp.js:296
 msgid "Maybe you should free up more..."
 msgstr "Il faudrait peut-être en rajouter..."
 
 #: base/static/base/transformation.js:292
-msgid "It's Ok."
-msgstr "C'est parfait"
+#: base/static/base/transformation_tmp.js:298
+msgid "It seems OK."
+msgstr "Ca semble OK."
 
 #: base/static/base/transformation.js:296
+#: base/static/base/transformation_tmp.js:302
 msgid "Thank you for adding some."
 msgstr "Merci d'en ajouter "
 
-#: base/static/base/update.js:1328
+#: base/static/base/transformation_tmp.js:267
+#: base/static/base/transformation_tmp.js:281
+msgid " slot(s)"
+msgstr " créneau(x)"
+
+#: base/static/base/update.js:1339
 msgid "No planned re-generation"
 msgstr "Pas de regénération prévue"
 
-#: base/static/base/update.js:1332
+#: base/static/base/update.js:1343
 msgid "Full (minor) generation planned on "
 msgstr "Regénération totale (mineure) le"
 
-#: base/static/base/update.js:1335
+#: base/static/base/update.js:1346
 msgid "Full generation planned (probably on "
 msgstr "Regénération totale prévue (probablement le"
 
-#: base/static/base/update.js:1338
+#: base/static/base/update.js:1349
 msgid "Minor generation planned (probably on "
 msgstr "Regénération mineure prévue (probablement le"
 
@@ -261,7 +274,7 @@ msgstr ""
 msgid "OK"
 msgstr "La modification s'est déroulée sans accroc."
 
-#: base/static/base/variables.js:868 base/static/base/variables.js:999
+#: base/static/base/variables.js:868 base/static/base/variables.js:991
 msgid "What to change ?"
 msgstr "Que changer ?"
 
@@ -294,26 +307,14 @@ msgid "Rooms available"
 msgstr "Salles disponibles"
 
 #: base/static/base/variables.js:950
-msgid "No room available (any type)"
-msgstr "Aucune salle disponible (tous types)"
-
-#: base/static/base/variables.js:951
-msgid "Room available (any type)"
-msgstr "Salle disponible (tous types)"
-
-#: base/static/base/variables.js:952
-msgid "Rooms available (any type)"
-msgstr "Salles disponibles (tous types)"
-
-#: base/static/base/variables.js:958
 msgid "No room"
 msgstr "Pas de salle"
 
-#: base/static/base/variables.js:960
+#: base/static/base/variables.js:952
 msgid "Every rooms"
 msgstr "Toutes les salles"
 
-#: base/static/base/variables.js:983
+#: base/static/base/variables.js:975
 msgid "Who should do it ?"
 msgstr "Qui s'y colle ?"
 
@@ -731,3 +732,15 @@ msgstr "Manger tôt"
 #: people/static/people/student_preferences.js:66
 msgid "Eat late"
 msgstr "Manger tard"
+
+#~ msgid "It's Ok."
+#~ msgstr "C'est parfait"
+
+#~ msgid "No room available (any type)"
+#~ msgstr "Aucune salle disponible (tous types)"
+
+#~ msgid "Room available (any type)"
+#~ msgstr "Salle disponible (tous types)"
+
+#~ msgid "Rooms available (any type)"
+#~ msgstr "Salles disponibles (tous types)"

@@ -264,7 +264,11 @@ function cross_d_y(d) {
 function txt_reqDispos() {
   var ret = "";
   if (required_dispos > 0) {
-    ret += gettext("You have to do  ") + min_to_hm_txt(required_dispos) + ".";
+    if (department == "INFO"){
+      ret += gettext("You have to do  ") + Math.floor(required_dispos/85) + gettext(" slot(s)") + ".";
+    } else {
+      ret += gettext("You have to do  ") + min_to_hm_txt(required_dispos) + ".";
+    }
   } else if (required_dispos == 0) {
     ret += gettext("No course for you this week.");
   }
@@ -274,9 +278,13 @@ function txt_reqDispos() {
 function txt_filDispos() {
   var ret = "";
   if (required_dispos > 0) {
-    ret += gettext("You propose   ") + min_to_hm_txt(filled_dispos) + ". "
+    if (department == "INFO"){
+      ret += gettext("You propose   ") + Math.floor(filled_dispos/90) + gettext(" slot(s)") + ".";
+    } else {
+      ret += gettext("You propose   ") + min_to_hm_txt(filled_dispos) + ". ";
+    }
   } else if (required_dispos == 0) {
-    //ret += "Pas de problème." // pas de cours => pas de message ;-) 
+    //ret += "Pas de problème." // pas de cours => pas de message ;-)
   }
   return ret;
 }
@@ -289,7 +297,7 @@ function txt_comDispos() {
       if (filled_dispos < 2 * required_dispos) {
         ret += gettext("Maybe you should free up more...");
       } else {
-        ret += gettext("It's Ok.");
+        ret += gettext("It seems OK.");
       }
     }
     else {
@@ -776,7 +784,7 @@ function cours_reverse_y(y) {
   while (y > 0) {
     y -= rev_constraints[before_last_slot] * scale ;
   }
-  
+
   return min_to_hm_txt(+before_last_slot
                        + rev_constraints[before_last_slot]
                        + y / scale );
@@ -827,7 +835,7 @@ function cours_txt_top_y(c) {
   return cours_y(c) + .25 * cours_height(c);
 }
 function cours_txt_top_txt(c) {
-  var ret = c.mod;
+  var ret = c.pay_mod? c.mod+" ("+c.pay_mod+")": c.mod;
   return ret;
 }
 function cours_txt_mid_y(c) {
@@ -909,7 +917,7 @@ function detail_wdw_x(cours) {
 function detail_wdw_y(cours) {
   let ret = cours_y(cours) + .5 * cours_height(cours) ;
   if (cours_y(cours) > .5 * grid_height()) {
-    ret -= detail_wdw_height(); 
+    ret -= detail_wdw_height();
   }
   return ret ;
 }

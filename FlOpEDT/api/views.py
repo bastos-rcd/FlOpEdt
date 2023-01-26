@@ -39,6 +39,7 @@ from api import serializers
 from api.shared.params import week_param, year_param, dept_param
 from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
 
+import TTapp.models as tm
 # ----------
 # -- QUOTE -
 # ----------
@@ -149,21 +150,20 @@ class GroupDisplaysViewSet(viewsets.ModelViewSet):
 # --- WEEK-INFOS  ----
 # --------------------
 
-def pref_requirements(department, tutor, year, week):
+def pref_requirements(department, tutor, year, week_nb):
     """
     Return a pair (filled, required): number of preferences
     that have been proposed VS required number of prefs, according
     to local policy
     """
+    week = bm.Week.objects.get(nb=week_nb, year=year)
     courses_time =sum(c.type.duration for c in
-                      bm.Course.objects.filter(Q(tutor=tutor)|Q(supp_tutor=tutor),
-                                               week__nb=week,
-                                               week__year=year))
+                      bm.Course.objects.filter(Q(tutor=tutor) | Q(supp_tutor=tutor),
+                                               week=week))
     week_av = bm.UserPreference \
         .objects \
         .filter(user=tutor,
-                week__nb=week,
-                week__year=year,
+                week=week,
                 day__in=queries.get_working_days(department))
     if not week_av.exists():
         week_av = bm.UserPreference \
@@ -171,10 +171,26 @@ def pref_requirements(department, tutor, year, week):
             .filter(user=tutor,
                     week=None,
                     day__in=queries.get_working_days(department))
+
+    # Exclude Holidays
+    holidays_query = bm.Holiday.objects.filter(week=week)
+    if holidays_query.exists():
+        holidays = [h.day for h in holidays_query]
+        week_av = week_av.exclude(day__in=holidays)
+
     filled = sum(a.duration for a in
                  week_av.filter(value__gte=1,
                                 day__in=queries.get_working_days(department))
                  )
+
+    # Exclude lunch break TODO
+    tutor_lunch_break_query = tm.TutorsLunchBreak.objects.filter(Q(tutor=tutor) | Q(tutor__isnull=True),
+                                                                 Q(weeks=week) | Q(weeks__isnull=True))
+    for day in queries.get_working_days(department):
+        tutor_lunch_break_of_the_day = tutor_lunch_break_query.filter(Q(weekday=day) | Q(weekdays__isnull=True))
+        if tutor_lunch_break_of_the_day.exists():
+            pass
+
     return filled, courses_time
 
 
