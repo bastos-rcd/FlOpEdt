@@ -25,7 +25,8 @@ import django_filters.rest_framework as filters
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 import people.models as pm
 import base.models as bm
@@ -171,3 +172,15 @@ class TutorViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TutorSerializer
     filter_class = TutorFilterSet
     permission_classes = [IsAdminOrReadOnly]
+
+
+
+class getCurrentUserView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    
+    def get(
+        self,
+        request
+    ):
+        return Response(serializers.ShortUsersSerializer(request.user).data)

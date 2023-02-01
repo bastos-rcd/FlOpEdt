@@ -37,7 +37,7 @@ class UsersSerializer(serializers.ModelSerializer):
 class ShortUsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.User
-        fields = ('username', 'first_name', 'last_name', 'email')
+        fields = ('username', 'first_name', 'last_name', 'email', 'id')
 
 
 class UserDepartmentSettingsSerializer(serializers.ModelSerializer):

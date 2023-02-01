@@ -41,7 +41,7 @@ from api.base.rooms.urls import routerRooms
 from api.base.urls import routerBase
 from api.fetch.urls import routerFetch
 from api.myflop.urls import routerMyFlop
-from api.people.urls import routerPeople
+from api.people.urls import urlpatterns
 from api.preferences.urls import routerPreferences
 from api.roomreservation.urls import routerRoomReservation
 
@@ -90,7 +90,8 @@ urlpatterns = [
     url(r'^logout/$', views_base.LogoutView.as_view()),
     url(r'^backoffice/$', login_required(TemplateView.as_view(template_name='logout.html'))),
     path('base/', include((routerBase.urls, 'api'), namespace='base')),
-    path('user/', include((routerPeople.urls, 'api'), namespace="people")),
+    #path('user/', include((routerPeople.urls, 'api'), namespace="people")),
+    path('user/', include((urlpatterns, 'api'), namespace='people')),
     path('display/', include(routerDisplayweb.urls)),
     path('ttapp/', include((routerTTapp.urls, 'api'), namespace='ttapp')),
     path('fetch/',

@@ -62,18 +62,18 @@ urlpatterns = [
     url(views.fav_regexp,
         views.favicon,
         name="favicon"),
-    re_path(r'^$', views.index, name='index')
 ]
 
 if 'rosetta' in settings.INSTALLED_APPS:
     urlpatterns += [
-        re_path(r'^rosetta/', include('rosetta.urls'))
+        re_path(r'^backend/rosetta/', include('rosetta.urls'))
     ]
 
 
 urlpatterns += i18n_patterns(
     re_path(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^admin$', RedirectView.as_view(url='/admin/')),
+    re_path(r'^$', views.index, name='index'),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^accounts/', include('people.urls')),
     re_path(r'^citations/', include('quote.urls')),
