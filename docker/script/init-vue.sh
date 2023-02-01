@@ -7,7 +7,7 @@ case $CONFIG in
   ;;
 "development")
   # Serve on development
-  export NODE_ENV=development && yarn serve
+  export NODE_ENV=development && yarn dev
   ;;
 *)
   echo "CONFIG must be set to either development or production"

@@ -53,7 +53,7 @@ endif
 # Initialize database with basic datas contained
 # in dump.json for tests purposes
 init:
-	docker compose -f docker-compose.$(CONFIG).yml \
+	docker-compose -f docker-compose.$(CONFIG).yml \
 		run --rm \
 		-e BRANCH \
 		-e DJANGO_LOADDATA=on \
@@ -61,46 +61,46 @@ init:
 		web
 
 build-vue:
-	docker compose -f docker-compose.production.yml --profile vue up
+	docker-compose -f docker-compose.production.yml --profile vue up
 
 ifeq ($(CONFIG), production)
 build: build-vue
 endif
 
 build:
-	docker compose -f docker-compose.$(CONFIG).yml --profile full build
+	docker-compose -f docker-compose.$(CONFIG).yml --profile full build
 
 # starts edt's docker services
 start: stop
-	docker compose -f docker-compose.$(CONFIG).yml --profile full up -d
+	docker-compose -f docker-compose.$(CONFIG).yml --profile full up -d
 
 # starts edt's docker services in terminal
 start_verbose: stop
-	docker compose -f docker-compose.$(CONFIG).yml --profile full up
+	docker-compose -f docker-compose.$(CONFIG).yml --profile full up
 
 # stops edt's docker services
 stop:
-	docker compose -f docker-compose.$(CONFIG).yml --profile full --profile vue stop
+	docker-compose -f docker-compose.$(CONFIG).yml --profile full --profile vue stop
 
 # starts edt's docker database service
 start-db:
-	docker compose -f docker-compose.$(CONFIG).yml up -d db
+	docker-compose -f docker-compose.$(CONFIG).yml up -d db
 
 stop-db:
-	docker compose -f docker-compose.$(CONFIG).yml stop db
+	docker-compose -f docker-compose.$(CONFIG).yml stop db
 
 # creates the SSL certificate
 create-certif:
-	mkdir -p -m a=rwx ./FlOpEDT/acme_challenge/token && docker compose -f docker-compose.production.yml --profile ssl up
+	mkdir -p -m a=rwx ./FlOpEDT/acme_challenge/token && docker-compose -f docker-compose.production.yml --profile ssl up
 
 renew-certif:
-	mkdir -p -m a=rwx ./FlOpEDT/acme_challenge/token && CERTIF_RENEW="--renew 90" docker compose -f docker-compose.production.yml --profile ssl up
+	mkdir -p -m a=rwx ./FlOpEDT/acme_challenge/token && CERTIF_RENEW="--renew 90" docker-compose -f docker-compose.production.yml --profile ssl up
 
 #
 #	Docker stack helpers
 #
 push: build
-	docker compose -f docker-compose.$(CONFIG).yml push
+	docker-compose -f docker-compose.$(CONFIG).yml push
 
 deploy:
 	docker stack deploy --compose-file docker-compose.$(CONFIG).yml $(COMPOSE_PROJECT_NAME)

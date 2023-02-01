@@ -41,19 +41,16 @@ services:
     depends_on:
       - db
       - redis
-      - vue
 
   vue:
     build:
       dockerfile: ./Dockerfile-Vue
     profiles:
       - full
-    user: "${UID}:${GID}"
+    #user: "${UID}:${GID}"
     environment:
       - CONFIG=development
-    volumes:
-      - ./FlOpEDT:/code/FlOpEDT/
-      - ./docker:/code/docker
+    network_mode: "host"
     ports:
-      - "8080:8000"
-    entrypoint: /code/docker/script/init-vue.sh
+      - "127.0.0.1:5173:5173"
+    #entrypoint: /front/docker/script/init-vue.sh

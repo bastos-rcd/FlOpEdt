@@ -1,9 +1,17 @@
 <template>
-    <main class="text-center">You are in department {{ department }}.</main>
+    <div>
+        <h1>Welcome home !</h1>
+    </div>
+
 </template>
 
 <script setup lang="ts">
-import { getDepartment } from '@/main'
 
-const department = getDepartment()
+
+
 </script>
+
+<style>
+
+
+</style>
