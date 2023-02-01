@@ -13,8 +13,15 @@
 
 <script setup lang="ts">
 import { useAuth } from '@/stores/auth'
+import { onMounted } from 'vue';
 
 const authStore = useAuth()
+
+onMounted(() => {
+    if(!authStore.isUserAuthenticated) {
+        authStore.redirectLogin()
+    }
+})
 
 </script>
 

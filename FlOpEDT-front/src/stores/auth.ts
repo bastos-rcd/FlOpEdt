@@ -8,7 +8,7 @@ export const useAuth = defineStore('auth', () => {
 
   const isUserAuthenticated = computed(() => user.value.id !== -1)
 
-  function getAuthUser() {
+  function getAuthUser() : void {
     api?.getCurrentUser().then((json: any) => user.value = json)
   }
 
@@ -16,5 +16,9 @@ export const useAuth = defineStore('auth', () => {
     return user.value
   }
 
-  return { user, isUserAuthenticated, getAuthUser, getUser }
+  function redirectLogin() : void {
+    window.location.href = 'http://localhost:5173/fr/accounts/login/'
+  }
+
+  return { user, isUserAuthenticated, getAuthUser, getUser, redirectLogin }
 })
