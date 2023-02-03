@@ -511,7 +511,10 @@ def check_people_sheet(database):
     for id_, person in database['people'].items():
         if person['status'] == '' and not id_.startswith(':INVALID:'):
             result.append(f"Le statut de la personne '{id_}' dans '{people_sheet}' n'est pas valide")
-
+        if ' ' in id_:
+            result.append(f"L'identifiant '{id_}' n'est pas valide : ne pas mettre d'espace")
+        if ',' in id_ or ";" in id_ or "|" in id_ or "-" in id_:
+            result.append(f"L'identifiant '{id_}' n'est pas valide : ne pas mettre les caractères suivants: , ; | -")
     return result
 
 
