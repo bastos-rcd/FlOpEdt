@@ -13,3 +13,18 @@ export class User implements User {
     email = ''
     id = -1
 }
+
+export interface Department {
+    id: number
+    abbrev: string
+}
+
+export class Department implements Department{
+    id = -1
+    abbrev = "Not found"
+
+    constructor(id: number, abbrev: string) {
+        this.id = id
+        this.abbrev = abbrev
+    }
+}

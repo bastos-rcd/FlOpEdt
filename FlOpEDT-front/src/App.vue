@@ -1,7 +1,7 @@
 <template>
   <header>
     <ul>
-      <li><router-link to="/">Home</router-link></li>
+      <li><router-link :to="{name: routeNames.home, params:{}}">Home</router-link></li>
       <li><a href="/fr/edt/INFO/">Consulter</a></li>
       <li v-if="authStore.isUserAuthenticated"><a href="/fr/edt/INFO/decale">Décaler/Annuler</a></li>
       <li><a href="/fr/edt/INFO/semaine-type">Préférences</a></li>
@@ -14,7 +14,8 @@
       <li v-if="authStore.isUserAuthenticated"><a href="/fr/flopeditor/INFO/parameters">Flop!EDITOR</a></li>
       <li v-if="authStore.isUserAuthenticated"><a href="/fr/configuration/">Importer</a></li>
       <li v-if="authStore.isUserAuthenticated"><a href="/fr/admin/">Admin</a></li>
-      <li><router-link to="/roomreservation">Room reservation</router-link></li>
+      <li><router-link :to="{name: routeNames.roomReservation, params:{}}">Room reservation</router-link></li>
+      <li><router-link :to="{name: routeNames.departmentSelection, params:{}}">Sélection du département</router-link></li>
     </ul>
   </header>
   <router-view></router-view>
@@ -26,11 +27,15 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useAuth } from './stores/auth'
+import { useDepartmentStore } from './stores/department';
+import { routeNames } from '@/router'
 
 const authStore = useAuth()
+const deptStore = useDepartmentStore()
 
 onMounted(() => {
-  authStore.getAuthUser()
+  authStore.fetchAuthUser()
+  deptStore.fetchAllDepartments()
 })
 
 </script>

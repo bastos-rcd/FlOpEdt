@@ -1,29 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 export const routeNames = {
-    departmentSelection: Symbol('department-selection'),
     home: Symbol('Home'),
     roomReservation: Symbol('room-reservation'),
+    departmentSelection: Symbol('department-selection'),
     notFound: Symbol('notFound'),
 }
 
 const routes = [
     {
         path: '/',
+        name: routeNames.departmentSelection,
+        component: () => import('@/views/DepartmentSelectionView.vue'),
+        meta: {
+            title: 'Ca floppe !',
+        },
+    },
+    {
+        path: '/home',
         name: routeNames.home,
         component: () => import('@/views/HomeView.vue'),
         meta: {
             title: 'Ca floppe !',
         },
     },
-    /*{
-        path: '/edt/:dept',
-        name: routeNames.home,
-        component: () => import('@/views/HomeView.vue'),
-        meta: {
-            title: 'Emploi du temps',
-        },
-    },*/
     {
         path: '/roomreservation/',
         name: routeNames.roomReservation,

@@ -8,17 +8,17 @@ export const useAuth = defineStore('auth', () => {
 
   const isUserAuthenticated = computed(() => user.value.id !== -1)
 
-  function getAuthUser() : void {
+  function fetchAuthUser() : void {
     api?.getCurrentUser().then((json: any) => user.value = json)
   }
 
-  function getUser() : User {
+  const getUser = computed(() : User => {
     return user.value
-  }
+  })
 
   function redirectLogin() : void {
     window.location.href = 'http://localhost:5173/fr/accounts/login/'
   }
 
-  return { user, isUserAuthenticated, getAuthUser, getUser, redirectLogin }
+  return { isUserAuthenticated, fetchAuthUser, getUser, redirectLogin }
 })

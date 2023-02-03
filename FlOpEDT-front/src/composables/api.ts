@@ -1,10 +1,11 @@
 import { User } from '@/ts/type'
+import { Department } from '../ts/type'
 
 const API_ENDPOINT = '/fr/api/'
 
 const urls = {
     getcurrentuser : 'user/getcurrentuser',
-    departments: 'fetch/alldepts',
+    getAllDepartments: 'fetch/alldepts',
     rooms: 'rooms/room',
     weekdays: 'fetch/weekdays',
     timesettings: 'base/timesettings',
@@ -43,10 +44,13 @@ function getCookie(name: string) {
     return decodeURIComponent(xsrfCookies[0].split('=')[1])
 }
 
-//const csrfToken = getCookie('csrftoken')
+const csrfToken = getCookie('csrftoken')
+
+console.log('csrfToken retrieved: ', csrfToken)
 
 export interface FlopAPI {
     getCurrentUser() : Promise<User>
+    getAllDepartments() : Promise<Array<Department>>
 }
 
 const api: FlopAPI = {
@@ -55,21 +59,44 @@ const api: FlopAPI = {
         await fetch(API_ENDPOINT+urls.getcurrentuser, {
             method: 'GET',
             credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json'}
+            headers: { 'Content-Type': 'application/json' }
         }).then(
             async (response) => {
                 if(!response.ok) {
-                    throw Error('Erreur HTTP : ' + response.status)
+                    throw Error('Error : ' + response.status)
                 }
                 await response.json()
                         .then(data => {
-                            //console.log('data = ', data)
                             user = data
                         })
-                        .catch( _ => console.log("ERROR JSON"))
+                        .catch( error => console.log('Error : ' + error.message))
             }
-        ).catch( _ => console.log("ERROR FETCH"))
+        ).catch( error => {
+            console.log(error.message)
+        })
         return user
+    },
+    async getAllDepartments() : Promise<Array<Department>> {
+        let departments : Array<Department> = []
+        await fetch(API_ENDPOINT+urls.getAllDepartments, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' }
+        }).then(
+            async (response) => {
+                if(!response.ok) {
+                    return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+                }
+                await response.json()
+                        .then(data => {
+                            departments = data
+                        })
+                        .catch( error => { return Promise.reject(error.message) })
+            }
+        ).catch( error => {
+            console.log(error.message)
+        })
+        return departments
     }
 }
 export {api}

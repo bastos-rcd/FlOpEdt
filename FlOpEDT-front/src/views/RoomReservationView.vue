@@ -3,7 +3,7 @@
         <h1>Welcome to the reservation page !</h1>
     </div>
     <div v-if="authStore.isUserAuthenticated">
-        <p>L'utilisateur est connecté : {{ authStore.getUser().first_name }}</p>
+        <p>L'utilisateur est connecté : {{ authStore.getUser.first_name }}</p>
     </div>
     <div v-else>
         <p>L'utilisateur n'est pas connecté.</p>
