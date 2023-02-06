@@ -10,14 +10,6 @@ export const routeNames = {
 const routes = [
     {
         path: '/',
-        name: routeNames.departmentSelection,
-        component: () => import('@/views/DepartmentSelectionView.vue'),
-        meta: {
-            title: 'Ca floppe !',
-        },
-    },
-    {
-        path: '/home',
         name: routeNames.home,
         component: () => import('@/views/HomeView.vue'),
         meta: {

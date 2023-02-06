@@ -17,7 +17,7 @@ export const useAuth = defineStore('auth', () => {
   })
 
   function redirectLogin() : void {
-    window.location.href = 'http://localhost:5173/fr/accounts/login/'
+    window.location.href = '/fr/accounts/login/'
   }
 
   return { isUserAuthenticated, fetchAuthUser, getUser, redirectLogin }

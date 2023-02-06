@@ -21,6 +21,16 @@ export const useDepartmentStore = defineStore('dept', () => {
         currentDepartment.value = dept
     }
   
-    return { getCurrentDepartment, fetchAllDepartments, getAllDepartmentsFetched, setCurrentDepartment, isCurrentDepartmentSelected}
-
+    function cleanCurrentDepartment() : void {
+      setCurrentDepartment(new Department())
+    }
+    
+    return { 
+      getCurrentDepartment,
+      fetchAllDepartments,
+      getAllDepartmentsFetched,
+      setCurrentDepartment,
+      isCurrentDepartmentSelected,
+      cleanCurrentDepartment
+    }
   })
