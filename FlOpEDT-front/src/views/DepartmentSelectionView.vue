@@ -2,11 +2,12 @@
     <main class="text-center">
         <h1>Please select a department</h1>
         <div class="container w-50">
-            <div v-if="deptStore.getAllDepartments.length !== 0">
-                <div v-for="department in deptStore.getAllDepartments" :key="department.id" class="row mb-1">
+            <div v-if="deptStore.getAllDepartmentsFetched.length !== 0">
+                <div v-for="department in deptStore.getAllDepartmentsFetched" :key="department.id" class="row mb-1">
                     <router-link
                         :to="{
                             name: routeNames.home,
+                            params: {}
                         }"
                         @click.native="deptStore.setCurrentDepartment(new Department(department.id, department.abbrev))">
                         {{ department.abbrev }}

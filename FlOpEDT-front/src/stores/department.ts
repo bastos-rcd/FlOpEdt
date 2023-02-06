@@ -9,7 +9,7 @@ export const useDepartmentStore = defineStore('dept', () => {
   
     const getCurrentDepartment = computed(() => currentDepartment.value)
 
-    const getAllDepartments = computed(() => departments.value)
+    const getAllDepartmentsFetched = computed(() => departments.value)
 
     const isCurrentDepartmentSelected = computed(() => currentDepartment.value.id !== -1)
 
@@ -21,6 +21,6 @@ export const useDepartmentStore = defineStore('dept', () => {
         currentDepartment.value = dept
     }
   
-    return { getCurrentDepartment, fetchAllDepartments, getAllDepartments, setCurrentDepartment, isCurrentDepartmentSelected}
+    return { getCurrentDepartment, fetchAllDepartments, getAllDepartmentsFetched, setCurrentDepartment, isCurrentDepartmentSelected}
 
   })

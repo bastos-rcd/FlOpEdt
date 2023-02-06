@@ -62,10 +62,13 @@ li {
   display: inline;
   margin: 5px;
   padding: 5px;
-  border-radius: 10%;
+  border-radius: 20%;
   background-color: aliceblue;
+  border-color: rgb(200,200,200);
+  border-style: solid;
+  border-width: 1px;
 }
 li:hover {
-  background-color:rgb(255, 240, 222);
+  background-color:rgb(200, 200, 200);
 }
 </style>
