@@ -23,7 +23,7 @@ export class Department implements Department{
     id = -1
     abbrev = "Not found"
 
-    constructor(id: number, abbrev: string) {
+    constructor(id: number = -1, abbrev: string = "Not found") {
         this.id = id
         this.abbrev = abbrev
     }

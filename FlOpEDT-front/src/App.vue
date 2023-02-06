@@ -2,20 +2,36 @@
   <header>
     <ul>
       <li><router-link :to="{name: routeNames.home, params:{}}">Home</router-link></li>
-      <li><a href="/fr/edt/INFO/">Consulter</a></li>
-      <li v-if="authStore.isUserAuthenticated"><a href="/fr/edt/INFO/decale">Décaler/Annuler</a></li>
-      <li><a href="/fr/edt/INFO/semaine-type">Préférences</a></li>
-      <li><a href="/fr/ics/INFO/">iCal</a></li>
-      <li><a href="/fr/edt/INFO/aide">Aide</a></li>
-      <li><a href="/fr/edt/INFO/contact/">Contact</a></li>
-      <li><a href="/fr/edt/INFO/modules">Module</a></li>
-      <li v-if="authStore.isUserAuthenticated"><a href="/fr/cstmanager/manager/">Contraintes</a></li>
-      <li v-if="authStore.isUserAuthenticated"><a href="/fr/solve-board/INFO/main/">Générer</a></li>
-      <li v-if="authStore.isUserAuthenticated"><a href="/fr/flopeditor/INFO/parameters">Flop!EDITOR</a></li>
-      <li v-if="authStore.isUserAuthenticated"><a href="/fr/configuration/">Importer</a></li>
-      <li v-if="authStore.isUserAuthenticated"><a href="/fr/admin/">Admin</a></li>
-      <li><router-link :to="{name: routeNames.roomReservation, params:{}}">Room reservation</router-link></li>
-      <li><router-link :to="{name: routeNames.departmentSelection, params:{}}">Sélection du département</router-link></li>
+      <li v-if="deptStore.isCurrentDepartmentSelected"><a :href="`/fr/edt/${deptStore.getCurrentDepartment.abbrev}/`">Consulter</a></li>
+      <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
+        <a href="/fr/edt/INFO/decale">Décaler/Annuler</a>
+      </li>
+      <li v-if="deptStore.isCurrentDepartmentSelected"><a :href="`/fr/edt/${deptStore.getCurrentDepartment.abbrev}/semaine-type`">Préférences</a></li>
+      <li v-if="deptStore.isCurrentDepartmentSelected"><a :href="`/fr/ics/${deptStore.getCurrentDepartment.abbrev}/`">iCal</a></li>
+      <li v-if="deptStore.isCurrentDepartmentSelected"><a :href="`/fr/edt/${deptStore.getCurrentDepartment.abbrev}/aide`">Aide</a></li>
+      <li v-if="deptStore.isCurrentDepartmentSelected"><a :href="`/fr/edt/${deptStore.getCurrentDepartment.abbrev}/contact/`">Contact</a></li>
+      <li v-if="deptStore.isCurrentDepartmentSelected"><a :href="`/fr/edt/${deptStore.getCurrentDepartment.abbrev}/modules`">Module</a></li>
+      <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
+        <a href="/fr/cstmanager/manager/">Contraintes</a>
+      </li>
+      <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
+        <a :href="`/fr/solve-board/${deptStore.getCurrentDepartment.abbrev}/main/`">Générer</a>
+      </li>
+      <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
+        <a :href="`/fr/flopeditor/${deptStore.getCurrentDepartment.abbrev}/parameters`">Flop!EDITOR</a>
+      </li>
+      <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
+        <a href="/fr/configuration/">Importer</a>
+      </li>
+      <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
+        <a href="/fr/admin/">Admin</a>
+      </li>
+      <li v-if="deptStore.isCurrentDepartmentSelected">
+        <router-link :to="{name: routeNames.roomReservation, params:{}}">Room reservation</router-link>
+      </li>
+      <li>
+        <router-link :to="{name: routeNames.departmentSelection, params:{}}">Sélection du département</router-link>
+      </li>
     </ul>
   </header>
   <router-view></router-view>

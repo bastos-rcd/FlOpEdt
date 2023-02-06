@@ -5,11 +5,13 @@ import { computed, ref } from 'vue'
 
 export const useDepartmentStore = defineStore('dept', () => {
     const departments = ref<Array<Department>>([])
-    const currentDepartment = ref(new Department)
+    const currentDepartment = ref(new Department())
   
     const getCurrentDepartment = computed(() => currentDepartment.value)
 
     const getAllDepartments = computed(() => departments.value)
+
+    const isCurrentDepartmentSelected = computed(() => currentDepartment.value.id !== -1)
 
     function fetchAllDepartments() : void {
       api?.getAllDepartments().then((json: any) => departments.value = json)
@@ -19,6 +21,6 @@ export const useDepartmentStore = defineStore('dept', () => {
         currentDepartment.value = dept
     }
   
-    return { getCurrentDepartment, fetchAllDepartments, getAllDepartments, setCurrentDepartment}
+    return { getCurrentDepartment, fetchAllDepartments, getAllDepartments, setCurrentDepartment, isCurrentDepartmentSelected}
 
   })
