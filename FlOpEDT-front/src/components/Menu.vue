@@ -1,7 +1,7 @@
 <template>
     <div class="menu-links">
         <ul>
-            <li><router-link :to="{name: routeNames.home, params:{}}">Home</router-link></li>
+            <li><router-link :to="{name: routeNames.home, params:{dept: deptStore.getCurrentDepartment.abbrev}}">Home</router-link></li>
         </ul>
         <ul v-if="deptStore.isCurrentDepartmentSelected"> 
             <li>
@@ -23,7 +23,7 @@
                 <a :href="`/fr/edt/${deptStore.getCurrentDepartment.abbrev}/modules`">Module</a>
             </li>
             <li>
-                <router-link :to="{name: routeNames.roomReservation, params:{}}">Room reservation</router-link>
+                <router-link :to="{name: routeNames.roomReservation, params:{dept:deptStore.getCurrentDepartment.abbrev}}">Room reservation</router-link>
             </li>
         </ul>
         <ul v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
@@ -65,9 +65,9 @@ const deptStore = useDepartmentStore()
 li {
   list-style: none;
   display: inline;
-  margin: 5px;
-  padding: 15px;
-  border-radius: 20%;
+  margin: 2px;
+  padding: 5px;
+  border-radius: 5  %;
   background-color: aliceblue;
   border-color: rgb(200,200,200);
   border-style: solid;

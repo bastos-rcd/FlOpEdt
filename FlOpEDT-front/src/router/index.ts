@@ -9,7 +9,7 @@ export const routeNames = {
 
 const routes = [
     {
-        path: '/',
+        path: '/:dept',
         name: routeNames.home,
         component: () => import('@/views/HomeView.vue'),
         meta: {
@@ -17,7 +17,7 @@ const routes = [
         },
     },
     {
-        path: '/roomreservation/',
+        path: '/roomreservation/:dept',
         name: routeNames.roomReservation,
         component: () => import('@/views/RoomReservationView.vue'),
         meta: {
