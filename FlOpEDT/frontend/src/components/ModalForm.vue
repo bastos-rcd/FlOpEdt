@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import type { FormAlert, FormInterface } from '@/assets/js/types'
 import { Modal } from 'bootstrap'
-import { defineProps, onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 interface Emits {
     (e: 'interface', formInterface: FormInterface): void
