@@ -67,7 +67,7 @@ li {
   display: inline;
   margin: 2px;
   padding: 5px;
-  border-radius: 5  %;
+  border-radius: 5%;
   background-color: aliceblue;
   border-color: rgb(200,200,200);
   border-style: solid;

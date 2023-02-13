@@ -7,7 +7,7 @@
                     <router-link
                         :to="{
                             name: routeNames.home,
-                            params: {}
+                            params: {dept: department.abbrev}
                         }"
                         @click.native="deptStore.setCurrentDepartment(new Department(department.id, department.abbrev))">
                         {{ department.abbrev }}

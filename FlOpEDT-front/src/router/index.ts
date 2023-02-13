@@ -9,19 +9,19 @@ export const routeNames = {
 
 const routes = [
     {
-        path: '/:dept',
-        name: routeNames.home,
-        component: () => import('@/views/HomeView.vue'),
-        meta: {
-            title: 'Ca floppe !',
-        },
-    },
-    {
-        path: '/roomreservation/:dept',
+        path: '/roomreservation/:dept?',
         name: routeNames.roomReservation,
         component: () => import('@/views/RoomReservationView.vue'),
         meta: {
             title: 'Réservation de salles',
+        },
+    },
+    {
+        path: '/:dept?',
+        name: routeNames.home,
+        component: () => import('@/views/HomeView.vue'),
+        meta: {
+            title: 'Ca floppe !',
         },
     },
     {

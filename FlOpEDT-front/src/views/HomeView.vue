@@ -16,5 +16,12 @@
 <script setup lang="ts">
 import { useDepartmentStore } from '@/stores/department'
 import DepartmentSelection from '@/components/DepartmentSelection.vue';
+import { onMounted } from 'vue';
 const deptStore = useDepartmentStore()
+
+onMounted(() => {
+    if(!deptStore.isCurrentDepartmentSelected) {
+        deptStore.getDepartmentFromURL()
+    }
+})
 </script>

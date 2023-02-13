@@ -176,6 +176,7 @@ import DynamicSelectedElementNumeric from '@/components/dynamicSelect/DynamicSel
 import DynamicSelectedElementBoolean from '@/components/dynamicSelect/DynamicSelectedElementBoolean.vue'
 import ClearableInput from '@/components/utils/ClearableInput.vue'
 import DeletePeriodicReservationDialog from '@/components/dialog/DeletePeriodicReservationDialog.vue'
+import { useRoute } from 'vue-router'
 
 const currentWeek = ref(inject('currentWeek'))
 let currentDepartment = ''
@@ -1342,6 +1343,7 @@ function getScheduledCourseDepartment(course: ScheduledCourse): Department | und
 }
 
 onMounted(() => {
+    departmentStore.getDepartmentFromURL()
     const dbDataElement = document.getElementById('json_data')
     if (dbDataElement && dbDataElement.textContent) {
         const data = JSON.parse(dbDataElement.textContent)
