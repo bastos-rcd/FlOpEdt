@@ -159,6 +159,13 @@ def edt(req, year=None, week=None, splash_id=0, **kwargs):
                             })
 
 
+def room_reservation(req, **kwargs):
+    url_redirection = '/roomreservation/'
+    if req.department:
+        url_redirection += req.department.abbrev
+    response = redirect(url_redirection)
+    return response
+
 def edt_light(req, year=None, week=None, **kwargs):
     week, year = clean_edt_view_params(week, year)
     promo = clean_train_prog(req)
