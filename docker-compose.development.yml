@@ -37,7 +37,7 @@ services:
     volumes:
       - .:/code
     ports:
-      - "${PORT}:8000"
+      - "8000:8000"
     depends_on:
       - db
       - redis
@@ -47,10 +47,8 @@ services:
       dockerfile: ./Dockerfile-Vue
     profiles:
       - full
-    #user: "${UID}:${GID}"
     environment:
       - CONFIG=development
     network_mode: "host"
     ports:
       - "127.0.0.1:5173:5173"
-    #entrypoint: /front/docker/script/init-vue.sh

@@ -3,7 +3,6 @@ FROM node:18-alpine
 WORKDIR /front
 
 COPY FlOpEDT-front /front
-COPY docker /front
 
 RUN rm -rf FlOpEDT-front/node_modules\
     && rm -rf FlOpEDT-front/dist\
