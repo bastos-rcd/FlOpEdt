@@ -17,9 +17,6 @@ export const useDepartmentStore = defineStore('dept', () => {
     async function fetchAllDepartments() : Promise<void> {
       await api?.getAllDepartments().then((json: any) => {
         departments.value = json
-        if(departments.value.length === 0) {
-          currentDepartment.value.id = 0
-        }
       })
     }
   
