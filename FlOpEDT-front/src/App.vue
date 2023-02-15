@@ -1,8 +1,10 @@
 <template>
-  <ProvideUser></ProvideUser>
-  <ProvideDepartment></ProvideDepartment>
-  <Header></Header>
-  <router-view></router-view>
+  <ProvideUser>
+    <ProvideDepartment>
+      <Header></Header>
+      <router-view></router-view>
+    </ProvideDepartment>
+  </ProvideUser>
 </template>
 
 <script setup lang="ts">

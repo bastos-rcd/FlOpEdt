@@ -30,8 +30,6 @@ export const useDepartmentStore = defineStore('dept', () => {
 
     async function getDepartmentFromURL() : Promise<void> {
       const route = useRoute()
-      if(departments.value.length === 0)
-        await fetchAllDepartments()
       getAllDepartmentsFetched.value.forEach(dept => {
         const path = route.path.split("/")
         path.forEach(arg => {
