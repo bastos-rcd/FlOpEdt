@@ -33,11 +33,14 @@ if [ "$DJANGO_MIGRATE" = 'on' ]; then
     /code/FlOpEDT/manage.py migrate --noinput
 fi
 
-if [ "$DJANGO_LOADDATA" = 'on' ]; then
+if [ "$DJANGO_FLUSHDATA" = 'on' ]; then
   echo "manage.py flush old database..."
   /code/FlOpEDT/manage.py flush --noinput
+fi
+
+if [ "$DJANGO_LOADDATA" = 'on' ]; then
   echo "manage.py loaddata..."
-  /code/FlOpEDT/manage.py loaddata /code/dump.json
+  /code/FlOpEDT/manage.py loaddata /code/dump_anonyme.json.bz2
 fi
 
 if [ "$DJANGO_COLLECTSTATIC" = 'on' ]; then
