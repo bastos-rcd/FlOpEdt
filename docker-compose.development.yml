@@ -8,8 +8,6 @@ services:
     environment:
       PGDATA: /var/lib/postgresql/data/flopedt-${BRANCH:-master}
       POSTGRES_HOST_AUTH_METHOD: trust
-    ports:
-      - "5445:5432"
 
   redis:
     image: redis:latest
@@ -18,7 +16,7 @@ services:
     ports:
       - "${REDIS_PORT-6379}:6379"
 
-  web:
+  backend:
     build:
       context: .
       args:
@@ -31,7 +29,8 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=FlOpEDT.settings.development
       - START_SERVER=${START_SERVER:-on}
-      - DJANGO_LOADDATA
+      - DJANGO_LOADDATA=off
+      - DJANGO_FLUSHDATA=off
       - CONFIG=development
     entrypoint: /code/docker/script/init.sh      
     volumes:
@@ -49,6 +48,9 @@ services:
       - full
     environment:
       - CONFIG=development
+    volumes:
+      - ./FlOpEDT-front:/front
     network_mode: "host"
     ports:
-      - "127.0.0.1:5173:5173"
+      - "5173:5173"
+    entrypoint: ["yarn", "dev"]
