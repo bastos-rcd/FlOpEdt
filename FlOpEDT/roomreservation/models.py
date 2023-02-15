@@ -102,3 +102,8 @@ class ReservationPeriodicityByMonth(ReservationPeriodicity):
     def save(self, **kwargs):
         self.periodicity_type = 'BM'
         super(ReservationPeriodicity, self).save(**kwargs)
+
+
+class RoomReservationValidationEmail(models.Model):
+    room = models.OneToOneField('base.Room', models.CASCADE)
+    validators = models.ManyToManyField('people.User')

@@ -41,6 +41,8 @@ class ConstraintType(Enum):
     IBHD_SUP = "IBHD_supérieur"
     GBHD_INF = "GBHD_inférieur"
     GBHD_SUP = "GBHD_supérieur"
+    GBD_INF = "GBD_inférieur"
+    GBD_SUP = "GBD_supérieur"
     CONJONCTION = "Conjonction"
     SEUIL = "Seuil"
     CEILING_BOUND = "CEILING_BOUND"
@@ -145,6 +147,7 @@ class ConstraintType(Enum):
     MinimizeBusyDays = "MinimizeBusyDays"
     AVOID_BOTH_TIME_SAME_DAY = "AVOID_BOTH_TIME_SAME_DAY"
     NOT_ALONE = "NOT_ALONE"
+    LimitBusySlots = "LimitBusySlots"
 
     # From minhalfdays
     MIN_HALF_DAYS_LIMIT = "Min Half Days limit"

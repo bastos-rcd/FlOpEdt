@@ -111,9 +111,11 @@ def flopday_to_date(day):
     return date.fromordinal((day.week.year-1) * 365 + (day.week.nb-1)*7 + days_index[day.day] + 1 + nb_leap_year + first_day_first_week(day))
 
 
-#Takes a starting time
-#and returns the time object corresponding
+# Takes a starting time and returns the time object corresponding
+# TODO: The result does not work if time is 24:00 .....
 def floptime_to_time(time_minutes):
+    if time_minutes == 24*60:
+        return time(0,0)
     return time(time_minutes//60, time_minutes%60)
 
 

@@ -717,6 +717,14 @@ class GroupPreferredLinks(models.Model):
 # -----------------
 
 class Preference(models.Model):
+    start_time = models.PositiveSmallIntegerField()
+    duration = models.PositiveSmallIntegerField()
+    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
+    day = models.CharField(
+        max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
+    value = models.SmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(8)],
+        default=8)
     class Meta:
         abstract = True
 
@@ -727,14 +735,6 @@ class Preference(models.Model):
 
 class UserPreference(Preference):
     user = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
-    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
-    day = models.CharField(
-        max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    start_time = models.PositiveSmallIntegerField()
-    duration = models.PositiveSmallIntegerField()
-    value = models.SmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(8)],
-        default=8)
 
     def __str__(self):
         return f"{self.user.username}-Sem{self.week}: " + \
@@ -799,14 +799,6 @@ class CoursePreference(Preference):
     course_type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     train_prog = models.ForeignKey(
         'TrainingProgramme', on_delete=models.CASCADE)
-    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
-    day = models.CharField(
-        max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    start_time = models.PositiveSmallIntegerField()
-    duration = models.PositiveSmallIntegerField()
-    value = models.SmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(8)],
-        default=8)
 
     def __str__(self):
         return f"{self.course_type}=Sem{self.week}:" + \
@@ -814,17 +806,9 @@ class CoursePreference(Preference):
                f"--{self.train_prog}={self.value}"
 
 
-class RoomPreference(models.Model):
+class RoomPreference(Preference):
     room = models.ForeignKey(
         'Room', on_delete=models.CASCADE, default=None, null=True)
-    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
-    day = models.CharField(
-        max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    start_time = models.PositiveSmallIntegerField()
-    duration = models.PositiveSmallIntegerField()
-    value = models.SmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(8)],
-        default=8)
 
     def __str__(self):
         return f"{self.room}-Sem{self.week}:" + \

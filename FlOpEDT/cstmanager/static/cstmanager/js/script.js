@@ -583,7 +583,7 @@ let fetchers = {
                 Object.values(jsonObj).forEach(obj => {
                     let currentYear = new Date().getFullYear();
                     let year = obj['year'];
-                    if (year < currentYear || year > currentYear + 1) {
+                    if (year < currentYear - 1 || year > currentYear + 1) {
                         return;
                     }
                     database['weeks'][obj['id']] = obj;
