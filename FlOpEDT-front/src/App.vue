@@ -13,3 +13,26 @@ import Header from '@/components/Header.vue';
 import ProvideDepartment from '@/components/providers/ProvideDepartment.vue';
 
 </script>
+
+<style>
+* {
+  font-family: Arial, sans-serif;
+  alignment-baseline:middle;
+  dominant-baseline:middle;
+}
+h1 {
+  font-size:22px;
+}
+h2 {
+  font-size:20px;
+}
+h3 {
+  font-size:18px;
+}
+h4 {
+  font-size:16px;
+}
+body{
+    background: linear-gradient(to bottom, rgb(176,176,176), rgb(255,255,255));
+}
+</style>
