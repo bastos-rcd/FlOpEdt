@@ -29,14 +29,18 @@ from django.core.mail import EmailMessage
 from base.models import RoomType, RoomPreference, ScheduledCourse, TrainingProgramme, \
     TutorCost, GroupFreeHalfDay, GroupCost, TimeGeneralSettings, ModuleTutorRepartition, ScheduledCourseAdditional
 
-from base.timing import Time
+from base.timing import Time, flopday_to_date, floptime_to_time
 
 from people.models import Tutor
 
 from TTapp.models import MinNonPreferedTutorsSlot, StabilizeTutorsCourses, MinNonPreferedTrainProgsSlot, \
     NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, ConsiderTutorsUnavailability, \
     MinimizeBusyDays, MinGroupsHalfDays, RespectMaxHoursPerDay, ConsiderDependencies, ConsiderPivots, \
-    StabilizeGroupsCourses, RespectMinHoursPerDay
+    StabilizeGroupsCourses, RespectTutorsMinHoursPerDay
+
+from roomreservation.models import RoomReservation
+
+from TTapp.RoomConstraints.RoomConstraint import LocateAllCourses, LimitSimultaneousRoomCourses
 
 from TTapp.FlopConstraint import max_weight
 
@@ -128,7 +132,7 @@ class TTModel(FlopModel):
         self.TT, self.TTinstructors = self.TT_vars_init()
         if self.pre_assign_rooms:
             self.TTrooms = self.TTrooms_init()
-        self.IBD, self.IBD_GTE, self.IBHD, self.GBHD, self.IBS, self.forced_IBD = self.busy_vars_init()
+        self.IBD, self.IBD_GTE, self.IBHD, self.GBD, self.GBHD, self.IBS, self.forced_IBD = self.busy_vars_init()
         if self.pre_assign_rooms:
             if self.department.mode.visio:
                 self.physical_presence, self.has_visio = self.visio_vars_init()
@@ -295,27 +299,39 @@ class TTModel(FlopModel):
                                                                   for d in days_filter(self.wdb.days, week=week)),
                                                          j,
                                                          max_days)
-
+        GBD = {}
         GBHD = {}
         for bg in self.wdb.basic_groups:
             for d in self.wdb.days:
-                # add constraint linking IBD to EDT
+                # add constraint linking GBD to EDT
+                GBD[(bg, d)] = self.add_var()
+                dayslots = slots_filter(self.wdb.courses_slots, day=d)
+                # Linking the variable to the TT
+                card = 2 * len(dayslots)
+                expr = card * GBD[(bg, d)] - self.sum(self.TT[(sl, c)]
+                                                      for sl in dayslots
+                                                      for c in self.wdb.all_courses_for_basic_group[bg] &
+                                                      self.wdb.compatible_courses[sl])
+                self.add_constraint(expr, '>=', 0,
+                                    Constraint(constraint_type=ConstraintType.GBD_INF, groups=bg, days=d))
+                self.add_constraint(expr, '<=', card - 1,
+                                    Constraint(constraint_type=ConstraintType.GBD_SUP, groups=bg, days=d))
+
                 for apm in self.possible_apms:
                     GBHD[(bg, d, apm)] \
                         = self.add_var("GBHD(%s,%s,%s)" % (bg, d, apm))
-                    halfdayslots = slots_filter(self.wdb.courses_slots, day=d, apm=apm)
+                    halfdayslots = slots_filter(dayslots, apm=apm)
                     card = 2 * len(halfdayslots)
-                    expr = self.lin_expr()
-                    expr += card * GBHD[(bg, d, apm)]
-                    for sl in halfdayslots:
-                        for c in self.wdb.all_courses_for_basic_group[bg] & self.wdb.compatible_courses[sl]:
-                            expr -= self.TT[(sl, c)]
+                    expr = card * GBHD[(bg, d, apm)] - self.sum(self.TT[(sl, c)]
+                                                                for sl in halfdayslots
+                                                                for c in self.wdb.all_courses_for_basic_group[bg] &
+                                                                self.wdb.compatible_courses[sl])
                     self.add_constraint(expr, '>=', 0,
                                         Constraint(constraint_type=ConstraintType.GBHD_INF, groups=bg, days=d))
                     self.add_constraint(expr, '<=', card - 1,
                                         Constraint(constraint_type=ConstraintType.GBHD_SUP, groups=bg, days=d))
 
-        return IBD, IBD_GTE, IBHD, GBHD, IBS, forced_IBD
+        return IBD, IBD_GTE, IBHD, GBD, GBHD, IBS, forced_IBD
 
     @timer
     def visio_vars_init(self):
@@ -414,8 +430,8 @@ class TTModel(FlopModel):
             RespectMaxHoursPerDay.objects.create(department=self.department)
 
         # Check if RespectMinHours constraint is in database, and add it if not
-        if not RespectMinHoursPerDay.objects.filter(department=self.department).exists():
-            RespectMinHoursPerDay.objects.create(department=self.department)
+        if not RespectTutorsMinHoursPerDay.objects.filter(department=self.department).exists():
+            RespectTutorsMinHoursPerDay.objects.create(department=self.department)
 
         # Check if MinimizeBusyDays constraint is in database, and add it if not
         if not MinimizeBusyDays.objects.filter(department=self.department).exists():
@@ -475,23 +491,12 @@ class TTModel(FlopModel):
     @timer
     def add_rooms_constraints(self):
         # constraint : each Room is only used once on simultaneous slots
-        for r in self.wdb.basic_rooms:
-            for sl in self.wdb.availability_slots:
-                self.add_constraint(self.sum(self.TTrooms[(sl2, c, rg)]
-                                             for (c, rg) in self.wdb.room_course_compat[r]
-                                             for sl2 in slots_filter(self.wdb.compatible_slots[c], simultaneous_to=sl)
-                                             ),
-                                    '<=', self.avail_room[r][sl],
-                                    Constraint(constraint_type=ConstraintType.CORE_ROOMS,
-                                               rooms=r, slots=sl))
+        if not LimitSimultaneousRoomCourses.objects.filter(department=self.department).exists():
+            LimitSimultaneousRoomCourses.objects.create(department=self.department)
 
-        for sl in self.wdb.courses_slots:
-            # constraint : each course is assigned to a Room
-            for c in self.wdb.compatible_courses[sl]:
-                self.add_constraint(
-                    self.sum(self.TTrooms[(sl, c, r)] for r in self.wdb.course_rg_compat[c]) - self.TT[(sl, c)],
-                    '==', 0,
-                    Constraint(constraint_type=ConstraintType.CORE_ROOMS, slots=sl, courses=c))
+        # each course is located into a room
+        if not LocateAllCourses.objects.filter(department=self.department).exists():
+            LocateAllCourses.objects.create(department=self.department)
 
         for sl in self.wdb.availability_slots:
             # constraint : fixed_courses rooms are not available
@@ -807,6 +812,12 @@ class TTModel(FlopModel):
                         day=sl.day.day,
                         week=sl.day.week,
                         room=room, value=0).exists():
+                    avail_room[room][sl] = 0
+                elif RoomReservation.objects.filter(
+                        start_time__lt=floptime_to_time(sl.start_time + sl.duration),
+                        end_time__gt=floptime_to_time(sl.start_time),
+                        date=flopday_to_date(sl.day),
+                        room=room).exists():
                     avail_room[room][sl] = 0
                 else:
                     avail_room[room][sl] = 1

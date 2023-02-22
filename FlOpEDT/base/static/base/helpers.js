@@ -87,10 +87,14 @@ async function postData(url = '', data = {}) {
             // 'Content-Type': 'application/x-www-form-urlencoded',
         },
         redirect: 'follow', // manual, *follow, error
-        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        referrerPolicy: 'same-origin', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
         body: JSON.stringify(data) // body data type must match "Content-Type" header
     });
-    return response.json(); // parses JSON response into native JavaScript objects
+    let body = await response.json() // parses JSON response into native JavaScript objects
+    if (!(response.ok)) {
+        return Promise.reject(body)
+    }
+    return body;
 }
 
 async function deleteData(url = '', data = {}) {
@@ -103,9 +107,13 @@ async function deleteData(url = '', data = {}) {
             'X-CSRFToken': csrfToken,
         },
         redirect: 'follow',
-        referrerPolicy: 'no-referrer',
+        referrerPolicy: 'same-origin',
     });
-    return response.json();
+    let body = await response.json() // parses JSON response into native JavaScript objects
+    if (!(response.ok)) {
+        return Promise.reject(body)
+    }
+    return body;
 }
 
 async function putData(url = '', data = {}) {
@@ -119,8 +127,25 @@ async function putData(url = '', data = {}) {
             'X-CSRFToken': csrfToken,
         },
         redirect: 'follow',
-        referrerPolicy: 'no-referrer',
+        referrerPolicy: 'same-origin',
         body: JSON.stringify(data),
     });
-    return response.json();
+    let body = await response.json() // parses JSON response into native JavaScript objects
+    if (!(response.ok)) {
+        return Promise.reject(body)
+    }
+    return body;
+}
+
+// Returns the ISO week of the date.
+Date.prototype.getWeek = function() {
+  var date = new Date(this.getTime());
+  date.setHours(0, 0, 0, 0);
+  // Thursday in current week decides the year.
+  date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+  // January 4 is always in week 1.
+  var week1 = new Date(date.getFullYear(), 0, 4);
+  // Adjust to Thursday in week 1 and count number of weeks from date to week1.
+  return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000
+                         - 3 + (week1.getDay() + 6) % 7) / 7);
 }

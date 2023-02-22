@@ -178,27 +178,93 @@ function week_right() {
   ------- ROOMS ------
   --------------------*/
 
+// Filters the candidates and keep only the rooms that, during slot
+//   -     are not used in the current department
+//   -and- are not unavailable (due to room preferences or room bookings)
+//   -and- are not used in another department
+// Returns a list of the selected rooms
+function are_rooms_free(candidates,
+                        slot,
+                        occupied_rooms) {
+  // slot: {'day': day_ref, 'start': min_from_midnight, 'duration': in_min}
+  // candidates: list of room names
+
+  if (typeof slot.id_course === "undefined") {
+    slot.id_course = -2 ;
+  }
+  const free_rooms = [] ;
+
+  if (typeof occupied_rooms === "undefined") {
+    // find rooms where a course take place
+    const concurrent_courses = simultaneous_courses(slot);
+
+    occupied_rooms = [];
+    for (let i = 0; i < concurrent_courses.length; i++) {
+    // for real rooms
+      if (concurrent_courses[i].room != null) {
+      busy_rooms = rooms.roomgroups[concurrent_courses[i].room];
+        for (j = 0; j < busy_rooms.length; j++) {
+          if (occupied_rooms.indexOf(busy_rooms[j]) == -1) {
+            occupied_rooms.push(busy_rooms[j]);
+          }
+        }
+      }
+    }
+  }
+
+  for (let i = 0; i < candidates.length; i++) {
+    cur_roomgroup = candidates[i];
+
+    // is a room in the roomgroup occupied?
+    is_occupied = false;
+    is_available = true;
+    j = 0;
+    while (!is_occupied && is_available
+           && j < rooms.roomgroups[cur_roomgroup].length) {
+      cur_room = rooms.roomgroups[cur_roomgroup][j];
+      is_occupied = (occupied_rooms.indexOf(cur_room) != -1);
+      is_available = (Object.keys(unavailable_rooms).indexOf(cur_room) == -1
+                      || no_overlap(unavailable_rooms[cur_room][slot.day],
+                                    slot.start, slot.duration));
+      j++;
+    }
+
+    if (!is_occupied && is_available) {
+      // other depts
+      if (!Object.keys(extra_pref.rooms).includes(cur_roomgroup)
+          || !Object.keys(extra_pref.rooms[cur_roomgroup]).includes(slot.day)
+          || get_preference(extra_pref.rooms[cur_roomgroup][slot.day],
+                            slot.start, slot.duration) != 0) {
+        free_rooms.push(candidates[i]);
+      }
+    }
+  }
+
+  return free_rooms ;
+}
+
+
 
 // return: true iff a change is needed (i.e. unassigned room or already occupied) (or level>0)
 function select_room_change() {
-  var level = room_cm_level;
+  let level = room_cm_level;
   room_tutor_change.cm_settings = room_cm_settings[level];
 
-  var c = pending.wanted_course;
+  let c = pending.wanted_course;
   room_tutor_change.old_value = c.room;
   room_tutor_change.cur_value = c.room;
 
-  var busy_rooms, cur_roomgroup, cur_room, is_occupied, is_available, proposed_rg, initial_rg;
-  var j, i_unav;
+  let busy_rooms, cur_roomgroup, cur_room, is_occupied, is_available, proposed_rg, initial_rg;
+  let j, i_unav;
+  const occupied_rooms = [];
 
   proposed_rg = [];
 
   if (level < room_cm_settings.length - 1) {
 
     // find rooms where a course take place
-    var concurrent_courses = simultaneous_courses(c);
+    const concurrent_courses = simultaneous_courses(c);
 
-    var occupied_rooms = [];
     for (let i = 0; i < concurrent_courses.length; i++) {
       // for real rooms
       if (concurrent_courses[i].room != null) {
@@ -211,44 +277,13 @@ function select_room_change() {
       }
     }
 
+    initial_rg = rooms.roomtypes[c.room_type];
 
-    if (level == 0) {
-      initial_rg = rooms.roomtypes[c.room_type];
-    } else if (level == 1) {
-      initial_rg = Object.keys(rooms.roomgroups);
-    } else {
-      // should not go here
-      initial_rg = [];
+    if (!is_garbage({ day: c.day, start_time: c.start })) {
+      proposed_rg.push.apply(proposed_rg,
+                             are_rooms_free(initial_rg, c, occupied_rooms)) ;
     }
 
-    for (let i = 0; i < initial_rg.length; i++) {
-      cur_roomgroup = initial_rg[i];
-      if (!is_garbage({ day: c.day, start_time: c.start })) {
-
-        // is a room in the roomgroup occupied?
-        is_occupied = false;
-        is_available = true;
-        j = 0;
-        while (!is_occupied && is_available
-          && j < rooms.roomgroups[cur_roomgroup].length) {
-          cur_room = rooms.roomgroups[cur_roomgroup][j];
-          is_occupied = (occupied_rooms.indexOf(cur_room) != -1);
-          is_available = (Object.keys(unavailable_rooms).indexOf(cur_room) == -1
-            || no_overlap(unavailable_rooms[cur_room][c.day],
-              c.start, c.duration));
-          j++;
-        }
-
-        if (!is_occupied && is_available) {
-          // other depts
-          if (!Object.keys(extra_pref.rooms).includes(cur_roomgroup)
-            || !Object.keys(extra_pref.rooms[cur_roomgroup]).includes(c.day)
-            || get_preference(extra_pref.rooms[cur_roomgroup][c.day], c.start, c.duration) != 0) {
-            proposed_rg.push(initial_rg[i]);
-          }
-        }
-      }
-    }
   } else {
     proposed_rg = Object.keys(rooms.roomgroups);
   }
@@ -277,7 +312,7 @@ function select_room_change() {
   }
 
   update_change_cm_nlin() ;
-  
+
   if (level > 0 || c.room == "" ||
     occupied_rooms.indexOf(c.room) != -1) {
     return true;
@@ -590,6 +625,36 @@ function remove_panel(p, i) {
 function go_select_tutors() {
   create_static_tutor();
   create_pr_buttons();
+}
+
+
+/*--------------------------
+  ------- COURSES ------
+  --------------------------*/
+function select_course_attributes () {
+  room_tutor_change.cm_settings = course_cm_settings;
+  room_tutor_change.proposal = [] ;
+
+  let fake_id = new Date();
+  fake_id = fake_id.getMilliseconds() + "-";
+
+  let c = pending.wanted_course ;
+  let grade_it = {fid: fake_id, content: "Noté"} ;
+  if (c.graded) {
+    grade_it.content = "Non noté" ;
+  }
+
+  room_tutor_change.proposal.push(grade_it) ;
+
+  /* TODO change type of course
+  room_tutor_change.proposal.push({
+    fid: fake_id,
+    content: "Type"
+  }) ;
+  */
+
+  update_change_cm_nlin() ;
+
 }
 
 
@@ -939,6 +1004,7 @@ function compute_changes(changes, conc_tutors, gps) {
         id: id,
         day: cur_course.day,
         start: cur_course.start,
+        graded: cur_course.graded,
         room: cur_course.room,
         tutor: null, 
         id_visio: cur_course.id_visio
@@ -1968,6 +2034,7 @@ function add_bouge(pending) {
       id: pending.init_course.id_course,
       day: pending.init_course.day,
       start: pending.init_course.start,
+      graded: pending.init_course.graded,
       room: pending.init_course.room,
       tutors: pending.init_course.tutors.slice(),
       id_visio: pending.init_course.id_visio
@@ -1976,6 +2043,7 @@ function add_bouge(pending) {
       if (c.id_course == pending.wanted_course.id_course) {
         c.day = pending.wanted_course.day ;
         c.start = pending.wanted_course.start ;
+        c.graded = pending.wanted_course.graded ;
         c.room = pending.wanted_course.room ;
         c.tutors = pending.wanted_course.tutors.slice() ;
         id_visio = pending.wanted_course.id_visio ;
@@ -1988,6 +2056,7 @@ function add_bouge(pending) {
 function has_changed(cb, c) {
   let except_tutors = cb.day != c.day
     || cb.start != c.start
+    || cb.graded != c.graded
     || cb.room != c.room
     || cb.id_visio != c.id_visio;
   if (except_tutors) {
@@ -2133,7 +2202,8 @@ function show_detailed_courses(cours) {
       'url': modinfo.url
     },
     room_info,
-    {'txt': cours.comment},
+    {'txt': (cours.number?cours.c_type +' n°' + cours.number + " ":"")
+     + (cours.comment?cours.comment:"")},
     {'txt': tutinfo.name},
     {
       'txt': tutinfo.mail,

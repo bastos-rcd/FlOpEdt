@@ -87,3 +87,16 @@ class ScheduledCoursePaySerializer(serializers.Serializer):
     type_cours = serializers.CharField()
     formation_reguliere = serializers.FloatField()
     formation_continue = serializers.FloatField()
+
+
+class DailyVolumeSerializer(serializers.Serializer):
+    month = serializers.CharField()
+    date = serializers.DateField()
+    other = serializers.FloatField()
+    td = serializers.FloatField()
+    tp = serializers.FloatField()
+
+
+class RoomDailyVolumeSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    volume = serializers.FloatField()

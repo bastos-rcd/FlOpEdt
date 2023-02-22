@@ -499,7 +499,18 @@ class WeeksDatabase(object):
                 possible_tutors[m] = set(ModulePossibleTutors.objects.get(module=m).possible_tutors.all())
             else:
                 possible_tutors[m] = self.instructors
-        for c in self.courses:
+
+        no_tutor_courses = set()
+        pre_assign_only_constraints = AssignAllCourses.objects.filter(department=self.department,
+                                                                      pre_assigned_only=True)
+        if pre_assign_only_constraints.exists():
+            for constraint in pre_assign_only_constraints:
+                no_tutor_courses |= constraint.no_tutor_courses(self.courses)
+
+        for c in no_tutor_courses:
+            possible_tutors[c] = set()
+
+        for c in set(self.courses) - no_tutor_courses:
             if c.tutor is not None:
                 possible_tutors[c] = {c.tutor}
             else:

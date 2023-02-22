@@ -56,7 +56,7 @@ class MinTutorsHalfDays(TTConstraint):
         verbose_name = _('Minimize busy half days for tutors')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=5):
 
         helper = MinHalfDaysHelperTutor(ttmodel, self, week, ponderation)
         for tutor in considered_tutors(self, ttmodel):
@@ -113,7 +113,7 @@ class MinNonPreferedTutorsSlot(TTConstraint):
                     slot_vars_sum = ttmodel.sum(ttmodel.TTinstructors[(sl2, c, tutor)]
                                                 for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
                                                                         simultaneous_to=sl))
-                    cost = (float(self.weight) / max_weight) \
+                    cost = self.local_weight() \
                         * ponderation * slot_vars_sum \
                         * ttmodel.unp_slot_cost[tutor][sl]
                     ttmodel.add_to_inst_cost(tutor, cost, week=week)
@@ -249,14 +249,14 @@ class RespectMaxHoursPerDay(TTConstraint):
         return "Respect max hours per day"
 
 
-class RespectMinHoursPerDay(TTConstraint):
+class RespectTutorsMinHoursPerDay(TTConstraint):
     """
     Respect the min_hours_per_day declared
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
 
     class Meta:
-        verbose_name = _('Respect min hours per day bounds')
+        verbose_name = _('Respect tutors min hours per day bounds')
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
@@ -302,7 +302,7 @@ class RespectMinHoursPerDay(TTConstraint):
         """
         You can give a contextual explanation about what this constraint doesnt
         """
-        return "Respect min hours per day"
+        return "Respect tutors min hours per day"
 
 
 class LowerBoundBusyDays(TTConstraint):

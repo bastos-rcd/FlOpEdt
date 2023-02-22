@@ -76,7 +76,7 @@ class Group_SC_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.GenericGroup
-        fields = ['id', 'name', 'train_prog','is_structural']
+        fields = ['id', 'name', 'train_prog', 'is_structural']
 
 
 class Course_SC_Serializer(serializers.Serializer):
@@ -92,17 +92,16 @@ class Course_SC_Serializer(serializers.Serializer):
     is_graded = serializers.BooleanField()
 
     def get_week(self, obj):
-        if(obj.week is not None):
+        if (obj.week is not None):
             return (obj.week.nb)
         else:
             return
 
     def get_year(self, obj):
-        if(obj.week is not None):
+        if (obj.week is not None):
             return (obj.week.year)
         else:
             return
-
 
     class Meta:
         model = bm.Course
@@ -110,21 +109,27 @@ class Course_SC_Serializer(serializers.Serializer):
                   'is_graded', 'supp_tutor', 'pay_module']
 
 
+class IDRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.Room
+        fields = ['id', 'name']
+
+
 class ScheduledCoursesSerializer(serializers.Serializer):
     # Spécification des champs voulus
     id = serializers.IntegerField()
-    room = serializers.CharField(allow_null=True)
+    room = IDRoomSerializer(allow_null=True)
     start_time = serializers.IntegerField()
     day = serializers.CharField()
     course = Course_SC_Serializer()
     tutor = serializers.CharField(source='tutor.username', allow_null=True)
     id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
+    number = serializers.IntegerField()
 
     # Mise en forme des données
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['id', 'tutor', 'room', 'start_time', 'day', 'course', 'id_visio']
-
+        fields = ['id', 'tutor', 'room', 'start_time', 'day', 'course', 'id_visio', 'number']
 
 
 class ModuleCosmo_SC_Serializer(serializers.Serializer):
@@ -134,6 +139,7 @@ class ModuleCosmo_SC_Serializer(serializers.Serializer):
     class Meta:
         model = bm.Module
         fields = ['name', 'abbrev']
+
 
 class CourseCosmo_SC_Serializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -145,22 +151,21 @@ class CourseCosmo_SC_Serializer(serializers.Serializer):
     module = Module_SC_Serializer()
 
     def get_week(self, obj):
-        if(obj.week is not None):
+        if (obj.week is not None):
             return (obj.week.nb)
         else:
             return
 
     def get_year(self, obj):
-        if(obj.week is not None):
+        if (obj.week is not None):
             return (obj.week.year)
         else:
             return
 
-
     class Meta:
         model = bm.Course
         fields = ['id', 'type', 'room_type', 'week', 'year', 'module', 'groups', ]
-        
+
 
 class TutorDisplay_SC_Serializer(serializers.Serializer):
     color_bg = serializers.CharField()
@@ -170,6 +175,7 @@ class TutorDisplay_SC_Serializer(serializers.Serializer):
         model = dwm.TutorDisplay
         fields = ['color_bg', 'color_txt']
 
+
 class TutorCosmoSerializer(serializers.Serializer):
     username = serializers.CharField()
     display = TutorDisplay_SC_Serializer()
@@ -177,6 +183,7 @@ class TutorCosmoSerializer(serializers.Serializer):
     class Meta:
         model = pm.Tutor
         fields = ['username', 'display']
+
 
 class ScheduledCoursesCosmoSerializer(serializers.Serializer):
     # Spécification des champs voulus
@@ -191,6 +198,7 @@ class ScheduledCoursesCosmoSerializer(serializers.Serializer):
     class Meta:
         model = bm.ScheduledCourse
         fields = ['id', 'tutor', 'room', 'start_time', 'day', 'course']
+
 
 #                             -------------------------------                           #
 #                             ----UnscheduledCourses (PP)----                           #
@@ -211,10 +219,10 @@ class Group_PP_Serializer(serializers.Serializer):
     name = serializers.CharField()
     train_prog = serializers.CharField()
     is_structural = serializers.BooleanField()
-    
+
     class Meta:
         model = bm.GenericGroup
-        fields = ['id', 'name', 'train_prog','is_structural']
+        fields = ['id', 'name', 'train_prog', 'is_structural']
 
 
 class ModuleCours_PP_Serializer(serializers.Serializer):
@@ -224,6 +232,7 @@ class ModuleCours_PP_Serializer(serializers.Serializer):
     class Meta:
         model = bm.Module
         fields = ['abbrev', 'display']
+
 
 class CourseType_PP_Serializer(serializers.Serializer):
     name = serializers.CharField()
@@ -243,7 +252,7 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
     type = CourseType_PP_Serializer()
     is_graded = serializers.BooleanField()
     supp_tutor = Tutor_Serializer(many=True)
-    
+
     class Meta:
         model = bm.Course
         fields = ['id', 'tutor', 'room_type', 'module', 'groups', 'is_graded', 'supp_tutor']
@@ -252,7 +261,6 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
 #                                ---------------------------                            #
 #                                ----Availabilities (Av)----                            #
 #                                ---------------------------                            #
-
 
 
 class AvailabilitiesSerializer(serializers.Serializer):
@@ -345,13 +353,13 @@ class AllVersionsSerializer(serializers.ModelSerializer):
     department = DepartmentAbbrevSerializer()
 
     def get_week(self, obj):
-        if(obj.week is not None):
+        if (obj.week is not None):
             return (obj.week.nb)
         else:
             return
 
     def get_year(self, obj):
-        if(obj.week is not None):
+        if (obj.week is not None):
             return (obj.week.year)
         else:
             return
@@ -394,17 +402,16 @@ class Course_TC_Serializer(serializers.Serializer):
     module = Module_SC_Serializer()
 
     def get_week(self, obj):
-        if(obj.week is not None):
+        if (obj.week is not None):
             return (obj.week.nb)
         else:
             return
 
     def get_year(self, obj):
-        if(obj.week is not None):
+        if (obj.week is not None):
             return (obj.week.year)
         else:
             return
-
 
     class Meta:
         model = bm.Course
@@ -422,9 +429,6 @@ class TutorCourses_Serializer(serializers.Serializer):
         fields = ['room', 'start_time', 'course']
 
 
-
-
-
 #                           -------------------------------------                       #
 #                           ----Extra Scheduled Courses (ESC)----                       #
 #                           -------------------------------------                       #
@@ -439,23 +443,15 @@ class CourseType_ESC_Serializer(serializers.Serializer):
         fields = ['duration', 'department']
 
 
-class Course_ESC_Serializer(serializers.Serializer):
-    tutor = serializers.CharField()
-    type = CourseType_ESC_Serializer()
-
-    class Meta:
-        model = bm.Course
-        fields = ['tutor', 'type']
-
-
 class ExtraScheduledCoursesSerializer(serializers.Serializer):
     day = serializers.CharField()
     start_time = serializers.IntegerField()
-    course = Course_ESC_Serializer()
+    tutor = serializers.CharField(source='tutor.username', allow_null=True)
+    duration = serializers.IntegerField(source='course.type.duration')
 
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['day', 'start_time', 'course']
+        fields = ['day', 'start_time', 'tutor', 'duration']
 
 
 #                                  --------------------                                 #
@@ -536,12 +532,6 @@ class IDGroupSerializer(serializers.ModelSerializer):
 class IDGroupTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.GroupType
-        fields = ['id', 'name'] 
-
-
-class IDRoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = bm.Room
         fields = ['id', 'name']
 
 

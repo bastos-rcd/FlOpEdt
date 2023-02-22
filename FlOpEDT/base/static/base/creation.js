@@ -1151,6 +1151,9 @@ function warning_check(check_tot) {
     } else if (check.nok == 'room_busy_other_dept') {
       expand = "La salle " + check.more.room
         + " est utilisée par un autre département.";
+    } else if (check.nok == 'room_booked_other_dept') {
+      expand = "La salle " + check.more.room
+        + " a été réservée.";
     } else if (check.nok == 'group_lunch') {
       expand = "Le groupe " + check.more.group
         + " de " + set_promos[check.more.promo]
@@ -1550,6 +1553,23 @@ function check_shared_rooms(issues, possible_conflicts) {
   if (extra_unavailable == 0) {
     issues.push({
       nok: 'room_busy_other_dept',
+      more: { room: wanted_course.room }
+    });
+  }
+
+  extra_unavailable = find_in_pref(
+    unavailable_rooms,
+    wanted_course.room,
+    wanted_course);
+
+  if (extra_unavailable == 0) {
+    // TOBEFIXED
+    // decorrelate booking and preferences
+    // in unavailavble_rooms, there is both:
+    //   - RoomPreference 
+    //   - RoomReservation
+    issues.push({
+      nok: 'room_booked_other_dept',
       more: { room: wanted_course.room }
     });
   }
@@ -2093,8 +2113,8 @@ function fetch_lunch_constraints() {
 
 function translate_group_lunch_constraints(d) {
   let ret = {
-    start: +d.start_time,
-    end: +d.end_time,
+    start: +d.start_lunch_time,
+    end: +d.end_lunch_time,
     min_length: +d.lunch_length,
     groups: []
   };
@@ -2203,6 +2223,7 @@ function select_entry_cm() {
   room_tutor_change.cm_settings = entry_cm_settings;
   var fake_id = new Date();
   fake_id = fake_id.getMilliseconds() + "-" + pending.wanted_course.id_course;
+
   room_tutor_change.proposal = [
     {
       fid: fake_id,
@@ -2211,12 +2232,18 @@ function select_entry_cm() {
     {
       fid: fake_id,
       content: "Salle"
-    },
-    {
+    }] ;
+  if (department_settings.mode.visio) {
+    room_tutor_change.proposal.push({
       fid: fake_id,
       content: "Visio"
-    },
-  ];
+    }) ;
+  }
+  room_tutor_change.proposal.push({
+    fid: fake_id,
+    content: "Autre"
+  }) ;
+
   update_change_cm_nlin() ;
 }
 
@@ -2237,9 +2264,13 @@ function def_cm_change() {
       // don't consider other constraints than tutor's
       pending.pass.room = true;
       select_tutor_module_change();
-    } else {
+    } else if (d.content == 'Visio') {
       pending.pass.tutor = true ;
       select_pref_links_change();
+    } else {
+      pending.pass.tutor = true ;
+      pending.pass.room = true ;
+      select_course_attributes() ;
     }
     go_cm_room_tutor_change();
   };
@@ -2286,7 +2317,7 @@ function def_cm_change() {
     go_cm_room_tutor_change();
   };
 
-  for (var level = 0; level < room_cm_settings.length; level++) {
+  for (let level = 0; level < room_cm_settings.length; level++) {
     room_cm_settings[level].click = function (d) {
       context_menu.room_tutor_hold = true;
       if (d.content == '+') {
@@ -2310,6 +2341,24 @@ function def_cm_change() {
     go_cm_room_tutor_change();
   };
 
+  course_cm_settings.click = function (d) {
+    context_menu.room_tutor_hold = true;
+    let c = pending.wanted_course ;
+    if (d.content == "Non noté") {
+      c.graded = false ;
+      check_pending_course() ;
+    } else if (d.content == "Noté") {
+      c.graded = true ;
+      check_pending_course() ;
+    } else if (d.content == "Type") {
+      
+    }
+    room_tutor_change.proposal = [] ;
+    update_change_cm_nlin() ;
+
+    go_cm_room_tutor_change() ;
+    //go_courses();
+  }
 }
 
 

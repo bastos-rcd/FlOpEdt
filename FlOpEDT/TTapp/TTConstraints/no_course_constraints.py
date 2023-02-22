@@ -42,20 +42,20 @@ class NoCourseOnDay(TTConstraint):
     FULL_DAY = 'fd'
     AM = 'AM'
     PM = 'PM'
-    PERIOD_CHOICES = ((FULL_DAY, 'Full day'), (AM, 'AM'), (PM, 'PM'))
-    period = models.CharField(max_length=2, choices=PERIOD_CHOICES)
+    PERIOD_CHOICES = ((FULL_DAY, _('Full day')), (AM, _('AM')), (PM, _('PM')))
+    fampm_period = models.CharField(max_length=2, choices=PERIOD_CHOICES, verbose_name=_("fampm_period"))
     weekday = models.CharField(max_length=2, choices=Day.CHOICES)
 
     class Meta:
         abstract = True
 
     def considered_slots(self, ttmodel, week):
-        if self.period == self.FULL_DAY:
+        if self.fampm_period == self.FULL_DAY:
             considered_slots = slots_filter(ttmodel.wdb.courses_slots,
                                             week_day=self.weekday, week=week)
         else:
             considered_slots = slots_filter(ttmodel.wdb.courses_slots,
-                                            week_day=self.weekday, apm=self.period, week=week)
+                                            week_day=self.weekday, apm=self.fampm_period, week=week)
         return considered_slots
 
     def considered_sum(self, ttmodel, week):
@@ -80,8 +80,8 @@ class NoGroupCourseOnDay(NoCourseOnDay):
 
     def one_line_description(self):
         text = f"Aucun cours le {self.weekday}"
-        if self.period != self.FULL_DAY:
-            text += f" ({self.period})"
+        if self.fampm_period != self.FULL_DAY:
+            text += f" ({self.fampm_period})"
         if self.groups.exists():
             text += ' pour les groupes ' + ', '.join([group.name for group in self.groups.all()])
         if self.train_progs.exists():
@@ -97,17 +97,17 @@ class NoGroupCourseOnDay(NoCourseOnDay):
                     }
             if forbidden:
                 data["forbidden"] = True
-            if self.period == self.FULL_DAY:
+            if self.fampm_period == self.FULL_DAY:
                 data["no_course_tutor"]["period"] = {self.FULL_DAY}
                 return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                     flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                         data)
-            elif self.period == self.AM:
+            elif self.fampm_period == self.AM:
                 data["no_course_tutor"]["period"] = {self.AM}
                 return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                         flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
                         data)
-            elif self.period == self.PM:
+            elif self.fampm_period == self.PM:
                 data["no_course_tutor"]["period"] = {self.PM}
                 return (TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
                                         flopdate_to_datetime(day_break, time_settings.day_finish_time)),
@@ -135,14 +135,14 @@ class NoGroupCourseOnDay(NoCourseOnDay):
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
 
-            if self.period == self.FULL_DAY:
+            if self.fampm_period == self.FULL_DAY:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                     "forbidden",
                     {"value": 0, "forbidden": True, "group": group.name}
                 )
-            elif self.period == self.AM:
+            elif self.fampm_period == self.AM:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
@@ -150,7 +150,7 @@ class NoGroupCourseOnDay(NoCourseOnDay):
                     {"value": 0, "forbidden": True, "group": group.name}
                 )
 
-            elif self.period == self.PM:
+            elif self.fampm_period == self.PM:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
                                         flopdate_to_datetime(day_break, time_settings.day_finish_time)),
@@ -193,8 +193,8 @@ class NoGroupCourseTypeOnDay(NoCourseOnDay):
 
     def one_line_description(self):
         text = f"Aucun cours le {self.weekday}"
-        if self.period != self.FULL_DAY:
-            text += f" ({self.period})"
+        if self.fampm_period != self.FULL_DAY:
+            text += f" ({self.fampm_period})"
         if self.course_types.exists():
             text += f" pour les cours de type" + ', '.join([t.name for t in self.course_types.all()])
         if self.groups.exists():
@@ -238,8 +238,8 @@ class NoTutorCourseOnDay(NoCourseOnDay):
 
     def one_line_description(self):
         text = f"Aucun cours le {self.weekday}"
-        if self.period != self.FULL_DAY:
-            text += f" ({self.period})"
+        if self.fampm_period != self.FULL_DAY:
+            text += f" ({self.fampm_period})"
         if self.tutors.exists():
             text += ' pour ' + ', '.join([tutor.username for tutor in self.tutors.all()])
         if self.tutor_status is not None:
@@ -257,21 +257,23 @@ class NoTutorCourseOnDay(NoCourseOnDay):
                     }
             if forbidden:
                 data["forbidden"] = True
-            if self.period == self.FULL_DAY:
+            if self.fampm_period == self.FULL_DAY:
                 data["no_course_tutor"]["period"] = {self.FULL_DAY}
                 return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                    flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                                     flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                         data)
-            elif self.period == self.AM:
+            elif self.fampm_period == self.AM:
                 data["no_course_tutor"]["period"] = {self.AM}
                 return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                    flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
-                    data)
-            elif self.period == self.PM:
+                                     flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                        data)
+            elif self.fampm_period == self.PM:
                 data["no_course_tutor"]["period"] = {self.PM}
-                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
-                                    flopdate_to_datetime(day_break, time_settings.day_finish_time)),data)
+                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                     flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                        data)
         return None
+
 
     @staticmethod
     def tutor_and_supp(interval, required_supps, possible_tutors):
@@ -326,14 +328,14 @@ class NoTutorCourseOnDay(NoCourseOnDay):
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
 
-            if self.period == self.FULL_DAY:
+            if self.fampm_period == self.FULL_DAY:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.day_finish_time)),
                     "forbidden",
                     {"value": 0, "forbidden": True, "tutor": tutor.username}
                 )
-            elif self.period == self.AM:
+            elif self.fampm_period == self.AM:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
                                  flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
@@ -341,7 +343,7 @@ class NoTutorCourseOnDay(NoCourseOnDay):
                     {"value": 0, "forbidden": True, "tutor": tutor.username}
                 )
 
-            elif self.period == self.PM:
+            elif self.fampm_period == self.PM:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
                                         flopdate_to_datetime(day_break, time_settings.day_finish_time)),

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %} {% trans "Room reservation" %} {% endblock %}
+{% load static %}
+{% block content %}
+    {{ json_data|json_script:"json_data" }}
+    <div class="container-fluid">
+        <div id="roomreservation-app">
+
+        </div>
+    </div>
+{% endblock %}
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'vue/dist/js/chunk-vendors.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vue/dist/js/app.js' %}"></script>
+    <link href="{% static 'vue/dist/css/app.css' %}" rel=stylesheet>
+{% endblock %}

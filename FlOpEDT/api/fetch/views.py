@@ -39,12 +39,13 @@ import base.models as bm
 from base import queries, weeks
 import people.models as pm
 import displayweb.models as dwm
+import roomreservation.models as rrm
 
 from api.fetch import serializers
 from api.shared.params import dept_param, week_param, year_param, user_param, \
     work_copy_param, group_param, train_prog_param, lineage_param, tutor_param
 from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
-
+from base.timing import flopday_to_date, Day, days_list, time_to_floptime
 
 class ScheduledCourseFilterSet(filters.FilterSet):
     # makes the fields required
@@ -380,7 +381,9 @@ class TutorCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
 @method_decorator(name='list',
                   decorator=swagger_auto_schema(
-                      manual_parameters=[week_param(), year_param(), user_param(required=True),
+                      manual_parameters=[week_param(required=True),
+                                         year_param(required=True),
+                                         user_param(required=True),
                                          dept_param(required=True)])
                   )
 class ExtraSchedCoursesViewSet(viewsets.ReadOnlyModelViewSet):
@@ -395,31 +398,23 @@ class ExtraSchedCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsTutorOrReadOnly]
 
     def get_queryset(self):
-        qs_esc = bm.ScheduledCourse.objects.all()
         # Getting all the filters
-        user = self.request.query_params.get('username', None)
+        user = self.request.query_params.get('user', None)
         dept = self.request.query_params.get('dept', None)
         week = self.request.query_params.get('week', None)
         year = self.request.query_params.get('year', None)
 
-        # Filtering
-        if user is None:
-            return None
-        if dept is None:
-            return None
-
-        if week is not None:
-            qs_esc = qs_esc.filter(course__week__nb=week)
-        if year is not None:
-            qs_esc = qs_esc.filter(course__week__year=year)
-
-        # Getting all the needed data
-
-        return qs_esc.filter(course__tutor__username=user)\
-                     .exclude(course__module__train_prog__department__abbrev=dept)\
-                     .select_related('course__tutor',
-                                     'course__type__department',
-                                     'course__module__train_prog__department')
+        return (
+            bm.ScheduledCourse.objects\
+            .filter(tutor__username=user,
+                    course__week__nb=week,
+                    course__week__year=year,
+                    work_copy=0)\
+            .exclude(course__module__train_prog__department__abbrev=dept)\
+            .select_related('course__week',
+                            'tutor',
+                            'course__type__department',
+                            'course__module__train_prog__department'))
 
 
 class BKNewsFilterSet(filters.FilterSet):
@@ -482,16 +477,30 @@ class UnavailableRoomViewSet(viewsets.ViewSet):
         # if cached is not None:
         #     return cached
 
-        dataset = bm.RoomPreference.objects.filter(room__departments__abbrev=department,
-                                                   week__nb=week,
-                                                   week__year=year,
-                                                   value=0)
+        dataset_room_preference = bm.RoomPreference.objects.filter(room__departments__abbrev=department,
+                                                                   week__nb=week,
+                                                                   week__year=year,
+                                                                   value=0)
+        flop_week = bm.Week.objects.get(nb=week, year=year)
+        date_of_the_week = [flopday_to_date(Day(week=flop_week, day=d)) for d in days_list]
+        dataset_room_reservations = rrm.RoomReservation.objects.filter(room__departments__abbrev=department,
+                                                                       date__in=date_of_the_week)
 
         # cache.set(cache_key, response)7
-        res = [{"room": d.room.name, "day": d.day, "start_time": d.start_time, "duration": d.duration, "value": d.value}
-               for d in dataset]
+        res_pref = [{"room": d.room.name,
+                     "day": d.day,
+                     "start_time": d.start_time,
+                     "duration": d.duration,
+                     "value": d.value}
+                    for d in dataset_room_preference]
+        res_reservations = [{"room": d.room.name,
+                             "day": days_list[d.date.isocalendar()[2]-1],
+                             "start_time": time_to_floptime(d.start_time),
+                             "duration": d.duration,
+                             "value": 0}
+                            for d in dataset_room_reservations]
 
-        return Response(res)
+        return Response(res_pref + res_reservations)
 
 
 @method_decorator(name='list',
@@ -522,7 +531,7 @@ class ConstraintsQueriesViewSet(viewsets.ViewSet):
                       manual_parameters=[
                           week_param(required=True),
                           year_param(required=True),
-                          dept_param(required=True)
+                          dept_param()
                       ]
                   ),
                   )
@@ -532,13 +541,12 @@ class WeekDaysViewSet(viewsets.ViewSet):
     def list(self, req):
         week = int(req.query_params.get('week'))
         year = int(req.query_params.get('year'))
-        try:
-            department = bm.Department.objects.get(
-                abbrev=req.query_params.get('dept', None)
-            )
-        except bm.Department.DoesNotExist:
-            raise exceptions.NotFound(detail='Department not found')
-
+        department = req.query_params.get('dept', None)
+        if department is not None:
+            try:
+                department = bm.Department.objects.get(abbrev=department)
+            except bm.Department.DoesNotExist:
+                raise exceptions.NotFound(detail='Department not found')
         data = weeks.num_all_days(year, week, department)
         return JsonResponse(data, safe=False)
 

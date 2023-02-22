@@ -37,6 +37,7 @@ from TTapp.ilp_constraints.constraints.instructorConstraint import InstructorCon
 from TTapp.ilp_constraints.constraints.slotInstructorConstraint import SlotInstructorConstraint
 from TTapp.ilp_constraints.constraints.simulSlotGroupConstraint import SimulSlotGroupConstraint
 from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
+from TTapp.ilp_constraints.constraint import Constraint
 from django.utils.translation import gettext_lazy as _
 from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups, pre_analysis_considered_basic_groups
@@ -262,7 +263,7 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name = _('Schedule once all considered courses')
         verbose_name_plural = verbose_name
                                 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, week, ponderation=100):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(c for bg in relevant_basic_groups
                                  for c in ttmodel.wdb.all_courses_for_basic_group[bg])
@@ -281,7 +282,7 @@ class ScheduleAllCourses(TTConstraint):
                                        CourseConstraint(c))
             else:
                 not_scheduled = ttmodel.add_floor(relevant_sum, 1, max_slots_nb)
-                ttmodel.add_to_generic_cost((1-not_scheduled) * self.local_weight() * ponderation, week)
+                ttmodel.add_to_generic_cost((ttmodel.one_var - not_scheduled) * self.local_weight() * ponderation, week)
 
     def one_line_description(self):
         text = f"Planifie tous les cours "
@@ -316,11 +317,23 @@ class AssignAllCourses(TTConstraint):
         verbose_name = _('Each course is assigned to one tutor (max)')
         verbose_name_plural = verbose_name
 
+    def no_tutor_courses(self, courses):
+        result_courses = courses
+        relevant_basic_groups = considered_basic_groups(self)
+        result_courses = set(c for bg in relevant_basic_groups
+                             for c in result_courses if bg.and_ancestors() & set(c.groups.all()))
+        if self.modules.exists():
+            result_courses = set(c for c in result_courses if c.module in self.modules.all())
+        if self.course_types.exists():
+            result_courses = set(c for c in result_courses if c.type in self.course_types.all())
+        return result_courses
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=100):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(c for bg in relevant_basic_groups
                                  for c in ttmodel.wdb.all_courses_for_basic_group[bg])
         if self.pre_assigned_only:
+            no_tutor_courses = set(c for c in considered_courses if c.tutor is None)
             considered_courses = set(c for c in considered_courses if c.tutor is not None)
         if self.modules.exists():
             considered_courses = set(c for c in considered_courses if c.module in self.modules.all())
@@ -343,6 +356,16 @@ class AssignAllCourses(TTConstraint):
                                                slot=sl, course=c))
                     assigned = ttmodel.add_floor(relevant_sum, 0, 1000)
                     ttmodel.add_to_generic_cost((1-assigned) * self.local_weight() * ponderation, week)
+        if self.pre_assigned_only:
+            possible_useless_assignations_sum = \
+                ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
+                            for c in no_tutor_courses
+                            for sl in ttmodel.wdb.compatible_slots[c]
+                            for i in ttmodel.wdb.possible_tutors[c])
+            ttmodel.add_constraint(possible_useless_assignations_sum,
+                                   '==',
+                                   0,
+                                   Constraint(constraint_type=ConstraintType.PRE_ASSIGNED_TUTORS_ONLY))
 
     def one_line_description(self):
         text = f"Assigne tous les cours "

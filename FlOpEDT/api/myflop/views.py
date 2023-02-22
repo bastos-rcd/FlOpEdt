@@ -29,17 +29,18 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 from django.utils.decorators import method_decorator
-from django.db.models import Count, F, Sum, Q
+from django.db.models import Count, F, Sum, Q, Case, When
 
 from people.models import Tutor
-from base.models import ScheduledCourse, Department, TrainingProgramme, Week
+from base.models import ScheduledCourse, Department, TrainingProgramme, Week, Room
 
 from api.permissions import IsTutorOrReadOnly
 from api.shared.params import dept_param
-from api.myflop.serializers import VolumeAgrege, ScheduledCoursePaySerializer
+from api.myflop.serializers import VolumeAgrege, ScheduledCoursePaySerializer, DailyVolumeSerializer, \
+    RoomDailyVolumeSerializer
 
 import datetime
-from base.timing import days_list
+from base.timing import days_list, flopday_to_date, Day
 
 
 @method_decorator(name='list',
@@ -150,8 +151,8 @@ class PayViewSet(viewsets.ViewSet):
                 supp_filters['train_prog'] = train_prog
             except TrainingProgramme.DoesNotExist:
                 raise APIException(detail='Unknown training programme')
-        
-        
+
+
         # clean status
         status_dict = {
             'p': [Tutor.FULL_STAFF],
@@ -170,18 +171,25 @@ class PayViewSet(viewsets.ViewSet):
                 .filter(Q_filter_week,
                         course__module__train_prog__department=dept,
                         work_copy=0,
-                        course__tutor__status__in=status_set,
+                        tutor__status__in=status_set,
                         **supp_filters)\
                 .annotate(
                     department=F('course__type__department__abbrev'),
                     course_type_id=F('course__type__id'),
-                    module_id=F('course__module__id'),
-                    module_ppn=F('course__module__ppn'),
+                    # if pay_module is not null, consider it, else consider module
+                    module_id=Case(
+                        When(course__pay_module__isnull=False, then=F('course__pay_module__id')),
+                        When(course__pay_module__isnull=True, then=F('course__module__id'))),
+                    module_ppn=Case(
+                        When(course__pay_module__isnull=False, then=F('course__pay_module__ppn')),
+                        When(course__pay_module__isnull=True, then=F('course__module__ppn'))),
+                    nom_matiere=Case(
+                        When(course__pay_module__isnull=False, then=F('course__pay_module__name')),
+                        When(course__pay_module__isnull=True, then=F('course__module__name'))),
                     train_prog_abbrev=F('course__groups__train_prog__abbrev'),
                     group_name=F('course__groups__name'),
                     type_cours=F('course__type__name'),
                     type_id=F('course__type__id'),
-                    nom_matiere=F('course__module__name'),
                     abbrev_intervenant=F('tutor__username'),
                     prenom_intervenant=F('tutor__first_name'),
                     nom_intervenant=F('tutor__last_name'))\
@@ -209,6 +217,7 @@ class PayViewSet(viewsets.ViewSet):
         agg_list = []
 
         if volumes.exists():
+            print(volumes[0])
             agg_list.append(VolumeAgrege(volumes[0]))
             agg_list[0].formation_reguliere = 0
             agg_list[0].formation_continue = 0
@@ -224,14 +233,199 @@ class PayViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-def scheduled_courses_of_the_month(department, year, month):
-    start_month = datetime.datetime(year, month, 1)
-    start_year, start_week_nb, start_day = start_month.isocalendar()
-    if month < 12:
-        end_month = datetime.datetime(year, month+1, 1) - datetime.timedelta(1)
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False),
+                          openapi.Parameter('from_month',
+                                            openapi.IN_QUERY,
+                                            description="from_month",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=False),
+                          openapi.Parameter('to_month',
+                                            openapi.IN_QUERY,
+                                            description="to_month",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=False),
+                          openapi.Parameter('year',
+                                            openapi.IN_QUERY,
+                                            description="year",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=True),
+                          openapi.Parameter('tutor',
+                                            openapi.IN_QUERY,
+                                            description="tutor username",
+                                            type=openapi.TYPE_STRING,
+                                            required=True),
+                      ])
+                  )
+class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
+    """
+    Volume de cours par jour pour un intervenant
+    """
+    permission_classes = [IsTutorOrReadOnly]
+
+    def list(self, request):
+        param_exception = NotAcceptable(
+            detail=f"Les champs annee et prof sont requis"
+        )
+        wanted_param = ['year', 'tutor']
+
+        # check that all parameters are given
+        for param in wanted_param:
+            if param not in request.GET:
+                raise param_exception
+
+        dept = self.request.query_params.get('dept', None)
+        if dept is not None:
+            try:
+                dept = Department.objects.get(abbrev=dept)
+            except Department.DoesNotExist:
+                raise APIException(detail='Unknown department')
+
+        tutor = self.request.query_params.get('tutor', None)
+        if tutor is not None:
+            try:
+                tutor = Tutor.objects.get(username=tutor)
+            except Tutor.DoesNotExist:
+                raise APIException(detail='Unknown tutor')
+
+        year = int(self.request.query_params.get('year'))
+        from_month = int(self.request.query_params.get('from_month', 1))
+        to_month = int(self.request.query_params.get('to_month', 12))
+
+        day_volumes_list = []
+
+        sched_courses = scheduled_courses_of_the_month(year=year, from_month=from_month, to_month=to_month,
+                                                       department=dept, tutor=tutor)
+        for dayschedcourse in sched_courses.distinct("course__week", "day"):
+            week = dayschedcourse.course.week
+            week_day = dayschedcourse.day
+            day_scheduled_courses = sched_courses.filter(course__week=week, day=week_day)
+            tds = day_scheduled_courses.filter(course__type__name='TD')
+            tps = day_scheduled_courses.filter(course__type__name='TP')
+            other = day_scheduled_courses.exclude(course__type__name__in=['TD', "TP"])
+
+            other = sum(sc.pay_duration for sc in other)/60
+            td = sum(sc.pay_duration for sc in tds)/60
+            tp = sum(sc.pay_duration for sc in tps)/60
+
+            date = flopday_to_date(Day(week=week, day=week_day))
+
+            day_volume = {
+                "month": date.month,
+                "date": date.isoformat(),
+                "other": other,
+                "td": td,
+                "tp": tp
+            }
+
+            day_volumes_list.append(day_volume)
+            day_volumes_list.sort(key=lambda x: x["date"])
+        serializer = DailyVolumeSerializer(day_volumes_list, many=True)
+        return Response(serializer.data)
+
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          dept_param(required=False),
+                          openapi.Parameter('from_month',
+                                            openapi.IN_QUERY,
+                                            description="from_month",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=False),
+                          openapi.Parameter('to_month',
+                                            openapi.IN_QUERY,
+                                            description="to_month",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=False),
+                          openapi.Parameter('year',
+                                            openapi.IN_QUERY,
+                                            description="year",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=True),
+                          openapi.Parameter('room',
+                                            openapi.IN_QUERY,
+                                            description="room_name",
+                                            type=openapi.TYPE_STRING,
+                                            required=True),
+                      ])
+                  )
+class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
+    """
+    Volume de cours par jour pour une salle
+    """
+    permission_classes = [IsTutorOrReadOnly]
+
+    def list(self, request):
+        param_exception = NotAcceptable(
+            detail=f"Les champs year et room sont requis"
+        )
+        wanted_param = ['month', 'year', 'room']
+
+        # check that all parameters are given
+        for param in wanted_param:
+            if param not in request.GET:
+                raise param_exception
+
+        dept = self.request.query_params.get('dept', None)
+        if dept is not None:
+            try:
+                dept = Department.objects.get(abbrev=dept)
+            except Department.DoesNotExist:
+                raise APIException(detail='Unknown department')
+
+        room = self.request.query_params.get('room', None)
+        if room is not None:
+            try:
+                room = Room.objects.get(name=room)
+            except Tutor.DoesNotExist:
+                raise APIException(detail='Unknown tutor')
+
+        year = int(self.request.query_params.get('year'))
+        from_month = int(self.request.query_params.get('from_month', 1))
+        to_month = int(self.request.query_params.get('to_month', 12))
+
+        day_volumes_list = []
+
+        sched_courses = scheduled_courses_of_the_month(year=year, from_month=from_month, to_month=to_month,
+                                                       department=dept, room=room)
+        for dayschedcourse in sched_courses.distinct("course__week", "day"):
+            week = dayschedcourse.course.week
+            week_day = dayschedcourse.day
+            day_scheduled_courses = sched_courses.filter(course__week=week, day=week_day)
+            volume = sum(sc.pay_duration for sc in day_scheduled_courses)/60
+
+            date = flopday_to_date(Day(week=week, day=week_day))
+
+            day_volume = {
+                "date": date.isoformat(),
+                "volume": volume,
+            }
+
+            day_volumes_list.append(day_volume)
+            day_volumes_list.sort(key=lambda x: x["date"])
+        serializer = RoomDailyVolumeSerializer(day_volumes_list, many=True)
+        return Response(serializer.data)
+
+
+
+def scheduled_courses_of_the_month(year, from_month=None, to_month=None, department=None, tutor=None, room=None):
+    if from_month is None:
+        start_month = datetime.datetime(year, 1, 1)
     else:
-        end_month = datetime.datetime(year+1, 1, 1) - datetime.timedelta(1)
+        start_month = datetime.datetime(year, from_month, 1)
+    start_year, start_week_nb, start_day = start_month.isocalendar()
+
+    if to_month is None:
+        end_month = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(1)
+    elif to_month == 12:
+        end_month = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(1)
+    else:
+        end_month = datetime.datetime(year, to_month+1, 1) - datetime.timedelta(1)
     end_year, end_week_nb, end_day = end_month.isocalendar()
+
     start_week = Week.objects.get(nb=start_week_nb, year=start_year)
     end_week = Week.objects.get(nb=end_week_nb, year=end_year)
     if start_year == end_year:
@@ -239,7 +433,13 @@ def scheduled_courses_of_the_month(department, year, month):
     else:
         intermediate_weeks = Week.objects.filter(Q(year=start_year, nb__gt=start_week_nb)
                                                  | Q(year=end_year, nb__lt=end_week_nb))
-    relevant_scheduled_courses = ScheduledCourse.objects.filter(course__type__department=department, work_copy=0)
+    relevant_scheduled_courses = ScheduledCourse.objects.filter(work_copy=0)
+    if department is not None:
+        relevant_scheduled_courses = relevant_scheduled_courses.filter(course__type__department=department)
+    if tutor is not None:
+        relevant_scheduled_courses = relevant_scheduled_courses.filter(tutor=tutor)
+    if room is not None:
+        relevant_scheduled_courses = relevant_scheduled_courses.filter(room__in=room.and_overrooms())
     query = Q(course__week__in=intermediate_weeks) | \
             Q(course__week=start_week, day__in=days_list[start_day-1:]) | \
             Q(course__week=end_week, day__in=days_list[:end_day])

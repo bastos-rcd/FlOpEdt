@@ -26,10 +26,12 @@
 from django.db import models
 from base.models import StructuralGroup
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
-
-from TTapp.slots import slots_filter
+from base.timing import Day
+from TTapp.slots import slots_filter, days_filter
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from people.models import GroupPreferences
+from django.contrib.postgres.fields import ArrayField
+
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
@@ -67,21 +69,37 @@ def pre_analysis_considered_basic_groups(group_ttconstraint):
         
     return basic_groups
 
-def considered_basic_groups(group_ttconstraint, ttmodel):
-    if group_ttconstraint.train_progs.exists():
-        ttmodel_basic_groups = set(ttmodel.wdb.basic_groups.filter(train_prog__in=group_ttconstraint.train_progs.all()))
-    else:
-        ttmodel_basic_groups = set(ttmodel.wdb.basic_groups)
-    if group_ttconstraint.groups.exists():
-        basic_groups = set()
-        for g in group_ttconstraint.groups.all():
-            basic_groups |= g.basic_groups()
-        ttmodel_basic_groups &= basic_groups
+'''
     basic_groups_to_consider = set()
-    for g in ttmodel_basic_groups:
+    for g in basic_groups:
         if ttmodel.wdb.courses_for_basic_group[g]:
             basic_groups_to_consider.add(g)
-    return basic_groups_to_consider
+'''
+
+
+def considered_basic_groups(group_ttconstraint, ttmodel=None):
+    if ttmodel is None:
+        basic_groups = StructuralGroup.objects.filter(train_prog__department=group_ttconstraint.department,
+                                                      basic=True)
+    else:
+        basic_groups = ttmodel.wdb.basic_groups
+    if group_ttconstraint.train_progs.exists():
+        basic_groups = set(basic_groups.filter(train_prog__in=group_ttconstraint.train_progs.all()))
+    else:
+        basic_groups = set(basic_groups)
+    if group_ttconstraint.groups.exists():
+        constraint_basic_groups = set()
+        for g in group_ttconstraint.groups.all():
+            constraint_basic_groups |= g.basic_groups()
+        basic_groups &= constraint_basic_groups
+    if ttmodel is None:
+        return basic_groups
+    else:
+        ttmodel_basic_groups_to_consider = set()
+        for g in basic_groups:
+            if ttmodel.wdb.courses_for_basic_group[g]:
+                ttmodel_basic_groups_to_consider.add(g)
+        return ttmodel_basic_groups_to_consider
 
 
 class MinGroupsHalfDays(TTConstraint):
@@ -196,3 +214,65 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
 
     def __str__(self):
         return _("Minimize groups non-preferred slots")
+
+
+class GroupsMinHoursPerDay(TTConstraint):
+    """
+    Respect the min_hours_per_day declared
+    """
+    groups = models.ManyToManyField('base.StructuralGroup', blank=True)
+    min_hours = models.PositiveSmallIntegerField()
+    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Respect groups min hours per day bounds')
+        verbose_name_plural = verbose_name
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+        """
+        avoid situations in which a teaching day has less hours than min_hours
+        """
+        considered_groups = considered_basic_groups(self, ttmodel)
+
+        min_hours_nb = self.min_hours
+        if min_hours_nb == 0:
+            return
+
+        days = days_filter(ttmodel.wdb.days, week=week)
+        if self.weekdays:
+            days = days_filter(days, day_in=self.weekdays)
+        for basic_group in considered_groups:
+            for day in days:
+                group_day_time = ttmodel.sum(ttmodel.TT[sl, c] * sl.duration / 60
+                                             for c in ttmodel.wdb.courses_for_basic_group[basic_group]
+                                             for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day))
+                has_enough_time = ttmodel.add_floor(group_day_time,
+                                                    min_hours_nb,
+                                                    100000)
+                undesired_situation = ttmodel.GBD[(basic_group, day)] - has_enough_time
+                if self.weight is None:
+                    ttmodel.add_constraint(undesired_situation,
+                                           '==',
+                                           0,
+                                           Constraint(constraint_type=ConstraintType.MIN_HOURS_PER_DAY,
+                                                      groups=basic_group,
+                                                      days=day))
+                else:
+                    ttmodel.add_to_group_cost(basic_group, self.local_weight() * ponderation * undesired_situation,
+                                              week=week)
+
+    def get_viewmodel(self):
+        view_model = super().get_viewmodel()
+        details = view_model['details']
+
+        if self.groups.exists():
+            details.update({'groups': ', '.join([group.full_name for group in self.groups.all()])})
+        else:
+            details.update({'groups': 'All'})
+        return view_model
+
+    def one_line_description(self):
+        """
+        You can give a contextual explanation about what this constraint doesnt
+        """
+        return "Groups min hours per day"

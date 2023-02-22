@@ -274,9 +274,9 @@ function txt_reqDispos() {
 function txt_filDispos() {
   var ret = "";
   if (required_dispos > 0) {
-    ret += gettext("You propose   ") + min_to_hm_txt(filled_dispos) + ". "
+    ret += gettext("You propose   ") + min_to_hm_txt(filled_dispos) + ". ";
   } else if (required_dispos == 0) {
-    //ret += "Pas de problème." // pas de cours => pas de message ;-) 
+    //ret += "Pas de problème." // pas de cours => pas de message ;-)
   }
   return ret;
 }
@@ -289,7 +289,7 @@ function txt_comDispos() {
       if (filled_dispos < 2 * required_dispos) {
         ret += gettext("Maybe you should free up more...");
       } else {
-        ret += gettext("It's Ok.");
+        ret += gettext("It seems OK.");
       }
     }
     else {
@@ -776,7 +776,7 @@ function cours_reverse_y(y) {
   while (y > 0) {
     y -= rev_constraints[before_last_slot] * scale ;
   }
-  
+
   return min_to_hm_txt(+before_last_slot
                        + rev_constraints[before_last_slot]
                        + y / scale );
@@ -827,7 +827,7 @@ function cours_txt_top_y(c) {
   return cours_y(c) + .25 * cours_height(c);
 }
 function cours_txt_top_txt(c) {
-  var ret = c.mod;
+  var ret = c.pay_mod? c.mod+" ("+c.pay_mod+")": c.mod;
   return ret;
 }
 function cours_txt_mid_y(c) {
@@ -909,7 +909,7 @@ function detail_wdw_x(cours) {
 function detail_wdw_y(cours) {
   let ret = cours_y(cours) + .5 * cours_height(cours) ;
   if (cours_y(cours) > .5 * grid_height()) {
-    ret -= detail_wdw_height(); 
+    ret -= detail_wdw_height();
   }
   return ret ;
 }
@@ -997,17 +997,10 @@ function cm_chg_but_pref(d) {
       }
     }
   } else if (room_tutor_change.cm_settings.type == 'room') {
-    cur_dispo = par_dispos.nmax;
-    if (simultaneous_courses(cur_course).map(function (c) {
-      return c.room;
-    }).includes(d.content)) {
-      cur_dispo = 0;
-    }
-    if (cur_dispo > 0) {
-      let extra_dispo = find_in_pref(extra_pref.rooms, d.content, cur_course);
-      if (extra_dispo == 0) {
-        cur_dispo = 0;
-      }
+    if (are_rooms_free([d.content], cur_course).length > 0) {
+      cur_dispo = par_dispos.nmax ;
+    } else {
+      cur_dispo = 0 ;
     }
   }
   return cur_dispo;

@@ -30,7 +30,7 @@ without disclosing the source code of your own applications.
 from django.http import JsonResponse
 from base.models import Department
 from base.preferences import split_preferences
-from people.models import Tutor, SupplyStaff, User, FullStaff, BIATOS
+from people.models import Tutor, SupplyStaff, User, FullStaff, BIATOS, TutorPreference
 from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_tutor_values
 from flopeditor.db_requests import get_status_of_tutor, TUTOR_CHOICES_LIST, TUTOR_CHOICES_DICT
 
@@ -302,6 +302,7 @@ def create(request, entries):
             if has_rights_to_create_tutor(request.user, tutor, entries):
                 tutor.save()
                 split_preferences(tutor)
+                TutorPreference.objects.create(tutor=tutor)
                 entries['result'].append([OK_RESPONSE])
             else:
                 tutor.delete()

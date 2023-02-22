@@ -36,8 +36,8 @@ from TTapp.models import \
     LimitModulesTimePerPeriod, StabilizeTutorsCourses, StabilizeGroupsCourses, \
     MinModulesHalfDays, MinTutorsHalfDays, MinGroupsHalfDays,\
     MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, \
-    CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectMaxHoursPerDay, RespectMinHoursPerDay, \
-    LimitedRoomChoices, LimitedStartTimeChoices, LimitCourseTypeTimePerPeriod, \
+    CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectMaxHoursPerDay, RespectTutorsMinHoursPerDay, \
+    LimitedRoomChoices, LimitStartTimeChoices, LimitCourseTypeTimePerPeriod, \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
     NoTutorCourseOnDay, NoGroupCourseOnDay, NoGroupCourseTypeOnDay, \
@@ -45,7 +45,8 @@ from TTapp.models import \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
     ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber, \
-    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts
+    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts, AvoidBothTimesSameDay, AvoidStartTimes, \
+    NotAloneForTheseCouseTypes, LimitSimultaneousRoomCourses, ParallelizeCourses
 
 
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
@@ -92,7 +93,7 @@ class BasicTutorsConstraintAdmin(DepartmentModelAdmin):
 class LimitModulesTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = ('course_type',
                     'max_hours',
-                    'period', 
+                    'fhd_period',
                     'comment',
                     'weight',
                     'is_active')
@@ -107,7 +108,7 @@ class LimitModulesTimePerPeriodAdmin(DepartmentModelAdmin):
 class LimitGroupsTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = ('course_type',
                     'max_hours',
-                    'period',
+                    'fhd_period',
                     'comment',
                     'weight',
                     'is_active')
@@ -122,7 +123,7 @@ class LimitGroupsTimePerPeriodAdmin(DepartmentModelAdmin):
 class LimitTutorsTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = ('course_type',
                     'max_hours',
-                    'period',
+                    'fhd_period',
                     'comment',
                     'weight',
                     'is_active')
@@ -204,19 +205,16 @@ class MinGroupsHalfDaysAdmin(DepartmentModelAdmin):
         if queryset and db_field.name == 'groups':
             return queryset.filter(basic=True).distinct()
 
-        return queryset                          
-
+        return queryset
 
 
 class AvoidBothTimesAdmin(DepartmentModelAdmin):
-    list_display = ('tutor', 'group', 'time1', 'time2', 'comment',
+    list_display = ('time1', 'time2', 'comment',
                     'weight',
                     'is_active')
     ordering = ()
     list_filter = (('weeks__nb', DropdownFilterAll),
                    ('train_progs', DropdownFilterRel),
-                   ('tutor', DropdownFilterRel),
-                   ('group', DropdownFilterRel),
                    ('time1', DropdownFilterRel),
                    ('time2', DropdownFilterRel),
                    )
@@ -245,7 +243,7 @@ class LimitRoomChoicesAdmin(DepartmentModelAdmin):
                    )
 
 
-class LimitedStartTimeChoicesAdmin(DepartmentModelAdmin):
+class StartTimeChoicesAdmin(DepartmentModelAdmin):
     list_display = ('group', 'tutor', 'module', 'course_type', 'comment',
                     'weight',
                     'is_active')
@@ -300,7 +298,7 @@ class GroupsLunchBreakResource(resources.ModelResource):
 
     class Meta:
         model = GroupsLunchBreak
-        fields = ('start_time', 'end_time', 'lunch_length', 'groups')
+        fields = ('start_lunch_time', 'end_lunch_time', 'lunch_length', 'groups')
 
 
 class NoCourseOnDayAdmin(DepartmentModelAdmin):
@@ -350,8 +348,9 @@ admin.site.register(MinNonPreferedTrainProgsSlot, BasicConstraintAdmin)
 admin.site.register(SimultaneousCourses, CoursesAdmin)
 admin.site.register(MinimizeBusyDays, BasicTutorsConstraintAdmin)
 admin.site.register(RespectMaxHoursPerDay, BasicTutorsConstraintAdmin)
-admin.site.register(RespectMinHoursPerDay, BasicTutorsConstraintAdmin)
-admin.site.register(LimitedStartTimeChoices, LimitedStartTimeChoicesAdmin)
+admin.site.register(RespectTutorsMinHoursPerDay, BasicTutorsConstraintAdmin)
+admin.site.register(LimitStartTimeChoices, StartTimeChoicesAdmin)
+admin.site.register(AvoidStartTimes, StartTimeChoicesAdmin)
 admin.site.register(LimitedRoomChoices, LimitRoomChoicesAdmin)
 admin.site.register(LimitModulesTimePerPeriod, LimitModulesTimePerPeriodAdmin)
 admin.site.register(LimitGroupsTimePerPeriod, LimitGroupsTimePerPeriodAdmin)
@@ -378,9 +377,13 @@ admin.site.register(LimitTutorTimePerWeeks, BasicConstraintAdmin)
 admin.site.register(ModulesByBloc, BasicConstraintAdmin)
 admin.site.register(LimitUndesiredSlotsPerWeek, BasicConstraintAdmin)
 admin.site.register(LimitSimultaneousCoursesNumber, BasicConstraintAdmin)
+admin.site.register(NotAloneForTheseCouseTypes, BasicConstraintAdmin)
+admin.site.register(ConsiderRoomSorts, BasicConstraintAdmin)
+admin.site.register(ParallelizeCourses, BasicConstraintAdmin)
 admin.site.register(LocateAllCourses, RoomConstraintAdmin)
 admin.site.register(LimitTutorMoves, RoomConstraintAdmin)
 admin.site.register(LimitGroupMoves, RoomConstraintAdmin)
-admin.site.register(ConsiderRoomSorts, RoomConstraintAdmin)
+admin.site.register(LimitSimultaneousRoomCourses, RoomConstraintAdmin)
+admin.site.register(AvoidBothTimesSameDay, AvoidBothTimesAdmin)
 
 

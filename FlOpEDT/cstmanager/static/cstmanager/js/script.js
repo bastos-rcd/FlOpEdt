@@ -4,12 +4,42 @@ popoverAllowList['*'].push('onclick');
 
 const list_close = new Event('list-close');
 
+// usefull_translations
+let paramaters_translation=[gettext("time2"), gettext("nb_max"), gettext("weekdays"), gettext("nb_min"),
+    gettext("join2courses"), gettext("slot_start_time"), gettext("curfew_time"), gettext("weeks"),
+    gettext("slot_end_time"), gettext("max_number"), gettext("max_holes_per_day"), gettext("train_progs"),
+    gettext("max_holes_per_week"), gettext("limit"), gettext("min_time_per_period"), gettext("max_time_per_period"),
+    gettext("course_type"), gettext("max_hours"), gettext("fhd_period"), gettext("tolerated_margin"),
+    gettext("number_of_weeks"), gettext("guide_tutors"), gettext("min_days_nb"), gettext("lower_bound_hours"),
+    gettext("work_copy"), gettext("fixed_days"), gettext("module"), gettext("tutor"), gettext("group"),
+    gettext("possible_rooms"), gettext("start_lunch_time"), gettext("end_lunch_time"), gettext("fampm_period"),
+    gettext("weekday"), gettext("lunch_length"), gettext("min_break_length"), gettext("tutor_status"),
+    gettext("course_types"), gettext("possible_week_days"), gettext("groups"), gettext("tutors"),
+    gettext("modules"), gettext("possible_start_times"), gettext("forbidden_week_days"),
+    gettext("forbidden_start_times"), gettext("pre_assigned_only"), gettext("percentage"), gettext("time1")]
+
+//should/could be replaced by django-js-choices
+let choices = {
+    'AM': gettext('AM'),
+    'PM': gettext('PM'),
+    'fd': gettext('fd'),
+    'hd': gettext('hd'),
+    'm': gettext('m'),
+    'tu': gettext('tu'),
+    'w': gettext('w'),
+    'th': gettext('th'),
+    'f': gettext('f'),
+    'sa': gettext('sa'),
+    'su': gettext('su'),
+}
+
+
 // helper function to extract a parameter object from a given constraint
 let get_parameter_from_constraint = (cst, name) => {
     let ret = {};
     let l = cst.parameters.filter(obj => obj['name'] === name);
     return l.length === 0 ? ret : l[0];
-}
+};
 
 let htmlElements = {
     iconWeight: document.getElementById('icon-weight'),
@@ -40,12 +70,13 @@ let htmlElements = {
     numberSelectedConstraints: document.getElementById('num-selected-constraints'),
     commitChangesButton: document.getElementById('apply-changes'),
     fetchConstraintsButton: document.getElementById('fetch-constraints'),
-    applyFiltersButton: document.getElementById('clear-filters'),
+    clearFiltersButton: document.getElementById('clear-filters'),
     cancelEditConstraintButton: document.getElementById('cancel-edit-constraint'),
     confirmEditConstraintButton: document.getElementById('confirm-edit-constraint'),
     selectedConstraintsEditWeightSlider: document.getElementById('selected-constraints-edit-weight-slider'),
     selectedConstraintsEditWeightButton: document.getElementById('selected-constraints-edit-weight'),
     selectedConstraintsDeleteButton: document.getElementById('selected-constraints-delete'),
+    messagesBanner: document.getElementById('messages'),
 };
 
 htmlElements.filterSearch.oninput = () => {
@@ -94,7 +125,11 @@ let currentSelectList = {
         }
         let next = currentSelectList._elements_list[next_index];
         next.classList.add('active');
-        document.getElementById(next.id).scrollIntoView({behavior: "auto", block: "nearest", inline: "nearest"});
+        document.getElementById(next.id).scrollIntoView({
+            behavior: 'auto',
+            block: 'nearest',
+            inline: 'nearest',
+        });
     },
     previous_entry: () => {
         if (currentSelectList.index > 0) {
@@ -140,11 +175,13 @@ let filter = {
             return;
         }
 
+        search = search.toLowerCase()
+
         filtered_constraint_list = filtered_constraint_list.filter(pageid => {
             let constraint = constraints[pageid];
             let name = (constraint.title ?? database.constraint_types[constraint.name].local_name).toLowerCase();
-            let comment = (constraint.comment ?? "").toLowerCase();
-            return (name.includes(search) || comment?.includes(search));
+            let comment = (constraint.comment ?? '').toLowerCase();
+            return name.includes(search) || comment?.includes(search);
         });
     },
     by_tutor: tutorID => {
@@ -161,10 +198,17 @@ let filter = {
         filtered_constraint_list = filtered_constraint_list.filter(pageid => {
             let constraint = constraints[pageid];
 
-            // Keep only constraints having a 'tutors' parameter with at least one tutor
-            let paramTutor = constraint.parameters.find(parameter => parameter.name === 'tutors');
-            if (!paramTutor || paramTutor.id_list.length === 0) {
+            // Keep only constraints having a 'tutors' parameter
+            let paramTutor = constraint.parameters.find(
+                (parameter) => parameter.name === 'tutors'
+            );
+            if (!paramTutor) {
                 return false;
+            }
+
+            // If no tutor selected then all tutors are concerned
+            if (paramTutor.id_list.length === 0) {
+                return true;
             }
 
             // Keep the constraint if one of their tutors matches the provided ID
@@ -180,6 +224,9 @@ let filter = {
         }
 
         filtered_constraint_list = filtered_constraint_list.filter(pageid => {
+            if (!(pageid in constraints)) {
+                return false;
+            }
             let param = constraints[pageid].parameters.find(parameter => parameter.name === 'weeks');
             return (param.id_list.length === 0 || param.id_list.includes('' + week_id));
         });
@@ -297,19 +344,32 @@ let changeEvents = {
             return;
         }
 
+        let success = true;
+
+        let failed = (constraint, reason) => {
+            let message = `Constraint ${constraint.pageid} could not be saved for the following reasons:`;
+            Object.keys(reason).forEach(key => {
+                message += `\n${key}: ${reason[key]}`;
+            });
+            console.error(message);
+            alertMessage.error(message);
+            alertMessage.error(message);
+            success = false;
+        };
+
         // Send new constraints
         await Promise.all(toAdd.map(async (constraint) => {
             constraint.department = department;
-            await postData(urlConstraints, constraint).then(r => console.log(r)).catch(reason => {
-                console.error(reason);
+            await postData(urlConstraints, constraint).then(r => console.log(r), reason => {
+                failed(constraint, reason);
             });
         }));
 
         // Send existing constraints updates
         await Promise.all(toEdit.map(async (constraint) => {
             constraint.department = department;
-            await putData(urlConstraints, constraint).then(r => console.log(r)).catch(reason => {
-                console.error(reason);
+            await putData(urlConstraints, constraint).then(r => console.log(r), reason => {
+                failed(constraint, reason);
             });
         }));
 
@@ -318,23 +378,39 @@ let changeEvents = {
             await deleteData(urlDetailConstraint, {
                 'name': constraint.name,
                 'id': constraint.id
-            }).then(r => console.log(r)).catch(reason => {
-                console.error(reason);
+            }).then(r => console.log(r), reason => {
+                failed(constraint, reason);
             });
         }));
 
-        // Reset changes as everything has been accepted
-        resetActionChanges();
-
-        // Reload the constraints (new constraints can have different IDs when inserted)
-        fetchers.fetchConstraints();
+        if (success) {
+            // Reset changes as everything has been accepted
+            resetActionChanges();
+            // Reload the constraints (new constraints can have different IDs when inserted)
+            fetchers.fetchConstraints();
+            alertMessage.clearAll();
+            alertMessage.success(gettext('All changes have been saved.'));
+        }
     },
 }
+
+
+// convert floptime to readable time for labels
+function floptime_to_str_time(floptime){
+    let min_from_midnight= parseInt(floptime)
+    let minutes = min_from_midnight%60
+    let hours = (min_from_midnight - minutes) /60
+    let str_minutes = "0" + minutes.toString()
+    let str_hours = hours.toString()
+    let formattedTime = str_hours + ':' + str_minutes.substr(-2)
+    return formattedTime
+}
+
 
 // object containing functions that fetch data from the database
 let fetchers = {
     fetchAcceptableValues: (e) => {
-        fetch(build_url(urlAcceptableValues, {"dept": department}))
+        fetch(build_url(urlAcceptableValues, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['acceptable_values'] = {};
@@ -343,14 +419,14 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching acceptable values");
+                console.error('something went wrong while fetching acceptable values');
                 console.error(err);
             });
     },
     fetchConstraints: (e) => {
         emptyPage();
         fetchers.fetchAcceptableValues();
-        fetch(build_url(urlConstraints, {"dept": department}))
+        fetch(build_url(urlConstraints, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 originalConstraints = responseToDict(Object.values(jsonObj));
@@ -372,7 +448,7 @@ let fetchers = {
                 filter.reapply();
             })
             .catch(err => {
-                console.error("something went wrong while fetching constraints");
+                console.error('something went wrong while fetching constraints');
                 console.error(err);
             });
     },
@@ -389,12 +465,12 @@ let fetchers = {
                 }, {})
             })
             .catch(err => {
-                console.error("something went wrong while fetching departments");
+                console.error('something went wrong while fetching departments');
                 console.error(err);
             });
     },
     fetchTrainingPrograms: (e) => {
-        fetch(build_url(urlTrainingPrograms, {"dept": department}))
+        fetch(build_url(urlTrainingPrograms, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['train_progs'] = {};
@@ -403,12 +479,12 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching training programs");
+                console.error('something went wrong while fetching training programs');
                 console.error(err);
             });
     },
     fetchStructuralGroups: (e) => {
-        fetch(build_url(urlGroups, {"dept": department}))
+        fetch(build_url(urlGroups, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['groups'] = {};
@@ -438,27 +514,27 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching structural groups");
+                console.error('something went wrong while fetching structural groups');
                 console.error(err);
             });
     },
     fetchTutors: (e) => {
-        fetch(build_url(urlTutors, {"dept": department}))
+        fetch(build_url(urlTutors, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['tutors'] = {};
                 Object.values(jsonObj).forEach(obj => {
                     database['tutors'][obj['username']] = obj;
                 });
-                htmlElements.filterTutor.value = gettext('All tutors');
+                htmlElements.filterTutor.querySelector('input').value = '';
             })
             .catch(err => {
-                console.error("something went wrong while fetching tutors");
+                console.error('something went wrong while fetching tutors');
                 console.error(err);
             });
     },
     fetchModules: (e) => {
-        fetch(build_url(urlModules, {"dept": department}))
+        fetch(build_url(urlModules, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['modules'] = {};
@@ -467,12 +543,12 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching modules");
+                console.error('something went wrong while fetching modules');
                 console.error(err);
             });
     },
     fetchCourseTypes: (e) => {
-        fetch(build_url(urlCourseTypes, {"dept": department}))
+        fetch(build_url(urlCourseTypes, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['course_types'] = {};
@@ -481,12 +557,12 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching modules");
+                console.error('something went wrong while fetching modules');
                 console.error(err);
             });
     },
     fetchCourses: (e) => {
-        fetch(build_url(urlCourses, {"dept": department}))
+        fetch(build_url(urlCourses, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['courses'] = {};
@@ -495,7 +571,7 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching courses");
+                console.error('something went wrong while fetching courses');
                 console.error(err);
             });
     },
@@ -507,19 +583,19 @@ let fetchers = {
                 Object.values(jsonObj).forEach(obj => {
                     let currentYear = new Date().getFullYear();
                     let year = obj['year'];
-                    if (year < currentYear || year > currentYear + 1) {
+                    if (year < currentYear - 1 || year > currentYear + 1) {
                         return;
                     }
                     database['weeks'][obj['id']] = obj;
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching weeks");
+                console.error('something went wrong while fetching weeks');
                 console.error(err);
             });
     },
     fetchRooms: (e) => {
-        fetch(build_url(urlRooms, {"dept": department}))
+        fetch(build_url(urlRooms, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['rooms'] = {};
@@ -528,12 +604,12 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching courses");
+                console.error('something went wrong while fetching courses');
                 console.error(err);
             });
     },
     fetchTutorsIDs: (e) => {
-        fetch(build_url(urlTutorsID, {"dept": department}))
+        fetch(build_url(urlTutorsID, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database['tutors_ids'] = {};
@@ -542,12 +618,12 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching tutors_ids");
+                console.error('something went wrong while fetching tutors_ids');
                 console.error(err);
             });
     },
     fetchConstraintTypes: (e) => {
-        fetch(build_url(urlConstraintTypes, {"dept": department}))
+        fetch(build_url(urlConstraintTypes, {'dept': department}))
             .then(resp => resp.json())
             .then(jsonObj => {
                 database.constraint_types = {};
@@ -562,7 +638,7 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error("something went wrong while fetching constraint types");
+                console.error('something went wrong while fetching constraint types');
                 console.error(err);
             });
     },
@@ -574,7 +650,7 @@ let responseToDict = (resp) => {
     resp.forEach(cst => {
         let id = cst['name'] + cst['id'];
         ret[id] = cst;
-        ret[id]["pageid"] = id;
+        ret[id]['pageid'] = id;
     })
     return ret;
 }
@@ -730,11 +806,11 @@ let fillEditConstraintPopup = constraint => {
     if (!constraint) {
         type.selectedIndex = 0;
         type.disabled = false;
-        title.value = "";
-        comment.value = "";
+        title.value = '';
+        comment.value = '';
         activation.checked = true;
         weightSlider.value = 9;
-        weightValue.innerText = gettext("Strong constraint");
+        weightValue.innerText = gettext('Strong constraint');
         params.innerHTML = '';
     } else {
         let localName = findConstraintLocalNameFromClass(constraint.name);
@@ -747,11 +823,11 @@ let fillEditConstraintPopup = constraint => {
             return false;
         });
 
-        title.value = constraint.title ?? "";
-        comment.value = constraint.comment ?? "";
+        title.value = constraint.title ?? '';
+        comment.value = constraint.comment ?? '';
         activation.checked = constraint.is_active;
         weightSlider.value = constraint.weight ?? 9;
-        weightValue.innerText = constraint.weight ? gettext('Weight : ') + constraint.weight : gettext("Strong constraint");
+        weightValue.innerText = constraint.weight ? gettext('Weight : ') + constraint.weight : gettext('Strong constraint');
         updateParamsListExistingConstraint(constraint);
     }
 };
@@ -801,7 +877,7 @@ let extractConstraintFromPopup = (constraint) => {
                 let tag = document.getElementById('param-check-' + param.name);
                 param.id_list.push(tag.checked);
             } else {
-                if (param.name === 'tutors') {
+                if (param.name.includes('tutors')) {
                     let tag = document.getElementById('param-select-' + param.name);
                     tag.querySelectorAll('li').forEach((value, key, parent) => {
                         param.id_list.push(value.getAttribute('data-param-id'));
@@ -839,9 +915,9 @@ let extractConstraintFromPopup = (constraint) => {
 };
 
 let updateEditConstraintWeightDisplay = (labelID, value) => {
-    let weightText = gettext("Strong constraint");
+    let weightText = gettext('Strong constraint');
     if (value <= 8) {
-        weightText = gettext("Weight : ") + value.toString();
+        weightText = gettext('Weight : ') + value.toString();
     }
     document.getElementById(labelID).innerText = weightText;
 }
@@ -850,10 +926,12 @@ let updateEditConstraintWeightDisplay = (labelID, value) => {
 // data to the original state
 let discardChanges = (e) => {
     constraints = copyFromOriginalConstraints();
+    resetActionChanges();
     constraint_list = Object.keys(constraints);
     selected_constraints = [];
     lastSelectedConstraint = null;
     filter.reapply();
+    alertMessage.clearAll();
 }
 document.getElementById('discard-changes').addEventListener('click', discardChanges);
 
@@ -866,7 +944,7 @@ let applyChanges = (e) => {
 // clear input fields for filters
 let clearFilters = (e) => {
     htmlElements.filterSearch.value = '';
-    htmlElements.filterTutor.value = gettext('All tutors');
+    htmlElements.filterTutor.querySelector('input').value = '';
     htmlElements.filterGroup.value = '-1';
     htmlElements.filterAllWeeks.checked = false;
     filter.current.search = '';
@@ -898,7 +976,7 @@ let saveConstraintChanges = () => {
     let isValid = extractConstraintFromPopup(constraintToSave);
 
     if (!isValid) {
-        console.log("Constraint is not valid, cancelling...");
+        console.log('Constraint is not valid, cancelling...');
         return;
     }
 
@@ -939,7 +1017,7 @@ htmlElements.cancelEditConstraintButton.addEventListener('click', cancelNewConst
 
 htmlElements.commitChangesButton.addEventListener('click', applyChanges);
 htmlElements.fetchConstraintsButton.addEventListener('click', fetchers.fetchConstraints);
-htmlElements.applyFiltersButton.addEventListener('click', clearFilters);
+htmlElements.clearFiltersButton.addEventListener('click', clearFilters);
 
 let selected_constraints = [];
 let lastSelectedConstraint = null;
@@ -1180,10 +1258,11 @@ let getCorrespondingDatabase = (param) => {
             return database['train_progs'];
         case 'tutor':
         case 'tutors':
+        case 'guide_tutors':
             return database['tutors_ids'];
-        case "rooms":
-        case "possible_rooms":
-        case "room":
+        case 'rooms':
+        case 'possible_rooms':
+        case 'room':
             return database['rooms']
         case 'weeks':
             return database['weeks'];
@@ -1205,16 +1284,29 @@ let getCorrespondingInfo = (id, param) => {
         case 'train_progs':
             return db[id]['abbrev'];
         case 'tutors':
+        case 'guide_tutors':
         case 'tutor':
-        case "rooms":
-        case "possible_rooms":
-        case "room":
+        case 'rooms':
+        case 'possible_rooms':
+        case 'room':
             return db[id]['name'];
         case 'course_type':
         case 'course_types':
             return db[id];
         case 'weeks':
             return `${db[id]['year']}-${db[id]['nb']}`;
+        case 'start_time':
+        case 'start_times':
+        case 'possible_start_times':
+        case 'allowed_start_times':
+            return floptime_to_str_time(id);
+        case 'fampm_period':
+        case 'fhd_period':
+        case 'weekday':
+        case 'weekdays':
+        case 'forbidden_week_days':
+        case 'possible_week_days':
+            return choices[id];
         default:
             return id;
     }
@@ -1295,6 +1387,7 @@ let createSelectedParameterPopup = (constraint, parameter) => {
         values.append(form);
     };
 
+    // if param_obj is multiple or this condition should be satisfied!
     if (param_obj.multiple) {
         let acceptable_values = database.acceptable_values[parameter].acceptable;
 
@@ -1353,7 +1446,7 @@ let createSelectedParameterPopup = (constraint, parameter) => {
 
         buttons.append(select_all_button, remove_all_button, cancel_button);
         divs.append(values, buttons);
-    } else if (param_obj.type.includes('.')) {
+    } else if (param_obj.type.includes('.') || database.acceptable_values[parameter].acceptable.length>0) {
         let temp_id = parameter + '-value';
 
         let form = divBuilder({
@@ -1429,7 +1522,7 @@ let buttonWithDropBuilder = (constraint, parameter) => {
         badge = elementBuilder('span', {
             'class': 'badge text-bg-danger ms-1',
         });
-        badge.innerText = gettext("Required");
+        badge.innerText = gettext('Required');
     }
 
     let button;
@@ -1484,13 +1577,20 @@ let buttonWithDropBuilder = (constraint, parameter) => {
             'aria-expanded': 'false',
             'aria-controls': collapseID,
         });
-        button.innerText = parameter.name;
+        console.log(parameter.name);
+        button.innerText = gettext(parameter.name);
+        console.log(gettext(parameter.name));
         button.append(badge);
 
         let elements;
 
-        if (parameter.name === 'tutors') {
-            let label_text = gettext('Tutor');
+        if (parameter.name.includes('tutors')) {
+            let label_text = "";
+            if (parameter.name === 'guide_tutors') {
+                label_text = gettext('Guide tutor');}
+            else{
+                label_text = gettext('Tutor');
+            }
             let acceptable_values = database.acceptable_values.tutor.acceptable;
 
             let element_obj = (tutor_id) => {
@@ -1596,9 +1696,9 @@ let refreshConstraints = () => {
 let buildSection = (name, list) => {
     let ret = divBuilder({'class': 'constraints-section-full mb-2'});
     let title = divBuilder({'class': 'constraints-section-title'});
-    let cards = divBuilder({'class': 'constraints-section ', 'id': "section-" + name});
+    let cards = divBuilder({'class': 'constraints-section ', 'id': 'section-' + name});
     let map = list.map(id => constraintCardBuilder(constraints[id]));
-    title.innerText = name;
+    title.innerText = gettext(name);
     cards.append(...map)
     ret.append(title, cards);
     return ret;
@@ -1606,7 +1706,7 @@ let buildSection = (name, list) => {
 
 // helps with the generation of the page's sections
 let buildConstraintsSections = () => {
-    htmlElements.enabledConstraintsList.innerHTML = "";
+    htmlElements.enabledConstraintsList.innerHTML = '';
 
     if (filtered_constraint_list == null) {
         filter.reapply()
@@ -1628,21 +1728,21 @@ let buildConstraintsSections = () => {
                 dict[localName][cst.is_active ? 'active' : 'inactive'].push(cst.pageid);
             }
         });
-    } else if (group_mode === "status") {
-        dict[gettext("Strong constraints")] = {
+    } else if (group_mode === 'status') {
+        dict[gettext('Strong constraints')] = {
             'active': [],
             'inactive': [],
         };
-        dict[gettext("Preferences")] = {
+        dict[gettext('Preferences')] = {
             'active': [],
             'inactive': [],
         };
         Object.values(constraints).forEach(cst => {
             if (filtered_constraint_list.includes(cst.pageid)) {
                 if (cst.weight === null) {
-                    dict[gettext("Strong constraints")][cst.is_active ? 'active' : 'inactive'].push(cst.pageid);
+                    dict[gettext('Strong constraints')][cst.is_active ? 'active' : 'inactive'].push(cst.pageid);
                 } else {
-                    dict[gettext("Preferences")][cst.is_active ? 'active' : 'inactive'].push(cst.pageid);
+                    dict[gettext('Preferences')][cst.is_active ? 'active' : 'inactive'].push(cst.pageid);
                 }
             }
         });
@@ -1651,13 +1751,13 @@ let buildConstraintsSections = () => {
     }
     //(group_mode==='none')
     else {
-        dict[gettext("All constraints")] = {
+        dict[gettext('All constraints')] = {
             'active': [],
             'inactive': [],
         };
         Object.values(constraints).forEach(cst => {
             if (filtered_constraint_list.includes(cst.pageid)) {
-                dict[gettext("All constraints")][cst.is_active ? 'active' : 'inactive'].push(cst.pageid);
+                dict[gettext('All constraints')][cst.is_active ? 'active' : 'inactive'].push(cst.pageid);
             }
         });
     }
@@ -1686,13 +1786,13 @@ htmlElements.constraintsGroupMode.addEventListener('change', refreshConstraints)
 
 // event handler when clicking on a constraint
 let constraintClicked = (e) => {
-    if (e.target.type === "checkbox") {
+    if (e.target.type === 'checkbox') {
         return;
     }
     let id = e.currentTarget.getAttribute('data-cst-id');
     if (e.currentTarget.classList.contains('selected')) {
-        e.currentTarget.classList.remove("selected");
-        e.currentTarget.classList.add("unselected");
+        e.currentTarget.classList.remove('selected');
+        e.currentTarget.classList.add('unselected');
         let index = selected_constraints.indexOf(id);
         if (index > -1) {
             selected_constraints.splice(index, 1);
@@ -1700,8 +1800,8 @@ let constraintClicked = (e) => {
         let indexNextConstraint = selected_constraints.length - 1;
         lastSelectedConstraint = (indexNextConstraint > -1) ? selected_constraints[indexNextConstraint] : null;
     } else {
-        e.currentTarget.classList.remove("unselected");
-        e.currentTarget.classList.add("selected");
+        e.currentTarget.classList.remove('unselected');
+        e.currentTarget.classList.add('selected');
         selected_constraints.push(id);
 
         lastSelectedConstraint = id;
@@ -1859,7 +1959,7 @@ let constraintCardBuilder = (constraint) => {
             return
         }
         if (param.id_list.length > 0) {
-            popover_content += gettext(param.name) + ' : '
+            popover_content += param.name + ' : '
             param.id_list.forEach((id) =>
                 popover_content += getCorrespondingInfo(id, param.name) + ', '
             )
@@ -1880,7 +1980,7 @@ let constraintCardBuilder = (constraint) => {
         'data-bs-container': '#constraints-body',
     });
 
-    let checkText = constraint.is_active ? 'checked' : "";
+    let checkText = constraint.is_active ? 'checked' : '';
 
     let weight = (constraint.weight && constraint.weight < 9) ? `<div class="col">${iconTextBuilder(htmlElements.iconWeight.src, constraint.weight, 'weight').outerHTML}</div>` : '';
 
@@ -1900,9 +2000,9 @@ let constraintCardBuilder = (constraint) => {
     ].join('');
 
     wrapper.addEventListener('click', constraintClicked, false);
-    wrapper.addEventListener("dragstart", (ev) => {
+    wrapper.addEventListener('dragstart', (ev) => {
         // Add the target element's id to the data transfer object
-        ev.dataTransfer.setData("text/plain", ev.target.id);
+        ev.dataTransfer.setData('text/plain', ev.target.id);
     });
     wrapper.addEventListener('contextmenu', function (e) {
         const popover = bootstrap.Popover.getOrCreateInstance(`#${popover_id}`);
@@ -1922,8 +2022,8 @@ let constraintCardBuilder = (constraint) => {
 let emptyPage = () => {
     let body = htmlElements.enabledConstraintsList;
     let bodyDisabled = htmlElements.disabledConstraintsList;
-    body.innerHTML = "";
-    bodyDisabled.innerHTML = "";
+    body.innerHTML = '';
+    bodyDisabled.innerHTML = '';
 }
 
 // constranit sorting based on argument
@@ -1931,7 +2031,7 @@ let sortConstraintsBy = (cst_list, arg) => {
     if (!constraints[cst_list[0]].hasOwnProperty(arg)) {
         return;
     }
-    if (typeof constraints[cst_list[0]][arg] == "object") {
+    if (typeof constraints[cst_list[0]][arg] == 'object') {
         cst_list.sort((x, y) => {
             return constraints[x][arg].length < constraints[y][arg].length ? 1 : -1;
         });
@@ -1998,6 +2098,37 @@ fetchers.fetchTutorsIDs(null);
 fetchers.fetchWeeks();
 fetchers.fetchConstraintTypes();
 fetchers.fetchConstraints(null);
+
+let alertMessage = {
+    _builder: (type, message) => {
+        let container = divBuilder({
+            'class': `alert alert-${type} alert-dismissible fade show`,
+            'role': 'alert',
+        });
+        let message_container = elementBuilder('h6');
+        message_container.innerText = message;
+        let close_button = elementBuilder('button', {
+            'type': 'button',
+            'class': 'btn-close',
+            'data-bs-dismiss': 'alert',
+            'aria-label': 'Close',
+        });
+        container.append(message_container, close_button);
+        return container;
+    },
+    info: (message) => {
+        htmlElements.messagesBanner.append(alertMessage._builder('primary', message));
+    },
+    error: (message) => {
+        htmlElements.messagesBanner.append(alertMessage._builder('danger', message));
+    },
+    success: (message) => {
+        htmlElements.messagesBanner.append(alertMessage._builder('success', message));
+    },
+    clearAll: () => {
+        htmlElements.messagesBanner.innerHTML = '';
+    },
+};
 
 let check_list_event = (e) => {
     let node_contains = (node, content) => {

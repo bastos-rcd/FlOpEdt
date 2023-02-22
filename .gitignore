@@ -18,3 +18,7 @@ FlOpEDT/media/configuration*
 !FlOpEDT/media/configuration/empty_database_file.xlsx
 !FlOpEDT/media/configuration/empty_planif_file.xlsx
 FlOpEDT/misc/logs
+/FlOpEDT/var/static/
+# Gurobi license file
+/gurobi.lic
+FlOpEDT/static/vue/dist/*.hot-update.js*

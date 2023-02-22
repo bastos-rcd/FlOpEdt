@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from base.models import ScheduledCourse, Room, StructuralGroup, TransversalGroup, Day, Department, Regen
 from people.models import Tutor
 from django.db.models import Q
+from roomreservation.models import RoomReservation
 
 from django.http import HttpResponse, Http404
 from django.utils.http import http_date
@@ -33,7 +34,7 @@ class EventFeed(ICalFeed):
     def item_title(self, scourse):
         course = scourse.course
         gp_str, plural = str_groups(course)
-        return (f'{course.module.abbrev} {course.type.name} - ' + gp_str)
+        return f'{course.module.abbrev} {course.type.name} - ' + gp_str
 
     def item_description(self, scourse):
         location = scourse.room.name if scourse.room is not None else ''
@@ -80,7 +81,7 @@ class TutorEventFeed(EventFeed):
         course = scourse.course
         location = scourse.room.name if scourse.room is not None else ''
         gp_str, plural = str_groups(course)
-        return (f'{course.module.abbrev} {course.type.name} '
+        return (f'{course.module.abbrev} {course.type.name} {"N°"+str(scourse.number) if scourse.number else ""} '
                 f'- {gp_str} '
                 f'- {location}'
         )
@@ -88,21 +89,60 @@ class TutorEventFeed(EventFeed):
 
 class RoomEventFeed(EventFeed):
     def get_object(self, request, department, room_id):
-        return Room.objects.get(id=room_id).and_subrooms()
+        return Room.objects.get(id=room_id).and_overrooms()
 
     def items(self, room_groups):
-        return ScheduledCourse.objects\
-                              .filter(room__in=room_groups, work_copy=0) \
+        room_scheduled_courses = \
+            ScheduledCourse.objects\
+            .filter(room__in=room_groups, work_copy=0) \
             .order_by('-course__week__year', '-course__week__nb')
+        room_reservations = RoomReservation.objects.filter(room__in=room_groups).order_by('-date', '-start_time')
+        return list(room_scheduled_courses) + list(room_reservations)
 
-    def item_title(self, scourse):
-        course = scourse.course
-        gp_str, plural = str_groups(course)
-        return (f'{course.module.abbrev} {course.type.name} '
-                f'- {gp_str} '
-                f'- {scourse.tutor.username if scourse.tutor is not None else "x"}'
-        )
+    def item_title(self, sched_course_or_reservation):
+        if type(sched_course_or_reservation) is ScheduledCourse:
+            scourse = sched_course_or_reservation
+            course = scourse.course
+            gp_str, plural = str_groups(course)
+            return (f'{course.module.abbrev} {course.type.name} '
+                    f'- {gp_str} '
+                    f'- {scourse.tutor.username if scourse.tutor is not None else "x"}'
+                    )
+        elif type(sched_course_or_reservation) is RoomReservation:
+            reservation = sched_course_or_reservation
+            return f'{reservation.title} ({reservation.reservation_type.name} - {reservation.responsible.username})'
+        else:
+            raise TypeError("Has to be course or reservation")
 
+    def item_description(self, sched_course_or_reservation):
+        if type(sched_course_or_reservation) is ScheduledCourse:
+            return super(RoomEventFeed, self).item_description(sched_course_or_reservation)
+        elif type(sched_course_or_reservation) is RoomReservation:
+            reservation = sched_course_or_reservation
+            ret = f'Réservation : {reservation.title} \n'
+            ret += f'{reservation.reservation_type.name}\n'
+            ret += f'Responsable : {reservation.responsible.username}\n'
+            return ret
+        else:
+            raise TypeError("Has to be course or reservation")
+
+    def item_start_datetime(self, sched_course_or_reservation):
+        if type(sched_course_or_reservation) is ScheduledCourse:
+            return super(RoomEventFeed, self).item_start_datetime(sched_course_or_reservation)
+        elif type(sched_course_or_reservation) is RoomReservation:
+            reservation = sched_course_or_reservation
+            return datetime.combine(reservation.date, reservation.start_time)
+        else:
+            raise TypeError("Has to be course or reservation")
+
+    def item_end_datetime(self, sched_course_or_reservation):
+        if type(sched_course_or_reservation) is ScheduledCourse:
+            return super(RoomEventFeed, self).item_end_datetime(sched_course_or_reservation)
+        elif type(sched_course_or_reservation) is RoomReservation:
+            reservation = sched_course_or_reservation
+            return datetime.combine(reservation.date, reservation.end_time)
+        else:
+            raise TypeError("Has to be course or reservation")
 
 class GroupEventFeed(EventFeed):
     def get_object(self, request, department, group_id):

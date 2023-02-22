@@ -122,7 +122,10 @@ class FlopModel(object):
 
     @staticmethod
     def get_var_value(ttvar):
-        return round(ttvar.value())
+        value = ttvar.value()
+        if value is None:
+            return value
+        return round(value)
 
     @staticmethod
     def get_expr_value(ttexpr):

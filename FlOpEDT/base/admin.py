@@ -70,9 +70,6 @@ class CoursPlaceResource(resources.ModelResource):
     id = fields.Field(column_name='id_course',
                       attribute='course',
                       widget=ForeignKeyWidget(Course, 'id'))
-    no = fields.Field(column_name='num_course',
-                      attribute='course',
-                      widget=ForeignKeyWidget(Course, 'no'))
     prof = fields.Field(column_name='prof_name',
                         attribute='tutor',
                         widget=ForeignKeyWidget(Tutor, 'username'))
@@ -134,7 +131,7 @@ class CoursPlaceResource(resources.ModelResource):
 
     class Meta:
         model = ScheduledCourse
-        fields = ('id', 'no', 'groups', 'promo', 'color_bg', 'color_txt',
+        fields = ('id', 'number', 'groups', 'promo', 'color_bg', 'color_txt',
                   'module', 'coursetype', 'day', 'start_time',
                   'week', 'room', 'prof', 'room_type',
                   'id_visio', 'comment', 'allow_visio', 'is_graded')
@@ -144,9 +141,6 @@ class CoursPlaceResourceCosmo(resources.ModelResource):
     id = fields.Field(column_name='id_course',
                       attribute='course',
                       widget=ForeignKeyWidget(Course, 'id'))
-    no = fields.Field(column_name='num_course',
-                      attribute='course',
-                      widget=ForeignKeyWidget(Course, 'no'))
     prof = fields.Field(column_name='prof_name',
                         attribute='tutor',
                         widget=ForeignKeyWidget(Tutor, 'username'))
@@ -196,7 +190,7 @@ class CoursPlaceResourceCosmo(resources.ModelResource):
 
     class Meta:
         model = ScheduledCourse
-        fields = ('id', 'no', 'groups', 'promo', 'color_bg', 'color_txt',
+        fields = ('id', 'number', 'groups', 'promo', 'color_bg', 'color_txt',
                   'module', 'day', 'start_time', 'week', 'room', 'prof',
                   'id_visio', 'comment', 'is_graded')
 
@@ -208,7 +202,7 @@ class TutorCoursesResource(CoursPlaceResource):
 
     class Meta:
         model = ScheduledCourse
-        fields = ('id', 'no', 'groups', 'promo', 'color_bg', 'color_txt',
+        fields = ('id', 'number', 'groups', 'promo', 'color_bg', 'color_txt',
                   'module', 'coursetype', 'day', 'start_time',
                   'week', 'room', 'prof', 'room_type', 'department')
 
@@ -282,7 +276,7 @@ class CoursResource(resources.ModelResource):
 
     class Meta:
         model = Course
-        fields = ('id', 'no', 'tutor_name', 'groups', 'promo', 'module',
+        fields = ('id', 'tutor_name', 'groups', 'promo', 'module',
                   'coursetype', 'color_bg', 'color_txt', 'prof', 'room_type',
                   'allow_visio','is_graded')
 
@@ -597,7 +591,7 @@ class ModuleAdmin(DepartmentModelAdmin):
 
 class CourseAdmin(DepartmentModelAdmin):
     list_display = ('module', 'type', 'tutor', 'week')
-    ordering = ('week', 'module', 'type', 'no', 'groups', 'tutor')
+    ordering = ('week', 'module', 'type', 'groups', 'tutor')
     list_filter = (
         ('tutor', DropdownFilterRel),
         ('week__nb', DropdownFilterAll),

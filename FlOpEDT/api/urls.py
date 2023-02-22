@@ -35,14 +35,15 @@ import api.base.views as views_base
 import api.fetch.views as views_fetch
 from api import views
 from api.TTapp.urls import routerTTapp
-from api.base.urls import routerBase
-from api.base.rooms.urls import routerRooms
-from api.base.groups.urls import routerGroups
 from api.base.courses.urls import routerCourses
+from api.base.groups.urls import routerGroups
+from api.base.rooms.urls import routerRooms
+from api.base.urls import routerBase
 from api.fetch.urls import routerFetch
+from api.myflop.urls import routerMyFlop
 from api.people.urls import routerPeople
 from api.preferences.urls import routerPreferences
-from api.myflop.urls import routerMyFlop
+from api.roomreservation.urls import routerRoomReservation
 
 #####################################
 # URLS based on django applications #
@@ -56,7 +57,6 @@ routerDisplayweb.register(r'breakingnews', views.BreakingNewsViewSet)
 routerDisplayweb.register(r'moduledisplays', views.ModuleDisplaysViewSet)
 routerDisplayweb.register(r'trainingprogrammedisplays', views.TrainingProgrammeDisplaysViewSet)
 routerDisplayweb.register(r'groupdisplays', views.GroupDisplaysViewSet)
-
 
 ######################
 # User friendly URLS #
@@ -86,7 +86,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    url(r'^$', views_base.LoginView.as_view()),
+    url(r'^$', views_base.LoginView.as_view(), name='api_root'),
     url(r'^logout/$', views_base.LogoutView.as_view()),
     url(r'^backoffice/$', login_required(TemplateView.as_view(template_name='logout.html'))),
     path('base/', include((routerBase.urls, 'api'), namespace='base')),
@@ -100,13 +100,15 @@ urlpatterns = [
     url('doc/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('preferences/', include(routerPreferences.urls)),
     path('rooms/',
-         include((routerRooms.urls, 'api'), namespace = 'rooms')),
+         include((routerRooms.urls, 'api'), namespace='rooms')),
     path('courses/',
-         include((routerCourses.urls, 'api'), namespace = 'course')),
+         include((routerCourses.urls, 'api'), namespace='course')),
     path('groups/',
-         include((routerGroups.urls, 'api'), namespace = 'groups')),
+         include((routerGroups.urls, 'api'), namespace='groups')),
     path('extra/',
          include((routerExtra.urls, 'api'), namespace='extra')),
     path('myflop/',
          include((routerMyFlop.urls, 'api'), namespace='myflop')),
+    path('roomreservations/',
+         include((routerRoomReservation.urls, 'api'), namespace='roomreservations')),
 ]

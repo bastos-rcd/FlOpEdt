@@ -28,8 +28,7 @@ from django.conf.urls import url, include
 from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 from django.views.generic.base import RedirectView
-from people.student import AddStudent, ChangeStudent
-from people.tutor import AddFullStaffTutor, AddSupplyStaffTutor, AddBIATOSTutor
+from people.student import ChangeStudent
 from people.tutor import ChangeFullStaffTutor, ChangeSupplyStaffTutor, ChangeBIATOSTutor
 from . import views
 
@@ -73,21 +72,6 @@ urlpatterns = [
             template_name='people/password_reset_confirm.html',
             success_url=reverse_lazy('people:password_reset_complete')),
         name='password_reset_confirm'),
-    url(r'^add/some/(?P<kind>[A-Za-z]*)$',
-        views.redirect_add_people_kind,
-        name="add_redirect"),
-    url(r'^add/student/$',
-        AddStudent.as_view(),
-        name="add_student"),
-    url(r'^add/fullstaff/$',
-        AddFullStaffTutor.as_view(),
-        name="add_fullstaff"),
-    url(r'^add/supplystaff/$',
-        AddSupplyStaffTutor.as_view(),
-        name="add_supplystaff"),
-    url(r'^add/biatos/$',
-        AddBIATOSTutor.as_view(),
-        name="add_BIATOS"),
     url(r'^change/some/$',
         views.redirect_change_people_kind,
         name="change_redirect"),
@@ -118,7 +102,6 @@ urlpatterns = [
     url(r'^student_preferences/$',
         views.student_preferences,
         name="student_preferences"),
-    path('create-user', views.create_user, name="create_user"),
     path('profile/', RedirectView.as_view(pattern_name="index", permanent=False)),
     path('fetch_physical_presence/<str:department>/<int:year>/<int:week>',
          views.fetch_physical_presence,

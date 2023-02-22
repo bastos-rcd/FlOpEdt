@@ -945,14 +945,6 @@ var room_cm_settings =
     }
   },
   {
-    type: 'room_available_same_type',
-    txt_intro: {
-       '0': gettext('No room available (any type)'),
-      '1': gettext('Room available (any type)'),
-      'default': gettext('Rooms available (any type)')
-    }
-  },
-  {
     type: 'room',
     txt_intro: {
       '0': gettext('No room'),
@@ -986,6 +978,18 @@ var salarie_cm_settings = {
 // level=0: salaries qui ont le même poste dans la semaine
 //       1: tous les salaries
 var salarie_cm_level = 0;
+
+var course_cm_settings = {
+  type: 'course',
+  w: 100,
+  h: 18,
+  fs: 10,
+  mx: 5,
+  my: 3,
+  ncol: 1,
+  nlin: 0,
+  txt_intro: {'default':gettext('What to change ?')}
+};
 
 var room_tutor_change = {
   course: [],    // 1-cell array for d3.js

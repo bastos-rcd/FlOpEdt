@@ -1,0 +1,56 @@
+{
+  "name": "flopedt-front",
+  "version": "1.0.0",
+  "private": false,
+  "author": "FlOpEDT",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "main": "src/main.ts",
+  "dependencies": {
+    "@popperjs/core": "^2.11.6",
+    "@vuepic/vue-datepicker": "^3.4.7",
+    "bootstrap": "^5.2.1",
+    "core-js": "^3.8.3",
+    "multi-range-slider-vue": "^1.1.4",
+    "pinia": "^2.0.23",
+    "vue": "^3.2.13",
+    "vue3-popper": "^1.5.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.16",
+    "@babel/eslint-parser": "^7.12.16",
+    "@types/bootstrap": "^5.2.4",
+    "@types/node": "^18.7.18",
+    "@typescript-eslint/eslint-plugin": "^5.38.0",
+    "@typescript-eslint/parser": "^5.38.0",
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-plugin-typescript": "^5.0.8",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/eslint-config-typescript": "^11.0.2",
+    "@vue/tsconfig": "^0.1.3",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-vue": "^8.0.3",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.7.1",
+    "sass": "^1.55.0",
+    "sass-loader": "^13.0.2",
+    "typescript": "^4.8.3",
+    "vue-cli-plugin-pinia": "~0.1.6",
+    "vue-eslint-parser": "^9.1.0",
+    "vue-tsc": "^0.40.13"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "license": "AGPL-3.0-or-later",
+  "repository": "https://framagit.org/flopedt/FlOpEDT"
+}

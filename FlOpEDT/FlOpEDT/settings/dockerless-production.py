@@ -47,6 +47,8 @@ CACHES = {
     }
 }
 
+SECURE_SSL_REDIRECT = True
+
 CRONJOBS = [
     ('0 4 * * *', 'notifications.cron.backup_and_notify')
 ]

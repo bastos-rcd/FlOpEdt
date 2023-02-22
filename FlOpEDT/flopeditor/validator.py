@@ -608,3 +608,26 @@ def student_groups_from_full_names(full_names, department):
         gg = GenericGroup.objects.get(train_prog__abbrev=tp, name=gp, train_prog__department=department)
         gp_to_return.add(gg)
     return gp_to_return
+
+
+def validate_room_attributes_values(name, description, entries):
+    """Validate parameters for room attribute's CRUD
+
+    :param abbrev: department abbreviation to test
+    :type abbrev: str
+    :param name: department name to test
+    :type name: str
+    :param entries: list that is returned to CrudJS
+    :type abbrev: list
+    :return: (boolean,json) (are the paramaters valid , status and errors)
+    """
+    # Verifie la validite du slug
+    if not name:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le nom de l'attribut ne peut pas être vide."])
+    elif len(name) > 20:
+        entries['result'].append([ERROR_RESPONSE,
+                                  "Le nom de l'attribut est trop long."])
+    else:
+        return True
+    return False

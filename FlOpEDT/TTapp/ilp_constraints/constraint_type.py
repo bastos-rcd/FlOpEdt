@@ -41,6 +41,8 @@ class ConstraintType(Enum):
     IBHD_SUP = "IBHD_supérieur"
     GBHD_INF = "GBHD_inférieur"
     GBHD_SUP = "GBHD_supérieur"
+    GBD_INF = "GBD_inférieur"
+    GBD_SUP = "GBD_supérieur"
     CONJONCTION = "Conjonction"
     SEUIL = "Seuil"
     CEILING_BOUND = "CEILING_BOUND"
@@ -51,6 +53,7 @@ class ConstraintType(Enum):
     PAS_PLUS_1_COURS_PAR_CRENEAU = "Pas plus d'un cours par créneau"
     COURS_DOIT_ETRE_PLACE = "Le cours doit être placé"
     COURS_DOIT_AVOIR_PROFESSEUR = "Le cours doit avoir un professeur"
+    PRE_ASSIGNED_TUTORS_ONLY = "PRE_ASSIGNED_TUTORS_ONLY"
     PROFESSEUR_NE_PEUT_DONNER_2_COURS_EN_MEME_TEMPS = "Le professeur ne peut pas donner 2 cours en même temps"
     CORE_ROOMS = "Core rooms"
     SUPP_TUTOR = "Supp tutor"
@@ -142,6 +145,9 @@ class ConstraintType(Enum):
     Undesired_slots_limit = "Undesired_slots_limit"
     LimitSimultaneousCoursesNumber = "LimitSimultaneousCoursesNumber"
     MinimizeBusyDays = "MinimizeBusyDays"
+    AVOID_BOTH_TIME_SAME_DAY = "AVOID_BOTH_TIME_SAME_DAY"
+    NOT_ALONE = "NOT_ALONE"
+    LimitBusySlots = "LimitBusySlots"
 
     # From minhalfdays
     MIN_HALF_DAYS_LIMIT = "Min Half Days limit"

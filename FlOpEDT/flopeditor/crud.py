@@ -35,7 +35,7 @@ from django.shortcuts import get_object_or_404
 from base.models import Department
 from flopeditor.cruds import training_programmes, student_group_type,\
     rooms, room_types, student_structural_group, course_type, period, module, tutors, student_transversal_group, \
-    students
+    students, room_attributes
 
 
 def good_request(request, department):
@@ -164,6 +164,20 @@ def crud_room_types(request, department_abbrev):
 
     """
     return crud_model(request, department_abbrev, room_types)
+
+
+def crud_room_attributes(request, department_abbrev):
+    """Crud url for room types edition
+
+    :param request: Client request.
+    :type request:  django.http.HttpRequest
+    :param department_abbrev: Department abbreviation.
+    :type department_abbrev:  String
+    :return: Server response for the request.
+    :rtype:  django.http.JsonResponse
+
+    """
+    return crud_model(request, department_abbrev, room_attributes)
 
 
 def crud_student_group_type(request, department_abbrev):

@@ -46,19 +46,6 @@ from base.models import Department, Week, Theme
 logger = logging.getLogger(__name__)
 
 
-def redirect_add_people_kind(req, kind):
-    if kind == "stud":
-        return redirect('people:add_student')
-    elif kind == "full":
-        return redirect('people:add_fullstaff')
-    elif kind == "supp":
-        return redirect('people:add_supplystaff')
-    elif kind == "BIAT":
-        return redirect('people:add_BIATOS')
-    else:
-        raise Http404("I don't know this kind of people.")
-
-
 @login_required
 def redirect_change_people_kind(req):
     if req.user.is_student:
@@ -206,12 +193,6 @@ def student_preferences(req):
         else:
             # Make a decorator instead
             raise Http404("Who are you?")
-
-
-def create_user(req):
-    logger.info(f'REQ: create user {req.user}')
-    logger.info(f'has dpt perm: {req.has_department_perm}')
-    return TemplateResponse(req, 'people/login_create.html')
 
 
 def fetch_user_preferred_links(req, **kwargs):

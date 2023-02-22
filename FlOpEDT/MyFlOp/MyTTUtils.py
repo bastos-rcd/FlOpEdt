@@ -28,7 +28,7 @@ import functools
 
 from TTapp.TTUtils import basic_reassign_rooms, basic_swap_version, \
     basic_delete_work_copy, basic_duplicate_work_copy, basic_delete_all_unused_work_copies, \
-    duplicate_what_can_be_in_other_weeks
+    duplicate_what_can_be_in_other_weeks, number_courses
 from base.models import ScheduledCourse, Department, Week
 from people.models import Tutor
 
@@ -105,3 +105,11 @@ def duplicate_work_copy(department, week_nb, year, work_copy):
 def duplicate_in_other_weeks(department, week_nb, year, work_copy):
     week = Week.objects.get(nb=week_nb, year=year)
     return duplicate_what_can_be_in_other_weeks(department, week, work_copy)
+
+
+@resolve_department
+def number_courses_from_this_week(department, week_nb, year, work_copy):
+    if work_copy != 0:
+        return
+    week = Week.objects.get(nb=week_nb, year=year)
+    return number_courses(department, from_week=week)

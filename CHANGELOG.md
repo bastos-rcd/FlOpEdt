@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - SimultaneousCourses pre-analyze
 - Pre-analyses tests (ConsiderDependencies, ConsiderTutorUnavailabilities, 
 NoSimultaneousGroupCourses, SimultaneousCourses)
+- TTConstraints manager interface: CRUD
+- RoomReservation interface : gesture of room attributes, reservation types, periodicity
 
 ### Changed
 

@@ -62,7 +62,7 @@ from base.models import Course, UserPreference, ScheduledCourse, EdtVersion, \
     CourseModification, Room, RoomType, RoomSort, \
     RoomPreference, Department, CoursePreference, \
     TrainingProgramme, CourseType, Module, StructuralGroup, EnrichedLink, \
-    ScheduledCourseAdditional, GroupPreferredLinks, Week, Theme
+    ScheduledCourseAdditional, GroupPreferredLinks, Week, Theme, CourseAdditional
 import base.queries as queries
 from base.weeks import *
 
@@ -883,9 +883,12 @@ def fetch_all_modules_with_desc(req, **kwargs):
 # CHANGERS
 # ----------
 
-def clean_change(week, old_version, change, work_copy=0, initiator=None, apply=False):
+def clean_change(week, old_version, change, work_copy=0,
+                 initiator=None, apply=False, department=None):
+    from TTapp.TTUtils import number_courses
 
     scheduled_before = True
+    renumber = False
     course = Course.objects.get(id=change['id'])
     try:
         sched_course = ScheduledCourse.objects.get(course=course,
@@ -922,6 +925,10 @@ def clean_change(week, old_version, change, work_copy=0, initiator=None, apply=F
         raise Exception(f"Problème : salle {change['room']} inconnue")
 
     # Timing
+    if (not scheduled_before
+        or not (change['start'] == sched_course.start_time
+                and change['day'] == sched_course.day)):
+        renumber = True
     ret['sched'].start_time = change['start']
     ret['sched'].day = change['day']
 
@@ -936,11 +943,27 @@ def clean_change(week, old_version, change, work_copy=0, initiator=None, apply=F
     except ObjectDoesNotExist:
         raise Exception(f"Problème : prof {change['tutor']} inconnu")
 
+    # Grade
+    try:
+        additional = CourseAdditional.objects.get(course=course)
+    except CourseAdditional.DoesNotExist:
+        additional = None
+        if change['graded']:
+            additional = CourseAdditional(course=course)
+    if additional is not None:
+        additional.graded = change['graded']
+        additional.save()
+
     if apply:
         ret['course'].save()
         ret['sched'].save()
         if work_copy == 0:
             ret['log'].save()
+            if renumber:
+                # (using from_week makes it starts from 1)
+                number_courses(department,
+                               modules=sched_course.course.module,
+                               course_types=sched_course.course.type)
 
     # outside the log for now
     if change['id_visio'] > -1:
@@ -998,7 +1021,8 @@ def edt_changes(req, **kwargs):
 
     recv_changes = json.loads(req.POST.get('tab', []))
 
-    msg = ''
+    intro = f'Bonjour,\n\n{initiator.first_name} {initiator.last_name} a effectué les modifications suivantes \n\n'
+    msg = {}
 
     logger.info(f"REQ: edt change; W{week} WC{work_copy} V{old_version} "
                 f"by {initiator.username}")
@@ -1020,12 +1044,15 @@ def edt_changes(req, **kwargs):
         with transaction.atomic():
             try:
                 for change in recv_changes:
-                    new_courses = clean_change(week, old_version, change, work_copy=work_copy,
-                                               initiator=initiator, apply=True)
+                    new_courses = clean_change(week, old_version, change,
+                                               work_copy=work_copy,
+                                               initiator=initiator, apply=True,
+                                               department=department)
                     if work_copy == 0:
                         same, changed = new_courses['log'].strs_course_changes(
                         )
-                        msg += str(new_courses['log'])
+                        impacted_tutor = new_courses['sched'].tutor
+                        msg[impacted_tutor] = str(new_courses['log'])
                         impacted_inst.add(new_courses['course'].tutor)
                         impacted_inst.add(new_courses['sched'].tutor)
                         if None in impacted_inst:
@@ -1042,6 +1069,23 @@ def edt_changes(req, **kwargs):
 
             cache.delete(get_key_course_pl(department.abbrev, week, work_copy))
             cache.delete(get_key_course_pp(department.abbrev, week, work_copy))
+
+        if work_copy == 0:
+            subject = '[flop!EDT] ' + initiator.username + ' a changé votre EDT'
+
+            if initiator in impacted_inst:
+                impacted_inst.remove(initiator)
+            for tutor in impacted_inst:
+                notif_pref, created = NotificationsPreferences.objects.get_or_create(user=tutor)
+                if notif_pref.notify_other_user_modifications:
+                    email = EmailMessage(
+                        subject,
+                        msg[tutor],
+                        to=[tutor.email]
+                    )
+                    #email.send()
+                    print(msg[tutor])
+                    logger.info(email)
 
         return JsonResponse(good_response)
     else:
@@ -1316,6 +1360,7 @@ def course_preferences_changes(req, year, week, train_prog, course_type, **kwarg
 
 @tutor_required
 def decale_changes(req, **kwargs):
+    from TTapp.TTUtils import number_courses
     bad_response = HttpResponse("KO")
     good_response = HttpResponse("OK")
     print(req)
@@ -1357,6 +1402,9 @@ def decale_changes(req, **kwargs):
                     week=old_week, department=req.department)
                 ev.version += 1
                 ev.save()
+                number_courses(req.department,
+                               modules=scheduled_course.course.module,
+                               course_types=scheduled_course.course.type)
             else:
                 cache.delete(get_key_course_pp(req.department.abbrev,
                                                old_week,

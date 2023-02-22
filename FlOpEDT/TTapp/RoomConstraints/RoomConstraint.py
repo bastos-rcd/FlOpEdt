@@ -30,6 +30,7 @@ from core.decorators import timer
 
 from TTapp.FlopConstraint import FlopConstraint
 from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.slots import slots_filter
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
@@ -96,6 +97,146 @@ class RoomConstraint(FlopConstraint):
                                                                room_type=room_type,
                                                                tutor=tutor)
 
+
+class LimitSimultaneousRoomCourses(RoomConstraint):
+    """
+    Only one course for each considered room on simultaneous slots
+    """
+    rooms = models.ManyToManyField('base.Room', blank=True)
+    can_combine_two_groups_if_no_tutor = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _('Limit simultaneous courses for rooms')
+        verbose_name_plural = verbose_name
+
+    def one_line_description(self):
+        text =  f"Pas plus d'un cours à la fois dans "
+        if self.rooms.exists():
+            text += f"dans les salles {', '.join(room.name for room in self.rooms.all())}."
+        else:
+            text += "chaque salle"
+        if self.can_combine_two_groups_if_no_tutor:
+            text += " (2 groupes en autonomie peuvent y être mis ensemble)."
+        else:
+            text+='.'
+        return text
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+        considered_rooms = set(ttmodel.wdb.basic_rooms)
+        if self.rooms.exists():
+            considered_rooms = considered_rooms & set(self.rooms.all())
+        relevant_slots = slots_filter(ttmodel.wdb.availability_slots, week=week)
+
+        for r in considered_rooms:
+            for sl in relevant_slots:
+                all_courses_sum = ttmodel.sum(ttmodel.TTrooms[(sl2, c, rg)]
+                                              for (c, rg) in ttmodel.wdb.room_course_compat[r]
+                                              for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c], simultaneous_to=sl)
+                                              )
+                if self.can_combine_two_groups_if_no_tutor:
+                    no_tutor_courses_sum = ttmodel.sum(ttmodel.TTrooms[(sl2, c, rg)]
+                                                       for (c, rg) in ttmodel.wdb.room_course_compat[r]
+                                                       if c.tutor is None
+                                                       for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                                               simultaneous_to=sl)
+                                                       )
+
+                    tutor_courses_sum = ttmodel.sum(ttmodel.TTrooms[(sl2, c, rg)]
+                                                    for (c, rg) in ttmodel.wdb.room_course_compat[r]
+                                                    if c.tutor is not None
+                                                    for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                                            simultaneous_to=sl)
+                                                    )
+                    if self.weight is None:
+                        ttmodel.add_constraint(2 * tutor_courses_sum + no_tutor_courses_sum,
+                                               '<=', 2 * ttmodel.avail_room[r][sl],
+                                               Constraint(constraint_type=ConstraintType.CORE_ROOMS,
+                                                          rooms=r, slots=sl))
+
+                    else:
+                        if not ttmodel.avail_room[r][sl]:
+                            ttmodel.add_constraint(all_courses_sum,
+                                                   '==', 0,
+                                                   Constraint(constraint_type=ConstraintType.CORE_ROOMS,
+                                                              rooms=r, slots=sl))
+                        else:
+                            undesired_situation = ttmodel.add_floor(2 * tutor_courses_sum + no_tutor_courses_sum,
+                                                                    3,
+                                                                    1000)
+                            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation, week=week)
+
+                else:
+                    if self.weight is None:
+                        ttmodel.add_constraint(all_courses_sum,
+                                               '<=', ttmodel.avail_room[r][sl],
+                                               Constraint(constraint_type=ConstraintType.CORE_ROOMS,
+                                                          rooms=r, slots=sl))
+                    else:
+                        if not ttmodel.avail_room[r][sl]:
+                            ttmodel.add_constraint(all_courses_sum,
+                                                   '==', 0,
+                                                   Constraint(constraint_type=ConstraintType.CORE_ROOMS,
+                                                              rooms=r, slots=sl))
+                        else:
+                            undesired_situation = ttmodel.add_floor(all_courses_sum,
+                                                                    2,
+                                                                    1000)
+                            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation, week=week)
+
+    def enrich_room_model(self, room_model, week, ponderation=1.):
+        considered_rooms = set(room_model.basic_rooms)
+        if self.rooms.exists():
+            considered_rooms = considered_rooms & set(self.rooms.all())
+        for basic_room in considered_rooms:
+            for sl in room_model.slots:
+                all_courses_sum = room_model.sum(room_model.TTrooms[(course, room)]
+                                                 for (course, room) in room_model.room_course_compat[basic_room]
+                                                 if sl.is_simultaneous_to(room_model.corresponding_scheduled_course[course]))
+                if self.can_combine_two_groups_if_no_tutor:
+                    no_tutor_courses_sum = room_model.sum(room_model.TTrooms[(course, room)]
+                                                          for (course, room) in room_model.room_course_compat[basic_room]
+                                                          if course.tutor is None
+                                                          and sl.is_simultaneous_to(room_model.corresponding_scheduled_course[course]))
+                    tutor_courses_sum = room_model.sum(room_model.TTrooms[(course, room)]
+                                                        for (course, room) in room_model.room_course_compat[basic_room]
+                                                        if course.tutor is not None
+                                                        and sl.is_simultaneous_to(room_model.corresponding_scheduled_course[course]))
+
+                    if self.weight is None:
+                        room_model.add_constraint(2 * tutor_courses_sum + no_tutor_courses_sum,
+                                                  '<=', 2 * room_model.avail_room[basic_room][sl],
+                                                  Constraint(constraint_type=ConstraintType.CORE_ROOMS,
+                                                             rooms=basic_room, slots=sl))
+                    else:
+                        if not room_model.avail_room[basic_room][sl]:
+                            room_model.add_constraint(all_courses_sum,
+                                                      '==', 0,
+                                                      Constraint(constraint_type=ConstraintType.CORE_ROOMS,
+                                                                 rooms=basic_room, slots=sl))
+                        else:
+                            undesired_situation = room_model.add_floor(2 * tutor_courses_sum + no_tutor_courses_sum,
+                                                                       3,
+                                                                       1000)
+                            room_model.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation,
+                                                           week=week)
+                else:
+                    if self.weight is None:
+                        room_model.add_constraint(all_courses_sum,
+                                                  '<=', room_model.avail_room[basic_room][sl],
+                                                  Constraint(constraint_type=ConstraintType.CORE_ROOMS,
+                                                             rooms=basic_room, slots=sl))
+                    else:
+                        if not room_model.avail_room[basic_room][sl]:
+                            room_model.add_constraint(all_courses_sum,
+                                                      '==', 0,
+                                                      Constraint(constraint_type=ConstraintType.CORE_ROOMS,
+                                                                 rooms=basic_room, slots=sl))
+                        else:
+                            undesired_situation = room_model.add_floor(all_courses_sum,
+                                                                       room_model.avail_room[basic_room][sl] + 1,
+                                                                       1000)
+                            room_model.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation,
+                                                           week=week)
 
 
 class LimitedRoomChoices(RoomConstraint):
@@ -205,6 +346,9 @@ class ConsiderRoomSorts(RoomConstraint):
                 considered_courses = tutor_courses & room_model.courses_for_room_type[room_type]
                 preferred = room_sort.prefer
                 unpreferred = room_sort.unprefer
+                members = room_type.members.all()
+                if preferred not in members or unpreferred not in members:
+                    continue
                 preferred_sum = room_model.sum(room_model.TTrooms[(course, preferred)]
                                                for course in considered_courses)
                 unpreferred_sum = room_model.sum(room_model.TTrooms[(course, unpreferred)]
@@ -223,19 +367,40 @@ class LocateAllCourses(RoomConstraint):
         verbose_name = _('Assign a room to the courses')
         verbose_name_plural = verbose_name
 
-    def enrich_room_model(self, room_model, week, ponderation=1):
-        considered_courses = room_model.courses_for_week[week]
+    def considered_courses(self, courses_of_the_week):
+        courses_to_consider = courses_of_the_week
         if self.modules.exists():
-            considered_courses = set(c for c in considered_courses if c.module in self.modules.all())
+            courses_to_consider = set(c for c in courses_to_consider if c.module in self.modules.all())
         if self.course_types.exists():
-            considered_courses = set(c for c in considered_courses if c.type in self.course_types.all())
+            courses_to_consider = set(c for c in courses_to_consider if c.type in self.course_types.all())
+        return courses_to_consider
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+        considered_courses = self.considered_courses(ttmodel.wdb.courses_by_week[week])
+        for c in considered_courses:
+            for sl in ttmodel.wdb.compatible_slots[c]:
+                undesired_situation = ttmodel.TT[(sl, c)] - \
+                                      ttmodel.sum(ttmodel.TTrooms[(sl, c, r)] for r in ttmodel.wdb.course_rg_compat[c])
+                if self.weight is None:
+                    ttmodel.add_constraint(undesired_situation,
+                                           '==', 0,
+                                           Constraint(constraint_type=ConstraintType.LOCATE_ALL_COURSES,
+                                                      slots=sl, courses=c))
+                else:
+                    ttmodel.add_to_slot_cost(sl, undesired_situation * self.local_weight() * ponderation, week)
+
+    def enrich_room_model(self, room_model, week, ponderation=1):
+        considered_courses = self.considered_courses(room_model.courses_for_week[week])
         for course in considered_courses:
             relevant_sum = room_model.sum(room_model.TTrooms[(course, room)]
                                           for room in room_model.course_room_compat[course])
-            room_model.add_constraint(relevant_sum, '==', 1,
-                                      Constraint(constraint_type=ConstraintType.LOCATE_ALL_COURSES,
-                                                 courses=course))
-
+            if self.weight is None:
+                room_model.add_constraint(relevant_sum, '==', 1,
+                                          Constraint(constraint_type=ConstraintType.LOCATE_ALL_COURSES,
+                                                     courses=course))
+            else:
+                room_model.add_to_generic_cost((room_model.one_var - relevant_sum) * self.local_weight() * ponderation,
+                                               week)
 
 class LimitMoves(RoomConstraint):
     class Meta:

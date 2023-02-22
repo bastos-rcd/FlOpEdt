@@ -38,6 +38,12 @@
               Catégories de salles
           </a>
       </li>
+    <li class="nav-item">
+          <a  class="nav-link {% block card-nav-classes-room-attributes %}{% endblock %}"
+              href="{% url 'flopeditor:flopeditor-department-room-attributes' department_abbrev=department.abbrev %}">
+              Attributs de salles
+          </a>
+      </li>
 {% endblock %}
 
 

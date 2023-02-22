@@ -29,7 +29,7 @@ from TTapp.FlopConstraint import FlopConstraint, all_subclasses
 from base.models import Department
 import TTapp.TTConstraints.visio_constraints as ttv
 from django.contrib.postgres.fields.array import ArrayField
-from base.timing import all_possible_start_times
+from base.timing import all_possible_start_times, Day
 
 from drf_yasg import openapi
 from rest_framework import viewsets
@@ -136,11 +136,11 @@ class TTMinNonPreferedSlotsViewSet(viewsets.ModelViewSet):
 
 class TTAvoidBothTimesViewSet(viewsets.ModelViewSet):
     
-    ViewSet to see all the AvoidBothTimes.
+    ViewSet to see all the AvoidBothTimesSameDay.
 
     Can be filtered as wanted with every field of a AvoidBothTime object.
     
-    queryset = ttm.AvoidBothTimes.objects.all()
+    queryset = ttm.AvoidBothTimesSameDay.objects.all()
     serializer_class = serializers.TTAvoidBothTimesSerializer
     permission_classes = [IsAdminOrReadOnly]
 
@@ -401,6 +401,31 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
             flop_constraints_fields |= parameters_fields
 
         fields_list = list(flop_constraints_fields)
+        """
+        [<django.db.models.fields.PositiveSmallIntegerField: time2>, <django.db.models.fields.PositiveSmallIntegerField: nb_max>, 
+        <django.db.models.fields.PositiveSmallIntegerField: nb_min>, <django.db.models.fields.BooleanField: join2courses>, 
+        <django.db.models.fields.PositiveSmallIntegerField: slot_start_time>, <django.db.models.fields.PositiveSmallIntegerField: curfew_time>, 
+        <django.db.models.fields.related.ManyToManyField: weeks>, <django.db.models.fields.PositiveSmallIntegerField: slot_end_time>, 
+        <django.db.models.fields.PositiveSmallIntegerField: max_number>, <django.db.models.fields.PositiveSmallIntegerField: max_holes_per_day>, 
+        <django.db.models.fields.PositiveSmallIntegerField: max_holes_per_week>, <django.db.models.fields.PositiveSmallIntegerField: limit>, 
+        <django.db.models.fields.PositiveSmallIntegerField: min_time_per_period>, <django.db.models.fields.PositiveSmallIntegerField: max_time_per_period>, 
+        <django.db.models.fields.PositiveSmallIntegerField: tolerated_margin>, <django.db.models.fields.PositiveSmallIntegerField: max_hours>, 
+        <django.db.models.fields.CharField: period>, <django.db.models.fields.PositiveSmallIntegerField: number_of_weeks>, 
+        <django.db.models.fields.related.ManyToManyField: guide_tutors>, <django.db.models.fields.PositiveSmallIntegerField: min_days_nb>, 
+        <django.db.models.fields.PositiveSmallIntegerField: lower_bound_hours>, <django.db.models.fields.PositiveSmallIntegerField: work_copy>, 
+        <django.contrib.postgres.fields.array.ArrayField: fixed_days>, <django.db.models.fields.related.ManyToManyField: train_progs>, 
+        <django.db.models.fields.related.ForeignKey: module>, <django.db.models.fields.related.ForeignKey: tutor>, 
+        <django.db.models.fields.related.ForeignKey: group>, <django.db.models.fields.related.ForeignKey: course_type>, 
+        <django.db.models.fields.related.ManyToManyField: possible_rooms>, <django.db.models.fields.PositiveSmallIntegerField: start_time>, 
+        <django.db.models.fields.PositiveSmallIntegerField: end_time>, <django.db.models.fields.related.ManyToManyField: tutors>, 
+        <django.db.models.fields.PositiveSmallIntegerField: lunch_length>, <django.db.models.fields.CharField: weekday>, 
+        <django.db.models.fields.PositiveSmallIntegerField: min_break_length>, <django.db.models.fields.CharField: tutor_status>, 
+        <django.contrib.postgres.fields.array.ArrayField: possible_week_days>, <django.contrib.postgres.fields.array.ArrayField: possible_start_times>,
+         <django.contrib.postgres.fields.array.ArrayField: forbidden_week_days>, <django.contrib.postgres.fields.array.ArrayField: weekdays>, 
+         <django.db.models.fields.related.ManyToManyField: groups>, <django.db.models.fields.related.ManyToManyField: course_types>, 
+         <django.db.models.fields.related.ManyToManyField: modules>, <django.contrib.postgres.fields.array.ArrayField: forbidden_start_times>, 
+         <django.db.models.fields.BooleanField: pre_assigned_only>, 
+        <django.db.models.fields.PositiveSmallIntegerField: percentage>, <django.db.models.fields.PositiveSmallIntegerField: time1>]"""
 
         for field in fields_list:
             acceptable = []
@@ -408,25 +433,32 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                 typename = type(field).__name__
 
                 # Récupère les validators dans acceptable
-                if typename == 'CharField':
-                    choices = field.choices
-                    if "day" in field.name:
-                        acceptable = department.timegeneralsettings.days
-                    elif choices is not None:
-                        acceptable = [c[0] for c in choices]
                 if typename == 'BooleanField':
                     acceptable = [True, False]
 
-                if type(field) is ArrayField:
+                elif typename == 'CharField':
+                    choices = field.choices
+                    if "start_time" in field.name:
+                        acceptable = all_possible_start_times(department)
+                    elif choices is not None:
+                        if "day" in field.name:
+                            acceptable_days = department.timegeneralsettings.days
+                            acceptable = [choice[0] for choice in Day.CHOICES if choice[0] in acceptable_days]
+                        else:
+                            acceptable = [c[0] for c in choices]
+
+                elif type(field) is ArrayField:
                     typename = type(field.base_field).__name__
                     # Récupère les choices de l'arrayfield dans acceptable
                     choices = field.base_field.choices
-                    if field.name == "possible_start_times":
+                    if "start_time" in field.name:
                         acceptable = all_possible_start_times(department)
                     elif "day" in field.name:
-                        acceptable = department.timegeneralsettings.days
+                        acceptable_days = department.timegeneralsettings.days
+                        acceptable = [choice[0] for choice in Day.CHOICES if choice[0] in acceptable_days]
                     elif choices is not None:
-                        acceptable = choices
+                        acceptable = [c[0] for c in choices]
+
 
             else:
                 # Récupère le modele en relation avec un ManyToManyField ou un ForeignKey
@@ -436,7 +468,7 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                 acceptablelist = mod.objects.values("id")
 
                 # Filtre les ID dans acceptable list en fonction du department
-                if field.name in ["tutor", "tutors", "room", "rooms", "possible_rooms"]:
+                if field.name in ["tutor", "tutors", "room", "rooms", "possible_rooms", "guide_tutors"]:
                     acceptablelist = acceptablelist.filter(departments=department)
 
                 elif field.name in ["train_progs", "course_type", "course_types"]:
