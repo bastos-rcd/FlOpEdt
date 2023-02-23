@@ -11,6 +11,7 @@ from TTapp.TTConstraints.core_constraints import NoSimultaneousGroupCourses, Con
 from TTapp.TTConstraints.slots_constraints import ConsiderDependencies, SimultaneousCourses
 import TTapp.tests.tools_test_pre_analyse.json_response as json_response_module
 
+
 def pre_analyse(department, week):
     """
         A global pre_analyse function that launch all "pre_analyse" on the existing TTConstraints for the given department and week.
@@ -53,29 +54,3 @@ def pre_analyse(department, week):
     json_dict = {"status": "OK", "messages": [], "period": {"week": week.nb, "year": week.year}}
 
     return json_dict
-
-
-
-
-
-# TODO : to delete, just a main to test
-if __name__ == "__main__":
-
-    #week = Week.objects.get(year=2022, nb=1)
-    #default_dep = Department.objects.get(abbrev="default")
-    #tutor = Tutor.objects.get(username="bibiTU")
-
-    # Departments
-    default_dep = Department.objects.get(abbrev="default")
-
-    # Constraints by departments
-    constraint_default_dep = NoSimultaneousGroupCourses.objects.get(department=default_dep)
-
-    # Weeks
-    week_10_2022 = Week.objects.get(year=2022, nb=31)
-
-    json_dict = constraint_default_dep.pre_analyse(week=week_10_2022)
-    print(json_dict)
-    #print(json_dict)
-    #print("________________________________________")
-    #createPartition(week,department=default_dep)
