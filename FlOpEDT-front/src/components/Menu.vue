@@ -81,6 +81,7 @@ a {
   padding: 0;
   overflow: hidden;
   background-color: #333;
+  width: 100%;
 }
 li:hover {
   background-color:rgb(200, 200, 200);
