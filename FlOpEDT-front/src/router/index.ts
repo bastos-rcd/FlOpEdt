@@ -4,6 +4,7 @@ export const routeNames = {
     home: Symbol('Home'),
     roomReservation: Symbol('room-reservation'),
     departmentSelection: Symbol('department-selection'),
+    contact: Symbol('contact'),
     notFound: Symbol('notFound'),
 }
 
@@ -14,6 +15,14 @@ const routes = [
         component: () => import('@/views/RoomReservationView.vue'),
         meta: {
             title: 'Réservation de salles',
+        },
+    },
+    {
+        path: '/contact/:dept?',
+        name: routeNames.contact,
+        component: () => import('@/views/ContactView.vue'),
+        meta: {
+            title: 'Contact page',
         },
     },
     {

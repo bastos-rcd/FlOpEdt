@@ -15,7 +15,7 @@
                 <a :href="`/fr/edt/${deptStore.getCurrentDepartment.abbrev}/aide`">Aide</a>
             </li>
             <li v-if="deptStore.isCurrentDepartmentSelected">
-                <a :href="`/fr/edt/${deptStore.getCurrentDepartment.abbrev}/contact/`">Contact</a>
+                <router-link :to="{name: routeNames.contact, params:{dept:deptStore.getCurrentDepartment.abbrev}}">Contact</router-link>
             </li>
             <li v-if="deptStore.isCurrentDepartmentSelected">
                 <a :href="`/fr/edt/${deptStore.getCurrentDepartment.abbrev}/modules`">Module</a>
@@ -49,8 +49,15 @@
 import { useAuth } from '@/stores/auth'
 import { useDepartmentStore } from '@/stores/department'
 import { routeNames } from '@/router'
+import { onMounted } from 'vue';
 const authStore = useAuth()
 const deptStore = useDepartmentStore()
+
+onMounted(() => {
+    if(!deptStore.isCurrentDepartmentSelected) {
+        deptStore.getDepartmentFromURL()
+    }
+})
 </script>
 
 <style scoped>
