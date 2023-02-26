@@ -6,17 +6,40 @@
       <label for="email">Votre adresse mail</label> 
       <input v-model="emailadress" id="email" type="email" @input="updateEmail()" placeholder="your@adresse.mail" required/>
       <label for="recipient">Nom de votre destinataire</label>
-      <input v-model="recipient" id="recipient" maxlength="120" @input="updateRecipient()" placeholder="Dupont" required/>
+      <input 
+        v-model="recipient"
+        id="recipient"
+        maxlength="20" 
+        @input="updateRecipient()" 
+        placeholder="Dupont" 
+        required/>
+
     </fieldset>
     <fieldset>
       <legend>Votre message</legend>
       <label for="subject">Objet de votre message</label>
-      <input v-model="subject" id="subject" @input="updateSubject()" placeholder="Final physics exam" required/>
+      <input 
+        v-model="subject"
+        type="text"
+        maxlength="100"
+        id="subject" 
+        @input="updateSubject()" 
+        placeholder="Final physics exam" 
+        required/>
+
       <label for="subject">Votre message</label>
-      <textarea v-model="message" id="message" cols="50" rows="10" @input="updateMessage()" placeholder="Hello Pr Dupont, when is our final exam ?" required>
+      <textarea 
+        v-model="message" 
+        id="message" 
+        cols="50" 
+        rows="10"
+        maxlength="2000"
+        @input="updateMessage()" 
+        placeholder="Hello Pr Dupont, when is our final exam ?" 
+        required>
       </textarea>
     </fieldset>
-    <input type="submit" value="Envoyer"/>  
+    <input class="form-button" type="submit" value="Envoyer"/>  
   </form>
 </template>
 
@@ -71,10 +94,13 @@ label {
   padding-right: 4px;
 }
 form {
-  background: rgba(0,0,0,0.2);
+  background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.1));
   width: 100%;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
+}
+.form-button:hover {
+  background: #9bb6a4;
 }
 
 </style>
