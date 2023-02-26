@@ -17,7 +17,7 @@
 import Menu from '@/components/Menu.vue';
 </script>
 
-<style>
+<style scoped>
 #flopGreen {
 	color: green;
 	font-family: inherit;

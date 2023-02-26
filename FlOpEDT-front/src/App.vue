@@ -1,8 +1,12 @@
 <template>
   <ProvideUser>
     <ProvideDepartment>
-      <Header></Header>
-      <router-view></router-view>
+      <header>
+        <Header></Header>
+      </header>
+      <main>
+        <router-view></router-view>
+      </main>
     </ProvideDepartment>
   </ProvideUser>
 </template>

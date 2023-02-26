@@ -69,7 +69,6 @@ a {
     flex-direction:row;
     color: white;
     font-size:14px;
-    font-weight:bold;
 }
 #menu-links li {
   float: left;
@@ -81,6 +80,7 @@ a {
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
+    font-weight:bold;
 }
 #menu-links ul {
   list-style-type: none;

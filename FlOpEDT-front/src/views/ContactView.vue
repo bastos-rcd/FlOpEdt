@@ -1,5 +1,4 @@
 <template>
-<h1>We are in contact page</h1>
 <ContactForm></ContactForm>
 
 </template>
@@ -8,5 +7,5 @@
 import ContactForm from '@/components/forms/ContactForm.vue';
 </script>
 
-<style>
+<style scoped>
 </style>

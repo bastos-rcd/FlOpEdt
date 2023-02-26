@@ -11,5 +11,5 @@ import { useAuth } from '@/stores/auth';
 const authStore = useAuth()
 </script>
 
-<style>
+<style scoped>
 </style>

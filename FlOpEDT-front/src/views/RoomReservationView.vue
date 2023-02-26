@@ -652,7 +652,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                                 slots.push(createScheduledCourseSlot(course, courseType, deptId))
                             } else {
                                 let isOneInDepartment = false
-                                courseRoom.basic_rooms.forEach((r) => {
+                                courseRoom.basic_rooms.forEach((r: Room) => {
                                     if (isRoomInSelectedDepartments(r.id)) {
                                         isOneInDepartment = true
                                     }
@@ -661,7 +661,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                                     console.log('No subrooms in good departments')
                                     //return
                                 }
-                                courseRoom.basic_rooms.forEach((r) => {
+                                courseRoom.basic_rooms.forEach((r: Room) => {
                                     const newCourse: ScheduledCourse = JSON.parse(JSON.stringify(course))
                                     newCourse.room = { id: r.id, name: r.name }
                                     e[0] = newCourse.room.id.toString()
