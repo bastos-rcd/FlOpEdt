@@ -1,16 +1,14 @@
 <template>
-    <header>
         <div id="full_logo">
-        <a style="text-decoration: none; font-family: inherit; color: inherit" href="/">
-            <span id="acro_logo"><span id=flopGreen >flop</span>!<span id=EDTRed >EDT</span></span>
-        </a>
-        <span id="head_logo"></span>
-        <a id="agpl" target="_blank" href="https://framagit.org/flopedt/flopedt">
-            <img src="@/assets/images/agplv3-88x31.png" height="31" width="88" alt="AGPL v.3"/>
-        </a>
+			<a style="text-decoration: none; font-family: inherit; color: inherit" href="/">
+				<span id="acro_logo"><span id=flopGreen >flop</span>!<span id=EDTRed >EDT</span></span>
+			</a>
+			<span id="head_logo"></span>
+			<a id="agpl" target="_blank" href="https://framagit.org/flopedt/flopedt">
+				<img src="@/assets/images/agplv3-88x31.png" height="31" width="88" alt="AGPL v.3"/>
+			</a>
         </div>
         <Menu></Menu>
-    </header>
 </template>
 
 <script setup lang="ts">

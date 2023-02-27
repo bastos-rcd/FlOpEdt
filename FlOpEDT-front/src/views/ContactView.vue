@@ -1,6 +1,7 @@
 <template>
-<ContactForm></ContactForm>
-
+    <section class="contact-form">
+        <ContactForm></ContactForm>
+    </section>
 </template>
 
 <script setup lang="ts">

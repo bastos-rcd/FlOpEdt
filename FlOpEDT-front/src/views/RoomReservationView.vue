@@ -1,128 +1,130 @@
 <template>
-    <div v-if="authStore.isUserAuthenticated">
-        <div class="loader" v-if="loaderIsVisible"></div>
-        <DeletePeriodicReservationDialog
-            :is-open="isReservationDeletionDialogOpen"
-            :reservation="reservationToDelete"
-            :on-confirm-current="reservationDeletionConfirmed"
-            :on-confirm-all="reservationRemoveAllSamePeriodicity"
-            :on-confirm-future="reservationRemoveCurrentAndFutureSamePeriodicity"
-            :on-cancel="closeReservationDeletionDialog"
-        ></DeletePeriodicReservationDialog>
-        <div class="container-fluid">
-            <div class="row">
-                <!-- Week picker and filters -->
-                <div class="col-6 col-md-5 col-lg-4 col-xl-3">
-                    <WeekPicker v-model:week="selectedDate.week" v-model:year="selectedDate.year"></WeekPicker>
-                    <div class="row">
-                        <!-- Filters -->
-                        <div class="col">
-                            <!-- Room filter -->
-                            <div class="row mb-3">
-                                <label for="select-room" class="form-label">Room:</label>
-                                <div v-if="selectedRoom" class="col-auto pe-0">
-                                    <button type="button" class="btn-close" @click="handleRoomNameClick(-1)"></button>
-                                </div>
+    <section>
+        <div v-if="authStore.isUserAuthenticated">
+            <div class="loader" v-if="loaderIsVisible"></div>
+            <DeletePeriodicReservationDialog
+                :is-open="isReservationDeletionDialogOpen"
+                :reservation="reservationToDelete"
+                :on-confirm-current="reservationDeletionConfirmed"
+                :on-confirm-all="reservationRemoveAllSamePeriodicity"
+                :on-confirm-future="reservationRemoveCurrentAndFutureSamePeriodicity"
+                :on-cancel="closeReservationDeletionDialog"
+            ></DeletePeriodicReservationDialog>
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- Week picker and filters -->
+                    <div class="col-6 col-md-5 col-lg-4 col-xl-3">
+                        <WeekPicker v-model:week="selectedDate.week" v-model:year="selectedDate.year"></WeekPicker>
+                        <div class="row">
+                            <!-- Filters -->
+                            <div class="col">
+                                <!-- Room filter -->
+                                <div class="row mb-3">
+                                    <label for="select-room" class="form-label">Room:</label>
+                                    <div v-if="selectedRoom" class="col-auto pe-0">
+                                        <button type="button" class="btn-close" @click="handleRoomNameClick(-1)"></button>
+                                    </div>
 
-                                <div class="col-auto">
-                                    <select
-                                        id="select-room"
-                                        v-model="selectedRoom"
-                                        class="form-select w-auto"
-                                        aria-label="Select room"
-                                    >
-                                        <option :value="undefined">All rooms</option>
-                                        <option
-                                            v-for="room in Object.values(rooms.perIdFilterBySelectedDepartments.value)
-                                                .filter((r) => r.is_basic)
-                                                .sort((r1, r2) => {
-                                                    return r1.name.toLowerCase().localeCompare(r2.name.toLowerCase())
-                                                })"
-                                            :key="room.id"
-                                            :value="room"
+                                    <div class="col-auto">
+                                        <select
+                                            id="select-room"
+                                            v-model="selectedRoom"
+                                            class="form-select w-auto"
+                                            aria-label="Select room"
                                         >
-                                            {{ room.name }}
-                                        </option>
-                                    </select>
+                                            <option :value="undefined">All rooms</option>
+                                            <option
+                                                v-for="room in Object.values(rooms.perIdFilterBySelectedDepartments.value)
+                                                    .filter((r) => r.is_basic)
+                                                    .sort((r1, r2) => {
+                                                        return r1.name.toLowerCase().localeCompare(r2.name.toLowerCase())
+                                                    })"
+                                                :key="room.id"
+                                                :value="room"
+                                            >
+                                                {{ room.name }}
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <!-- Department filter -->
-                            <div class="row mb-3">
-                                <label for="select-department" class="form-label">Department:</label>
-                                <div v-if="selectedDepartment" class="col-auto pe-0">
-                                    <button
-                                        type="button"
-                                        class="btn-close"
-                                        @click="handleDepartmentNameClick(-1)"
-                                    ></button>
-                                </div>
+                                <!-- Department filter -->
+                                <div class="row mb-3">
+                                    <label for="select-department" class="form-label">Department:</label>
+                                    <div v-if="selectedDepartment" class="col-auto pe-0">
+                                        <button
+                                            type="button"
+                                            class="btn-close"
+                                            @click="handleDepartmentNameClick(-1)"
+                                        ></button>
+                                    </div>
 
-                                <div class="col-auto">
-                                    <select
-                                        id="select-department"
-                                        v-model="selectedDepartment"
-                                        class="form-select w-auto ms-1"
-                                        aria-label="Select department"
-                                    >
-                                        <option :value="undefined">All departments</option>
-                                        <option
-                                            v-for="dept in departmentStore.getAllDepartmentsFetched"
-                                            :key="dept.id"
-                                            :value="dept"
+                                    <div class="col-auto">
+                                        <select
+                                            id="select-department"
+                                            v-model="selectedDepartment"
+                                            class="form-select w-auto ms-1"
+                                            aria-label="Select department"
                                         >
-                                            {{ dept.abbrev }}
-                                        </option>
-                                    </select>
+                                            <option :value="undefined">All departments</option>
+                                            <option
+                                                v-for="dept in departmentStore.getAllDepartmentsFetched"
+                                                :key="dept.id"
+                                                :value="dept"
+                                            >
+                                                {{ dept.abbrev }}
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <!-- Room attribute and name filters -->
-                            <div v-if="!selectedRoom" class="row">
-                                <div class="mb-3">
-                                    <ClearableInput
-                                        :input-id="'filter-input-roomName'"
-                                        :label="'Filter by room name:'"
-                                        v-model:text="roomNameFilter"
-                                    ></ClearableInput>
-                                </div>
-                                <div class="mb-3">
-                                    <DynamicSelect
-                                        v-bind="{
-                                            id: 'filter-select-attribute',
-                                            label: 'Filter by attributes:',
-                                            values: createFiltersValues(),
-                                        }"
-                                        v-model:selected-values="selectedRoomAttributes"
-                                    ></DynamicSelect>
+                                <!-- Room attribute and name filters -->
+                                <div v-if="!selectedRoom" class="row">
+                                    <div class="mb-3">
+                                        <ClearableInput
+                                            :input-id="'filter-input-roomName'"
+                                            :label="'Filter by room name:'"
+                                            v-model:text="roomNameFilter"
+                                        ></ClearableInput>
+                                    </div>
+                                    <div class="mb-3">
+                                        <DynamicSelect
+                                            v-bind="{
+                                                id: 'filter-select-attribute',
+                                                label: 'Filter by attributes:',
+                                                values: createFiltersValues(),
+                                            }"
+                                            v-model:selected-values="selectedRoomAttributes"
+                                        ></DynamicSelect>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <!-- Calendar -->
-                <div class="col">
-                    <!-- Caption -->
-                    <div class="row">
-                        <div class="col-auto">
-                            <div><span :style="{ color: scheduledCourseColor }">■ </span>Course</div>
+                    <!-- Calendar -->
+                    <div class="col">
+                        <!-- Caption -->
+                        <div class="row">
+                            <div class="col-auto">
+                                <div><span :style="{ color: scheduledCourseColor }">■ </span>Course</div>
+                            </div>
+                            <div v-for="type in roomReservationTypes.list.value" :key="type.id" class="col-auto">
+                                <div><span :style="{ color: type.bg_color }">■ </span>{{ type.name }}</div>
+                            </div>
                         </div>
-                        <div v-for="type in roomReservationTypes.list.value" :key="type.id" class="col-auto">
-                            <div><span :style="{ color: type.bg_color }">■ </span>{{ type.name }}</div>
-                        </div>
+                        <HourCalendar v-if="selectedRoom" @drag="handleDrag" :values="hourCalendarValues"></HourCalendar>
+                        <RoomCalendar
+                            v-else
+                            @new-slot="handleNewSlot"
+                            :values="roomCalendarValues"
+                            @row-header-click="handleRoomNameClick"
+                        ></RoomCalendar>
                     </div>
-                    <HourCalendar v-if="selectedRoom" @drag="handleDrag" :values="hourCalendarValues"></HourCalendar>
-                    <RoomCalendar
-                        v-else
-                        @new-slot="handleNewSlot"
-                        :values="roomCalendarValues"
-                        @row-header-click="handleRoomNameClick"
-                    ></RoomCalendar>
                 </div>
             </div>
         </div>
-    </div>
-    <div v-else>    
-        <Authentication></Authentication>
-    </div>
+        <div v-else>    
+            <Authentication></Authentication>
+        </div>
+    </section>
 </template>
 
 <script setup lang="ts">

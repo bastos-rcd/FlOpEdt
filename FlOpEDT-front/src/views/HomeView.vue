@@ -1,8 +1,6 @@
 <template>
-    <div>
+    <section>
         <h1>Welcome to FlOpEDT !</h1>
-    </div>
-    <main class="text-center">
         <div v-if="deptStore.isCurrentDepartmentSelected">
             <p>
                 You are in department {{ deptStore.getCurrentDepartment.abbrev }}
@@ -10,7 +8,7 @@
             <button @click="deptStore.cleanCurrentDepartment()">Change Department</button>
         </div>
         <DepartmentSelection v-else/>
-    </main>
+    </section>
 </template>
 
 <script setup lang="ts">
