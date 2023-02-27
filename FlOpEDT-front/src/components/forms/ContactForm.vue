@@ -1,5 +1,5 @@
 <template>
-  <form method="get" action="">
+  <form method="post" action="/fr/api/base/contact">
     <legend>Formulaire de contact</legend>
     <fieldset>
       <legend>Coordonnées et Destinataire</legend>

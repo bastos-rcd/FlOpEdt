@@ -21,7 +21,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 from rest_framework import routers
-
+from django.urls import path
 from api.base import views
 
 routerBase = routers.SimpleRouter()
@@ -37,7 +37,6 @@ routerBase.register(r'trainingprogram/name', views.TrainingProgrammeNameViewSet,
 # routerBase.register(r'periods', views.PeriodsViewSet)
 routerBase.register(r'timesettings', views.TimeGeneralSettingsViewSet, basename='timesettings')
 routerBase.register(r'weeks', views.WeeksViewSet, basename='weeks')
-
 # routerBase.register(r'edtversions', views.EdtVersionsViewSet)
 # routerBase.register(r'coursemodifications', views.CourseModificationsViewSet)
 # routerBase.register(r'tutorcosts', views.TutorCostsViewSet)
@@ -48,3 +47,8 @@ routerBase.register(r'weeks', views.WeeksViewSet, basename='weeks')
 # routerBase.register(r'regens', views.RegensViewSet)
 # routerBase.register(r'login', views.LoginView, basename="login")
 # routerBase.register(r'logout', views.LogoutView, basename="logout")
+url_base_patterns = [
+    path(r'contact', views.ContactView.as_view(), name='contactMail'),
+]
+
+url_base_patterns += routerBase.urls

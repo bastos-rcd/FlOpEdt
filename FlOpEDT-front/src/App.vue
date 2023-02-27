@@ -15,7 +15,6 @@
 import ProvideUser from '@/components/providers/ProvideUser.vue';
 import Header from '@/components/Header.vue';
 import ProvideDepartment from '@/components/providers/ProvideDepartment.vue';
-
 </script>
 
 <style>

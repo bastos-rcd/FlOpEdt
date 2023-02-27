@@ -21,12 +21,14 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 from drf_yasg.utils import swagger_auto_schema
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.shortcuts import redirect
 from api.base import serializers
 from rest_framework import viewsets
 import django_filters.rest_framework as filters
 import base.models as bm
-
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.http import *
@@ -331,3 +333,15 @@ class TrainingProgrammeViewSet(viewsets.ModelViewSet):
     queryset = bm.TrainingProgramme.objects.all()
     serializer_class = serializers.TrainingProgrammeSerializer
     filterset_class = TrainingProgrammeFilterSet
+
+
+class ContactView(APIView):
+
+    #permission_classes = [IsAuthenticated]
+    
+    def post(
+        self,
+        request
+    ):
+        # Need to retrieve the current department
+        return redirect('/contact/INFO')

@@ -36,8 +36,8 @@ routerPeople.register(r'students', views.StudentsViewSet)
 routerPeople.register(r'studentsinfo', views.StudentInfoViewSet)
 #routerPeople.register(r'coursepreferences', views_preferences.CoursePreferencesViewSet)
 
-urlpatterns = [
+url_user_patterns = [
     path(r'getcurrentuser/', views.getCurrentUserView.as_view(), name='getuser'),
 ]
 
-urlpatterns += routerPeople.urls
+url_user_patterns += routerPeople.urls

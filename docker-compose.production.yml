@@ -44,7 +44,7 @@ services:
     profiles:
       - full
  
-  web:
+  backend:
     restart: always
     image:  localhost:5000/${COMPOSE_PROJECT_NAME:-edt_pro_web}
     build: 
