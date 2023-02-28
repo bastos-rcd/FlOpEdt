@@ -1,0 +1,30 @@
+{
+    "navbar": {
+        "home": "Bienvenida",
+        "schedule": "Calendario",
+        "move-cancel": "Mover/Cancelar",
+        "preferences": "Preferencias",
+        "iCal": "iCal",
+        "help": "Ayuda",
+        "messages": "Contactar",
+        "modules": "Modulos",
+        "reservations": "Reservaciones",
+        "constraints": "Limitaciones",
+        "generate": "generar",
+        "flop-editor": "flop!Editor",
+        "import": "importar",
+        "admin": "Admin" 
+    },
+    "home": {
+        "welcome" : "Bienvenido a FlOpEDT !",
+        "department-message" : "Estas en department",
+        "department-button-change" : "Cambiar de departamento"
+    },
+    "department-selection": {
+        "title" : "Seleccione un departamento por favor"
+    },
+    "authentication": {
+        "message": "Inicie sesión para acceder a esta página:",
+        "login-button": "conexión"
+    }
+}

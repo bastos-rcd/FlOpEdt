@@ -1,4 +1,20 @@
 {
+    "navbar": {
+        "home": "Home",
+        "schedule": "Schedule",
+        "move-cancel": "Move/Cancel",
+        "preferences": "Preferences",
+        "iCal": "iCal",
+        "help": "Help",
+        "messages": "Messages",
+        "modules": "Modules",
+        "reservations": "Reservations",
+        "constraints": "Constraints",
+        "generate": "Generate",
+        "flop-editor": "flop!Editor",
+        "import": "Import",
+        "admin": "Admin" 
+    },
     "home": {
         "welcome" : "Welcome to FlOpEDT !",
         "department-message" : "You are in department",
@@ -6,5 +22,9 @@
     },
     "department-selection": {
         "title" : "Please select a department"
+    },
+    "authentication": {
+        "message": "Please login to access this page:",
+        "login-button": "login"
     }
 }

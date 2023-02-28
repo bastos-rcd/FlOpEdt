@@ -1,4 +1,20 @@
 {
+    "navbar": {
+        "home": "Accueil",
+        "schedule": "Consulter",
+        "move-cancel": "Décaler/Annuler",
+        "preferences": "Préférences",
+        "iCal": "iCal",
+        "help": "Aide",
+        "messages": "Contact",
+        "modules": "Modules",
+        "reservations": "Réservations",
+        "constraints": "Contraintes",
+        "generate": "Générer",
+        "flop-editor": "flop!Editor",
+        "import": "Importer",
+        "admin": "Admin" 
+    },
     "home": {
         "welcome" : "Bienvenue sur FlOpEDT !",
         "department-message" : "Vous êtes dans le département",
@@ -6,5 +22,9 @@
     },
     "department-selection": {
         "title" : "Veuillez sélectionner un département"
+    },
+    "authentication": {
+        "message": "Veuillez vous connecter pour accéder à la page:",
+        "login-button": "Connexion"
     }
 }
