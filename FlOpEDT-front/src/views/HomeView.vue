@@ -1,11 +1,11 @@
 <template>
     <section>
-        <h1>Welcome to FlOpEDT !</h1>
+        <h1>{{ $t('home.welcome') }}</h1>
         <div v-if="deptStore.isCurrentDepartmentSelected">
             <p>
-                You are in department {{ deptStore.getCurrentDepartment.abbrev }}
+                {{ $t('home.department-message') }}  {{ deptStore.getCurrentDepartment.abbrev }}
             </p>
-            <button @click="deptStore.cleanCurrentDepartment()">Change Department</button>
+            <button @click="deptStore.cleanCurrentDepartment()">{{ $t('home.department-button-change') }}</button>
         </div>
         <DepartmentSelection v-else/>
     </section>
@@ -13,6 +13,9 @@
 
 <script setup lang="ts">
 import { useDepartmentStore } from '@/stores/department'
-import DepartmentSelection from '@/components/DepartmentSelection.vue';
+import DepartmentSelection from '@/components/DepartmentSelection.vue'
+import { useI18n } from 'vue-i18n'
+
+const t = useI18n()
 const deptStore = useDepartmentStore()
 </script>

@@ -1,0 +1,10 @@
+{
+    "home": {
+        "welcome" : "Bienvenue sur FlOpEDT !",
+        "department-message" : "Vous êtes dans le département",
+        "department-button-change" : "Choix departement"
+    },
+    "department-selection": {
+        "title" : "Veuillez sélectionner un département"
+    }
+}

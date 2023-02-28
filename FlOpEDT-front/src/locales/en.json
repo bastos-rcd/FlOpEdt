@@ -1,0 +1,10 @@
+{
+    "home": {
+        "welcome" : "Welcome to FlOpEDT !",
+        "department-message" : "You are in department",
+        "department-button-change" : "Change department"
+    },
+    "department-selection": {
+        "title" : "Please select a department"
+    }
+}

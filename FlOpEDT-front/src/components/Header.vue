@@ -9,10 +9,12 @@
 			</a>
         </div>
         <Menu></Menu>
+		<ChangeLocale></ChangeLocale>
 </template>
 
 <script setup lang="ts">
-import Menu from '@/components/Menu.vue';
+import Menu from '@/components/Menu.vue'
+import ChangeLocale from '@/components/utils/ChangeLocale.vue'
 </script>
 
 <style scoped>
