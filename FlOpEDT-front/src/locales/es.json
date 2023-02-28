@@ -1,12 +1,12 @@
 {
     "navbar": {
         "home": "Bienvenida",
-        "schedule": "Calendario",
+        "schedule": "Horario",
         "move-cancel": "Mover/Cancelar",
         "preferences": "Preferencias",
         "iCal": "iCal",
         "help": "Ayuda",
-        "messages": "Contactar",
+        "messages": "Mensajes",
         "modules": "Modulos",
         "reservations": "Reservaciones",
         "constraints": "Limitaciones",
@@ -22,6 +22,9 @@
     },
     "department-selection": {
         "title" : "Seleccione un departamento por favor"
+    },
+    "language-selection": {
+        "label": "Cambiar idioma"
     },
     "authentication": {
         "message": "Inicie sesión para acceder a esta página:",

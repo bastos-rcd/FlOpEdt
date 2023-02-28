@@ -23,6 +23,9 @@
     "department-selection": {
         "title" : "Please select a department"
     },
+    "language-selection": {
+        "label": "Change language"
+    },
     "authentication": {
         "message": "Please login to access this page:",
         "login-button": "login"

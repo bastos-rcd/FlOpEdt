@@ -49,7 +49,8 @@ import ChangeLocale from '@/components/utils/ChangeLocale.vue'
 	font-family: 'flog';
 	display: flex; 
 	flex-direction: row;
-	color:black
+	color:black;
+	align-items: center;
 }
 #acro_logo {
 	font-size: 70px;
