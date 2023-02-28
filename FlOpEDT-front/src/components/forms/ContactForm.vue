@@ -1,33 +1,33 @@
 <template>
   <form method="post" action="/fr/api/base/contact">
-    <legend>Formulaire de contact</legend>
+    <legend>{{ $t('contact.title') }}</legend>
     <fieldset>
-      <legend>Coordonnées et Destinataire</legend>
-      <label for="email">Votre adresse mail</label> 
-      <input v-model="emailadress" id="email" type="email" @input="updateEmail()" placeholder="your@adresse.mail" required/>
-      <label for="recipient">Nom de votre destinataire</label>
+      <legend>{{ $t('contact.infos-title') }}</legend>
+      <label for="email">{{ $t('contact.email-label') }}</label> 
+      <input v-model="emailadress" id="email" type="email" @input="updateEmail()" :placeholder="$t('contact.email-placeholder')" required/>
+      <label for="recipient">{{ $t('contact.recipient-label') }}</label>
       <input 
         v-model="recipient"
         id="recipient"
         maxlength="20" 
         @input="updateRecipient()" 
-        placeholder="Dupont" 
+        :placeholder="$t('contact.recipient-placeholder')" 
         required/>
 
     </fieldset>
     <fieldset>
-      <legend>Votre message</legend>
-      <label for="subject">Objet de votre message</label>
+      <legend>{{ $t('contact.message-title') }}</legend>
+      <label for="subject">{{ $t('contact.object-label') }}</label>
       <input 
         v-model="subject"
         type="text"
         maxlength="100"
         id="subject" 
         @input="updateSubject()" 
-        placeholder="Final physics exam" 
+        :placeholder="$t('contact.object-placeholder')" 
         required/>
 
-      <label for="subject">Votre message</label>
+      <label for="message">{{ $t('contact.message-label') }}</label>
       <textarea 
         v-model="message" 
         id="message" 
@@ -35,20 +35,22 @@
         rows="10"
         maxlength="2000"
         @input="updateMessage()" 
-        placeholder="Hello Pr Dupont, when is our final exam ?" 
+        :placeholder="$t('contact.message-placeholder')" 
         required>
       </textarea>
     </fieldset>
-    <input class="form-button" type="submit" value="Envoyer"/>  
+    <input class="form-button" type="submit" :value="$t('contact.submit-button')"/>  
   </form>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n';
 const emailadress = ref("")
 const recipient = ref("")
 const subject = ref("")
 const message = ref("")
+const t = useI18n()
 
 function updateEmail() {
     console.log(emailadress.value)

@@ -4,12 +4,12 @@
 				<span id="acro_logo"><span id=flopGreen >flop</span>!<span id=EDTRed >EDT</span></span>
 			</a>
 			<span id="head_logo"></span>
+			<ChangeLocale></ChangeLocale>
 			<a id="agpl" target="_blank" href="https://framagit.org/flopedt/flopedt">
 				<img src="@/assets/images/agplv3-88x31.png" height="31" width="88" alt="AGPL v.3"/>
 			</a>
         </div>
         <Menu></Menu>
-		<ChangeLocale></ChangeLocale>
 </template>
 
 <script setup lang="ts">

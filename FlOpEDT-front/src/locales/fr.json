@@ -26,5 +26,19 @@
     "authentication": {
         "message": "Veuillez vous connecter pour accéder à la page:",
         "login-button": "Connexion"
+    },
+    "contact": {
+        "title" : "Formulaire de contact",
+        "infos-title" : "Coordonnées et Destinataire",
+        "email-label" : "Votre adresse mail",
+        "email-placeholder" : "votre@adresse.mail",
+        "recipient-label" : "Nom de votre destinataire",
+        "recipient-placeholder" : "Dupont",
+        "message-title" : "Contenu du message",
+        "object-label" : "Objet de votre message",
+        "object-placeholder" : "Changement de salle pour l'examen",
+        "message-label" : "Votre message",
+        "message-placeholder" : "Bonjour Professeure ...",
+        "submit-button" : "Envoyer"
     }
 }

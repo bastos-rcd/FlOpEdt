@@ -26,5 +26,19 @@
     "authentication": {
         "message": "Please login to access this page:",
         "login-button": "login"
+    },
+    "contact": {
+        "title" : "Contact form",
+        "infos-title" : "Coordinates and recipient",
+        "email-label" : "Your email address",
+        "email-placeholder" : "your@adresse.mail",
+        "recipient-label" : "Name of the recipient",
+        "recipient-placeholder" : "Doe",
+        "message-title" : "Content of the message",
+        "object-label" : "Subject of the message",
+        "object-placeholder" : "New final exam room",
+        "message-label" : "Your message",
+        "message-placeholder" : "Goodafternoon Pr...",
+        "submit-button" : "Send"
     }
 }

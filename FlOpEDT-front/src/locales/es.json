@@ -26,5 +26,19 @@
     "authentication": {
         "message": "Inicie sesión para acceder a esta página:",
         "login-button": "conexión"
+    },
+    "contact": {
+        "title" : "Formulario de contacto",
+        "infos-title" : "Coordenadas y destinatario",
+        "email-label" : "Dirección de correo electrónico",
+        "email-placeholder" : "your@adresse.mail",
+        "recipient-label" : "Nombre del destinatario",
+        "recipient-placeholder" : "Pérez",
+        "message-title" : "Contenido del mensaje",
+        "object-label" : "Asunto del mensaje",
+        "object-placeholder" : "Nueva sala de examen final",
+        "message-label" : "El mensaje",
+        "message-placeholder" : "Buenas tardes profesora...",
+        "submit-button" : "enviar"
     }
 }
