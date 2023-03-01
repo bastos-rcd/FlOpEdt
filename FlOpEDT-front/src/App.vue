@@ -35,7 +35,4 @@ h3 {
 h4 {
   font-size:16px;
 }
-body{
-    background: linear-gradient(to bottom, rgb(176,176,176), rgb(255,255,255));
-}
 </style>
