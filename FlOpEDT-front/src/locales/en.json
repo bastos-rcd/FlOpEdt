@@ -34,7 +34,7 @@
         "title" : "Contact form",
         "infos-title" : "Coordinates and recipient",
         "email-label" : "Your email address",
-        "email-placeholder" : "your@adresse.mail",
+        "email-placeholder" : "your[at]adresse.mail",
         "recipient-label" : "Name of the recipient",
         "recipient-placeholder" : "Doe",
         "message-title" : "Content of the message",

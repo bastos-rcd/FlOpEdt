@@ -34,7 +34,7 @@
         "title" : "Formulario de contacto",
         "infos-title" : "Coordenadas y destinatario",
         "email-label" : "Dirección de correo electrónico",
-        "email-placeholder" : "your@adresse.mail",
+        "email-placeholder" : "your[at]adresse.mail",
         "recipient-label" : "Nombre del destinatario",
         "recipient-placeholder" : "Pérez",
         "message-title" : "Contenido del mensaje",

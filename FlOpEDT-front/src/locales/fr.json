@@ -34,7 +34,7 @@
         "title" : "Formulaire de contact",
         "infos-title" : "Coordonnées et Destinataire",
         "email-label" : "Votre adresse mail",
-        "email-placeholder" : "votre@adresse.mail",
+        "email-placeholder" : "votre[at]adresse.mail",
         "recipient-label" : "Nom de votre destinataire",
         "recipient-placeholder" : "Dupont",
         "message-title" : "Contenu du message",
