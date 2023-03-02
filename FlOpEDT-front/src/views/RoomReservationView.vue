@@ -20,7 +20,7 @@
                             <div class="col">
                                 <!-- Room filter -->
                                 <div class="row mb-3">
-                                    <label for="select-room" class="form-label">Room:</label>
+                                    <label for="select-room" class="form-label">{{ $t('roomreservation.sidebar.rooms') }}</label>
                                     <div v-if="selectedRoom" class="col-auto pe-0">
                                         <button type="button" class="btn-close" @click="handleRoomNameClick(-1)"></button>
                                     </div>
@@ -32,7 +32,7 @@
                                             class="form-select w-auto"
                                             aria-label="Select room"
                                         >
-                                            <option :value="undefined">All rooms</option>
+                                            <option :value="undefined">{{ $t('roomreservation.sidebar.rooms-label') }}</option>
                                             <option
                                                 v-for="room in Object.values(rooms.perIdFilterBySelectedDepartments.value)
                                                     .filter((r) => r.is_basic)
@@ -49,7 +49,7 @@
                                 </div>
                                 <!-- Department filter -->
                                 <div class="row mb-3">
-                                    <label for="select-department" class="form-label">Department:</label>
+                                    <label for="select-department" class="form-label">{{ $t('roomreservation.sidebar.department') }}</label>
                                     <div v-if="selectedDepartment" class="col-auto pe-0">
                                         <button
                                             type="button"
@@ -65,7 +65,7 @@
                                             class="form-select w-auto ms-1"
                                             aria-label="Select department"
                                         >
-                                            <option :value="undefined">All departments</option>
+                                            <option :value="undefined">{{ $t('roomreservation.sidebar.department-label') }}</option>
                                             <option
                                                 v-for="dept in departmentStore.getAllDepartmentsFetched"
                                                 :key="dept.id"
@@ -81,7 +81,7 @@
                                     <div class="mb-3">
                                         <ClearableInput
                                             :input-id="'filter-input-roomName'"
-                                            :label="'Filter by room name:'"
+                                            :label="`${$t('roomreservation.sidebar.room-filter')}`"
                                             v-model:text="roomNameFilter"
                                         ></ClearableInput>
                                     </div>
@@ -89,7 +89,7 @@
                                         <DynamicSelect
                                             v-bind="{
                                                 id: 'filter-select-attribute',
-                                                label: 'Filter by attributes:',
+                                                label: $t('roomreservation.sidebar.option-filter'),
                                                 values: createFiltersValues(),
                                             }"
                                             v-model:selected-values="selectedRoomAttributes"
@@ -104,7 +104,7 @@
                         <!-- Caption -->
                         <div class="row">
                             <div class="col-auto">
-                                <div><span :style="{ color: scheduledCourseColor }">■ </span>Course</div>
+                                <div><span :style="{ color: scheduledCourseColor }">■ </span>{{ $t('roomreservation.schedule-caption.course') }}</div>
                             </div>
                             <div v-for="type in roomReservationTypes.list.value" :key="type.id" class="col-auto">
                                 <div><span :style="{ color: type.bg_color }">■ </span>{{ type.name }}</div>
@@ -178,8 +178,9 @@ import DynamicSelectedElementNumeric from '@/components/dynamicSelect/DynamicSel
 import DynamicSelectedElementBoolean from '@/components/dynamicSelect/DynamicSelectedElementBoolean.vue'
 import ClearableInput from '@/components/utils/ClearableInput.vue'
 import DeletePeriodicReservationDialog from '@/components/dialog/DeletePeriodicReservationDialog.vue'
-import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const currentWeek = ref(inject('currentWeek'))
 let currentDepartment = ''
 let currentUserId = -1

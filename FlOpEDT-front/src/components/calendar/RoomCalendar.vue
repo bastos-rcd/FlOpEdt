@@ -3,7 +3,7 @@
         <template #table>
             <table class="w-100">
                 <tr>
-                    <th class="col text-center border-dark border">Room</th>
+                    <th class="col text-center border-dark border">{{ $t('roomreservation.roomcalendar.room-label') }}</th>
                     <th v-for="day in props.values.days" :key="day.date" class="col text-center border-dark border">
                         {{ day.name }} {{ day.date }}
                     </th>
@@ -49,12 +49,14 @@
 import type { CalendarSlotInterface, RoomCalendarProps } from '@/ts/types'
 import BaseCalendar from '@/components/calendar/BaseCalendar.vue'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     values: RoomCalendarProps
 }
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 
 interface Emits {
     (e: 'newSlot', day: Date, roomId: string): void

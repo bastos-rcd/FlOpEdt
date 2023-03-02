@@ -4,16 +4,20 @@
     <fieldset>
       <legend>{{ $t('contact.infos-title') }}</legend>
       <label for="email">{{ $t('contact.email-label') }}</label> 
-      <input v-model="emailadress" id="email" type="email" @input="updateEmail()" :placeholder="$t('contact.email-placeholder')" required/>
+      <input 
+        v-model="emailadress" 
+        id="email" type="email" 
+        @input="updateEmail()" 
+        :placeholder="$t('contact.email-placeholder')"
+        required/>
       <label for="recipient">{{ $t('contact.recipient-label') }}</label>
       <input 
         v-model="recipient"
         id="recipient"
         maxlength="20" 
         @input="updateRecipient()" 
-        :placeholder="$t('contact.recipient-placeholder')" 
+        :placeholder="$t('contact.recipient-placeholder')"
         required/>
-
     </fieldset>
     <fieldset>
       <legend>{{ $t('contact.message-title') }}</legend>

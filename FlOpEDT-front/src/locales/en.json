@@ -43,5 +43,32 @@
         "message-label" : "Your message",
         "message-placeholder" : "Goodafternoon Pr...",
         "submit-button" : "Send"
+    },
+    "roomreservation": {
+        "weekpicker": {
+            "today-button" : "Today"
+        },
+        "sidebar": {
+            "rooms": "Rooms",
+            "rooms-label" : "All rooms",
+            "department": "Department",
+            "department-label": "All departments",
+            "room-filter": "Room filter",
+            "option-filter": "Room option filter"
+        },
+        "dynamicselect": {
+            "option-label" : "Select an attribute"
+        },
+        "schedule-caption": {
+            "course": "Course",
+            "meeting": "Meeting",
+            "student-activity": "Student activity",
+            "conference": "Conference",
+            "external": "External",
+            "other": "Other"
+        },
+        "roomcalendar": {
+            "room-label": "Room"
+        }
     }
 }

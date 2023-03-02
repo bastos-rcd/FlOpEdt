@@ -43,5 +43,32 @@
         "message-label" : "El mensaje",
         "message-placeholder" : "Buenas tardes profesora...",
         "submit-button" : "enviar"
+    },
+    "roomreservation": {
+        "weekpicker": {
+            "today-button" : "Hoy"
+        },
+        "sidebar": {
+            "rooms": "Salas",
+            "rooms-label" : "Todas salas",
+            "department": "Departamento",
+            "department-label": "Todos departamentos",
+            "room-filter": "Sala filtro",
+            "option-filter": "Sala alternativa filtro"
+        },
+        "dynamicselect": {
+            "option-label" : "Seleccionna una alternativa"
+        },
+        "schedule-caption": {
+            "course": "Curso",
+            "meeting": "Reunión",
+            "student-activity": "Estudientes actividad",
+            "conference": "Conferencia",
+            "external": "Externo",
+            "other": "Otro"
+        },
+        "roomcalendar": {
+            "room-label": "Sala"
+        }
     }
 }

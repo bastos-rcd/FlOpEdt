@@ -9,7 +9,7 @@
             :enable-time-picker="false"
             auto-apply
             show-now-button
-            :now-button-label="nowLabel"
+            :now-button-label="`${ $t('roomreservation.weekpicker.today-button') }`"
         />
     </div>
 </template>
@@ -18,6 +18,7 @@
 import type { Ref } from 'vue'
 import { ref, watchEffect } from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     week: number
@@ -48,9 +49,8 @@ watchEffect(() => {
     emits('update:year', refDate.getFullYear())
 })
 
-const locale = ref('fr')
+const { t, locale } = useI18n()
 
-const nowLabel = ref("Aujourd'hui")
 </script>
 
 <script lang="ts">

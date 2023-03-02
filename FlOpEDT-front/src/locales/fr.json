@@ -43,5 +43,32 @@
         "message-label" : "Votre message",
         "message-placeholder" : "Bonjour Professeure ...",
         "submit-button" : "Envoyer"
+    },
+    "roomreservation": {
+        "weekpicker": {
+            "today-button" : "Aujourd'hui"
+        },
+        "sidebar": {
+            "rooms": "Salles",
+            "rooms-label" : "Toutes les salles",
+            "department": "Département",
+            "department-label": "Tous les départements",
+            "room-filter": "Filtre des salles",
+            "option-filter": "Filtre par type de salle"
+        },
+        "dynamicselect": {
+            "option-label" : "Selectionnez un type"
+        },
+        "schedule-caption": {
+            "course": "Cours",
+            "meeting": "Réunion",
+            "student-activity": "Activité étudiante",
+            "conference": "Conférence",
+            "external": "Extérieurs",
+            "other": "Autre"
+        },
+        "roomcalendar": {
+            "room-label": "Salle"
+        }
     }
 }

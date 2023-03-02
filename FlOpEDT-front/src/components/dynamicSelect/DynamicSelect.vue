@@ -2,7 +2,7 @@
     <div>
         <label :for="props.id" class="form-label">{{ props.label }}</label>
         <select :id="props.id" class="form-select w-auto ms-1" aria-label="Select department">
-            <option :value="undefined">Select an attribute</option>
+            <option :value="undefined">{{ $t('roomreservation.dynamicselect.option-label') }}</option>
             <option
                 v-for="value in unselected"
                 :key="value.value.id"
@@ -33,6 +33,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import type { DynamicSelectElementValue } from '@/ts/types'
+import { useI18n } from 'vue-i18n';
 
 interface ValueEntry {
     component: any
@@ -47,6 +48,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 
 interface Emits {
     (e: 'update:selectedValues', values: Array<ValueEntry>): void
