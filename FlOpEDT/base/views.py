@@ -39,6 +39,7 @@ from django.http import HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import get_language
 from django.views.decorators.cache import cache_page
 from django.views.generic import RedirectView
 
@@ -160,7 +161,7 @@ def edt(req, year=None, week=None, splash_id=0, **kwargs):
 
 
 def room_reservation(req, **kwargs):
-    url_redirection = '/roomreservation/'
+    url_redirection = '/roomreservation/'+get_language()+"/"
     if req.department:
         url_redirection += req.department.abbrev
     response = redirect(url_redirection)

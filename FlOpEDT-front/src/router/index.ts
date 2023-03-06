@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useDepartmentStore } from '@/stores/department'
 import { useAuth } from '@/stores/auth'
+import  i18n from '@/i18n';
 
 export const routeNames = {
     home: Symbol('Home'),
@@ -13,7 +14,7 @@ export const routeNames = {
 
 const routes = [
     {
-        path: '/roomreservation/:dept?',
+        path: '/roomreservation/:locale?/:dept?',
         name: routeNames.roomReservation,
         component: () => import('@/views/RoomReservationView.vue'),
         meta: {
@@ -22,7 +23,7 @@ const routes = [
         },
     },
     {
-        path: '/contact/:dept?',
+        path: '/contact/:locale?/:dept?',
         name: routeNames.contact,
         component: () => import('@/views/ContactView.vue'),
         meta: {
@@ -31,7 +32,7 @@ const routes = [
         },
     },
     {
-        path: '/:dept?',
+        path: '/:locale?/:dept?',
         name: routeNames.home,
         component: () => import('@/views/HomeView.vue'),
         meta: {
@@ -40,7 +41,7 @@ const routes = [
         },
     },
     {
-        path: '/:pathMatch(.*)',
+        path: '/:locale?/:pathMatch(.*)',
         name: routeNames.notFound,
         component: () => import('@/views/NotFoundView.vue'),
         meta: {
@@ -49,7 +50,7 @@ const routes = [
         },
     },    
     {
-        path: '/login/:dept?',
+        path: '/login/:locale?/:dept?',
         name: routeNames.login,
         component: () => import('@/views/LoginView.vue'),
         meta: {
@@ -65,6 +66,7 @@ const router = createRouter({
     routes: routes,
 })
 router.beforeEach(async (to, from, next) => {
+    const { availableLocales, locale } = i18n.global
     const deptStore = useDepartmentStore()
     const authStore = useAuth()
     if(deptStore.getCurrentDepartment.id === -1) 
@@ -73,6 +75,13 @@ router.beforeEach(async (to, from, next) => {
     if(!authStore.isUserFetchTried) 
         await authStore.fetchAuthUser()
 
+    availableLocales.forEach((currentLocale: string) => {
+        to.fullPath.split('/').forEach(arg => {
+            if(arg.includes(currentLocale) && arg.length === currentLocale.length) {
+                locale.value = currentLocale
+            }
+        })
+    })
     if(to.meta.needsAuth && !authStore.isUserAuthenticated) { 
         next({ path: `/login/${deptStore.getCurrentDepartment.abbrev}`, query: { redirect: to.fullPath } })
     } else {

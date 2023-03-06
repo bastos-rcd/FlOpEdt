@@ -13,18 +13,9 @@ import { FlopWeek } from '@/ts/type'
 import Popper from 'vue3-popper'
 
 
-import { createI18n } from 'vue-i18n'
-import fr from '@/locales/fr.json'
-import en from '@/locales/en.json'
-import es from '@/locales/es.json'
+import i18n from '@/i18n'
 
 const app = createApp(App)
-const i18n = createI18n({
-    legacy: false,
-    locale: 'fr',
-    fallbackLocale: 'en',
-    messages: {fr, en, es}
-})
 // Provide the current week and year
 const now = new Date()
 const startDate = new Date(now.getFullYear(), 0, 1)

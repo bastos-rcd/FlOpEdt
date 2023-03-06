@@ -1,7 +1,12 @@
 <template>
     <nav id="menu-links">
         <ul>
-            <li><router-link :to="{name: routeNames.home, params:{dept: deptStore.getCurrentDepartment.abbrev}}">{{ $t("navbar.home") }}</router-link></li> 
+            <li><router-link :to="{
+                name: routeNames.home,
+                params: {
+                    dept: deptStore.getCurrentDepartment.abbrev,
+                    locale: locale
+                }}">{{ $t("navbar.home") }}</router-link></li> 
             <li v-if="deptStore.isCurrentDepartmentSelected">
                 <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/`">{{ $t("navbar.schedule") }}</a>
             </li>
@@ -15,13 +20,23 @@
                 <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/aide`">{{ $t("navbar.help") }}</a>
             </li>
             <li v-if="deptStore.isCurrentDepartmentSelected">
-                <router-link :to="{name: routeNames.contact, params:{dept:deptStore.getCurrentDepartment.abbrev}}">{{ $t("navbar.messages") }}</router-link>
+                <router-link :to="{
+                    name: routeNames.contact,
+                    params: {
+                        dept:deptStore.getCurrentDepartment.abbrev,
+                        locale: locale
+                    }}">{{ $t("navbar.messages") }}</router-link>
             </li>
             <li v-if="deptStore.isCurrentDepartmentSelected">
                 <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/modules`">{{ $t("navbar.modules") }}</a>
             </li>
             <li v-if="deptStore.isCurrentDepartmentSelected">
-                <router-link :to="{name: routeNames.roomReservation, params:{dept:deptStore.getCurrentDepartment.abbrev}}">{{ $t("navbar.reservations") }}</router-link>
+                <router-link :to="{
+                    name: routeNames.roomReservation,
+                    params: {
+                        dept:deptStore.getCurrentDepartment.abbrev,
+                        locale: locale
+                    }}">{{ $t("navbar.reservations") }}</router-link>
             </li>
             <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
                 <a :href="`/${locale}/edt/INFO/decale`">{{ $t("navbar.move-cancel") }}</a>
