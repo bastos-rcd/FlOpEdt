@@ -27,7 +27,8 @@
         "label": "Change language"
     },
     "authentication": {
-        "message": "Please login to access this page:",
+        "title": "Authentication Error",
+        "message": "Please login to access this page",
         "login-button": "login"
     },
     "contact": {

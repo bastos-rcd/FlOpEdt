@@ -28,11 +28,16 @@ export const useDepartmentStore = defineStore('dept', () => {
       setCurrentDepartment(new Department())
     }
 
-    async function getDepartmentFromURL() : Promise<void> {
+    function getDepartmentFromURL(pathTo?: string) : void {
       const route = useRoute()
+      let path : string[] = []
+      if(pathTo !== undefined) {
+        path = pathTo.split("/")
+      } else {
+        path = route.path.split("/")
+      }
       getAllDepartmentsFetched.value.forEach(dept => {
-        const path = route.path.split("/")
-        path.forEach(arg => {
+          path.forEach(arg => {
           if(arg.includes(dept.abbrev)) {
             setCurrentDepartment(dept)
           }

@@ -9,7 +9,8 @@
                             name: routeNames.home,
                             params: {dept: department.abbrev}
                         }"
-                        @click.native="deptStore.setCurrentDepartment(new Department(department.id, department.abbrev))">
+                        @click.native="deptStore.setCurrentDepartment(new Department(department.id, department.abbrev))"
+                        class="choices">
                         {{ department.abbrev }}
                     </router-link>
                 </div>
@@ -27,3 +28,11 @@ import { useI18n } from 'vue-i18n';
 const deptStore = useDepartmentStore()
 const t = useI18n()
 </script>
+
+<style scoped>
+.choices {
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+</style>

@@ -27,7 +27,8 @@
         "label": "Changer la langue"
     },
     "authentication": {
-        "message": "Veuillez vous connecter pour accéder à la page:",
+        "title": "Erreur d'authentification",
+        "message": "Veuillez vous connecter pour accéder à la page",
         "login-button": "Connexion"
     },
     "contact": {

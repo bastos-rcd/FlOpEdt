@@ -1,18 +1,15 @@
 <template>
-  <ProvideUser>
-    <ProvideDepartment>
-      <header>
-        <Header></Header>
-      </header>
-      <main>
-        <router-view></router-view>
-      </main>
-    </ProvideDepartment>
-  </ProvideUser>
+  <ProvideDepartment>
+    <header>
+      <Header></Header>
+    </header>
+    <main>
+      <router-view></router-view>
+    </main>
+  </ProvideDepartment>
 </template>
 
 <script setup lang="ts">
-import ProvideUser from '@/components/providers/ProvideUser.vue';
 import Header from '@/components/Header.vue';
 import ProvideDepartment from '@/components/providers/ProvideDepartment.vue';
 </script>

@@ -27,7 +27,8 @@
         "label": "Cambiar idioma"
     },
     "authentication": {
-        "message": "Inicie sesión para acceder a esta página:",
+        "title": "Authentication Error",
+        "message": "Inicie sesión para acceder a esta página",
         "login-button": "conexión"
     },
     "contact": {

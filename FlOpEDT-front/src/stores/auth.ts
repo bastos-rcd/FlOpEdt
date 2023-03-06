@@ -5,11 +5,15 @@ import { api } from '@/composables/api'
 
 export const useAuth = defineStore('auth', () => {
   const user = ref(new User)
+  const fetchTried = ref(false)
 
   const isUserAuthenticated = computed(() => user.value.id !== -1)
 
-  function fetchAuthUser() : void {
-    api?.getCurrentUser().then((json: any) => user.value = json)
+  const isUserFetchTried = computed(() => fetchTried.value)
+
+  async function fetchAuthUser() : Promise<void> {
+    await api?.getCurrentUser().then((json: any) => user.value = json)
+    fetchTried.value = true
   }
 
   const getUser = computed(() : User => {
@@ -20,5 +24,5 @@ export const useAuth = defineStore('auth', () => {
     window.location.href = '/fr/accounts/login/'
   }
 
-  return { isUserAuthenticated, fetchAuthUser, getUser, redirectLogin }
+  return { isUserAuthenticated, fetchAuthUser, getUser, redirectLogin, isUserFetchTried }
 })
