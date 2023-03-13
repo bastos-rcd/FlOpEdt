@@ -25,7 +25,8 @@ from rest_framework import serializers
 import base.models as bm
 import displayweb.models as dwm
 import people.models as pm
-
+from base.timing import Day, flopdate_to_datetime
+from datetime import timedelta
 
 #    --------------------------------------------------------------------------------
 #   |                                                                                |
@@ -112,7 +113,7 @@ class Course_SC_Serializer(serializers.Serializer):
 class IDRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Room
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'is_basic']
 
 
 class ScheduledCoursesSerializer(serializers.Serializer):
@@ -130,6 +131,33 @@ class ScheduledCoursesSerializer(serializers.Serializer):
     class Meta:
         model = bm.ScheduledCourse
         fields = ['id', 'tutor', 'room', 'start_time', 'day', 'course', 'id_visio', 'number']
+
+
+class NewApiScheduledCoursesSerializer(serializers.Serializer):
+    # Spécification des champs voulus
+    id = serializers.IntegerField()
+    room = IDRoomSerializer(allow_null=True)
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
+    course = Course_SC_Serializer()
+    tutor = serializers.CharField(source='tutor.username', allow_null=True)
+    id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
+    number = serializers.IntegerField()
+
+    # Mise en forme des données
+    class Meta:
+        model = bm.ScheduledCourse
+        fields = ['id', 'tutor', 'room', 'start_time', 'end_time', 'course', 'id_visio', 'number']
+
+    def get_start_time(self, obj):
+        flop_week, flop_weekday, flop_start_time = obj.course.week, obj.day, obj.start_time
+        flop_day = Day(flop_weekday, flop_week)
+        return flopdate_to_datetime(flop_day, flop_start_time)
+
+    def get_end_time(self, obj):
+        start_time = self.get_start_time(obj)
+        duration = obj.course.type.duration
+        return start_time + timedelta(seconds=duration * 60)
 
 
 class ModuleCosmo_SC_Serializer(serializers.Serializer):

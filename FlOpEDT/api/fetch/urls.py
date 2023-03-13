@@ -30,6 +30,8 @@ routerFetch = routers.SimpleRouter()
 
 routerFetch.register(r'scheduledcourses',
                      views.ScheduledCoursesViewSet, basename='scheduledcourses')
+routerFetch.register(r'new_api_scheduledcourses', #entry of ScheduledCourses for new api with standard dates
+                     views.NewApiScheduledCoursesViewSet, basename='new_api_scheduledcourses')
 routerFetch.register(r'unscheduledcourses',
                      views.UnscheduledCoursesViewSet, basename='unscheduledcourses')
 #routerFetch.register(r'availabilities', views.AvailabilitiesViewSet, basename='availabilities')

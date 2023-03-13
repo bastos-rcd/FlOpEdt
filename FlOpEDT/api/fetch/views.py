@@ -151,11 +151,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                     course__groups__train_prog=self.train_prog)
 
         if group_name is None and self.train_prog is None:
-            if self.dept is None:
-                if self.tutor is None:
-                    raise exceptions.NotAcceptable(
-                        detail='You should either a group and a training programme, or a tutor, or a department')
-            else:
+            if self.dept is not None:
                 queryset = queryset.filter(
                     course__module__train_prog__department=self.dept)
             if self.tutor is not None:
@@ -178,12 +174,55 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 # no primary department
                 if self.dept is None:
                     self.dept = self.tutor.departments.first()
-            else:
+            try:
                 self.dept = list(self.groups)[0].train_prog.department
+            except:
+                self.dept = bm.Department.objects.first()
+
         if self.dept.mode.cosmo:
             return serializers.ScheduledCoursesCosmoSerializer
         else:
             return serializers.ScheduledCoursesSerializer
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
+                          # in the filterset
+                          week_param(required=True),
+                          year_param(required=True),
+                          work_copy_param(),
+                          # in the get_queryset
+                          dept_param(),
+                          train_prog_param(),
+                          group_param(),
+                          lineage_param(),
+                          tutor_param()
+                      ])
+                  )
+class NewApiScheduledCoursesViewSet(ScheduledCoursesViewSet):
+    def get_serializer_class(self):
+        # get the department
+        if self.dept is None:
+            if self.tutor is not None:
+                for d in self.tutor.departments.all():
+                    uds = pm.UserDepartmentSettings.objects.get(department=d,
+                                                                user=self.tutor)
+                    if uds.is_main:
+                        self.dept = uds.department
+                        break
+
+                # no primary department
+                if self.dept is None:
+                    self.dept = self.tutor.departments.first()
+            try:
+                self.dept = list(self.groups)[0].train_prog.department
+            except:
+                self.dept = bm.Department.objects.first()
+
+        if self.dept.mode.cosmo:
+            return serializers.NewApiScheduledCoursesCosmoSerializer
+        else:
+            return serializers.NewApiScheduledCoursesSerializer
 
 
 @method_decorator(name='list',
