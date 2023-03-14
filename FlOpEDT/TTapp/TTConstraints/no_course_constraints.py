@@ -67,10 +67,27 @@ class NoCourseOnDay(TTConstraint):
 
 class NoGroupCourseOnDay(NoCourseOnDay):
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
+    course_types = models.ManyToManyField('base.CourseType', related_name='no_course_on_days')
+
+    class Meta:
+        verbose_name = _('No courses on declared days for groups')
+        verbose_name_plural = verbose_name
+
+    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+        if self.weight is None:
+            ttmodel.add_constraint(self.considered_sum(ttmodel, week),
+                                   '==', 0,
+                                   Constraint(constraint_type=ConstraintType.NO_GROUP_COURSE_ON_DAY, weeks=week,
+                                              groups=considered_basic_groups(self, ttmodel)))
+        else:
+            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, week), week)
 
     def considered_courses(self, ttmodel):
         c_c = set(c for g in considered_basic_groups(self, ttmodel)
                   for c in ttmodel.wdb.courses_for_basic_group[g])
+        if self.course_types.exists():
+            c_c = set(c for c in c_c
+                      if c.type in self.course_types.all())
         return c_c
 
     def considered_sum(self, ttmodel, week):
@@ -82,6 +99,8 @@ class NoGroupCourseOnDay(NoCourseOnDay):
         text = f"Aucun cours le {self.weekday}"
         if self.fampm_period != self.FULL_DAY:
             text += f" ({self.fampm_period})"
+        if self.course_types.exists():
+            text += f" pour les cours de type" + ', '.join([t.name for t in self.course_types.all()])
         if self.groups.exists():
             text += ' pour les groupes ' + ', '.join([group.name for group in self.groups.all()])
         if self.train_progs.exists():
@@ -130,7 +149,8 @@ class NoGroupCourseOnDay(NoCourseOnDay):
         :rtype: Partition
 
         """
-        if self.groups.filter(name=group.name) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
+        if (not self.groups.exists() or group in self.groups.all()) \
+                and (not self.weeks.exists() or week in self.weeks.all()):
 
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
@@ -159,49 +179,6 @@ class NoGroupCourseOnDay(NoCourseOnDay):
                 )
 
         return partition
-
-
-class NoGroupCourseTypeOnDay(NoCourseOnDay):
-    groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    course_types = models.ManyToManyField('base.CourseType', related_name='no_course_types_on_days')
-
-    class Meta:
-        verbose_name = _('No courses on declared days for groups')
-        verbose_name_plural = verbose_name
-
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
-        if self.weight is None:
-            ttmodel.add_constraint(self.considered_sum(ttmodel, week),
-                                   '==', 0,
-                                   Constraint(constraint_type=ConstraintType.NO_GROUP_COURSE_ON_DAY, weeks=week,
-                                              groups=considered_basic_groups(self, ttmodel)))
-        else:
-            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, week), week)
-
-    def considered_courses(self, ttmodel):
-        c_c = set(c for g in considered_basic_groups(self, ttmodel)
-                  for c in ttmodel.wdb.courses_for_basic_group[g])
-        if self.course_types.exists():
-            c_c = set(c for c in c_c
-                      if c.type in self.course_types.all())
-        return c_c
-
-    def considered_sum(self, ttmodel, week):
-        return ttmodel.sum(ttmodel.TT[(sl, c)]
-                           for c in self.considered_courses(ttmodel)
-                           for sl in self.considered_slots(ttmodel, week) & ttmodel.wdb.compatible_slots[c])
-
-    def one_line_description(self):
-        text = f"Aucun cours le {self.weekday}"
-        if self.fampm_period != self.FULL_DAY:
-            text += f" ({self.fampm_period})"
-        if self.course_types.exists():
-            text += f" pour les cours de type" + ', '.join([t.name for t in self.course_types.all()])
-        if self.groups.exists():
-            text += ' pour les groupes ' + ', '.join([group.name for group in self.groups.all()])
-        if self.train_progs.exists():
-            text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
-        return text
 
 
 class NoTutorCourseOnDay(NoCourseOnDay):
@@ -324,7 +301,8 @@ class NoTutorCourseOnDay(NoCourseOnDay):
 
         """
         
-        if self.tutors.filter(username=tutor.username) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
+        if (not self.tutors.exists() or tutor in self.tutors.all()) \
+                and (not self.weeks.exists() or week in self.weeks.all()):
             day_break = Day(self.weekday, week)
             time_settings = self.time_settings()
 

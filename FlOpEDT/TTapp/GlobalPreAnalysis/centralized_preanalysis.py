@@ -4,12 +4,8 @@ django.setup()
 #end
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
-from base.models import Week, Department
 from django.db.models import Q
 
-from TTapp.TTConstraints.core_constraints import NoSimultaneousGroupCourses, ConsiderTutorsUnavailability
-from TTapp.TTConstraints.slots_constraints import ConsiderDependencies, SimultaneousCourses
-import TTapp.tests.tools_test_pre_analyse.json_response as json_response_module
 
 
 def pre_analyse(department, week):

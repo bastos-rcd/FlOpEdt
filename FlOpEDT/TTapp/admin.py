@@ -40,7 +40,7 @@ from TTapp.models import \
     LimitedRoomChoices, LimitStartTimeChoices, LimitCourseTypeTimePerPeriod, \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
-    NoTutorCourseOnDay, NoGroupCourseOnDay, NoGroupCourseTypeOnDay, \
+    NoTutorCourseOnDay, NoGroupCourseOnDay, \
     ConsiderDependencies, Curfew, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
@@ -361,7 +361,6 @@ admin.site.register(GroupsLunchBreak, GroupsLunchBreakAdmin)
 admin.site.register(TutorsLunchBreak, BasicTutorsConstraintAdmin)
 admin.site.register(BreakAroundCourseType, GroupsConstraintAdmin)
 admin.site.register(NoGroupCourseOnDay, NoCourseOnDayAdmin)
-admin.site.register(NoGroupCourseTypeOnDay, NoCourseOnDayAdmin)
 admin.site.register(NoTutorCourseOnDay, NoCourseOnDayAdmin)
 admin.site.register(Curfew, BasicConstraintAdmin)
 admin.site.register(NoVisio, GroupsConstraintAdmin)
