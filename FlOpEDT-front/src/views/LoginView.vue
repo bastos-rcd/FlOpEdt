@@ -1,8 +1,8 @@
 <template>
-    <h3>{{$t('authentication|title')}}</h3>
-    <p>{{ $t("authentication|message") }}</p>
+    <h3>{{$t('authentication.title')}}</h3>
+    <p>{{ $t("authentication.message") }}</p>
     <fieldset class="login">
-        <legend>{{$t('authentication|Authentification', 'Authentification')}}</legend>
+        <legend>Authentification</legend>
         <div class="form-row">
             <label for="username" class="form-left">Nom d'utilisat.eur.rice</label>
             <input 

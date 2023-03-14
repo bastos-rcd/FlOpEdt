@@ -1,37 +1,37 @@
 <template>
   <form method="post" action="/fr/api/base/contact">
-    <legend>{{ $t('contact|title') }}</legend>
+    <legend>{{ $t('contact.title') }}</legend>
     <fieldset>
-      <legend>{{ $t('contact|infos-title') }}</legend>
-      <label for="email">{{ $t('contact|email-label') }}</label> 
+      <legend>{{ $t('contact.infos-title') }}</legend>
+      <label for="email">{{ $t('contact.email-label') }}</label> 
       <input 
         v-model="emailadress" 
         id="email" type="email" 
         @input="updateEmail()" 
-        :placeholder="$t('contact|email-placeholder')"
+        :placeholder="$t('contact.email-placeholder')"
         required/>
-      <label for="recipient">{{ $t('contact|recipient-label') }}</label>
+      <label for="recipient">{{ $t('contact.recipient-label') }}</label>
       <input 
         v-model="recipient"
         id="recipient"
         maxlength="20" 
         @input="updateRecipient()" 
-        :placeholder="$t('contact|recipient-placeholder')"
+        :placeholder="$t('contact.recipient-placeholder')"
         required/>
     </fieldset>
     <fieldset>
-      <legend>{{ $t('contact|message-title') }}</legend>
-      <label for="subject">{{ $t('contact|object-label') }}</label>
+      <legend>{{ $t('contact.message-title') }}</legend>
+      <label for="subject">{{ $t('contact.object-label') }}</label>
       <input 
         v-model="subject"
         type="text"
         maxlength="100"
         id="subject" 
         @input="updateSubject()" 
-        :placeholder="$t('contact|object-placeholder')" 
+        :placeholder="$t('contact.object-placeholder')" 
         required/>
 
-      <label for="message">{{ $t('contact|message-label') }}</label>
+      <label for="message">{{ $t('contact.message-label') }}</label>
       <textarea 
         v-model="message" 
         id="message" 
@@ -39,11 +39,11 @@
         rows="10"
         maxlength="2000"
         @input="updateMessage()" 
-        :placeholder="$t('contact|message-placeholder')" 
+        :placeholder="$t('contact.message-placeholder')" 
         required>
       </textarea>
     </fieldset>
-    <input class="form-button" type="submit" :value="$t('contact|submit-button')"/>  
+    <input class="form-button" type="submit" :value="$t('contact.submit-button')"/>  
   </form>
 </template>
 

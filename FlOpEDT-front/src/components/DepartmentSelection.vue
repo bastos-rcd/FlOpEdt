@@ -1,6 +1,6 @@
 <template>
     <main class="text-center">
-        <h2>{{ $t('department-selection|title')}}</h2>
+        <h2>{{ $t('department-selection.title')}}</h2>
         <div class="container w-50">
             <div v-if="deptStore.getAllDepartmentsFetched.length !== 0">
                 <div v-for="department in deptStore.getAllDepartmentsFetched" :key="department.id" class="row mb-1">

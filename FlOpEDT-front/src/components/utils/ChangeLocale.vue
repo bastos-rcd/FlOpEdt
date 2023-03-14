@@ -1,6 +1,6 @@
 <template>
     <div>
-        <label for="select-lang">{{ $t('language-selection|label') }}</label>
+        <label for="select-lang">{{ $t('language-selection.label') }}</label>
         <select id="select-lang" v-model="locale">
             <option v-for="currentLocale in availableLocales" :value="currentLocale">{{currentLocale}}</option>
         </select>
