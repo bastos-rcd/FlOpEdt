@@ -2,9 +2,7 @@
     <div>
         <label for="select-lang">{{ $t('language-selection.label') }}</label>
         <select id="select-lang" v-model="locale">
-            <option value="en">en</option>
-            <option value="es">es</option>
-            <option value="fr">fr</option>
+            <option v-for="currentLocale in availableLocales" :value="currentLocale">{{currentLocale}}</option>
         </select>
     </div>
 </template>
@@ -12,7 +10,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
-const { locale } = useI18n({useScope: "global"})
+const { locale, availableLocales } = useI18n({useScope: "global"})
 </script>
 
 <style scoped>

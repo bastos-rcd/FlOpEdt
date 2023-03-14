@@ -26,11 +26,12 @@ maximisent la satisfaction générale.
 [AGPL v3](https://www.gnu.org/licenses/agpl-3.0.html)
 
 ## Principales dépendances
-- [Django](https://www.djangoproject.com/) pour le site
+- [Django](https://www.djangoproject.com/) pour la partie back du site
 - [PostgreSQL](https://www.postgresql.org/) pour la base de données
 - [PuLP](https://github.com/coin-or/pulp) pour la modélisation en ILP (Integer Linear Programming)
 - Un solveur de ILP, e.g. [CBC](https://projects.coin-or.org/Cbc), [Gurobi](gurobi.com)
 - [Redis](https://redis.io) pour le cache de Django (optionnel)
+- [Vue.js](https://vuejs.org/) Pour la partie front du site
 
 ## Installation et lancement de l'application
 Voir le wiki du projet [ici](https://framagit.org/flopedt/FlOpEDT/-/wikis/home).
