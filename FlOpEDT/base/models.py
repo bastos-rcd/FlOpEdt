@@ -160,6 +160,12 @@ class StructuralGroup(GenericGroup):
         """
         return {self} | self.ancestor_groups()
 
+    def and_descendants(self):
+        """
+        :return: the set of all StructuralGroup containing self (self included)
+        """
+        return {self} | self.descendants_groups()
+
     def descendants_groups(self):
         """
         :return: the set of all StructuralGroup contained by self (self not included)
