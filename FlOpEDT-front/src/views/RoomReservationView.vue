@@ -83,7 +83,7 @@
                             v-else
                             @new-slot="handleNewSlot"
                             :values="roomCalendarValues"
-                            @row-header-click="handleRoomNameClick"
+                            @row-header-click="(n: number) => selectedRoom = roomStore.rooms.find((r : Room) => r.id === n)"
                         ></RoomCalendar>
                     </div>
                 </div>
@@ -1219,10 +1219,6 @@ function hideLoading(): void {
 function showLoading(): void {
     ++loadingCounter
     loaderIsVisible.value = true
-}
-
-function handleRoomNameClick(roomId: number) {
-    selectedRoom.value = roomStore.rooms.find((r : Room) => r.id === roomId)
 }
 
 let newReservationId = -1
