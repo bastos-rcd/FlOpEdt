@@ -32,7 +32,7 @@ const routes = [
         },
     },
     {
-        path: '/:locale?/:dept?',
+        path: '/home/:locale?/:dept?',
         name: routeNames.home,
         component: () => import('@/views/HomeView.vue'),
         meta: {
@@ -41,7 +41,7 @@ const routes = [
         },
     },
     {
-        path: '/:locale?/:pathMatch(.*)',
+        path: '/:pathMatch(.*)',
         name: routeNames.notFound,
         component: () => import('@/views/NotFoundView.vue'),
         meta: {
