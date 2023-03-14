@@ -452,22 +452,23 @@ class ConsiderDependencies(TTConstraint):
 
         Returns:
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem"""
-        dependencies = self.considered_dependecies().filter(Q(course1__week=week) | Q(course1__week=None), Q(course2__week=week) | Q(course2__week=None))
+        dependencies = self.considered_dependecies().filter(course1__week=week, course2__week=week)
         jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year} }
-        no_user_pref = not ConsiderTutorsUnavailability.objects.filter(weeks=week).exists()
+        no_user_pref = not ConsiderTutorsUnavailability.objects.filter(Q(weeks=week)|Q(weeks__isnull=True)).exists()
         for dependency in dependencies:
             ok_so_far = True
             # Setting up partitions with data about other constraints for both courses
-
             week_partition_course1 = partition_bis.create_course_partition_from_constraints(dependency.course1, week,
-                                                                                            self.department, available=no_user_pref)
+                                                                                            self.department,
+                                                                                            available=no_user_pref)
             week_partition_course2 = partition_bis.create_course_partition_from_constraints(dependency.course2, week,
-                                                                                            self.department, available=no_user_pref)
+                                                                                            self.department,
+                                                                                            available=no_user_pref)
 
             if week_partition_course1 and week_partition_course2:
                 # Retrieving possible start times for both courses
-                course1_start_times = CourseStartTimeConstraint.objects.get(course_type = dependency.course1.type).allowed_start_times
-                course2_start_times = CourseStartTimeConstraint.objects.get(course_type = dependency.course2.type).allowed_start_times
+                course1_start_times = CourseStartTimeConstraint.objects.get(course_type=dependency.course1.type).allowed_start_times
+                course2_start_times = CourseStartTimeConstraint.objects.get(course_type=dependency.course2.type).allowed_start_times
                 # Retrieving only TimeInterval for each course
                 course1_slots = week_partition_course1.find_all_available_timeinterval_starting_at(course1_start_times, dependency.course1.type.duration)
                 course2_slots = week_partition_course2.find_all_available_timeinterval_starting_at(course2_start_times, dependency.course2.type.duration)
