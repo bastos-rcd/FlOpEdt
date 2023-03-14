@@ -132,6 +132,7 @@ import { computed, markRaw, onMounted, ref, shallowRef, watchEffect } from 'vue'
 import { useDepartmentStore } from '@/stores/department'
 import { useRoomStore } from '@/stores/room'
 import { useAuth } from '@/stores/auth'
+import { useRoomReservationStore } from '@/stores/roomReservation'
 import { api } from '@/composables/api'
 import RoomCalendar from '@/components/calendar/RoomCalendar.vue'
 import HourCalendar from '@/components/calendar/HourCalendar.vue'
@@ -149,6 +150,7 @@ import ClearableInput from '@/components/utils/ClearableInput.vue'
 import DeletePeriodicReservationDialog from '@/components/dialog/DeletePeriodicReservationDialog.vue'
 import { useI18n } from 'vue-i18n'
 import { filterBySelectedDepartments, type ScheduledCourses } from '../helpers/RoomReservationView'
+
 
 const { t } = useI18n()
 const currentWeek = ref(inject('currentWeek'))
@@ -206,6 +208,7 @@ interface RoomAttributeValues {
 const departmentStore = useDepartmentStore()
 const roomStore = useRoomStore()
 const authStore = useAuth()
+const roomReservationStore = useRoomReservationStore()
 
 const weekDays = {
     list: ref<Array<WeekDay>>([]),
@@ -946,16 +949,15 @@ function addTo<T>(collection: { [p: string]: Array<T> }, id: string | number, el
     collection[id].push(element)
 }
 
-function updateRoomReservations(date: FlopWeek): Promise<void> {
+function updateRoomReservations(date: FlopWeek): void {
     const week = date.week
     const year = date.year
 
     showLoading()
-    return api.fetch.roomReservations({ week: week, year: year }).then((value: RoomReservation[]) => {
-        roomReservations.list.value = value
-        temporaryReservation.value = undefined
-        hideLoading()
-    })
+    roomReservationStore.fetchRoomReservationsForWeek(date)
+    roomReservations.list.value = roomReservationStore.getAllRoomReservationsFetched
+    temporaryReservation.value = undefined
+    hideLoading()
 }
 
 function updateScheduledCourses(date: FlopWeek, departments: Array<Department>) {

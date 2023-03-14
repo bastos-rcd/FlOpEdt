@@ -4,9 +4,9 @@ import { computed, ref } from 'vue'
 import { FlopWeek, RoomReservation } from '@/ts/type'
 
 export const useRoomReservationStore = defineStore('roomreservation', () => {
-    const roomReservations = ref<Array<RoomReservation>>([])
+    const roomReservations = ref<any>([])
   
-    const getRoomReservationById = computed((id: number) => roomReservations.value.find(rResa => rResa.id===id))
+    const getRoomReservationById = computed((id: number) => roomReservations.value.find((rResa : RoomReservation) => rResa.id===id))
 
     const getAllRoomReservationsFetched = computed(() => roomReservations.value)
 
@@ -15,8 +15,9 @@ export const useRoomReservationStore = defineStore('roomreservation', () => {
      * store.
      **/
     async function fetchRoomReservationsForWeek(week: FlopWeek) : Promise<void> {
-        api.fetch.roomReservations({ week: week.week, year: week.year }).then((value: RoomReservation[]) => {
-            roomReservations.value = value
+        await api.fetch.roomReservations({ week: week.week, year: week.year }).then((value: RoomReservation[]) => {
+            if(value !== undefined)
+                roomReservations.value = value
         })
     }
     
