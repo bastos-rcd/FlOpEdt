@@ -9,7 +9,7 @@
             :enable-time-picker="false"
             auto-apply
             show-now-button
-            :now-button-label="`${ $t('roomreservation.weekpicker.today-button') }`"
+            :now-button-label="`${ $t('roomreservation|weekpicker|today-button') }`"
         />
     </div>
 </template>

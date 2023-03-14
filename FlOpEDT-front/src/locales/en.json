@@ -1,75 +1,76 @@
 {
-    "navbar": {
-        "home": "Home",
-        "schedule": "Schedule",
-        "move-cancel": "Move/Cancel",
-        "preferences": "Preferences",
-        "iCal": "iCal",
-        "help": "Help",
-        "messages": "Messages",
-        "modules": "Modules",
-        "reservations": "Reservations",
-        "constraints": "Constraints",
-        "generate": "Generate",
-        "flop-editor": "flop!Editor",
-        "import": "Import",
-        "admin": "Admin" 
+  "navbar": {
+    "home": "Home",
+    "schedule": "Schedule",
+    "move-cancel": "Move/Cancel",
+    "preferences": "Preferences",
+    "iCal": "iCal",
+    "help": "Help",
+    "messages": "Messages",
+    "modules": "Modules",
+    "reservations": "Reservations",
+    "constraints": "Constraints",
+    "generate": "Generate",
+    "flop-editor": "flop!Editor",
+    "import": "Import",
+    "admin": "Admin"
+  },
+  "home": {
+    "welcome": "Welcome to FlOpEDT !",
+    "department-message": "You are in department",
+    "department-button-change": "Change department"
+  },
+  "department-selection": {
+    "title": "Please select a department"
+  },
+  "language-selection": {
+    "label": "Change language"
+  },
+  "authentication": {
+    "title": "Authentication Error",
+    "message": "Please login to access this page",
+    "login-button": "login",
+    "Authentification": "Authentification"
+  },
+  "contact": {
+    "title": "Contact form",
+    "infos-title": "Coordinates and recipient",
+    "email-label": "Your email address",
+    "email-placeholder": "your[at]adresse.mail",
+    "recipient-label": "Name of the recipient",
+    "recipient-placeholder": "Doe",
+    "message-title": "Content of the message",
+    "object-label": "Subject of the message",
+    "object-placeholder": "New final exam room",
+    "message-label": "Your message",
+    "message-placeholder": "Goodafternoon Pr...",
+    "submit-button": "Send"
+  },
+  "roomreservation": {
+    "weekpicker": {
+      "today-button": "Today"
     },
-    "home": {
-        "welcome" : "Welcome to FlOpEDT !",
-        "department-message" : "You are in department",
-        "department-button-change" : "Change department"
+    "sidebar": {
+      "rooms": "Rooms",
+      "rooms-label": "All rooms",
+      "department": "Department",
+      "department-label": "All departments",
+      "room-filter": "Room filter",
+      "option-filter": "Room option filter"
     },
-    "department-selection": {
-        "title" : "Please select a department"
+    "dynamicselect": {
+      "option-label": "Select an attribute"
     },
-    "language-selection": {
-        "label": "Change language"
+    "schedule-caption": {
+      "course": "Course",
+      "meeting": "Meeting",
+      "student-activity": "Student activity",
+      "conference": "Conference",
+      "external": "External",
+      "other": "Other"
     },
-    "authentication": {
-        "title": "Authentication Error",
-        "message": "Please login to access this page",
-        "login-button": "login"
-    },
-    "contact": {
-        "title" : "Contact form",
-        "infos-title" : "Coordinates and recipient",
-        "email-label" : "Your email address",
-        "email-placeholder" : "your[at]adresse.mail",
-        "recipient-label" : "Name of the recipient",
-        "recipient-placeholder" : "Doe",
-        "message-title" : "Content of the message",
-        "object-label" : "Subject of the message",
-        "object-placeholder" : "New final exam room",
-        "message-label" : "Your message",
-        "message-placeholder" : "Goodafternoon Pr...",
-        "submit-button" : "Send"
-    },
-    "roomreservation": {
-        "weekpicker": {
-            "today-button" : "Today"
-        },
-        "sidebar": {
-            "rooms": "Rooms",
-            "rooms-label" : "All rooms",
-            "department": "Department",
-            "department-label": "All departments",
-            "room-filter": "Room filter",
-            "option-filter": "Room option filter"
-        },
-        "dynamicselect": {
-            "option-label" : "Select an attribute"
-        },
-        "schedule-caption": {
-            "course": "Course",
-            "meeting": "Meeting",
-            "student-activity": "Student activity",
-            "conference": "Conference",
-            "external": "External",
-            "other": "Other"
-        },
-        "roomcalendar": {
-            "room-label": "Room"
-        }
+    "roomcalendar": {
+      "room-label": "Room"
     }
+  }
 }

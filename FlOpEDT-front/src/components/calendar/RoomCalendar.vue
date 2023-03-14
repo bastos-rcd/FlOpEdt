@@ -3,7 +3,7 @@
         <template #table>
             <table class="w-100">
                 <tr>
-                    <th class="col text-center border-dark border">{{ $t('roomreservation.roomcalendar.room-label') }}</th>
+                    <th class="col text-center border-dark border">{{ $t('roomreservation|roomcalendar|room-label') }}</th>
                     <th v-for="day in props.values.days" :key="day.date" class="col text-center border-dark border">
                         {{ day.name }} {{ day.date }}
                     </th>

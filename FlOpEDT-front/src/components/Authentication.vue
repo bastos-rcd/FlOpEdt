@@ -1,7 +1,7 @@
 <template>
-<h3>{{$t('authentication.title')}}</h3>
-<p>{{ $t("authentication.message") }}</p>
-<button @click="authStore.redirectLogin()">{{ $t("authentication.login-button") }}</button>
+<h3>{{$t('authentication|title')}}</h3>
+<p>{{ $t("authentication|message") }}</p>
+<button @click="authStore.redirectLogin()">{{ $t("authentication|login-button") }}</button>
 
 </template>
 
