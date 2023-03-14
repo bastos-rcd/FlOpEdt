@@ -48,8 +48,9 @@ def getTTConstraintsInDB(week, department):
     for constraint_class in all_constraints_classes:
         try:
             if constraint_class.objects.all().exists():
-                all_this_type_constraints = constraint_class.objects.filter(
-                    Q(department=department) & Q(weeks=week))
+                all_this_type_constraints = constraint_class.objects.filter(Q(weeks=week)|Q(weeks__isnull=True),
+                                                                            department=department,
+                                                                            weight=None)
                 for constraint in all_this_type_constraints:
                     try:
                         constraints_list.append(constraint)

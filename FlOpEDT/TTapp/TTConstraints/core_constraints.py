@@ -39,6 +39,7 @@ from TTapp.ilp_constraints.constraints.simulSlotGroupConstraint import SimulSlot
 from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups, pre_analysis_considered_basic_groups
 from base.models import Course, UserPreference, Holiday
@@ -421,8 +422,8 @@ class ConsiderTutorsUnavailability(TTConstraint):
             tutor_partition = partition_bis.create_tutor_partition_from_constraints(week=week, department=self.department, tutor=tutor)
 
             if tutor_partition.available_duration < sum(c.type.duration for c in courses):
-                message = _(f"Tutor {tutor} has {tutor_partition.available_duration} minutes of available time.")
-                message += _(f' He or she has to lecture {len(courses)} classes for an amount of {sum(c.type.duration for c in courses)} minutes of courses.')
+                message = gettext(f"Tutor {tutor} has {tutor_partition.available_duration} minutes of available time.")
+                message += gettext(f' He or she has to lecture {len(courses)} classes for an amount of {sum(c.type.duration for c in courses)} minutes of courses.')
                 jsondict["messages"].append({ "str": message, "tutor": tutor.id, "type" : "ConsiderTutorsUnavailability"})
                 jsondict["status"] = _("KO")
 
@@ -567,10 +568,12 @@ class ConsiderTutorsUnavailability(TTConstraint):
         """
         if partition.tutor_supp :
             
-            user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__lt=1)
+            user_preferences = UserPreference.objects.filter(user=tutor, week=week)
 
             if not user_preferences.exists():
-                user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__lt=1)
+                user_preferences = UserPreference.objects.filter(user=tutor, week=None)
+
+            user_preferences = user_preferences.filter(value=0)
             for up in user_preferences:
                 up_day = Day(up.day, week)
                 partition.add_slot(
@@ -582,10 +585,13 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     
         else :
             
-            user_preferences = UserPreference.objects.filter(user=tutor, week=week, value__gte=1)
+            user_preferences = UserPreference.objects.filter(user=tutor, week=week)
 
             if not user_preferences.exists():
-                user_preferences = UserPreference.objects.filter(user=tutor, week=None, value__gte=1)
+                user_preferences = UserPreference.objects.filter(user=tutor, week=None)
+
+            user_preferences = user_preferences.filter(value__gte=1)
+
             for up in user_preferences:
                 up_day = Day(up.day, week)
                 partition.add_slot(

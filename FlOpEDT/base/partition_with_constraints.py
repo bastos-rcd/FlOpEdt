@@ -18,7 +18,7 @@ def create_tutor_partition_from_constraints(week, department, tutor, available =
     """
     
     # Init partition
-    partition = Partition.get_partition_of_week(week, department, True, available = available)
+    partition = Partition.get_partition_of_week(week, department, True, available=available)
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
     # week and department

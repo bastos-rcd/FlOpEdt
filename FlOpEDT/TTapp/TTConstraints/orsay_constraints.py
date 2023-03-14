@@ -144,11 +144,14 @@ class GroupsLunchBreak(TTConstraint):
 
         """
 
-        if self.groups.filter(name=group.name) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
-            for weekday in self.weekdays :
-                day = Day(weekday,week)
-                partition.add_slot(TimeInterval(flopdate_to_datetime(day,self.start_time),
-                                                flopdate_to_datetime(day, self.end_time)),
+        if (not self.groups.exists() or group in self.groups.all()) \
+                and (not self.weeks.exists() or week in self.weeks.all()):
+            days = [Day(choice[0], week) for choice in Day.CHOICES]
+            if self.weekdays:
+                days = days_filter(days, day_in=self.weekdays)
+            for day in days :
+                partition.add_slot(TimeInterval(flopdate_to_datetime(day, self.end_lunch_time - self.lunch_length), #self.start_lunch_time)
+                                                flopdate_to_datetime(day, self.end_lunch_time)),
                                    "forbidden",
                                    {"value": 0, "forbidden": True, "group_lunch_break": group.name}
                                    )
@@ -260,11 +263,14 @@ class TutorsLunchBreak(TTConstraint):
 
         """
 
-        if self.tutors.filter(username=tutor.username) and self.weeks.filter(Q(year=week.year) & Q(nb=week.nb)):
-            for weekday in self.weekdays :
-                day = Day(weekday,week)
-                partition.add_slot(TimeInterval(flopdate_to_datetime(day,self.start_time),
-                                                flopdate_to_datetime(day, self.end_time)),
+        if (not self.tutors.exists() or tutor in self.tutors.all()) \
+                and (not self.weeks.exists() or week in self.weeks.all()):
+            days = [Day(choice[0], week) for choice in Day.CHOICES]
+            if self.weekdays:
+                days = days_filter(days, day_in=self.weekdays)
+            for day in days :
+                partition.add_slot(TimeInterval(flopdate_to_datetime(day, self.end_lunch_time - self.lunch_length), #self.start_lunch_time),
+                                                flopdate_to_datetime(day, self.end_lunch_time)),
                                    "forbidden",
                                    {"value": 0, "forbidden": True, "tutor_lunch_break": tutor.username}
                                    )

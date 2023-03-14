@@ -28,11 +28,14 @@ def pre_analyse(department, week):
     all_constraints_classes = TTConstraint.__subclasses__()
 
     # Search for each TTConstraint's subclass if we can find an instance of it for the given week and department
+    result=[]
     for constraint_class in all_constraints_classes:
         try:
             #print(constraint_class.objects.all())
-            if constraint_class.objects.all().exists():
-                all_this_type_constraints = constraint_class.objects.filter(Q(department=department) & Q(weeks=week))
+            if constraint_class.objects.exists():
+                all_this_type_constraints = constraint_class.objects.filter(Q(weeks=week) | Q(weeks__isnull=True),
+                                                                            department=department,
+                                                                            weight=None)
                 #print("remaining:",all_this_type_constraints)
                 for constraint in all_this_type_constraints:
                     #print(constraint.weeks.all())
@@ -40,11 +43,9 @@ def pre_analyse(department, week):
                     try:
                         json_dict = constraint.pre_analyse(week)
                         #print(json_dict)
-
-                        # KO status found, stop all pre-analysis and return a KO status with a message explaining why
-                        if json_response_module.isResponseKO(json_dict):
-                            print(type(json_dict))
-                            return json_dict
+                        if json_dict['status']!='OK':
+                            # KO status found
+                            result.append(json_dict)
                     except AttributeError:
                         pass
         except AttributeError:
@@ -53,4 +54,4 @@ def pre_analyse(department, week):
     # All status returned by all pre-analysis iterations are OK
     json_dict = {"status": "OK", "messages": [], "period": {"week": week.nb, "year": week.year}}
 
-    return json_dict
+    return result
