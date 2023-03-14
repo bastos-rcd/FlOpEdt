@@ -74,8 +74,8 @@
                             <div class="col-auto">
                                 <div><span :style="{ color: scheduledCourseColor }">■ </span>{{ $t('roomreservation.schedule-caption.course') }}</div>
                             </div>
-                            <div v-for="type in roomReservationTypes.list.value" :key="type.id" class="col-auto">
-                                <div><span :style="{ color: type.bg_color }">■ </span>{{ type.name }}</div>
+                            <div v-for="rType in roomReservationTypes.list.value" :key="rType.id" class="col-auto">
+                                <div><span :style="{ color: rType.bg_color }">■ </span>{{ rType.name }}</div>
                             </div>
                         </div>
                         <HourCalendar v-if="selectedRoom" @drag="handleDrag" :values="hourCalendarValues"></HourCalendar>
@@ -148,6 +148,7 @@ import DynamicSelectedElementBoolean from '@/components/dynamicSelect/DynamicSel
 import ClearableInput from '@/components/utils/ClearableInput.vue'
 import DeletePeriodicReservationDialog from '@/components/dialog/DeletePeriodicReservationDialog.vue'
 import { useI18n } from 'vue-i18n'
+import { filterBySelectedDepartments, type ScheduledCourses } from '../helpers/RoomReservationView'
 
 const { t } = useI18n()
 const currentWeek = ref(inject('currentWeek'))
@@ -165,19 +166,6 @@ interface Rooms {
     listFilterBySelectedDepartments: ComputedRef<Array<Room>>
     perIdFilterBySelectedDepartments: ComputedRef<{ [roomId: string]: Room }>
     listFilterBySelectedDepartmentsAndFilters: ComputedRef<Array<Room>>
-}
-
-interface ScheduledCourses {
-    list: ComputedRef<Array<ScheduledCourse>>
-    perDepartment: Ref<{ [departmentId: string]: Array<ScheduledCourse> }>
-    perDepartmentFilterByDepartmentsAndRooms: ComputedRef<{ [departmentId: string]: Array<ScheduledCourse> }>
-    perDay: ComputedRef<{ [day: string]: Array<ScheduledCourse> }>
-    perDayPerRoomFilterBySelectedDepartments: ComputedRef<{
-        [day: string]: { [roomId: string]: Array<ScheduledCourse> }
-    }>
-    perDayPerRoom: ComputedRef<{
-        [day: string]: { [roomId: string]: Array<ScheduledCourse> }
-    }>
 }
 
 interface CourseTypes {
@@ -225,14 +213,14 @@ const weekDays = {
 
 const rooms: Rooms = {
     perDepartmentFilterBySelectedDepartments: computed(() => {
-        return filterBySelectedDepartments(roomStore.perDepartment)
+        return filterBySelectedDepartments(roomStore.perDepartment, selectedDepartments.value)
     }),
     listFilterBySelectedDepartments: computed(() => {
         const out: Array<Room> = []
         Object.values(rooms.perDepartmentFilterBySelectedDepartments.value).forEach((rooms) => {
             out.push(...rooms.filter((room) => !out.find((r) => r.id === room.id)))
         })
-        roomStore.rooms.forEach((room) => {
+        roomStore.rooms.forEach((room: Room) => {
             if (room.departments.length === 0 && out.findIndex((r) => r.id === room.id) < 0) {
                 out.push(room)
             }
@@ -337,7 +325,7 @@ const scheduledCourses: ScheduledCourses = {
         )
     }),
     perDay: computed(() => {
-        return listGroupBy(scheduledCourses.list.value, (course) => {
+        return listGroupBy(scheduledCourses.list.value, (course : ScheduledCourse) => {
             // Make sure the day is valid
             const date = weekDays.list.value.find((weekDay) => {
                 return weekDay.ref === course.day
@@ -353,7 +341,7 @@ const scheduledCourses: ScheduledCourses = {
                 const dept = getScheduledCourseDepartment(course)
                 return dept && selectedDepartments.value.includes(dept)
             })
-            out[day] = listGroupBy(courses, (course) => `${course.room?.id}`)
+            out[day] = listGroupBy(courses, (course: ScheduledCourse) => `${course.room?.id}`)
         })
         return out
     }),
@@ -362,7 +350,7 @@ const scheduledCourses: ScheduledCourses = {
         Object.entries(scheduledCourses.perDay.value).forEach((entry) => {
             const day = entry[0]
             const courses = entry[1]
-            out[day] = listGroupBy(courses, (course) => `${course.room?.id}`)
+            out[day] = listGroupBy(courses, (course: ScheduledCourse) => `${course.room?.id}`)
         })
         return out
     }),
@@ -371,7 +359,7 @@ const scheduledCourses: ScheduledCourses = {
 const courseTypes: CourseTypes = {
     perDepartment: ref({}),
     listFilterBySelectedDepartments: computed(() => {
-        return Object.values(filterBySelectedDepartments(courseTypes.perDepartment.value)).flat(1)
+        return Object.values(filterBySelectedDepartments(courseTypes.perDepartment.value, selectedDepartments.value)).flat(1)
     }),
 }
 
@@ -802,19 +790,7 @@ watchEffect(() => {
     onTimeSettingsChanged(timeSettings.value)
 })
 
-/**
- * Takes an object having departments id as key and an array.
- * Returns the filtered entries of selected departments.
- * @param object
- */
-function filterBySelectedDepartments<T>(object: { [key: string]: Array<T> }) {
-    const out: { [departmentId: string]: Array<T> } = Object.fromEntries(
-        Object.entries(object).filter(
-            ([key]) => selectedDepartments.value.findIndex((dept) => `${dept.id}` === key) >= 0
-        )
-    )
-    return out
-}
+
 
 function onTimeSettingsChanged(timeSettings?: Array<TimeSettings>) {
     if (!timeSettings) {
