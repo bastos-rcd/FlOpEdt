@@ -466,20 +466,20 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     holiday_text = holiday_text[:-2]
 
                 if tutor_partition.available_duration < sum(c.type.duration for c in courses):
-                    message = _(f"Tutor {tutor} has {tutor_partition.available_duration} minutes of available time")
+                    message = gettext(f"Tutor {tutor} has {tutor_partition.available_duration} minutes of available time")
                     if forbidden_days or holiday_text:
-                        message += _(f" (considering that")
+                        message += gettext(f" (considering that")
                         if forbidden_days:
-                            message +=_(f" {forbidden_days} is forbidden")
+                            message +=gettext(f" {forbidden_days} is forbidden")
                             if holidays:
-                                message += _(f" and {holiday_text} is holiday).")
+                                message += gettext(f" and {holiday_text} is holiday).")
                             else:
                                 message += ').'
                         else:
-                            message += _(f" {holiday_text} is holiday).")
+                            message += gettext(f" {holiday_text} is holiday).")
                     else:
                         message += '.'
-                    message += _(f' He or she has to lecture {len(courses)} classes for an amount of {sum(c.type.duration for c in courses)} minutes of courses.')
+                    message += gettext(f' He or she has to lecture {len(courses)} classes for an amount of {sum(c.type.duration for c in courses)} minutes of courses.')
                     jsondict["messages"].append({ "str": message, "tutor": tutor.id, "type" : "ConsiderTutorsUnavailability"})
                     jsondict["status"] = _("KO")
 
@@ -501,8 +501,8 @@ class ConsiderTutorsUnavailability(TTConstraint):
                         course_partition.add_partition_data_type(tutor_partition, "user_preference")
 
                         if course_partition.available_duration < len(course_list)*course_type.duration or course_partition.nb_slots_available_of_duration_beginning_at(course_type.duration, start_times) < len(course_list):
-                            message = _(f"Tutor {tutor} has {course_partition.nb_slots_available_of_duration_beginning_at(course_type.duration, start_times)} available slots of {course_type.duration} mins ")
-                            message += _(f'and {len(course_list)} courses that long to attend.')
+                            message = gettext(f"Tutor {tutor} has {course_partition.nb_slots_available_of_duration_beginning_at(course_type.duration, start_times)} available slots of {course_type.duration} mins ")
+                            message += gettext(f'and {len(course_list)} courses that long to attend.')
                             jsondict["messages"].append({"str": message, "tutor" : tutor.id, "type" : "ConsiderTutorsUnavailability"})
                             jsondict["status"] = _("KO")
         return jsondict
