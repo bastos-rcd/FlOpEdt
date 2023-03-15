@@ -28,7 +28,7 @@ from core.decorators import timer
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval
-from base.models import CourseStartTimeConstraint, Department, TimeGeneralSettings, TransversalGroup, Week
+from base.models import CourseStartTimeConstraint, Week
 from django.db import models
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
@@ -44,7 +44,7 @@ from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups, pre_analysis_considered_basic_groups
 from base.models import Course, UserPreference, Holiday
 from base.partition import Partition
-import base.partition_with_constraints as partition_bis
+import TTapp.GlobalPreAnalysis.partition_with_constraints as partition_bis
 from base.timing import Day, flopdate_to_datetime
 from people.models import Tutor
 from django.db.models import Q
