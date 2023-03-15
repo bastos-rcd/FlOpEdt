@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits } from '@/helpers'
+import { createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits, filterBySelectedDepartments, type ScheduledCourses } from '@/helpers'
 import type {
     BooleanRoomAttributeValue,
     CalendarDragEvent,
@@ -149,7 +149,6 @@ import DynamicSelectedElementBoolean from '@/components/dynamicSelect/DynamicSel
 import ClearableInput from '@/components/utils/ClearableInput.vue'
 import DeletePeriodicReservationDialog from '@/components/dialog/DeletePeriodicReservationDialog.vue'
 import { useI18n } from 'vue-i18n'
-import { filterBySelectedDepartments, type ScheduledCourses } from '../helpers/RoomReservationView'
 
 
 const { t } = useI18n()
@@ -761,6 +760,7 @@ const roomCalendarValues = computed<RoomCalendarProps>(() => {
 
 // Update weekDays
 watchEffect(() => {
+    console.log('Updating weekDays')
     api.fetch
         .weekdays({ week: selectedDate.value.week, year: selectedDate.value.year })
         .then((value: { date: string; name: string; num: number; ref: string }[]) => {
@@ -769,10 +769,11 @@ watchEffect(() => {
 })
 
 // Week selection watcher
-watchEffect(() => {
+watchEffect(async () => {
     console.log('Updating Rooms reservations')
-    const date = selectedDate.value
-    updateRoomReservations(date)
+    await updateRoomReservations(selectedDate.value)
+    roomReservations.list.value = roomReservationStore.getAllRoomReservationsFetched
+    temporaryReservation.value = undefined
 })
 
 // Week selection and departments watcher
@@ -949,14 +950,9 @@ function addTo<T>(collection: { [p: string]: Array<T> }, id: string | number, el
     collection[id].push(element)
 }
 
-function updateRoomReservations(date: FlopWeek): void {
-    const week = date.week
-    const year = date.year
-
+async function updateRoomReservations(date: FlopWeek): Promise<void> {
     showLoading()
-    roomReservationStore.fetchRoomReservationsForWeek(date)
-    roomReservations.list.value = roomReservationStore.getAllRoomReservationsFetched
-    temporaryReservation.value = undefined
+    await roomReservationStore.fetchRoomReservationsForWeek(date)
     hideLoading()
 }
 
