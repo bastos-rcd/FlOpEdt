@@ -1,5 +1,5 @@
 import { MappableToIdArray } from "@/stores/store"
-import type { ShallowRef } from 'vue'
+import type { ComputedRef, ShallowRef } from 'vue'
 
 export interface BooleanRoomAttributeValue extends RoomAttributeValue {
     value: boolean
@@ -328,6 +328,19 @@ export class ScheduledCourse {
         this.tutor = ''
         this.id_visio = 0
     }
+}
+
+export interface ScheduledCourses {
+    list: ComputedRef<Array<ScheduledCourse>>
+    perDepartment: Ref<{ [departmentId: string]: Array<ScheduledCourse> }>
+    perDepartmentFilterByDepartmentsAndRooms: ComputedRef<{ [departmentId: string]: Array<ScheduledCourse> }>
+    perDay: ComputedRef<{ [day: string]: Array<ScheduledCourse> }>
+    perDayPerRoomFilterBySelectedDepartments: ComputedRef<{
+        [day: string]: { [roomId: string]: Array<ScheduledCourse> }
+    }>
+    perDayPerRoom: ComputedRef<{
+        [day: string]: { [roomId: string]: Array<ScheduledCourse> }
+    }>
 }
 
 export class Time {

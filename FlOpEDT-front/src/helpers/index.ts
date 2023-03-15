@@ -1,5 +1,5 @@
-import type { Time } from '@/ts/types'
-
+import { Department, type ScheduledCourse, type Time, type ScheduledCourses } from "@/ts/type"
+import { ComputedRef, Ref } from "vue"
 
 export function convertDecimalTimeToHuman(time: number): string {
     const hours = Math.trunc(time)
@@ -65,4 +65,19 @@ export function createTime(time: number): Time {
  */
 export function mapListId(list: Array<{ id: number }>): Array<number> {
     return list.map((element) => element.id)
+}
+
+
+/**
+ * Takes an object having departments id as key and an array.
+ * Returns the filtered entries of selected departments.
+ * @param object
+ */
+export function filterBySelectedDepartments<T>(object: { [key: string]: Array<T> }, selectedDepartments: Array<Department>) {
+    const out: { [departmentId: string]: Array<T> } = Object.fromEntries(
+        Object.entries(object).filter(
+            ([key]) => selectedDepartments.findIndex((dept) => `${dept.id}` === key) >= 0
+        )
+    )
+    return out
 }
