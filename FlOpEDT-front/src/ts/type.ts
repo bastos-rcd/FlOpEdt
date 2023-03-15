@@ -69,31 +69,67 @@ export interface CalendarSlotInterface {
 
 export class Course {
     id: number
+    type: { 
+        department: Department
+        name : string,
+        duration: number
+    }
+    room_type: { name: string }
     week: string
     year: string
+    groups: [
+        {
+            id: number
+            train_prog: string
+            name: string
+            is_structural: boolean
+        }
+    ]
     no: number
-    type: { department: { name: string }; name: string }
-    room_type: { name: string }
     tutor: string
     supp_tutor: string
-    groups: Array<{ name: string }>
-    module: { abbrev: string }
+    module: {
+        name: string
+        abbrev: string
+        display: {
+            color_bg: string
+            color_txt: string
+        }
+    }
     modulesupp: { abbrev: string }
     pay_module: { abbrev: string }
+    is_graded: boolean
 
     constructor() {
         this.id = 0
         this.week = ''
         this.year = ''
         this.no = 0
-        this.type = { department: { name: '' }, name: '' }
+        this.type = { 
+            department: new Department(),
+            name : "",
+            duration: 0
+        }
         this.room_type = { name: '' }
         this.tutor = ''
         this.supp_tutor = ''
-        this.groups = []
-        this.module = { abbrev: '' }
+        this.groups = [{
+            id: -1,
+            train_prog: "",
+            name: "",
+            is_structural: false
+        }]
+        this.module = {
+            name: "",
+            abbrev: "",
+            display: {
+                color_bg: "",
+                color_txt: "",
+            }
+        }
         this.modulesupp = { abbrev: '' }
         this.pay_module = { abbrev: '' }
+        this.is_graded = false
     }
 }
 
@@ -104,16 +140,19 @@ export interface CourseType {
 
 export interface Department {
     id: number
+    name : string
     abbrev: string
 }
 
 export class Department implements Department{
     id = -1
     abbrev = "NF"
+    name = "not found"
 
-    constructor(id: number = -1, abbrev: string = "NF") {
+    constructor(id: number = -1, abbrev: string = "NF", name = "not found") {
         this.id = id
         this.abbrev = abbrev
+        this.name = name
     }
 }
 
@@ -262,32 +301,7 @@ export class ScheduledCourse {
     room?: { id: number; name: string }
     start_time: number
     day: string
-    course: {
-        id: number
-        type: string
-        room_type: string
-        week: number
-        year: number
-        groups: [
-            {
-                id: number
-                train_prog: string
-                name: string
-                is_structural: boolean
-            }
-        ]
-        supp_tutor: []
-        module: {
-            name: string
-            abbrev: string
-            display: {
-                color_bg: string
-                color_txt: string
-            }
-        }
-        pay_module: object
-        is_graded: boolean
-    }
+    course: Course
     tutor: string
     id_visio: number
 
@@ -299,32 +313,7 @@ export class ScheduledCourse {
         }
         this.start_time = 0
         this.day = ''
-        this.course = {
-            id: 0,
-            type: '',
-            room_type: '',
-            week: 0,
-            year: 0,
-            groups: [
-                {
-                    id: 0,
-                    train_prog: '',
-                    name: '',
-                    is_structural: false,
-                },
-            ],
-            supp_tutor: [],
-            module: {
-                name: '',
-                abbrev: '',
-                display: {
-                    color_bg: '',
-                    color_txt: '',
-                },
-            },
-            pay_module: {},
-            is_graded: false,
-        }
+        this.course = new Course()
         this.tutor = ''
         this.id_visio = 0
     }

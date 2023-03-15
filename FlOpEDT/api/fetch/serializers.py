@@ -27,6 +27,7 @@ import displayweb.models as dwm
 import people.models as pm
 from base.timing import Day, flopdate_to_datetime
 from datetime import timedelta
+from api.base.courses.serializers import CoursesSerializer, Group_SC_Serializer, Module_SC_Serializer, Department_TC_Serializer
 
 #    --------------------------------------------------------------------------------
 #   |                                                                                |
@@ -42,6 +43,20 @@ from datetime import timedelta
 #                             ----Scheduled Courses (SC)----                            #
 #                             ------------------------------                            #
 
+class RoomType_SC_Serializer(serializers.Serializer):
+    name = serializers.CharField()
+
+    class Meta:
+        model = bm.RoomType
+        fields = ['name']
+
+class Module_C_Serializer(serializers.Serializer):
+    abbrev = serializers.CharField()
+
+    class Meta:
+        model = bm.Module
+        fields = ['abbrev']
+
 class Tutor_Serializer(serializers.Serializer):
     username = serializers.CharField()
 
@@ -50,64 +65,10 @@ class Tutor_Serializer(serializers.Serializer):
         fields = ['username']
 
 
-class ModuleDisplay_SC_Serializer(serializers.Serializer):
-    color_bg = serializers.CharField()
-    color_txt = serializers.CharField()
-
-    class Meta:
-        model = dwm.ModuleDisplay
-        fields = ['color_bg', 'color_txt']
 
 
-class Module_SC_Serializer(serializers.Serializer):
-    name = serializers.CharField()
-    abbrev = serializers.CharField()
-    display = ModuleDisplay_SC_Serializer()
-
-    class Meta:
-        model = bm.Module
-        fields = ['name', 'abbrev', 'display']
 
 
-class Group_SC_Serializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    train_prog = serializers.CharField()
-    name = serializers.CharField()
-    is_structural = serializers.BooleanField()
-
-    class Meta:
-        model = bm.GenericGroup
-        fields = ['id', 'name', 'train_prog', 'is_structural']
-
-
-class Course_SC_Serializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    type = serializers.CharField()
-    room_type = serializers.CharField()
-    week = serializers.SerializerMethodField()
-    year = serializers.SerializerMethodField()
-    groups = Group_SC_Serializer(many=True)
-    supp_tutor = Tutor_Serializer(many=True)
-    module = Module_SC_Serializer()
-    pay_module = Module_SC_Serializer()
-    is_graded = serializers.BooleanField()
-
-    def get_week(self, obj):
-        if (obj.week is not None):
-            return (obj.week.nb)
-        else:
-            return
-
-    def get_year(self, obj):
-        if (obj.week is not None):
-            return (obj.week.year)
-        else:
-            return
-
-    class Meta:
-        model = bm.Course
-        fields = ['id', 'type', 'room_type', 'week', 'year', 'module', 'groups',
-                  'is_graded', 'supp_tutor', 'pay_module']
 
 
 class IDRoomSerializer(serializers.ModelSerializer):
@@ -122,7 +83,7 @@ class ScheduledCoursesSerializer(serializers.Serializer):
     room = IDRoomSerializer(allow_null=True)
     start_time = serializers.IntegerField()
     day = serializers.CharField()
-    course = Course_SC_Serializer()
+    course = CoursesSerializer()
     tutor = serializers.CharField(source='tutor.username', allow_null=True)
     id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
     number = serializers.IntegerField()
@@ -139,7 +100,7 @@ class NewApiScheduledCoursesSerializer(serializers.Serializer):
     room = IDRoomSerializer(allow_null=True)
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
-    course = Course_SC_Serializer()
+    course = CoursesSerializer()
     tutor = serializers.CharField(source='tutor.username', allow_null=True)
     id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
     number = serializers.IntegerField()
@@ -401,14 +362,6 @@ class AllVersionsSerializer(serializers.ModelSerializer):
 #                               --------------------------                              #
 #                               ----Tutor Courses (TC)----                              #
 #                               --------------------------                              #
-
-class Department_TC_Serializer(serializers.Serializer):
-    name = serializers.CharField()
-    abbrev = serializers.CharField()
-
-    class Meta:
-        model = bm.Department
-        fields = ['name', 'abbrev']
 
 
 class CourseType_TC_Serializer(serializers.Serializer):
