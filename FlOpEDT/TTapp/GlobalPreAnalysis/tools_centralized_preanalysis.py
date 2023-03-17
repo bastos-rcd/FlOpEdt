@@ -1,32 +1,6 @@
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.FlopConstraint import FlopConstraint
+from TTapp.FlopConstraint import all_subclasses
 from django.db.models import Q
-
-# This file contains functions that are used to get data on subclasses and especially about TTConstraints
-
-def all_constraint_subclasses(class_name):
-    """
-        A class that returns all the subclasses (recursively) that inherits from the given class.
-
-    :param class_name: The class we want to get all subclasses from
-    :return: A set of subclasses
-
-    """
-    constraint_subclasses = set(class_name.__subclasses__())
-
-    for subclass in class_name.__subclasses__():
-        constraint_subclasses = constraint_subclasses.union(all_constraint_subclasses(subclass))
-
-    return constraint_subclasses
-
-
-def all_TTconstraint_subclasses():
-    """
-        A class that returns all the subclasses (recursively) that inherits from TTContraints.
-
-    :return: A set of subclasses
-
-    """
-    return all_constraint_subclasses(TTConstraint)
 
 
 def getTTConstraintsInDB(week, department):
@@ -42,21 +16,16 @@ def getTTConstraintsInDB(week, department):
     # Init
     constraints_list = []
     # Get all the classes that inherit from TTConstraint
-    all_constraints_classes = all_TTconstraint_subclasses()
+    all_constraints_classes = all_subclasses(FlopConstraint)
 
     # Browse for each subclass if we can find an existing instance of this subclass and add it to the list
     for constraint_class in all_constraints_classes:
-        try:
             if constraint_class.objects.all().exists():
                 all_this_type_constraints = constraint_class.objects.filter(Q(weeks=week)|Q(weeks__isnull=True),
                                                                             department=department,
-                                                                            weight=None)
+                                                                            weight=None,
+                                                                            is_active=True)
                 for constraint in all_this_type_constraints:
-                    try:
-                        constraints_list.append(constraint)
-                    except AttributeError:
-                        pass
-        except AttributeError:
-            pass
+                    constraints_list.append(constraint)
 
     return constraints_list
