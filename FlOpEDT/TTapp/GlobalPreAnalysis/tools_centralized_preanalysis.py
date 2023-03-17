@@ -3,7 +3,7 @@ from TTapp.FlopConstraint import all_subclasses
 from django.db.models import Q
 
 
-def getTTConstraintsInDB(week, department):
+def getFlopConstraintsInDB(week, department):
     """
         Returns all classes' instances that inherit from TTConstraint and exist for the given week and department in the database.
 

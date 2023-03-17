@@ -1,4 +1,4 @@
-import TTapp.GlobalPreAnalysis.tools_centralized_preanalysis as tools
+from TTapp.GlobalPreAnalysis.tools_centralized_preanalysis import getFlopConstraintsInDB
 from base.partition import Partition
 from base.models import ModulePossibleTutors
 
@@ -22,7 +22,7 @@ def create_tutor_partition_from_constraints(week, department, tutor, available =
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
     # week and department
-    constraints_list = tools.getTTConstraintsInDB(week, department)
+    constraints_list = getFlopConstraintsInDB(week, department)
 
     for constraint in constraints_list:
         try:
@@ -51,7 +51,7 @@ def complete_tutor_partition_from_constraints(partition, week, department, tutor
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
     # week and department
-    constraints_list = tools.getTTConstraintsInDB(week, department)
+    constraints_list = tools.getFlopConstraintsInDB(week, department)
 
     for constraint in constraints_list:
         try:
@@ -81,7 +81,7 @@ def create_group_partition_from_constraints(week, department, group, available =
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
     # week and department
-    constraints_list = tools.getTTConstraintsInDB(week, department)
+    constraints_list = tools.getFlopConstraintsInDB(week, department)
     # For each constraint (week and department considered) in the database, try to find the complete_group_partition
     # method and add information in the partition if found
     for constraint in constraints_list:
@@ -111,7 +111,7 @@ def complete_group_partition_from_constraints(partition, week, department, group
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
     # week and department
-    constraints_list = tools.getTTConstraintsInDB(week, department)
+    constraints_list = tools.getFlopConstraintsInDB(week, department)
 
     for constraint in constraints_list:
         try:
