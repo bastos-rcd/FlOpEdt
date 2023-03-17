@@ -260,7 +260,7 @@ msgstr " %s est férié)."
 #: TTapp/TTConstraints/core_constraints.py:531
 #, python-format
 msgid "Tutor %s has %s available slots of %s mins "
-msgstr "%s a %s créneaux disponibles de %s mins"
+msgstr "%s a %s créneaux disponibles de %s mins "
 
 #: TTapp/TTConstraints/core_constraints.py:533
 #, python-format
