@@ -1,11 +1,8 @@
-#only to solve a bug, maybe to delete
+# only to solve a bug, maybe to delete
+import tools_centralized_preanalysis as tools
 import django
 django.setup()
-#end
-
-from TTapp.TTConstraints.TTConstraint import TTConstraint
-from django.db.models import Q
-
+# end
 
 
 def pre_analyse(department, week):
@@ -20,32 +17,20 @@ def pre_analyse(department, week):
 
     """
 
-    # Get all the classes that inherit from TTConstraint
-    all_constraints_classes = TTConstraint.__subclasses__()
+    # Get all the active imperative constraints in database
+    all_constraints_list = tools.getTTConstraintsInDB(week, department)
 
     # Search for each TTConstraint's subclass if we can find an instance of it for the given week and department
     result=[]
-    for constraint_class in all_constraints_classes:
+
+    for constraint in all_constraints_list:
         try:
-            #print(constraint_class.objects.all())
-            if constraint_class.objects.exists():
-                all_this_type_constraints = constraint_class.objects.filter(Q(weeks=week) | Q(weeks__isnull=True),
-                                                                            department=department,
-                                                                            weight=None)
-                #print("remaining:",all_this_type_constraints)
-                for constraint in all_this_type_constraints:
-                    #print(constraint.weeks.all())
-                    # Try to launch the pre_analyse function (if it exists)
-                    try:
-                        json_dict = constraint.pre_analyse(week)
-                        #print(json_dict)
-                        if json_dict['status']!='OK':
-                            # KO status found
-                            result.append(json_dict)
-                    except AttributeError:
-                        pass
+            json_dict = constraint.pre_analyse(week)
+            if json_dict['status'] != 'OK':
+                # KO status found
+                result.append(json_dict)
         except AttributeError:
-            pass
+                pass
 
     # All status returned by all pre-analysis iterations are OK
     json_dict = {"status": "OK", "messages": [], "period": {"week": week.nb, "year": week.year}}
