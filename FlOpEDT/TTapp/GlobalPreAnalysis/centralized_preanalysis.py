@@ -1,5 +1,5 @@
 # only to solve a bug, maybe to delete
-import tools_centralized_preanalysis as tools
+from TTapp.GlobalPreAnalysis.tools_centralized_preanalysis import getFlopConstraintsInDB
 import django
 django.setup()
 # end
@@ -18,7 +18,7 @@ def pre_analyse(department, week):
     """
 
     # Get all the active imperative constraints in database
-    all_constraints_list = tools.getTTConstraintsInDB(week, department)
+    all_constraints_list = getFlopConstraintsInDB(week, department)
 
     # Search for each TTConstraint's subclass if we can find an instance of it for the given week and department
     result=[]
