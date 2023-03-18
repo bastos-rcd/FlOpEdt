@@ -123,9 +123,12 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
             if min_course_time_needed > group_partition.not_forbidden_duration:
                 jsondict["status"] = _("KO")
-                jsondict["messages"].append({"str": _(
-                    f"Group {bg.name} has {group_partition.not_forbidden_duration} available time but requires minimum {min_course_time_needed}."),
-                    "group": bg.id, "type": "NoSimultaneousGroupCourses"})
+                jsondict["messages"].append({"str": gettext(
+                    "Group %(group_name)s has %(not_forbidden_duration)s available time but requires minimum %(min_course_time_needed)s.")
+                                                    % {"group_name": bg.name,
+                                                       "not_forbidden_duration": group_partition.not_forbidden_duration,
+                                                       "min_course_time_needed": min_course_time_needed},
+                                             "group": bg.id, "type": "NoSimultaneousGroupCourses"})
 
             else:
                 # If they exists we add the transversal courses to the considered_courses
@@ -138,9 +141,12 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
                 if course_time_needed > group_partition.not_forbidden_duration:
                     jsondict["status"] = _("KO")
-                    jsondict["messages"].append({"str": _(
-                        f"Group {bg.name} has {group_partition.not_forbidden_duration} available time but probably requires minimum {course_time_needed}."),
-                        "group": bg.id, "type": "NoSimultaneousGroupCourses"})
+                    jsondict["messages"].append({"str": gettext(
+                        "Group %(group_name)s has %(not_forbidden_duration)s available time but probably requires minimum %(min_course_time_needed)s.")
+                                                        % {"group_name": bg.name,
+                                                           "not_forbidden_duration": group_partition.not_forbidden_duration,
+                                                           "min_course_time_needed": min_course_time_needed},
+                                                 "group": bg.id, "type": "NoSimultaneousGroupCourses"})
 
                 else:
 
@@ -179,8 +185,12 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
                         if allowed_slots_nb < nb_courses:
                             jsondict["status"] = _("KO")
-                            jsondict["messages"].append({"str": _(
-                                f"Group {bg.name} has {allowed_slots_nb} slots available of {course_type.duration} minutes and requires {nb_courses}."),
+                            jsondict["messages"].append({"str": gettext(
+                                "Group %(group_name)s has %(allowed_slots_nb)s slots available of %(duration)s minutes and requires %(nb_courses)s.")
+                                                                % {"group_name": bg.name,
+                                                                   "allowed_slots_nb": allowed_slots_nb,
+                                                                   "duration": course_type.duration,
+                                                                   "nb_courses": nb_courses},
                                 "group": bg.id, "type": "NoSimultaneousGroupCourses"})
                             return jsondict
 
@@ -192,7 +202,11 @@ class NoSimultaneousGroupCourses(TTConstraint):
                     if all_allowed_slots_nb < all_nb_courses:
                         jsondict["status"] = _("KO")
                         jsondict["messages"].append({"str": _(
-                            f"Group {bg.name} has a total of {all_allowed_slots_nb} slots available of minimum {min_duration} minutes and requires {all_nb_courses}."),
+                            "Group %(group_name)s has a total of %(all_allowed_slots_nb)s slots available of minimum %(min_duration)s minutes and requires %(all_nb_courses)s.")
+                                                            % {"group_name": bg.name,
+                                                               "all_allowed_slots_nb": all_allowed_slots_nb,
+                                                               "min_duration": min_duration,
+                                                               "all_nb_courses": all_nb_courses},
                             "group": bg.id, "type": "NoSimultaneousGroupCourses"})
 
         return jsondict
@@ -435,11 +449,11 @@ class ConsiderTutorsUnavailability(TTConstraint):
                                                                                     tutor=tutor)
 
             if tutor_partition.available_duration < sum(c.type.duration for c in courses):
-                message = gettext("Tutor %s has %s minutes of available time.") \
-                          % (tutor, tutor_partition.available_duration)
-                message += gettext(' He or she has to lecture %s classes for an amount of %s '
+                message = gettext("Tutor %(tutor)s has %(available_duration)s minutes of available time.") \
+                          % {"tutor":tutor, "available_duration": tutor_partition.available_duration}
+                message += gettext(' He or she has to lecture %(classes_nb)s classes for an amount of %(duration)s '
                                    'minutes of courses.') \
-                           % (len(courses), sum(c.type.duration for c in courses))
+                           % {"classes_nb" : len(courses), "duration": sum(c.type.duration for c in courses)}
                 jsondict["messages"].append({"str": message, "tutor": tutor.id, "type": "ConsiderTutorsUnavailability"})
                 jsondict["status"] = _("KO")
 
@@ -485,8 +499,8 @@ class ConsiderTutorsUnavailability(TTConstraint):
 
                 if tutor_partition.available_duration < sum(c.type.duration for c in courses):
                     message = gettext(
-                        "Tutor %s has %s minutes of available time") \
-                              % (tutor, tutor_partition.available_duration)
+                        "Tutor %(tutor)s has %(available_duration)s minutes of available time") \
+                              % {"tutor": tutor, "available_duration": tutor_partition.available_duration}
                     if forbidden_days or holiday_text:
                         message += gettext(" (considering that")
                         if forbidden_days:
@@ -499,10 +513,9 @@ class ConsiderTutorsUnavailability(TTConstraint):
                             message += gettext(" %s is holiday).") % holiday_text
                     else:
                         message += '.'
-                    message += gettext(
-                        ' He or she has to lecture %s classes '
-                        'for an amount of %s minutes of courses.') \
-                               % (len(courses), sum(c.type.duration for c in courses))
+                    message += gettext(' He or she has to lecture %(classes_nb)s classes for an amount of %(duration)s '
+                                       'minutes of courses.') \
+                               % {"classes_nb": len(courses), "duration": sum(c.type.duration for c in courses)}
                     jsondict["messages"].append(
                         {"str": message, "tutor": tutor.id, "type": "ConsiderTutorsUnavailability"})
                     jsondict["status"] = _("KO")
@@ -528,8 +541,10 @@ class ConsiderTutorsUnavailability(TTConstraint):
                                 course_list) * course_type.duration or course_partition.nb_slots_available_of_duration_beginning_at(
                             course_type.duration, start_times) < len(course_list):
                             message = gettext(
-                                "Tutor %s has %s available slots of %s mins ") \
-                                      % (tutor, course_partition.nb_slots_available_of_duration_beginning_at(course_type.duration, start_times), course_type.duration)
+                                "Tutor %(tutor)s has %(slots_nb)s available slots of %(duration)s mins ") \
+                                      % {"tutor": tutor,
+                                         "slots_nb": course_partition.nb_slots_available_of_duration_beginning_at(course_type.duration, start_times),
+                                         "duration": course_type.duration}
                             message += gettext('and %s courses that long to attend.') % len(course_list)
                             jsondict["messages"].append(
                                 {"str": message, "tutor": tutor.id, "type": "ConsiderTutorsUnavailability"})

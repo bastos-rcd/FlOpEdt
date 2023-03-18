@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-17 08:25+0000\n"
+"POT-Creation-Date: 2023-03-18 13:58+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -137,178 +137,185 @@ msgid "No simultaneous courses for groups"
 msgstr "Pas de schtroumpf simultané pour un groupe"
 
 #: TTapp/TTConstraints/core_constraints.py:76
-#: TTapp/TTConstraints/core_constraints.py:419
-#: TTapp/TTConstraints/slots_constraints.py:72
-#: TTapp/TTConstraints/slots_constraints.py:455
+#: TTapp/TTConstraints/core_constraints.py:433
+#: TTapp/TTConstraints/slots_constraints.py:73
+#: TTapp/TTConstraints/slots_constraints.py:456
 msgid "OK"
 msgstr ""
 
 #: TTapp/TTConstraints/core_constraints.py:125
-#: TTapp/TTConstraints/core_constraints.py:140
-#: TTapp/TTConstraints/core_constraints.py:181
-#: TTapp/TTConstraints/core_constraints.py:193
-#: TTapp/TTConstraints/core_constraints.py:444
-#: TTapp/TTConstraints/core_constraints.py:508
-#: TTapp/TTConstraints/core_constraints.py:536
-#: TTapp/TTConstraints/slots_constraints.py:84
-#: TTapp/TTConstraints/slots_constraints.py:116
-#: TTapp/TTConstraints/slots_constraints.py:122
-#: TTapp/TTConstraints/slots_constraints.py:145
-#: TTapp/TTConstraints/slots_constraints.py:155
-#: TTapp/TTConstraints/slots_constraints.py:485
-#: TTapp/TTConstraints/slots_constraints.py:492
-#: TTapp/TTConstraints/slots_constraints.py:499
-#: TTapp/TTConstraints/slots_constraints.py:513
-#: TTapp/TTConstraints/slots_constraints.py:521
-#: TTapp/TTConstraints/slots_constraints.py:528
+#: TTapp/TTConstraints/core_constraints.py:143
+#: TTapp/TTConstraints/core_constraints.py:187
+#: TTapp/TTConstraints/core_constraints.py:203
+#: TTapp/TTConstraints/core_constraints.py:458
+#: TTapp/TTConstraints/core_constraints.py:521
+#: TTapp/TTConstraints/core_constraints.py:551
+#: TTapp/TTConstraints/slots_constraints.py:85
+#: TTapp/TTConstraints/slots_constraints.py:117
+#: TTapp/TTConstraints/slots_constraints.py:123
+#: TTapp/TTConstraints/slots_constraints.py:146
+#: TTapp/TTConstraints/slots_constraints.py:156
+#: TTapp/TTConstraints/slots_constraints.py:486
+#: TTapp/TTConstraints/slots_constraints.py:493
+#: TTapp/TTConstraints/slots_constraints.py:500
+#: TTapp/TTConstraints/slots_constraints.py:514
+#: TTapp/TTConstraints/slots_constraints.py:522
+#: TTapp/TTConstraints/slots_constraints.py:531
 msgid "KO"
 msgstr ""
 
 #: TTapp/TTConstraints/core_constraints.py:127
-#, python-brace-format
+#, fuzzy, python-format
+#| msgid ""
+#| "Group {bg.name} has {group_partition.not_forbidden_duration} available "
+#| "time but requires minimum {min_course_time_needed}."
 msgid ""
-"Group {bg.name} has {group_partition.not_forbidden_duration} available time "
-"but requires minimum {min_course_time_needed}."
+"Group %(group_name)s has %(not_forbidden_duration)s available time but "
+"requires minimum %(min_course_time_needed)s."
 msgstr ""
 "Le groupe {bg.name} schtroumpf {group_partition.not_forbidden_duration} "
 "minutes de temps disponible mais schtroumpf un minimum de "
 "{min_course_time_needed}."
 
-#: TTapp/TTConstraints/core_constraints.py:142
-#, python-brace-format
+#: TTapp/TTConstraints/core_constraints.py:145
+#, fuzzy, python-format
+#| msgid ""
+#| "Group {bg.name} has {group_partition.not_forbidden_duration} available "
+#| "time but probably requires minimum {course_time_needed}."
 msgid ""
-"Group {bg.name} has {group_partition.not_forbidden_duration} available time "
-"but probably requires minimum {course_time_needed}."
+"Group %(group_name)s has %(not_forbidden_duration)s available time but "
+"probably requires minimum %(min_course_time_needed)s."
 msgstr ""
 "Le groupe {bg.name} schtroumpf {group_partition.not_forbidden_duration} "
 "minutes de temps disponible mais schtroumpf probablement un minimum de "
 "{course_time_needed}"
 
-#: TTapp/TTConstraints/core_constraints.py:183
-#, fuzzy, python-brace-format
+#: TTapp/TTConstraints/core_constraints.py:189
+#, fuzzy, python-format
 #| msgid ""
 #| "Group {bg.name} has {group_partition."
 #| "nb_slots_not_forbidden_of_duration(course_type.duration)} slots available "
 #| "of {course_type.duration} minutes and requires {nb_courses}."
 msgid ""
-"Group {bg.name} has {allowed_slots_nb} slots available of {course_type."
-"duration} minutes and requires {nb_courses}."
+"Group %(group_name)s has %(allowed_slots_nb)s slots available of "
+"%(duration)s minutes and requires %(nb_courses)s."
 msgstr ""
 "Le group {bg.name} schtroumpf {group_partition."
 "nb_slots_not_forbidden_of_duration(course_type.duration)} créneaux "
 "disponibles d'une durée de {course_type.duration} minutes et schtroumpf de "
 "{nb_courses}."
 
-#: TTapp/TTConstraints/core_constraints.py:195
-#, fuzzy, python-brace-format
+#: TTapp/TTConstraints/core_constraints.py:205
+#, fuzzy, python-format
 #| msgid ""
 #| "Group {bg.name} has {group_partition."
 #| "nb_slots_not_forbidden_of_duration(course_type.duration)} slots available "
 #| "of {course_type.duration} minutes and requires {nb_courses}."
 msgid ""
-"Group {bg.name} has a total of {all_allowed_slots_nb} slots available of "
-"minimum {min_duration} minutes and requires {all_nb_courses}."
+"Group %(group_name)s has a total of %(all_allowed_slots_nb)s slots available "
+"of minimum %(min_duration)s minutes and requires %(all_nb_courses)s."
 msgstr ""
 "Le group {bg.name} schtroumpf {group_partition."
 "nb_slots_not_forbidden_of_duration(course_type.duration)} créneaux "
 "disponibles d'une durée de {course_type.duration} minutes et schtroumpf de "
 "{nb_courses}."
 
-#: TTapp/TTConstraints/core_constraints.py:260
+#: TTapp/TTConstraints/core_constraints.py:274
 msgid "No simultaneous courses for one group"
 msgstr "Pas de schtroumpf simultané pour un groupe"
 
-#: TTapp/TTConstraints/core_constraints.py:274
+#: TTapp/TTConstraints/core_constraints.py:288
 #, fuzzy
 #| msgid "Schedule once every considered course"
 msgid "Schedule once all considered courses"
 msgstr "Schtroumpfer une et une seule fois chaque cours considéré"
 
-#: TTapp/TTConstraints/core_constraints.py:313
+#: TTapp/TTConstraints/core_constraints.py:327
 msgid "Schedule once every considered course"
 msgstr "Schtroumpfer une et une seule fois chaque cours considéré"
 
-#: TTapp/TTConstraints/core_constraints.py:325
+#: TTapp/TTConstraints/core_constraints.py:339
 msgid "Pre-assigned courses only"
 msgstr "Seulement les schtroumpf pré-assignés"
 
-#: TTapp/TTConstraints/core_constraints.py:328
-#: TTapp/TTConstraints/core_constraints.py:396
+#: TTapp/TTConstraints/core_constraints.py:342
+#: TTapp/TTConstraints/core_constraints.py:410
 msgid "Each course is assigned to one tutor (max)"
 msgstr "Chaque schtroumpf est assigné à un prof (max)"
 
-#: TTapp/TTConstraints/core_constraints.py:403
+#: TTapp/TTConstraints/core_constraints.py:417
 #, fuzzy
 #| msgid "Consider tutors unavailability"
 msgid "Consider tutors' unvailabilities"
 msgstr "Considère les indisponibilités des schtroumpfs"
 
-#: TTapp/TTConstraints/core_constraints.py:438
+#: TTapp/TTConstraints/core_constraints.py:452
 #, fuzzy, python-format
 #| msgid ""
 #| "Tutor {tutor} has {tutor_partition.available_duration} minutes of "
 #| "available time."
-msgid "Tutor %s has %s minutes of available time."
+msgid "Tutor %(tutor)s has %(available_duration)s minutes of available time."
 msgstr ""
 "{tutor} schtroumpf {tutor_partition.available_duration} minutes de temps "
 "disponible"
 
-#: TTapp/TTConstraints/core_constraints.py:440
-#: TTapp/TTConstraints/core_constraints.py:503
+#: TTapp/TTConstraints/core_constraints.py:454
+#: TTapp/TTConstraints/core_constraints.py:516
 #, fuzzy, python-format
 #| msgid ""
 #| " He or she has to lecture {len(courses)} classes for an amount of {sum(c."
 #| "type.duration for c in courses)} minutes of courses."
 msgid ""
-" He or she has to lecture %s classes for an amount of %s minutes of courses."
+" He or she has to lecture %(classes_nb)s classes for an amount of "
+"%(duration)s minutes of courses."
 msgstr ""
 "Il ou elle schtroumpf {len(courses)} cours pour un total de {sum(c.type."
 "duration for c in courses)} minutes."
 
-#: TTapp/TTConstraints/core_constraints.py:488
+#: TTapp/TTConstraints/core_constraints.py:502
 #, fuzzy, python-format
 #| msgid ""
 #| "Tutor {tutor} has {tutor_partition.available_duration} minutes of "
 #| "available time"
-msgid "Tutor %s has %s minutes of available time"
+msgid "Tutor %(tutor)s has %(available_duration)s minutes of available time"
 msgstr ""
 "{tutor} schtroumpf {tutor_partition.available_duration} minutes de temps "
 "disponible"
 
-#: TTapp/TTConstraints/core_constraints.py:491
+#: TTapp/TTConstraints/core_constraints.py:505
 msgid " (considering that"
 msgstr " ( en schtroumpfant que"
 
-#: TTapp/TTConstraints/core_constraints.py:493
+#: TTapp/TTConstraints/core_constraints.py:507
 #, fuzzy, python-format
 #| msgid " {forbidden_days} is forbidden"
 msgid " %s is forbidden"
 msgstr " {forbidden_days} est schtroumpfement interdit"
 
-#: TTapp/TTConstraints/core_constraints.py:495
+#: TTapp/TTConstraints/core_constraints.py:509
 #, fuzzy, python-format
 #| msgid " and {holiday_text} is holiday)."
 msgid " and %s is holiday)."
 msgstr " and {holiday_text} correspond à des vacances)."
 
-#: TTapp/TTConstraints/core_constraints.py:499
+#: TTapp/TTConstraints/core_constraints.py:513
 #, fuzzy, python-format
 #| msgid " and {holiday_text} is holiday)."
 msgid " %s is holiday)."
 msgstr " and {holiday_text} correspond à des vacances)."
 
-#: TTapp/TTConstraints/core_constraints.py:531
+#: TTapp/TTConstraints/core_constraints.py:544
 #, python-format
-msgid "Tutor %s has %s available slots of %s mins "
+msgid "Tutor %(tutor)s has %(slots_nb)s available slots of %(duration)s mins "
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:533
+#: TTapp/TTConstraints/core_constraints.py:548
 #, fuzzy, python-format
 #| msgid "and {len(course_list)} courses that long to attend."
 msgid "and %s courses that long to attend."
 msgstr "et {len(course_lits)} cours à schtroumpfer."
 
-#: TTapp/TTConstraints/core_constraints.py:580
+#: TTapp/TTConstraints/core_constraints.py:595
 msgid "Consider tutors unavailability"
 msgstr "Considère les indisponibilités des schtroumpfs"
 
@@ -442,109 +449,115 @@ msgstr ""
 msgid "Parallelize courses"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:85
+#: TTapp/TTConstraints/slots_constraints.py:86
 msgid "No partition created : maybe there is no courses or it's wrong the week"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:117
+#: TTapp/TTConstraints/slots_constraints.py:118
 msgid "Not enough common available time for courses "
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:119
-#, python-brace-format
-msgid " {course} "
+#: TTapp/TTConstraints/slots_constraints.py:147
+#, fuzzy, python-format
+#| msgid ""
+#| "Tutor {tutor} has {tutor_partition.available_duration} minutes of "
+#| "available time"
+msgid "Tutor %s has more than one to do at the same time"
+msgstr ""
+"{tutor} schtroumpf {tutor_partition.available_duration} minutes de temps "
+"disponible"
+
+#: TTapp/TTConstraints/slots_constraints.py:157
+#, python-format
+msgid "Group %s has more than one course to do at the same time"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:120
-msgid " to be done simultaneously"
-msgstr ""
-
-#: TTapp/TTConstraints/slots_constraints.py:146
-#, python-brace-format
-msgid "Tutor {course.tutor} has more than one to do at the same time"
-msgstr ""
-
-#: TTapp/TTConstraints/slots_constraints.py:156
-#, python-brace-format
-msgid "Group {group.name} has more than one course to do at the same time"
-msgstr ""
-
-#: TTapp/TTConstraints/slots_constraints.py:218
+#: TTapp/TTConstraints/slots_constraints.py:219
 #, fuzzy
 #| msgid "No simultaneous courses for one group"
 msgid "Simultaneous courses"
 msgstr "Pas de schtroumpf simultané pour un groupe"
 
-#: TTapp/TTConstraints/slots_constraints.py:278
+#: TTapp/TTConstraints/slots_constraints.py:279
 msgid "Limited start time choices"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:335
+#: TTapp/TTConstraints/slots_constraints.py:336
 msgid "Avoid considered start times"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:439
+#: TTapp/TTConstraints/slots_constraints.py:440
 msgid "Consider dependecies"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:487
-#: TTapp/TTConstraints/slots_constraints.py:494
-#, python-brace-format
+#: TTapp/TTConstraints/slots_constraints.py:488
+#: TTapp/TTConstraints/slots_constraints.py:495
+#, fuzzy, python-format
+#| msgid ""
+#| "There is no available slots for the second course after the first one. "
+#| "{dependency}"
 msgid ""
-"There is no available slots for the second course after the first one. "
-"{dependency}"
+"There is no available slots for the second course after the first one : %s"
 msgstr ""
 "Il ne schtroumpf pas de créneaux disponibles pour le deuxième cours après le "
 "premier. {dependency}"
 
-#: TTapp/TTConstraints/slots_constraints.py:501
-#, python-brace-format
-msgid ""
-"There is no available slots for the first or the second course. {dependency}"
+#: TTapp/TTConstraints/slots_constraints.py:502
+#, fuzzy, python-format
+#| msgid ""
+#| "There is no available slots for the first or the second course. "
+#| "{dependency}"
+msgid "There is no available slots for the first or the second course : %s"
 msgstr ""
 "Il ne schtroumpf pas de créneaux disponibles pour le deuxième cours après le "
 "premier. {dependency}"
 
-#: TTapp/TTConstraints/slots_constraints.py:515
-#, python-brace-format
-msgid "There is no available successive slots for those courses. {dependency}"
+#: TTapp/TTConstraints/slots_constraints.py:516
+#, fuzzy, python-format
+#| msgid ""
+#| "There is no available successive slots for those courses. {dependency}"
+msgid "There is no available successive slots for those courses: %s"
 msgstr ""
 "Il ne schtroumpf pas de créneaux succéssifs disponibles pour ces cours. "
 "{dependency}"
 
-#: TTapp/TTConstraints/slots_constraints.py:523
-#, python-brace-format
+#: TTapp/TTConstraints/slots_constraints.py:524
+#, fuzzy, python-format
+#| msgid ""
+#| "There is no available slots for the second course after a {dependency."
+#| "day_gap} day gap. {dependency}"
 msgid ""
-"There is no available slots for the second course after a {dependency."
-"day_gap} day gap. {dependency}"
+"There is no available slots for the second course after a %(day_gap)s day "
+"gap: %(dependency)s"
 msgstr ""
 "Il ne schtroumpf pas de créneaux disponibles pour le second cours "
 "{dependency.day_gap} jours après le premier. {dependency}"
 
-#: TTapp/TTConstraints/slots_constraints.py:530
-#, python-brace-format
-msgid "One of the courses has no eligible tutor to lecture it. {dependency}"
+#: TTapp/TTConstraints/slots_constraints.py:533
+#, fuzzy, python-format
+#| msgid "One of the courses has no eligible tutor to lecture it. {dependency}"
+msgid "One of the courses has no eligible tutor to lecture it: %s"
 msgstr "Un des cours ne schtroumpf pas de professeur schtroumpfé. {dependency}"
 
-#: TTapp/TTConstraints/slots_constraints.py:600
+#: TTapp/TTConstraints/slots_constraints.py:603
 #, fuzzy
 #| msgid "Constraints"
 msgid "Consider pivots"
 msgstr "Contraintes"
 
-#: TTapp/TTConstraints/slots_constraints.py:674
+#: TTapp/TTConstraints/slots_constraints.py:677
 msgid "Avoid using both times on same day"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:732 ics/templates/ics/index.html:66
+#: TTapp/TTConstraints/slots_constraints.py:735 ics/templates/ics/index.html:66
 msgid "Tutors"
 msgstr "Enseignant⋅e⋅s"
 
-#: TTapp/TTConstraints/slots_constraints.py:738
+#: TTapp/TTConstraints/slots_constraints.py:741
 msgid "Limit undesired slots per week"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:792
+#: TTapp/TTConstraints/slots_constraints.py:795
 #, fuzzy
 #| msgid "No simultaneous courses for one group"
 msgid "Limit simultaneous courses number"
@@ -1847,6 +1860,15 @@ msgstr "Déconnexion"
 #: templates/base.html:135
 msgid "Signed in as "
 msgstr "Connecté·e sous "
+
+#, fuzzy
+#~| msgid ""
+#~| "There is no available slots for the first or the second course. "
+#~| "{dependency}"
+#~ msgid "There is no available slots for the second "
+#~ msgstr ""
+#~ "Il ne schtroumpf pas de créneaux disponibles pour le deuxième cours après "
+#~ "le premier. {dependency}"
 
 #~ msgid ""
 #~ "Tutor {tutor} has {course_partition."
