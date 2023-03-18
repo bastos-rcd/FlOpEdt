@@ -450,7 +450,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
 
             if tutor_partition.available_duration < sum(c.type.duration for c in courses):
                 message = gettext("Tutor %(tutor)s has %(available_duration)s minutes of available time.") \
-                          % {"tutor":tutor, "available_duration": tutor_partition.available_duration}
+                          % {"tutor":tutor, "available_duration": int(tutor_partition.available_duration)}
                 message += gettext(' He or she has to lecture %(classes_nb)s classes for an amount of %(duration)s '
                                    'minutes of courses.') \
                            % {"classes_nb" : len(courses), "duration": sum(c.type.duration for c in courses)}
@@ -500,7 +500,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                 if tutor_partition.available_duration < sum(c.type.duration for c in courses):
                     message = gettext(
                         "Tutor %(tutor)s has %(available_duration)s minutes of available time") \
-                              % {"tutor": tutor, "available_duration": tutor_partition.available_duration}
+                              % {"tutor": tutor, "available_duration": int(tutor_partition.available_duration)}
                     if forbidden_days or holiday_text:
                         message += gettext(" (considering that")
                         if forbidden_days:
