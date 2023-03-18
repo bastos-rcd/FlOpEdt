@@ -224,7 +224,7 @@ msgstr "Prendre en compte les indisponibilités des profs"
 #: TTapp/TTConstraints/core_constraints.py:452
 #, python-format
 msgid "Tutor %(tutor)s has %(available_duration)s minutes of available time."
-msgstr "%(tutor)s a %(available_duration)s minutes de temps disponible"
+msgstr "%(tutor)s a %(available_duration)s minutes de temps disponible."
 
 #: TTapp/TTConstraints/core_constraints.py:454
 #: TTapp/TTConstraints/core_constraints.py:516
@@ -233,7 +233,7 @@ msgid ""
 " He or she has to lecture %(classes_nb)s classes for an amount of "
 "%(duration)s minutes of courses."
 msgstr ""
-"Il ou elle a %(classes_nb)s cours pour un total de %(duration)s minutes."
+" Il ou elle a %(classes_nb)s cours pour un total de %(duration)s minutes."
 
 #: TTapp/TTConstraints/core_constraints.py:502
 #, python-format
