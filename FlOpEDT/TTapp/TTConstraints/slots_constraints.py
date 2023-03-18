@@ -44,6 +44,7 @@ from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability
 
 from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 from django.core.validators import MaxValueValidator
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
@@ -82,7 +83,7 @@ class SimultaneousCourses(TTConstraint):
         # No course in the constraint case
         if len(considered_courses) == 0:
             jsondict["status"] = _("KO")
-            message = _(f"No partition created : maybe there is no courses or it's wrong the week")
+            message = gettext("No partition created : maybe there is no courses or it's wrong the week")
             jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
             return jsondict
 
@@ -114,10 +115,10 @@ class SimultaneousCourses(TTConstraint):
         # Here we search for an available slot in the week
         if partition.nb_slots_available_of_duration(max_duration) < 1:
             jsondict["status"] = _("KO")
-            message = _(f"Not enough common available time for courses ")
+            message = gettext("Not enough common available time for courses ")
             for course in considered_courses :
-                message += _(f" {course} ")
-            message += _(f" to be done simultaneously")
+                message += " {course} "
+            message += " to be done simultaneously"
             jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
             jsondict["status"] = _("KO")
         return jsondict
@@ -143,7 +144,7 @@ class SimultaneousCourses(TTConstraint):
                 if not(tutorError.__contains__(course.tutor)):
                     tutorError.append(course.tutor)
                     jsondict["status"] = _("KO")
-                    message = _(f"Tutor {course.tutor} has more than one to do at the same time")
+                    message = gettext("Tutor %s has more than one to do at the same time") % course.tutor
                     jsondict["messages"].append({"str": message, "tutor": course.tutor.id, "type": "SimultaneousCourses"})
                     statusOK = False
             consideredTutors.append(course.tutor)
@@ -153,7 +154,7 @@ class SimultaneousCourses(TTConstraint):
                     if not(groupError.__contains__(group)):
                         groupError.append(group)
                         jsondict["status"] = _("KO")
-                        message = _(f"Group {group.name} has more than one course to do at the same time")
+                        message = gettext("Group %s has more than one course to do at the same time") % group.name
                         jsondict["messages"].append({"str": message, "group": group.id, "type": "SimultaneousCourses"})
                         statusOK = False
                 consideredGroups.append(group)
@@ -484,21 +485,21 @@ class ConsiderDependencies(TTConstraint):
                         if len(course2_slots) <= 1 and course2_slots[0].duration < dependency.course2.type.duration:
                             jsondict["status"] = _("KO")
                             ok_so_far = False
-                            jsondict["messages"].append({ "str" : _(f'There is no available slots for the second course after the first one. {dependency}'),
+                            jsondict["messages"].append({ "str" : gettext('There is no available slots for the second course after the first one : %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
                     else:
                         jsondict["status"] = _("KO")
                         ok_so_far = False
-                        jsondict["messages"].append({ "str" : _(f'There is no available slots for the second course after the first one. {dependency}'),
+                        jsondict["messages"].append({ "str" : gettext('There is no available slots for the second course after the first one : %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
                 else:
                     jsondict['status'] = _("KO")
                     ok_so_far = False
-                    jsondict["messages"].append({ "str": _(f'There is no available slots for the first or the second course. {dependency}'),
+                    jsondict["messages"].append({ "str": gettext(f'There is no available slots for the first or the second course : %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
@@ -512,7 +513,7 @@ class ConsiderDependencies(TTConstraint):
                             timedelta(hours = dependency.course2.type.duration/60)):
                             jsondict['status'] = _("KO")
                             ok_so_far = False
-                            jsondict["messages"].append({ "str": _(f'There is no available successive slots for those courses. {dependency}'),
+                            jsondict["messages"].append({ "str": gettext(f'There is no available successive slots for those courses: %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
@@ -520,14 +521,16 @@ class ConsiderDependencies(TTConstraint):
                         if not find_day_gap_slots(course1_slots, course2_slots, dependency.day_gap):
                             jsondict['status'] = _("KO")
                             ok_so_far = False
-                            jsondict["messages"].append({ "str": _(f'There is no available slots for the second course after a {dependency.day_gap} day gap. {dependency}'),
+                            jsondict["messages"].append({ "str": gettext('There is no available slots for the second '
+                                                                         'course after a %(day_gap)s day gap: %(dependency)s') % {"day_gap": dependency.day_gap,
+                                                                                                                                   "dependency": dependency},
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
             else:
                 jsondict['status'] = _("KO")
                 ok_so_far = False
-                jsondict["messages"].append({ "str": _(f'One of the courses has no eligible tutor to lecture it. {dependency}'),
+                jsondict["messages"].append({ "str": gettext('One of the courses has no eligible tutor to lecture it: %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
