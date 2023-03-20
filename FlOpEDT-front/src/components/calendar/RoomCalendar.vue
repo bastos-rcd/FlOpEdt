@@ -2,13 +2,17 @@
     <BaseCalendar ref="calendar">
         <template #table>
             <table class="w-100">
+                <!--First Row of the Calendar-->
+                <!--"Room" | "Date1" | "Date2"-->
                 <tr>
                     <th class="col text-center border-dark border">{{ $t('roomreservation.roomcalendar.room-label') }}</th>
                     <th v-for="day in props.values.days" :key="day.date" class="col text-center border-dark border">
                         {{ day.name }} {{ day.date }}
                     </th>
                 </tr>
+                <!--Next lines: represent data relative to a room-->
                 <tr v-for="room in props.values.rooms" :key="room.id" class="border-dark border align-top h-100">
+                    <!--First cell: Room Name-->
                     <td class="h-100">
                         <button
                             type="button"
@@ -18,12 +22,15 @@
                             {{ room.name }}
                         </button>
                     </td>
+                    <!--The next cells represent for each day of the week the data of-->
+                    <!--the room of the row-->
                     <td
                         v-for="day in props.values.days"
                         :key="day.date"
                         class="border-dark border pb-3"
                         @click.self.left="createSlot(day.date, room.id)"
                     >
+                        <!--Fills the cell with slots of scheduled courses and other reservations-->
                         <div v-if="day.date in props.values.slots && room.id in props.values.slots[day.date]">
                             <component
                                 :is="slot.component.value"
@@ -49,7 +56,7 @@
 import type { CalendarSlotInterface, RoomCalendarProps } from '@/ts/types'
 import BaseCalendar from '@/components/calendar/BaseCalendar.vue'
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
 
 interface Props {
     values: RoomCalendarProps
