@@ -11,16 +11,24 @@
 <script setup lang="ts">
 import CalendarScheduledCourseSlot from '@/components/calendar/CalendarScheduledCourseSlot.vue'
 import type { CalendarScheduledCourseSlotData } from '@/ts/types'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
     data: CalendarScheduledCourseSlotData
 }
-
+const { locale } = useI18n()
 const props = defineProps<Props>()
 const startHour = ref("")
 const endHour = ref("")
 
+watch(locale, () => {
+    console.log(locale.value)
+    if(!(typeof(props.data.course.start_time) === 'string')) {
+        startHour.value = props.data.startTime.toLocaleTimeString(locale.value)
+        endHour.value = props.data.endTime.toLocaleTimeString(locale.value)
+    }
+})
 onMounted(() => {
     // TEMPORARY PATCH
     // WHY SOME DATE ARE NOT CORRECTLY FORMATTED ?
@@ -29,8 +37,8 @@ onMounted(() => {
         endHour.value = props.data.endTime
     }
     else {
-        startHour.value = props.data.startTime.toLocaleTimeString("en-US")
-        endHour.value = props.data.endTime.toLocaleTimeString("en-US")
+        startHour.value = props.data.startTime.toLocaleTimeString(locale.value)
+        endHour.value = props.data.endTime.toLocaleTimeString(locale.value)
     }
 })
 </script>
