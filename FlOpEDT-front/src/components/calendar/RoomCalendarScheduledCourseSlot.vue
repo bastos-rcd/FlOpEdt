@@ -23,10 +23,9 @@ const startHour = ref("")
 const endHour = ref("")
 
 watch(locale, () => {
-    console.log(locale.value)
     if(!(typeof(props.data.course.start_time) === 'string')) {
-        startHour.value = props.data.startTime.toLocaleTimeString(locale.value)
-        endHour.value = props.data.endTime.toLocaleTimeString(locale.value)
+        startHour.value = props.data.course.start_time.toLocaleTimeString(locale.value)
+        endHour.value = props.data.course.end_time.toLocaleTimeString(locale.value)
     }
 })
 onMounted(() => {
@@ -34,11 +33,11 @@ onMounted(() => {
     // WHY SOME DATE ARE NOT CORRECTLY FORMATTED ?
     if(typeof(props.data.course.start_time) === 'string') {
         startHour.value = props.data.course.start_time
-        endHour.value = props.data.endTime
+        endHour.value = props.data.course.end_time
     }
     else {
-        startHour.value = props.data.startTime.toLocaleTimeString(locale.value)
-        endHour.value = props.data.endTime.toLocaleTimeString(locale.value)
+        startHour.value = props.data.course.start_time.toLocaleTimeString(locale.value)
+        endHour.value = props.data.course.end_time.toLocaleTimeString(locale.value)
     }
 })
 </script>
