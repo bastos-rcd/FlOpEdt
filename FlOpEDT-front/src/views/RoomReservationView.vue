@@ -128,7 +128,7 @@ import type {
 } from '@/ts/types'
 import { Time } from '@/ts/types'
 import { ComputedRef, inject, Ref } from 'vue'
-import { computed, markRaw, onMounted, ref, shallowRef, watchEffect } from 'vue'
+import { computed, markRaw, onMounted, ref, shallowRef, watchEffect, watch} from 'vue'
 import { useDepartmentStore } from '@/stores/department'
 import { useRoomStore } from '@/stores/room'
 import { useAuth } from '@/stores/auth'
@@ -310,15 +310,12 @@ const rooms: Rooms = {
 }
 
 const scheduledCourses: ScheduledCourses = {
-    list: computed(() => {
-        return Object.values(scheduledCourses.perDepartment.value).flat(1)
-    }),
     perDepartment: ref({}),
     perDepartmentFilterByDepartmentsAndRooms: computed(() => {
         return Object.fromEntries(
             Object.entries(scheduledCourses.perDepartment.value).map((entry) => [
                 entry[0],
-                entry[1].filter((course) => {
+                entry[1].filter((course: ScheduledCourse) => {
                     let filtering_result = false
                     if (course.room) {
                         filtering_result = isRoomSelected(course.room.id) && isRoomInSelectedDepartments(course.room.id)
@@ -339,7 +336,7 @@ const scheduledCourses: ScheduledCourses = {
         const out: { [day: string]: { [roomId: string]: Array<ScheduledCourse> } } = {}
         Object.entries(scheduledCourses.perDay.value).forEach((entry) => {
             const day = entry[0]
-            const courses = entry[1].filter((scheduledCourse) => {
+            const courses = entry[1].filter((scheduledCourse: ScheduledCourse) => {
                 const dept = scheduledCourse.course.type.department
                 return dept && selectedDepartments.value.includes(dept)
             })
@@ -541,17 +538,17 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
         const out: { [date: string]: Array<CalendarSlot> } = {}
         Object.entries(scheduledCourses.perDepartmentFilterByDepartmentsAndRooms.value).map((entry) => {
             const deptId = entry[0]
-            entry[1].forEach((course) => {
+            entry[1].forEach((course: ScheduledCourse) => {
                 // Make sure the day is valid
                 const day = weekDays.list.value.find((weekDay) => {
-                    return weekDay.ref === course.day
+                    return weekDay.num === course.start_time.getDay()
                 })
                 if (!day) {
                     return
                 }
                 // Make sure the course type belongs to the selected departments
                 let courseType = courseTypes.perDepartment.value[deptId].find((courseType) => {
-                    return courseType.name === course.course.type
+                    return courseType.name === course.course.type.name
                 })
                 if (!courseType) {
                     courseType = {
@@ -584,7 +581,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                             //return
                         }
                         let courseType = courseTypes.perDepartment.value[dept.id].find((courseType) => {
-                            return courseType.name === Scourse.course.type
+                            return courseType.name === Scourse.course.type.name
                         })
                         if (!courseType) {
                             console.log('is not of a good type')
@@ -776,15 +773,13 @@ watchEffect(async () => {
     temporaryReservation.value = undefined
 })
 
-// Week selection and departments watcher
-watchEffect(() => {
-    console.log('Updating Scheduled courses')
-    const date = selectedDate.value
-
+watch(selectedDate.value, async (newDate, oldDate) => {
     if (!departmentStore.getAllDepartmentsFetched) {
-        return
+        await departmentStore.fetchAllDepartments()
     }
-    updateScheduledCourses(date, departmentStore.getAllDepartmentsFetched)
+    scheduledCourseStore.clearScheduledCourses()
+    await scheduledCourseStore.fetchScheduledCourses(newDate)
+    updateScheduledCourses(departmentStore.getAllDepartmentsFetched)
 })
 
 // Time settings watcher
@@ -870,27 +865,27 @@ function createRoomReservationSlot(reservation: RoomReservation): CalendarSlot {
     }
 }
 
-function createScheduledCourseSlot(course: ScheduledCourse, courseType: CourseType, deptId: string): CalendarSlot {
-    const startTime = createTime(course.start_time)
-    const endTime = createTime(course.start_time + courseType.duration)
+function createScheduledCourseSlot(Scourse: ScheduledCourse, courseType: CourseType, deptId: string): CalendarSlot {
+    const startTime = Scourse.start_time
+    const endTime = Scourse.end_time
 
     let departmentName = ''
     if (departmentStore.getAllDepartmentsFetched) {
-        const department = departmentStore.getAllDepartmentsFetched.find((dept) => `${dept.id}` === deptId)
+        const department = departmentStore.getAllDepartmentsFetched.find((dept: Department) => `${dept.id}` === deptId)
         if (department) {
             departmentName = department.abbrev
         }
     }
 
     const slotData: CalendarScheduledCourseSlotData = {
-        course: course,
+        course: Scourse,
         department: departmentName,
         rooms: rooms.perIdFilterBySelectedDepartments.value,
-        day: course.day,
+        day: Scourse.day,
         startTime: startTime,
         endTime: endTime,
-        title: course.course.module.abbrev + 'AAA',
-        id: `scheduledcourse-${course.course.id}`,
+        title: Scourse.course.module.abbrev + 'AAA',
+        id: `scheduledcourse-${Scourse.course.id}`,
         displayStyle: { background: scheduledCourseColor },
     }
     return {
@@ -956,37 +951,16 @@ async function updateRoomReservations(date: FlopWeek): Promise<void> {
     hideLoading()
 }
 
-async function updateScheduledCourses(date: FlopWeek, departments: Array<Department>) {
-    const week = date.week
-    const year = date.year
-
+async function updateScheduledCourses(departments: Array<Department>) {
+    console.log('Updating Scheduled courses')
     showLoading()
     scheduledCourses.perDepartment.value = {}
-    let count = departments.length
-
-    if (count === 0) {
-        hideLoading()
-        return
-    }
-
     const coursesList: { [p: string]: ScheduledCourse[] } = {}
     departments.forEach((dept) => {
-        api.fetch
-            .scheduledCourses({ week: week, year: year, department: dept.abbrev })
-            .then((value: ScheduledCourse[]) => {
-                coursesList[dept.id] = value
-                if (--count === 0) {
-                    scheduledCourses.perDepartment.value = coursesList
-                    hideLoading()
-                }
-            })
+        coursesList[dept.id] = scheduledCourseStore.getScheduledCoursesPerDepartment(dept)
     })
-    /*
-    showLoading()
-    scheduledCourseStore.clearScheduledCourses()
-    await scheduledCourseStore.fetchScheduledCourses(date)
-    console.log("Fetched fini ? ",scheduledCourseStore.getIsAllScheduledFetched.value)
-    */
+    scheduledCourses.perDepartment.value = coursesList
+    hideLoading()
 }
 
 function updateReservationPeriodicities() {
@@ -1306,6 +1280,7 @@ onMounted(() => {
     }
 
     roomStore.remote.fetch()
+    scheduledCourseStore.fetchScheduledCourses(selectedDate.value)
     currentUserId = authStore.getUser.id
     api.fetch.timeSettings().then((value: TimeSettings[] | undefined) => {
         timeSettings.value = value
@@ -1343,6 +1318,7 @@ onMounted(() => {
     api.fetch.numericRoomAttributeValues().then((value: NumericRoomAttributeValue[]) => {
         roomAttributeValues.numericList.value = value
     })
+    updateScheduledCourses(departmentStore.getAllDepartmentsFetched)
 })
 </script>
 

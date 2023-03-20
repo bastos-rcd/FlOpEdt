@@ -1,5 +1,4 @@
-import { Department, type ScheduledCourse, type Time, type ScheduledCourses } from "@/ts/type"
-import { ComputedRef, Ref } from "vue"
+import { Department, type Time } from "@/ts/type"
 
 export function convertDecimalTimeToHuman(time: number): string {
     const hours = Math.trunc(time)

@@ -17,7 +17,7 @@ const urls = {
     reservationperiodicitybymonth: 'roomreservations/reservationperiodicitybymonth',
     reservationperiodicitybymonthxchoice: 'roomreservations/reservationperiodicitybymonthxchoice',
     courses: 'courses/courses',
-    scheduledcourses: 'fetch/scheduledcourses',
+    scheduledcourses: 'fetch/new_api_scheduledcourses',
     coursetypes: 'courses/type',
     users: 'user/users',
     booleanroomattributes: 'rooms/booleanattributes',
@@ -276,7 +276,7 @@ const api: FlopAPI = {
             return fetcher(urls.roomreservationtype)
         },
         scheduledCourses(params: { week?: number; year?: number; department?: string }) {
-            return fetcher2(urls.scheduledcourses, params, [['department', 'dept']])
+            return fetcher(urls.scheduledcourses, params)
         },
         timeSettings() {
             return fetcher(urls.timesettings)

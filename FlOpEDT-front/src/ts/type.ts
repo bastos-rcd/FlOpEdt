@@ -1,5 +1,5 @@
 import { MappableToIdArray } from "@/stores/store"
-import type { ComputedRef, ShallowRef } from 'vue'
+import type { ComputedRef, Ref, ShallowRef } from 'vue'
 
 export interface BooleanRoomAttributeValue extends RoomAttributeValue {
     value: boolean
@@ -55,8 +55,8 @@ export interface CalendarSlotActions {
 
 export interface CalendarSlotData {
     day: string
-    startTime: Time
-    endTime: Time
+    startTime: Date
+    endTime: Date
     title: string
     id: string
     displayStyle: object
@@ -298,24 +298,28 @@ export interface RoomReservationType {
 
 export class ScheduledCourse {
     id: number
-    room?: { id: number; name: string }
-    start_time: number
-    day: string
+    room?: { id: number; name: string, is_basic: boolean }
+    start_time: Date
+    end_time: Date
     course: Course
     tutor: string
     id_visio: number
 
-    constructor() {
-        this.id = 0
-        this.room = {
-            id: 0,
-            name: '',
-        }
-        this.start_time = 0
-        this.day = ''
-        this.course = new Course()
-        this.tutor = ''
-        this.id_visio = 0
+    constructor(
+        id = 0,
+        room = {id: 0, name:'', is_basic: true},
+        start_time = '',
+        end_time = '',
+        course = new Course(),
+        tutor = '',
+        id_visio = 0) {
+        this.id = id
+        this.room = room
+        this.start_time = new Date(start_time)
+        this.end_time = new Date(end_time)
+        this.course = course
+        this.tutor = tutor
+        this.id_visio = id_visio
     }
 }
 
