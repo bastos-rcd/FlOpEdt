@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits, filterBySelectedDepartments, type ScheduledCourses } from '@/helpers'
+import { isRoomInSelectedDepartments, createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits, filterBySelectedDepartments, type ScheduledCourses } from '@/helpers'
 import type {
     BooleanRoomAttributeValue,
     CalendarDragEvent,
@@ -104,7 +104,6 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const currentWeek = ref(inject('currentWeek'))
-let currentDepartment = ''
 let currentUserId = -1
 let loadingCounter = 0
 
@@ -268,7 +267,7 @@ const scheduledCourses: ScheduledCourses = {
                 entry[1].filter((course: ScheduledCourse) => {
                     let filtering_result = false
                     if (course.room) {
-                        filtering_result = isRoomSelected(course.room.id) && isRoomInSelectedDepartments(course.room.id)
+                        filtering_result = isRoomSelected(course.room.id) && isRoomInSelectedDepartments(course.room.id, selectedDepartments.value)
                     }
                     return filtering_result
                 }),
@@ -448,7 +447,7 @@ const roomReservationSlots: RoomReservationSlots = {
                 entry[0],
                 entry[1].filter((slot) => {
                     const room = (slot.slotData as CalendarRoomReservationSlotData).reservation.room
-                    return isRoomSelected(room) && isRoomInSelectedDepartments(room)
+                    return isRoomSelected(room) && isRoomInSelectedDepartments(room, selectedDepartments.value)
                 }),
             ])
         )
@@ -463,7 +462,7 @@ const roomReservationSlots: RoomReservationSlots = {
                 listGroupBy(
                     // Filter the rooms not in the selected departments
                     entry[1].filter((slot) =>
-                        isRoomInSelectedDepartments((slot.slotData as CalendarRoomReservationSlotData).reservation.room)
+                        isRoomInSelectedDepartments((slot.slotData as CalendarRoomReservationSlotData).reservation.room, selectedDepartments.value)
                     ),
                     (slot) => `${(slot.slotData as CalendarRoomReservationSlotData).reservation.room}`
                 ),
@@ -554,7 +553,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                             courseRoom = roomStore.perId[Scourse.room.id]
                             if (courseRoom.is_basic) {
                                 // Make sure the course's room is in the selected departments
-                                if (!isRoomInSelectedDepartments(Scourse.room.id)) {
+                                if (!isRoomInSelectedDepartments(Scourse.room.id, selectedDepartments.value)) {
                                     console.log('is not in good department')
                                     return
                                 }
@@ -562,7 +561,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                             } else {
                                 let isOneInDepartment = false
                                 courseRoom.basic_rooms.forEach((r: Room) => {
-                                    if (isRoomInSelectedDepartments(r.id)) {
+                                    if (isRoomInSelectedDepartments(r.id, selectedDepartments.value)) {
                                         isOneInDepartment = true
                                     }
                                 })
@@ -1141,16 +1140,6 @@ function createDateId(day: string | number, month: string | number): string {
     return `${toStringAtLeastTwoDigits(day)}/${toStringAtLeastTwoDigits(month)}`
 }
 
-/**
- * Takes a room id and
- * returns true if the room is available to the selected departments, false otherwise
- * @param roomId The room id
- */
-function isRoomInSelectedDepartments(roomId: number): boolean {
-    const room = rooms.listFilterBySelectedDepartments.value.find((r) => r.id === roomId)
-    return !(!room || !room.basic_rooms.find((r: { id: number }) => r.id === roomId))
-}
-
 function isRoomSelected(roomId: number): boolean {
     if (selectedRoom.value) {
         // Return false if the course's sub rooms are not selected
@@ -1166,10 +1155,6 @@ onMounted(() => {
     const dbDataElement = document.getElementById('json_data')
     if (dbDataElement && dbDataElement.textContent) {
         const data = JSON.parse(dbDataElement.textContent)
-
-        if ('dept' in data) {
-            currentDepartment = data.dept
-        }
         if ('user_id' in data) {
             currentUserId = data.user_id
         }
