@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { isRoomInSelectedDepartments, createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits, filterBySelectedDepartments, type ScheduledCourses } from '@/helpers'
+import { addTo, handleReason, isRoomInSelectedDepartments, createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits, filterBySelectedDepartments, type ScheduledCourses } from '@/helpers'
 import type {
     BooleanRoomAttributeValue,
     CalendarDragEvent,
@@ -849,12 +849,6 @@ function createScheduledCourseSlot(Scourse: ScheduledCourse, courseType: CourseT
     }
 }
 
-function addTo<T>(collection: { [p: string]: Array<T> }, id: string | number, element: T): void {
-    if (!collection[id]) {
-        collection[id] = []
-    }
-    collection[id].push(element)
-}
 
 async function updateRoomReservations(date: FlopWeek): Promise<void> {
     showLoading()
@@ -918,10 +912,6 @@ function updateRoomReservation(newData: CalendarRoomReservationSlotData, oldData
 
     // Replace the reservation at index
     roomReservations.list.value[index] = newReservation
-}
-
-function handleReason(level: string, message: string) {
-    console.error(`${level}: ${message}`)
 }
 
 function deleteRoomReservationSlot(toDelete: CalendarRoomReservationSlotData) {
