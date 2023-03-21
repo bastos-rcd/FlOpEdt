@@ -1,96 +1,49 @@
 <template>
     <section>
-        <div v-if="authStore.isUserAuthenticated">
-            <div class="loader" v-if="loaderIsVisible"></div>
-            <DeletePeriodicReservationDialog
-                :is-open="isReservationDeletionDialogOpen"
-                :reservation="reservationToDelete"
-                :on-confirm-current="reservationDeletionConfirmed"
-                :on-confirm-all="reservationRemoveAllSamePeriodicity"
-                :on-confirm-future="reservationRemoveCurrentAndFutureSamePeriodicity"
-                :on-cancel="closeReservationDeletionDialog"
-            ></DeletePeriodicReservationDialog>
-            <div class="container-fluid">
-                <div class="row">
-                    <!-- Week picker and filters -->
-                    <div class="col-6 col-md-5 col-lg-4 col-xl-3">
-                        <WeekPicker v-model:week="selectedDate.week" v-model:year="selectedDate.year"></WeekPicker>
-                        <div class="row">
-                            <!-- Filters -->
-                            <div class="col">
-                                <!-- Room filter -->
-                                <div class="row mb-3">
-                                    <FilterSelector
-                                        filterSelectorLabel = 'roomreservation.sidebar.rooms'
-                                        filterSelectorUndefinedLabel = 'roomreservation.sidebar.rooms-label'
-                                        itemVariableName = 'name'
-                                        :selectedItem = selectedRoom
-                                        :items="Object.values(rooms.perIdFilterBySelectedDepartments.value)
-                                        .filter((r) => r.is_basic)
-                                        .sort((r1, r2) => {
-                                            return r1.name.toLowerCase().localeCompare(r2.name.toLowerCase())
-                                        })"
-                                        @itemSelected="(newRoom: Room) => selectedRoom = newRoom">
-                                    </FilterSelector>
-                                </div>
-                                <!-- Department filter -->
-                                <div class="row mb-3">
-                                    <FilterSelector
-                                        filterSelectorLabel = 'roomreservation.sidebar.department'
-                                        filterSelectorUndefinedLabel = 'roomreservation.sidebar.department-label'
-                                        itemVariableName = 'abbrev'
-                                        :selectedItem = selectedDepartment
-                                        :items="departmentStore.getAllDepartmentsFetched"
-                                        @itemSelected="(newDept: Department) => selectedDepartment = newDept">
-                                    </FilterSelector>
-                                </div>
-                                <!-- Room attribute and name filters -->
-                                <div v-if="!selectedRoom" class="row">
-                                    <div class="mb-3">
-                                        <ClearableInput
-                                            :input-id="'filter-input-roomName'"
-                                            :label="`${$t('roomreservation.sidebar.room-filter')}`"
-                                            v-model:text="roomNameFilter"
-                                        ></ClearableInput>
-                                    </div>
-                                    <div class="mb-3">
-                                        <DynamicSelect
-                                            v-bind="{
-                                                id: 'filter-select-attribute',
-                                                label: $t('roomreservation.sidebar.option-filter'),
-                                                values: createFiltersValues(),
-                                            }"
-                                            v-model:selected-values="selectedRoomAttributes"
-                                        ></DynamicSelect>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Calendar -->
-                    <div class="col">
-                        <!-- Caption -->
-                        <div class="row">
-                            <div class="col-auto">
-                                <div><span :style="{ color: scheduledCourseColor }">■ </span>{{ $t('roomreservation.schedule-caption.course') }}</div>
-                            </div>
-                            <div v-for="rType in roomReservationTypes.list.value" :key="rType.id" class="col-auto">
-                                <div><span :style="{ color: rType.bg_color }">■ </span>{{ rType.name }}</div>
-                            </div>
-                        </div>
-                        <HourCalendar v-if="selectedRoom" @drag="handleDrag" :values="hourCalendarValues"></HourCalendar>
-                        <RoomCalendar
-                            v-else
-                            @new-slot="handleNewSlot"
-                            :values="roomCalendarValues"
-                            @row-header-click="(n: number) => selectedRoom = roomStore.rooms.find((r : Room) => r.id === n)"
-                        ></RoomCalendar>
+        <div class="loader" v-if="loaderIsVisible"></div>
+        <DeletePeriodicReservationDialog
+            :is-open="isReservationDeletionDialogOpen"
+            :reservation="reservationToDelete"
+            :on-confirm-current="reservationDeletionConfirmed"
+            :on-confirm-all="reservationRemoveAllSamePeriodicity"
+            :on-confirm-future="reservationRemoveCurrentAndFutureSamePeriodicity"
+            :on-cancel="closeReservationDeletionDialog"
+        ></DeletePeriodicReservationDialog>
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Week picker and filters -->
+                <div class="col-6 col-md-5 col-lg-4 col-xl-3">
+                    <WeekPicker v-model:week="selectedDate.week" v-model:year="selectedDate.year"></WeekPicker>
+                    <div class="row">
+                        <RoomDepartmentFilters
+                            :selectedRoom = selectedRoom
+                            :selectedDepartment = selectedDepartment
+                            @selectedRoomChange ="(newRoom : Room) => selectedRoom = newRoom"
+                            @selectedDepartmentChange = "(newDept : Department) => selectedDepartment = newDept"
+                            @roomNameFilterChange = "(newName: string) => roomNameFilter = newName">
+                        </RoomDepartmentFilters>
                     </div>
                 </div>
+                <!-- Calendar -->
+                <div class="col">
+                    <!-- Caption -->
+                    <div class="row">
+                        <div class="col-auto">
+                            <div><span :style="{ color: scheduledCourseColor }">■ </span>{{ $t('roomreservation.schedule-caption.course') }}</div>
+                        </div>
+                        <div v-for="rType in roomReservationTypes.list.value" :key="rType.id" class="col-auto">
+                            <div><span :style="{ color: rType.bg_color }">■ </span>{{ rType.name }}</div>
+                        </div>
+                    </div>
+                    <HourCalendar v-if="selectedRoom" @drag="handleDrag" :values="hourCalendarValues"></HourCalendar>
+                    <RoomCalendar
+                        v-else
+                        @new-slot="handleNewSlot"
+                        :values="roomCalendarValues"
+                        @row-header-click="(n: number) => selectedRoom = roomStore.rooms.find((r : Room) => r.id === n)"
+                    ></RoomCalendar>
+                </div>
             </div>
-        </div>
-        <div v-else>    
-            <Authentication></Authentication>
         </div>
     </section>
 </template>
@@ -142,12 +95,9 @@ import HourCalendarRoomReservationSlot from '@/components/calendar/HourCalendarR
 import RoomCalendarRoomReservationSlot from '@/components/calendar/RoomCalendarRoomReservationSlot.vue'
 import HourCalendarScheduledCourseSlot from '@/components/calendar/HourCalendarScheduledCourseSlot.vue'
 import RoomCalendarScheduledCourseSlot from '@/components/calendar/RoomCalendarScheduledCourseSlot.vue'
-import FilterSelector from '@/components/utils/FilterSelector.vue'
-import Authentication from '@/components/Authentication.vue'
-import DynamicSelect from '@/components/dynamicSelect/DynamicSelect.vue'
+import RoomDepartmentFilters from '@/components/utils/RoomDepartmentFilters.vue'
 import DynamicSelectedElementNumeric from '@/components/dynamicSelect/DynamicSelectedElementNumeric.vue'
 import DynamicSelectedElementBoolean from '@/components/dynamicSelect/DynamicSelectedElementBoolean.vue'
-import ClearableInput from '@/components/utils/ClearableInput.vue'
 import DeletePeriodicReservationDialog from '@/components/dialog/DeletePeriodicReservationDialog.vue'
 import { useI18n } from 'vue-i18n'
 
@@ -606,7 +556,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                                 // Make sure the course's room is in the selected departments
                                 if (!isRoomInSelectedDepartments(Scourse.room.id)) {
                                     console.log('is not in good department')
-                                    //return
+                                    return
                                 }
                                 slots.push(createScheduledCourseSlot(Scourse, courseType, deptId))
                             } else {
@@ -618,7 +568,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                                 })
                                 if (!isOneInDepartment) {
                                     console.log('No subrooms in good departments')
-                                    //return
+                                    return
                                 }
                                 courseRoom.basic_rooms.forEach((r: Room) => {
                                     const newCourse: ScheduledCourse = JSON.parse(JSON.stringify(Scourse))
@@ -898,44 +848,6 @@ function createScheduledCourseSlot(Scourse: ScheduledCourse, courseType: CourseT
             delete: undefined,
         },
     }
-}
-
-function createFiltersValues(): Array<RoomAttributeEntry> {
-    const out = []
-
-    out.push(
-        ...roomAttributes.booleanList.value.map((attribute) => {
-            return {
-                component: markRaw(DynamicSelectedElementBoolean),
-                value: {
-                    id: attribute.id,
-                    name: attribute.name,
-                    value: false,
-                },
-            }
-        })
-    )
-    out.push(
-        ...roomAttributes.numericList.value.map((attribute) => {
-            const values = roomAttributeValues.numericList.value
-                .filter((att) => att.attribute === attribute.id)
-                .map((att) => att.value)
-            const min = Math.min(...values)
-            const max = Math.max(...values)
-            return {
-                component: markRaw(DynamicSelectedElementNumeric),
-                value: {
-                    id: attribute.id,
-                    name: attribute.name,
-                    min: min,
-                    max: max,
-                    initialMin: min,
-                    initialMax: max,
-                },
-            }
-        })
-    )
-    return out
 }
 
 function addTo<T>(collection: { [p: string]: Array<T> }, id: string | number, element: T): void {
