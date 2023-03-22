@@ -49,7 +49,9 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentWeekDays, addTo, handleReason, isRoomInSelectedDepartments, createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits, filterBySelectedDepartments, type ScheduledCourses } from '@/helpers'
+import { createDateId, getCurrentWeekDays, addTo, handleReason, isRoomInSelectedDepartments,
+    createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits, filterBySelectedDepartments,
+    type ScheduledCourses } from '@/helpers'
 import {
     BooleanRoomAttributeValue,
     CalendarDragEvent,
@@ -73,7 +75,6 @@ import {
     RoomAttributeValue,
     RoomCalendarProps,
     RoomReservation,
-    RoomReservationType,
     ScheduledCourse,
     TimeSettings,
     User,
@@ -100,60 +101,13 @@ import DynamicSelectedElementNumeric from '@/components/dynamicSelect/DynamicSel
 import DynamicSelectedElementBoolean from '@/components/dynamicSelect/DynamicSelectedElementBoolean.vue'
 import DeletePeriodicReservationDialog from '@/components/dialog/DeletePeriodicReservationDialog.vue'
 import { useI18n } from 'vue-i18n'
-
+import type { RoomAttributeEntry, Rooms, CourseTypes, RoomReservations, RoomReservationTypes,
+    ReservationPeriodicities, Users, RoomAttributes, RoomAttributeValues } from '@/ts/reservationDataTypes'
 
 const { t } = useI18n()
-const currentWeek = ref(inject('currentWeek'))
+const currentWeek = ref<FlopWeek>(inject('currentWeek'))
 let currentUserId = -1
 let loadingCounter = 0
-
-interface RoomAttributeEntry {
-    component: any
-    value: DynamicSelectElementValue
-}
-
-interface Rooms {
-    perDepartmentFilterBySelectedDepartments: ComputedRef<{ [departmentId: string]: Array<Room> }>
-    listFilterBySelectedDepartments: ComputedRef<Array<Room>>
-    perIdFilterBySelectedDepartments: ComputedRef<{ [roomId: string]: Room }>
-    listFilterBySelectedDepartmentsAndFilters: ComputedRef<Array<Room>>
-}
-
-interface CourseTypes {
-    perDepartment: Ref<{ [departmentId: string]: Array<CourseType> }>
-    listFilterBySelectedDepartments: ComputedRef<Array<CourseType>>
-}
-
-interface RoomReservations {
-    list: Ref<Array<RoomReservation>>
-    perDay: ComputedRef<{ [day: string]: Array<RoomReservation> }>
-}
-
-interface RoomReservationTypes {
-    list: Ref<Array<RoomReservationType>>
-    perId: ComputedRef<{ [typeId: string]: RoomReservationType }>
-}
-
-interface ReservationPeriodicities {
-    list: Ref<Array<ReservationPeriodicity>>
-    perId: ComputedRef<{ [periodicityId: string]: ReservationPeriodicity }>
-}
-
-interface Users {
-    list: Ref<Array<User>>
-    perId: ComputedRef<{ [userId: string]: User }>
-}
-
-interface RoomAttributes {
-    booleanList: Ref<Array<RoomAttribute>>
-    numericList: Ref<Array<RoomAttribute>>
-}
-
-interface RoomAttributeValues {
-    booleanList: Ref<Array<BooleanRoomAttributeValue>>
-    numericList: Ref<Array<NumericRoomAttributeValue>>
-}
-
 const departmentStore = useDepartmentStore()
 const roomStore = useRoomStore()
 const authStore = useAuth()
@@ -702,40 +656,37 @@ const roomCalendarValues = computed<RoomCalendarProps>(() => {
     )
 })
 
+/**
+ * We check for departments in our store and repopulate the
+ * data if needed. We also update the ScheduledCourseStore, 
+ * clearing the data then fetching the week watched. Then
+ * updating data refs in this view.
+ */
 watch(selectedDate.value, async (newDate, oldDate) => {
     console.log("Updating WeekDays")
     getCurrentWeekDays(newDate).then((newWeekDay: Array<WeekDay>) => weekDays.list.value = newWeekDay)
-    // We check for departments in our store and repopulate the
-    // data if needed
     if (!departmentStore.getAllDepartmentsFetched) {
         await departmentStore.fetchAllDepartments()
     }
-    // We update the ScheduledCourseStore. Clearing the data
-    // then fetching the week watched. Then updating data
-    // in this view.
     scheduledCourseStore.clearScheduledCourses()
-    await scheduledCourseStore.fetchScheduledCourses(newDate)
-    updateScheduledCourses(departmentStore.getAllDepartmentsFetched)
+    scheduledCourseStore.fetchScheduledCourses(newDate).then(() => updateScheduledCourses(departmentStore.getAllDepartmentsFetched))
     console.log('Updating Rooms reservations')
-    await updateRoomReservations(selectedDate.value)
-    roomReservations.list.value = roomReservationStore.getAllRoomReservationsFetched
-    temporaryReservation.value = undefined
+    updateRoomReservations(selectedDate.value).then(() => {
+        roomReservations.list.value = roomReservationStore.getAllRoomReservationsFetched
+        temporaryReservation.value = undefined
+    })
 }, {immediate: true})
 
 // Time settings watcher
 watchEffect(() => {
     console.log('Updating time settings')
-    console.log('timeSettings : ', timeSettings)
     onTimeSettingsChanged(timeSettings.value)
 })
-
-
 
 function onTimeSettingsChanged(timeSettings?: Array<TimeSettings>) {
     if (!timeSettings) {
         return
     }
-
     let minStartTime = timeSettings[0].day_start_time
     let maxFinishTime = timeSettings[0].day_finish_time
     let minLunchBreakStartTime = timeSettings[0].lunch_break_start_time
@@ -746,7 +697,6 @@ function onTimeSettingsChanged(timeSettings?: Array<TimeSettings>) {
         minLunchBreakStartTime = Math.min(minLunchBreakStartTime, setting.lunch_break_start_time)
         maxLunchBreakFinishTime = Math.max(maxLunchBreakFinishTime, setting.lunch_break_finish_time)
     })
-
     dayStartTime.value = createTime(minStartTime)
     dayFinishTime.value = createTime(maxFinishTime)
     lunchBreakStartTime.value = createTime(minLunchBreakStartTime)
@@ -840,7 +790,6 @@ function createScheduledCourseSlot(sCourse: ScheduledCourse, courseType: CourseT
     }
 }
 
-
 async function updateRoomReservations(date: FlopWeek): Promise<void> {
     showLoading()
     await roomReservationStore.fetchRoomReservationsForWeek(date)
@@ -884,23 +833,19 @@ function updateRoomReservation(newData: CalendarRoomReservationSlotData, oldData
         }
         return
     }
-
     // Find the reservation index from the list of reservations
     const index = roomReservations.list.value.findIndex((reserv) => reserv.id === oldReservation.id)
-
     if (index < 0) {
         // Reservation not found
         console.error(`Could not find reservation with id: ${oldReservation.id}`)
         return
     }
-
     if (newReservation.periodicity != oldReservation.periodicity) {
         // The reservation has a new periodicity, new reservations might have been created.
         // Update the lists of reservations and periodicities
         updateRoomReservations(selectedDate.value)
         updateReservationPeriodicities()
     }
-
     // Replace the reservation at index
     roomReservations.list.value[index] = newReservation
 }
@@ -948,7 +893,6 @@ function reservationRemoveCurrentAndFutureSamePeriodicity(reservation: RoomReser
     if (!reservation.periodicity || reservation.periodicity.periodicity.id < 0) {
         return
     }
-
     const periodicityId = reservation.periodicity.periodicity.id
     const reservationDate = new Date(reservation.date)
     // Remove all the future reservations of the same periodicity
@@ -1115,10 +1059,6 @@ function handleNewSlot(date: Date, roomId: string) {
         start_time: now.toTimeString(),
         title: '',
     }
-}
-
-function createDateId(day: string | number, month: string | number): string {
-    return `${toStringAtLeastTwoDigits(day)}/${toStringAtLeastTwoDigits(month)}`
 }
 
 function isRoomSelected(roomId: number): boolean {

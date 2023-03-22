@@ -129,3 +129,13 @@ export async function getCurrentWeekDays(flopWeek: FlopWeek): Promise<Array<Week
     })
     return newWeekdays
 }
+
+/**
+ * Takes the day and the month to return a string representing the date
+ * @param day number of the day in the month : 1 - 31
+ * @param month Number of the month in the year starting at 0 : 0 - 11
+ * @returns The formatted string as "dd/MM"
+ */
+export function createDateId(day: string | number, month: string | number): string {
+    return `${toStringAtLeastTwoDigits(day)}/${toStringAtLeastTwoDigits(month)}`
+}
