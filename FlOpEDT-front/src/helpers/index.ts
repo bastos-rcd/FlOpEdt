@@ -1,4 +1,6 @@
-import { Department, type Time } from "@/ts/type"
+import { Department, type Time, type Room, type WeekDay, type FlopWeek } from "@/ts/type"
+import { useRoomStore } from "@/stores/room"
+import { api } from '@/composables/api'
 
 export function convertDecimalTimeToHuman(time: number): string {
     const hours = Math.trunc(time)
@@ -79,4 +81,51 @@ export function filterBySelectedDepartments<T>(object: { [key: string]: Array<T>
         )
     )
     return out
+}
+
+/**
+ * Takes a room id and
+ * returns true if the room is available to the selected departments, false otherwise
+ * @param roomId The room id
+ */
+export function isRoomInSelectedDepartments(roomId: number, departments : Array<Department>): boolean {
+    const roomStore = useRoomStore()
+    let inDept = false
+    const room = roomStore.rooms.find((r: Room) => r.id === roomId)
+    if(room)
+        room.departments.forEach((roomDept: Department) => {
+            departments.forEach(dept => {
+                if(dept.id === roomDept.id) {
+                    inDept = true
+                }
+            })
+        })
+    return room !== undefined && inDept
+}
+
+export function handleReason(level: string, message: string) {
+    console.error(`${level}: ${message}`)
+}
+
+/**
+ * Take a collection of key->Array objects and add a new element to a specific key
+ * @param collection The dict object hosting the data
+ * @param id The key of the array which will contain the new data
+ * @param element The new data element
+ */
+export function addTo<T>(collection: { [p: string]: Array<T> }, id: string | number, element: T): void {
+    if (!collection[id]) {
+        collection[id] = []
+    }
+    collection[id].push(element)
+}
+
+export async function getCurrentWeekDays(flopWeek: FlopWeek): Promise<Array<WeekDay>> {
+    let newWeekdays : Array<WeekDay> = []
+    await api.fetch
+    .weekdays({ week: flopWeek.week, year: flopWeek.year })
+    .then((value: { date: string; name: string; num: number; ref: string }[]) => {
+        newWeekdays = value
+    })
+    return newWeekdays
 }
