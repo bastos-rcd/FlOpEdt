@@ -49,37 +49,17 @@
 </template>
 
 <script setup lang="ts">
-import { createDateId, getCurrentWeekDays, addTo, handleReason, isRoomInSelectedDepartments,
-    createTime, listGroupBy, parseReason, toStringAtLeastTwoDigits, filterBySelectedDepartments,
-    type ScheduledCourses } from '@/helpers'
-import {
-    BooleanRoomAttributeValue,
-    CalendarDragEvent,
-    CalendarProps,
-    CalendarRoomReservationSlotData,
-    CalendarScheduledCourseSlotData,
-    CalendarSlot,
-    CourseType,
-    Department,
-    DynamicSelectElementBooleanValue,
-    DynamicSelectElementNumericValue,
-    DynamicSelectElementValue,
-    FlopWeek,
-    HourCalendarProps,
-    NumericRoomAttributeValue,
-    ReservationPeriodicity,
-    ReservationPeriodicityType,
-    ReservationPeriodicityTypeName,
-    Room,
-    RoomAttribute,
-    RoomAttributeValue,
-    RoomCalendarProps,
-    RoomReservation,
-    ScheduledCourse,
-    TimeSettings,
-    User,
-    WeekDay,
-} from '@/ts/types'
+import { isRoomSelected, deleteReservationPeriodicity, createDateId, getCurrentWeekDays, addTo,
+    handleReason, isRoomInSelectedDepartments, createTime, listGroupBy, parseReason,
+    toStringAtLeastTwoDigits, filterBySelectedDepartments, type ScheduledCourses } from '@/helpers'
+import { BooleanRoomAttributeValue, CalendarDragEvent, CalendarProps,
+    CalendarRoomReservationSlotData, CalendarScheduledCourseSlotData,
+    CalendarSlot, CourseType, Department, DynamicSelectElementBooleanValue,
+    DynamicSelectElementNumericValue, DynamicSelectElementValue, FlopWeek,
+    HourCalendarProps, NumericRoomAttributeValue, ReservationPeriodicity,
+    ReservationPeriodicityType, ReservationPeriodicityTypeName, Room,
+    RoomAttribute, RoomAttributeValue, RoomCalendarProps, RoomReservation,
+    ScheduledCourse, TimeSettings, User, WeekDay} from '@/ts/types'
 import { Time } from '@/ts/types'
 import { ComputedRef, inject, Ref } from 'vue'
 import { computed, markRaw, onMounted, ref, shallowRef, watchEffect, watch} from 'vue'
@@ -221,7 +201,7 @@ const scheduledCourses: ScheduledCourses = {
                 entry[1].filter((course: ScheduledCourse) => {
                     let filtering_result = false
                     if (course.room) {
-                        filtering_result = isRoomSelected(course.room.id) && isRoomInSelectedDepartments(course.room.id, selectedDepartments.value)
+                        filtering_result = isRoomSelected(course.room.id, selectedRoom.value) && isRoomInSelectedDepartments(course.room.id, selectedDepartments.value)
                     }
                     return filtering_result
                 }),
@@ -401,7 +381,7 @@ const roomReservationSlots: RoomReservationSlots = {
                 entry[0],
                 entry[1].filter((slot) => {
                     const room = (slot.slotData as CalendarRoomReservationSlotData).reservation.room
-                    return isRoomSelected(room) && isRoomInSelectedDepartments(room, selectedDepartments.value)
+                    return isRoomSelected(room, selectedRoom.value) && isRoomInSelectedDepartments(room, selectedDepartments.value)
                 }),
             ])
         )
@@ -742,7 +722,9 @@ function createRoomReservationSlot(reservation: RoomReservation): CalendarSlot {
             if (!reservationsRemovalPromise) {
                 return Promise.reject(`Could not remove the reservations with periodicity id ${periodicityId}`)
             }
-            return reservationsRemovalPromise.then((_: any) => deleteReservationPeriodicity(periodicityId))
+            return reservationsRemovalPromise.then((_: any) => deleteReservationPeriodicity(periodicityId)
+                .then((_: any) => updateReservationPeriodicities())
+                .then((_: any) => updateRoomReservations(selectedDate.value)))
         },
     }
     return {
@@ -960,15 +942,6 @@ function reservationRemoveFutureSamePeriodicity(reservation: RoomReservation) {
     })
 }
 
-function deleteReservationPeriodicity(periodicityId: number): Promise<void> {
-    return api.delete
-        .reservationPeriodicity(periodicityId)
-        .then((_: any) => {
-            updateReservationPeriodicities()
-        })
-        .then((_: any) => updateRoomReservations(selectedDate.value))
-}
-
 function closeReservationDeletionDialog() {
     reservationToDelete.value = undefined
     isReservationDeletionDialogOpen.value = false
@@ -1061,16 +1034,6 @@ function handleNewSlot(date: Date, roomId: string) {
     }
 }
 
-function isRoomSelected(roomId: number): boolean {
-    if (selectedRoom.value) {
-        // Return false if the course's sub rooms are not selected
-        if (!roomStore.perId[roomId]?.basic_rooms.find((val: Room) => val.id === selectedRoom.value?.id)) {
-            return false
-        }
-    }
-    return true
-}
-
 onMounted(() => {
     departmentStore.getDepartmentFromURL()
     const dbDataElement = document.getElementById('json_data')
@@ -1102,36 +1065,28 @@ onMounted(() => {
     api.fetch.timeSettings().then((value: TimeSettings[] | undefined) => {
         timeSettings.value = value
     })
-
     api.fetch.roomReservationTypes().then((value: any[]) => {
         if (value.length === 0) {
             value = ['Unknown']
         }
         roomReservationTypes.list.value = value
     })
-
     updateReservationPeriodicities()
-
     api.fetch.reservationPeriodicityTypes().then((value: [ReservationPeriodicityTypeName, string][]) => {
         reservationPeriodicityTypes.value = value
     })
-
     api.fetch.users().then((value: User[]) => {
         users.list.value = value
     })
-
     api.fetch.booleanRoomAttributes().then((value: RoomAttribute[]) => {
         roomAttributes.booleanList.value = value
     })
-
     api.fetch.numericRoomAttributes().then((value: RoomAttribute[]) => {
         roomAttributes.numericList.value = value
     })
-
     api.fetch.booleanRoomAttributeValues().then((value: BooleanRoomAttributeValue[]) => {
         roomAttributeValues.booleanList.value = value
     })
-
     api.fetch.numericRoomAttributeValues().then((value: NumericRoomAttributeValue[]) => {
         roomAttributeValues.numericList.value = value
     })

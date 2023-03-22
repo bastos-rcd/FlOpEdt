@@ -139,3 +139,24 @@ export async function getCurrentWeekDays(flopWeek: FlopWeek): Promise<Array<Week
 export function createDateId(day: string | number, month: string | number): string {
     return `${toStringAtLeastTwoDigits(day)}/${toStringAtLeastTwoDigits(month)}`
 }
+
+/**
+ * Explain
+ * @param periodicityId 
+ * @returns Nothing ?
+ */
+export function deleteReservationPeriodicity(periodicityId: number): Promise<void> {
+    return api.delete
+        .reservationPeriodicity(periodicityId)
+}
+
+export function isRoomSelected(roomId: number, selectedRoom : Room): boolean {
+    const roomStore = useRoomStore()
+    if (selectedRoom.value) {
+        // Return false if the course's sub rooms are not selected
+        if (!roomStore.perId[roomId]?.basic_rooms.find((val: Room) => val.id === selectedRoom.value?.id)) {
+            return false
+        }
+    }
+    return true
+}
