@@ -19,6 +19,7 @@ import type { Ref } from 'vue'
 import { ref, watchEffect } from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import { useI18n } from 'vue-i18n';
+import { getNumberOfTheWeek } from '@/helpers';
 
 interface Props {
     week: number
@@ -42,10 +43,7 @@ watchEffect(() => {
     if (!refDate) {
         return
     }
-    const startDate = new Date(refDate.getFullYear(), 0, 1)
-    const days = Math.floor((refDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000))
-
-    emits('update:week', Math.ceil(days / 7))
+    emits('update:week', getNumberOfTheWeek(refDate))
     emits('update:year', refDate.getFullYear())
 })
 
