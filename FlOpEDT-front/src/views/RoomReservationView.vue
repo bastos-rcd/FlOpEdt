@@ -59,7 +59,7 @@ import { BooleanRoomAttributeValue, CalendarDragEvent, CalendarProps,
     HourCalendarProps, NumericRoomAttributeValue, ReservationPeriodicity,
     ReservationPeriodicityType, ReservationPeriodicityTypeName, Room,
     RoomAttribute, RoomAttributeValue, RoomCalendarProps, RoomReservation,
-    ScheduledCourse, TimeSettings, User, WeekDay} from '@/ts/types'
+    ScheduledCourse, TimeSettings, User, WeekDay } from '@/ts/types'
 import { Time } from '@/ts/types'
 import { ComputedRef, inject, Ref } from 'vue'
 import { computed, markRaw, onMounted, ref, shallowRef, watchEffect, watch} from 'vue'
@@ -82,7 +82,8 @@ import DynamicSelectedElementBoolean from '@/components/dynamicSelect/DynamicSel
 import DeletePeriodicReservationDialog from '@/components/dialog/DeletePeriodicReservationDialog.vue'
 import { useI18n } from 'vue-i18n'
 import type { RoomAttributeEntry, Rooms, CourseTypes, RoomReservations, RoomReservationTypes,
-    ReservationPeriodicities, Users, RoomAttributes, RoomAttributeValues } from '@/ts/reservationDataTypes'
+    ReservationPeriodicities, Users, RoomAttributes, RoomAttributeValues, TemporaryCalendarSlots,
+    ScheduledCourseSlots, RoomReservationSlots } from '@/ts/reservationDataTypes'
 
 const { t } = useI18n()
 const currentWeek = ref<FlopWeek>(inject('currentWeek'))
@@ -105,7 +106,7 @@ const rooms: Rooms = {
     listFilterBySelectedDepartments: computed(() => {
         const out: Array<Room> = []
         Object.values(rooms.perDepartmentFilterBySelectedDepartments.value).forEach((rooms) => {
-            out.push(...rooms.filter((room) => !out.find((r) => r.id === room.id)))
+            out.push(...rooms.filter((room: Room) => !out.find((r) => r.id === room.id)))
         })
         roomStore.rooms.forEach((room: Room) => {
             if (room.departments.length === 0 && out.findIndex((r) => r.id === room.id) < 0) {
@@ -117,11 +118,11 @@ const rooms: Rooms = {
     perIdFilterBySelectedDepartments: computed(() => {
         return Object.fromEntries(
             rooms.listFilterBySelectedDepartments.value
-                .filter((r) => r.is_basic)
-                .sort((r1, r2) => {
+                .filter((r: Room) => r.is_basic)
+                .sort((r1: Room, r2: Room) => {
                     return r1.name.toLowerCase().localeCompare(r2.name.toLowerCase())
                 })
-                .map((r) => [r.id, r])
+                .map((r: Room) => [r.id, r])
         )
     }),
     listFilterBySelectedDepartmentsAndFilters: computed(() => {
@@ -154,7 +155,7 @@ const rooms: Rooms = {
         )
 
         // Filter by attributes
-        out = out.filter((room) => {
+        out = out.filter((room: Room) => {
             const roomId = room.id
             let matchFilters = true
 
@@ -274,7 +275,7 @@ const reservationPeriodicityTypes = ref<Array<ReservationPeriodicityType>>([])
 const users: Users = {
     list: ref([]),
     perId: computed(() => {
-        return Object.fromEntries(users.list.value.map((user) => [user.id, user]))
+        return Object.fromEntries(users.list.value.map((user: User) => [user.id, user]))
     }),
 }
 
@@ -349,17 +350,6 @@ const selectedNumericAttributes = computed(() => {
 
 const roomNameFilter = ref('')
 
-/**
- * Computes the slots to display all the room reservations, grouped by day.
- */
-
-interface RoomReservationSlots {
-    list: ComputedRef<Array<CalendarSlot>>
-    perDay: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
-    perDayFilterBySelectedDepartmentsAndRooms: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
-    perDayPerRoomFilterBySelectedDepartments: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
-}
-
 const roomReservationSlots: RoomReservationSlots = {
     list: computed(() => {
         return roomReservations.list.value.map(createRoomReservationSlot)
@@ -406,16 +396,6 @@ const roomReservationSlots: RoomReservationSlots = {
     }),
 }
 
-/**
- * Computes the slots to display all the scheduled courses, grouped by day.
- */
-interface ScheduledCourseSlots {
-    perRooms: ComputedRef<{
-        [departmentId: string]: Array<CalendarSlot>
-    }>
-    perDayPerRoom: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
-}
-
 const scheduledCoursesSlots: ScheduledCourseSlots = {
     perRooms: computed(() => {
         const out: { [date: string]: Array<CalendarSlot> } = {}
@@ -430,7 +410,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                     return
                 }
                 // Make sure the course type belongs to the selected departments
-                let courseType = courseTypes.perDepartment.value[deptId].find((courseType) => {
+                let courseType = courseTypes.perDepartment.value[deptId].find((courseType: CourseType) => {
                     return courseType.name === course.course.type.name
                 })
                 if (!courseType) {
@@ -533,11 +513,6 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
 
 const temporaryReservation = ref<RoomReservation>()
 
-interface TemporaryCalendarSlots {
-    perDay: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
-    perDayPerRoom: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
-}
-
 const temporaryCalendarSlots: TemporaryCalendarSlots = {
     perDay: computed(() => {
         const out: { [index: string]: Array<CalendarSlot> } = {}
@@ -626,11 +601,11 @@ const roomCalendarValues = computed<RoomCalendarProps>(() => {
             slots: slots,
             rooms: rooms.listFilterBySelectedDepartments.value
                 .filter(
-                    (room) =>
+                    (room: Room) =>
                         room.is_basic &&
-                        rooms.listFilterBySelectedDepartmentsAndFilters.value.findIndex((r) => r.id === room.id) >= 0
+                        rooms.listFilterBySelectedDepartmentsAndFilters.value.findIndex((r: Room) => r.id === room.id) >= 0
                 )
-                .sort((r1, r2) => r1.name.localeCompare(r2.name)),
+                .sort((r1: Room, r2: Room) => r1.name.localeCompare(r2.name)),
         },
         calendarValues.value
     )
@@ -816,7 +791,7 @@ function updateRoomReservation(newData: CalendarRoomReservationSlotData, oldData
         return
     }
     // Find the reservation index from the list of reservations
-    const index = roomReservations.list.value.findIndex((reserv) => reserv.id === oldReservation.id)
+    const index = roomReservations.list.value.findIndex((reserv: RoomReservations) => reserv.id === oldReservation.id)
     if (index < 0) {
         // Reservation not found
         console.error(`Could not find reservation with id: ${oldReservation.id}`)

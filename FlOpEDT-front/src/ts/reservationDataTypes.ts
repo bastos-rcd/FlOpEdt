@@ -1,5 +1,5 @@
 import { ComputedRef, Ref } from "vue"
-import { BooleanRoomAttributeValue, CourseType, DynamicSelectElementValue, NumericRoomAttributeValue, ReservationPeriodicity, Room, RoomAttribute, RoomReservation, RoomReservationType, User } from "@/type"
+import { CalendarSlot, BooleanRoomAttributeValue, CourseType, DynamicSelectElementValue, NumericRoomAttributeValue, ReservationPeriodicity, Room, RoomAttribute, RoomReservation, RoomReservationType, User } from "@/type"
 
 export interface RoomAttributeEntry {
     component: any
@@ -46,4 +46,30 @@ export interface RoomAttributes {
 export interface RoomAttributeValues {
     booleanList: Ref<Array<BooleanRoomAttributeValue>>
     numericList: Ref<Array<NumericRoomAttributeValue>>
+}
+
+export interface TemporaryCalendarSlots {
+    perDay: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
+    perDayPerRoom: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
+}
+
+/**
+ * Computes the slots to display all the room reservations, grouped by day.
+ */
+
+export interface RoomReservationSlots {
+    list: ComputedRef<Array<CalendarSlot>>
+    perDay: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
+    perDayFilterBySelectedDepartmentsAndRooms: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
+    perDayPerRoomFilterBySelectedDepartments: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
+}
+
+/**
+ * Computes the slots to display all the scheduled courses, grouped by day.
+ */
+export interface ScheduledCourseSlots {
+    perRooms: ComputedRef<{
+        [departmentId: string]: Array<CalendarSlot>
+    }>
+    perDayPerRoom: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
 }
