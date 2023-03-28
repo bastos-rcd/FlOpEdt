@@ -160,3 +160,17 @@ export function isRoomSelected(roomId: number, selectedRoom : Room): boolean {
     }
     return true
 }
+
+/**
+ * Helpers for WeekPicker.vue
+ * @param date The date we wanna know the week number of
+ * @returns the week number in the current year
+ */
+export function getNumberOfTheWeek(date: Date) {
+    // We get the first day of the year
+    const yearStart = new Date(Date.UTC(date.getFullYear(), 0, 1))
+    // We get the thursday of our week
+    const currentThursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+    currentThursday.setUTCDate(currentThursday.getUTCDate() + 4 - (currentThursday.getUTCDay()||7))
+    return Math.ceil((((currentThursday.getTime() - yearStart.getTime()) / 86400000) + 1)/7)
+}
