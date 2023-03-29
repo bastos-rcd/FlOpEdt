@@ -51,8 +51,8 @@ function getNumberOfTheWeek(date: Date) {
     const yearStart = new Date(Date.UTC(date.getFullYear(), 0, 1))
     // We get the thursday of our week
     const currentThursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
-    currentThursday.setUTCDate(currentThursday.getUTCDate() + 4 - (currentThursday.getUTCDay()||7))
-    return Math.ceil((((currentThursday.getTime() - yearStart.getTime()) / 86400000) + 1)/7)
+    currentThursday.setUTCDate(currentThursday.getUTCDate() + 4 - (currentThursday.getUTCDay() || 7))
+    return Math.ceil(((currentThursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
 }
 
 const locale = ref('fr')
