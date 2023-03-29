@@ -41,12 +41,19 @@ watchEffect(() => {
     if (!refDate) {
         return
     }
-    const startDate = new Date(refDate.getFullYear(), 0, 1)
-    const days = Math.floor((refDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000))
+    emits('update:week', getNumberOfTheWeek(refDate))
 
-    emits('update:week', Math.ceil(days / 7))
     emits('update:year', refDate.getFullYear())
 })
+
+function getNumberOfTheWeek(date: Date) {
+    // We get the first day of the year
+    const yearStart = new Date(Date.UTC(date.getFullYear(), 0, 1))
+    // We get the thursday of our week
+    const currentThursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+    currentThursday.setUTCDate(currentThursday.getUTCDate() + 4 - (currentThursday.getUTCDay() || 7))
+    return Math.ceil(((currentThursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+}
 
 const locale = ref('fr')
 
