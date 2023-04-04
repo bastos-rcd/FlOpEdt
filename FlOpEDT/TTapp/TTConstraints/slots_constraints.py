@@ -454,16 +454,21 @@ class ConsiderDependencies(TTConstraint):
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem"""
         dependencies = self.considered_dependecies().filter(course1__week=week, course2__week=week)
         jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year} }
-        no_user_pref = not ConsiderTutorsUnavailability.objects.filter(Q(weeks=week)|Q(weeks__isnull=True)).exists()
+        no_user_pref1 = no_user_pref2 = not ConsiderTutorsUnavailability.objects.filter(Q(weeks=week)|Q(weeks__isnull=True)).exists()
         for dependency in dependencies:
             ok_so_far = True
             # Setting up partitions with data about other constraints for both courses
+            if dependency.course1.tutor is None:
+                no_user_pref1 = True
+            if dependency.course2.tutor is None:
+                no_user_pref2 = True
+
             week_partition_course1 = partition_bis.create_course_partition_from_constraints(dependency.course1, week,
                                                                                             self.department,
-                                                                                            available=no_user_pref)
+                                                                                            available=no_user_pref1)
             week_partition_course2 = partition_bis.create_course_partition_from_constraints(dependency.course2, week,
                                                                                             self.department,
-                                                                                            available=no_user_pref)
+                                                                                            available=no_user_pref2)
 
             if week_partition_course1 and week_partition_course2:
                 # Retrieving possible start times for both courses
