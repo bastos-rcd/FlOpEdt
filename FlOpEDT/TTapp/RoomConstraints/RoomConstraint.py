@@ -288,7 +288,7 @@ class LimitedRoomChoices(RoomConstraint):
                                                  rooms=possible_rooms))
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
-        fc = self.get_ttmodel_courses_queryset_by_parameters(ttmodel, week)
+        fc = self.get_courses_queryset_by_attributes(ttmodel, week)
         possible_rooms = self.possible_rooms.all()
         if self.tutor is None:
             relevant_var_dic = ttmodel.TTrooms
