@@ -24,6 +24,9 @@
         const week_init = {{ week}};
         const year_init = {{ year }};
     </script>
+    <div id="constraintmanager-app">
+        <!-- VueJS constraintManager's app's anchor point -->
+    </div>
     <div class="container-fluid">
         <!-- Content -->
         <div class="row">
@@ -224,4 +227,7 @@
     <script type="text/javascript" src="{% static 'cstmanager/js/bootstrap.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'cstmanager/js/mockup_request.js' %}"></script>
     <script type="text/javascript" src="{% static 'cstmanager/js/script.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vue/dist/js/chunk-vendors.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vue/dist/js/app.js' %}"></script>
+    <link href="{% static 'vue/dist/css/app.css' %}" rel=stylesheet>
 {% endblock %}

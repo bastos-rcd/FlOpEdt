@@ -51,5 +51,4 @@ if [ "$START_SERVER" = 'on' ]; then
     [ "$CONFIG" = 'production' ] && daphne -b 0.0.0.0 -p 8000 FlOpEDT.asgi:application
     [ "$CONFIG" = 'development' ] && /code/FlOpEDT/manage.py runserver 0.0.0.0:8000
 fi
-
 exec "$@"
