@@ -25,20 +25,32 @@ from api.shared.params import dept_param, week_param, year_param
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from django.apps import apps
+from django.http import FileResponse,HttpResponse
+from pathlib import Path
 from TTapp.FlopConstraint import FlopConstraint, all_subclasses
 from base.models import Department
 import TTapp.TTConstraints.visio_constraints as ttv
 from django.contrib.postgres.fields.array import ArrayField
 from base.timing import all_possible_start_times, Day
+from MyFlOp.colors import Tcolors
 
 from drf_yasg import openapi
-from rest_framework import viewsets
+from rest_framework import viewsets,generics
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from api.TTapp import serializers
 from api.permissions import IsAdminOrReadOnly
 from base.weeks import current_year
+import os
+import json
+import re
 
+DOC_DIR = os.path.join(os.getcwd(),'TTapp/TTConstraints/doc')
+IMG_DIR = os.path.join(os.getcwd(),'TTapp/TTConstraints/doc/images')
+TEMP_DIR = os.path.join(os.getcwd(),'temp')
+CORRUPTED_JSON_PATH = os.path.join(os.getcwd(),'discarded.json')
+EN_DIR_NAME = "en"
+REGEX_IMAGE = r"(?:[!]\[(.*?)\])\(((\.\.)(.*?))\)"
 # ---------------
 # ---- TTAPP ----
 # ---------------
@@ -487,3 +499,183 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
             field.acceptable = acceptable
         serializer = serializers.FlopConstraintFieldSerializer(fields_list, many=True)
         return Response(serializer.data)
+
+
+class CustomUrl():
+    #Class to better handle url
+    def __init__(self, request):
+        self.domain = request.get_host()
+        self.protocol = request.scheme
+        self.full_domain = self.protocol + "://" + self.domain
+        self.splited_path = request.path.split("/")
+        self.lang = self.splited_path[1]
+
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                  )
+                  )
+class FlopDocVisu(viewsets.ViewSet):
+    def list(self, request, **kwargs):
+        name = kwargs['name']
+        name_no_extensions = name.split(".")[0]
+
+        url = CustomUrl(request)
+        dir_lang = os.path.join(DOC_DIR, url.lang)
+
+        # Try to check if file is not in the forbidden file
+        try:
+            data = json.load(open(CORRUPTED_JSON_PATH))
+        except:
+            return HttpResponse(status=500)
+        forbidden_files = data["discarded"]
+
+        if (name in forbidden_files):
+            print(f"{Tcolors.FAIL}{Tcolors.BOLD}Attempt to access forbidden file : {name}{Tcolors.ENDC}")
+            return HttpResponse(status=404)
+
+        # if doc not found in language will try to find it in english
+        if (url.lang != EN_DIR_NAME):
+            f_path = recursive_search(dir_lang, name)
+            if (len(f_path) == 0):
+               dir_lang = os.path.join(DOC_DIR, EN_DIR_NAME)
+               f_path = recursive_search(dir_lang, name)
+               if (len(f_path) == 0):
+                   return HttpResponse(status=404)
+        # english doc
+        else:
+            f_path = recursive_search(dir_lang, name)
+            if (len(f_path) == 0):
+                return HttpResponse(status=404)
+
+        # will replace image path and interpolate file
+        # return json_file containing text and map
+        json_file = check_file(f_path, url, name_no_extensions)
+
+        return HttpResponse(json_file, content_type="application/json; charset=utf-8")
+
+    def create(self, request, **kwargs):
+        return HttpResponse(status=403)
+
+    def update(self, request, **kwargs):
+        return HttpResponse(status=403)
+
+    def destroy(self, request, **kwargs):
+        return HttpResponse(status=403)
+
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                  )
+                  )
+class FlopImgVisu(viewsets.ViewSet):
+    #Work the same as FlopDocVisu
+    def list(self, request, **kwargs):
+        name = kwargs['name']
+        f_path = recursive_search(IMG_DIR, name)
+        if (len(f_path) == 0):
+            return HttpResponse(status=404)
+        file_handle = open(f_path, 'rb')
+        return FileResponse(file_handle)
+
+    def create(self, request, **kwargs):
+        return HttpResponse(status=403)
+
+    def update(self, request, **kwargs):
+        return HttpResponse(status=403)
+
+    def destroy(self, request, **kwargs):
+        return HttpResponse(status=403)
+
+#################################################
+
+
+def recursive_search(path, filename):
+    liste = list(Path(path).rglob(filename))
+    if (len(liste) == 0):
+        return []
+    else:
+        return str(liste[0])
+
+
+def check_file(path, url, name):
+    name = name + ".json"
+    json_path = None
+    found = True
+
+    temp_path = os.path.join(TEMP_DIR, url.lang)
+    file_temp_path = os.path.join(temp_path, name)
+
+    # test if cached file exist
+    try:
+        json_path = open(file_temp_path)
+    except:
+        found = False
+
+    if (found):
+        # if cached file exist we return it
+        json_file = json.load(json_path)
+        print(f'{Tcolors.OKGREEN}Opened cached file{Tcolors.ENDC}')
+        return json.dumps(json_file)
+    else:
+        # create json and attempt to write it in cache
+        file_handle = open(path, 'r')
+        text = image_interpolation(file_handle, url.full_domain)
+        text, dico_inter = doc_interpolation(text)
+
+        full_dico = {
+            "text": text,
+            "inter": dico_inter
+        }
+        json_file = json.dumps(full_dico)
+        try:
+            json_path = open(file_temp_path, 'x')
+            json_path.write(json_file)
+        except:
+            print(
+                f"{Tcolors.FAIL}{Tcolors.BOLD}CAN'T WRITE FILE INTO TEMP, BAD PERFORMANCE EXPECTED{Tcolors.ENDC}")
+            return json_file
+
+        print(f"{Tcolors.OKGREEN}Created json file {name} {Tcolors.ENDC}")
+        return json_file
+
+
+def image_interpolation(file, domain):
+    text = file.read()
+    # use 4th group (image name, identified by r\4) from regex image and add the domain
+    image_path = domain+"/fr/api/ttapp"+r"\4"
+    full_link = "!["+r"\1"+"]("+image_path+")"  # rebuild
+
+    replaced = re.sub(REGEX_IMAGE, full_link, text)
+    return replaced
+
+
+def doc_interpolation(docu):
+    # will replace in the doc every {{xx}} with <span id=xxDisplayer>...
+    reg = r'({{(.*?)}})'
+
+    pattern = re.compile(reg)
+    paramCallCount = {}
+    newstring = ''
+    start = 0
+    for m in re.finditer(pattern, docu):
+        ###
+        end, newstart = m.span()
+        newstring += docu[start:end]
+        ###
+
+        name = m.group(2).strip()
+        if (paramCallCount.get(name) == None):
+            paramCallCount[name] = 0
+
+        paramCallCount[name] = paramCallCount.get(name) + 1
+        rep = '<span id="' + name + 'Displayer' + \
+            str(paramCallCount.get(name)) + '"></span>'
+
+        ###
+        newstring += rep
+        start = newstart
+        ###
+
+    newstring += docu[start:]
+    return (newstring, paramCallCount)

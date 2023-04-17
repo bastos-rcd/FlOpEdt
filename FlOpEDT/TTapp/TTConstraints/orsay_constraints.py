@@ -161,13 +161,15 @@ class GroupsLunchBreak(TTConstraint):
 
 class TutorsLunchBreak(TTConstraint):
     """
-    Ensures time for lunch in a given interval for given groups (all if groups is Null)
+    Ensures time for lunch in a given interval for given tutors (all if tutors is Null)
     """
-    start_lunch_time = models.PositiveSmallIntegerField()
-    end_lunch_time = models.PositiveSmallIntegerField()
-    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    lunch_length = models.PositiveSmallIntegerField()
-    tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints')
+    start_lunch_time = models.PositiveSmallIntegerField(help_text=_('start lunch time'))
+    end_lunch_time = models.PositiveSmallIntegerField(help_text=_('end lunch time'))
+    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True,
+                          help_text=_('considered week days'))
+    lunch_length = models.PositiveSmallIntegerField(help_text=_('minimal lunch length (in min)'))
+    tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints',
+                                    help_text=_('considered tutors'))
 
     class Meta:
         verbose_name = _('Lunch break for tutors')
