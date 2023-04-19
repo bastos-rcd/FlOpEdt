@@ -1954,7 +1954,7 @@ let constraintCardBuilder = (constraint) => {
     let deleteButton = `<button type="button" class="btn btn-danger" onclick="deleteSelectedConstraint('${constraint.pageid}')">${gettext('Delete')}</button>`;
     let duplicateButton = `<button type="button" class="btn btn-info" onclick="duplicateSelectedConstraint('${constraint.pageid}')">${gettext('Duplicate')}</button>`;
     let popover_content = '';
-    constraint.parameters.forEach((param) => {
+/*     constraint.parameters.forEach((param) => {
         if (param.name === 'department') {
             return
         }
@@ -1965,7 +1965,7 @@ let constraintCardBuilder = (constraint) => {
             )
             popover_content += '</br>'
         }
-    })
+    }) */
     popover_content += `<div class="btn-group" role="group" aria-label="Constraint edit">${duplicateButton}${editButton}${deleteButton}</div>`;
 
     const wrapper = divBuilder({
