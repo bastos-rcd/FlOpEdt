@@ -26,7 +26,7 @@
 from base.models import UserPreference, CoursePreference
 
 from base.models import TimeGeneralSettings
-from base.timing import Time, days_index
+from base.timing import Time, days_index, Day
 from base.models import ScheduledCourse
 
 slot_pause = 30
@@ -208,3 +208,9 @@ def days_filter(days_set, index=None, index_in=None, week=None, week_in=None, da
         days = set(d for d in days if d.day in day_in)
     return days
 
+
+def corresponding_slot(scheduled_course):
+    day = Day(week=scheduled_course.course.week, day=scheduled_course.day)
+    start_time = scheduled_course.start_time
+    course_type = scheduled_course.course.type
+    return CourseSlot(day, start_time, course_type)
