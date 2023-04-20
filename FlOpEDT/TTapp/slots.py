@@ -60,7 +60,7 @@ class Slot:
 
     def has_same_day(self, other):
         if isinstance(other, (Slot, CourseSlot)):
-            return self.day == other.day
+            return self.day.equals(other.day)
         elif isinstance(other, ScheduledCourse):
             return self.day.week == other.course.week and self.day.day == other.day
         elif isinstance(other, (UserPreference, CoursePreference)):
@@ -164,7 +164,7 @@ def slots_filter(slot_set, day=None, apm=None, course_type=None, start_time=None
     if week_in is not None:
         slots = set(sl for sl in slots if sl.day.week in week_in)
     if day is not None:
-        slots = set(sl for sl in slots if sl.day == day)
+        slots = set(sl for sl in slots if sl.day.equals(day))
     if day_in is not None:
         slots = set(sl for sl in slots if sl.day in day_in)
     if week_day is not None:
