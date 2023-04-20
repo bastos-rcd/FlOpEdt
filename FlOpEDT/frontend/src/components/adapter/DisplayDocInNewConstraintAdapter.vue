@@ -42,6 +42,7 @@ const emit = defineEmits<{
 
 const MODAL_CLASSES = `modal-dialog modal-dialog-centered modal-dialog-scrollable`
 const MODAL_XL_CLASSES = `${MODAL_CLASSES} modal-xl`
+const MODAL_MAX_WIDTH = `500px`
 
 enum ModalStates {
     Nothing,
@@ -103,17 +104,10 @@ function modifyDisplay() {
     const header = document.getElementsByClassName('modal-header').item(0) as HTMLElement
     const body = document.getElementsByClassName('modal-body').item(0) as HTMLElement
     const footer = document.getElementsByClassName('modal-footer').item(0) as HTMLElement
-    footer.style.flex = "1"
-    if (header) {
-        modal.removeChild(header)
-    }
-    if (body) {
-        modal.removeChild(body)
-    }
-    if (footer) {
-        modal.removeChild(footer)
-    }
+    
     const oldDiv = document.createElement('div')
+    oldDiv.style.maxWidth = MODAL_MAX_WIDTH
+    oldDiv.style.overflowX = "auto"
     oldDiv.style.flexDirection = "column"
     oldDiv.style.display = "flex"
     oldDiv.appendChild(header)
@@ -245,7 +239,6 @@ document.getElementById("confirm-edit-constraint")?.addEventListener('click' ,()
 
 .documentationContainer {
     display: flex;
-    flex: 1;
 }
 
 * :deep() .scrollbar {
