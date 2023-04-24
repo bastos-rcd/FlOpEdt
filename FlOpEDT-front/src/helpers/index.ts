@@ -150,9 +150,9 @@ export function deleteReservationPeriodicity(periodicityId: number): Promise<voi
         .reservationPeriodicity(periodicityId)
 }
 
-export function isRoomSelected(roomId: number, selectedRoom : Room): boolean {
+export function isRoomSelected(roomId: number, selectedRoom : Room | undefined): boolean {
     const roomStore = useRoomStore()
-    if (selectedRoom.value) {
+    if (selectedRoom) {
         // Return false if the course's sub rooms are not selected
         if (!roomStore.perId[roomId]?.basic_rooms.find((val: Room) => val.id === selectedRoom.value?.id)) {
             return false

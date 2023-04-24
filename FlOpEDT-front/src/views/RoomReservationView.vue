@@ -193,7 +193,7 @@ const rooms: Rooms = {
     }),
 }
 
-const scheduledCourses: ScheduledCourses = {
+const scheduledCourses : ScheduledCourses = {
     perDepartment: ref({}),
     perDepartmentFilterByDepartmentsAndRooms: computed(() => {
         return Object.fromEntries(
@@ -440,6 +440,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                             dept = {
                                 id: -1,
                                 abbrev: 'UNK',
+                                name:"unknown"
                             }
                             //return
                         }
@@ -449,6 +450,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                             courseType = {
                                 name: 'Unknown',
                                 duration: 0,
+                                department: dept
                             }
                             //return
                         }
@@ -483,8 +485,8 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                                 }
                                 courseRoom.basic_rooms.forEach((r: Room) => {
                                     const newCourse: ScheduledCourse = JSON.parse(JSON.stringify(sCourse))
-                                    newCourse.room = { id: r.id, name: r.name }
-                                    e[0] = newCourse.room.id.toString()
+                                    newCourse.room = { id: r.id, name: r.name, is_basic: r.is_basic }
+                                    e[0] = newCourse.room?.id.toString()
                                     slots.push(createScheduledCourseSlot(newCourse, courseType as CourseType, deptId))
                                 })
                             }
@@ -681,7 +683,7 @@ function createRoomReservationSlot(reservation: RoomReservation): CalendarSlot {
         periodicity: reservation.periodicity,
         weekdays: weekDays.list.value,
         day: reservation.date,
-        startTime: startTime,
+        startTime: startTime.value,
         endTime: endTime,
         dayStart: dayStartTime.value,
         dayEnd: dayFinishTime.value,

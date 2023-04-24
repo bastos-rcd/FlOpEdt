@@ -324,7 +324,6 @@ export class ScheduledCourse {
 }
 
 export interface ScheduledCourses {
-    list: ComputedRef<Array<ScheduledCourse>>
     perDepartment: Ref<{ [departmentId: string]: Array<ScheduledCourse> }>
     perDepartmentFilterByDepartmentsAndRooms: ComputedRef<{ [departmentId: string]: Array<ScheduledCourse> }>
     perDay: ComputedRef<{ [day: string]: Array<ScheduledCourse> }>
