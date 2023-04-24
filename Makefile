@@ -58,7 +58,7 @@ init:
 		-e BRANCH \
 		-e DJANGO_LOADDATA=on \
 		-e START_SERVER=off \
-		web
+		backend
 
 build-vue:
 	docker-compose -f docker-compose.production.yml --profile vue up
