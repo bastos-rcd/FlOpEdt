@@ -16,7 +16,7 @@
             <li
                 v-for="index in Array.from(Array(selected.length).keys())"
                 :key="selected[index].value.id"
-                :value="selected[index].value"
+                :value="selected[index].value.name"
                 class="list-group-item"
             >
                 <component
@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
-import type { DynamicSelectElementValue } from '@/ts/types'
+import type { DynamicSelectElementValue } from '@/ts/type'
 import { useI18n } from 'vue-i18n';
 
 interface ValueEntry {

@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CalendarScheduledCourseSlotData, CalendarSlotInterface } from '@/ts/types'
+import type { CalendarScheduledCourseSlotData, CalendarSlotInterface } from '@/ts/type'
 import { onMounted, ref } from 'vue'
 
 interface Props {

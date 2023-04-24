@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ReservationPeriodicityByWeek, WeekDay } from '@/ts/types'
+import type { ReservationPeriodicityByWeek, WeekDay } from '@/ts/type'
 import { computed, ref } from 'vue'
 
 interface Props {

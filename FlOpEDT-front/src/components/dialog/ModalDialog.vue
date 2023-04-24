@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import { Modal } from 'bootstrap'
-import type { DialogInterface } from '@/ts/types'
+import type { DialogInterface } from '@/ts/type'
 
 interface Props {
     isOpen: boolean

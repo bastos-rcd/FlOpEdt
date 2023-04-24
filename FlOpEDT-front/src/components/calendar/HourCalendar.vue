@@ -75,7 +75,7 @@ import type {
     CalendarSlotInterface,
     HourCalendarProps,
     Time,
-} from '@/ts/types'
+} from '@/ts/type'
 import { computed, ref, type StyleValue } from 'vue'
 import BaseCalendar from '@/components/calendar/BaseCalendar.vue'
 

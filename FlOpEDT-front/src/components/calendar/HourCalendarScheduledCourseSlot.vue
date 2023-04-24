@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import CalendarScheduledCourseSlot from '@/components/calendar/CalendarScheduledCourseSlot.vue'
 import { computed } from 'vue'
-import type { CalendarScheduledCourseSlotData, Room } from '@/ts/types'
+import type { CalendarScheduledCourseSlotData, Room } from '@/ts/type'
 
 interface Props {
     data: CalendarScheduledCourseSlotData

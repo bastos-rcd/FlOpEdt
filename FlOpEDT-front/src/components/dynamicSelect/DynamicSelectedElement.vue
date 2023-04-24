@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DynamicSelectElementValue } from '@/ts/types'
+import type { DynamicSelectElementValue } from '@/ts/type'
 
 interface Props {
     value: DynamicSelectElementValue

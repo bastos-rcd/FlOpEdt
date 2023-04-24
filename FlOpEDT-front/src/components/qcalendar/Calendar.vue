@@ -95,6 +95,7 @@ import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
 import { computed, ref } from 'vue'
+import { Timestamp } from '@quasar/quasar-ui-qcalendar'
 
 const props = defineProps<{
   events: CalendarEvent[]
@@ -188,24 +189,24 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   browserEvent.dataTransfer.setData('ID', event.id.toString())
 }
 
-function onDragEnter(e, type, scope) {
+function onDragEnter(e: any, type: string, scope: {timestamp: Timestamp}) {
   console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   e.preventDefault()
   return true
 }
 
-function onDragOver(e, type, scope) {
+function onDragOver(e: any, type: string, scope: {timestamp: Timestamp}) {
   console.log('onDragOver', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   e.preventDefault()
   return true
 }
 
-function onDragLeave(e, type, scope) {
+function onDragLeave(e: any, type: string, scope: {timestamp: Timestamp}) {
   console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   return false
 }
 
-function onDrop(e, type, scope) {
+function onDrop(e: any, type: string, scope: {timestamp: Timestamp}) {
   console.log('onDrop', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   // const itemID = parseInt(e.dataTransfer.getData('ID'), 10)
   // const event = { ...this.defaultEvent }

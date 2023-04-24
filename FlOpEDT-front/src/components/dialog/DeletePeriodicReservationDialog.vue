@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import type { RoomReservation } from '@/ts/types'
+import type { RoomReservation } from '@/ts/type'
 import ModalDialog from '@/components/dialog/ModalDialog.vue'
 
 interface Props {

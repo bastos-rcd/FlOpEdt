@@ -34,7 +34,7 @@ import type {
     ReservationPeriodicityType,
     ReservationPeriodicityTypeName,
     WeekDay,
-} from '@/ts/types'
+} from '@/ts/type'
 import { computed, ref, watch } from 'vue'
 import PeriodicityByWeekEdit from '@/components/periodicity/PeriodicityByWeekEdit.vue'
 import PeriodicityByMonthEdit from '@/components/periodicity/PeriodicityByMonthEdit.vue'

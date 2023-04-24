@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import CalendarRoomReservationSlot from '@/components/calendar/CalendarRoomReservationSlot.vue'
-import type { CalendarRoomReservationSlotData, CalendarSlotActions } from '@/ts/types'
+import type { CalendarRoomReservationSlotData, CalendarSlotActions } from '@/ts/type'
 import { computed } from 'vue'
 
 interface Props {

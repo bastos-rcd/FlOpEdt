@@ -3,14 +3,14 @@
         <template #text>
             <p class="col-xl-auto">{{ props.data.reservation.title }}</p>
             <p class="col-xl-auto">{{ responsible }}</p>
-            <p class="col-xl-auto ms-auto">{{ props.data.startTime.text }}-{{ props.data.endTime.text }}</p>
+            <p class="col-xl-auto ms-auto">{{ props.data.startTime.toLocaleString() }}-{{ props.data.endTime.toLocaleString() }}</p>
         </template>
     </CalendarRoomReservationSlot>
 </template>
 
 <script setup lang="ts">
 import CalendarRoomReservationSlot from '@/components/calendar/CalendarRoomReservationSlot.vue'
-import type { CalendarRoomReservationSlotData, CalendarSlotActions } from '@/ts/types'
+import type { CalendarRoomReservationSlotData, CalendarSlotActions } from '@/ts/type'
 import { computed } from 'vue'
 
 interface Props {

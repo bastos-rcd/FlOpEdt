@@ -51,7 +51,7 @@
 <script setup lang="ts">
 import { isRoomSelected, deleteReservationPeriodicity, createDateId, getCurrentWeekDays, addTo,
     handleReason, isRoomInSelectedDepartments, createTime, listGroupBy, parseReason,
-    toStringAtLeastTwoDigits, filterBySelectedDepartments, type ScheduledCourses } from '@/helpers'
+    toStringAtLeastTwoDigits, filterBySelectedDepartments } from '@/helpers'
 import { BooleanRoomAttributeValue, CalendarDragEvent, CalendarProps,
     CalendarRoomReservationSlotData, CalendarScheduledCourseSlotData,
     CalendarSlot, CourseType, Department, DynamicSelectElementBooleanValue,
@@ -59,8 +59,8 @@ import { BooleanRoomAttributeValue, CalendarDragEvent, CalendarProps,
     HourCalendarProps, NumericRoomAttributeValue, ReservationPeriodicity,
     ReservationPeriodicityType, ReservationPeriodicityTypeName, Room,
     RoomAttribute, RoomAttributeValue, RoomCalendarProps, RoomReservation,
-    ScheduledCourse, TimeSettings, User, WeekDay } from '@/ts/types'
-import { Time } from '@/ts/types'
+    ScheduledCourse, TimeSettings, User, WeekDay, ScheduledCourses } from '@/ts/type'
+import { Time } from '@/ts/type'
 import { ComputedRef, inject, Ref } from 'vue'
 import { computed, markRaw, onMounted, ref, shallowRef, watchEffect, watch} from 'vue'
 import { useDepartmentStore } from '@/stores/department'
@@ -86,7 +86,7 @@ import type { RoomAttributeEntry, Rooms, CourseTypes, RoomReservations, RoomRese
     ScheduledCourseSlots, RoomReservationSlots } from '@/ts/reservationDataTypes'
 
 const { t } = useI18n()
-const currentWeek = ref<FlopWeek>(inject('currentWeek'))
+const currentWeek = ref<FlopWeek | undefined>(inject('currentWeek'))
 let currentUserId = -1
 let loadingCounter = 0
 const departmentStore = useDepartmentStore()

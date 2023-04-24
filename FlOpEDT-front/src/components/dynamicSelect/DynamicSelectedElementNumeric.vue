@@ -14,7 +14,7 @@
 <script setup lang="ts">
 import DynamicSelectedElement from '@/components/dynamicSelect/DynamicSelectedElement.vue'
 import { ref, watch } from 'vue'
-import type { DynamicSelectElementNumericValue } from '@/ts/types'
+import type { DynamicSelectElementNumericValue } from '@/ts/type'
 import DoubleThumbSlider from '@/components/DoubleThumbSlider.vue'
 
 interface Props {

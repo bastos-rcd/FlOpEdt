@@ -48,7 +48,7 @@ import type {
     CalendarSlotActions,
     CalendarSlotInterface,
     RoomReservation,
-} from '@/ts/types'
+} from '@/ts/type'
 import CalendarSlotContextMenu from '@/components/calendar/CalendarSlotContextMenu.vue'
 import RoomReservationForm from '@/components/utils/RoomReservationForm.vue'
 import { onMounted, ref } from 'vue'

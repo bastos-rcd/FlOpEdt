@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { Department, Room } from '@/ts/type'
+import { Department, Room} from '@/ts/type'
 import { useRoomStore } from '@/stores/room'
 import { computed, ref } from 'vue'
 import { useDepartmentStore } from '@/stores/department'
@@ -60,8 +60,8 @@ import ClearableInput from '@/components/utils/ClearableInput.vue'
 import { watch } from 'vue'
 
 interface Props {
-    selectedRoom : Room,
-    selectedDepartment: Department,
+    selectedRoom : Room | undefined,
+    selectedDepartment: Department | undefined,
 }
 const emit = defineEmits<{
     (e: 'selectedRoomChange', room : Room): void
@@ -83,7 +83,7 @@ const filterRoomstoDisplay = computed(() => {
                     belongsToDept = true
                 } else {
                     r.departments.forEach((dept: Department) => {
-                        if(dept.id === props.selectedDepartment.id) {
+                        if(dept.id === props.selectedDepartment?.id) {
                             belongsToDept = true
                         }
                     })

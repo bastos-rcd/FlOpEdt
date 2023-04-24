@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CalendarSlotInterface } from '@/ts/types'
+import type { CalendarSlotInterface } from '@/ts/type'
 import { ref } from 'vue'
 
 const slotInterfaces = ref<{ [key: string]: CalendarSlotInterface }>({})

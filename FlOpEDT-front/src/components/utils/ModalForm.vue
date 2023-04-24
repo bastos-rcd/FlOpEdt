@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FormAlert, FormInterface } from '@/ts/types'
+import type { FormAlert, FormInterface } from '@/ts/type'
 import { Modal } from 'bootstrap'
 import { onMounted, ref, watch } from 'vue'
 

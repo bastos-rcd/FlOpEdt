@@ -360,7 +360,7 @@ import type {
     Time,
     UserD,
     WeekDay,
-} from '@/ts/types'
+} from '@/ts/type'
 import DayPicker from '@/components/utils/DayPicker.vue'
 import type { Room } from '@/ts/type'
 import ModalForm from '@/components/utils/ModalForm.vue'

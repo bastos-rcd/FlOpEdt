@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import DynamicSelectedElement from '@/components/dynamicSelect/DynamicSelectedElement.vue'
-import type { DynamicSelectElementBooleanValue } from '@/ts/types'
+import type { DynamicSelectElementBooleanValue } from '@/ts/type'
 import { computed, ref } from 'vue'
 
 interface Props {

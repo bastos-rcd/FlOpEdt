@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { api } from '@/composables/api'
 import { computed, onMounted, ref } from 'vue'
-import type { ReservationPeriodicityByMonth, ReservationPeriodicityByMonthXChoice, WeekDay } from '@/ts/types'
+import type { ReservationPeriodicityByMonth, ReservationPeriodicityByMonthXChoice, WeekDay } from '@/ts/type'
 
 interface Props {
     weekdays: Array<WeekDay>

@@ -26,7 +26,7 @@ export interface CalendarRoomReservationSlotData extends CalendarSlotData {
     reservation: RoomReservation
     rooms: { [roomId: number]: Room }
     reservationTypes: Array<RoomReservationType>
-    users: { [userId: number]: User }
+    users: { [userId: number]: UserD }
     periodicityTypes: Array<ReservationPeriodicityType>
     weekdays: Array<WeekDay>
     periodicity: ReservationPeriodicity | null
@@ -144,7 +144,7 @@ export interface Department {
     abbrev: string
 }
 
-export class Department implements Department{
+export class Department implements Department {
     id = -1
     abbrev = "NF"
     name = "not found"
@@ -244,7 +244,7 @@ export interface RoomAPI {
 }
 
 export interface Room {
-    departments: MappableToIdArray<Department>
+    departments: Array<Department>
     id: number
     name: string
     subroom_of: MappableToIdArray<Room>
