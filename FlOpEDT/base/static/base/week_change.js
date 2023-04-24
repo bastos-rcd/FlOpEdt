@@ -748,7 +748,7 @@ function translate_cours_pl_from_json(d, result) {
   }
 
 
-  if (department_settings.mode.cosmo==0) {
+  if (department_settings.mode.cosmo===0 && Array.isArray(d.course.supp_tutor)) {
       // pre-process supplementary tutors
       d.tutors = d.course.supp_tutor.map(function (st) {
         return st.username;
@@ -817,10 +817,10 @@ function course_pl_canevas_json_to_obj(d) {
     id_course: d.course.id,
     mod: d.course.module.abbrev,
     pay_mod: p_m,
-    c_type: d.course.type,
+    c_type: d.course.type.name,
     day: d.day,
     start: d.start_time,
-    duration: constraints[d.course.type].duration,
+    duration: constraints[d.course.type.name].duration,
     room: d.room,
     room_type: d.course.room_type,
     display: true,
