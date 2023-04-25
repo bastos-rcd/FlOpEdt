@@ -145,7 +145,7 @@ export function createDateId(day: string | number, month: string | number): stri
  * @param periodicityId 
  * @returns Nothing ?
  */
-export function deleteReservationPeriodicity(periodicityId: number): Promise<void> {
+export function deleteReservationPeriodicity(periodicityId: number): Promise<unknown> {
     return api.delete
         .reservationPeriodicity(periodicityId)
 }
@@ -154,7 +154,7 @@ export function isRoomSelected(roomId: number, selectedRoom : Room | undefined):
     const roomStore = useRoomStore()
     if (selectedRoom) {
         // Return false if the course's sub rooms are not selected
-        if (!roomStore.perId[roomId]?.basic_rooms.find((val: Room) => val.id === selectedRoom.value?.id)) {
+        if (!roomStore.perId[roomId]?.basic_rooms.find((val: {id:number, name: string}) => val.id === selectedRoom?.id)) {
             return false
         }
     }
@@ -173,4 +173,12 @@ export function getNumberOfTheWeek(date: Date) {
     const currentThursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
     currentThursday.setUTCDate(currentThursday.getUTCDate() + 4 - (currentThursday.getUTCDay() || 7))
     return Math.ceil(((currentThursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+}
+
+export function minutesFromDate(d: Date) : number {
+    const midnight = new Date(d)
+    midnight.setMinutes(0)
+    midnight.setHours(0)
+    const diff = new Date(d.getTime() - midnight.getTime())
+    return diff.getHours() * 60 + diff.getMinutes()
 }

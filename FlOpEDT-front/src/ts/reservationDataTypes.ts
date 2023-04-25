@@ -1,5 +1,5 @@
 import { ComputedRef, Ref } from "vue"
-import { CalendarSlot, BooleanRoomAttributeValue, CourseType, DynamicSelectElementValue, NumericRoomAttributeValue, ReservationPeriodicity, Room, RoomAttribute, RoomReservation, RoomReservationType, User } from "@/type"
+import { CalendarSlot, BooleanRoomAttributeValue, CourseType, DynamicSelectElementValue, NumericRoomAttributeValue, ReservationPeriodicity, Room, RoomAttribute, RoomReservation, RoomReservationType, User } from "@/ts/type"
 
 export interface RoomAttributeEntry {
     component: any

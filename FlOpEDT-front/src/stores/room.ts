@@ -12,11 +12,12 @@ export const useRoomStore = defineStore('room', () => {
     // Read-only value of the list of departments
     const rooms = computed<Array<Room>>(() => r.value)
     // Generate the default API functions
+
     const remote: StoreAction<Room, RoomAPI> = new StoreAction<Room, RoomAPI>(
         'rooms/room',
         convertToApp,
         convertToAPI,
-        (value: Room | RoomAPI) => (r.value = value)
+        (value: Room[]) => (r.value = value)
     )
 
     const perId = computed(() => {

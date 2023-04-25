@@ -51,7 +51,7 @@
 <script setup lang="ts">
 import { isRoomSelected, deleteReservationPeriodicity, createDateId, getCurrentWeekDays, addTo,
     handleReason, isRoomInSelectedDepartments, createTime, listGroupBy, parseReason,
-    toStringAtLeastTwoDigits, filterBySelectedDepartments } from '@/helpers'
+    toStringAtLeastTwoDigits, filterBySelectedDepartments, minutesFromDate } from '@/helpers'
 import { BooleanRoomAttributeValue, CalendarDragEvent, CalendarProps,
     CalendarRoomReservationSlotData, CalendarScheduledCourseSlotData,
     CalendarSlot, CourseType, Department, DynamicSelectElementBooleanValue,
@@ -86,7 +86,7 @@ import type { RoomAttributeEntry, Rooms, CourseTypes, RoomReservations, RoomRese
     ScheduledCourseSlots, RoomReservationSlots } from '@/ts/reservationDataTypes'
 
 const { t } = useI18n()
-const currentWeek = ref<FlopWeek | undefined>(inject('currentWeek'))
+const currentWeek = ref<FlopWeek>(inject('currentWeek')!)
 let currentUserId = -1
 let loadingCounter = 0
 const departmentStore = useDepartmentStore()
@@ -474,7 +474,7 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                                 slots.push(createScheduledCourseSlot(sCourse, courseType, deptId))
                             } else {
                                 let isOneInDepartment = false
-                                courseRoom.basic_rooms.forEach((r: Room) => {
+                                courseRoom.basic_rooms.forEach((r: {id:number, name:string}) => {
                                     if (isRoomInSelectedDepartments(r.id, selectedDepartments.value)) {
                                         isOneInDepartment = true
                                     }
@@ -483,9 +483,9 @@ const scheduledCoursesSlots: ScheduledCourseSlots = {
                                     console.log('No subrooms in good departments')
                                     return
                                 }
-                                courseRoom.basic_rooms.forEach((r: Room) => {
+                                courseRoom.basic_rooms.forEach((r: {id:number, name:string}) => {
                                     const newCourse: ScheduledCourse = JSON.parse(JSON.stringify(sCourse))
-                                    newCourse.room = { id: r.id, name: r.name, is_basic: r.is_basic }
+                                    newCourse.room = { id: r.id, name: r.name, is_basic: true }
                                     e[0] = newCourse.room?.id.toString()
                                     slots.push(createScheduledCourseSlot(newCourse, courseType as CourseType, deptId))
                                 })
@@ -563,7 +563,7 @@ const hourCalendarValues = computed<HourCalendarProps>(() => {
         })
     }
     Object.entries(slots).forEach((entry) => {
-        entry[1].sort((slot1, slot2) => slot1.slotData.startTime.value - slot2.slotData.startTime.value)
+        entry[1].sort((slot1, slot2) => slot1.slotData.startTime.value  - slot2.slotData.startTime.value)
     })
     return Object.assign(
         {
@@ -595,7 +595,7 @@ const roomCalendarValues = computed<RoomCalendarProps>(() => {
     }
     Object.values(slots).forEach((roomArrayPair) => {
         Object.values(roomArrayPair).forEach((array) =>
-            array.sort((slot1, slot2) => slot1.slotData.startTime.value - slot2.slotData.startTime.value)
+            array.sort((slot1, slot2) => slot1.slotData.startTime.value  - slot2.slotData.startTime.value)
         )
     })
     return Object.assign(
@@ -682,8 +682,8 @@ function createRoomReservationSlot(reservation: RoomReservation): CalendarSlot {
         periodicityTypes: reservationPeriodicityTypes.value,
         periodicity: reservation.periodicity,
         weekdays: weekDays.list.value,
-        day: reservation.date,
-        startTime: startTime.value,
+        //day: reservation.date,
+        startTime: startTime,
         endTime: endTime,
         dayStart: dayStartTime.value,
         dayEnd: dayFinishTime.value,
@@ -730,9 +730,8 @@ function createScheduledCourseSlot(sCourse: ScheduledCourse, courseType: CourseT
         course: sCourse,
         department: departmentName,
         rooms: rooms.perIdFilterBySelectedDepartments.value,
-        day: sCourse.day,
-        startTime: startTime,
-        endTime: endTime,
+        startTime: createTime(minutesFromDate(startTime)),
+        endTime: createTime(minutesFromDate(endTime)),
         title: sCourse.course.module.abbrev + 'AAA',
         id: `scheduledcourse-${sCourse.course.id}`,
         displayStyle: { background: scheduledCourseColor },
@@ -793,7 +792,7 @@ function updateRoomReservation(newData: CalendarRoomReservationSlotData, oldData
         return
     }
     // Find the reservation index from the list of reservations
-    const index = roomReservations.list.value.findIndex((reserv: RoomReservations) => reserv.id === oldReservation.id)
+    const index = roomReservations.list.value.findIndex((reserv: RoomReservation) => reserv.id === oldReservation.id)
     if (index < 0) {
         // Reservation not found
         console.error(`Could not find reservation with id: ${oldReservation.id}`)
@@ -882,6 +881,7 @@ function reservationRemoveCurrentAndFutureSamePeriodicity(reservation: RoomReser
                     apiCall = api.patch.reservationPeriodicityEachMonthSameDate
                     break
                 case 'BW':
+                default:
                     apiCall = api.patch.reservationPeriodicityByWeek
                     break
             }

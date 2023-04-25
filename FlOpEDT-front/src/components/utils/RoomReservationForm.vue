@@ -358,7 +358,7 @@ import type {
     RoomReservation,
     RoomReservationType,
     Time,
-    UserD,
+    User,
     WeekDay,
 } from '@/ts/type'
 import DayPicker from '@/components/utils/DayPicker.vue'
@@ -384,7 +384,7 @@ interface Props {
     isNew: boolean
     rooms: { [roomId: number]: Room }
     reservationTypes: Array<RoomReservationType>
-    users: { [userId: number]: UserD }
+    users: { [userId: number]: User }
     periodicityTypes: Array<ReservationPeriodicityType>
     weekdays: Array<WeekDay>
     onPeriodicityDelete: (reservation: RoomReservation) => Promise<void>

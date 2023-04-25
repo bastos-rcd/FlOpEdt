@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { convertDecimalTimeToHuman } from '@/helpers'
+import { convertDecimalTimeToHuman, minutesFromDate } from '@/helpers'
 import type {
     CalendarDragEvent,
     CalendarSlot,

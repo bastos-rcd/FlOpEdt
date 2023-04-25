@@ -26,7 +26,7 @@ export interface CalendarRoomReservationSlotData extends CalendarSlotData {
     reservation: RoomReservation
     rooms: { [roomId: number]: Room }
     reservationTypes: Array<RoomReservationType>
-    users: { [userId: number]: UserD }
+    users: { [userId: number]: User }
     periodicityTypes: Array<ReservationPeriodicityType>
     weekdays: Array<WeekDay>
     periodicity: ReservationPeriodicity | null
@@ -54,9 +54,8 @@ export interface CalendarSlotActions {
 }
 
 export interface CalendarSlotData {
-    day: string
-    startTime: Date
-    endTime: Date
+    startTime: Time
+    endTime: Time
     title: string
     id: string
     displayStyle: object

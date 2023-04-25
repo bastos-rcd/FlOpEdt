@@ -78,6 +78,7 @@ router.beforeEach(async (to, from, next) => {
     availableLocales.forEach((currentLocale: string) => {
         to.fullPath.split('/').forEach(arg => {
             if(arg.includes(currentLocale) && arg.length === currentLocale.length) {
+                //@ts-ignore
                 locale.value = currentLocale
             }
         })
