@@ -24,4 +24,13 @@ test:
   script:
     - cd FlOpEDT-front
     - yarn
-    - yarn test
+    - yarn test --coverage
+
+build:
+  script:
+    - cd FlOpEDT-front
+    - yarn
+    - yarn build
+  artifacts:
+    paths:
+      - dist
