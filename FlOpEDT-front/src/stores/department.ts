@@ -1,4 +1,4 @@
-import { api } from '@/composables/api'
+import { api } from '@/utils/api'
 import { defineStore } from 'pinia'
 import { Department } from '@/ts/type'
 import { computed, ref } from 'vue'
@@ -7,7 +7,7 @@ import { useRoute } from 'vue-router'
 export const useDepartmentStore = defineStore('dept', () => {
     const departments = ref<Array<Department>>([])
     const currentDepartment = ref(new Department())
-  
+
     const getCurrentDepartment = computed(() => currentDepartment.value)
 
     const getAllDepartmentsFetched = computed(() => departments.value)
@@ -19,11 +19,11 @@ export const useDepartmentStore = defineStore('dept', () => {
         departments.value = json
       })
     }
-  
+
     function setCurrentDepartment(dept : Department) : void {
         currentDepartment.value = dept
     }
-  
+
     function cleanCurrentDepartment() : void {
       setCurrentDepartment(new Department())
     }
@@ -44,8 +44,8 @@ export const useDepartmentStore = defineStore('dept', () => {
         })
       })
     }
-    
-    return { 
+
+    return {
       getCurrentDepartment,
       fetchAllDepartments,
       getAllDepartmentsFetched,

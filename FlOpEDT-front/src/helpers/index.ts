@@ -1,6 +1,6 @@
 import { Department, type Time, type Room, type WeekDay, type FlopWeek } from "@/ts/type"
 import { useRoomStore } from "@/stores/room"
-import { api } from '@/composables/api'
+import { api } from '@/utils/api'
 
 export function convertDecimalTimeToHuman(time: number): string {
     const hours = Math.trunc(time)
@@ -142,7 +142,7 @@ export function createDateId(day: string | number, month: string | number): stri
 
 /**
  * Explain
- * @param periodicityId 
+ * @param periodicityId
  * @returns Nothing ?
  */
 export function deleteReservationPeriodicity(periodicityId: number): Promise<unknown> {
