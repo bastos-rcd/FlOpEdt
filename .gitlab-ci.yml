@@ -11,22 +11,30 @@
 # https://hub.docker.com/r/library/node/tags/
 image: node:latest
 
+stages:
+  - quality
+  - build
+  - deploy
+
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
 
 lint:
+  stage: quality
   script:
     - cd FlOpEDT-front
     - yarn
     - npx prettier -c .
 
 test:
+  stage: quality
   script:
     - cd FlOpEDT-front
     - yarn
     - yarn test --coverage
 
 build:
+  stage: build
   script:
     - cd FlOpEDT-front
     - yarn
