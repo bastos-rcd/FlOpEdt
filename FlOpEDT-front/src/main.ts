@@ -12,6 +12,8 @@ import router from '@/router'
 import { FlopWeek } from '@/ts/type'
 import Popper from 'vue3-popper'
 
+import Plugin from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
+import '@quasar/quasar-ui-qcalendar/src/css/calendar-day.sass'
 
 import i18n from '@/i18n'
 
@@ -29,5 +31,4 @@ const currentWeek: Ref<FlopWeek> = ref({
 
 app.provide('currentWeek', readonly(currentWeek.value))
 app.component('PopperComponent', Popper)
-app.use(router).use(createPinia()).use(i18n).mount('#app')
-
+app.use(router).use(createPinia()).use(i18n).use(Plugin).mount('#app')
