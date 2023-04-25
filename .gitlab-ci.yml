@@ -19,18 +19,12 @@ stages:
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
 
-lint:
+gate-quality:
   stage: quality
   script:
     - cd FlOpEDT-front
     - yarn
     - npx prettier -c .
-
-test:
-  stage: quality
-  script:
-    - cd FlOpEDT-front
-    - yarn
     - yarn test --coverage
 
 build:
