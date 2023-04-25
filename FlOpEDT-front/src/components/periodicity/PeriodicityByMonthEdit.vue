@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { api } from '@/utils/api
+import { api } from '@/utils/api'
 import { computed, onMounted, ref } from 'vue'
 import type { ReservationPeriodicityByMonth, ReservationPeriodicityByMonthXChoice, WeekDay } from '@/ts/type'
 

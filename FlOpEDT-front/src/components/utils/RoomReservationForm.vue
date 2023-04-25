@@ -345,7 +345,7 @@
 
 <script setup lang="ts">
 import { convertDecimalTimeToHuman, parseReason } from '@/helpers'
-import { api } from '@/utils/api
+import { api } from '@/utils/api'
 import { computed, type ComputedRef, defineProps, type Ref, ref, watch, watchEffect } from 'vue'
 import type {
     FormInterface,

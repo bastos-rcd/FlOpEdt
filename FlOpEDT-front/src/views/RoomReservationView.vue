@@ -68,7 +68,7 @@ import { useRoomStore } from '@/stores/room'
 import { useAuth } from '@/stores/auth'
 import { useScheduledCourseStore } from '@/stores/scheduledCourse'
 import { useRoomReservationStore } from '@/stores/roomReservation'
-import { api } from '@/utils/api
+import { api } from '@/utils/api'
 import RoomCalendar from '@/components/calendar/RoomCalendar.vue'
 import HourCalendar from '@/components/calendar/HourCalendar.vue'
 import WeekPicker from '@/components/utils/WeekPicker.vue'
