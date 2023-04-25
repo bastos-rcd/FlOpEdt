@@ -14,7 +14,7 @@
       :interval-height="28"
       :weekdays="[1, 2, 3, 4, 5]"
 
-      
+
       :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
       :drag-leave-func="onDragLeave"
@@ -44,43 +44,47 @@
         <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
           <template v-if="event.time !== undefined">
             <div
-              v-for="columnId in event.columnIds"
-              :key="event.id + '_' + columnId"
-              class="my-event"
-              :class="badgeClasses('event', event.bgcolor)"
-              :style="badgeStyles(event, columnId, timeStartPos, timeDurationHeight)"
               draggable="true"
               @dragstart="onDragStart($event, event)"
               @dragend="isDragging = false"
             >
-              <slot name="event" :event="event">
-                <span class="title q-calendar__ellipsis">
-                  {{ event.title }}
-                  <!-- <q-tooltip>{{ event.details }}</q-tooltip> -->
-                </span>
-              </slot>
+              <div
+                v-for="columnId in event.columnIds"
+                :key="event.id + '_' + columnId"
+                class="my-event"
+                :class="badgeClasses('event', event.bgcolor)"
+                :style="badgeStyles(event, columnId, timeStartPos, timeDurationHeight)"
+
+              >
+                <slot name="event" :event="event">
+                  <span class="title q-calendar__ellipsis">
+                    {{ event.title }}
+                    <!-- <q-tooltip>{{ event.details }}</q-tooltip> -->
+                  </span>
+                </slot>
+              </div>
             </div>
           </template>
         </template>
 
         <!-- drop zone events to display -->
         <template
-            v-if="dropzoneEvents?.possibleStarts[timestamp.date]"
-            v-for="ts in dropzoneEvents?.possibleStarts[timestamp.date]"
-            :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts"
+          v-if="dropzoneEvents?.possibleStarts[timestamp.date]"
+          v-for="ts in dropzoneEvents?.possibleStarts[timestamp.date]"
+          :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts"
+        >
+          <div
+            v-for="columnId in dropzoneEvents.columnIds"
+            :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts + '_' + columnId"
+            class="my-event"
+            :class="badgeClasses('dropzoneevent')"
+            :style="badgeStyles({
+              time: ts,
+              duration: dropzoneEvents.duration
+            }, columnId, timeStartPos, timeDurationHeight)"
           >
-            <div
-              v-for="columnId in dropzoneEvents.columnIds"
-              :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts + '_' + columnId"
-              class="my-event"
-              :class="badgeClasses('dropzoneevent')"
-              :style="badgeStyles({
-                time: ts,
-                duration: dropzoneEvents.duration
-              }, columnId, timeStartPos, timeDurationHeight)"
-            >
-            </div>
-          </template>
+          </div>
+        </template>
       </template>
     </q-calendar-day>
   </div>
@@ -105,7 +109,8 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  (e: 'dragstart', id: number): void
+  (e: 'dragstart', id: number): void,
+  (e: 'dropevent', data: any): void,
 }>()
 
 
@@ -151,7 +156,7 @@ function badgeClasses(type: 'event' | 'dropzoneevent' | 'header', bgcolor?: stri
     case 'header':
       return {}
   }
-  
+
 }
 function badgeStyles(
   event: Partial<CalendarEvent>,
@@ -163,7 +168,11 @@ function badgeStyles(
 
   if (!currentGroup) return undefined
 
-  const s: Record<string, string> = { top: '', height: '' /* width: widthPercentGroup.value + "%" */ }
+  const s: Record<string, string> = {
+    top: '',
+    height: '',
+    'background-color': event.bgcolor  || 'purple'
+  }
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.time) + 'px'
     s.left = Math.round((currentGroup?.x / props.totalWeight) * 100) + '%'
@@ -190,24 +199,25 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
 }
 
 function onDragEnter(e: any, type: string, scope: {timestamp: Timestamp}) {
-  console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  // console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   e.preventDefault()
   return true
 }
 
 function onDragOver(e: any, type: string, scope: {timestamp: Timestamp}) {
-  console.log('onDragOver', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  // console.log('onDragOver', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   e.preventDefault()
   return true
 }
 
 function onDragLeave(e: any, type: string, scope: {timestamp: Timestamp}) {
-  console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  // console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   return false
 }
 
 function onDrop(e: any, type: string, scope: {timestamp: Timestamp}) {
   console.log('onDrop', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  emits('dropevent', scope.timestamp)
   // const itemID = parseInt(e.dataTransfer.getData('ID'), 10)
   // const event = { ...this.defaultEvent }
   // event.id = this.events.length + 1
