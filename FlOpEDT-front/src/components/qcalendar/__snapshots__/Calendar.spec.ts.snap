@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Calendar component > displays columns 1`] = `
+"<div data-v-8cda8c89=\\"\\" style=\\"display: flex; max-width: 100%; width: 100%; height: 100%;\\">
+  <div data-v-8cda8c89=\\"\\" role=\\"complementary\\" lang=\\"en-US\\" class=\\"q-calendar q-calendar__bordered\\">
+    <div class=\\"q-calendar-day\\">
+      <!---->
+      <!---->
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Calendar component > render correctly 1`] = `
+"<div data-v-8cda8c89=\\"\\" style=\\"display: flex; max-width: 100%; width: 100%; height: 100%;\\">
+  <div data-v-8cda8c89=\\"\\" role=\\"complementary\\" lang=\\"en-US\\" class=\\"q-calendar q-calendar__bordered\\">
+    <div class=\\"q-calendar-day\\">
+      <!---->
+      <!---->
+    </div>
+  </div>
+</div>"
+`;

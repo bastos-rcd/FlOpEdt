@@ -4,7 +4,6 @@
       ref="calendar"
       v-model="selectedDate"
       view="week"
-      animated
       bordered
       transition-next="slide-left"
       transition-prev="slide-right"
