@@ -3,3 +3,5 @@ declare module 'multi-range-slider-vue';
 declare module 'bootstrap';
 declare module '@quasar/quasar-ui-qcalendar/src/index.js';
 declare module '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js';
+declare module '@quasar/quasar-ui-qcalendar/src/QCalendarResource.js';
+declare module '@quasar/extras';
