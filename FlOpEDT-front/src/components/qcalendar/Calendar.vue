@@ -12,14 +12,10 @@
       :interval-count="18"
       :interval-height="28"
       :weekdays="[1, 2, 3, 4, 5]"
-
-
       :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
       :drag-leave-func="onDragLeave"
       :drop-func="onDrop"
-
-
     >
       <template #head-day-event="{ scope: { timestamp } }">
         <div style="display: flex">
@@ -41,19 +37,14 @@
       <template #day-body="{ scope: { timestamp, timeStartPos, timeDurationHeight } }">
         <!-- events to display -->
         <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
-          <template v-if="event.time !== undefined">
-            <div
-              draggable="true"
-              @dragstart="onDragStart($event, event)"
-              @dragend="isDragging = false"
-            >
+          <template v-if="event.data.duration !== undefined">
+            <div draggable="true" @dragstart="onDragStart($event, event)" @dragend="isDragging = false">
               <div
                 v-for="columnId in event.columnIds"
                 :key="event.id + '_' + columnId"
                 class="my-event"
                 :class="badgeClasses('event', event.bgcolor)"
                 :style="badgeStyles(event, columnId, timeStartPos, timeDurationHeight)"
-
               >
                 <slot name="event" :event="event">
                   <span class="title q-calendar__ellipsis">
@@ -68,7 +59,7 @@
 
         <!-- drop zone events to display -->
         <template
-          v-if="dropzoneEvents?.possibleStarts[timestamp.date]"
+          v-if="isDragging && dropzoneEvents?.possibleStarts[timestamp.date]"
           v-for="ts in dropzoneEvents?.possibleStarts[timestamp.date]"
           :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts"
         >
@@ -77,12 +68,17 @@
             :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts + '_' + columnId"
             class="my-event"
             :class="badgeClasses('dropzoneevent')"
-            :style="badgeStyles({
-              time: ts,
-              duration: dropzoneEvents.duration
-            }, columnId, timeStartPos, timeDurationHeight)"
-          >
-          </div>
+            :style="
+              badgeStyles(
+                {
+                  data: { start: ts, duration: dropzoneEvents.duration, dataId: 0, dataType: '' },
+                },
+                columnId,
+                timeStartPos,
+                timeDurationHeight
+              )
+            "
+          ></div>
         </template>
       </template>
     </q-calendar-day>
@@ -103,15 +99,14 @@ import { Timestamp } from '@quasar/quasar-ui-qcalendar'
 const props = defineProps<{
   events: CalendarEvent[]
   columns: CalendarColumn[]
-  totalWeight: number,
+  totalWeight: number
   dropzoneEvents?: CalendarDropzoneEvent
 }>()
 
 const emits = defineEmits<{
-  (e: 'dragstart', id: number): void,
-  (e: 'dropevent', data: any): void,
+  (e: 'dragstart', id: number): void
+  (e: 'dropevent', data: any): void
 }>()
-
 
 /**
  * QCalendar data to display
@@ -124,13 +119,13 @@ const eventsByDate = computed(() => {
   const map: Record<string, any[]> = {}
 
   props.events.forEach((event) => {
-    if (!map[event.date]) {
-      map[event.date] = []
+    if (!map[event.data.start.date]) {
+      map[event.data.start.date] = []
     }
-    map[event.date].push(event)
-    if (event.days) {
-      let timestamp = parseTimestamp(event.date)
-      let days = event.days
+    map[event.data.start.date].push(event)
+    if (event.data.days) {
+      let timestamp = parseTimestamp(event.data.start.date)
+      let days = event.data.days
       do {
         timestamp = addToDate(timestamp, { day: 1 })
         if (!map[timestamp.date]) {
@@ -144,7 +139,7 @@ const eventsByDate = computed(() => {
 })
 
 function badgeClasses(type: 'event' | 'dropzoneevent' | 'header', bgcolor?: string) {
-  switch(type) {
+  switch (type) {
     case 'event':
       return {
         [`text-white bg-${bgcolor}`]: true,
@@ -155,7 +150,6 @@ function badgeClasses(type: 'event' | 'dropzoneevent' | 'header', bgcolor?: stri
     case 'header':
       return {}
   }
-
 }
 function badgeStyles(
   event: Partial<CalendarEvent>,
@@ -170,13 +164,13 @@ function badgeStyles(
   const s: Record<string, string> = {
     top: '',
     height: '',
-    'background-color': event.bgcolor  || 'purple'
+    'background-color': event.bgcolor || 'transparent',
   }
   if (timeStartPos && timeDurationHeight) {
-    s.top = timeStartPos(event.time) + 'px'
+    s.top = timeStartPos(event.data?.start) + 'px'
     s.left = Math.round((currentGroup?.x / props.totalWeight) * 100) + '%'
     s.width = Math.round((100 * currentGroup.weight) / props.totalWeight) + '%'
-    s.height = timeDurationHeight(event.duration) + 'px'
+    s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
   s['align-items'] = 'flex-start'
   return s
@@ -190,33 +184,34 @@ let isDragging = ref(false)
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   isDragging.value = true
   console.log('onDragStart called', event)
-  emits('dragstart', event.id)
+  emits('dragstart', event.data.dataId)
   if (!browserEvent.dataTransfer) return
   browserEvent.dataTransfer.dropEffect = 'copy'
   browserEvent.dataTransfer.effectAllowed = 'move'
-  browserEvent.dataTransfer.setData('ID', event.id.toString())
+  browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
 }
 
-function onDragEnter(e: any, type: string, scope: {timestamp: Timestamp}) {
+function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp }) {
   // console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   e.preventDefault()
   return true
 }
 
-function onDragOver(e: any, type: string, scope: {timestamp: Timestamp}) {
+function onDragOver(e: any, type: string, scope: { timestamp: Timestamp }) {
   // console.log('onDragOver', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   e.preventDefault()
   return true
 }
 
-function onDragLeave(e: any, type: string, scope: {timestamp: Timestamp}) {
+function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp }) {
   // console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   return false
 }
 
-function onDrop(e: any, type: string, scope: {timestamp: Timestamp}) {
+function onDrop(e: any, type: string, scope: { timestamp: Timestamp }) {
   console.log('onDrop', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   emits('dropevent', scope.timestamp)
+  //isDragging.value = false
   // const itemID = parseInt(e.dataTransfer.getData('ID'), 10)
   // const event = { ...this.defaultEvent }
   // event.id = this.events.length + 1
