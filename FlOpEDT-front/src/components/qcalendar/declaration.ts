@@ -1,21 +1,26 @@
+import { Timestamp } from "@quasar/quasar-ui-qcalendar"
+
 /**
  * Calendar event, for display purpose
  */
 export interface CalendarEvent {
-  id: number
   title: string
   details: string
-  date: string
 
   bgcolor: string
   icon?: string
-  time?: string
-  duration?: number
-  days?: number
 
   columnIds?: number[]
 
-  data?: any
+  data : EventData
+}
+
+export interface EventData {
+  dataId: number
+  dataType: string
+  start: Timestamp
+  duration?: number
+  days?: number
 }
 
 /**
@@ -35,5 +40,5 @@ export interface CalendarDropzoneEvent {
   eventId: number
   duration: number
   columnIds: number[]
-  possibleStarts: Record<string, string[]>
+  possibleStarts: Record<string, Timestamp[]>
 }
