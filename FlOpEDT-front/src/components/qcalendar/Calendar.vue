@@ -59,7 +59,7 @@
 
         <!-- drop zone events to display -->
         <template
-          v-if="dropzoneEvents?.possibleStarts[timestamp.date] && isDragging"
+          v-if="isDragging && dropzoneEvents?.possibleStarts[timestamp.date]"
           v-for="ts in dropzoneEvents?.possibleStarts[timestamp.date]"
           :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts"
         >

@@ -9,6 +9,15 @@
         @dragstart="onDragStart"
       />
     </Variant>
+    <Variant title="Use case 2">
+      <Calendar 
+        :columns="useCase2.columns"
+        :events="(useCase2.events as CalendarEvent[])"
+        :total-weight="useCase2.totalWeight"
+        :dropzone-events="(currentDropzoneEvents as CalendarDropzoneEvent)"
+        @dragstart="onDragStart"
+      />
+    </Variant>
   </Story>
 </template>
 
@@ -31,9 +40,223 @@ function getCurrentDay(day: any, time?: string): TimestampOrNull {
   return tm
 }
 
+
+const useCase2 = {
+  columns: [
+    {
+      id: 0,
+      name: 'TD1',
+      weight: 2,
+      x: 0,
+    },
+    {
+      id: 1,
+      name: 'TD2',
+      weight: 2,
+      x: 2,
+    },
+    {
+      id: 2,
+      name: 'TP31',
+      weight: 1,
+      x: 4,
+    },
+    {
+      id: 3,
+      name: 'TP32',
+      weight: 1,
+      x: 5,
+    },
+  ],
+  totalWeight: 6,
+  events: [
+    {
+      title: 'TP INFO',
+      details: 'Let\' work on our Python project',
+      bgcolor: 'red',
+      icon: 'fas fa-handshake',
+      columnIds: [2, 3],
+      data: {
+        dataId: 3,
+        dataType: "mok",
+        start: getCurrentDay(25, '08:00'),
+        duration: 120,
+      },
+    },
+    {
+      title: 'Lunch',
+      details: 'Company is paying!',
+      bgcolor: 'teal',
+      icon: 'fas fa-hamburger',
+      columnIds: [0,1,2,3],
+      data: {
+        dataId: 4,
+        dataType: "mok",
+        start: getCurrentDay(25, '12:00'),
+        duration: 120,
+      },
+    },
+    {
+      title: 'Conference TD1',
+      details: 'Always a nice chat with mom',
+      bgcolor: 'grey',
+      icon: 'fas fa-car',
+      columnIds: [0],
+      data: {
+        dataId: 5,
+        dataType: "mok",
+        start: getCurrentDay(25, '17:00'),
+        duration: 90,
+      },
+    },
+    {
+      title: 'Conference TD2',
+      details: 'Teaching Javascript 101',
+      bgcolor: 'grey',
+      icon: 'fas fa-chalkboard-teacher',
+      columnIds: [1],
+      data: {
+        dataId: 6,
+        dataType: "mok",
+        start: getCurrentDay(26, '08:00'),
+        duration: 150,
+      },
+    },
+  ],
+  dropzoneEvents: [{
+    eventId: 5,
+    duration: 90,
+    columnIds: [0,1],
+    possibleStarts: {
+      [getCurrentDay(24)!.date]: [
+        getCurrentDay(24, '08:10'),
+        getCurrentDay(24, '08:50'),
+        getCurrentDay(24, '09:10'),
+        getCurrentDay(24, '10:10'),
+        getCurrentDay(24, '15:30'),
+      ],
+      [getCurrentDay(25)!.date]: [
+        getCurrentDay(25, '10:10'),
+        getCurrentDay(25, '10:50'),
+        getCurrentDay(25, '11:10'),
+        getCurrentDay(25, '18:10'),
+        getCurrentDay(25, '14:30'),
+      ],
+      [getCurrentDay(26)!.date]: [
+        getCurrentDay(26, '10:10'),
+        getCurrentDay(26, '10:50'),
+        getCurrentDay(26, '11:10'),
+        getCurrentDay(26, '18:10'),
+        getCurrentDay(26, '14:30'),
+      ],
+      [getCurrentDay(27)!.date]: [
+        getCurrentDay(27, '10:10'),
+        getCurrentDay(27, '10:50'),
+        getCurrentDay(27, '11:10'),
+        getCurrentDay(27, '18:10'),
+        getCurrentDay(27, '14:30'),
+      ],
+      [getCurrentDay(28)!.date]: [
+        getCurrentDay(28, '10:10'),
+        getCurrentDay(28, '10:50'),
+        getCurrentDay(28, '11:10'),
+        getCurrentDay(28, '18:10'),
+        getCurrentDay(28, '14:30'),
+      ],
+    }
+  },
+  {
+    eventId: 4,
+    duration: 120,
+    columnIds: [0,1,2,3],
+    possibleStarts: {
+      [getCurrentDay(24)!.date]: [
+        getCurrentDay(24, '11:00'),
+        getCurrentDay(24, '13:30'),
+      ],
+      [getCurrentDay(25)!.date]: [
+        getCurrentDay(25, '11:00'),
+        getCurrentDay(25, '13:30'),
+      ],
+      [getCurrentDay(26)!.date]: [
+        getCurrentDay(26, '11:00'),
+        getCurrentDay(26, '13:30'),
+      ],
+      [getCurrentDay(28)!.date]: [
+        getCurrentDay(28, '11:00'),
+        getCurrentDay(28, '13:30'),
+      ],
+    },
+  },
+  {
+    eventId: 3,
+    duration: 120,
+    columnIds: [2,3],
+    possibleStarts: {
+      [getCurrentDay(24)!.date]: [
+        getCurrentDay(24, '08:00'),
+        getCurrentDay(24, '10:30'),
+        getCurrentDay(24, '14:00'),
+        getCurrentDay(24, '16:30'),
+      ],
+      [getCurrentDay(25)!.date]: [
+        getCurrentDay(25, '08:00'),
+        getCurrentDay(25, '10:50'),
+        getCurrentDay(25, '13:10'),
+        getCurrentDay(25, '19:10'),
+        getCurrentDay(25, '16:30'),
+      ],
+      [getCurrentDay(26)!.date]: [
+        getCurrentDay(26, '08:10'),
+        getCurrentDay(26, '10:50'),
+        getCurrentDay(26, '13:10'),
+        getCurrentDay(26, '19:10'),
+        getCurrentDay(26, '16:30'),
+      ],
+      [getCurrentDay(27)!.date]: [
+        getCurrentDay(27, '08:10'),
+        getCurrentDay(27, '10:50'),
+        getCurrentDay(27, '13:10'),
+        getCurrentDay(27, '19:10'),
+        getCurrentDay(27, '16:30'),
+      ],
+      [getCurrentDay(28)!.date]: [
+        getCurrentDay(28, '08:10'),
+        getCurrentDay(28, '10:50'),
+        getCurrentDay(28, '13:10'),
+        getCurrentDay(28, '19:10'),
+        getCurrentDay(28, '16:30'),
+      ],
+    }
+  },
+  {
+    eventId: 6,
+    duration: 150,
+    columnIds: [1],
+    possibleStarts: {
+      [getCurrentDay(25)!.date]: [
+        getCurrentDay(25, '08:00'),
+        getCurrentDay(25, '10:50'),
+        getCurrentDay(25, '19:10'),
+        getCurrentDay(25, '16:30'),
+      ],
+      [getCurrentDay(26)!.date]: [
+        getCurrentDay(26, '08:10'),
+        getCurrentDay(26, '10:50'),
+        getCurrentDay(26, '19:10'),
+        getCurrentDay(26, '16:30'),
+      ],
+      [getCurrentDay(27)!.date]: [
+        getCurrentDay(27, '08:10'),
+        getCurrentDay(27, '10:50'),
+        getCurrentDay(27, '19:10'),
+        getCurrentDay(27, '16:30'),
+      ],
+    }
+  }],
+}
+
 const useCase1 = {
-  days: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
-  dates: ['Lun 10/04', 'Mar 10/04', 'Mer 10/04', 'Jeu 10/04', 'Ven 10/04'],
   columns: [
     {
       id: 0,
@@ -223,18 +446,15 @@ const useCase1 = {
     }
   }],
 }
-const currentEventId = ref<number|null>(5)
+const currentEventId = ref<number|null>(null)
 function onDragStart (eventId: number) {
   currentEventId.value = eventId
 }
 
 const currentDropzoneEvents = computed(() => {
-  return useCase1.dropzoneEvents.find(d => d.eventId === currentEventId.value)
+  return useCase2.dropzoneEvents.find(d => d.eventId === currentEventId.value)
 })
 
-const useCase2 = {
-  days: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
-}
 </script>
 
 <docs lang="md">
