@@ -16,7 +16,7 @@ function goTo(url){
         </p>
         <ul>
             {% for department in departments %}
-            <li onclick="goTo('{% url "base:edt" department.abbrev %}');">{{ department.name }}</li>
+            <li onclick="goTo('{% url 'base:edt-blank' department.abbrev %}');">{{ department.name }}</li>
             {% endfor %}
         </ul>
     </div>

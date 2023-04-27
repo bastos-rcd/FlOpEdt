@@ -99,14 +99,14 @@
           {% if request.is_department_admin %}
             <li><a href="#" onclick="openNav()">☰</a></li>
           {% endif %}
-            <li><a href="{% url 'base:edt' department %}">{% trans 'Schedule_banner' %}</a></li>
+            <li><a href="{% url 'base:edt-blank' department %}">{% trans 'Schedule_banner' %}</a></li>
           {% if request.has_department_perm %}
             <li><a href="{% url 'base:decale' department %}">{% trans 'Move/Cancel' %}</a></li>
           {% endif %}
           <li><a href="{% url 'base:preferences' department %}">{% trans 'Preferences' %}</a></li>
           <li><a href="{% url 'ics:index' department %}">{% trans 'iCal' %}</a></li>
           <li><a href="{% url 'base:aide' department %}">{% trans 'Help' %}</a></li>
-          <li><a href="{% url 'base:contact' department %}">{% trans 'Messages' %}</a></li>
+          <li><a href="{% url 'base:contact-blank' department %}">{% trans 'Messages' %}</a></li>
           <li><a href="{% url 'base:modules' department %}">{% trans 'Modules' %}</a></li>
           <li><a href="{% url 'base:roomreservation' department %}">{% trans 'Reservations'%}</a></li>
           {% if request.is_department_admin %}
@@ -121,7 +121,7 @@
       <li style="float:right">
 	{% if user.is_authenticated %}
 	{% if request.department %}
-	<a href="{% url 'people:logout' %}?next={% url 'base:edt' department %}">{% trans 'Sign out' %}</a>
+	<a href="{% url 'people:logout' %}?next={% url 'base:edt-blank' department %}">{% trans 'Sign out' %}</a>
 	{% elif not 'accounts' in request.path %}
 	<a href="{% url 'people:logout' %}?next={{request.path}}">{% trans 'Sign out' %}</a>
 	{% else %}

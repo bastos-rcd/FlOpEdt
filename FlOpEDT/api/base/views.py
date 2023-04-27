@@ -267,7 +267,7 @@ class RegensViewSet(viewsets.ModelViewSet):
     """
     queryset = bm.Regen.objects.all()
     serializer_class = serializers.RegensSerializer
-    filter_class = RegenFilterSet
+    filterset_class = RegenFilterSet
 
 
 class LoginView(TemplateView):

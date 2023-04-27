@@ -33,7 +33,7 @@ function Week(year, week) {
 
 // useful for url generation
 Week.prototype.url = function () {
-  return this.year + "/" + this.week;
+  return this.year + "/" + this.week + "/";
 };
 Week.prototype.add_to_context = function(context) {
   context['week'] = this.week ;

@@ -81,9 +81,13 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     Request needs a department filter.
     """
     permission_classes = [IsAdminOrReadOnly]
-    filter_class = ScheduledCourseFilterSet
+    filterset_class = ScheduledCourseFilterSet
 
     def get_queryset(self):
+        # avoid warning
+        if getattr(self, 'swagger_fake_view', False):
+            return bm.ScheduledCourse.objects.none()
+
         lineage = self.request.query_params.get('lineage', 'false')
         lineage = True if lineage == 'true' else False
         self.dept = self.request.query_params.get('dept', None)
@@ -151,7 +155,11 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                     course__groups__train_prog=self.train_prog)
 
         if group_name is None and self.train_prog is None:
-            if self.dept is not None:
+            if self.dept is None:
+                if self.tutor is None:
+                    raise exceptions.NotAcceptable(
+                        detail='You should either pick a group and a training programme, or a tutor, or a department')
+            else:
                 queryset = queryset.filter(
                     course__module__train_prog__department=self.dept)
             if self.tutor is not None:
@@ -161,6 +169,10 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_serializer_class(self):
+        # inaccurate, but avoid warnings
+        if getattr(self, 'swagger_fake_view', False):
+            return serializers.ScheduledCoursesSerializer
+
         # get the department
         if self.dept is None:
             if self.tutor is not None:
@@ -373,7 +385,7 @@ class AllVersionsViewSet(viewsets.ModelViewSet):
 
     queryset = bm.EdtVersion.objects.all()
     serializer_class = serializers.AllVersionsSerializer
-    filter_class = AllVersionsFilterSet
+    filterset_class = AllVersionsFilterSet
 
 
 class DepartmentsViewSet(viewsets.ModelViewSet):
@@ -415,7 +427,7 @@ class TutorCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = serializers.TutorCourses_Serializer
     queryset = pm.UserDepartmentSettings.objects.all()
-    filter_class = TutorCoursesFilterSet
+    filterset_class = TutorCoursesFilterSet
 
 
 @method_decorator(name='list',
@@ -478,7 +490,7 @@ class BKNewsViewSet(viewsets.ModelViewSet):
 
     queryset = dwm.BreakingNews.objects.all()
     serializer_class = serializers.BKNewsSerializer
-    filter_class = BKNewsFilterSet
+    filterset_class = BKNewsFilterSet
 
 
 @method_decorator(name='list',

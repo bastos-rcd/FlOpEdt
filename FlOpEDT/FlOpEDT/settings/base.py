@@ -73,7 +73,7 @@ INSTALLED_APPS = [
     #    'importation'
     'api',
     'rest_framework.authtoken',
-    'rest_auth',
+    'dj_rest_auth',
     'rest_framework_swagger',
     'drf_yasg',
     'corsheaders',
@@ -262,3 +262,5 @@ TEMPLATE_DIRS = (
 SHELL_PLUS_MODEL_IMPORTS_RESOLVER = 'django_extensions.collision_resolvers.AppLabelSuffixCR'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
