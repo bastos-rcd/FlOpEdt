@@ -58,7 +58,6 @@ class CourseType(models.Model):
 class Course(models.Model):
     type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     room_type = models.ForeignKey('RoomType', null=True, on_delete=models.CASCADE)
-    no = models.PositiveSmallIntegerField(null=True, blank=True)
     tutor = models.ForeignKey('people.Tutor', related_name='taught_courses', null=True, blank=True,
                               default=None, on_delete=models.CASCADE)
     supp_tutor = models.ManyToManyField('people.Tutor', related_name='courses_as_supp', blank=True)
@@ -122,7 +121,7 @@ class ScheduledCourse(models.Model):
     # in minutes from 12AM
     start_time = models.PositiveSmallIntegerField() # FIXME : time with TimeField or DurationField
     room = models.ForeignKey('Room', blank=True, null=True, on_delete=models.SET_NULL)
-    no = models.PositiveSmallIntegerField(null=True, blank=True)
+    number = models.PositiveSmallIntegerField(null=True, blank=True)
     noprec = models.BooleanField(verbose_name='vrai si on ne veut pas garder la salle', default=True)
     work_copy = models.PositiveSmallIntegerField(default=0)
     tutor = models.ForeignKey('people.Tutor', related_name='taught_scheduled_courses', 
@@ -135,7 +134,12 @@ class ScheduledCourse(models.Model):
         verbose_name_plural = _("scheduled courses")
 
     def __str__(self):
-        return f"{self.course}{self.no}:{self.day}-t{self.start_time}-{self.room}"
+        return (f"{self.course}{self.number}:"
+                f"{self.day}-t{self.start_time}-{self.room}")
+
+    def unique_name(self):
+        return (f"{self.course.type}_{self.room}_{self.tutor.username}"
+                f"_{self.day}_{self.start_time}_{self.end_time}")
 
     @property
     def end_time(self):
@@ -149,6 +153,16 @@ class ScheduledCourse(models.Model):
 
     def is_simultaneous_to(self, other):
         return self.has_same_day(other) and self.start_time < other.end_time and other.start_time < self.end_time
+
+    @property
+    def duration(self):
+        return self.course.type.duration
+
+    @property
+    def pay_duration(self):
+        if self.course.type.pay_duration is not None:
+            return self.course.type.pay_duration
+        return self.duration
 
 
 class ScheduledCourseAdditional(models.Model):

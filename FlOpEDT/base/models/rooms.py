@@ -19,6 +19,47 @@ class RoomType(models.Model):
         return s
 
 
+class RoomAttribute(models.Model):
+    name = models.CharField(max_length=20)
+    description = models.TextField(null=True)
+
+    def is_boolean(self):
+        return hasattr(self, "booleanroomattribute")
+
+    def is_numeric(self):
+        return hasattr(self, "numericroomattribute")
+
+    def __str__(self):
+        return self.name
+
+
+class BooleanRoomAttribute(RoomAttribute):
+    attribute = models.OneToOneField(RoomAttribute, parent_link=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.name} (boolean)"
+
+
+class NumericRoomAttribute(RoomAttribute):
+    attribute = models.OneToOneField(RoomAttribute, parent_link=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.name} (numeric)"
+
+
+class BooleanRoomAttributeValue(models.Model):
+    room = models.ForeignKey('Room', on_delete=models.CASCADE)
+    attribute = models.ForeignKey('BooleanRoomAttribute', on_delete=models.CASCADE)
+    value = models.BooleanField()
+
+
+class NumericRoomAttributeValue(models.Model):
+    room = models.ForeignKey('Room', on_delete=models.CASCADE)
+    attribute = models.ForeignKey('NumericRoomAttribute', on_delete=models.CASCADE)
+    value = models.DecimalField(max_digits=7, decimal_places=2)
+
+
+
 class Room(models.Model):
     name = models.CharField(max_length=50)
     types = models.ManyToManyField(RoomType, blank=True, related_name="members")
@@ -66,7 +107,7 @@ class RoomSort(models.Model):
     tutor = models.ForeignKey('people.Tutor', related_name='abcd', null=True, default=None, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.for_type}-pref-{self.prefer}-to-{self.unprefer}"
+        return f"{self.for_type}: {self.tutor} prefers {self.prefer} to {self.unprefer}"
 
 
 class RoomPonderation(models.Model):
