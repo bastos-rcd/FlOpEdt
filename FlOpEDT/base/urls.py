@@ -48,6 +48,8 @@ urlpatterns = [
     path('decale/', views.decale, name="decale"),
     path('contact/', views.contact, name="contact-blank"),
     path('contact/<str:tutor>/', views.contact, name="contact"),
+    path('module_description/', views.module_description,
+         name="module_description-blank"),
     path('module_description/<str:module>/',
             views.module_description, name="module_description"),
     path('', views.edt, name="edt-blank"),

@@ -1642,7 +1642,7 @@ def fetch_group_preferred_links(req, **kwargs):
 # HELPERS
 # ---------
 @tutor_required
-def module_description(req, module, **kwargs):
+def module_description(req, module=None, **kwargs):
 
     if req.method == 'POST':
         form = ModuleDescriptionForm(module, req.department, req.POST)
