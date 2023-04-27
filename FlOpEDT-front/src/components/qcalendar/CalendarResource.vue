@@ -37,14 +37,7 @@ const props = defineProps<{
   resources: any
   }>()
 
-const resources = ref([] )
-
-onBeforeMount(() => {
-    resources.value = JSON.parse(JSON.stringify(props.resources))
-}
-
-)
-
+const resources = ref(props.resources)
 
 function getEvents(scope) {
     const scopedEvents = []
