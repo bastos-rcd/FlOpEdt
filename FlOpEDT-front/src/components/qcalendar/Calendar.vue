@@ -71,7 +71,7 @@
             :style="
               badgeStyles(
                 {
-                  data: { start: ts, duration: dropzoneEvents.duration, dataId: 0, dataType: '' },
+                  data: { start: ts, duration: dropzoneEvents.duration, dataId: 0, dataType: 'dropzone' },
                 },
                 columnId,
                 timeStartPos,
@@ -94,7 +94,7 @@ import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
 import { computed, ref } from 'vue'
-import { Timestamp } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, TimestampOrNull, diffTimestamp, parseTime, parsed, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 
 const props = defineProps<{
   events: CalendarEvent[]
@@ -172,6 +172,9 @@ function badgeStyles(
     s.width = Math.round((100 * currentGroup.weight) / props.totalWeight) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
+  if(event.data?.dataType === "dropzone" && event.data.start.time === closestStartTime.value) {
+    s['border-color'] = 'green'
+  }
   s['align-items'] = 'flex-start'
   return s
 }
@@ -179,7 +182,26 @@ function badgeStyles(
 /**
  * Drag and drop management
  */
-let isDragging = ref(false)
+const isDragging = ref(false)
+const currentTime = ref<TimestampOrNull>(null)
+const closestStartTime = computed(() => {
+  let closest : string = ''
+  if(!currentTime.value || !props.dropzoneEvents) return closest
+  let i = 0
+  let timeDiff: number = 0
+  while(i < props.dropzoneEvents.possibleStarts[currentTime.value.date]?.length) {
+    if(i === 0) {
+      timeDiff = diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i], currentTime.value, true)
+      closest = props.dropzoneEvents.possibleStarts[currentTime.value.date][i].time
+    }
+    else if (timeDiff > diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i], currentTime.value, true)) {
+        timeDiff = diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i], currentTime.value, true)
+        closest = props.dropzoneEvents.possibleStarts[currentTime.value.date][i].time
+    }
+    i = i + 1
+  }
+  return closest
+})
 
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   isDragging.value = true
@@ -192,40 +214,29 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
 }
 
 function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp }) {
-  // console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   e.preventDefault()
   return true
 }
 
-function onDragOver(e: any, type: string, scope: { timestamp: Timestamp }) {
-  // console.log('onDragOver', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+function onDragOver(e: any, type: string, scope: { timeDurationHeight: any, timestamp: Timestamp }) {
+  console.log('onDragOver', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  let dateTime = parsed(scope.timestamp.date)
+  if(dateTime) {
+    currentTime.value = updateMinutes(dateTime, Math.round(parseTime(scope.timestamp.time)+scope.timeDurationHeight(e.layerY)))
+  }
   e.preventDefault()
   return true
 }
 
 function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp }) {
-  // console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   return false
 }
 
 function onDrop(e: any, type: string, scope: { timestamp: Timestamp }) {
   console.log('onDrop', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   emits('dropevent', scope.timestamp)
-  //isDragging.value = false
-  // const itemID = parseInt(e.dataTransfer.getData('ID'), 10)
-  // const event = { ...this.defaultEvent }
-  // event.id = this.events.length + 1
-  // const item = this.dragItems.filter(item => item.id === itemID)
-  // event.type = item[0].id
-  // event.name = item[0].name
-  // event.date = scope.timestamp.date
-  // if (type === 'interval') {
-  //   event.time = scope.timestamp.time
-  // }
-  // else { // head-day
-  //   event.allDay = true
-  // }
-  // this.events.push(event)
   return false
 }
 </script>
