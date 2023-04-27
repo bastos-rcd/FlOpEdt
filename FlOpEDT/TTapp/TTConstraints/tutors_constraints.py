@@ -311,7 +311,7 @@ class LowerBoundBusyDays(TTConstraint):
     """
     tutor = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
     min_days_nb = models.PositiveSmallIntegerField()
-    lower_bound_hours = models.PositiveSmallIntegerField()
+    lower_bound_hours = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
 
     class Meta:
         verbose_name = _('Lower bound tutor busy days')

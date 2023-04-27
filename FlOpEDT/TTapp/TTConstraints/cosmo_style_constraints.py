@@ -58,8 +58,8 @@ class LimitHoles(TTConstraint):
     Limit the total number of holes in each day, and every week
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
-    max_holes_per_day = models.PositiveSmallIntegerField(null=True, blank=True)
-    max_holes_per_week = models.PositiveSmallIntegerField(null=True, blank=True)
+    max_holes_per_day = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
+    max_holes_per_week = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
 
     class Meta:
         verbose_name = _('Limit holes')
@@ -156,8 +156,8 @@ class LimitHoles(TTConstraint):
 
 class LimitTutorTimePerWeeks(TTConstraint):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
-    min_time_per_period = models.PositiveSmallIntegerField(null=True, blank=True)
-    max_time_per_period = models.PositiveSmallIntegerField(null=True, blank=True)
+    min_time_per_period = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
+    max_time_per_period = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
     tolerated_margin = models.PositiveSmallIntegerField(validators=[MaxValueValidator(100)], null=True, blank=True)
     number_of_weeks = models.PositiveSmallIntegerField(default=1, verbose_name=_("Number of weeks"))
 

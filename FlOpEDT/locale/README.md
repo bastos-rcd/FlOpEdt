@@ -1,10 +1,12 @@
+# Internationalization
 This folder contains translation files for FlOpEDT.
 
-For the time being English and French are supported.
+## How to contribute
+If you want to be part of this project by improving translation, please
+read the following page on the django documentation : 
+[https://docs.djangoproject.com/en/2.1/topics/i18n/translation/]().
 
-More info on how to add a internationalised text
-[here](https://docs.djangoproject.com/en/2.1/topics/i18n/translation/).
-
+TLDR:
 After adding new internationalised strings, you have to do the following:
 * go in the FlOpEDT folder
 * run `django-admin makemessages -l fr`  
