@@ -65,13 +65,13 @@
         >
           <div
             v-for="columnId in dropzoneEvents.columnIds"
-            :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts + '_' + columnId"
+            :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts.timeStart + '_' + columnId"
             class="my-event"
             :class="badgeClasses('dropzoneevent')"
             :style="
               badgeStyles(
                 {
-                  data: { start: ts, duration: dropzoneEvents.duration, dataId: 0, dataType: 'dropzone' },
+                  data: { start: ts.timeStart, duration: dropzoneEvents.duration, dataId: 0, dataType: 'dropzone' },
                 },
                 columnId,
                 timeStartPos,
@@ -172,8 +172,9 @@ function badgeStyles(
     s.width = Math.round((100 * currentGroup.weight) / props.totalWeight) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
-  if(event.data?.dataType === "dropzone" && event.data.start.time === closestStartTime.value) {
+  if(event.data?.dataType === "dropzone" && event.data.start.time === closestStartTime.value && event.data.start.date === currentTime.value?.date) {
     s['border-color'] = 'green'
+    s['border-width'] = '3px'
   }
   s['align-items'] = 'flex-start'
   return s
@@ -190,13 +191,17 @@ const closestStartTime = computed(() => {
   let i = 0
   let timeDiff: number = 0
   while(i < props.dropzoneEvents.possibleStarts[currentTime.value.date]?.length) {
+    let currentDiff: number = 0
     if(i === 0) {
-      timeDiff = diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i], currentTime.value, true)
-      closest = props.dropzoneEvents.possibleStarts[currentTime.value.date][i].time
+      timeDiff = Math.abs(diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart, currentTime.value, false))
+      closest = props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart.time
     }
-    else if (timeDiff > diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i], currentTime.value, true)) {
-        timeDiff = diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i], currentTime.value, true)
-        closest = props.dropzoneEvents.possibleStarts[currentTime.value.date][i].time
+    else { 
+        currentDiff = Math.abs(diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart, currentTime.value, false))
+        if (timeDiff > currentDiff) {
+          timeDiff = currentDiff
+          closest = props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart.time
+      }
     }
     i = i + 1
   }
@@ -213,24 +218,27 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
 }
 
-function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp }) {
+function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp, timeDurationHeight: any }) {
   console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+  dropZoneCloseUpdate(scope.timestamp)
   e.preventDefault()
   return true
 }
+
 
 function onDragOver(e: any, type: string, scope: { timeDurationHeight: any, timestamp: Timestamp }) {
   console.log('onDragOver', e, type, scope, scope.timestamp.date, scope.timestamp.time)
-  let dateTime = parsed(scope.timestamp.date)
-  if(dateTime) {
-    currentTime.value = updateMinutes(dateTime, Math.round(parseTime(scope.timestamp.time)+scope.timeDurationHeight(e.layerY)))
-  }
+  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+  dropZoneCloseUpdate(scope.timestamp)
   e.preventDefault()
   return true
 }
 
-function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp }) {
+function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp, timeDurationHeight: any }) {
   console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+  dropZoneCloseUpdate(scope.timestamp)
   return false
 }
 
@@ -238,6 +246,22 @@ function onDrop(e: any, type: string, scope: { timestamp: Timestamp }) {
   console.log('onDrop', e, type, scope, scope.timestamp.date, scope.timestamp.time)
   emits('dropevent', scope.timestamp)
   return false
+}
+
+function dropZoneCloseUpdate(dateTime: Timestamp): void {
+  props.dropzoneEvents?.possibleStarts[dateTime.date].forEach((ts) => {
+    if(ts.timeStart.time === closestStartTime.value) {
+      ts.isClose = true
+    } else {
+      ts.isClose = false
+    }
+  })
+}
+
+function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: any, layerY: number): void {
+  if(dateTime) {
+    currentTime.value = updateMinutes(dateTime, Math.round(parseTime(dateTime.time)+timeDurationHeight(layerY)))
+  }
 }
 </script>
 
