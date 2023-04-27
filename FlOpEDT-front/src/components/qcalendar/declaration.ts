@@ -40,5 +40,5 @@ export interface CalendarDropzoneEvent {
   eventId: number
   duration: number
   columnIds: number[]
-  possibleStarts: Record<string, Timestamp[]>
+  possibleStarts: Record<string, { isClose: boolean, timeStart: Timestamp }[]>
 }
