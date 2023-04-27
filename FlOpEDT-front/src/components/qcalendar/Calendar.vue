@@ -12,9 +12,9 @@
       :interval-count="18"
       :interval-height="28"
       :weekdays="[1, 2, 3, 4, 5]"
-      :drag-enter-func="onDragEnter"
+      :drag-enter-func="() => "
       :drag-over-func="onDragOver"
-      :drag-leave-func="onDragLeave"
+      :drag-leave-func="() => "
       :drop-func="onDrop"
     >
       <template #head-day-event="{ scope: { timestamp } }">
@@ -109,9 +109,9 @@ const emits = defineEmits<{
 }>()
 
 /**
- * QCalendar data to display
- * * styles,
- * * events
+ * QCalendar DATA TO DISPLAY
+ * * Format the data from the events to match the calendar display,
+ * * Functions to compute the style to render for each event
  */
 const selectedDate = today()
 
@@ -180,11 +180,19 @@ function badgeStyles(
   return s
 }
 
+
 /**
- * Drag and drop management
+ * 
+ * DRAG AND DROP MANAGEMENT
+ * 
  */
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
+
+/** 
+ * Computes the closest start time from the props.dropzoneEvents
+ * @trigger currentTime The Timestamp object giving us the date and time where the mouse is
+ */
 const closestStartTime = computed(() => {
   let closest : string = ''
   if(!currentTime.value || !props.dropzoneEvents) return closest
@@ -208,6 +216,35 @@ const closestStartTime = computed(() => {
   return closest
 })
 
+/**
+ * Update the dropZone data and set to true the closest one from the mouse
+ * during the drag.
+ * Uses the computed value calculating the time string of the closest
+ * possibleStartTime.
+ * @param dateTime The date referring to the day in which we are
+ */
+ function dropZoneCloseUpdate(dateTime: Timestamp): void {
+  props.dropzoneEvents?.possibleStarts[dateTime.date].forEach((ts) => {
+    if(ts.timeStart.time === closestStartTime.value) {
+      ts.isClose = true
+    } else {
+      ts.isClose = false
+    }
+  })
+}
+
+/**
+ * 
+ * @param dateTime giving the data concerning the day and the time when the parent element starts
+ * @param timeDurationHeight function calculating the number of minutes from the position
+ * @param layerY The position of the mouse on the Y-axis from the start of the parent element
+ */
+function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, layerY: number): void {
+  if(dateTime) {
+    currentTime.value = updateMinutes(dateTime, Math.round(parseTime(dateTime.time)+timeDurationHeight(layerY)))
+  }
+}
+
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   isDragging.value = true
   console.log('onDragStart called', event)
@@ -218,13 +255,13 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
 }
 
-function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp, timeDurationHeight: any }) {
-  console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
-  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
-  dropZoneCloseUpdate(scope.timestamp)
-  e.preventDefault()
-  return true
-}
+// function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp, timeDurationHeight: any }) {
+//   console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+//   currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+//   dropZoneCloseUpdate(scope.timestamp)
+//   e.preventDefault()
+//   return true
+// }
 
 
 function onDragOver(e: any, type: string, scope: { timeDurationHeight: any, timestamp: Timestamp }) {
@@ -235,33 +272,27 @@ function onDragOver(e: any, type: string, scope: { timeDurationHeight: any, time
   return true
 }
 
-function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp, timeDurationHeight: any }) {
-  console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
-  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
-  dropZoneCloseUpdate(scope.timestamp)
-  return false
-}
+// function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp, timeDurationHeight: any }) {
+//   console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+//   currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+//   dropZoneCloseUpdate(scope.timestamp)
+//   return false
+// }
 
 function onDrop(e: any, type: string, scope: { timestamp: Timestamp }) {
   console.log('onDrop', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  updateEventDropped(e, type)
   emits('dropevent', scope.timestamp)
   return false
 }
 
-function dropZoneCloseUpdate(dateTime: Timestamp): void {
-  props.dropzoneEvents?.possibleStarts[dateTime.date].forEach((ts) => {
-    if(ts.timeStart.time === closestStartTime.value) {
-      ts.isClose = true
-    } else {
-      ts.isClose = false
-    }
-  })
-}
-
-function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: any, layerY: number): void {
-  if(dateTime) {
-    currentTime.value = updateMinutes(dateTime, Math.round(parseTime(dateTime.time)+timeDurationHeight(layerY)))
-  }
+/**
+ * 
+ * @param e The event
+ * @param type The type of the event
+ */
+function updateEventDropped(e: DragEvent, type: string): void {
+  console.log("DROPPED")
 }
 </script>
 
