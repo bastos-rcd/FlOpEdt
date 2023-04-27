@@ -12,9 +12,9 @@
       :interval-count="18"
       :interval-height="28"
       :weekdays="[1, 2, 3, 4, 5]"
-      :drag-enter-func="() => "
+      :drag-enter-func="() => {}"
       :drag-over-func="onDragOver"
-      :drag-leave-func="() => "
+      :drag-leave-func="() => {}"
       :drop-func="onDrop"
     >
       <template #head-day-event="{ scope: { timestamp } }">
