@@ -289,8 +289,9 @@ class NewApiScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
         if group_name is None and self.train_prog is None:
             if self.dept is None:
                 if self.tutor is None:
-                    raise exceptions.NotAcceptable(
-                        detail='You should either pick a group and a training programme, or a tutor, or a department')
+                    pass
+                    # raise exceptions.NotAcceptable(
+                    #     detail='You should either pick a group and a training programme, or a tutor, or a department')
             else:
                 queryset = queryset.filter(
                     course__module__train_prog__department=self.dept)
