@@ -211,7 +211,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                           tutor_param()
                       ])
                   )
-class NewApiScheduledCoursesViewSet(ScheduledCoursesViewSet):
+class NewApiScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     filterset_class = ScheduledCourseFilterSet
 
@@ -303,7 +303,7 @@ class NewApiScheduledCoursesViewSet(ScheduledCoursesViewSet):
     def get_serializer_class(self):
         # inaccurate, but avoid warnings
         if getattr(self, 'swagger_fake_view', False):
-            return serializers.ScheduledCoursesSerializer
+            return serializers.NewApiScheduledCoursesSerializer
 
         # get the department
         if self.dept is None:
