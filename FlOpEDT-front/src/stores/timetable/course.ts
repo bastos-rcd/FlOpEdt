@@ -14,14 +14,10 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
 
-  async function fetchScheduledCourses(week: FlopWeek, department?: string): Promise<void> {
+  async function fetchScheduledCourses(week: FlopWeek, department?: Department): Promise<void> {
     isLoading.value = true
     try {
-      scheduledCourses.value = await api.fetch.scheduledCourses({
-        week: week.week,
-        year: week.year,
-        department
-      })
+      scheduledCourses.value = await api.getScheduledCourses(week.week, week.year, department?.abbrev)
     } catch (e) {
       loadingError.value = e as Error
     }
