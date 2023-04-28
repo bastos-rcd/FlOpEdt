@@ -1,4 +1,4 @@
-# python 3.10.8
+# python 3.11.3
 matplotlib
 Django==4.2
 django_redis
@@ -6,7 +6,7 @@ django-import-export
 django-extensions
 django-colorfield
 PuLP
-psycopg2-binary
+psycopg[binary]
 requests
 numpy
 pyclustering
