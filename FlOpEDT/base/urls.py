@@ -59,7 +59,7 @@ urlpatterns = [
     path('modules/', views.all_modules_with_desc, name="modules"),
     #Send Email to teacher when student want modify schedule
     path('email-modif/', views.send_email_proposal, name='email-proposal'),
-    re_path(r'^roomreservation/(?P<dept>\w{2,15})?/', views.room_reservation, name='roomreservation'),
+    path('roomreservation/', views.room_reservation, name='roomreservation'),
 
     # exchanges with the db via django
     # ---------------------------------
