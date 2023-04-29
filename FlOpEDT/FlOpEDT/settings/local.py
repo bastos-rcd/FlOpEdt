@@ -30,7 +30,7 @@ DEBUG = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'flop_database_up',
+        'NAME': 'flop_database_public_dev',
         'USER': 'flop_user',
         'PASSWORD': 'your_password',
         'HOST': '127.0.0.1',
