@@ -11,8 +11,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   const getScheduledCoursesFetched = computed(() => scheduledCourses.value)
   const getIsAllScheduledFetched = computed(() => isAllScheduledFetched.value)
 
-  async function fetchScheduledCourses(week: FlopWeek): Promise<void> {
-    await api.fetch.scheduledCourses({ week: week.week, year: week.year }).then((value: ScheduledCourse[]) => {
+  async function fetchScheduledCourses(week: FlopWeek, department: Department): Promise<void> {
+    await api.getScheduledCourses(week.week, week.year, department.abbrev).then((value: ScheduledCourse[]) => {
       scheduledCourses.value = value
       scheduledCourses.value.forEach((sc) => {
         sc.start_time = new Date(sc.start_time)

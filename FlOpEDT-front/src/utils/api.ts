@@ -5,6 +5,7 @@ const API_ENDPOINT = '/fr/api/'
 const urls = {
     getcurrentuser : 'user/getcurrentuser',
     getAllDepartments: 'fetch/alldepts',
+    getScheduledcourses: 'fetch/new_api_scheduledcourses',
     rooms: 'rooms/room',
     weekdays: 'fetch/weekdays',
     timesettings: 'base/timesettings',
@@ -121,6 +122,7 @@ function buildUrl(base: string, uri: string) {
     return `${base}/${uri}`
 }
 export interface FlopAPI {
+    getScheduledCourses(week: number, year: number, department? : string) : Promise<Array<Group>>
     getGroups(department?: Department) : Promise<Group[]>
     getModules(department?: Department) : Promise<Module[]>
     getCurrentUser() : Promise<User>
@@ -192,6 +194,31 @@ export interface FlopAPI {
 }
 
 const api: FlopAPI = {
+    async getScheduledCourses(week: number, year: number, department? : string) : Promise<Array<ScheduledCourse>> {
+        let scheduledCourses : Array<ScheduledCourse> = []
+        let finalUrl : string = API_ENDPOINT+urls.getScheduledcourses
+        if (department)
+            finalUrl += "/?dept="+department+"&week="+week+"&year="+year
+        await fetch(finalUrl, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' }
+        }).then(
+            async (response) => {
+                if(!response.ok) {
+                    throw Error('Error : ' + response.status)
+                }
+                await response.json()
+                        .then(data => {
+                            scheduledCourses = data
+                        })
+                        .catch( error => console.log('Error : ' + error.message))
+            }
+        ).catch( error => {
+            console.log(error.message)
+        })
+        return scheduledCourses
+    },
     async getGroups(department? : Department) : Promise<Array<Group>> {
         let groups : Array<Group> = []
         let finalUrl : string = API_ENDPOINT+urls.getGroups
