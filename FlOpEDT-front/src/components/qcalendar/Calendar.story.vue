@@ -3,7 +3,7 @@
     <Variant title="Use case 1">
       <Calendar 
         :columns="useCase1.columns"
-        :events="(useCase1.events as CalendarEvent[])"
+        :events="() => useCase1.events"
         :total-weight="useCase1.totalWeight"
         :dropzone-events="(currentDropzoneEvents as CalendarDropzoneEvent)"
         @dragstart="onDragStart"
@@ -12,36 +12,49 @@
     <Variant title="Use case 2">
       <Calendar 
         :columns="useCase2.columns"
-        :events="(useCase2.events as CalendarEvent[])"
+        :events="useCase2.events.value"
         :total-weight="useCase2.totalWeight"
         :dropzone-events="(currentDropzoneEvents as CalendarDropzoneEvent)"
         @dragstart="onDragStart"
+        @dropevent="onDropEvent"
       />
     </Variant>
   </Story>
 </template>
 
 <script setup lang="ts">
-import { TimestampOrNull, parseDate, parseTime, today, updateMinutes } from '@quasar/quasar-ui-qcalendar'
-import { computed, ref } from 'vue'
-import type { CalendarEvent, CalendarDropzoneEvent } from './declaration'
+import { Timestamp, parseDate, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import { Ref, computed, ref } from 'vue'
+import type { CalendarEvent, CalendarDropzoneEvent, CalendarColumn } from './declaration'
+import _ from 'lodash'
 
 import Calendar from './Calendar.vue'
 
 const CURRENT_DAY = new Date()
 
-function getCurrentDay(day: any, time?: string): TimestampOrNull {
+function getCurrentDay(day: any, time?: string): Timestamp {
   const newDay = new Date(CURRENT_DAY)
   newDay.setDate(day)
   const tm = parseDate(newDay)
   if(tm && time) {
     updateMinutes(tm, parseTime(time))
   }
-  return tm
+  return tm as Timestamp
 }
 
+function onDropEvent(data: CalendarEvent) {
+  _.remove(useCase2.events.value, (e: CalendarEvent) => { return e.data.dataId === data.data.dataId })
+  useCase2.events.value.push(data)
+}
 
-const useCase2 = {
+interface UseCase {
+  columns: CalendarColumn[]
+  totalWeight : number
+  events: Ref<CalendarEvent[]>
+  dropzoneEvents: CalendarDropzoneEvent[]
+}
+
+const useCase2: UseCase = {
   columns: [
     {
       id: 0,
@@ -69,7 +82,7 @@ const useCase2 = {
     },
   ],
   totalWeight: 6,
-  events: [
+  events: ref([
     {
       title: 'TP INFO',
       details: 'Let\' work on our Python project',
@@ -122,7 +135,7 @@ const useCase2 = {
         duration: 150,
       },
     },
-  ],
+  ]),
   dropzoneEvents: [{
     eventId: 5,
     duration: 90,

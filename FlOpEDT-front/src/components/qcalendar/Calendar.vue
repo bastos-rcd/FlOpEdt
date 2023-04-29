@@ -12,10 +12,8 @@
       :interval-count="18"
       :interval-height="28"
       :weekdays="[1, 2, 3, 4, 5]"
-      :drag-enter-func="() => {}"
       :drag-over-func="onDragOver"
-      :drag-leave-func="() => {}"
-      :drop-func="onDrop"
+      @dragend="onDragStop"
     >
       <template #head-day-event="{ scope: { timestamp } }">
         <div style="display: flex">
@@ -91,10 +89,12 @@ import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
 
+import { cloneDeep } from "lodash"
+
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
 import { computed, ref } from 'vue'
-import { Timestamp, TimestampOrNull, diffTimestamp, parseTime, parsed, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, TimestampOrNull, copyTimestamp, diffTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 
 const props = defineProps<{
   events: CalendarEvent[]
@@ -105,7 +105,7 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   (e: 'dragstart', id: number): void
-  (e: 'dropevent', data: any): void
+  (e: 'dropevent', data: CalendarEvent): void
 }>()
 
 /**
@@ -188,6 +188,7 @@ function badgeStyles(
  */
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
+const eventDragged = ref<CalendarEvent>()
 
 /** 
  * Computes the closest start time from the props.dropzoneEvents
@@ -224,7 +225,7 @@ const closestStartTime = computed(() => {
  * @param dateTime The date referring to the day in which we are
  */
  function dropZoneCloseUpdate(dateTime: Timestamp): void {
-  props.dropzoneEvents?.possibleStarts[dateTime.date].forEach((ts) => {
+  props.dropzoneEvents?.possibleStarts[dateTime.date]?.forEach((ts) => {
     if(ts.timeStart.time === closestStartTime.value) {
       ts.isClose = true
     } else {
@@ -234,8 +235,8 @@ const closestStartTime = computed(() => {
 }
 
 /**
- * 
- * @param dateTime giving the data concerning the day and the time when the parent element starts
+ * Compute the current time of the mouse y position
+ * @param dateTime the data concerning the day and the time when the parent element starts
  * @param timeDurationHeight function calculating the number of minutes from the position
  * @param layerY The position of the mouse on the Y-axis from the start of the parent element
  */
@@ -245,9 +246,14 @@ function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, la
   }
 }
 
+/**
+ * Function called when the drag event is triggered, set isDragging and eventDragged refs
+ * @param browserEvent The HTML triggered event
+ * @param event The event we are currently dragging
+ */
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   isDragging.value = true
-  console.log('onDragStart called', event)
+  eventDragged.value = event
   emits('dragstart', event.data.dataId)
   if (!browserEvent.dataTransfer) return
   browserEvent.dataTransfer.dropEffect = 'copy'
@@ -255,44 +261,45 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
 }
 
-// function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp, timeDurationHeight: any }) {
-//   console.log('onDragEnter', e, type, scope, scope.timestamp.date, scope.timestamp.time)
-//   currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
-//   dropZoneCloseUpdate(scope.timestamp)
-//   e.preventDefault()
-//   return true
-// }
-
-
+/**
+ * Function called when the dragOver event is triggered, computes the current mouse position
+ * time and update the closest dropZone
+ * @param e the event triggered with data of the DOM object in it
+ * @param type the type of element of the calendar
+ * @param scope context containing utilitary functions
+ */
 function onDragOver(e: any, type: string, scope: { timeDurationHeight: any, timestamp: Timestamp }) {
-  console.log('onDragOver', e, type, scope, scope.timestamp.date, scope.timestamp.time)
+  e.preventDefault()
   currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
-  e.preventDefault()
   return true
 }
 
-// function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp, timeDurationHeight: any }) {
-//   console.log('onDragLeave', e, type, scope, scope.timestamp.date, scope.timestamp.time)
-//   currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
-//   dropZoneCloseUpdate(scope.timestamp)
-//   return false
-// }
-
-function onDrop(e: any, type: string, scope: { timestamp: Timestamp }) {
-  console.log('onDrop', e, type, scope, scope.timestamp.date, scope.timestamp.time)
-  updateEventDropped(e, type)
-  emits('dropevent', scope.timestamp)
+function onDragStop() {
+  updateEventDropped()
   return false
 }
 
 /**
- * 
- * @param e The event
- * @param type The type of the event
+ * Function called when the drag event stops
+ * Send an event to parent component with the data updated
  */
-function updateEventDropped(e: DragEvent, type: string): void {
-  console.log("DROPPED")
+function updateEventDropped(): void {
+  let newEvent: CalendarEvent = cloneDeep(eventDragged.value)
+  if (props.dropzoneEvents?.eventId !== newEvent.data.dataId) {
+    console.log('ERREUR DE DROPZONE')
+    return
+  }
+  if(!currentTime.value) {
+    console.log('ERREUR CURRENT TIME')
+    return
+  }
+  props.dropzoneEvents?.possibleStarts[currentTime.value.date].forEach(ps => {
+    if(ps.isClose) {
+      newEvent.data.start = copyTimestamp(ps.timeStart)
+    }
+  })
+  emits('dropevent', newEvent)
 }
 </script>
 
