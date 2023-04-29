@@ -194,13 +194,13 @@ class TutorPreference(models.Model):
                                  related_name='preferences')
     pref_hours_per_day = models.PositiveSmallIntegerField(
         verbose_name="How many hours per day would you prefer ?",
-        default=4)
+        default=4)  # FIXME : time with TimeField or DurationField
     max_hours_per_day = models.PositiveSmallIntegerField(
         verbose_name="How many hours per day can you suffer ?",
-        default=9)
+        default=9)  # FIXME : time with TimeField or DurationField
     min_hours_per_day = models.PositiveSmallIntegerField(
         verbose_name="Under how many hours would you prefer to avoid to have class?",
-        default=0)
+        default=0)  # FIXME : time with TimeField or DurationField
 
     def __str__(self):
         ret = f"{self.tutor} - P{self.pref_hours_per_day} - M{self.pref_hours_per_day} - m{self.min_hours_per_day}"

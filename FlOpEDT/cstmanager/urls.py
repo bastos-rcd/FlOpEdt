@@ -21,12 +21,12 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.conf.urls import url, include
+from django.urls import path
 
 from cstmanager import views
 
 app_name="cstmanager"
 
 urlpatterns = [
-    url(r'^manager/$', views.manager, name="cstmanager"),
+    path('manager', views.manager, name="cstmanager"),
 ]

@@ -37,14 +37,14 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
 from django.conf import settings
-from django.urls import path, re_path
+from django.urls import path, re_path, include, register_converter
 from django.contrib import admin
-from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 from django.conf.urls.i18n import i18n_patterns
 from django.utils.translation import gettext_lazy as _
+
+from FlOpEDT.converters import FourDigitYearConverter
 
 
 from base import views
@@ -54,14 +54,16 @@ js_info_dict = {
     'packages': ('languages', )
 }
 
+register_converter(FourDigitYearConverter, 'yyyy')
 
 urlpatterns = [
 
     # favicon
     # ----------------------------
-    url(views.fav_regexp,
-        views.favicon,
-        name="favicon"),
+    re_path(views.fav_regexp,
+            views.favicon,
+            name="favicon"),
+    path('', views.index, name='index')
 ]
 
 if 'rosetta' in settings.INSTALLED_APPS:
@@ -72,23 +74,24 @@ if 'rosetta' in settings.INSTALLED_APPS:
 
 urlpatterns += i18n_patterns(
     re_path(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
-    re_path(r'^admin$', RedirectView.as_view(url='/admin/')),
-    re_path(r'^$', views.index, name='index'),
-    re_path(r'^admin/', admin.site.urls),
-    re_path(r'^accounts/', include('people.urls')),
-    re_path(r'^citations/', include('quote.urls')),
+    path('admin/', admin.site.urls),
+    path('accounts/', include('people.urls')),
+    path('citations/', include('quote.urls')),
     re_path(r'^edt/(?P<department>[a-zA-Z]\w{0,6})/', include('base.urls')),
-    re_path(r'^solve-board/(?P<department>[a-zA-Z]\w{0,6})/', include('solve_board.urls')),
+    re_path(r'^solve-board/(?P<department>[a-zA-Z]\w{0,6})/',
+            include('solve_board.urls')),
     re_path(r'^ics/(?P<department>[a-zA-Z]\w{0,6})/', include('ics.urls')),
-    re_path(r'^configuration/', include('configuration.urls')),
+    path('configuration/', include('configuration.urls')),
     re_path(r'^ttapp/(?P<department>[a-zA-Z]\w{0,6})/', include('TTapp.urls')),
-    re_path(r'^game/', include('easter_egg.urls')),
-    re_path(r'^flopeditor/', include('flopeditor.urls')),
-    re_path(r'^display/(?P<department>[a-zA-Z]\w{0,6})/', include('displayweb.urls')),
-    re_path(r'^cstmanager/', include('cstmanager.urls')),
+    path('game/', include('easter_egg.urls')),
+    path('flopeditor/', include('flopeditor.urls')),
+    re_path(r'^display/(?P<department>[a-zA-Z]\w{0,6})/',
+            include('displayweb.urls')),
+    path('cstmanager/', include('cstmanager.urls')),
     path('api/', include('api.urls')),
-    re_path(r'^roomreservation/(?P<department>[a-zA-Z]\w{0,6})/', include('roomreservation.urls')),
-    url(r'^.well-known/acme-challenge/', include('acme_challenge.urls')),
+    re_path(r'^roomreservation/(?P<department>[a-zA-Z]\w{0,6})/',
+            include('roomreservation.urls')),
+    re_path(r'^.well-known/acme-challenge/', include('acme_challenge.urls')),
 )
 
 if settings.DEBUG:

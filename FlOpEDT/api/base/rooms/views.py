@@ -67,7 +67,7 @@ class RoomViewSet(viewsets.ModelViewSet):
 
     queryset = bm.Room.objects.all()
     serializer_class = serializers.RoomSerializer
-    filter_class = RoomFilterSet
+    filterset_class = RoomFilterSet
 
 
 class RoomNameViewSet(viewsets.ModelViewSet):
@@ -80,7 +80,7 @@ class RoomNameViewSet(viewsets.ModelViewSet):
 
     queryset = bm.Room.objects.all()
     serializer_class = serializers.RoomNameSerializer
-    filter_class = RoomFilterSet
+    filterset_class = RoomFilterSet
 
 
 @method_decorator(name='list',
@@ -89,7 +89,7 @@ class RoomNameViewSet(viewsets.ModelViewSet):
                   )
 class RoomAllViewSet(viewsets.ViewSet):
     queryset = bm.Room.objects.all()
-    filter_class = RoomFilterSet
+    filterset_class = RoomFilterSet
     permission_classes = [IsAdminOrReadOnly]
 
     def list(self, req):
