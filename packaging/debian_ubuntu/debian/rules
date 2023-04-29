@@ -1,0 +1,62 @@
+#!/usr/bin/make -f
+
+#export PYBUILD_NAME=flopedt
+#export PYBUILD_DISABLE=test
+
+.PHONY: override_dh_strip override_dh_shlibdeps
+	# override_dh_shlibdeps
+%:
+	#dh $@ --with python-virtualenv
+	dh $@
+
+override_dh_auto_clean:
+	rm -Rf debian/flopedt/opt/venvs/flopedt
+
+override_dh_auto_configure:
+	mkdir -p tmp/flopedt/opt/venvs
+	python3 -m venv tmp/flopedt/opt/venvs/flopedt
+	. tmp/flopedt/opt/venvs/flopedt/bin/activate && pip install build wheel
+
+	# Deploy GUROBI
+	wget https://packages.gurobi.com/10.0/gurobi10.0.1_linux64.tar.gz
+	tar xvzfp gurobi10.0.1_linux64.tar.gz
+
+override_dh_auto_build:
+	. tmp/flopedt/opt/venvs/flopedt/bin/activate && python3 setup.py sdist && pip install dist/FlOpEDT*.tar.gz
+	
+	# Install gurobypi
+	. tmp/flopedt/opt/venvs/flopedt/bin/activate && cd gurobi1001/linux64 && python3 setup.py install
+
+override_dh_auto_install:
+	mv tmp/flopedt debian
+	
+	# Let's fix the shebangs paths
+	for cur_file in `find debian/flopedt/opt/venvs/flopedt/bin -type f` ; do echo $$cur_file ; sed -i 's/^\(\#\!\).*/\1\/opt\/venvs\/flopedt\/bin\/python/' $$cur_file ; done
+
+	# Let's fix activation path
+	sed -i 's/\(^VIRTUAL_ENV=\).*/\1\"\/opt\/venvs\/flopedt\"/' debian/flopedt/opt/venvs/flopedt/bin/activate
+	sed -i 's/\(^setenv VIRTUAL_ENV \).*/\1\"\/opt\/venvs\/flopedt\/"/' debian/flopedt/opt/venvs/flopedt/bin/activate.csh
+	sed -i 's/\(^set -gx VIRTUAL_ENV \).*/\1\"\/opt\/venvs\/flopedt\"/' debian/flopedt/opt/venvs/flopedt/bin/activate.fish
+
+	# Create django cache directory
+	mkdir -p debian/flopedt/var/flopedt/cache
+	mkdir -p debian/flopedt/var/flopedt/tmp/misc/logs/solutions
+	mkdir -p debian/flopedt/var/flopedt/tmp/misc/logs/iis
+	mkdir -p debian/flopedt/var/flopedt/static
+
+	# Install GUROBI C libs
+	install -d debian/flopedt/usr/lib64
+	cp -a gurobi1001/linux64/lib/libgurobi.so.10.0.1 debian/flopedt/usr/lib64
+
+	# Install Gurobi binary solver
+	install -d debian/flopedt/usr/bin
+	cp -a gurobi1001/linux64/bin/gurobi_cl debian/flopedt/usr/bin
+
+override_dh_virtualenv:
+	dh_virtualenv --python python3
+
+override_dh_strip:
+	dh_strip --exclude=cffi --exclude=_imaging --exclude=scipy --exclude=Pillow
+
+override_dh_shlibdeps:
+	dh_shlibdeps -X/x86/ -Xcpython -X/PIL/ -X/psycopg2 -X/_yaml -X/numpy.libs -X/scipy.libs -X/Pillow.libs -X/cbc -X/lxml -X/matplotlib -X/pyclustering -X/cryptography
