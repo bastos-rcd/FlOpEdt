@@ -14,7 +14,7 @@ def createDiscardFile():
             corrupted = []
             unavailable_pics = []
             #available languages
-            path = 'TTapp/TTConstraints/doc/'
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../TTConstraints/doc/')
             for language in LANG_LIST:
                 language += "/"
                 entries = next(os.walk(path+language))[2]
