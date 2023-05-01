@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { TimestampOrNull, parseDate, parseTime, today, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import { TimestampOrNull, Timestamp, parseDate, parseTime, today, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
 import { computed, ref } from 'vue'
 import type { CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
@@ -30,14 +30,14 @@ import Calendar from './Calendar.vue'
 
 const CURRENT_DAY = new Date()
 
-function getCurrentDay(day: any, time?: string): TimestampOrNull {
-  const newDay = new Date(CURRENT_DAY)
-  newDay.setDate(day)
-  const tm = parseDate(newDay)
+const weekStart = getStartOfWeek(parseDate(CURRENT_DAY) as Timestamp, [1,2,3,4,5])
+
+function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
+  const tm = addToDate(weekStart, {day: relativeDay})
   if(tm && time) {
     updateMinutes(tm, parseTime(time))
   }
-  return tm
+  return tm as Timestamp
 }
 
 
@@ -79,7 +79,7 @@ const useCase2 = {
       data: {
         dataId: 3,
         dataType: "mok",
-        start: getCurrentDay(25, '08:00'),
+        start: shiftInCurrentWeek(1, '08:00'),
         duration: 120,
       },
     },
@@ -92,7 +92,7 @@ const useCase2 = {
       data: {
         dataId: 4,
         dataType: "mok",
-        start: getCurrentDay(25, '12:00'),
+        start: shiftInCurrentWeek(1, '12:00'),
         duration: 120,
       },
     },
@@ -105,7 +105,7 @@ const useCase2 = {
       data: {
         dataId: 5,
         dataType: "mok",
-        start: getCurrentDay(25, '17:00'),
+        start: shiftInCurrentWeek(1, '17:00'),
         duration: 90,
       },
     },
@@ -118,7 +118,7 @@ const useCase2 = {
       data: {
         dataId: 6,
         dataType: "mok",
-        start: getCurrentDay(26, '08:00'),
+        start: shiftInCurrentWeek(2, '08:00'),
         duration: 150,
       },
     },
@@ -128,40 +128,40 @@ const useCase2 = {
     duration: 90,
     columnIds: [0,1],
     possibleStarts: {
-      [getCurrentDay(24)!.date]: [
-        { isclose: false, timeStart: getCurrentDay(24, '08:10')},
-        { isclose: false, timeStart: getCurrentDay(24, '08:50')},
-        { isclose: false, timeStart: getCurrentDay(24, '09:10')},
-        { isclose: false, timeStart: getCurrentDay(24, '10:10')},
-        { isclose: false, timeStart: getCurrentDay(24, '15:30')},
+      [shiftInCurrentWeek(0)!.date]: [
+        { isclose: false, timeStart: shiftInCurrentWeek(0, '08:10')},
+        { isclose: false, timeStart: shiftInCurrentWeek(0, '08:50')},
+        { isclose: false, timeStart: shiftInCurrentWeek(0, '09:10')},
+        { isclose: false, timeStart: shiftInCurrentWeek(0, '10:10')},
+        { isclose: false, timeStart: shiftInCurrentWeek(0, '15:30')},
       ],
-      [getCurrentDay(25)!.date]: [
-        {isClose: false, timeStart: getCurrentDay(25, '10:10')},
-        {isClose: false, timeStart: getCurrentDay(25, '10:50')},
-        {isClose: false, timeStart: getCurrentDay(25, '11:10')},
-        {isClose: false, timeStart: getCurrentDay(25, '18:10')},
-        {isClose: false, timeStart: getCurrentDay(25, '14:30')},
+      [shiftInCurrentWeek(1)!.date]: [
+        {isClose: false, timeStart: shiftInCurrentWeek(1, '10:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(1, '10:50')},
+        {isClose: false, timeStart: shiftInCurrentWeek(1, '11:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(1, '18:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(1, '14:30')},
       ],
-      [getCurrentDay(26)!.date]: [
-        {isClose: false, timeStart: getCurrentDay(26, '10:10')},
-        {isClose: false, timeStart: getCurrentDay(26, '10:50')},
-        {isClose: false, timeStart: getCurrentDay(26, '11:10')},
-        {isClose: false, timeStart: getCurrentDay(26, '18:10')},
-        {isClose: false, timeStart: getCurrentDay(26, '14:30')},
+      [shiftInCurrentWeek(2)!.date]: [
+        {isClose: false, timeStart: shiftInCurrentWeek(2, '10:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(2, '10:50')},
+        {isClose: false, timeStart: shiftInCurrentWeek(2, '11:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(2, '18:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(2, '14:30')},
       ],
-      [getCurrentDay(27)!.date]: [
-        {isClose: false, timeStart: getCurrentDay(27, '10:10')},
-        {isClose: false, timeStart: getCurrentDay(27, '10:50')},
-        {isClose: false, timeStart: getCurrentDay(27, '11:10')},
-        {isClose: false, timeStart: getCurrentDay(27, '18:10')},
-        {isClose: false, timeStart: getCurrentDay(27, '14:30')},
+      [shiftInCurrentWeek(3)!.date]: [
+        {isClose: false, timeStart: shiftInCurrentWeek(3, '10:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(3, '10:50')},
+        {isClose: false, timeStart: shiftInCurrentWeek(3, '11:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(3, '18:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(3, '14:30')},
       ],
-      [getCurrentDay(28)!.date]: [
-        {isClose: false, timeStart: getCurrentDay(28, '10:10')},
-        {isClose: false, timeStart: getCurrentDay(28, '10:50')},
-        {isClose: false, timeStart: getCurrentDay(28, '11:10')},
-        {isClose: false, timeStart: getCurrentDay(28, '18:10')},
-        {isClose: false, timeStart: getCurrentDay(28, '14:30')},
+      [shiftInCurrentWeek(4)!.date]: [
+        {isClose: false, timeStart: shiftInCurrentWeek(4, '10:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(4, '10:50')},
+        {isClose: false, timeStart: shiftInCurrentWeek(4, '11:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(4, '18:10')},
+        {isClose: false, timeStart: shiftInCurrentWeek(4, '14:30')},
       ],
     }
   },
@@ -170,21 +170,21 @@ const useCase2 = {
     duration: 120,
     columnIds: [0,1,2,3],
     possibleStarts: {
-      [getCurrentDay(24)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(24, '11:00') },
-        { isClose: false, timeStart: getCurrentDay(24, '13:30') },
+      [shiftInCurrentWeek(0)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '11:00') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '13:30') },
       ],
-      [getCurrentDay(25)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(25, '11:00') },
-        { isClose: false, timeStart: getCurrentDay(25, '13:30') },
+      [shiftInCurrentWeek(1)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '11:00') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '13:30') },
       ],
-      [getCurrentDay(26)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(26, '11:00') },
-        { isClose: false, timeStart: getCurrentDay(26, '13:30') },
+      [shiftInCurrentWeek(2)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '11:00') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '13:30') },
       ],
-      [getCurrentDay(28)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(28, '11:00') },
-        { isClose: false, timeStart: getCurrentDay(28, '13:30') },
+      [shiftInCurrentWeek(4)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '11:00') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '13:30') },
       ],
     },
   },
@@ -193,39 +193,39 @@ const useCase2 = {
     duration: 120,
     columnIds: [2,3],
     possibleStarts: {
-      [getCurrentDay(24)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(24, '08:00') },
-        { isClose: false, timeStart: getCurrentDay(24, '10:30') },
-        { isClose: false, timeStart: getCurrentDay(24, '14:00') },
-        { isClose: false, timeStart: getCurrentDay(24, '16:30') },
+      [shiftInCurrentWeek(0)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '08:00') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '10:30') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '14:00') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '16:30') },
       ],
-      [getCurrentDay(25)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(25, '08:00') },
-        { isClose: false, timeStart: getCurrentDay(25, '10:50') },
-        { isClose: false, timeStart: getCurrentDay(25, '13:10') },
-        { isClose: false, timeStart: getCurrentDay(25, '19:10') },
-        { isClose: false, timeStart: getCurrentDay(25, '16:30') },
+      [shiftInCurrentWeek(1)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '08:00') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '13:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '19:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '16:30') },
       ],
-      [getCurrentDay(26)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(26, '08:10') },
-        { isClose: false, timeStart: getCurrentDay(26, '10:50') },
-        { isClose: false, timeStart: getCurrentDay(26, '13:10') },
-        { isClose: false, timeStart: getCurrentDay(26, '19:10') },
-        { isClose: false, timeStart: getCurrentDay(26, '16:30') },
+      [shiftInCurrentWeek(2)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '08:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '13:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '19:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '16:30') },
       ],
-      [getCurrentDay(27)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(27, '08:10') },
-        { isClose: false, timeStart: getCurrentDay(27, '10:50') },
-        { isClose: false, timeStart: getCurrentDay(27, '13:10') },
-        { isClose: false, timeStart: getCurrentDay(27, '19:10') },
-        { isClose: false, timeStart: getCurrentDay(27, '16:30') },
+      [shiftInCurrentWeek(3)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '08:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '13:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '19:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '16:30') },
       ],
-      [getCurrentDay(28)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(28, '08:10') },
-        { isClose: false, timeStart: getCurrentDay(28, '10:50') },
-        { isClose: false, timeStart: getCurrentDay(28, '13:10') },
-        { isClose: false, timeStart: getCurrentDay(28, '19:10') },
-        { isClose: false, timeStart: getCurrentDay(28, '16:30') },
+      [shiftInCurrentWeek(4)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '08:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '13:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '19:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '16:30') },
       ],
     }
   },
@@ -234,23 +234,23 @@ const useCase2 = {
     duration: 150,
     columnIds: [1],
     possibleStarts: {
-      [getCurrentDay(25)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(25, '08:00') },
-        { isClose: false, timeStart: getCurrentDay(25, '10:50') },
-        { isClose: false, timeStart: getCurrentDay(25, '19:10') },
-        { isClose: false, timeStart: getCurrentDay(25, '16:30') },
+      [shiftInCurrentWeek(1)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '08:00') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '19:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '16:30') },
       ],
-      [getCurrentDay(26)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(26, '08:10') },
-        { isClose: false, timeStart: getCurrentDay(26, '10:50') },
-        { isClose: false, timeStart: getCurrentDay(26, '19:10') },
-        { isClose: false, timeStart: getCurrentDay(26, '16:30') },
+      [shiftInCurrentWeek(2)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '08:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '19:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '16:30') },
       ],
-      [getCurrentDay(27)!.date]: [
-        { isClose: false, timeStart: getCurrentDay(27, '08:10') },
-        { isClose: false, timeStart: getCurrentDay(27, '10:50') },
-        { isClose: false, timeStart: getCurrentDay(27, '19:10') },
-        { isClose: false, timeStart: getCurrentDay(27, '16:30') },
+      [shiftInCurrentWeek(3)!.date]: [
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '08:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '19:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '16:30') },
       ],
     }
   }],
@@ -298,20 +298,20 @@ const useCase1 = {
       data: {
         dataId: 1,
         dataType: "mok",
-        start: getCurrentDay(24),
+        start: shiftInCurrentWeek(0),
       },
     },
     {
       id: 2,
       title: 'Sisters Birthday',
       details: 'Buy a nice present',
-      date: getCurrentDay(25),
+      date: shiftInCurrentWeek(1),
       bgcolor: 'green',
       icon: 'fas fa-birthday-cake',
       data: {
         dataId: 2,
         dataType: "mok",
-        start: getCurrentDay(25),
+        start: shiftInCurrentWeek(1),
       },
     },
     {
@@ -323,7 +323,7 @@ const useCase1 = {
       data: {
         dataId: 3,
         dataType: "mok",
-        start: getCurrentDay(25, '10:00'),
+        start: shiftInCurrentWeek(1, '10:00'),
         duration: 120,
       },
     },
@@ -336,7 +336,7 @@ const useCase1 = {
       data: {
         dataId: 4,
         dataType: "mok",
-        start: getCurrentDay(25, '11:30'),
+        start: shiftInCurrentWeek(1, '11:30'),
         duration: 90,
       },
     },
@@ -349,7 +349,7 @@ const useCase1 = {
       data: {
         dataId: 5,
         dataType: "mok",
-        start: getCurrentDay(25, '17:00'),
+        start: shiftInCurrentWeek(1, '17:00'),
         duration: 90,
       },
     },
@@ -362,7 +362,7 @@ const useCase1 = {
       data: {
         dataId: 6,
         dataType: "mok",
-        start: getCurrentDay(26, '08:00'),
+        start: shiftInCurrentWeek(2, '08:00'),
         duration: 540,
       },
     },
@@ -374,7 +374,7 @@ const useCase1 = {
       data: {
         dataId: 7,
         dataType: "mok",
-        start: getCurrentDay(27, '19:00'),
+        start: shiftInCurrentWeek(3, '19:00'),
         duration: 180,
       },
     },
@@ -386,7 +386,7 @@ const useCase1 = {
       data: {
         dataId: 8,
         dataType: "mok",
-        start: getCurrentDay(27),
+        start: shiftInCurrentWeek(3),
         days: 2,
       },
     },
@@ -398,7 +398,7 @@ const useCase1 = {
       data: {
         dataId: 9,
         dataType: "mok",
-        start: getCurrentDay(27),
+        start: shiftInCurrentWeek(3),
         days: 5,
       },
     },
@@ -408,40 +408,40 @@ const useCase1 = {
     duration: 90,
     columnIds: [1],
     possibleStarts: {
-      [getCurrentDay(24)!.date]: [
-        getCurrentDay(24, '08:10'),
-        getCurrentDay(24, '08:50'),
-        getCurrentDay(24, '09:10'),
-        getCurrentDay(24, '10:10'),
-        getCurrentDay(24, '15:30'),
+      [shiftInCurrentWeek(0)!.date]: [
+        shiftInCurrentWeek(0, '08:10'),
+        shiftInCurrentWeek(0, '08:50'),
+        shiftInCurrentWeek(0, '09:10'),
+        shiftInCurrentWeek(0, '10:10'),
+        shiftInCurrentWeek(0, '15:30'),
       ],
-      [getCurrentDay(25)!.date]: [
-        getCurrentDay(25, '10:10'),
-        getCurrentDay(25, '10:50'),
-        getCurrentDay(25, '11:10'),
-        getCurrentDay(25, '18:10'),
-        getCurrentDay(25, '14:30'),
+      [shiftInCurrentWeek(1)!.date]: [
+        shiftInCurrentWeek(1, '10:10'),
+        shiftInCurrentWeek(1, '10:50'),
+        shiftInCurrentWeek(1, '11:10'),
+        shiftInCurrentWeek(1, '18:10'),
+        shiftInCurrentWeek(1, '14:30'),
       ],
-      [getCurrentDay(26)!.date]: [
-        getCurrentDay(26, '10:10'),
-        getCurrentDay(26, '10:50'),
-        getCurrentDay(26, '11:10'),
-        getCurrentDay(26, '18:10'),
-        getCurrentDay(26, '14:30'),
+      [shiftInCurrentWeek(2)!.date]: [
+        shiftInCurrentWeek(2, '10:10'),
+        shiftInCurrentWeek(2, '10:50'),
+        shiftInCurrentWeek(2, '11:10'),
+        shiftInCurrentWeek(2, '18:10'),
+        shiftInCurrentWeek(2, '14:30'),
       ],
-      [getCurrentDay(27)!.date]: [
-        getCurrentDay(27, '10:10'),
-        getCurrentDay(27, '10:50'),
-        getCurrentDay(27, '11:10'),
-        getCurrentDay(27, '18:10'),
-        getCurrentDay(27, '14:30'),
+      [shiftInCurrentWeek(3)!.date]: [
+        shiftInCurrentWeek(3, '10:10'),
+        shiftInCurrentWeek(3, '10:50'),
+        shiftInCurrentWeek(3, '11:10'),
+        shiftInCurrentWeek(3, '18:10'),
+        shiftInCurrentWeek(3, '14:30'),
       ],
-      [getCurrentDay(28)!.date]: [
-        getCurrentDay(28, '10:10'),
-        getCurrentDay(28, '10:50'),
-        getCurrentDay(28, '11:10'),
-        getCurrentDay(28, '18:10'),
-        getCurrentDay(28, '14:30'),
+      [shiftInCurrentWeek(4)!.date]: [
+        shiftInCurrentWeek(4, '10:10'),
+        shiftInCurrentWeek(4, '10:50'),
+        shiftInCurrentWeek(4, '11:10'),
+        shiftInCurrentWeek(4, '18:10'),
+        shiftInCurrentWeek(4, '14:30'),
       ],
     }
   }],
