@@ -39,7 +39,7 @@ build_deb_package:focal:
     - apt update
     - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
     - apt install debhelper build-essential virtualenv python3-venv python3-pip libpq-dev libpython3-dev wget -y
-    - ln -sf packaging/ubuntu/focal/debian .
+    - ln -sf packaging/debian_ubuntu/debian .
     - dpkg-buildpackage -us -uc -b
     - mv ../*.deb .
   artifacts:
@@ -54,7 +54,7 @@ build_deb_package:jammy:
     - apt update
     - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
     - apt install debhelper build-essential virtualenv python3-venv python3-pip libpq-dev libpython3-dev wget -y
-    - ln -sf packaging/ubuntu/focal/debian .
+    - ln -sf packaging/debian_ubuntu/debian .
     - dpkg-buildpackage -us -uc -b
     - mv ../*.deb .
   artifacts:
@@ -69,7 +69,7 @@ build_deb_package:bullseye:
     - apt update
     - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
     - apt install debhelper build-essential virtualenv python3-venv python3-pip libpq-dev libpython3-dev wget -y
-    - ln -sf packaging/ubuntu/focal/debian .
+    - ln -sf packaging/debian_ubuntu/debian .
     - dpkg-buildpackage -us -uc -b
     - mv ../*.deb .
   artifacts:
