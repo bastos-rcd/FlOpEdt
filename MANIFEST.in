@@ -1,0 +1,8 @@
+recursive-include FlOpEDT/**/static *
+recursive-include FlOpEDT/**/locale *
+recursive-include FlOpEDT/**/templates *
+
+global-exclude FlOpEDT/settings/local.py
+global-exclude FlOpEDT/settings/local_ci.py
+global-exclude FlOpEDT/settings/remote.py
+global-exclude FlOpEDT/settings/development.py
