@@ -22,77 +22,128 @@
 # without disclosing the source code of your own applications.
 
 from .base import *
+import configparser, os
+
+###############################
+# Configuration File Parsing  #
+###############################
+
+SYSTEM_FLOP_CONFIG_FILE="/etc/flopedt/flopedt.ini"
+STATIC_ROOT="/var/flopedt/static"
+CACHE_DIRECTORY="/var/flopedt/cache"
+TMP_DIRECTORY="/var/flopedt/tmp"
+
+if os.environ.get('FLOP_CONFIG_FILE') is not None:
+    if os.path.exists(os.environ.get('FLOP_CONFIG_FILE')):
+        FLOP_CONFIG_FILE=os.environ.get('FLOP_CONFIG_FILE')
+    else:
+        print("Configuration file %s doesn't exist" % os.environ.get('FLOP_CONFIG_FILE'))
+        sys.exit(1)
+elif os.path.exists(SYSTEM_FLOP_CONFIG_FILE):
+    FLOP_CONFIG_FILE=SYSTEM_FLOP_CONFIG_FILE
+else:
+    print("System configuration file %s doesn't exist" % SYSTEM_FLOP_CONFIG_FILE)
+    sys.exit(1)
+
+# Let's parse the configuration file
+flop_config=configparser.ConfigParser()
+flop_config.read(FLOP_CONFIG_FILE)
+
+# Define static file configuration
+try:
+    if os.path.exists(flop_config['flopedt']['static_files']):
+        STATIC_ROOT=flop_config['flopedt']['static_files']
+except KeyError:
+    pass
+
+# Define cache file configuration
+try:
+    if os.path.exists(flop_config['flopedt']['cache_directory']):
+        CACHE_DIRECTORY=flop_config['flopedt']['cache_directory']
+except KeyError:
+    pass
+
+# Define cache file configuration
+try:
+    if os.path.exists(flop_config['flopedt']['tmp_directory']):
+        TMP_DIRECTORY=flop_config['flopedt']['tmp_directory']
+except KeyError:
+    pass
+
+# Define environment variable for GUROBI license
+try:
+    if os.path.exists(flop_config['gurobi']['license_file']):
+        os.environ["GRB_LICENSE_FILE"]=flop_config['gurobi']['license_file']
+    else:
+        print("ATTENTION - Le fichier de licence GUROBI n'est pas présent. Le solveur GUROBI ne sera pas disponible")
+except KeyError:
+    pass
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+USE_TZ = False
+
+SECRET_KEY = flop_config['flopedt']['secret_key']
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'postgres'),
-        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-        'PASSWORD':  os.environ.get('POSTGRES_PASSWORD'),
+        'NAME': flop_config['database']['postgres_database'],
+        'USER': flop_config['database']['postgres_username'],
+        'HOST': flop_config['database']['postgres_hostname'],
+        'PORT': int(flop_config['database']['postgres_port']),
+        'PASSWORD': flop_config['database']['postgres_password'],
     }
 }
 
-REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
-REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
-REDIS_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/1'
 
-CACHE_MACHINE_USE_REDIS = True
+LOGGING = {  
+    'version': 1,  
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'loggers': {
+        'base': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },        
+        'configuration': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },        
+        'django.db.backends': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': False,
+        }
+    }
+}
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(REDIS_HOST, REDIS_PORT)],
+            "hosts": [('127.0.0.1', 6379)],
         },
     },
 }
-
-CACHE_HOST = os.environ.get("CACHE_HOST", "localhost")
-CACHE_PORT = os.environ.get("CACHE_PORT", "11211")
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': f'{CACHE_HOST}:{CACHE_PORT}',
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': CACHE_DIRECTORY,
     }
 }
 
-LOGGING = {  
-    'version': 1,  
-    'disable_existing_loggers': False,
-    'formatters': {
-        'simple': {
-            'format': '[{asctime}] - {levelname} - {module} - {message}',
-            'style': '{',
-        },
-    },    
-    'handlers': {
-        'console': {
-            'level': os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        }
-    },
-    'loggers': {
-        '': {
-            'handlers': ['console'],
-            'level': os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
-            'propagate': True,
-        },        
-        'django.db.backends': {
-            'level':  os.environ.get('DB_LOG_LEVEL', 'WARNING'),
-            'handlers': ['console'],
-            'propagate': True,
-        }
-    }
-}
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+CRONJOBS = [
+    ('0 4 * * *', 'notifications.cron.backup_and_notify')
+]
 
 # YOU NEED TO SPECIFY ALLOWED_HOSTS FOR PRODUCTION ENVIRONMENT
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS','localhost').split(',')
-
-SECRET_KEY = os.environ['SECRET_KEY']
+ALLOWED_HOSTS = [ '127.0.0.1', 'localhost' ]
