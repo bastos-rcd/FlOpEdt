@@ -164,7 +164,6 @@ install_pip_artifact:
   - apt update && apt install python3-pip -y
   
   script:
-    - ls -al .
     - pip install dist/FlOpEDT*.tar.gz
     - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' config_file/flopedt.ini
     - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin migrate --settings FlOpEDT.settings.production
