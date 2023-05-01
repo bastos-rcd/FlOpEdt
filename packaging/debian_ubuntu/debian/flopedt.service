@@ -7,4 +7,6 @@ Group=flopedt
 Environment=DJANGO_SETTINGS_MODULE=FlOpEDT.settings.production
 ExecStartPre=+/usr/bin/flop_admin migrate
 ExecStartPre=+/usr/bin/flop_admin collectstatic --noinput
+ExecStartPre=+/bin/sh -c '/usr/bin/find /var/flopedt/tmp -type f -exec /usr/bin/rm -Rf {} \;'
+ExecStartPre=+/bin/sh -c '/usr/bin/find /var/flopedt/cache -type f -exec /usr/bin/rm -Rf {} \;'
 ExecStart=/opt/venvs/flopedt/bin/daphne -v 3 FlOpEDT.asgi:application
