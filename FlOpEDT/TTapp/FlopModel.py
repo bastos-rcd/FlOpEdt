@@ -40,6 +40,7 @@ from base.models import Department, ScheduledCourse
 from core.decorators import timer
 from django.db import close_old_connections
 from django.db.models import Q, Max
+from django.conf import settings
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
@@ -49,8 +50,8 @@ logger = logging.getLogger(__name__)
 pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
 GUROBI = 'GUROBI'
 GUROBI_NAME = 'GUROBI_CMD'
-solution_files_path = "misc/logs/solutions"
-iis_files_path = "misc/logs/iis"
+solution_files_path = os.path.join(settings.TMP_DIRECTORY,"/misc/logs/solutions")
+iis_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/iis")
 
 
 class FlopVar:
