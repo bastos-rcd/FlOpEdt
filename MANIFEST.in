@@ -1,7 +1,7 @@
 recursive-include FlOpEDT/**/static *
 recursive-include FlOpEDT/**/locale *
 recursive-include FlOpEDT/**/templates *
-recursive-include FlOpEDT/TTApp/ *.json
+recursive-include FlOpEDT/TTapp/onLaunch *.json
 
 global-exclude FlOpEDT/settings/local.py
 global-exclude FlOpEDT/settings/local_ci.py
