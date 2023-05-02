@@ -154,8 +154,8 @@ class AvoidBothTimes(TTConstraint):
     Idéalement, on pourrait paramétrer slot1, et slot2 à partir de slot1... Genre slot1
     c'est 8h n'importe quel jour, et slot2 14h le même jour...
     """
-    time1 = models.PositiveSmallIntegerField()
-    time2 = models.PositiveSmallIntegerField()
+    time1 = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    time2 = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     group = models.ForeignKey('base.models.StructuralGroup', null=True, on_delete=models.CASCADE)
     tutor = models.ForeignKey('people.Tutor',
                               null=True,
@@ -229,7 +229,7 @@ class LimitedStartTimeChoices(TTConstraint):
                               null=True,
                               default=None,
                               on_delete=models.CASCADE)
-    possible_start_times = ArrayField(models.PositiveSmallIntegerField())
+    possible_start_times = ArrayField(models.PositiveSmallIntegerField())  # FIXME : time with TimeField or DurationField
 
 
 

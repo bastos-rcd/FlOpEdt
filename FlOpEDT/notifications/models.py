@@ -48,7 +48,7 @@ class BackUpModif(models.Model):
     tutor_username = models.CharField(max_length=150,
                                       null=True)
     supp_tutor_usernames = ArrayField(models.CharField(max_length=10), null=True)
-    start_time = models.PositiveSmallIntegerField()
+    start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
     room_name = models.CharField(max_length=50,
                                  null=True)
     course_type_name = models.CharField(max_length=50,

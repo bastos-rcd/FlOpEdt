@@ -23,8 +23,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.urls import path
-from django.conf.urls import url, include
+from django.urls import path, re_path, include
 from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 from django.views.generic.base import RedirectView
@@ -35,78 +34,78 @@ from . import views
 app_name="people"
 
 urlpatterns = [
-#    url(r'^login', views.login, name="login"),
-    url(r'^login/$',
+    #    re_path(r'^login', views.login, name="login"),
+    path('login/',
         auth_views.LoginView.as_view(template_name='people/login.html'),
         name='login'),
-    url(r'^logout/$',
+    path('logout/',
         auth_views.LogoutView.as_view( next_page= '/'),
         name='logout'),
-    url(r'^password-reset/$',
+    path('password-reset/',
         auth_views.PasswordResetView.as_view(
             template_name='people/password_reset_form.html',
             email_template_name='people/password_reset_email.html',
             subject_template_name='people/password_reset_subject.txt',
             success_url=reverse_lazy('people:password_reset_done')),
         name='password_reset'),
-    url(r'^pwd-reset-done/$',
+    path('pwd-reset-done/',
         auth_views.PasswordResetDoneView.as_view(
             template_name='people/password_reset_done.html'),
         name='password_reset_done'),
-    url(r'^pwd-reset-complete/$',
+    path('pwd-reset-complete/',
         auth_views.PasswordResetCompleteView.as_view(
             template_name='people/password_reset_complete.html'),
         name='password_reset_complete'),
-    url(r'^password-change/$',
+    path('password-change/',
         auth_views.PasswordChangeView.as_view(
             template_name='people/password_change_form.html',
             success_url=reverse_lazy('people:password_change_done')),
         name='password_change'),
-    url(r'^pwd-chg-done/$',
+    path('pwd-chg-done/',
         auth_views.PasswordChangeDoneView.as_view(
             template_name='people/password_change_done.html'),
         name='password_change_done'),
-    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/'
+    re_path(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/'
         r'(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         auth_views.PasswordResetConfirmView.as_view(
             template_name='people/password_reset_confirm.html',
             success_url=reverse_lazy('people:password_reset_complete')),
         name='password_reset_confirm'),
-    url(r'^change/some/$',
+    path('change/some/',
         views.redirect_change_people_kind,
         name="change_redirect"),
-    url(r'^change/student/$',
+    path('change/student/',
         ChangeStudent.as_view(),
         name="change_student"),
-    url(r'^change/fullstaff/$',
+    path('change/fullstaff/',
         ChangeFullStaffTutor.as_view(),
         name="change_fullstaff"),
-    url(r'^change/supplystaff/$',
+    path('change/supplystaff/',
         ChangeSupplyStaffTutor.as_view(),
         name="change_supplystaff"),
-    url(r'^change/biatos/$',
+    path('change/biatos/',
         ChangeBIATOSTutor.as_view(),
         name="change_BIATOS"),
-    url(r'^fetch_tutors/$',
+    path('fetch_tutors/',
         views.fetch_tutors,
         name="fetch_tutors"),
-    url(r'^fetch_preferences_group/$',
+    path('fetch_preferences_group/',
         views.fetch_preferences_group,
         name="fetch_preferences_group"),
-    url(r'^fetch_preferences_students/$',
+    path('fetch_preferences_students/',
         views.fetch_preferences_students,
         name="fetch_preferences_students"),
     path('fetch_user_preferred_links/<str:department>',
          views.fetch_user_preferred_links,
          name='fetch_user_preferred_links'),
-    url(r'^student_preferences/$',
+    path('student_preferences/',
         views.student_preferences,
         name="student_preferences"),
     path('profile/', RedirectView.as_view(pattern_name="index", permanent=False)),
-    path('fetch_physical_presence/<str:department>/<int:year>/<int:week>',
+    path('fetch_physical_presence/<str:department>/<yyyy:year>/<int:week>/',
          views.fetch_physical_presence,
          name='fetch_physical_presence'),
-    path('change_physical_presence/<int:year>/<int:week_nb>/<str:user>',
+    path('change_physical_presence/<yyyy:year>/<int:week_nb>/<str:user>/',
          views.change_physical_presence,
          name='change_physical_presence')
     ]

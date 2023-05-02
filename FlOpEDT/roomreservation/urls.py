@@ -28,5 +28,4 @@ from roomreservation import views
 app_name="roomreservation"
 
 urlpatterns = [
-    path('', views.RoomReservationsView, name="roomreservation"),
 ]

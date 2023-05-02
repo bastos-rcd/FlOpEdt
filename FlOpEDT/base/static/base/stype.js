@@ -315,14 +315,14 @@ function send_url(year, week) {
   switch (mode) {
   case 'tutor':
     return url_user_pref_changes + year + "/" + week
-      + "/" + user.name;
+      + "/" + user.name + "/";
   case 'course':
     return url_course_pref_changes + year + "/" + week
       + "/" + dd_selections['prog'].value
-      + "/" + dd_selections['type'].value;
+      + "/" + dd_selections['type'].value + "/";
   case 'room':
     return url_room_pref_changes + year + "/" + week
-      + "/" + user.name;
+      + "/" + user.name + "/";
   }
 }
 

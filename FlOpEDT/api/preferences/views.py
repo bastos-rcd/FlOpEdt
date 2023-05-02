@@ -98,8 +98,8 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
         self.params['week'] = None
 
     def set_singular_params(self):
-        self.params['week__nb'] = int(self.request.query_params.get('week'))
-        self.params['week__year'] = int(self.request.query_params.get('year'))
+        self.params['week__nb'] = self.request.query_params.get('week')
+        self.params['week__year'] = self.request.query_params.get('year')
         self.select.append('week')
 
     def unset_singular_params(self):
@@ -251,7 +251,7 @@ class RoomPreferenceDefaultViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = [IsTutor]
-    filter_class = RoomPreferenceDefaultFilterSet
+    filterset_class = RoomPreferenceDefaultFilterSet
     queryset = bm.RoomPreference.objects.filter(week=None)
     serializer_class = serializers.RoomPreferencesSerializer
 
@@ -267,6 +267,6 @@ class RoomPreferenceSingularFilterSet(filters.FilterSet):
 class RoomPreferenceSingularViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = [IsTutor]
-    filter_class = RoomPreferenceSingularFilterSet
+    filterset_class = RoomPreferenceSingularFilterSet
     queryset = bm.RoomPreference.objects.filter()
     serializer_class = serializers.RoomPreferencesSerializer

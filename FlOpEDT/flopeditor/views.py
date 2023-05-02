@@ -232,7 +232,8 @@ def ajax_create_department(request):
     :rtype:  django.http.JsonResponse
 
     """
-    if request.is_ajax() and request.method == "POST":
+    if (request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+        and request.method == "POST"):
         name = request.POST['nomDep']
         abbrev = request.POST['abbrevDep']
         tutors_id = request.POST.getlist('respsDep')
@@ -253,7 +254,8 @@ def ajax_update_department(request):
     :rtype:  django.http.JsonResponse
 
     """
-    if request.is_ajax() and request.method == "POST":
+    if (request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+        and request.method == "POST"):
         old_name = request.POST['oldNomDep']
         new_name = request.POST['newNomDep']
         old_abbrev = request.POST['oldAbbrevDep']
@@ -279,7 +281,8 @@ def ajax_edit_parameters(request, department_abbrev):
 
     """
     department = get_object_or_404(Department, abbrev=department_abbrev)
-    if not request.is_ajax() or not request.method == "POST":
+    if (request.META.get('HTTP_X_REQUESTED_WITH') != 'XMLHttpRequest'
+        or not request.method == "POST"):
         return HttpResponseForbidden()
     days = request.POST.getlist('days')
     day_start_time = request.POST['day_start_time']
@@ -565,7 +568,8 @@ def ajax_update_profil(request):
 
     """
 
-    if request.is_ajax() and request.method == "POST":
+    if (request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+        and request.method == "POST"):
         response = validate_profil_update(request)
         if response['status'] == OK_RESPONSE:
             update_user_in_database(request)

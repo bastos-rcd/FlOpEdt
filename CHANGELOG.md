@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Notification system: model for backup, email notification, django-crontab for notification
 - TTConstraints manager interface: CRUD
 - RoomReservation interface : gesture of room attributes, reservation types, periodicity
+- Restructuration of the base app by splitting the models.py in several files under folder models/
+- Improving i18n on models
 
 ### Changed
 

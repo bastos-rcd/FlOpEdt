@@ -81,9 +81,13 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     Request needs a department filter.
     """
     permission_classes = [IsAdminOrReadOnly]
-    filter_class = ScheduledCourseFilterSet
+    filterset_class = ScheduledCourseFilterSet
 
     def get_queryset(self):
+        # avoid warning
+        if getattr(self, 'swagger_fake_view', False):
+            return bm.ScheduledCourse.objects.none()
+
         lineage = self.request.query_params.get('lineage', 'false')
         lineage = True if lineage == 'true' else False
         self.dept = self.request.query_params.get('dept', None)
@@ -151,7 +155,11 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                     course__groups__train_prog=self.train_prog)
 
         if group_name is None and self.train_prog is None:
-            if self.dept is not None:
+            if self.dept is None:
+                if self.tutor is None:
+                    raise exceptions.NotAcceptable(
+                        detail='You should either pick a group and a training programme, or a tutor, or a department')
+            else:
                 queryset = queryset.filter(
                     course__module__train_prog__department=self.dept)
             if self.tutor is not None:
@@ -161,6 +169,10 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_serializer_class(self):
+        # inaccurate, but avoid warnings
+        if getattr(self, 'swagger_fake_view', False):
+            return serializers.ScheduledCoursesSerializer
+
         # get the department
         if self.dept is None:
             if self.tutor is not None:
@@ -199,8 +211,101 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                           tutor_param()
                       ])
                   )
-class NewApiScheduledCoursesViewSet(ScheduledCoursesViewSet):
+class NewApiScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAdminOrReadOnly]
+    filterset_class = ScheduledCourseFilterSet
+
+    def get_queryset(self):
+        # avoid warning
+        if getattr(self, 'swagger_fake_view', False):
+            return bm.ScheduledCourse.objects.none()
+
+        lineage = self.request.query_params.get('lineage', 'false')
+        lineage = True if lineage == 'true' else False
+        self.dept = self.request.query_params.get('dept', None)
+        if self.dept is not None:
+            try:
+                self.dept = bm.Department.objects.get(abbrev=self.dept)
+            except bm.Department.DoesNotExist:
+                raise exceptions.NotAcceptable(detail='Unknown department')
+
+        self.train_prog = self.request.query_params.get('train_prog', None)
+        group_name = self.request.query_params.get('group', None)
+        self.tutor = self.request.query_params.get('tutor_name', None)
+        work_copy = self.request.query_params.get('work_copy', 0)
+        if self.tutor is not None:
+            try:
+                self.tutor = pm.Tutor.objects.get(username=self.tutor)
+            except pm.Tutor.DoesNotExist:
+                raise exceptions.NotAcceptable(detail='Unknown tutor')
+
+        queryset = bm.ScheduledCourse\
+                     .objects.all().select_related('course__module__train_prog__department',
+                                                   'tutor__display',
+                                                   'course__type',
+                                                   'course__room_type',
+                                                   'course__module__display')\
+            .prefetch_related('course__groups__train_prog',
+                              'room',
+                              'course__supp_tutor')
+        queryset = queryset.filter(work_copy=work_copy)
+        # sanity check
+        if group_name is not None and self.train_prog is None:
+            raise exceptions.NotAcceptable(detail='A training programme should be '
+                                           'given when a group name is given')
+
+        if self.train_prog is not None:
+            try:
+                if self.dept is not None:
+                    self.train_prog = bm.TrainingProgramme.objects.get(abbrev=self.train_prog,
+                                                                       department=self.dept)
+                else:
+                    self.train_prog = bm.TrainingProgramme.objects.get(
+                        abbrev=self.train_prog)
+            except bm.TrainingProgramme.DoesNotExist:
+                raise exceptions.NotAcceptable(
+                    detail='No such training programme')
+            except MultipleObjectsReturned:
+                raise exceptions.NotAcceptable(
+                    detail='Multiple training programme with this name')
+
+        if group_name is not None:
+            try:
+                declared_group = bm.StructuralGroup.objects.get(
+                    name=group_name, train_prog=self.train_prog)
+                self.groups = {declared_group}
+                if lineage:
+                    self.groups |= declared_group.ancestor_groups()
+            except bm.StructuralGroup.DoesNotExist:
+                raise exceptions.NotAcceptable(detail='No such group')
+            except:
+                raise exceptions.NotAcceptable(detail='Issue with the group')
+            queryset = queryset.filter(course__groups__in=self.groups)
+        else:
+            if self.train_prog is not None:
+                queryset = queryset.filter(
+                    course__groups__train_prog=self.train_prog)
+
+        if group_name is None and self.train_prog is None:
+            if self.dept is None:
+                if self.tutor is None:
+                    pass
+                    # raise exceptions.NotAcceptable(
+                    #     detail='You should either pick a group and a training programme, or a tutor, or a department')
+            else:
+                queryset = queryset.filter(
+                    course__module__train_prog__department=self.dept)
+            if self.tutor is not None:
+                queryset = queryset.filter(
+                    Q(tutor=self.tutor) | Q(course__supp_tutor=self.tutor))
+
+        return queryset
+    
     def get_serializer_class(self):
+        # inaccurate, but avoid warnings
+        if getattr(self, 'swagger_fake_view', False):
+            return serializers.NewApiScheduledCoursesSerializer
+
         # get the department
         if self.dept is None:
             if self.tutor is not None:
@@ -373,7 +478,7 @@ class AllVersionsViewSet(viewsets.ModelViewSet):
 
     queryset = bm.EdtVersion.objects.all()
     serializer_class = serializers.AllVersionsSerializer
-    filter_class = AllVersionsFilterSet
+    filterset_class = AllVersionsFilterSet
 
 
 class DepartmentsViewSet(viewsets.ModelViewSet):
@@ -415,7 +520,7 @@ class TutorCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = serializers.TutorCourses_Serializer
     queryset = pm.UserDepartmentSettings.objects.all()
-    filter_class = TutorCoursesFilterSet
+    filterset_class = TutorCoursesFilterSet
 
 
 @method_decorator(name='list',
@@ -478,7 +583,7 @@ class BKNewsViewSet(viewsets.ModelViewSet):
 
     queryset = dwm.BreakingNews.objects.all()
     serializer_class = serializers.BKNewsSerializer
-    filter_class = BKNewsFilterSet
+    filterset_class = BKNewsFilterSet
 
 
 @method_decorator(name='list',

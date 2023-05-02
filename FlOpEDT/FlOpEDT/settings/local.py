@@ -102,3 +102,7 @@ DEBUG_TOOLBAR_CONFIG = {
 }
 
 INTERNAL_IPS = ['127.0.0.1']
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173'
+]

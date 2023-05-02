@@ -1004,7 +1004,7 @@ function fetch_side_weeks() {
   var needed_weeks = [] ; // which_side_weeks();
 
   for (var i = 0; i < needed_weeks.data.length; i++) {
-    console.log(url_cours_pl + needed_weeks.data[i].url() + "/" + 0);
+    console.log(url_cours_pl + needed_weeks.data[i].url() + 0);
     $.ajax({
       type: "GET", //rest Type
       dataType: 'text',

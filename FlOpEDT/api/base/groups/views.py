@@ -80,7 +80,7 @@ class StructuralGroupViewSet(viewsets.ModelViewSet):
 
     serializer_class = serializers.StructuralGroupSerializer
     queryset = bm.StructuralGroup.objects.all()
-    filter_class = StructuralGroupsFilterSet
+    filterset_class = StructuralGroupsFilterSet
 
     permission_classes = [IsAdminOrReadOnly]
 
@@ -101,7 +101,7 @@ class StructuralGroupViewSet(viewsets.ModelViewSet):
 class TransversalGroupViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TransversalGroupSerializer
     queryset = bm.TransversalGroup.objects.all()
-    filter_class = TransversalGroupsFilterSet
+    filterset_class = TransversalGroupsFilterSet
     permission_classes = [IsAdminOrReadOnly]
 
     def get_queryset(self):
