@@ -20,7 +20,15 @@
           <template v-for="column in props.columns" :key="column.name">
             <div
               :class="badgeClasses('header')"
-              style="cursor: pointer;height: 12px;font-size: 10px;margin-bottom: 1px;margin-top: 1px;border-color: 1px solid black;color: black;"
+              style="
+                cursor: pointer;
+                height: 12px;
+                font-size: 10px;
+                margin-bottom: 1px;
+                margin-top: 1px;
+                border-color: 1px solid black;
+                color: black;
+              "
               :style="{
                 'flex-basis': Math.round((100 * column.weight) / props.totalWeight) + '%',
                 'align-items': 'center',
@@ -89,12 +97,19 @@ import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
 
-import _ from "lodash"
+import _ from 'lodash'
 
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
 import { computed, ref } from 'vue'
-import { Timestamp, TimestampOrNull, copyTimestamp, diffTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import {
+  Timestamp,
+  TimestampOrNull,
+  copyTimestamp,
+  diffTimestamp,
+  parseTime,
+  updateMinutes,
+} from '@quasar/quasar-ui-qcalendar'
 
 const props = defineProps<{
   events: CalendarEvent[]
@@ -172,7 +187,11 @@ function badgeStyles(
     s.width = Math.round((100 * currentGroup.weight) / props.totalWeight) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
-  if(event.data?.dataType === "dropzone" && event.data.start.time === closestStartTime.value && event.data.start.date === currentTime.value?.date) {
+  if (
+    event.data?.dataType === 'dropzone' &&
+    event.data.start.time === closestStartTime.value &&
+    event.data.start.date === currentTime.value?.date
+  ) {
     s['border-color'] = 'green'
     s['border-width'] = '3px'
   }
@@ -180,11 +199,10 @@ function badgeStyles(
   return s
 }
 
-
 /**
- * 
+ *
  * DRAG AND DROP MANAGEMENT
- * 
+ *
  */
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
@@ -192,35 +210,46 @@ const eventDragged = ref<CalendarEvent>()
 /**
  * V-MODEL IMPLEMENTATION OF EVENTS
  */
- const eventsModel = computed({
+const eventsModel = computed({
   get() {
-      return props.events
+    return props.events
   },
   set(value: CalendarEvent[]) {
     emits('update:events', value)
-  }
+  },
 })
 
-/** 
+/**
  * Computes the closest start time from the props.dropzoneEvents
  * @trigger currentTime The Timestamp object giving us the date and time where the mouse is
  */
 const closestStartTime = computed(() => {
-  let closest : string = ''
-  if(!currentTime.value || !props.dropzoneEvents) return closest
+  let closest: string = ''
+  if (!currentTime.value || !props.dropzoneEvents) return closest
   let i = 0
   let timeDiff: number = 0
-  while(i < props.dropzoneEvents.possibleStarts[currentTime.value.date]?.length) {
+  while (i < props.dropzoneEvents.possibleStarts[currentTime.value.date]?.length) {
     let currentDiff: number = 0
-    if(i === 0) {
-      timeDiff = Math.abs(diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart, currentTime.value, false))
+    if (i === 0) {
+      timeDiff = Math.abs(
+        diffTimestamp(
+          props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart,
+          currentTime.value,
+          false
+        )
+      )
       closest = props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart.time
-    }
-    else { 
-        currentDiff = Math.abs(diffTimestamp(props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart, currentTime.value, false))
-        if (timeDiff > currentDiff) {
-          timeDiff = currentDiff
-          closest = props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart.time
+    } else {
+      currentDiff = Math.abs(
+        diffTimestamp(
+          props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart,
+          currentTime.value,
+          false
+        )
+      )
+      if (timeDiff > currentDiff) {
+        timeDiff = currentDiff
+        closest = props.dropzoneEvents.possibleStarts[currentTime.value.date][i].timeStart.time
       }
     }
     i = i + 1
@@ -235,9 +264,9 @@ const closestStartTime = computed(() => {
  * possibleStartTime.
  * @param dateTime The date referring to the day in which we are
  */
- function dropZoneCloseUpdate(dateTime: Timestamp): void {
+function dropZoneCloseUpdate(dateTime: Timestamp): void {
   props.dropzoneEvents?.possibleStarts[dateTime.date]?.forEach((ts) => {
-    if(ts.timeStart.time === closestStartTime.value) {
+    if (ts.timeStart.time === closestStartTime.value) {
       ts.isClose = true
     } else {
       ts.isClose = false
@@ -252,8 +281,8 @@ const closestStartTime = computed(() => {
  * @param layerY The position of the mouse on the Y-axis from the start of the parent element
  */
 function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, layerY: number): void {
-  if(dateTime) {
-    currentTime.value = updateMinutes(dateTime, Math.round(parseTime(dateTime.time)+timeDurationHeight(layerY)))
+  if (dateTime) {
+    currentTime.value = updateMinutes(dateTime, Math.round(parseTime(dateTime.time) + timeDurationHeight(layerY)))
   }
 }
 
@@ -279,7 +308,7 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
  * @param type the type of element of the calendar
  * @param scope context containing utilitary functions
  */
-function onDragOver(e: any, type: string, scope: { timeDurationHeight: any, timestamp: Timestamp }) {
+function onDragOver(e: any, type: string, scope: { timeDurationHeight: any; timestamp: Timestamp }) {
   e.preventDefault()
   currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
@@ -301,17 +330,19 @@ function updateEventDropped(): void {
     console.log('ERREUR DE DROPZONE')
     return
   }
-  if(!currentTime.value) {
+  if (!currentTime.value) {
     console.log('ERREUR CURRENT TIME')
     return
   }
-  props.dropzoneEvents?.possibleStarts[currentTime.value.date].forEach(ps => {
-    if(ps.isClose) {
+  props.dropzoneEvents?.possibleStarts[currentTime.value.date].forEach((ps) => {
+    if (ps.isClose) {
       newEvent.data.start = copyTimestamp(ps.timeStart)
     }
   })
   let newEvents: CalendarEvent[] = _.cloneDeep(props.events)
-  _.remove(newEvents, (e: CalendarEvent) => { return e.data.dataId === newEvent.data.dataId })
+  _.remove(newEvents, (e: CalendarEvent) => {
+    return e.data.dataId === newEvent.data.dataId
+  })
   newEvents.push(newEvent)
   eventsModel.value = newEvents
 }
