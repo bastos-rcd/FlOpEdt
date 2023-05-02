@@ -36,6 +36,11 @@ export interface CalendarColumn {
   x: number
 }
 
+export interface CalendarDynamicColumn extends CalendarColumn {
+  active: boolean
+}
+
+
 export interface CalendarDropzoneEvent {
   eventId: number
   duration: number
