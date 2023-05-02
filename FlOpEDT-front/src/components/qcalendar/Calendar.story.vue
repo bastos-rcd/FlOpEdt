@@ -18,6 +18,13 @@
         @dragstart="onDragStart"
       />
     </Variant>
+    <Variant title="Use case 3">
+      <Calendar 
+        :columns="useCase3.columns"
+        :events="(useCase3.events as CalendarEvent[])"
+        @dragstart="onDragStart"
+      />
+    </Variant>
   </Story>
 </template>
 
@@ -454,6 +461,46 @@ function onDragStart (eventId: number) {
 const currentDropzoneEvents = computed(() => {
   return useCase2.dropzoneEvents.find(d => d.eventId === currentEventId.value)
 })
+
+
+
+const useCase3 = {
+  columns: [
+    {
+      id: 0,
+      name: 'TPA',
+      weight: 1,
+      x: 0,
+    },
+    {
+      id: 1,
+      name: 'TPB',
+      weight: 1,
+      x: 1,
+      active:false
+    },
+    {
+      id: 2,
+      name: 'TPC',
+      weight: 1,
+      x: 2,
+    },
+    {
+      id: 3,
+      name: 'TPD',
+      weight: 1,
+      x: 3,
+    },
+    {
+      id: 4,
+      name: 'GIM2',
+      weight: 3,
+      x: 4,
+    },
+  ],
+  events: useCase1.events
+}
+
 
 </script>
 

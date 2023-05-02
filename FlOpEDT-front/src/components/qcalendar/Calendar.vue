@@ -1,5 +1,20 @@
 <template>
   <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
+    <div style="display: flex">
+      <template v-for="column in props.columns" :key="column.name">
+        <div
+              :class="badgeClasses('header')"
+              style="cursor: pointer;height: 12px;font-size: 10px;margin-bottom: 1px;margin-top: 1px;border-color: 1px solid black;color: black;"
+              :style="{
+                'flex-basis': Math.round((100 * column.weight) / totalWeight) + '%',
+                'align-items': 'center',
+              }"
+              @click="toggleActive(column.id)"
+            >
+              {{ column.name }}
+        </div>
+      </template>
+    </div>
     <q-calendar-day
       ref="calendar"
       v-model="selectedDate"
@@ -24,7 +39,7 @@
               :class="badgeClasses('header')"
               style="cursor: pointer;height: 12px;font-size: 10px;margin-bottom: 1px;margin-top: 1px;border-color: 1px solid black;color: black;"
               :style="{
-                'flex-basis': Math.round((100 * column.weight) / props.totalWeight) + '%',
+                'flex-basis': Math.round((100 * column.weight) / totalWeight) + '%',
                 'align-items': 'center',
               }"
             >
@@ -90,16 +105,16 @@ import { QCalendarDay, addToDate, parseTimestamp, today } from '@quasar/quasar-u
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
+import { sortBy, map, clone, sumBy } from 'lodash'
 
-import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
+import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent, CalendarDynamicColumn } from './declaration'
 
-import { computed, ref } from 'vue'
+import { computed, ref, Ref } from 'vue'
 import { Timestamp, TimestampOrNull, diffTimestamp, parseTime, parsed, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 
 const props = defineProps<{
   events: CalendarEvent[]
-  columns: CalendarColumn[]
-  totalWeight: number
+  columns: CalendarColumn[] | CalendarDynamicColumn[]
   dropzoneEvents?: CalendarDropzoneEvent
 }>()
 
@@ -108,6 +123,43 @@ const emits = defineEmits<{
   (e: 'dropevent', data: any): void
 }>()
 
+const dynamicColumns : Ref<Array<CalendarDynamicColumn>> = ref(map(
+  sortBy(props.columns, ['x']),
+  col => {
+    const dCol : CalendarDynamicColumn = clone(col) as CalendarDynamicColumn
+    if (dCol.active === undefined) {
+      dCol.active = true
+    }
+    return dCol
+  }
+  )
+)
+
+const totalWeight = computed(() => sumBy(
+  dynamicColumns.value,
+  (c : CalendarDynamicColumn) => c.active ? c.weight : 0)
+)
+
+const preWeight = computed(() => {
+  const map: Record<number, number> = {}
+  let preceeding = 0
+  for (let i = 0 ; i < dynamicColumns.value.length ; i++) {
+    const curColumn = dynamicColumns.value[i]
+    map[curColumn.id] = preceeding
+    if (curColumn.active) {
+      preceeding += curColumn.weight
+    }
+  }
+  return map
+})
+
+function toggleActive(columnId: number) {
+  const col = dynamicColumns.value.find(c => c.id === columnId)
+  if (col !== undefined) {
+    col.active = !col.active
+  }
+}
+  
 /**
  * QCalendar data to display
  * * styles,
@@ -157,9 +209,11 @@ function badgeStyles(
   timeStartPos: any = undefined,
   timeDurationHeight: any = undefined
 ) {
-  const currentGroup = props.columns.find((c) => c.id === columnId)
+  const currentGroup = dynamicColumns.value.find((c) => c.id === columnId)
 
   if (!currentGroup) return undefined
+
+  const preceedingWeight = preWeight.value[columnId]
 
   const s: Record<string, string> = {
     top: '',
@@ -168,8 +222,8 @@ function badgeStyles(
   }
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.data?.start) + 'px'
-    s.left = Math.round((currentGroup?.x / props.totalWeight) * 100) + '%'
-    s.width = Math.round((100 * currentGroup.weight) / props.totalWeight) + '%'
+    s.left = Math.round((preWeight.value[columnId] / totalWeight.value) * 100) + '%'
+    s.width = (currentGroup.active?Math.round((100 * currentGroup.weight) / totalWeight.value):0) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
   if(event.data?.dataType === "dropzone" && event.data.start.time === closestStartTime.value && event.data.start.date === currentTime.value?.date) {
