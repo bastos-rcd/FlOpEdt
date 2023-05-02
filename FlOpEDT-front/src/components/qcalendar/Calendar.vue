@@ -89,7 +89,7 @@ import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
 
-import { cloneDeep } from "lodash"
+import _ from "lodash"
 
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
@@ -105,7 +105,7 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   (e: 'dragstart', id: number): void
-  (e: 'dropevent', data: CalendarEvent): void
+  (e: 'update:events', value: CalendarEvent[]): void
 }>()
 
 /**
@@ -189,6 +189,17 @@ function badgeStyles(
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
 const eventDragged = ref<CalendarEvent>()
+/**
+ * V-MODEL IMPLEMENTATION OF EVENTS
+ */
+ const eventsModel = computed({
+  get() {
+      return props.events
+  },
+  set(value: CalendarEvent[]) {
+    emits('update:events', value)
+  }
+})
 
 /** 
  * Computes the closest start time from the props.dropzoneEvents
@@ -285,7 +296,7 @@ function onDragStop() {
  * Send an event to parent component with the data updated
  */
 function updateEventDropped(): void {
-  let newEvent: CalendarEvent = cloneDeep(eventDragged.value)
+  let newEvent: CalendarEvent = _.cloneDeep(eventDragged.value)
   if (props.dropzoneEvents?.eventId !== newEvent.data.dataId) {
     console.log('ERREUR DE DROPZONE')
     return
@@ -299,7 +310,10 @@ function updateEventDropped(): void {
       newEvent.data.start = copyTimestamp(ps.timeStart)
     }
   })
-  emits('dropevent', newEvent)
+  let newEvents: CalendarEvent[] = _.cloneDeep(props.events)
+  _.remove(newEvents, (e: CalendarEvent) => { return e.data.dataId === newEvent.data.dataId })
+  newEvents.push(newEvent)
+  eventsModel.value = newEvents
 }
 </script>
 

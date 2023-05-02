@@ -12,11 +12,10 @@
     <Variant title="Use case 2">
       <Calendar 
         :columns="useCase2.columns"
-        :events="useCase2.events.value"
+        v-model:events="useCase2.events.value"
         :total-weight="useCase2.totalWeight"
         :dropzone-events="(currentDropzoneEvents as CalendarDropzoneEvent)"
         @dragstart="onDragStart"
-        @dropevent="onDropEvent"
       />
     </Variant>
   </Story>
@@ -42,10 +41,6 @@ function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
   return tm as Timestamp
 }
 
-function onDropEvent(data: CalendarEvent) {
-  _.remove(useCase2.events.value, (e: CalendarEvent) => { return e.data.dataId === data.data.dataId })
-  useCase2.events.value.push(data)
-}
 
 interface UseCase {
   columns: CalendarColumn[]
