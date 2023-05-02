@@ -165,6 +165,7 @@ install_pip_artifact:
   
   script:
     - pip install dist/FlOpEDT*.tar.gz
+    - mkdir -p /var/flopedt/{tmp,cache}
     - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' config_file/flopedt.ini
     - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin migrate --settings FlOpEDT.settings.production
     - bunzip2 dump.json.bz2
