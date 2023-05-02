@@ -282,7 +282,8 @@ function dropZoneCloseUpdate(dateTime: Timestamp): void {
  */
 function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, layerY: number): void {
   if (dateTime) {
-    currentTime.value = updateMinutes(dateTime, Math.round(parseTime(dateTime.time) + timeDurationHeight(layerY)))
+    if(!currentTime.value || currentTime.value.date !== dateTime.date) currentTime.value = copyTimestamp(dateTime)
+    updateMinutes(currentTime.value, Math.round(parseTime(dateTime.time) + timeDurationHeight(layerY)))
   }
 }
 
