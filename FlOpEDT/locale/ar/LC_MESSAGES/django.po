@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-26 13:31+0000\n"
+"POT-Creation-Date: 2023-03-18 13:58+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -127,129 +127,139 @@ msgstr ""
 msgid "Limit room moves for tutors"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:58
+#: TTapp/TTConstraints/core_constraints.py:61
 msgid "No simultaneous courses for groups"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:73
-#: TTapp/TTConstraints/core_constraints.py:369
-#: TTapp/TTConstraints/slots_constraints.py:350
+#: TTapp/TTConstraints/core_constraints.py:76
+#: TTapp/TTConstraints/core_constraints.py:433
+#: TTapp/TTConstraints/slots_constraints.py:73
+#: TTapp/TTConstraints/slots_constraints.py:456
 msgid "OK"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:117
-#: TTapp/TTConstraints/core_constraints.py:128
-#: TTapp/TTConstraints/core_constraints.py:146
-#: TTapp/TTConstraints/core_constraints.py:399
-#: TTapp/TTConstraints/core_constraints.py:455
-#: TTapp/TTConstraints/core_constraints.py:478
-#: TTapp/TTConstraints/slots_constraints.py:374
-#: TTapp/TTConstraints/slots_constraints.py:381
-#: TTapp/TTConstraints/slots_constraints.py:388
-#: TTapp/TTConstraints/slots_constraints.py:402
-#: TTapp/TTConstraints/slots_constraints.py:410
-#: TTapp/TTConstraints/slots_constraints.py:417
+#: TTapp/TTConstraints/core_constraints.py:125
+#: TTapp/TTConstraints/core_constraints.py:143
+#: TTapp/TTConstraints/core_constraints.py:187
+#: TTapp/TTConstraints/core_constraints.py:203
+#: TTapp/TTConstraints/core_constraints.py:458
+#: TTapp/TTConstraints/core_constraints.py:521
+#: TTapp/TTConstraints/core_constraints.py:551
+#: TTapp/TTConstraints/slots_constraints.py:85
+#: TTapp/TTConstraints/slots_constraints.py:117
+#: TTapp/TTConstraints/slots_constraints.py:123
+#: TTapp/TTConstraints/slots_constraints.py:146
+#: TTapp/TTConstraints/slots_constraints.py:156
+#: TTapp/TTConstraints/slots_constraints.py:486
+#: TTapp/TTConstraints/slots_constraints.py:493
+#: TTapp/TTConstraints/slots_constraints.py:500
+#: TTapp/TTConstraints/slots_constraints.py:514
+#: TTapp/TTConstraints/slots_constraints.py:522
+#: TTapp/TTConstraints/slots_constraints.py:531
 msgid "KO"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:118
-#, python-brace-format
+#: TTapp/TTConstraints/core_constraints.py:127
+#, python-format
 msgid ""
-"Group {bg.name} has {group_partition.not_forbidden_duration} available time "
-"but requires minimum {min_course_time_needed}."
+"Group %(group_name)s has %(not_forbidden_duration)s available time but "
+"requires minimum %(min_course_time_needed)s."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:129
-#, python-brace-format
+#: TTapp/TTConstraints/core_constraints.py:145
+#, python-format
 msgid ""
-"Group {bg.name} has {group_partition.not_forbidden_duration} available time "
-"but probably requires minimum {course_time_needed}."
+"Group %(group_name)s has %(not_forbidden_duration)s available time but "
+"probably requires minimum %(min_course_time_needed)s."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:147
-#, python-brace-format
+#: TTapp/TTConstraints/core_constraints.py:189
+#, python-format
 msgid ""
-"Group {bg.name} has {allowed_slots_nb} slots available of {course_type."
-"duration} minutes and requires {nb_courses}."
+"Group %(group_name)s has %(allowed_slots_nb)s slots available of "
+"%(duration)s minutes and requires %(nb_courses)s."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:211
+#: TTapp/TTConstraints/core_constraints.py:205
+#, python-format
+msgid ""
+"Group %(group_name)s has a total of %(all_allowed_slots_nb)s slots available "
+"of minimum %(min_duration)s minutes and requires %(all_nb_courses)s."
+msgstr ""
+
+#: TTapp/TTConstraints/core_constraints.py:274
 msgid "No simultaneous courses for one group"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:225
+#: TTapp/TTConstraints/core_constraints.py:288
 msgid "Schedule once all considered courses"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:264
+#: TTapp/TTConstraints/core_constraints.py:327
 msgid "Schedule once every considered course"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:276
+#: TTapp/TTConstraints/core_constraints.py:339
 msgid "Pre-assigned courses only"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:279
-#: TTapp/TTConstraints/core_constraints.py:346
+#: TTapp/TTConstraints/core_constraints.py:342
+#: TTapp/TTConstraints/core_constraints.py:410
 msgid "Each course is assigned to one tutor (max)"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:353
+#: TTapp/TTConstraints/core_constraints.py:417
 msgid "Consider tutors' unvailabilities"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:396
-#, python-brace-format
-msgid ""
-"Tutor {tutor} has {tutor_partition.available_duration} minutes of available "
-"time."
+#: TTapp/TTConstraints/core_constraints.py:452
+#, python-format
+msgid "Tutor %(tutor)s has %(available_duration)s minutes of available time."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:397
-#: TTapp/TTConstraints/core_constraints.py:453
+#: TTapp/TTConstraints/core_constraints.py:454
+#: TTapp/TTConstraints/core_constraints.py:516
+#, python-format
 msgid ""
-" He or she has to lecture {len(courses)} classes for an amount of {sum(c."
-"type.duration for c in courses)} minutes of courses."
+" He or she has to lecture %(classes_nb)s classes for an amount of "
+"%(duration)s minutes of courses."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:440
-#, python-brace-format
-msgid ""
-"Tutor {tutor} has {tutor_partition.available_duration} minutes of available "
-"time"
+#: TTapp/TTConstraints/core_constraints.py:502
+#, python-format
+msgid "Tutor %(tutor)s has %(available_duration)s minutes of available time"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:442
+#: TTapp/TTConstraints/core_constraints.py:505
 msgid " (considering that"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:444
-#, python-brace-format
-msgid " {forbidden_days} is forbidden"
+#: TTapp/TTConstraints/core_constraints.py:507
+#, python-format
+msgid " %s is forbidden"
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:446
-#, python-brace-format
-msgid " and {holiday_text} is holiday)."
+#: TTapp/TTConstraints/core_constraints.py:509
+#, python-format
+msgid " and %s is holiday)."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:450
-#, python-brace-format
-msgid " {holiday_text} is holiday)."
+#: TTapp/TTConstraints/core_constraints.py:513
+#, python-format
+msgid " %s is holiday)."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:475
-msgid ""
-"Tutor {tutor} has {course_partition."
-"nb_slots_available_of_duration_beginning_at(course_type.duration, "
-"start_times)} available slots of {course_type.duration} mins "
+#: TTapp/TTConstraints/core_constraints.py:544
+#, python-format
+msgid "Tutor %(tutor)s has %(slots_nb)s available slots of %(duration)s mins "
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:476
-msgid "and {len(course_list)} courses that long to attend."
+#: TTapp/TTConstraints/core_constraints.py:548
+#, python-format
+msgid "and %s courses that long to attend."
 msgstr ""
 
-#: TTapp/TTConstraints/core_constraints.py:522
+#: TTapp/TTConstraints/core_constraints.py:595
 msgid "Consider tutors unavailability"
 msgstr ""
 
@@ -269,23 +279,23 @@ msgstr ""
 msgid "Gather courses of considered modules"
 msgstr ""
 
-#: TTapp/TTConstraints/groups_constraints.py:93
+#: TTapp/TTConstraints/groups_constraints.py:112
 msgid "Minimize busy half-days for groups"
 msgstr ""
 
-#: TTapp/TTConstraints/groups_constraints.py:126
+#: TTapp/TTConstraints/groups_constraints.py:145
 msgid "Minimize groups half-days"
 msgstr ""
 
-#: TTapp/TTConstraints/groups_constraints.py:136
+#: TTapp/TTConstraints/groups_constraints.py:155
 msgid "Minimize undesired slots for groups"
 msgstr ""
 
-#: TTapp/TTConstraints/groups_constraints.py:197
+#: TTapp/TTConstraints/groups_constraints.py:216
 msgid "Minimize groups non-preferred slots"
 msgstr ""
 
-#: TTapp/TTConstraints/groups_constraints.py:209
+#: TTapp/TTConstraints/groups_constraints.py:228
 msgid "Respect groups min hours per day bounds"
 msgstr ""
 
@@ -313,44 +323,44 @@ msgstr ""
 msgid "Minimize used half-days for modules"
 msgstr ""
 
-#: TTapp/TTConstraints/no_course_constraints.py:44
+#: TTapp/TTConstraints/no_course_constraints.py:45
 msgid "Full day"
 msgstr ""
 
-#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:145
+#: TTapp/TTConstraints/no_course_constraints.py:45 base/timing.py:145
 msgid "AM"
 msgstr ""
 
-#: TTapp/TTConstraints/no_course_constraints.py:44 base/timing.py:145
+#: TTapp/TTConstraints/no_course_constraints.py:45 base/timing.py:145
 msgid "PM"
 msgstr ""
 
-#: TTapp/TTConstraints/no_course_constraints.py:45
+#: TTapp/TTConstraints/no_course_constraints.py:46
 msgid "fampm_period"
 msgstr ""
 
-#: TTapp/TTConstraints/no_course_constraints.py:72
+#: TTapp/TTConstraints/no_course_constraints.py:73
 msgid "No courses on declared days for groups"
 msgstr ""
 
-#: TTapp/TTConstraints/no_course_constraints.py:115
+#: TTapp/TTConstraints/no_course_constraints.py:189
 msgid "No courses on declared days for tutors"
 msgstr ""
 
-#: TTapp/TTConstraints/orsay_constraints.py:59
+#: TTapp/TTConstraints/orsay_constraints.py:66
 msgid "Lunch break for groups"
 msgstr ""
 
-#: TTapp/TTConstraints/orsay_constraints.py:135
+#: TTapp/TTConstraints/orsay_constraints.py:173
 msgid "Lunch break for tutors"
 msgstr ""
 
-#: TTapp/TTConstraints/orsay_constraints.py:192
+#: TTapp/TTConstraints/orsay_constraints.py:230
 #, python-brace-format
 msgid "Not able to eat in other departments on {day}-{week}"
 msgstr ""
 
-#: TTapp/TTConstraints/orsay_constraints.py:236
+#: TTapp/TTConstraints/orsay_constraints.py:305
 msgid "A break around some type courses"
 msgstr ""
 
@@ -371,70 +381,86 @@ msgstr ""
 msgid "Parallelize courses"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:113
+#: TTapp/TTConstraints/slots_constraints.py:86
+msgid "No partition created : maybe there is no courses or it's wrong the week"
+msgstr ""
+
+#: TTapp/TTConstraints/slots_constraints.py:118
+msgid "Not enough common available time for courses "
+msgstr ""
+
+#: TTapp/TTConstraints/slots_constraints.py:147
+#, python-format
+msgid "Tutor %s has more than one to do at the same time"
+msgstr ""
+
+#: TTapp/TTConstraints/slots_constraints.py:157
+#, python-format
+msgid "Group %s has more than one course to do at the same time"
+msgstr ""
+
+#: TTapp/TTConstraints/slots_constraints.py:219
 msgid "Simultaneous courses"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:173
+#: TTapp/TTConstraints/slots_constraints.py:279
 msgid "Limited start time choices"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:230
+#: TTapp/TTConstraints/slots_constraints.py:336
 msgid "Avoid considered start times"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:334
+#: TTapp/TTConstraints/slots_constraints.py:440
 msgid "Consider dependecies"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:376
-#: TTapp/TTConstraints/slots_constraints.py:383
-#, python-brace-format
+#: TTapp/TTConstraints/slots_constraints.py:488
+#: TTapp/TTConstraints/slots_constraints.py:495
+#, python-format
 msgid ""
-"There is no available slots for the second course after the first one. "
-"{dependency}"
+"There is no available slots for the second course after the first one : %s"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:390
-#, python-brace-format
+#: TTapp/TTConstraints/slots_constraints.py:502
+#, python-format
+msgid "There is no available slots for the first or the second course : %s"
+msgstr ""
+
+#: TTapp/TTConstraints/slots_constraints.py:516
+#, python-format
+msgid "There is no available successive slots for those courses: %s"
+msgstr ""
+
+#: TTapp/TTConstraints/slots_constraints.py:524
+#, python-format
 msgid ""
-"There is no available slots for the first or the second course. {dependency}"
+"There is no available slots for the second course after a %(day_gap)s day "
+"gap: %(dependency)s"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:404
-#, python-brace-format
-msgid "There is no available successive slots for those courses. {dependency}"
+#: TTapp/TTConstraints/slots_constraints.py:533
+#, python-format
+msgid "One of the courses has no eligible tutor to lecture it: %s"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:412
-#, python-brace-format
-msgid ""
-"There is no available slots for the second course after a {dependency."
-"day_gap} day gap. {dependency}"
-msgstr ""
-
-#: TTapp/TTConstraints/slots_constraints.py:419
-#, python-brace-format
-msgid "One of the courses has no eligible tutor to lecture it. {dependency}"
-msgstr ""
-
-#: TTapp/TTConstraints/slots_constraints.py:489
+#: TTapp/TTConstraints/slots_constraints.py:603
 msgid "Consider pivots"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:563
+#: TTapp/TTConstraints/slots_constraints.py:677
 msgid "Avoid using both times on same day"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:621 ics/templates/ics/index.html:66
+#: TTapp/TTConstraints/slots_constraints.py:735 ics/templates/ics/index.html:66
 msgid "Tutors"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:627
+#: TTapp/TTConstraints/slots_constraints.py:741
 msgid "Limit undesired slots per week"
 msgstr ""
 
-#: TTapp/TTConstraints/slots_constraints.py:681
+#: TTapp/TTConstraints/slots_constraints.py:795
 msgid "Limit simultaneous courses number"
 msgstr ""
 
@@ -532,6 +558,22 @@ msgstr ""
 msgid "%s, "
 msgstr ""
 
+#: api/permissions.py:13
+msgid "All methods reserved for tutors"
+msgstr ""
+
+#: api/permissions.py:23
+msgid "POST, PUT, PATCH and DELETE methods reserved for tutors"
+msgstr ""
+
+#: api/permissions.py:33
+msgid "POST, PUT, PATCH and DELETE methods reserved for students"
+msgstr ""
+
+#: api/permissions.py:43
+msgid "POST, PUT, PATCH and DELETE methods reserved for admin"
+msgstr ""
+
 #: base/admin.py:608 base/admin.py:634 base/admin.py:647
 msgid "Week"
 msgstr ""
@@ -576,71 +618,71 @@ msgstr ""
 msgid "Basic group?"
 msgstr ""
 
-#: base/models.py:227
+#: base/models.py:233
 msgid "Half day"
 msgstr ""
 
-#: base/models.py:251 notifications/models.py:41
+#: base/models.py:257 notifications/models.py:41
 msgid "Week number"
 msgstr ""
 
-#: base/models.py:305
+#: base/models.py:311
 msgid "Educative"
 msgstr ""
 
-#: base/models.py:306
+#: base/models.py:312
 msgid "Coop. (workplace)"
 msgstr ""
 
-#: base/models.py:307
+#: base/models.py:313
 msgid "Coop. (worker)"
 msgstr ""
 
-#: base/models.py:493 notifications/models.py:47
+#: base/models.py:499 notifications/models.py:47
 msgid "Abbreviation"
 msgstr ""
 
-#: base/models.py:537
+#: base/models.py:543
 msgid "graded?"
 msgstr ""
 
-#: base/models.py:564
+#: base/models.py:570
 msgid "Suspens?"
 msgstr ""
 
-#: base/models.py:597
+#: base/models.py:603
 msgid "Graded?"
 msgstr ""
 
-#: base/models.py:598
+#: base/models.py:604
 msgid "Over time"
 msgstr ""
 
-#: base/models.py:978
+#: base/models.py:984
 msgid "Successives?"
 msgstr ""
 
-#: base/models.py:979 base/models.py:990
+#: base/models.py:985 base/models.py:996
 msgid "On different days"
 msgstr ""
 
-#: base/models.py:980
+#: base/models.py:986
 msgid "Minimal day gap between courses"
 msgstr ""
 
-#: base/models.py:1008
+#: base/models.py:1014
 msgid "Full"
 msgstr ""
 
-#: base/models.py:1010
+#: base/models.py:1016
 msgid "Full generation date"
 msgstr ""
 
-#: base/models.py:1011
+#: base/models.py:1017
 msgid "Stabilized"
 msgstr ""
 
-#: base/models.py:1013
+#: base/models.py:1019
 msgid "Partial generation date"
 msgstr ""
 

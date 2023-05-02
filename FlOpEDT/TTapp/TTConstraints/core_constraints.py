@@ -28,7 +28,7 @@ from core.decorators import timer
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval
-from base.models import CourseStartTimeConstraint
+from base.models import CourseStartTimeConstraint, Week
 from django.db import models
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
@@ -39,14 +39,17 @@ from TTapp.ilp_constraints.constraints.simulSlotGroupConstraint import SimulSlot
 from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups, pre_analysis_considered_basic_groups
 from base.models import Course, UserPreference, Holiday
 from base.partition import Partition
+import TTapp.GlobalPreAnalysis.partition_with_constraints as partition_bis
 from base.timing import Day, flopdate_to_datetime
 from people.models import Tutor
 from django.db.models import Q
 from datetime import timedelta
+
 
 class NoSimultaneousGroupCourses(TTConstraint):
     """
@@ -67,23 +70,27 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
         Parameter:
             week (Week): the week we want to analyse the data from
-            
+        
         Returns:
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem"""
-        jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year }}
+        jsondict = {"status": _("OK"), "messages": [], "period": {"week": week.nb, "year": week.year}}
 
         considered_basic_groups = pre_analysis_considered_basic_groups(self)
+        no_user_pref = not ConsiderTutorsUnavailability.objects.filter(weeks=week).exists()
         for bg in considered_basic_groups:
 
-            #Retrieving information about general time settings and creating the partition
-            group_partition = Partition.get_partition_of_week(week, bg.type.department, True)
-            
+            # Retrieving information about general time settings and creating the partition with information about other constraints
+            group_partition = partition_bis.create_group_partition_from_constraints(week=week,
+                                                                                    department=bg.type.department,
+                                                                                    group=bg, available=no_user_pref)
+
             ### Coloration ###
             tuple_graph = coloration_ordered(bg)
             ### Coloration ###
 
-            #We are looking for the maximum courses' time of transversal groups 
+            # We are looking for the maximum courses' time of transversal groups
             max_courses_time_transversal = 0
+
             if tuple_graph:
                 graph, color_max = tuple_graph
                 for transversal_group in graph:
@@ -91,11 +98,10 @@ class NoSimultaneousGroupCourses(TTConstraint):
                     if time_courses > max_courses_time_transversal:
                         max_courses_time_transversal = time_courses
 
-
-            #we are looking for the minimum transversal_groups we need to consider
+            # We are looking for the minimum transversal_groups we need to consider
             transversal_conflict_groups = set()
             if tuple_graph:
-                for i in range(1,color_max+1):
+                for i in range(1, color_max + 1):
                     groups = []
                     for summit, graph_dict in graph.items():
                         if graph_dict["color"] == i:
@@ -109,43 +115,100 @@ class NoSimultaneousGroupCourses(TTConstraint):
                             time_group_courses = gp.time_of_courses(week)
                     transversal_conflict_groups.add(group_to_consider)
 
-            #Set of courses for the group and all its structural ancestors
+            # Set of courses for the group and all its structural ancestors
             considered_courses = set(c for c in Course.objects.filter(week=week, groups__in=bg.and_ancestors()))
-            #Mimimum time needed in any cases
+
+            # Mimimum time needed in any cases
             min_course_time_needed = sum(c.type.duration for c in considered_courses) + max_courses_time_transversal
+
             if min_course_time_needed > group_partition.not_forbidden_duration:
                 jsondict["status"] = _("KO")
-                jsondict["messages"].append({"str":_(f"Group {bg.name} has {group_partition.not_forbidden_duration} available time but requires minimum {min_course_time_needed}."),
-                                            "group":bg.id, "type": "NoSimultaneousGroupCourses"})
-            else:
-                #If they exists we add the transversal courses to the considered_courses
-                if transversal_conflict_groups:
-                    considered_courses = considered_courses | set(c for c in Course.objects.filter(week=week, groups__in = transversal_conflict_groups))
+                jsondict["messages"].append({"str": gettext(
+                    "Group %(group_name)s has %(not_forbidden_duration)s available time but requires minimum %(min_course_time_needed)s.")
+                                                    % {"group_name": bg.name,
+                                                       "not_forbidden_duration": group_partition.not_forbidden_duration,
+                                                       "min_course_time_needed": min_course_time_needed},
+                                             "group": bg.id, "type": "NoSimultaneousGroupCourses"})
 
-                #If we are below that amount of time we probably cannot do it.
+            else:
+                # If they exists we add the transversal courses to the considered_courses
+                if transversal_conflict_groups:
+                    considered_courses = considered_courses | set(
+                        c for c in Course.objects.filter(week=week, groups__in=transversal_conflict_groups))
+
+                # If we are below that amount of time we probably cannot do it.
                 course_time_needed = sum(c.type.duration for c in considered_courses)
+
                 if course_time_needed > group_partition.not_forbidden_duration:
                     jsondict["status"] = _("KO")
-                    jsondict["messages"].append({"str":_(f"Group {bg.name} has {group_partition.not_forbidden_duration} available time but probably requires minimum {course_time_needed}."),
-                                                "group":bg.id, "type": "NoSimultaneousGroupCourses"})
+                    jsondict["messages"].append({"str": gettext(
+                        "Group %(group_name)s has %(not_forbidden_duration)s available time but probably requires minimum %(min_course_time_needed)s.")
+                                                        % {"group_name": bg.name,
+                                                           "not_forbidden_duration": group_partition.not_forbidden_duration,
+                                                           "min_course_time_needed": min_course_time_needed},
+                                                 "group": bg.id, "type": "NoSimultaneousGroupCourses"})
+
                 else:
-                    #We are checking if we have enough slots for each course type
+
+                    # We are checking if we have enough slots for the number of courses
+
+                    # We gather the courses by type
+
                     course_dict = dict()
                     for c in considered_courses:
+
                         if c.type in course_dict:
                             course_dict[c.type] += 1
                         else:
-                            course_dict[c.type] = 1 
+                            course_dict[c.type] = 1
 
-                            
+                    all_start_times = []
+                    all_nb_courses = 0
+                    min_duration = 1440
+
                     for course_type, nb_courses in course_dict.items():
-                        #We are retrieving the possible start times for each course type and then we check how many we can put in the partition
-                        start_times = CourseStartTimeConstraint.objects.get(course_type = course_type)
-                        allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(course_type.duration, start_times.allowed_start_times)
+
+                        # We compute the total number of courses, all the different start times and the minimum duration of course
+                        all_nb_courses += nb_courses
+                        start_times = CourseStartTimeConstraint.objects.get(course_type=course_type).allowed_start_times
+                        if course_type.duration < min_duration:
+                            min_duration = course_type.duration
+
+                        for st in start_times:
+                            if st not in all_start_times:
+                                all_start_times.append(st)
+
+                        # We look if there is enough slot for each course_type
+
+                        allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(
+                            course_type.duration, start_times)
+
                         if allowed_slots_nb < nb_courses:
                             jsondict["status"] = _("KO")
-                            jsondict["messages"].append({ "str": _(f"Group {bg.name} has {allowed_slots_nb} slots available of {course_type.duration} minutes and requires {nb_courses}."),
-                                                        "group": bg.id, "type": "NoSimultaneousGroupCourses"}) 
+                            jsondict["messages"].append({"str": gettext(
+                                "Group %(group_name)s has %(allowed_slots_nb)s slots available of %(duration)s minutes and requires %(nb_courses)s.")
+                                                                % {"group_name": bg.name,
+                                                                   "allowed_slots_nb": allowed_slots_nb,
+                                                                   "duration": course_type.duration,
+                                                                   "nb_courses": nb_courses},
+                                "group": bg.id, "type": "NoSimultaneousGroupCourses"})
+                            return jsondict
+
+                    '''To try to avoid conflict we are looking if there are enough slots for all courses at all start times possible for the minimum duration of all courses. Not always find an infeasibility but can quickly find conflict in some case.'''
+
+                    all_allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(min_duration,
+                                                                                                           all_start_times)
+
+                    if all_allowed_slots_nb < all_nb_courses:
+                        jsondict["status"] = _("KO")
+                        jsondict["messages"].append({"str": _(
+                            "Group %(group_name)s has a total of %(all_allowed_slots_nb)s slots available of minimum %(min_duration)s minutes and requires %(all_nb_courses)s.")
+                                                            % {"group_name": bg.name,
+                                                               "all_allowed_slots_nb": all_allowed_slots_nb,
+                                                               "min_duration": min_duration,
+                                                               "all_nb_courses": all_nb_courses},
+                            "group": bg.id, "type": "NoSimultaneousGroupCourses"})
+
         return jsondict
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
@@ -159,16 +222,16 @@ class NoSimultaneousGroupCourses(TTConstraint):
         for sl in relevant_slots:
             for bg in relevant_basic_groups:
                 relevant_sum = n_tg * ttmodel.sum(ttmodel.TT[(sl2, c2)]
-                                               for sl2 in slots_filter(ttmodel.wdb.courses_slots,
-                                                                       simultaneous_to=sl)
-                                                    for c2 in ttmodel.wdb.courses_for_basic_group[bg]
-                                                    & ttmodel.wdb.compatible_courses[sl2]) \
+                                                  for sl2 in slots_filter(ttmodel.wdb.courses_slots,
+                                                                          simultaneous_to=sl)
+                                                  for c2 in ttmodel.wdb.courses_for_basic_group[bg]
+                                                  & ttmodel.wdb.compatible_courses[sl2]) \
                                + ttmodel.sum(ttmodel.TT[(sl2, c2)]
-                                               for tg in ttmodel.wdb.transversal_groups_of[bg]
-                                               for sl2 in slots_filter(ttmodel.wdb.courses_slots,
-                                                                       simultaneous_to=sl)
-                                               for c2 in ttmodel.wdb.courses_for_group[tg]
-                                               & ttmodel.wdb.compatible_courses[sl2])
+                                             for tg in ttmodel.wdb.transversal_groups_of[bg]
+                                             for sl2 in slots_filter(ttmodel.wdb.courses_slots,
+                                                                     simultaneous_to=sl)
+                                             for c2 in ttmodel.wdb.courses_for_group[tg]
+                                             & ttmodel.wdb.compatible_courses[sl2])
                 if self.weight is None:
                     ttmodel.add_constraint(relevant_sum,
                                            '<=', n_tg, SimulSlotGroupConstraint(sl, bg))
@@ -178,11 +241,11 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
             for tg in ttmodel.wdb.transversal_groups:
                 not_parallel_nb = len(ttmodel.wdb.not_parallel_transversal_groups[tg])
-                relevant_sum_for_tg = not_parallel_nb*ttmodel.sum(ttmodel.TT[(sl2, c2)]
-                                                  for sl2 in slots_filter(ttmodel.wdb.courses_slots,
-                                                                          simultaneous_to=sl)
-                                                  for c2 in ttmodel.wdb.courses_for_group[tg]
-                                                  & ttmodel.wdb.compatible_courses[sl2]) \
+                relevant_sum_for_tg = not_parallel_nb * ttmodel.sum(ttmodel.TT[(sl2, c2)]
+                                                                    for sl2 in slots_filter(ttmodel.wdb.courses_slots,
+                                                                                            simultaneous_to=sl)
+                                                                    for c2 in ttmodel.wdb.courses_for_group[tg]
+                                                                    & ttmodel.wdb.compatible_courses[sl2]) \
                                       + ttmodel.sum(ttmodel.TT[(sl2, c2)]
                                                     for tg2 in ttmodel.wdb.not_parallel_transversal_groups[tg]
                                                     for sl2 in slots_filter(ttmodel.wdb.courses_slots,
@@ -224,7 +287,7 @@ class ScheduleAllCourses(TTConstraint):
     class Meta:
         verbose_name = _('Schedule once all considered courses')
         verbose_name_plural = verbose_name
-                                
+
     def enrich_ttmodel(self, ttmodel, week, ponderation=100):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(c for bg in relevant_basic_groups
@@ -308,8 +371,9 @@ class AssignAllCourses(TTConstraint):
                 if self.weight is None:
                     ttmodel.add_constraint(relevant_sum,
                                            '==', 0,
-                                           InstructorConstraint(constraint_type=ConstraintType.COURS_DOIT_AVOIR_PROFESSEUR,
-                                                                slot=sl, course=c))
+                                           InstructorConstraint(
+                                               constraint_type=ConstraintType.COURS_DOIT_AVOIR_PROFESSEUR,
+                                               slot=sl, course=c))
                 else:
                     ttmodel.add_constraint(relevant_sum,
                                            '<=', 0,
@@ -317,7 +381,7 @@ class AssignAllCourses(TTConstraint):
                                                constraint_type=ConstraintType.COURS_DOIT_AVOIR_PROFESSEUR,
                                                slot=sl, course=c))
                     assigned = ttmodel.add_floor(relevant_sum, 0, 1000)
-                    ttmodel.add_to_generic_cost((1-assigned) * self.local_weight() * ponderation, week)
+                    ttmodel.add_to_generic_cost((1 - assigned) * self.local_weight() * ponderation, week)
         if self.pre_assigned_only:
             possible_useless_assignations_sum = \
                 ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
@@ -354,7 +418,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
         verbose_name_plural = verbose_name
 
     @timer
-    def pre_analyse(self, week, spec_tutor = None):
+    def pre_analyse(self, week, spec_tutor=None):
         """Pre analysis of the Constraint
         For each tutor considered, checks if he or she has enough time available during the week and then
         if he or she has enough slots for each type of courses
@@ -366,51 +430,48 @@ class ConsiderTutorsUnavailability(TTConstraint):
 
         Returns:
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem"""
-        jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year }}
+        jsondict = {"status": _("OK"), "messages": [], "period": {"week": week.nb, "year": week.year}}
         if spec_tutor:
             considered_tutors = [spec_tutor]
         else:
             considered_tutors = self.tutors.all()
 
         if not considered_tutors:
-            considered_tutors = Tutor.objects.filter(departments = self.department)
+            considered_tutors = Tutor.objects.filter(departments=self.department)
 
         for tutor in considered_tutors:
-            courses = Course.objects.filter(Q(tutor = tutor) | Q(supp_tutor = tutor), week = week)
+            courses = Course.objects.filter(Q(tutor=tutor) | Q(supp_tutor=tutor), week=week)
             if not courses.filter(type__department=self.department):
                 continue
-            tutor_partition = Partition.get_partition_of_week(week, self.department, True)
-            user_preferences = UserPreference.objects.filter(user = tutor, week = week, value__gte=1)
-            if not user_preferences.exists():
-                user_preferences = UserPreference.objects.filter(user = tutor, week = None, value__gte=1)
-            for up in user_preferences:
-                    up_day = Day(up.day, week)
-                    tutor_partition.add_slot(
-                        TimeInterval(flopdate_to_datetime(up_day, up.start_time),
-                        flopdate_to_datetime(up_day, up.end_time)),
-                        "user_preference",
-                        {"value" : up.value, "available" : True, "tutor" : up.user.username}
-                    )
+
+            tutor_partition = partition_bis.create_tutor_partition_from_constraints(week=week,
+                                                                                    department=self.department,
+                                                                                    tutor=tutor)
 
             if tutor_partition.available_duration < sum(c.type.duration for c in courses):
-                message = _(f"Tutor {tutor} has {tutor_partition.available_duration} minutes of available time.")
-                message += _(f' He or she has to lecture {len(courses)} classes for an amount of {sum(c.type.duration for c in courses)} minutes of courses.')
-                jsondict["messages"].append({ "str": message, "tutor": tutor.id, "type" : "ConsiderTutorsUnavailability"})
+                message = gettext("Tutor %(tutor)s has %(available_duration)s minutes of available time.") \
+                          % {"tutor":tutor, "available_duration": int(tutor_partition.available_duration)}
+                message += gettext(' He or she has to lecture %(classes_nb)s classes for an amount of %(duration)s '
+                                   'minutes of courses.') \
+                           % {"classes_nb" : len(courses), "duration": sum(c.type.duration for c in courses)}
+                jsondict["messages"].append({"str": message, "tutor": tutor.id, "type": "ConsiderTutorsUnavailability"})
                 jsondict["status"] = _("KO")
 
             else:
-                no_course_tutor = NoTutorCourseOnDay.objects.filter(Q(tutors = tutor)
-                            | Q(tutor_status = tutor.status) | Q(tutors=None), department = self.department,
-                            weeks = week)
+                no_course_tutor = NoTutorCourseOnDay.objects.filter(Q(tutors=tutor)
+                                                                    | Q(tutor_status=tutor.status) | Q(tutors=None),
+                                                                    department=self.department,
+                                                                    weeks=week)
                 if not no_course_tutor:
-                    no_course_tutor = NoTutorCourseOnDay.objects.filter(Q(tutors = tutor)
-                            | Q(tutor_status = tutor.status) | Q(tutors=None), department = self.department,
-                            weeks = None)
+                    no_course_tutor = NoTutorCourseOnDay.objects.filter(Q(tutors=tutor)
+                                                                        | Q(tutor_status=tutor.status) | Q(tutors=None),
+                                                                        department=self.department,
+                                                                        weeks=None)
                 forbidden_days = ""
                 if no_course_tutor.exists():
                     for constraint in no_course_tutor:
-                        forbidden_days += constraint.weekday+'-'+constraint.period+', '
-                        slot = constraint.get_slot_constraint(week, forbidden = True)
+                        forbidden_days += constraint.weekday + '-' + constraint.period + ', '
+                        slot = constraint.get_slot_constraint(week, forbidden=True)
                         if slot:
                             tutor_partition.add_slot(
                                 slot[0],
@@ -418,7 +479,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                                 slot[1]
                             )
                     # we remove the last ','
-                    forbidden_days=forbidden_days[:-2]
+                    forbidden_days = forbidden_days[:-2]
 
                 holidays = Holiday.objects.filter(week=week)
                 holiday_text = ''
@@ -432,26 +493,31 @@ class ConsiderTutorsUnavailability(TTConstraint):
                         tutor_partition.add_slot(
                             t,
                             "holiday",
-                            {"forbidden" : True}
+                            {"forbidden": True}
                         )
                     holiday_text = holiday_text[:-2]
 
                 if tutor_partition.available_duration < sum(c.type.duration for c in courses):
-                    message = _(f"Tutor {tutor} has {tutor_partition.available_duration} minutes of available time")
+                    message = gettext(
+                        "Tutor %(tutor)s has %(available_duration)s minutes of available time") \
+                              % {"tutor": tutor, "available_duration": int(tutor_partition.available_duration)}
                     if forbidden_days or holiday_text:
-                        message += _(f" (considering that")
+                        message += gettext(" (considering that")
                         if forbidden_days:
-                            message +=_(f" {forbidden_days} is forbidden")
+                            message += gettext(" %s is forbidden") % forbidden_days
                             if holidays:
-                                message += _(f" and {holiday_text} is holiday).")
+                                message += gettext(" and %s is holiday).") % holiday_text
                             else:
                                 message += ').'
                         else:
-                            message += _(f" {holiday_text} is holiday).")
+                            message += gettext(" %s is holiday).") % holiday_text
                     else:
                         message += '.'
-                    message += _(f' He or she has to lecture {len(courses)} classes for an amount of {sum(c.type.duration for c in courses)} minutes of courses.')
-                    jsondict["messages"].append({ "str": message, "tutor": tutor.id, "type" : "ConsiderTutorsUnavailability"})
+                    message += gettext(' He or she has to lecture %(classes_nb)s classes for an amount of %(duration)s '
+                                       'minutes of courses.') \
+                               % {"classes_nb": len(courses), "duration": sum(c.type.duration for c in courses)}
+                    jsondict["messages"].append(
+                        {"str": message, "tutor": tutor.id, "type": "ConsiderTutorsUnavailability"})
                     jsondict["status"] = _("KO")
 
                 elif courses.exists():
@@ -467,14 +533,21 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     # and the availabilities of the tutor and we check if the tutor has enough available time and slots.
                     for course_type, course_list in courses_type.items():
                         start_times = CourseStartTimeConstraint.objects.get(course_type=course_type).allowed_start_times
-                        course_partition = Partition.get_partition_of_week(week,course_type.department, True)
+                        course_partition = Partition.get_partition_of_week(week, course_type.department, True)
                         course_partition.add_scheduled_courses_to_partition(week, course_type.department, tutor, True)
                         course_partition.add_partition_data_type(tutor_partition, "user_preference")
 
-                        if course_partition.available_duration < len(course_list)*course_type.duration or course_partition.nb_slots_available_of_duration_beginning_at(course_type.duration, start_times) < len(course_list):
-                            message = _(f"Tutor {tutor} has {course_partition.nb_slots_available_of_duration_beginning_at(course_type.duration, start_times)} available slots of {course_type.duration} mins ")
-                            message += _(f'and {len(course_list)} courses that long to attend.')
-                            jsondict["messages"].append({"str": message, "tutor" : tutor.id, "type" : "ConsiderTutorsUnavailability"})
+                        if course_partition.available_duration < len(
+                                course_list) * course_type.duration or course_partition.nb_slots_available_of_duration_beginning_at(
+                            course_type.duration, start_times) < len(course_list):
+                            message = gettext(
+                                "Tutor %(tutor)s has %(slots_nb)s available slots of %(duration)s mins ") \
+                                      % {"tutor": tutor,
+                                         "slots_nb": course_partition.nb_slots_available_of_duration_beginning_at(course_type.duration, start_times),
+                                         "duration": course_type.duration}
+                            message += gettext('and %s courses that long to attend.') % len(course_list)
+                            jsondict["messages"].append(
+                                {"str": message, "tutor": tutor.id, "type": "ConsiderTutorsUnavailability"})
                             jsondict["status"] = _("KO")
         return jsondict
 
@@ -521,6 +594,61 @@ class ConsiderTutorsUnavailability(TTConstraint):
     def __str__(self):
         return _("Consider tutors unavailability")
 
+    def complete_tutor_partition(self, partition, tutor, week):
+        """
+                Complete the partition in parameters with informations given by the UserPreferences of the given tutor for the given week.
+            This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+            Warning : ConsiderTutorsUnavailability constraint must exist for the given week in the database to consider tutor's preferences.
+
+            :param partition: A partition (empty or not) with informations about a tutor's availability.
+            :type partition: Partition
+            :param tutor: The tutor from whom the partition is about.
+            :type tutor: Tutor
+            :param week: The week we want to make a pre-analysis on (can be None if all).
+            :type week: Week
+            :return: A partition with new informations about tutor's preferences.
+            :rtype: Partition
+
+        """
+        if partition.tutor_supp:
+
+            user_preferences = UserPreference.objects.filter(user=tutor, week=week)
+
+            if not user_preferences.exists():
+                user_preferences = UserPreference.objects.filter(user=tutor, week=None)
+
+            user_preferences = user_preferences.filter(value=0)
+            for up in user_preferences:
+                up_day = Day(up.day, week)
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(up_day, up.start_time),
+                                 flopdate_to_datetime(up_day, up.end_time)),
+                    "user_preference",
+                    {"value": up.value, "forbidden": True, "tutor": up.user.username}
+                )
+
+        else:
+
+            user_preferences = UserPreference.objects.filter(user=tutor, week=week)
+
+            if not user_preferences.exists():
+                user_preferences = UserPreference.objects.filter(user=tutor, week=None)
+
+            user_preferences = user_preferences.filter(value__gte=1)
+
+            for up in user_preferences:
+                up_day = Day(up.day, week)
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(up_day, up.start_time),
+                                 flopdate_to_datetime(up_day, up.end_time)),
+                    "user_preference",
+                    {"value": up.value, "available": True, "tutor": up.user.username}
+                )
+
+        partition.tutor_supp = False
+
+        return partition
+
 
 def coloration_ordered(basic_group):
     """ Function taking a group and returning all the transversal groups in conflict with it colored to avoid to count several times parallel ones
@@ -545,15 +673,15 @@ def coloration_ordered(basic_group):
             }
     """
     transversal_conflict_groups = basic_group.transversal_conflicting_groups
-
     if transversal_conflict_groups:
         graph = []
         for tr in transversal_conflict_groups:
-            graph.append((tr, [t for t in transversal_conflict_groups if t != tr and t not in tr.parallel_groups.all()], 0))
-        graph.sort(key = lambda x : -len(x[1]))
+            graph.append(
+                (tr, [t for t in transversal_conflict_groups if t != tr and t not in tr.parallel_groups.all()], 0))
+        graph.sort(key=lambda x: -len(x[1]))
         graph_dict = dict()
         for summit in graph:
-            graph_dict[summit[0]] = {"adjacent": summit[1], "color" : summit[2]}
+            graph_dict[summit[0]] = {"adjacent": summit[1], "color": summit[2]}
 
         color_max = 0
         for summit, summit_dict in graph_dict.items():
@@ -562,7 +690,7 @@ def coloration_ordered(basic_group):
                 color_adj.add(graph_dict[adj]["color"])
             i = 1
             while i in color_adj:
-                i+=1
+                i += 1
             summit_dict["color"] = i
             if i > color_max:
                 color_max = i
