@@ -45,8 +45,8 @@ override_dh_auto_install:
 	mkdir -p debian/flopedt/var/flopedt/static
 
 	# Install GUROBI C libs
-	install -d debian/flopedt/usr/lib64
-	cp -a gurobi1001/linux64/lib/libgurobi.so.10.0.1 debian/flopedt/usr/lib64
+	install -d debian/flopedt/usr/lib/
+	cp -a gurobi1001/linux64/lib/libgurobi.so.10.0.1 debian/flopedt/usr/lib/
 
 	# Install Gurobi binary solver
 	install -d debian/flopedt/usr/bin
