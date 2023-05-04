@@ -55,7 +55,6 @@
                 <slot name="event" :event="event">
                   <span class="title q-calendar__ellipsis">
                     {{ event.title }}
-                    <!-- <q-tooltip>{{ event.details }}</q-tooltip> -->
                   </span>
                 </slot>
               </div>
@@ -116,6 +115,12 @@ import {
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar'
 
+/**
+ * Data passed to the component to handle the display in
+ * columns for each day
+ * *  The dropzoneEvents have references of events ids and
+ * *  the totaleWeight is the total of each columns weight
+ */
 const props = defineProps<{
   events: CalendarEvent[]
   columns: CalendarColumn[]
@@ -209,9 +214,19 @@ function badgeStyles(
  * DRAG AND DROP MANAGEMENT
  *
  */
+
+/**
+ * Reactive variables to track the drag process
+ * @param isDragging tracks when drag starts and stops
+ * @param currentTime tracks the date and time of the
+ * * position of the cursor
+ * @param eventDragged refers to the event data that
+ * * is being dragged
+ */
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
 const eventDragged = ref<CalendarEvent>()
+
 /**
  * V-MODEL IMPLEMENTATION OF EVENTS
  */
@@ -339,7 +354,8 @@ function onDragStop() {
 
 /**
  * Function called when the drag event stops
- * Update the v-model of the events
+ * Update the v-model of the events with a
+ * * copy updated of the event changed
  */
 function updateEventDropped(): void {
   let newEvent: CalendarEvent = _.cloneDeep(eventDragged.value)
