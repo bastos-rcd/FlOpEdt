@@ -3,9 +3,9 @@
     <Variant title="Use case 1">
       <Calendar 
         :columns="useCase1.columns"
-        :events="() => useCase1.events"
+        v-model:events="useCase1.events.value"
         :total-weight="useCase1.totalWeight"
-        :dropzone-events="(currentDropzoneEvents as CalendarDropzoneEvent)"
+        :dropzone-events="useCase1.dropzoneEvents"
         @dragstart="onDragStart"
       />
     </Variant>
@@ -14,7 +14,7 @@
         :columns="useCase2.columns"
         v-model:events="useCase2.events.value"
         :total-weight="useCase2.totalWeight"
-        :dropzone-events="(currentDropzoneEvents as CalendarDropzoneEvent)"
+        :dropzone-events="useCase2.dropzoneEvents"
         @dragstart="onDragStart"
       />
     </Variant>
@@ -298,7 +298,7 @@ const useCase1 = {
     },
   ],
   totalWeight: 7,
-  events: [
+  events: ref([
     {
       title: '1st of the Month',
       details: 'Everything is funny as long as it is happening to someone else',
@@ -410,46 +410,46 @@ const useCase1 = {
         days: 5,
       },
     },
-  ],
+  ]),
   dropzoneEvents: [{
     eventId: 5,
     duration: 90,
     columnIds: [1],
     possibleStarts: {
       [shiftInCurrentWeek(0)!.date]: [
-        shiftInCurrentWeek(0, '08:10'),
-        shiftInCurrentWeek(0, '08:50'),
-        shiftInCurrentWeek(0, '09:10'),
-        shiftInCurrentWeek(0, '10:10'),
-        shiftInCurrentWeek(0, '15:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '08:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '08:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '09:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '15:30') },
       ],
       [shiftInCurrentWeek(1)!.date]: [
-        shiftInCurrentWeek(1, '10:10'),
-        shiftInCurrentWeek(1, '10:50'),
-        shiftInCurrentWeek(1, '11:10'),
-        shiftInCurrentWeek(1, '18:10'),
-        shiftInCurrentWeek(1, '14:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '11:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '18:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '14:30') },
       ],
       [shiftInCurrentWeek(2)!.date]: [
-        shiftInCurrentWeek(2, '10:10'),
-        shiftInCurrentWeek(2, '10:50'),
-        shiftInCurrentWeek(2, '11:10'),
-        shiftInCurrentWeek(2, '18:10'),
-        shiftInCurrentWeek(2, '14:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '11:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '18:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '14:30') },
       ],
       [shiftInCurrentWeek(3)!.date]: [
-        shiftInCurrentWeek(3, '10:10'),
-        shiftInCurrentWeek(3, '10:50'),
-        shiftInCurrentWeek(3, '11:10'),
-        shiftInCurrentWeek(3, '18:10'),
-        shiftInCurrentWeek(3, '14:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '11:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '18:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '14:30') },
       ],
       [shiftInCurrentWeek(4)!.date]: [
-        shiftInCurrentWeek(4, '10:10'),
-        shiftInCurrentWeek(4, '10:50'),
-        shiftInCurrentWeek(4, '11:10'),
-        shiftInCurrentWeek(4, '18:10'),
-        shiftInCurrentWeek(4, '14:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '11:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '18:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '14:30') },
       ],
     }
   }],
