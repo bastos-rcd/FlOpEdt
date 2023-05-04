@@ -1,6 +1,6 @@
 <template>
   <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
-    <div style="display: flex">
+    <!-- <div style="display: flex">
       <template v-for="column in props.columns" :key="column.name">
         <div
               :class="badgeClasses('header')"
@@ -14,7 +14,7 @@
               {{ column.name }}
         </div>
       </template>
-    </div>
+    </div> -->
     <q-calendar-day
       ref="calendar"
       v-model="selectedDate"
@@ -36,6 +36,7 @@
         <div style="display: flex">
           <template v-for="column in props.columns" :key="column.name">
             <div
+              v-if="column.active"
               :class="badgeClasses('header')"
               style="cursor: pointer;height: 12px;font-size: 10px;margin-bottom: 1px;margin-top: 1px;border-color: 1px solid black;color: black;"
               :style="{
@@ -114,7 +115,7 @@ import { Timestamp, TimestampOrNull, diffTimestamp, parseTime, parsed, updateMin
 
 const props = defineProps<{
   events: CalendarEvent[]
-  columns: CalendarColumn[] | CalendarDynamicColumn[]
+  columns: CalendarColumn[]
   dropzoneEvents?: CalendarDropzoneEvent
 }>()
 
@@ -123,28 +124,16 @@ const emits = defineEmits<{
   (e: 'dropevent', data: any): void
 }>()
 
-const dynamicColumns : Ref<Array<CalendarDynamicColumn>> = ref(map(
-  sortBy(props.columns, ['x']),
-  col => {
-    const dCol : CalendarDynamicColumn = clone(col) as CalendarDynamicColumn
-    if (dCol.active === undefined) {
-      dCol.active = true
-    }
-    return dCol
-  }
-  )
-)
-
 const totalWeight = computed(() => sumBy(
-  dynamicColumns.value,
-  (c : CalendarDynamicColumn) => c.active ? c.weight : 0)
+  props.columns,
+  (c : CalendarColumn) => c.active ? c.weight : 0)
 )
 
 const preWeight = computed(() => {
   const map: Record<number, number> = {}
   let preceeding = 0
-  for (let i = 0 ; i < dynamicColumns.value.length ; i++) {
-    const curColumn = dynamicColumns.value[i]
+  for (let i = 0 ; i < props.columns.length ; i++) {
+    const curColumn = props.columns[i]
     map[curColumn.id] = preceeding
     if (curColumn.active) {
       preceeding += curColumn.weight
@@ -153,12 +142,6 @@ const preWeight = computed(() => {
   return map
 })
 
-function toggleActive(columnId: number) {
-  const col = dynamicColumns.value.find(c => c.id === columnId)
-  if (col !== undefined) {
-    col.active = !col.active
-  }
-}
   
 /**
  * QCalendar data to display
@@ -209,7 +192,7 @@ function badgeStyles(
   timeStartPos: any = undefined,
   timeDurationHeight: any = undefined
 ) {
-  const currentGroup = dynamicColumns.value.find((c) => c.id === columnId)
+  const currentGroup = props.columns.find((c) => c.id === columnId)
 
   if (!currentGroup) return undefined
 

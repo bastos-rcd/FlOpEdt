@@ -31,7 +31,8 @@
 <script setup lang="ts">
 import { TimestampOrNull, Timestamp, parseDate, parseTime, today, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
 import { computed, ref } from 'vue'
-import type { CalendarEvent, CalendarDropzoneEvent } from './declaration'
+import type { CalendarEvent, CalendarDropzoneEvent, CalendarColumn } from './declaration'
+import _ from 'lodash'
 
 import Calendar from './Calendar.vue'
 
@@ -263,6 +264,8 @@ const useCase2 = {
   }],
 }
 
+_.forEach(useCase2.columns as Array<CalendarColumn>, col => col.active = true)
+
 const useCase1 = {
   columns: [
     {
@@ -453,6 +456,9 @@ const useCase1 = {
     }
   }],
 }
+
+_.forEach(useCase1.columns as Array<CalendarColumn>, col => col.active = true)
+
 const currentEventId = ref<number|null>(null)
 function onDragStart (eventId: number) {
   currentEventId.value = eventId
@@ -477,7 +483,6 @@ const useCase3 = {
       name: 'TPB',
       weight: 1,
       x: 1,
-      active:false
     },
     {
       id: 2,
@@ -500,7 +505,9 @@ const useCase3 = {
   ],
   events: useCase1.events
 }
-
+_.forEach(useCase3.columns as Array<CalendarColumn>, col => col.active = true)
+const hiddenColumn = useCase3.columns.find(col => col.id === 1) as CalendarColumn
+hiddenColumn.active = false
 
 </script>
 

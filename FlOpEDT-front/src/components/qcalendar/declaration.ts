@@ -34,6 +34,7 @@ export interface CalendarColumn {
    * Position of the column in the abscissa
    */
   x: number
+  active: boolean
 }
 
 export interface CalendarDynamicColumn extends CalendarColumn {
