@@ -264,7 +264,7 @@ const useCase2 = {
   }],
 }
 
-_.forEach(useCase2.columns as Array<CalendarColumn>, col => col.active = true)
+// _.forEach(useCase2.columns as Array<CalendarColumn>, col => col.active = true)
 
 const useCase1 = {
   columns: [
@@ -457,7 +457,7 @@ const useCase1 = {
   }],
 }
 
-_.forEach(useCase1.columns as Array<CalendarColumn>, col => col.active = true)
+// _.forEach(useCase1.columns as Array<CalendarColumn>, col => col.active = true)
 
 const currentEventId = ref<number|null>(null)
 function onDragStart (eventId: number) {
@@ -478,12 +478,12 @@ const useCase3 = {
       weight: 1,
       x: 0,
     },
-    {
-      id: 1,
-      name: 'TPB',
-      weight: 1,
-      x: 1,
-    },
+    // {
+    //   id: 1,
+    //   name: 'TPB',
+    //   weight: 1,
+    //   x: 1,
+    // },
     {
       id: 2,
       name: 'TPC',
@@ -505,9 +505,9 @@ const useCase3 = {
   ],
   events: useCase1.events
 }
-_.forEach(useCase3.columns as Array<CalendarColumn>, col => col.active = true)
-const hiddenColumn = useCase3.columns.find(col => col.id === 1) as CalendarColumn
-hiddenColumn.active = false
+// _.forEach(useCase3.columns as Array<CalendarColumn>, col => col.active = true)
+// const hiddenColumn = useCase3.columns.find(col => col.id === 1) as CalendarColumn
+// hiddenColumn.active = false
 
 </script>
 

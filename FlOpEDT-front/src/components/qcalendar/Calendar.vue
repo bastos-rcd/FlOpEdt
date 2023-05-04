@@ -36,7 +36,6 @@
         <div style="display: flex">
           <template v-for="column in props.columns" :key="column.name">
             <div
-              v-if="column.active"
               :class="badgeClasses('header')"
               style="cursor: pointer;height: 12px;font-size: 10px;margin-bottom: 1px;margin-top: 1px;border-color: 1px solid black;color: black;"
               :style="{
@@ -62,7 +61,9 @@
                 :class="badgeClasses('event', event.bgcolor)"
                 :style="badgeStyles(event, columnId, timeStartPos, timeDurationHeight)"
               >
-                <slot name="event" :event="event">
+                <slot 
+                v-if="props.columns.find((c) => c.id === columnId)"
+                name="event" :event="event">
                   <span class="title q-calendar__ellipsis">
                     {{ event.title }}
                     <!-- <q-tooltip>{{ event.details }}</q-tooltip> -->
@@ -106,7 +107,7 @@ import { QCalendarDay, addToDate, parseTimestamp, today } from '@quasar/quasar-u
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
-import { sortBy, map, clone, sumBy } from 'lodash'
+import { sortBy, map, clone, sumBy, forEach } from 'lodash'
 
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent, CalendarDynamicColumn } from './declaration'
 
@@ -126,19 +127,16 @@ const emits = defineEmits<{
 
 const totalWeight = computed(() => sumBy(
   props.columns,
-  (c : CalendarColumn) => c.active ? c.weight : 0)
+  (c : CalendarColumn) => c.weight)
 )
 
 const preWeight = computed(() => {
   const map: Record<number, number> = {}
   let preceeding = 0
-  for (let i = 0 ; i < props.columns.length ; i++) {
-    const curColumn = props.columns[i]
-    map[curColumn.id] = preceeding
-    if (curColumn.active) {
-      preceeding += curColumn.weight
-    }
-  }
+  forEach(props.columns, col => {
+    map[col.id] = preceeding
+    preceeding += col.weight
+  })
   return map
 })
 
@@ -206,7 +204,7 @@ function badgeStyles(
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.data?.start) + 'px'
     s.left = Math.round((preWeight.value[columnId] / totalWeight.value) * 100) + '%'
-    s.width = (currentGroup.active?Math.round((100 * currentGroup.weight) / totalWeight.value):0) + '%'
+    s.width = Math.round((100 * currentGroup.weight) / totalWeight.value) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
   if(event.data?.dataType === "dropzone" && event.data.start.time === closestStartTime.value && event.data.start.date === currentTime.value?.date) {
