@@ -5,6 +5,7 @@
       v-model="selectedDate"
       view="week"
       bordered
+      hoverable
       transition-next="slide-left"
       transition-prev="slide-right"
       no-active-date
@@ -12,7 +13,9 @@
       :interval-count="18"
       :interval-height="28"
       :weekdays="[1, 2, 3, 4, 5]"
+      :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
+      :drag-leave-func="onDragLeave"
       @dragend="onDragStop"
     >
       <template #head-day-event="{ scope: { timestamp } }">
@@ -332,6 +335,12 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
 }
 
+function onDragEnter(e: any, type: string, scope: { timeDurationHeight: any; timestamp: Timestamp }): boolean {
+  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+  dropZoneCloseUpdate(scope.timestamp)
+  return true
+}
+
 /**
  * Function called when the dragOver event is triggered, computes the current mouse position
  * time and update the closest dropZone
@@ -344,6 +353,12 @@ function onDragOver(e: any, type: string, scope: { timeDurationHeight: any; time
   currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return true
+}
+
+function onDragLeave(e: any, type: string, scope: { timeDurationHeight: any; timestamp: Timestamp }) {
+  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+  dropZoneCloseUpdate(scope.timestamp)
+  return false
 }
 
 function onDragStop() {

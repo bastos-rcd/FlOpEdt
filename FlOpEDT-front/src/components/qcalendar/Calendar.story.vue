@@ -25,7 +25,7 @@
 import type { CalendarEvent, CalendarDropzoneEvent, CalendarColumn } from './declaration'
 import _ from 'lodash'
 import { Timestamp, parseDate, parseTime, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
-import { computed, ref, Ref } from 'vue'
+import { ref, Ref } from 'vue'
 
 import Calendar from './Calendar.vue'
 
@@ -458,10 +458,6 @@ const currentEventId = ref<number|null>(null)
 function onDragStart (eventId: number) {
   currentEventId.value = eventId
 }
-
-const currentDropzoneEvents = computed(() => {
-  return useCase2.dropzoneEvents.find(d => d.eventId === currentEventId.value)
-})
 
 </script>
 
