@@ -3,7 +3,6 @@
     :events="events"
     :columns="columns"
     :total-weight="8"
-
     @dragstart="setCurrentScheduledCourse"
     @dropevent="onDropEvent"
   />
@@ -28,7 +27,7 @@ const columnStore = useColumnStore()
 const { addUpdate, revertUpdate } = useUndoredo()
 
 onBeforeMount(async () => {
-  scheduledCourseStore.fetchScheduledCourses({ week: 17, year: 2023 }, 'INFO')
+  scheduledCourseStore.fetchScheduledCourses({ week: 18, year: 2023 }, { id: 1, abbrev: 'INFO', name: 'informatique'})
 })
 const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
