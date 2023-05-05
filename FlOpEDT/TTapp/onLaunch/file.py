@@ -5,8 +5,6 @@ from MyFlOp.colors import Tcolors
 from TTapp.onLaunch.settings import settings
 import shutil
 
-print(ds.TMP_DIRECTORY)
-
 TEMP_DIR = os.path.join(ds.TMP_DIRECTORY,'constraints')
 CLEAR_TEMP_FILES = settings()["clearTempFile"]
 
