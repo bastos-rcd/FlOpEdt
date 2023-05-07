@@ -29,7 +29,7 @@ class BaseConfig(AppConfig):
 
     def ready(self):
         import base.signals
-        from django.conf import settings as
+        from django.conf import settings as ds
 
         # STARTUP code
         # Create directory for serving static content in production
