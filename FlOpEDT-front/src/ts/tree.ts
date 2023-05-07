@@ -1,56 +1,59 @@
 // Could not find any interesting library
 
-import {forEach, forOwn, maxBy, minBy, sortBy, values} from 'lodash'
+import {forEach, forOwn, maxBy, minBy, sortBy, values, map} from 'lodash'
 
-interface Ided {
+export interface ITreeNode {
     id: number
-}
-interface ParIded extends Ided {
-    parent?: number | null
-}
-
-export interface ITreeNode<D extends Ided> {
-    parent: ITreeNode<D> | null
-    children: ITreeNode<D>[]
+    rank: number
+    parentId: number | null
+    parent: ITreeNode | null
+    children: ITreeNode[]
     // from the root to the node
-    ancestors: ITreeNode<D>[]
-    descendants: ITreeNode<D>[]
+    ancestors: ITreeNode[]
+    descendants: ITreeNode[]
     nLeaves: number
     depthMin: number
     depthMax: number
-    data: D
 
-    addChild(child: ITreeNode<Ided>) : void
-    sortChildrenBy(property: string) : void
+    addChild(child: ITreeNode) : void
     countLeaves() : void
     computeDepthMin(yours: number) : void
     computeDepthMax() : void
+    propageDownAncestors(ancestors: TreeNode[]) : void
+    propagateUpDescendants(descendants: TreeNode[]) : void
+    sortChildren() : void 
 }
 
-export class TreeNode<D extends Ided> implements ITreeNode<D> {
-    parent: TreeNode<D> | null
-    children: TreeNode<D>[]
+export class TreeNode implements ITreeNode {
+    id: number
+    rank: number
+    parentId: number | null
+    parent: ITreeNode | null
+    children: ITreeNode[]
     // from the root to the node
-    ancestors: TreeNode<D>[]
-    descendants: TreeNode<D>[]
-    nLeaves : number
+    ancestors: ITreeNode[]
+    descendants: ITreeNode[]
+    nLeaves: number
     depthMin: number
     depthMax: number
-    data: D
 
-    constructor(parent: TreeNode<D> | null, data: D) {
+
+    constructor(parent: TreeNode | null, linkUp : LinkUp) {
+        this.id = linkUp.id
+        this.rank = linkUp.rank
+        this.parentId = linkUp.parentId
         this.parent = null
         this.children = []
         this.ancestors = []
         this.descendants = []
+        // TODO: mieux gérer les valeurs par défaut
         this.nLeaves = -1
         this.depthMin = -1
         this.depthMax = -1
-        this.data = data
         parent?.addChild(this)
     }
 
-    addChild(child: TreeNode<D>) : void {
+    addChild(child: TreeNode) : void {
         if (child.ancestors.length > 0 || child.parent !== null) {
             throw new Error("Tree: Multi-rooted tree")
         }
@@ -64,24 +67,26 @@ export class TreeNode<D extends Ided> implements ITreeNode<D> {
         this.propagateUpDescendants([child].concat(child.descendants))
     }
 
-    propageDownAncestors(ancestors: TreeNode<D>[]) {
+    propageDownAncestors(ancestors: ITreeNode[]) {
         forEach(this.children, child => {
             child.ancestors = ancestors.concat(child.ancestors)
             child.propageDownAncestors(ancestors)
         })
     }
 
-    propagateUpDescendants(descendants: TreeNode<D>[]) {
+    propagateUpDescendants(descendants: ITreeNode[]) {
         this.descendants = this.descendants.concat(descendants)
         if (this.parent !== null) {
             this.parent.propagateUpDescendants(descendants)
         }
     }
 
-    sortChildrenBy(property: string) : void {
+    sortChildren() : void {
+        console.log(map(this.children, c => c.id))
         this.children = sortBy(this.children,
-            child => (child.data as any)[property])
-        forEach(this.children, child => child.sortChildrenBy(property))
+            child => child.rank)
+        console.log(map(this.children, c => c.id))
+        forEach(this.children, child => child.sortChildren())
     }
 
     computeDepthMin(yours: number) : void {
@@ -92,9 +97,12 @@ export class TreeNode<D extends Ided> implements ITreeNode<D> {
     }
 
     computeDepthMax(): void {
-        const newLevel = minBy(
+        if (this.children.length == 0) {
+            return
+        }
+        const newLevel = (minBy(
             this.children,
-            child => child.depthMax)?.depthMax - 1
+            child => child.depthMax)?.depthMax as number) - 1
         if (newLevel != this.depthMax) {
             this.depthMax = newLevel
             this.parent?.computeDepthMax()
@@ -114,50 +122,59 @@ export class TreeNode<D extends Ided> implements ITreeNode<D> {
     }
 }
 
-
-export interface ITree<D extends ParIded> {
-    root: ITreeNode<Ided> | null
-    byId: Record<number, ITreeNode<Ided>>
-    addNodes(data : Array<D>) : void
-    sortChildrenBy(property: string) : void
+    
+export interface ITree {
+    root: ITreeNode | null
+    byId: Record<number, ITreeNode>
+    addNodes(data : Array<LinkIdUp>) : void
     countLeaves() : void
     computeDepthMin() : void
     computeDepthMax() : void
+    sortChildren(property: string) : void
 }
 
-export class Tree<D extends ParIded> implements ITree<D> {
-    root: TreeNode<Ided> | null
-    byId: Record<number, TreeNode<Ided>>
+export interface LinkIdUp {
+    id: number
+    parentId: number | null
+}
+
+export interface LinkUp extends LinkIdUp {
+    id: number
+    rank: number
+    parentId: number | null
+}
+
+
+
+export class Tree implements ITree {
+    root: TreeNode | null
+    byId: Record<number, TreeNode>
 
     constructor() {
         this.root = null
         this.byId = {}
     }
 
-    addNodes(data : Array<D>) : void {
-        forEach(data, d => {
-            if (this.byId[d.id] !== undefined) {
+    addNodes(data : Array<LinkIdUp>) : void {
+        forEach(data, (linkIdUp, rank) => {
+            if (this.byId[linkIdUp.id] !== undefined) {
                 throw new Error("Tree: non-unique id in the nodes")
             }
-            if (d.parent === undefined) {
-                throw new Error("Tree: parent undefined")
-            }
-            this.byId[d.id] = new TreeNode(null, d) as TreeNode<Ided>
+            (linkIdUp as LinkUp).rank = rank
+            this.byId[linkIdUp.id] = new TreeNode(null, (linkIdUp as LinkUp))
         })
-        forOwn(this.byId as Record<number, TreeNode<ParIded>>, (val, key) => {
-            if (val.data.parent === null) {
+        forOwn(this.byId as Record<number, TreeNode>, (val, key) => {
+            if (val.parentId === null) {
                 if (this.root !== null) {
                     throw new Error("Tree: multiple roots")
                 }
-                this.root = this.byId[val.data.id]
+                this.root = this.byId[val.id]
             } else {
-                if (val.data.parent === undefined || 
-                    this.byId[val.data.parent] === undefined) {
+                if (this.byId[val.parentId] === undefined) {
                     throw new Error("Tree: unknown parent")
                 }
-                this.byId[val.data.parent].addChild(val as TreeNode<Ided>)
+                this.byId[val.parentId].addChild(val)
             }
-            delete val.data.parent
         })
         if (this.root === null) {
             throw new Error("Tree: no root?!")
@@ -167,8 +184,8 @@ export class Tree<D extends ParIded> implements ITree<D> {
         this.countLeaves()
     }
 
-    sortChildrenBy(property: string) : void {
-        this.root?.sortChildrenBy(property)
+    sortChildren() : void {
+        this.root?.sortChildren()
     }
 
     computeDepthMin(): void {
@@ -178,9 +195,12 @@ export class Tree<D extends ParIded> implements ITree<D> {
     }
 
     computeDepthMax(): void {
-        const maxLevel = maxBy(
+        if (values(this.byId).length == 0) {
+            return
+        }
+        const maxLevel = (maxBy(
             values(this.byId),
-            child => child.depthMin)?.depthMin
+            child => child.depthMin)?.depthMin as number)
         forEach(values(this.byId), node => {
             if(node.children.length == 0) {
                 node.depthMax = maxLevel
