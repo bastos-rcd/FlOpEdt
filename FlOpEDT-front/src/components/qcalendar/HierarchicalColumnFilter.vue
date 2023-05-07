@@ -71,8 +71,8 @@ const grid = computed(() => {
       id: cur.id,
       xmin: cur.xmin,
       xmax: curx,
-      ymin: tnode.levelMin,
-      ymax: tnode.levelMax,
+      ymin: tnode.depthMin,
+      ymax: tnode.depthMax,
     })
   }
   return(nodeList)
