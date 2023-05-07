@@ -1,33 +1,14 @@
 <template>
-  <!-- <div>
-    {{ grid }}
-  </div> -->
   <div class="wrapper" :style="styleContainer()">
     <template v-for="node in grid">
       <div class="item" :style="styleItem(node)">
         <span class="insider">
-          {{ node.id }}
-          {{ styleItem(node) }}
+          <slot name="item" v-bind="{nodeId: node.id}">
+              id: {{ node.id }}
+          </slot>
         </span>
       </div>
     </template>
-
-    <!-- <div class="item"
-    style="grid-column: 1 / 3;
-           grid-row: 1 / 3;">
-      
-      <div> aze</div>
-      <div> aze</div>
-      <div> aze</div>
-      <div> aze</div>
-
-    </div>
-    <div class="item"
-    style="grid-area: 1 / 2 / 3 / 3;">ert</div>
-    <div class="item">ertzz</div>
-    <div class="item">ertaa</div>
-    <div class="item">era</div>
-    <div class="item">a</div> -->
   </div>
 </template>
 
@@ -41,14 +22,14 @@ const nextColumns : CalendarColumn[] = []
 
 const props = defineProps<{
     columns: CalendarColumn[]
-    flatNodes: Array<{id: number, name: string, parent: number | null}>
+    flatNodes: Array<{id: number, parent: number | null}>
 }>()
 
 const emits = defineEmits<{
     (e: "update:columns", columns: CalendarColumn): void
 }>()
 
-const hierarchy = new Tree<{id:number, name:string, parent:number|null}>()
+const hierarchy = new Tree<{id:number, parent:number|null}>()
 hierarchy.addNodes(props.flatNodes)
 
 console.log(props.flatNodes)
@@ -114,6 +95,7 @@ function styleContainer() {
   display: grid;
   grid-auto-rows: minmax(50px, auto);
 }
+/* Concise and accurate */
 /* https://stackoverflow.com/questions/45536537/centering-in-css-grid */
 .item {
   background-color: cornflowerblue;

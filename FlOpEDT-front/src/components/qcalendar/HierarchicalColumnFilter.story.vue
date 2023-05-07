@@ -3,8 +3,11 @@
        <Variant title="Use case 1">
           <HierarchicalColumnFilter
             :columns="[]"
-            :flatNodes="useCase1"
-          />
+            :flatNodes="useCase1">
+              <template #item="{ nodeId }">
+                {{ find(useCase1, n => n.id === nodeId)?.name }}
+              </template>
+          </HierarchicalColumnFilter>
       </Variant>
       <Variant title="Use case 2">
           <HierarchicalColumnFilter
@@ -13,10 +16,13 @@
           />
       </Variant>
       <Variant title="Use case 3">
-          <HierarchicalColumnFilter
+        <HierarchicalColumnFilter
             :columns="[]"
-            :flatNodes="useCase3"
-          />
+            :flatNodes="useCase3">
+              <template #item="{ nodeId }">
+                {{ find(useCase3, n => n.id === nodeId)?.name }}
+              </template>
+          </HierarchicalColumnFilter>
       </Variant>
     </Story>
 </template>
@@ -25,6 +31,7 @@
 <script setup lang="ts">
 import HierarchicalColumnFilter from './HierarchicalColumnFilter.vue'
 import { Tree, ITree } from '@/ts/tree'
+import { find } from 'lodash'
 
 const useCase1 = [
     {id: 5, name: "id5", parent:1},
@@ -32,6 +39,7 @@ const useCase1 = [
     {id: 2, name: "id2", parent:1},
     {id: 8, name: "id8", parent:5}
 ]
+
 const useCase2 = [
     {id: 5, name: "id5", parent:1},
     {id: 1, name: "id1", parent:null},
