@@ -87,6 +87,49 @@ describe('Tree utils', () => {
     expect(map(tree.byId[1].children, c => c.data.id)).toEqual([5, 2])
   })
 
+
+  it("computes correctly levels", () => {
+    expect.assertions(8)
+    const tree = new Tree<{id:number, pouet:string, parent:number|null}>()
+    tree.addNodes([
+        {id: 5, pouet: 2, parent:1},
+        {id: 1, pouet: 1, parent:null},
+        {id: 2, pouet: 5, parent:1},
+        {id: 8, pouet: 8, parent:5}
+    ])
+    tree.computeDepthMin()
+    expect(tree.byId[1].depthMin).toBe(0)
+    expect(tree.byId[5].depthMin).toBe(1)
+    expect(tree.byId[2].depthMin).toBe(1)
+    expect(tree.byId[8].depthMin).toBe(2)
+    tree.computeDepthMax()
+    expect(tree.byId[1].depthMax).toBe(0)
+    expect(tree.byId[5].depthMax).toBe(1)
+    expect(tree.byId[2].depthMax).toBe(2)
+    expect(tree.byId[8].depthMax).toBe(2)
+
+  })
+  it("computes correctly the number of leaves", () => {
+    expect.assertions(5)
+    const tree = new Tree<{id:number, pouet:string, parent:number|null}>()
+    tree.addNodes([
+        {id: 5, pouet: 2, parent:1},
+        {id: 1, pouet: 1, parent:null},
+        {id: 2, pouet: 5, parent:1},
+        {id: 8, pouet: 8, parent:5},
+        {id: 3, pouet: 3, parent:5}
+    ])
+    tree.countLeaves()
+    expect(tree.byId[1].nLeaves).toBe(3)
+    expect(tree.byId[5].nLeaves).toBe(2)
+    expect(tree.byId[2].nLeaves).toBe(1)
+    expect(tree.byId[8].nLeaves).toBe(1)
+    expect(tree.byId[3].nLeaves).toBe(1)
+
+
+  })
+
+
   it.todo('throws an error when cycle')
 
   it('throws an error when unknown node as a parent', () => {
