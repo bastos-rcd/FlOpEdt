@@ -94,6 +94,9 @@ install_deb_package:focal:
     - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
     - apt install ./*.deb -y
     - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^tmp_directory=\).*/\1\/var\/flopedt\/tmp/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
     - cat /etc/flopedt/flopedt.ini
     - flop_admin migrate --settings FlOpEDT.settings.production
     - bunzip2 dump.json.bz2
@@ -117,6 +120,9 @@ install_deb_package:jammy:
     - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata bzip2
     - apt install ./*.deb -y
     - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^tmp_directory=\).*/\1\/var\/flopedt\/tmp/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
     - cat /etc/flopedt/flopedt.ini
     - flop_admin migrate --settings FlOpEDT.settings.production
     - bunzip2 dump.json.bz2
@@ -140,6 +146,9 @@ install_deb_package:bullseye:
     - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata bzip2
     - apt install ./*.deb -y
     - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^tmp_directory=\).*/\1\/var\/flopedt\/tmp/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
     - cat /etc/flopedt/flopedt.ini
     - flop_admin migrate --settings FlOpEDT.settings.production
     - bunzip2 dump.json.bz2
