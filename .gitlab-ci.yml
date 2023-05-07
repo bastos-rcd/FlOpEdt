@@ -98,9 +98,9 @@ install_deb_package:focal:
     - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
     - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
     - cat /etc/flopedt/flopedt.ini
-    - flop_admin migrate --settings FlOpEDT.settings.production
+    - flop_admin migrate
     - bunzip2 dump.json.bz2
-    - flop_admin loaddata --settings FlOpEDT.settings.production dump.json
+    - flop_admin loaddata dump.json
 
 install_deb_package:jammy:
   cache: []
@@ -124,9 +124,9 @@ install_deb_package:jammy:
     - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
     - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
     - cat /etc/flopedt/flopedt.ini
-    - flop_admin migrate --settings FlOpEDT.settings.production
+    - flop_admin migrate
     - bunzip2 dump.json.bz2
-    - flop_admin loaddata --settings FlOpEDT.settings.production dump.json
+    - flop_admin loaddata dump.json
 
 install_deb_package:bullseye:
   cache: []
@@ -150,9 +150,9 @@ install_deb_package:bullseye:
     - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
     - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
     - cat /etc/flopedt/flopedt.ini
-    - flop_admin migrate --settings FlOpEDT.settings.production
+    - flop_admin migrate
     - bunzip2 dump.json.bz2
-    - flop_admin loaddata --settings FlOpEDT.settings.production dump.json
+    - flop_admin loaddata dump.json
 
 install_pip_artifact:
   stage: deploy
@@ -176,9 +176,9 @@ install_pip_artifact:
     - pip install dist/FlOpEDT*.tar.gz
     - mkdir -p /var/flopedt/{tmp,cache}
     - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' config_file/flopedt.ini
-    - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin migrate --settings FlOpEDT.settings.production
+    - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin migrate
     - bunzip2 dump.json.bz2
-    - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin loaddata --settings FlOpEDT.settings.production dump.json
+    - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin loaddata dump.json
 
   dependencies:
     - build_pip_artifact
