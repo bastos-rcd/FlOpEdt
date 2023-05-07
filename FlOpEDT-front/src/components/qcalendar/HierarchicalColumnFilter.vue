@@ -13,42 +13,48 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { CalendarColumn } from './declaration'
-import { Tree, ITree, TreeNode } from '@/ts/tree'
+import { computed, onMounted, Ref } from 'vue'
+import { CalendarColumn, GridCell, IdX } from './declaration'
+import { Tree, ITree, TreeNode, LinkIdUp } from '@/ts/tree'
 import { forEach } from 'lodash'
 
 const nextColumns : CalendarColumn[] = []
 
 const props = defineProps<{
     columns: CalendarColumn[]
-    flatNodes: Array<{id: number, parent: number | null}>
+    flatNodes: Array<LinkIdUp>
 }>()
 
 const emits = defineEmits<{
     (e: "update:columns", columns: CalendarColumn): void
 }>()
 
-const hierarchy = new Tree<{id:number, parent:number|null}>()
+const hierarchy = new Tree()
 hierarchy.addNodes(props.flatNodes)
 
 console.log(props.flatNodes)
 console.log(hierarchy)
 
 
-const grid = computed(() => {
-  const nodeList = []
-  const queue = [{id: hierarchy.root?.data.id, xmin: 0}]
+
+const grid : Ref<Array<GridCell>> = computed(() => {
+  if (hierarchy.root === null) {
+    return []
+  }
+
+  const cellList : Array<GridCell> = []
+
+  const queue : Array<IdX> = [{id: hierarchy.root.id, xmin: 0}]
   while (queue.length != 0) {
-    const cur = queue.pop()
+    const cur = (queue.pop() as IdX)
     let curx = cur.xmin
     const tnode = hierarchy.byId[cur.id]
-    forEach(tnode.children, child => {
-      queue.push({id: child.data.id, xmin:curx})
+    forEach(tnode?.children, child => {
+      queue.push({id: child.id, xmin:curx})
       curx += child.nLeaves
     })
 
-    nodeList.push({
+    cellList.push({
       id: cur.id,
       xmin: cur.xmin,
       xmax: curx,
@@ -56,7 +62,7 @@ const grid = computed(() => {
       ymax: tnode.depthMax,
     })
   }
-  return(nodeList)
+  return(cellList)
 })
 
 
