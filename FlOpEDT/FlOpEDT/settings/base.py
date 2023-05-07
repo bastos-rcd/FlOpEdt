@@ -279,7 +279,7 @@ try:
     # The directory is available let's set the configuration parameter
     STATIC_ROOT=flop_config['flopedt']['static_directory']
 except KeyError:
-    print("Static directory not defined in configuration file. Let's fall back to %s", STATIC_ROOT)
+    print("Static directory not defined in configuration file. Let's fall back to %s" % STATIC_ROOT)
     pass
 
 # Define cache directory configuration
@@ -287,7 +287,7 @@ try:
     # The directory is available let's set the configuration parameter
     CACHE_DIRECTORY=flop_config['flopedt']['cache_directory']
 except KeyError:
-    print("Cache directory not defined in configuration file. Let's fall back to %s", CACHE_DIRECTORY)
+    print("Cache directory not defined in configuration file. Let's fall back to %s" % CACHE_DIRECTORY)
     pass
 
 # Define tmp directory configuration
@@ -295,7 +295,7 @@ try:
     # The directory is available let's set the configuration parameter
     TMP_DIRECTORY=flop_config['flopedt']['tmp_directory']
 except KeyError:
-    print("Temp directory not defined in configuration file. Let's fall back to %s", TMP_DIRECTORY)
+    print("Temp directory not defined in configuration file. Let's fall back to %s" % TMP_DIRECTORY)
     pass
 
 # Define environment variable for GUROBI license
