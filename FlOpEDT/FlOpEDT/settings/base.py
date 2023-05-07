@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'base',
+    'MyFlOp',
     'TTapp',
     'quote',
     'people',
@@ -68,7 +69,6 @@ INSTALLED_APPS = [
     'displayweb',
     'configuration',
     'easter_egg',
-    'MyFlOp',
     #    'importation'
     'api',
     'rest_framework.authtoken',
