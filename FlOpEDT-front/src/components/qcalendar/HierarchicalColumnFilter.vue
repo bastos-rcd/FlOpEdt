@@ -84,7 +84,7 @@ emit when finish traversing, a new array
 //   }
 // }
 
-function styleItem(node) {
+function styleItem(node : GridCell) {
   return("grid-area: " + (node.ymin + 1) + " / " + (node.xmin + 1) + " / "
         + (node.ymax + 2) + " / " + (node.xmax + 1))
 }

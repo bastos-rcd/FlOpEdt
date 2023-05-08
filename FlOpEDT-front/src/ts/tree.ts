@@ -2,10 +2,19 @@
 
 import {forEach, forOwn, maxBy, minBy, sortBy, values, map} from 'lodash'
 
-export interface ITreeNode {
+
+export interface LinkIdUp {
     id: number
-    rank: number
     parentId: number | null
+    active?: number
+}
+
+export interface LinkUp extends LinkIdUp {
+    rank: number
+}
+
+
+export interface ITreeNode extends LinkUp {
     parent: ITreeNode | null
     children: ITreeNode[]
     // from the root to the node
@@ -19,8 +28,8 @@ export interface ITreeNode {
     countLeaves() : void
     computeDepthMin(yours: number) : void
     computeDepthMax() : void
-    propageDownAncestors(ancestors: TreeNode[]) : void
-    propagateUpDescendants(descendants: TreeNode[]) : void
+    propageDownAncestors(ancestors: ITreeNode[]) : void
+    propagateUpDescendants(descendants: ITreeNode[]) : void
     sortChildren() : void 
 }
 
@@ -53,7 +62,7 @@ export class TreeNode implements ITreeNode {
         parent?.addChild(this)
     }
 
-    addChild(child: TreeNode) : void {
+    addChild(child: ITreeNode) : void {
         if (child.ancestors.length > 0 || child.parent !== null) {
             throw new Error("Tree: Multi-rooted tree")
         }
@@ -133,21 +142,10 @@ export interface ITree {
     sortChildren(property: string) : void
 }
 
-export interface LinkIdUp {
-    id: number
-    parentId: number | null
-}
-
-export interface LinkUp extends LinkIdUp {
-    id: number
-    rank: number
-    parentId: number | null
-}
-
 
 
 export class Tree implements ITree {
-    root: TreeNode | null
+    root: ITreeNode | null
     byId: Record<number, TreeNode>
 
     constructor() {
