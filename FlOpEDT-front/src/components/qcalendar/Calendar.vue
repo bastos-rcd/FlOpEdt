@@ -79,7 +79,7 @@
           <div
             v-for="columnId in dropZoneToDisplay.columnIds"
             :key="dropZoneToDisplay.eventId + '_' + timestamp.date + '_' + ts.timeStart + '_' + columnId"
-            class="my-event"
+            class="my-dropzone my-event"
             :class="badgeClasses('dropzoneevent')"
             :style="
               badgeStyles(
@@ -449,4 +449,6 @@ function updateEventDropped(): void {
 
 .border-dashed
   border: 1px dashed grey
+.my-dropzone
+  pointer-events: none
 </style>
