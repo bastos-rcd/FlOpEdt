@@ -35,14 +35,17 @@ const emits = defineEmits<{
 const hierarchy = computed(() => {
   const tree = new Tree()
   tree.addNodes(props.flatNodes, props.activeIds)
-  updateActiveIds(tree)
   return tree
 })
 
 const localActiveIds = ref(props.activeIds)
 
-function updateActiveIds(tree: Tree) {
-  const newValue = map(filter(values(tree.byId), node => node.active), node => {
+onMounted(() => {
+  updateActiveIds()
+})
+
+function updateActiveIds() {
+  const newValue = map(filter(values(hierarchy.value.byId), node => node.active), node => {
     return node.id
   })
   localActiveIds.value = newValue
@@ -93,7 +96,7 @@ function styleContainer() {
 
 function toggle(id: number) {
   hierarchy.value.byId[id].toggleActive()
-  updateActiveIds(hierarchy.value)
+  updateActiveIds()
 }
 </script>
 
