@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { useUndoredo } from "./undoredo"
+import { useUndoredo } from "@/composables/undoredo"
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { storeToRefs } from "pinia"
-import { getScheduledCoursesData } from "./scheduled"
+import { getScheduledCoursesData } from "@/composables/scheduled"
 import { ScheduledCourse } from "@/ts/type"
 import { setActivePinia, createPinia } from 'pinia'
 
