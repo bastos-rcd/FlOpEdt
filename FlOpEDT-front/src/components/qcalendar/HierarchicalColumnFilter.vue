@@ -1,4 +1,7 @@
 <template>
+  <div>
+    {{ localActiveIds }}
+  </div>
   <div class="wrapper" :style="styleContainer()">
     <template v-for="node in grid">
       <div class="item" :style="styleItem(node)" @click="toggle(node.id)">
@@ -45,12 +48,6 @@ function updateActiveIds(tree: Tree) {
   localActiveIds.value = newValue
   emits("update:activeIds", newValue)
 }
-
-
-
-console.log(props.flatNodes)
-console.log(hierarchy.value)
-
 
 
 const grid = computed(() => {
