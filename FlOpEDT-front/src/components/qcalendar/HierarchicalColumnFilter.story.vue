@@ -152,6 +152,12 @@ function deactivate(id: number) {
   - (Change in component => change in the caller environment) : see "Interactive inside component"
   - (Change out of the component => change in the callee environment) : see "Interactive outside component"
 
+  **Note:** as the caller can pass an inconsistent list of active nodes
+  (*e.g.* an inactive parent node with children that are all active), we only
+  take into account in `props.activeNodeIds` the leaf nodes. The inconsistent
+  list in the caller component is changed by the `HierarchicalColumnFilter`
+  component into a consistent list.
+
   ## User interface
   - Click on a node => toggle activation (except specific case where all nodes are active)
   - "Nobody is active" is a transient state that resolves into "Everybody is active"
