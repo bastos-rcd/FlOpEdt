@@ -242,6 +242,9 @@ const eventsModel = computed({
   },
 })
 
+/**
+ * Only returns the dropZone with the same ID as the event dragged
+ */
 const dropZoneToDisplay = computed((): CalendarDropzoneEvent => {
   if (isDragging.value) {
     return _.find(props.dropzoneEvents, (dp: CalendarDropzoneEvent) => {
@@ -326,6 +329,7 @@ function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, la
  * @param event The event we are currently dragging
  */
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
+  currentTime.value = event.data.start
   isDragging.value = true
   eventDragged.value = event
   emits('dragstart', event.data.dataId)
