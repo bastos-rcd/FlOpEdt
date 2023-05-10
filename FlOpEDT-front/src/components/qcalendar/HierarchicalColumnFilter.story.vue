@@ -24,19 +24,36 @@
               </template>
           </HierarchicalColumnFilter>
       </Variant>
-      <Variant title="Interactive">
+      <Variant title="Interactive inside component">
         <HierarchicalColumnFilter
-            :active-ids="activeNodeIds"
-            :flatNodes="useCase4.flatNodes"
-            @update:activeIds="updateInPlace">
+            v-model:active-ids="activeNodeIds"
+            :flatNodes="useCase4.flatNodes">
+            <!-- @update:activeIds="updateInPlace"> -->
               <template #item="{ nodeId, active }">
                 <div :class="['node', active?'ac':'nac']">
-                <!-- <div :class="['node', find(activeNodeIds, nid => (nid==nodeId))?'ac':'nac']"> -->
                   {{ find(useCase4.flatNodes, n => (n.id === nodeId))?.name }}
                   {{ active }}
                 </div>
               </template>
           </HierarchicalColumnFilter>
+      </Variant>
+      <Variant title="Interactive from outside">
+        <HierarchicalColumnFilter
+            v-model:active-ids="activeNodeIds"
+            :flatNodes="useCase4.flatNodes">
+              <template #item="{ nodeId, active }">
+                <div :class="['node', active?'ac':'nac']">
+                  {{ find(useCase4.flatNodes, n => (n.id === nodeId))?.name }}
+                  {{ active }}
+                </div>
+              </template>
+          </HierarchicalColumnFilter>
+          <div>
+            {{ activeNodeIds }}
+          </div>
+          <template v-for="nid in [111,112,121,122,131,132]">
+            <button @click="deactivate(nid)">Deactivate {{ find(useCase4.flatNodes, n => n.id == nid)?.name }}</button>
+          </template>
       </Variant>
     </Story>
 </template>
@@ -45,7 +62,7 @@
 <script setup lang="ts">
 import HierarchicalColumnFilter from './HierarchicalColumnFilter.vue'
 import { Tree, ITree } from '@/ts/tree'
-import { find, forEach } from 'lodash'
+import { find, forEach, remove, filter } from 'lodash'
 import { ref } from 'vue'
 
 const useCase1 = {
@@ -96,14 +113,10 @@ const useCase4 = {
   ]
 }
 
-function updateInPlace(newActiveIds : Array<number>) {
-  while(activeNodeIds.value.length > 0) {
-    activeNodeIds.value.pop();
-  }
-  forEach((newActiveIds as Array<number>), id => {
-    activeNodeIds.value.push(id)
-  })
+function deactivate(id: number) {
+  activeNodeIds.value = filter(activeNodeIds.value, nid => (nid!=id))
 }
+
 </script>
 
 <style>
@@ -128,23 +141,16 @@ function updateInPlace(newActiveIds : Array<number>) {
 
   ## Technical use
   ### Slots
-  `HierarchicalColumnFilter` component creates scoped slots, named `item`, whose scope is
-  `{nodeId: number, active: boolean}`. The slot content will be centered and stretched inside
-  the placeholder.
-  Note: the scope is reactive.
+  `HierarchicalColumnFilter` component creates scoped slots, named `item`, whose scope is in
+  the form of `{nodeId: number, active: boolean}`. The slot content will be centered and
+  stretched inside the placeholder.
+
+  **Note:** the scope is reactive.
 
   ### Input/output
-  The `activeIds` should be seen as a `v-model`-like list. As it is an object, I think we
-  cannot use the default `v-model` way because it would cycle: the parent component gives
-  a list as a property, then `HierarchicalColumnFilter` computes an updated list and emits
-  an `update:activeIds` event with the new value, then the parent component changes its
-  list accordingly. But this update, in the calling component, changed the pointer to the list,
-  even if the list content did not change.
-  Hence:
-  - in the calling component, we cut the cycle by pouring the new value into the list, while
-  not changing the pointer
-  - in `HierarchicalColumnFilter`, we keep a local list, so that if the calling component does
-  not implement the previous point, we are still reactive in the component.
+  Clean `v-model` (I think).
+  - (Change in component => change in the caller environment) : see "Interactive inside component"
+  - (Change out of the component => change in the callee environment) : see "Interactive outside component"
 
   ## User interface
   - Click on a node => toggle activation (except specific case where all nodes are active)

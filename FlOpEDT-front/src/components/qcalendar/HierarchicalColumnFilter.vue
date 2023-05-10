@@ -1,11 +1,11 @@
 <template>
   <div>
-    {{ localActiveIds }}
+    {{ $props.activeIds }}
   </div>
   <div class="wrapper" :style="styleContainer()">
     <template v-for="node in grid">
       <div class="item" :style="styleItem(node)" @click="toggle(node.id)">
-          <slot name="item" v-bind="{nodeId: node.id, active: indexOf(localActiveIds, node.id) > -1}">
+          <slot name="item" v-bind="{nodeId: node.id, active: indexOf($props.activeIds, node.id) > -1}">
               id: {{ node.id }}
           </slot>
       </div>
@@ -14,14 +14,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, Ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { CalendarColumn, GridCell, IdX } from './declaration'
-import { Tree, ITree, TreeNode, LinkIdUp } from '@/ts/tree'
-import { forEach, map, filter, values, indexOf, difference } from 'lodash'
-
-const nextColumns : CalendarColumn[] = []
-
-
+import { Tree, LinkIdUp } from '@/ts/tree'
+import { forEach, map, filter, values, indexOf, cloneDeep, difference, find } from 'lodash'
 
 const props = defineProps<{
     activeIds: Array<number>
@@ -35,26 +31,26 @@ const emits = defineEmits<{
 const hierarchy = computed(() => {
   const tree = new Tree()
   tree.addNodes(props.flatNodes, props.activeIds)
+  updateActiveIds(tree.getActiveIds())
   return tree
 })
 
-const localActiveIds = ref(props.activeIds)
-
-onMounted(() => {
-  updateActiveIds()
-})
-
-function updateActiveIds() {
-  const newValue = map(filter(values(hierarchy.value.byId), node => node.active), node => {
-    return node.id
-  })
-  localActiveIds.value = newValue
-  emits("update:activeIds", newValue)
+function updateActiveIds(newValue: Array<number>) {
+  let hasChanged = false
+  if (props.activeIds.length != newValue.length) {
+    hasChanged = true
+  } else {
+    if (find(props.activeIds,
+    (nid, i) => (props.activeIds[i] != newValue[i])) !== undefined) {
+      hasChanged = true
+    }
+  }
+  if (hasChanged) {
+    emits("update:activeIds", newValue)
+  }
 }
 
-
 const grid = computed(() => {
-  console.log("grid aussi")
   if (hierarchy.value.root === null) {
     return []
   }
@@ -95,8 +91,10 @@ function styleContainer() {
 }
 
 function toggle(id: number) {
-  hierarchy.value.byId[id].toggleActive()
-  updateActiveIds()
+  // deep clone not needed, but maybe cleaner since hierarchy is computed
+  const tree = cloneDeep(hierarchy.value)
+  tree.byId[id].toggleActive()
+  updateActiveIds(tree.getActiveIds())
 }
 </script>
 
