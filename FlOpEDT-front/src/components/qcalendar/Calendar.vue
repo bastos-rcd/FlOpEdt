@@ -1,4 +1,11 @@
 <template>
+  <div class="row justify-center">
+    <div class="q-pa-md q-gutter-sm row">
+      <q-btn no-caps class="button" style="margin: 2px" @click="onToday"> Today </q-btn>
+      <q-btn no-caps class="button" style="margin: 2px" @click="onPrev"> &lt; Prev </q-btn>
+      <q-btn no-caps class="button" style="margin: 2px" @click="onNext"> Next &gt; </q-btn>
+    </div>
+  </div>
   <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
     <q-calendar-day
       ref="calendar"
@@ -99,25 +106,24 @@
 </template>
 
 <script setup lang="ts">
-import { QCalendarDay, addToDate, parseTimestamp, today } from '@quasar/quasar-ui-qcalendar/src/index.js'
+import { addToDate, parseTimestamp, today } from '@quasar/quasar-ui-qcalendar/src/index.js'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
+import {
+  QCalendarDay,
+  copyTimestamp,
+  diffTimestamp,
+  parseTime,
+  updateMinutes,
+} from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
 import _ from 'lodash'
 
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
 import { computed, ref } from 'vue'
-import {
-  Timestamp,
-  TimestampOrNull,
-  copyTimestamp,
-  diffTimestamp,
-  parseTime,
-  updateMinutes,
-} from '@quasar/quasar-ui-qcalendar'
-
+import { TimestampOrNull, Timestamp } from '@quasar/quasar-ui-qcalendar'
 /**
  * Data passed to the component to handle the display in
  * columns for each day
@@ -141,7 +147,7 @@ const emits = defineEmits<{
  * * Format the data from the events to match the calendar display,
  * * Functions to compute the style to render for each event
  */
-const selectedDate = today()
+const selectedDate = ref(today())
 
 const eventsByDate = computed(() => {
   const map: Record<string, any[]> = {}
@@ -403,6 +409,20 @@ function updateEventDropped(): void {
   })
   newEvents.push(newEvent)
   eventsModel.value = newEvents
+}
+
+/**
+ * Functions relative to the navigation-bar
+ */
+const calendar = ref(null)
+function onToday(): void {
+  calendar.value?.moveToToday()
+}
+function onPrev(): void {
+  calendar.value?.prev()
+}
+function onNext(): void {
+  calendar.value?.next()
 }
 </script>
 
