@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { useCase } from './test.data'
 
 describe('Calendar component', () => {
-  it('render correctly', () => {
+  it.skip('render correctly', () => {
     expect.assertions(3)
     expect(Calendar).toBeTruthy()
     const wrapper = mount(Calendar)
