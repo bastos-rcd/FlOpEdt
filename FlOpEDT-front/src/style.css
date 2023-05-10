@@ -30,6 +30,12 @@ body {
   background: linear-gradient(to bottom, rgb(176,176,176), rgb(255,255,255));
 }
 
+html, body, #q-app {
+	width: 100%;
+	direction: ltr;
+	height: 100%;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
