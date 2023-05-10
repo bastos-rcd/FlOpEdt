@@ -172,8 +172,7 @@ describe('Tree utils', () => {
       {id: 132, parentId:13}
         ], [131, 121])
 
-      let actives = map(filter(values(tree.byId), node => node.active),
-      node => node.id)
+      let actives = tree.getActiveIds()
       expect(actives.length).toBe(5)
       expect(actives).toEqual(expect.arrayContaining([1, 12,13,121,131]))
 
@@ -195,14 +194,12 @@ describe('Tree utils', () => {
       {id: 132, parentId:13}
         ], [ 1, 11, 12, 112, 122 ])
 
-    let actives = map(filter(values(tree.byId), node => node.active),
-    node => node.id)
+    let actives = tree.getActiveIds()
     expect(actives.length).toBe(5)
     expect(actives).toEqual(expect.arrayContaining([ 1, 11, 12, 112, 122 ]))
 
     tree.byId[11].toggleActive()
-    actives = map(filter(values(tree.byId), node => node.active),
-    node => node.id)
+    actives = tree.getActiveIds()
     expect(actives.length).toBe(3)
     expect(actives).toEqual(expect.arrayContaining([ 1, 12, 122 ]))
 
@@ -226,22 +223,19 @@ describe('Tree utils', () => {
         {id:13, parentId:11}
     ], [3])
 
-    let actives = map(filter(values(tree.byId), node => node.active),
-      node => node.id)
+    let actives = tree.getActiveIds()
     expect(actives.length).toBe(3)
     expect(actives).toEqual(expect.arrayContaining([1, 3, 5]))
 
     tree.byId[4].toggleActive()
 
-    actives = map(filter(values(tree.byId), node => node.active),
-    node => node.id)
+    actives = tree.getActiveIds()
     expect(actives.length).toBe(5)
     expect(actives).toEqual(expect.arrayContaining([1, 3, 5, 4, 2]))
 
     tree.byId[11].toggleActive()
 
-    actives = map(filter(values(tree.byId), node => node.active),
-    node => node.id)
+    actives = tree.getActiveIds()
     expect(actives.length).toBe(8)
     expect(actives).toEqual(expect.arrayContaining([1, 3, 5, 4, 2, 11, 12, 13]))
   })
@@ -262,22 +256,19 @@ describe('Tree utils', () => {
         {id:13, parentId:11}
     ], [3, 4, 6])
 
-    let actives = map(filter(values(tree.byId), node => node.active),
-    node => node.id)
+    let actives = tree.getActiveIds()
     expect(actives.length).toBe(6)
     expect(actives).toEqual(expect.arrayContaining([1, 3, 5, 2, 4, 6]))
 
     tree.byId[4].toggleActive()
 
-    actives = map(filter(values(tree.byId), node => node.active),
-    node => node.id)
+    actives = tree.getActiveIds()
     expect(actives.length).toBe(5)
     expect(actives).toEqual(expect.arrayContaining([1, 3, 5, 2, 6]))
   
     tree.byId[5].toggleActive()
 
-    actives = map(filter(values(tree.byId), node => node.active),
-    node => node.id)
+    actives = tree.getActiveIds()
     expect(actives.length).toBe(3)
     expect(actives).toEqual(expect.arrayContaining([1, 2, 6]))
 
@@ -298,14 +289,12 @@ describe('Tree utils', () => {
         {id:12, parentId:11},
         {id:13, parentId:11}
     ], [8, 3, 4, 6, 12, 13])
-    let actives = map(filter(values(tree.byId), node => node.active),
-    node => node.id)
+    let actives = tree.getActiveIds()
     expect(actives.length).toBe(values(tree.byId).length)
     
     tree.byId[2].toggleActive()
 
-    actives = map(filter(values(tree.byId), node => node.active),
-    node => node.id)
+    actives = tree.getActiveIds()
     expect(actives.length).toBe(4)
     expect(actives).toEqual(expect.arrayContaining([1, 2, 4, 6]))
   
@@ -313,6 +302,8 @@ describe('Tree utils', () => {
   })
 
   it.todo('throws an error when cycle')
+
+  it.todo("activates all ndoes if all deactivated")
 
   it('throws an error when unknown node as a parentId', () => {
     expect.assertions(1)

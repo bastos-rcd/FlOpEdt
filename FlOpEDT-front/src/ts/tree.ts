@@ -183,6 +183,7 @@ export interface ITree {
     computeDepthMax() : void
     sortChildren(property: string) : void
     inferActiveBottomUp() : void
+    getActiveIds() : Array<number>
 }
 
 
@@ -194,6 +195,11 @@ export class Tree implements ITree {
     constructor() {
         this.root = null
         this.byId = {}
+    }
+    getActiveIds(): Array<number> {
+        return map(filter(values(this.byId), node => node.active), node => {
+            return node.id
+          })
     }
 
     addNodes(linkIdUps : Array<LinkIdUp>, active: Array<number> | undefined) : void {
