@@ -90,9 +90,6 @@ export class TreeNode implements ITreeNode {
                 node => {node.active = false})
                 this.active = false
                 this.tree.inferActiveBottomUp()
-                if (!this.tree.root?.active) {
-                    forEach(values(this.tree.byId), n => {n.active = true})
-                }
             }
         } else {
             this.active = true
@@ -235,6 +232,9 @@ export class Tree implements ITree {
 
     inferActiveBottomUp() : void {
         this.root?.inferActiveBottomUp()
+        if (!this.root?.active) {
+            forEach(values(this.byId), n => {n.active = true})
+        }
     }
 
     sortChildren() : void {
