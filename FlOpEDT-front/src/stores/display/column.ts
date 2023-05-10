@@ -12,8 +12,8 @@ export const useColumnStore = defineStore('column', () => {
 
   const columns = ref<CalendarColumn[]>([
     {
-      id: 23,
-      name: '1A',
+      id: 422,
+      name: 'BUT1',
       weight: 1,
       x: 0,
     },

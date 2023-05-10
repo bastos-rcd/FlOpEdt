@@ -40,10 +40,9 @@ export const useGroupStore = defineStore('group', () => {
 
     },
     {
-      "id": 23,
-      "name": "1A",
-      "columnIds": [23]
-
+      "id": 422,
+      "name": "BUT1",
+      "columnIds": [422]
     },
     {
       "id": 24,

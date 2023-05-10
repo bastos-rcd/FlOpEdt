@@ -123,7 +123,8 @@ import _ from 'lodash'
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
 import { computed, ref } from 'vue'
-import { TimestampOrNull, Timestamp } from '@quasar/quasar-ui-qcalendar'
+import { TimestampOrNull, Timestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { watch } from 'vue'
 /**
  * Data passed to the component to handle the display in
  * columns for each day
@@ -140,6 +141,7 @@ const props = defineProps<{
 const emits = defineEmits<{
   (e: 'dragstart', id: number): void
   (e: 'update:events', value: CalendarEvent[]): void
+  (e: 'update:week', value: Timestamp): void
 }>()
 
 /**
@@ -147,7 +149,12 @@ const emits = defineEmits<{
  * * Format the data from the events to match the calendar display,
  * * Functions to compute the style to render for each event
  */
-const selectedDate = ref(today())
+const selectedDate = ref<string>(today())
+
+watch(() => selectedDate.value, () => {
+  console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+  emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+})
 
 const eventsByDate = computed(() => {
   const map: Record<string, any[]> = {}
