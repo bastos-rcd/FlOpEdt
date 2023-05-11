@@ -1,0 +1,6 @@
+flopedt.*.debhelper
+flopedt.substvars
+flopedt/
+flopedt-*/
+files
+debhelper-build-stamp
