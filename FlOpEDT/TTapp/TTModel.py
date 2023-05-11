@@ -24,6 +24,8 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from django.conf import settings
+
 from django.core.mail import EmailMessage
 
 from base.models import RoomType, RoomPreference, ScheduledCourse, TrainingProgramme, \
@@ -47,7 +49,6 @@ from TTapp.FlopConstraint import max_weight
 from TTapp.slots import slots_filter, days_filter
 
 from TTapp.WeeksDatabase import WeeksDatabase
-
 
 from django.db import close_old_connections
 from django.db.models import F
@@ -1020,7 +1021,7 @@ class TTModel(FlopModel):
 
     # Some extra Utils
     def solution_files_prefix(self):
-        return f"flopmodel_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
+        return f"{settings.TMP_DIRECTORY}/flopmodel_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
 
     def add_tt_to_db_from_file(self, filename=None, target_work_copy=None):
         if filename is None:
