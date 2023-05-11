@@ -18,13 +18,21 @@
         @dragstart="onDragStart"
       />
     </Variant>
+    <Variant title="Use case 3">
+      <Calendar 
+        :columns="useCase3.columns"
+        :events="(useCase3.events as CalendarEvent[])"
+        @dragstart="onDragStart"
+      />
+    </Variant>
   </Story>
 </template>
 
 <script setup lang="ts">
 import { TimestampOrNull, Timestamp, parseDate, parseTime, today, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
 import { computed, ref } from 'vue'
-import type { CalendarEvent, CalendarDropzoneEvent } from './declaration'
+import type { CalendarEvent, CalendarDropzoneEvent, CalendarColumn } from './declaration'
+import _ from 'lodash'
 
 import Calendar from './Calendar.vue'
 
@@ -256,6 +264,8 @@ const useCase2 = {
   }],
 }
 
+// _.forEach(useCase2.columns as Array<CalendarColumn>, col => col.active = true)
+
 const useCase1 = {
   columns: [
     {
@@ -446,6 +456,9 @@ const useCase1 = {
     }
   }],
 }
+
+// _.forEach(useCase1.columns as Array<CalendarColumn>, col => col.active = true)
+
 const currentEventId = ref<number|null>(null)
 function onDragStart (eventId: number) {
   currentEventId.value = eventId
@@ -454,6 +467,47 @@ function onDragStart (eventId: number) {
 const currentDropzoneEvents = computed(() => {
   return useCase2.dropzoneEvents.find(d => d.eventId === currentEventId.value)
 })
+
+
+
+const useCase3 = {
+  columns: [
+    {
+      id: 0,
+      name: 'TPA',
+      weight: 1,
+      x: 0,
+    },
+    // {
+    //   id: 1,
+    //   name: 'TPB',
+    //   weight: 1,
+    //   x: 1,
+    // },
+    {
+      id: 2,
+      name: 'TPC',
+      weight: 1,
+      x: 2,
+    },
+    {
+      id: 3,
+      name: 'TPD',
+      weight: 1,
+      x: 3,
+    },
+    {
+      id: 4,
+      name: 'GIM2',
+      weight: 3,
+      x: 4,
+    },
+  ],
+  events: useCase1.events
+}
+// _.forEach(useCase3.columns as Array<CalendarColumn>, col => col.active = true)
+// const hiddenColumn = useCase3.columns.find(col => col.id === 1) as CalendarColumn
+// hiddenColumn.active = false
 
 </script>
 
