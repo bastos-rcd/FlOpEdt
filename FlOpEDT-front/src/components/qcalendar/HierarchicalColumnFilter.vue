@@ -5,9 +5,9 @@
   <div class="wrapper" :style="styleContainer()">
     <template v-for="node in grid">
       <div class="item" :style="styleItem(node)" @click="toggle(node.id)">
-          <slot name="item" v-bind="{nodeId: node.id, active: indexOf($props.activeIds, node.id) > -1}">
-              id: {{ node.id }}
-          </slot>
+        <slot name="item" v-bind="{ nodeId: node.id, active: indexOf($props.activeIds, node.id) > -1 }">
+          id: {{ node.id }}
+        </slot>
       </div>
     </template>
   </div>
@@ -20,12 +20,12 @@ import { Tree, LinkIdUp } from '@/ts/tree'
 import { forEach, map, filter, values, indexOf, cloneDeep, difference, find } from 'lodash'
 
 const props = defineProps<{
-    activeIds: Array<number>
-    flatNodes: Array<LinkIdUp>
+  activeIds: Array<number>
+  flatNodes: Array<LinkIdUp>
 }>()
 
 const emits = defineEmits<{
-    (e: "update:activeIds", activeIds: Array<number>): void
+  (e: 'update:activeIds', activeIds: Array<number>): void
 }>()
 
 const hierarchy = computed(() => {
@@ -40,13 +40,12 @@ function updateActiveIds(newValue: Array<number>) {
   if (props.activeIds.length != newValue.length) {
     hasChanged = true
   } else {
-    if (find(props.activeIds,
-    (nid, i) => (props.activeIds[i] != newValue[i])) !== undefined) {
+    if (find(props.activeIds, (nid, i) => props.activeIds[i] != newValue[i]) !== undefined) {
       hasChanged = true
     }
   }
   if (hasChanged) {
-    emits("update:activeIds", newValue)
+    emits('update:activeIds', newValue)
   }
 }
 
@@ -55,15 +54,15 @@ const grid = computed(() => {
     return []
   }
 
-  const cellList : Array<GridCell> = []
+  const cellList: Array<GridCell> = []
 
-  const queue : Array<IdX> = [{id: hierarchy.value.root.id, xmin: 0}]
+  const queue: Array<IdX> = [{ id: hierarchy.value.root.id, xmin: 0 }]
   while (queue.length != 0) {
-    const cur = (queue.pop() as IdX)
+    const cur = queue.pop() as IdX
     let curx = cur.xmin
     const tnode = hierarchy.value.byId[cur.id]
-    forEach(tnode?.children, child => {
-      queue.push({id: child.id, xmin:curx})
+    forEach(tnode?.children, (child) => {
+      queue.push({ id: child.id, xmin: curx })
       curx += child.nLeaves
     })
 
@@ -75,18 +74,16 @@ const grid = computed(() => {
       ymax: tnode.depthMax,
     })
   }
-  return(cellList)
+  return cellList
 })
 
-
-function styleItem(node : GridCell) {
-  return("grid-area: " + (node.ymin + 1) + " / " + (node.xmin + 1) + " / "
-        + (node.ymax + 2) + " / " + (node.xmax + 1))
+function styleItem(node: GridCell) {
+  return 'grid-area: ' + (node.ymin + 1) + ' / ' + (node.xmin + 1) + ' / ' + (node.ymax + 2) + ' / ' + (node.xmax + 1)
 }
 
 function styleContainer() {
   return {
-    gridTemplateColumns: 'repeat(' + hierarchy.value.root?.nLeaves + ', 1fr)'
+    gridTemplateColumns: 'repeat(' + hierarchy.value.root?.nLeaves + ', 1fr)',
   }
 }
 
