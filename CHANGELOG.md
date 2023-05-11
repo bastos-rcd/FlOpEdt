@@ -3,27 +3,47 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
-### Added
-- RoomPonderation objects to allow TTModel without room assignation
-- RoomModel to assign Rooms
-- Method reassign_rooms uses RoomModel
-- Possibility to pre-assign rooms and/or post-assign rooms in TTModel
-- Possibility to add a preferred theme in the use's preferences
-- Notification system: model for backup, email notification, django-crontab for notification
-- SimultaneousCourses pre-analyze
-- Pre-analyses tests (ConsiderDependencies, ConsiderTutorUnavailabilities, 
-NoSimultaneousGroupCourses, SimultaneousCourses)
-- TTConstraints manager interface: CRUD, dynamic catalog from md files
-- RoomReservation interface : gesture of room attributes, reservation types, periodicity
 
-### Changed
+
+
+## [1.0.0] -- TO BE RELEASED
+This version will include incompatible changes. More specifically:
+- the front-end will be refactored and rely on [https://vuejs.org/](`Vue3`)
+- the time management will be fundamentally changed to land on standard formats
+- the `API` will hence be refactored as well
+
+## [0.5.0] -- 2023-05-11
+**Note:** this is the last `0.*` version.
+### Added
+- DevOps
+  - pip package
+  - debian packages
+    - bullseye
+    - focal
+    - jammy
+- `RoomPonderation` objects to allow `TTModel` without room assignation
+- `RoomModel` to assign `Rooms`
+- Method `reassign_rooms` uses `RoomModel`
+- Possibility to pre-assign rooms and/or post-assign rooms in `TTModel`
+- Possibility to add a preferred theme in the use's preferences
+- Notification system
+  - model for backup
+  - email notification
+  - django-crontab for notification
+- `SimultaneousCourses` pre-analyze
+- Pre-analyses tests (`ConsiderDependencies`, `ConsiderTutorUnavailabilities`, 
+  `NoSimultaneousGroupCourses`, `SimultaneousCourses`)
+- `TTConstraints` manager interface: CRUD, dynamic catalog from md files
+- `RoomReservation` interface
+  - new room attributes
+  - reservation types
+  - periodicity
 
 ### TBD
 - right permissions in TTapp/views
 - Room preferences: user interface improvement, room exclusion
 
-## [0.4.0] - 2021-09-07
+## [0.4.0] -- 2021-09-07
 ### Added
 - Enable courses with multiple groups
 - New app flopeditor: save initial data through graphical interface
@@ -62,7 +82,7 @@ NoSimultaneousGroupCourses, SimultaneousCourses)
 
 
 
-## [0.3.0] - 2019-11-07
+## [0.3.0] -- 2019-11-07
 ### Added
 - Holidays in solver
 - New preferences mode
@@ -81,7 +101,7 @@ NoSimultaneousGroupCourses, SimultaneousCourses)
 - Import improved
 
 
-## [0.2.1] - 2019-07-18
+## [0.2.1] -- 2019-07-18
 ### Added
 - Import process:
   - Interface for superusers
@@ -93,7 +113,7 @@ NoSimultaneousGroupCourses, SimultaneousCourses)
 - Logo/case
 
 
-## [0.2.0] - 2019-02-04
+## [0.2.0] -- 2019-02-04
 ### Added
 - Multi-department support
 - Solve board improvements:
@@ -107,6 +127,6 @@ NoSimultaneousGroupCourses, SimultaneousCourses)
 - Docker support improvment
 
 
-## [0.1] - 2018-11-06
+## [0.1] -- 2018-11-06
 ### Added
 - Initial features
