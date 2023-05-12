@@ -237,7 +237,7 @@ function badgeStyles(
  * @param currentTime tracks the date and time of the
  * * position of the cursor
  * @param eventDragged refers to the event data that
- * * is being dragged
+ * * is being dragged at the start of the drag process
  */
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
@@ -344,7 +344,7 @@ function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, la
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   currentTime.value = event.data.start
   isDragging.value = true
-  eventDragged.value = event
+  eventDragged.value = _.cloneDeep(event)
   emits('dragstart', event.data.dataId)
   if (!browserEvent.dataTransfer) return
   browserEvent.dataTransfer.dropEffect = 'copy'
@@ -390,26 +390,22 @@ function onDragStop() {
  * * copy updated of the event changed
  */
 function updateEventDropped(): void {
-  let newEvent: CalendarEvent = _.cloneDeep(eventDragged.value)
-  if (!dropZoneToDisplay.value) {
-    console.log('NO DROPZONE FOR THIS EVENT')
-    return
-  }
-  if (dropZoneToDisplay.value.eventId !== newEvent.data.dataId) {
-    console.log('ERREUR DE DROPZONE')
-    return
-  }
   if (!currentTime.value) {
     console.log('ERREUR CURRENT TIME')
     return
   }
-  dropZoneToDisplay.value.possibleStarts[currentTime.value.date]?.forEach(
-    (ps: { isClose: boolean; timeStart: Timestamp }) => {
-      if (ps.isClose) {
-        newEvent.data.start = copyTimestamp(ps.timeStart)
+  let newEvent: CalendarEvent = _.cloneDeep(eventDragged.value)
+  if (dropZoneToDisplay.value && dropZoneToDisplay.value.eventId === newEvent.data.dataId) {
+    dropZoneToDisplay.value.possibleStarts[currentTime.value.date]?.forEach(
+      (ps: { isClose: boolean; timeStart: Timestamp }) => {
+        if (ps.isClose) {
+          newEvent.data.start = copyTimestamp(ps.timeStart)
+        }
       }
-    }
-  )
+    )
+  } else {
+    console.log('NO DROPZONE FOR THIS EVENT OU ERREUR DE DROPZONE')
+  }
   let newEvents: CalendarEvent[] = _.cloneDeep(props.events)
   _.remove(newEvents, (e: CalendarEvent) => {
     return e.data.dataId === newEvent.data.dataId
