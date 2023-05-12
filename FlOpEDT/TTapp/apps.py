@@ -27,7 +27,13 @@
 
 
 from django.apps import AppConfig
-
+from TTapp.onLaunch.discarded import createDiscardFile
+from TTapp.onLaunch.file import initTemp
 
 class TtappConfig(AppConfig):
     name = 'TTapp'
+
+    def ready(self):
+        createDiscardFile()
+        initTemp()
+    

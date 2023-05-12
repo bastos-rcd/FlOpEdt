@@ -25,7 +25,7 @@
 
 
 from core.decorators import timer
-from base.partition import Partition
+import TTapp.GlobalPreAnalysis.partition_with_constraints as partition_bis
 from datetime import timedelta
 
 from django.http.response import JsonResponse
@@ -40,8 +40,11 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter, Slot
 from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability
+
 from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 from django.core.validators import MaxValueValidator
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
@@ -53,6 +56,109 @@ class SimultaneousCourses(TTConstraint):
     Force courses to start simultaneously
     """
     courses = models.ManyToManyField('base.Course', related_name='simultaneous_courses_constraints')
+
+    def pre_analyse(self,week):
+        """
+        Pre-analysis of the constraint
+        Firstly verify if there is only one course per group/tutor to be done simultaneously
+        Then built a partition comparing each tutor availability (Can be optimized)
+        At the end, try to find an available slot in the week for the considered_courses
+
+        Parameters :
+            week : pre_analyse's current week
+
+        Returns :
+            jsondict :  a Json dictionary that contains the result of the pre-analyse
+        """
+        jsondict = {"status": _("OK"), "messages": [], "period": {"week": week.nb, "year": week.year}}
+
+        # pre_analyse's week simultaneous courses retrieval
+        considered_courses = (list(c for c in self.courses.all() if c.week == week ))
+
+        #We verify if there is only one course to do simultaneously for each tutor/group
+        jsondict,OK = self.maxOneCourse(jsondict, considered_courses)
+        if not(OK) :
+            return jsondict
+
+        # No course in the constraint case
+        if len(considered_courses) == 0:
+            jsondict["status"] = _("KO")
+            message = gettext("No partition created : maybe there is no courses or it's wrong the week")
+            jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
+            return jsondict
+
+        # We build a week's partition comparing partition of each tutors
+        partition = None
+        no_user_pref = not ConsiderTutorsUnavailability.objects.filter(weeks=week).exists()
+        for course in considered_courses :
+            if partition == None : # Here we build the partition of the first teacher
+                partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department,available=no_user_pref)
+            new_partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department,available=no_user_pref)
+            """
+            Then, for each interval (named interval1) available and not forbidden of the main partition (named partition) 
+            we watch if the interval of another teacher (named interval2) is also available and not forbidden 
+            """
+            for interval1 in partition.intervals :
+                if interval1[1]["available"] and not(interval1[1]["forbidden"]):
+                    for interval2 in new_partition.intervals :
+                        if not(interval1[0].start >= interval2[0].end\
+                                or interval1[0].end <= interval2[0].start) :
+                            interval1[1]["available"] = interval2[1]["available"]
+                            interval1[1]["forbidden"] = interval2[1]["forbidden"]
+
+        max_duration = 0
+        # Here we find the maximal duration of the simultaneous courses
+        for course in considered_courses :
+            max_duration = max(max_duration,course.type.duration)
+
+
+        # Here we search for an available slot in the week
+        if partition.nb_slots_available_of_duration(max_duration) < 1:
+            jsondict["status"] = _("KO")
+            message = gettext("Not enough common available time for courses ")
+            for course in considered_courses :
+                message += " {course} "
+            message += " to be done simultaneously"
+            jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
+            jsondict["status"] = _("KO")
+        return jsondict
+
+    def maxOneCourse (self, jsondict, consideredCourses):
+        """Verify that tutors and groups have only one course to do simultaneously
+        Parameters :
+            jsondict : a Json dictionary
+            consideredCourses : The considered courses to be done simultaneously
+
+        Returns :
+            jsondict :  a Json dictionary
+            statusOK : boolean, True if it's all good, False otherwise
+        Limit start time choice
+        """
+        consideredTutors = []
+        consideredGroups = []
+        tutorError = []
+        groupError = []
+        statusOK = True
+        for course in consideredCourses :
+            if (consideredTutors.__contains__(course.tutor)):
+                if not(tutorError.__contains__(course.tutor)):
+                    tutorError.append(course.tutor)
+                    jsondict["status"] = _("KO")
+                    message = gettext("Tutor %s has more than one to do at the same time") % course.tutor
+                    jsondict["messages"].append({"str": message, "tutor": course.tutor.id, "type": "SimultaneousCourses"})
+                    statusOK = False
+            consideredTutors.append(course.tutor)
+            course_groups = course.groups.all()
+            for group in course_groups :
+                if consideredGroups.__contains__(group) :
+                    if not(groupError.__contains__(group)):
+                        groupError.append(group)
+                        jsondict["status"] = _("KO")
+                        message = gettext("Group %s has more than one course to do at the same time") % group.name
+                        jsondict["messages"].append({"str": message, "group": group.id, "type": "SimultaneousCourses"})
+                        statusOK = False
+                consideredGroups.append(group)
+        return jsondict, statusOK
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -280,13 +386,13 @@ def find_successive_slots(course_slot1, course_slot2, course1_duration, course2_
     '''This function returns True if it finds a slot for the second course right after one of the first one with enough
     time duration.
     Complexity on O(n^2): n being the number of slots for each course.
-    
+
     Parameters:
         course_slot1 (list(TimeInterval)): A list of time interval representing when the first course can be placed
         course_slot2 (list(TimeInterval)): A list of time interval representing when the second course can be placed
         course1_duration (timedelta): The duration of the first course
         course2_duration (timedelta): The duration of the second course
-        
+
     Returns:
         (boolean): If we found at least one eligible slot'''
     for cs1 in course_slot1:
@@ -305,7 +411,7 @@ def find_successive_slots(course_slot1, course_slot2, course1_duration, course2_
 def find_day_gap_slots(course_slots1, course_slots2, day_gap):
     """This function search in the available times for each course if we can find a slot for the second course after a day gap passed
     in the parameters.
-    
+
     Parameters:
         course_slots1 (list(TimeInterval)): The TimeIntervals (starting datetime and ending datetime) available for the first course
         course_slots2 (list(TimeInterval)): The TimeIntervals (starting datetime and ending datetime) available for the second course
@@ -343,23 +449,34 @@ class ConsiderDependencies(TTConstraint):
 
         Parameter:
             week (Week): the week we want to analyse the data from
-            
+
         Returns:
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem"""
-        dependencies = self.considered_dependecies().filter(Q(course1__week=week) | Q(course1__week=None), Q(course2__week=week) | Q(course2__week=None))
-        jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year} }  
+        dependencies = self.considered_dependecies().filter(course1__week=week, course2__week=week)
+        jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year} }
+        no_user_pref1 = no_user_pref2 = not ConsiderTutorsUnavailability.objects.filter(Q(weeks=week)|Q(weeks__isnull=True)).exists()
         for dependency in dependencies:
             ok_so_far = True
-            # Setting up empty partitions for both courses
-            week_partition_course1 = Partition.get_available_partition_for_course(dependency.course1, week, self.department)
-            week_partition_course2 = Partition.get_available_partition_for_course(dependency.course2, week, self.department)
+            # Setting up partitions with data about other constraints for both courses
+            if dependency.course1.tutor is None:
+                no_user_pref1 = True
+            if dependency.course2.tutor is None:
+                no_user_pref2 = True
+
+            week_partition_course1 = partition_bis.create_course_partition_from_constraints(dependency.course1, week,
+                                                                                            self.department,
+                                                                                            available=no_user_pref1)
+            week_partition_course2 = partition_bis.create_course_partition_from_constraints(dependency.course2, week,
+                                                                                            self.department,
+                                                                                            available=no_user_pref2)
+
             if week_partition_course1 and week_partition_course2:
                 # Retrieving possible start times for both courses
-                course1_start_times = CourseStartTimeConstraint.objects.get(course_type = dependency.course1.type).allowed_start_times
-                course2_start_times = CourseStartTimeConstraint.objects.get(course_type = dependency.course2.type).allowed_start_times
+                course1_start_times = CourseStartTimeConstraint.objects.get(course_type=dependency.course1.type).allowed_start_times
+                course2_start_times = CourseStartTimeConstraint.objects.get(course_type=dependency.course2.type).allowed_start_times
                 # Retrieving only TimeInterval for each course
-                course1_slots = week_partition_course1.find_all_available_timeinterval_with_key_starting_at("user_preference", course1_start_times, dependency.course1.type.duration)
-                course2_slots = week_partition_course2.find_all_available_timeinterval_with_key_starting_at("user_preference", course2_start_times, dependency.course2.type.duration)
+                course1_slots = week_partition_course1.find_all_available_timeinterval_starting_at(course1_start_times, dependency.course1.type.duration)
+                course2_slots = week_partition_course2.find_all_available_timeinterval_starting_at(course2_start_times, dependency.course2.type.duration)
                 if course1_slots and course2_slots:
                     while course2_slots[0].end < course1_slots[0].start + timedelta(hours = dependency.course1.type.duration/60+dependency.course2.type.duration/60):
                         course2_slots.pop(0)
@@ -373,21 +490,21 @@ class ConsiderDependencies(TTConstraint):
                         if len(course2_slots) <= 1 and course2_slots[0].duration < dependency.course2.type.duration:
                             jsondict["status"] = _("KO")
                             ok_so_far = False
-                            jsondict["messages"].append({ "str" : _(f'There is no available slots for the second course after the first one. {dependency}'),
+                            jsondict["messages"].append({ "str" : gettext('There is no available slots for the second course after the first one : %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
                     else:
                         jsondict["status"] = _("KO")
                         ok_so_far = False
-                        jsondict["messages"].append({ "str" : _(f'There is no available slots for the second course after the first one. {dependency}'),
+                        jsondict["messages"].append({ "str" : gettext('There is no available slots for the second course after the first one : %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
                 else:
                     jsondict['status'] = _("KO")
                     ok_so_far = False
-                    jsondict["messages"].append({ "str": _(f'There is no available slots for the first or the second course. {dependency}'),
+                    jsondict["messages"].append({ "str": gettext(f'There is no available slots for the first or the second course : %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
@@ -401,7 +518,7 @@ class ConsiderDependencies(TTConstraint):
                             timedelta(hours = dependency.course2.type.duration/60)):
                             jsondict['status'] = _("KO")
                             ok_so_far = False
-                            jsondict["messages"].append({ "str": _(f'There is no available successive slots for those courses. {dependency}'),
+                            jsondict["messages"].append({ "str": gettext(f'There is no available successive slots for those courses: %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
@@ -409,21 +526,23 @@ class ConsiderDependencies(TTConstraint):
                         if not find_day_gap_slots(course1_slots, course2_slots, dependency.day_gap):
                             jsondict['status'] = _("KO")
                             ok_so_far = False
-                            jsondict["messages"].append({ "str": _(f'There is no available slots for the second course after a {dependency.day_gap} day gap. {dependency}'),
+                            jsondict["messages"].append({ "str": gettext('There is no available slots for the second '
+                                                                         'course after a %(day_gap)s day gap: %(dependency)s') % {"day_gap": dependency.day_gap,
+                                                                                                                                   "dependency": dependency},
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
             else:
                 jsondict['status'] = _("KO")
                 ok_so_far = False
-                jsondict["messages"].append({ "str": _(f'One of the courses has no eligible tutor to lecture it. {dependency}'),
+                jsondict["messages"].append({ "str": gettext('One of the courses has no eligible tutor to lecture it: %s') % dependency,
                                                             "course1": dependency.course1.id,
                                                             "course2": dependency.course2.id,
                                                             "type" : "ConsiderDependencies" })
         return jsondict
 
     def considered_dependecies(self):
-        """Returns the depencies that have to be considered"""
+        """Returns the dependencies that have to be considered"""
         result=Dependency.objects.filter(course1__type__department=self.department, course2__type__department=self.department)
         if self.train_progs.exists():
             result = result.filter(course1__module__train_prog__in=self.train_progs.all(), course2__module__train_prog__in=self.train_progs.all())

@@ -27,13 +27,14 @@ from TTapp.TTConstraints.TTConstraint import TTConstraint
 from django.db import models
 from base.timing import Day, TimeInterval, flopdate_to_datetime
 from people.models import Tutor
-
+from base.models import Week
 
 from TTapp.slots import slots_filter
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from .groups_constraints import considered_basic_groups
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 
@@ -66,7 +67,7 @@ class NoCourseOnDay(TTConstraint):
 
 class NoGroupCourseOnDay(NoCourseOnDay):
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='no_course_on_days')
+    course_types = models.ManyToManyField('base.CourseType', related_name='no_course_on_days')
 
     class Meta:
         verbose_name = _('No courses on declared days for groups')
@@ -105,6 +106,79 @@ class NoGroupCourseOnDay(NoCourseOnDay):
         if self.train_progs.exists():
             text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
         return text
+    
+    def get_slot_constraint(self, week, forbidden = False):
+        time_settings = self.time_settings()
+        if not self.weeks.exists() or week in self.weeks.all():
+            day_break = Day(self.weekday, week)
+            data = { "no_course_tutor" : 
+                            { "tutors": self.groups.all(), "tutor_status": self.groups.all()}
+                    }
+            if forbidden:
+                data["forbidden"] = True
+            if self.fampm_period == self.FULL_DAY:
+                data["no_course_tutor"]["period"] = {self.FULL_DAY}
+                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                    flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                        data)
+            elif self.fampm_period == self.AM:
+                data["no_course_tutor"]["period"] = {self.AM}
+                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                        flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                        data)
+            elif self.fampm_period == self.PM:
+                data["no_course_tutor"]["period"] = {self.PM}
+                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
+                                        flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                        data)
+        return None
+
+    def complete_group_partition(self, partition, group, week):
+        """
+            Complete the partition in parameters with informations given by this NoGroupCourseOnDay constraint if it
+        concern the given group and week.
+        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+
+        :param partition: A partition (empty or not) with informations about a group's availability.
+        :type partition: Partition
+        :param tutor: The group from whom the partition is about.
+        :type tutor: StructuralGroup
+        :param week: The week we want to make a pre-analysis on (can be None if all).
+        :type week: Week
+        :return: A partition with new informations if the given tutor is concerned by this NoGroupCourseOnDay constraint.
+        :rtype: Partition
+
+        """
+        if (not self.groups.exists() or group in self.groups.all()) \
+                and (not self.weeks.exists() or week in self.weeks.all()):
+
+            day_break = Day(self.weekday, week)
+            time_settings = self.time_settings()
+
+            if self.fampm_period == self.FULL_DAY:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                 flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    "forbidden",
+                    {"value": 0, "forbidden": True, "group": group.name}
+                )
+            elif self.fampm_period == self.AM:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                 flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                    "forbidden",
+                    {"value": 0, "forbidden": True, "group": group.name}
+                )
+
+            elif self.fampm_period == self.PM:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
+                                        flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    "forbidden",
+                    {"value": 0, "forbidden": True, "group": group.name}
+                )
+
+        return partition
 
 
 class NoTutorCourseOnDay(NoCourseOnDay):
@@ -152,30 +226,31 @@ class NoTutorCourseOnDay(NoCourseOnDay):
         return text
 
     def get_slot_constraint(self, week, forbidden = False):
-            time_settings = self.time_settings()
-            if not self.weeks.exists() or week in self.weeks.all():
-                day_break = Day(self.weekday, week)
-                data = { "no_course_tutor" : 
-                                { "tutors": self.tutors.all(), "tutor_status": {self.tutor_status}  }
-                        }
-                if forbidden:
-                    data["forbidden"] = True
-                if self.fampm_period == self.FULL_DAY:
-                    data["no_course_tutor"]["period"] = {self.FULL_DAY}
-                    return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                        flopdate_to_datetime(day_break, time_settings.day_finish_time)),
-                            data)
-                elif self.fampm_period == self.AM:
-                    data["no_course_tutor"]["period"] = {self.AM}
-                    return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                            flopdate_to_datetime(day_break, time_settings.day_finish_time)),
-                            data)
-                elif self.fampm_period == self.PM:
-                    data["no_course_tutor"]["period"] = {self.PM}
-                    return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                            flopdate_to_datetime(day_break, time_settings.day_finish_time)),
-                            data)
-            return None
+        time_settings = self.time_settings()
+        if not self.weeks.exists() or week in self.weeks.all():
+            day_break = Day(self.weekday, week)
+            data = { "no_course_tutor" : 
+                            { "tutors": self.tutors.all(), "tutor_status": {self.tutor_status}  }
+                    }
+            if forbidden:
+                data["forbidden"] = True
+            if self.fampm_period == self.FULL_DAY:
+                data["no_course_tutor"]["period"] = {self.FULL_DAY}
+                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                     flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                        data)
+            elif self.fampm_period == self.AM:
+                data["no_course_tutor"]["period"] = {self.AM}
+                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                     flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                        data)
+            elif self.fampm_period == self.PM:
+                data["no_course_tutor"]["period"] = {self.PM}
+                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                     flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                        data)
+        return None
+
 
     @staticmethod
     def tutor_and_supp(interval, required_supps, possible_tutors):
@@ -208,3 +283,50 @@ class NoTutorCourseOnDay(NoCourseOnDay):
                 if supp_in == len(required_supps) and tutor_in:
                     break
         return supp_in == len(required_supps) and tutor_in
+
+    def complete_tutor_partition(self, partition, tutor, week):
+        """
+            Complete the partition in parameters with informations given by this NoTutorCourseOnDay constraint if it
+        concern the given tutor and week.
+        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+
+        :param partition: A partition (empty or not) with informations about a tutor's availability.
+        :type partition: Partition
+        :param tutor: The tutor from whom the partition is about.
+        :type tutor: Tutor
+        :param week: The week we want to make a pre-analysis on (can be None if all).
+        :type week: Week
+        :return: A partition with new informations if the given tutor is concerned by this NoTutorCourseOnDay constraint.
+        :rtype: Partition
+
+        """
+        
+        if (not self.tutors.exists() or tutor in self.tutors.all()) \
+                and (not self.weeks.exists() or week in self.weeks.all()):
+            day_break = Day(self.weekday, week)
+            time_settings = self.time_settings()
+
+            if self.fampm_period == self.FULL_DAY:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                 flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    "forbidden",
+                    {"value": 0, "forbidden": True, "tutor": tutor.username}
+                )
+            elif self.fampm_period == self.AM:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
+                                 flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                    "forbidden",
+                    {"value": 0, "forbidden": True, "tutor": tutor.username}
+                )
+
+            elif self.fampm_period == self.PM:
+                partition.add_slot(
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
+                                        flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    "forbidden",
+                    {"value": 0, "forbidden": True, "tutor": tutor.username}
+                )
+
+        return partition

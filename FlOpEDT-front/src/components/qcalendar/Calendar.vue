@@ -7,6 +7,21 @@
     </div>
   </div>
   <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
+    <!-- <div style="display: flex">
+      <template v-for="column in props.columns" :key="column.name">
+        <div
+              :class="badgeClasses('header')"
+              style="cursor: pointer;height: 12px;font-size: 10px;margin-bottom: 1px;margin-top: 1px;border-color: 1px solid black;color: black;"
+              :style="{
+                'flex-basis': Math.round((100 * column.weight) / totalWeight) + '%',
+                'align-items': 'center',
+              }"
+              @click="toggleActive(column.id)"
+            >
+              {{ column.name }}
+        </div>
+      </template>
+    </div> -->
     <q-calendar-day
       ref="calendar"
       v-model="selectedDate"
@@ -40,7 +55,7 @@
                 color: black;
               "
               :style="{
-                'flex-basis': Math.round((100 * column.weight) / props.totalWeight) + '%',
+                'flex-basis': Math.round((100 * column.weight) / totalWeight) + '%',
                 'align-items': 'center',
               }"
             >
@@ -62,7 +77,9 @@
                 :class="badgeClasses('event', event.bgcolor)"
                 :style="badgeStyles(event, columnId, timeStartPos, timeDurationHeight)"
               >
-                <slot name="event" :event="event">
+                <slot 
+                v-if="props.columns.find((c) => c.id === columnId)"
+                name="event" :event="event">
                   <span class="title q-calendar__ellipsis">
                     {{ event.title }}
                   </span>
@@ -123,7 +140,7 @@ import _ from 'lodash'
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
 import { computed, ref } from 'vue'
-import { TimestampOrNull, Timestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { TimestampOrNull, Timestamp, parsed, updateWorkWeek} from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 /**
  * Data passed to the component to handle the display in
@@ -134,7 +151,6 @@ import { watch } from 'vue'
 const props = defineProps<{
   events: CalendarEvent[]
   columns: CalendarColumn[]
-  totalWeight: number
   dropzoneEvents?: CalendarDropzoneEvent[]
 }>()
 
@@ -144,6 +160,22 @@ const emits = defineEmits<{
   (e: 'update:week', value: Timestamp): void
 }>()
 
+const totalWeight = computed(() => _.sumBy(
+  props.columns,
+  (c : CalendarColumn) => c.weight)
+)
+
+const preWeight = computed(() => {
+  const map: Record<number, number> = {}
+  let preceeding = 0
+  _.forEach(props.columns, (col: CalendarColumn) => {
+    map[col.id] = preceeding
+    preceeding += col.weight
+  })
+  return map
+})
+
+  
 /**
  * QCalendar DATA TO DISPLAY
  * * Format the data from the events to match the calendar display,
@@ -202,6 +234,8 @@ function badgeStyles(
 
   if (!currentGroup) return undefined
 
+  const preceedingWeight = preWeight.value[columnId]
+
   const s: Record<string, string> = {
     top: '',
     height: '',
@@ -209,8 +243,8 @@ function badgeStyles(
   }
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.data?.start) + 'px'
-    s.left = Math.round((currentGroup?.x / props.totalWeight) * 100) + '%'
-    s.width = Math.round((100 * currentGroup.weight) / props.totalWeight) + '%'
+    s.left = Math.round((preWeight.value[columnId] / totalWeight.value) * 100) + '%'
+    s.width = Math.round((100 * currentGroup.weight) / totalWeight.value) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
   if (

@@ -39,17 +39,36 @@ from TTapp.ilp_constraints.constraint import Constraint
 from django.utils.translation import gettext_lazy as _
 
 def pre_analysis_considered_basic_groups(group_ttconstraint):
-    if group_ttconstraint.train_progs.exists():
-        basic_groups = set(StructuralGroup.objects.filter(train_prog__in=group_ttconstraint.train_progs.all(), basic=True))
-    else:
-        basic_groups = set(StructuralGroup.objects.filter(train_prog__department=group_ttconstraint.department, basic=True))
+    
+    """
+    Returns a set of groups which are basic_group concerned by the constraint group_ttconstraint
+
+    :param group_ttconstraint: A constraint we want to analyze.
+    :type group_ttconstraint: TTConstraint
+    :return: A set of groups which are basic_group and concerned by the constraint.
+    :rtype: A set of StructuralGroup
+
+    """
+    
+    groups = set(StructuralGroup.objects.filter(train_prog__in=group_ttconstraint.train_progs.all()))
+    basic_groups = set()
+    
+    for g in groups :
+        if len(g.descendants_groups()) == 0 :
+            basic_groups.add(g)
     
     if group_ttconstraint.groups.exists():
+        
         basic_groups_constraint = set()
+        
         for g in group_ttconstraint.groups.all():
-            basic_groups_constraint |= g.basic_groups()
+            
+            basic_groups_constraint.add(g)
+        
         basic_groups &= basic_groups_constraint
+        
     return basic_groups
+
 '''
     basic_groups_to_consider = set()
     for g in basic_groups:
@@ -61,7 +80,7 @@ def pre_analysis_considered_basic_groups(group_ttconstraint):
 def considered_basic_groups(group_ttconstraint, ttmodel=None):
     if ttmodel is None:
         basic_groups = StructuralGroup.objects.filter(train_prog__department=group_ttconstraint.department,
-                                                              basic=True)
+                                                      basic=True)
     else:
         basic_groups = ttmodel.wdb.basic_groups
     if group_ttconstraint.train_progs.exists():

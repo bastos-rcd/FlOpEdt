@@ -58,10 +58,17 @@
 - Jonathan Morgado Samagaio
 - Valentin Da Cruz
 - William Touzani
+- Camille Bausson
+- Yoan Mollet
+- Armand Gautier
 - David Gond
 - Nicolas Mathieu
 - Alexis Weppe
 - Thomas Demarty
+- Théo Delmas
+- Lauric Teysseyre
+- Pierre-Louis Renon
+- Julien Wattier
 
 # TRANSLATORS:
 - Thomas Demarty

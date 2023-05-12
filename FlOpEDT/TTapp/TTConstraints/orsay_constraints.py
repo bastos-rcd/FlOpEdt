@@ -25,8 +25,15 @@
 
 
 from django.contrib.postgres.fields import ArrayField
+from base.timing import Day, TimeInterval, flopdate_to_datetime
+from datetime import datetime
+from base.partition import Partition
+from base.models import Week
+from people.models import Tutor
 
 from django.db import models
+from django.db.models import Q
+
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -119,17 +126,50 @@ class GroupsLunchBreak(TTConstraint):
         else:
             text += " de toutes les promos."
         return text
+    
+    def complete_group_partition(self, partition, group, week):
+        """
+            Complete the partition in parameters with informations given by this GroupLunchBreak constraint if it
+        concern the given group and week.
+        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+
+        :param partition: A partition (empty or not) with informations about a group's availability.
+        :type partition: Partition
+        :param tutor: The group from whom the partition is about.
+        :type tutor: StructuralGroup
+        :param week: The week we want to make a pre-analysis on (can be None if all).
+        :type week: Week
+        :return: A partition with new informations if the given tutor is concerned by this GroupLunchBreak constraint.
+        :rtype: Partition
+
+        """
+
+        if (not self.groups.exists() or group in self.groups.all()) \
+                and (not self.weeks.exists() or week in self.weeks.all()):
+            days = [Day(choice[0], week) for choice in Day.CHOICES]
+            if self.weekdays:
+                days = days_filter(days, day_in=self.weekdays)
+            for day in days :
+                partition.add_slot(TimeInterval(flopdate_to_datetime(day, self.end_lunch_time - self.lunch_length), #self.start_lunch_time)
+                                                flopdate_to_datetime(day, self.end_lunch_time)),
+                                   "forbidden",
+                                   {"value": 0, "forbidden": True, "group_lunch_break": group.name}
+                                   )
+
+        return partition
 
 
 class TutorsLunchBreak(TTConstraint):
     """
-    Ensures time for lunch in a given interval for given groups (all if groups is Null)
+    Ensures time for lunch in a given interval for given tutors (all if tutors is Null)
     """
-    start_lunch_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
-    end_lunch_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
-    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    lunch_length = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
-    tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints')
+    start_lunch_time = models.PositiveSmallIntegerField(help_text=_('start lunch time'))  # FIXME : time with TimeField or DurationField
+    end_lunch_time = models.PositiveSmallIntegerField(help_text=_('end lunch time'))  # FIXME : time with TimeField or DurationField
+    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True,
+                          help_text=_('considered week days'))
+    lunch_length = models.PositiveSmallIntegerField(help_text=_('minimal lunch length (in min)'))  # FIXME : time with TimeField or DurationField
+    tutors = models.ManyToManyField('people.Tutor', blank=True, related_name='lunch_breaks_constraints',
+                                    help_text=_('considered tutors'))
 
     class Meta:
         verbose_name = _('Lunch break for tutors')
@@ -207,6 +247,37 @@ class TutorsLunchBreak(TTConstraint):
                     # cost = ttmodel.sum(slot_vars[group, sl] for sl in local_slots) * ponderation \
                     #        * self.local_weight()
                     ttmodel.add_to_inst_cost(tutor, cost, week)
+                    
+    def complete_tutor_partition(self, partition, tutor, week):
+        """
+                Complete the partition in parameters with informations given by this TutorsLunchBreak constraint if it
+            concern the given tutor and week.
+            This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+
+            :param partition: A partition (empty or not) with informations about a tutor's availability.
+            :type partition: Partition
+            :param tutor: The tutor from whom the partition is about.
+            :type tutor: Tutor
+            :param week: The week we want to make a pre-analysis on (can be None if all).
+            :type week: Week
+            :return: A partition with new informations if the given tutor is concerned by this TutorsLunchBreak constraint.
+            :rtype: Partition
+
+        """
+
+        if (not self.tutors.exists() or tutor in self.tutors.all()) \
+                and (not self.weeks.exists() or week in self.weeks.all()):
+            days = [Day(choice[0], week) for choice in Day.CHOICES]
+            if self.weekdays:
+                days = days_filter(days, day_in=self.weekdays)
+            for day in days :
+                partition.add_slot(TimeInterval(flopdate_to_datetime(day, self.end_lunch_time - self.lunch_length), #self.start_lunch_time),
+                                                flopdate_to_datetime(day, self.end_lunch_time)),
+                                   "forbidden",
+                                   {"value": 0, "forbidden": True, "tutor_lunch_break": tutor.username}
+                                   )
+
+        return partition
 
 
     def one_line_description(self):
