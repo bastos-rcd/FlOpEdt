@@ -3,25 +3,23 @@
     <Variant title="Use case 1">
       <Calendar 
         :columns="useCase1.columns"
-        :events="(useCase1.events as CalendarEvent[])"
-        :total-weight="useCase1.totalWeight"
-        :dropzone-events="(currentDropzoneEvents as CalendarDropzoneEvent)"
+        v-model:events="useCase1.events.value"
+        :dropzone-events="useCase1.dropzoneEvents"
         @dragstart="onDragStart"
       />
     </Variant>
     <Variant title="Use case 2">
       <Calendar 
         :columns="useCase2.columns"
-        :events="(useCase2.events as CalendarEvent[])"
-        :total-weight="useCase2.totalWeight"
-        :dropzone-events="(currentDropzoneEvents as CalendarDropzoneEvent)"
+        v-model:events="useCase2.events.value"
+        :dropzone-events="useCase2.dropzoneEvents"
         @dragstart="onDragStart"
       />
     </Variant>
     <Variant title="Use case 3">
       <Calendar 
         :columns="useCase3.columns"
-        :events="(useCase3.events as CalendarEvent[])"
+        v-model:events="useCase1.events.value"
         @dragstart="onDragStart"
       />
     </Variant>
@@ -29,10 +27,10 @@
 </template>
 
 <script setup lang="ts">
-import { TimestampOrNull, Timestamp, parseDate, parseTime, today, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
-import { computed, ref } from 'vue'
 import type { CalendarEvent, CalendarDropzoneEvent, CalendarColumn } from './declaration'
 import _ from 'lodash'
+import { Timestamp, parseDate, parseTime, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
+import { ref, Ref, computed } from 'vue'
 
 import Calendar from './Calendar.vue'
 
@@ -49,7 +47,14 @@ function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
 }
 
 
-const useCase2 = {
+interface UseCase {
+  columns: CalendarColumn[]
+  totalWeight : number
+  events: Ref<CalendarEvent[]>
+  dropzoneEvents: CalendarDropzoneEvent[]
+}
+
+const useCase2: UseCase = {
   columns: [
     {
       id: 0,
@@ -77,7 +82,7 @@ const useCase2 = {
     },
   ],
   totalWeight: 6,
-  events: [
+  events: ref([
     {
       title: 'TP INFO',
       details: 'Let\' work on our Python project',
@@ -130,7 +135,7 @@ const useCase2 = {
         duration: 150,
       },
     },
-  ],
+  ]),
   dropzoneEvents: [{
     eventId: 5,
     duration: 90,
@@ -300,7 +305,7 @@ const useCase1 = {
     },
   ],
   totalWeight: 7,
-  events: [
+  events: ref([
     {
       title: '1st of the Month',
       details: 'Everything is funny as long as it is happening to someone else',
@@ -412,46 +417,46 @@ const useCase1 = {
         days: 5,
       },
     },
-  ],
+  ]),
   dropzoneEvents: [{
     eventId: 5,
     duration: 90,
     columnIds: [1],
     possibleStarts: {
       [shiftInCurrentWeek(0)!.date]: [
-        shiftInCurrentWeek(0, '08:10'),
-        shiftInCurrentWeek(0, '08:50'),
-        shiftInCurrentWeek(0, '09:10'),
-        shiftInCurrentWeek(0, '10:10'),
-        shiftInCurrentWeek(0, '15:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '08:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '08:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '09:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(0, '15:30') },
       ],
       [shiftInCurrentWeek(1)!.date]: [
-        shiftInCurrentWeek(1, '10:10'),
-        shiftInCurrentWeek(1, '10:50'),
-        shiftInCurrentWeek(1, '11:10'),
-        shiftInCurrentWeek(1, '18:10'),
-        shiftInCurrentWeek(1, '14:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '11:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '18:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(1, '14:30') },
       ],
       [shiftInCurrentWeek(2)!.date]: [
-        shiftInCurrentWeek(2, '10:10'),
-        shiftInCurrentWeek(2, '10:50'),
-        shiftInCurrentWeek(2, '11:10'),
-        shiftInCurrentWeek(2, '18:10'),
-        shiftInCurrentWeek(2, '14:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '11:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '18:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(2, '14:30') },
       ],
       [shiftInCurrentWeek(3)!.date]: [
-        shiftInCurrentWeek(3, '10:10'),
-        shiftInCurrentWeek(3, '10:50'),
-        shiftInCurrentWeek(3, '11:10'),
-        shiftInCurrentWeek(3, '18:10'),
-        shiftInCurrentWeek(3, '14:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '11:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '18:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(3, '14:30') },
       ],
       [shiftInCurrentWeek(4)!.date]: [
-        shiftInCurrentWeek(4, '10:10'),
-        shiftInCurrentWeek(4, '10:50'),
-        shiftInCurrentWeek(4, '11:10'),
-        shiftInCurrentWeek(4, '18:10'),
-        shiftInCurrentWeek(4, '14:30'),
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '10:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '10:50') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '11:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '18:10') },
+        { isClose: false, timeStart: shiftInCurrentWeek(4, '14:30') },
       ],
     }
   }],
@@ -470,7 +475,7 @@ const currentDropzoneEvents = computed(() => {
 
 
 
-const useCase3 = {
+const useCase3: UseCase = {
   columns: [
     {
       id: 0,
@@ -478,12 +483,12 @@ const useCase3 = {
       weight: 1,
       x: 0,
     },
-    // {
-    //   id: 1,
-    //   name: 'TPB',
-    //   weight: 1,
-    //   x: 1,
-    // },
+    {
+      id: 1,
+      name: 'TPB',
+      weight: 1,
+      x: 1,
+    },
     {
       id: 2,
       name: 'TPC',
@@ -503,18 +508,40 @@ const useCase3 = {
       x: 4,
     },
   ],
-  events: useCase1.events
+  events: useCase1.events,
+  totalWeight: 7,
+  dropzoneEvents: []
 }
-// _.forEach(useCase3.columns as Array<CalendarColumn>, col => col.active = true)
-// const hiddenColumn = useCase3.columns.find(col => col.id === 1) as CalendarColumn
-// hiddenColumn.active = false
 
 </script>
 
 <docs lang="md">
-# Welcome
+# Welcome To a copied doc
 
-This is a demo book using Vue 3.
+## Technical use
+
+### Input/output
+- The component receives 3 types of data:
+  - A list of **CalendarEvent**s
+    This data is used to create visual events inside bodies of the days
+  - A list of **CalendarColumn**s
+    This data is used to create the columns at the top of each days
+  - A list of **CalendarDropzoneEvent**s
+    This data can be passed as a list of every zones for every events or
+    already filtered for the currently dragged event (with the dragstart event)
+    It is used to display the possible drop zone areas
+
+## User interface
+
+- Click on an event and start dragging => dropzones appear inside day bodies
+- Stop dragging => event is dropped on the nearest dropzone and change its value
+  or put back at its original place
+- Click on the navigation bar above the calendar => change the week displayed
+
+## TODO
+
+- The aesthetics should be improved
+- Drag computation could be optimized
 
 ---
 
