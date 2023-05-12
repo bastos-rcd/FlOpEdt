@@ -289,13 +289,13 @@ const eventsModel = computed({
 /**
  * Only returns the dropZone with the same ID as the event dragged
  */
-const dropZoneToDisplay = computed((): CalendarDropzoneEvent => {
+const dropZoneToDisplay = computed((): CalendarDropzoneEvent | undefined => {
   if (isDragging.value) {
-    return _.find(props.dropzoneEvents, (dp: CalendarDropzoneEvent) => {
+    return _.find(props.dropzoneEvents, (dp) => {
       return dp.eventId === eventDragged.value?.data.dataId
     })
   }
-  return { eventId: -1, duration: 0, columnIds: [], possibleStarts: {} } as CalendarDropzoneEvent
+  return { eventId: -1, duration: 0, columnIds: [], possibleStarts: {} }
 })
 
 /**
@@ -304,7 +304,8 @@ const dropZoneToDisplay = computed((): CalendarDropzoneEvent => {
  */
 const closestStartTime = computed(() => {
   let closest: string = ''
-  if (!currentTime.value || !props.dropzoneEvents || dropZoneToDisplay.value.eventId === -1) return closest
+  if (!currentTime.value || !props.dropzoneEvents || !dropZoneToDisplay.value || dropZoneToDisplay.value.eventId === -1)
+    return closest
   let i = 0
   let timeDiff: number = 0
   while (i < dropZoneToDisplay.value.possibleStarts[currentTime.value.date]?.length) {
@@ -423,6 +424,10 @@ function onDragStop() {
 function updateEventDropped(): void {
   if (!currentTime.value) {
     console.log('ERREUR CURRENT TIME')
+    return
+  }
+  if (!eventDragged.value) {
+    console.log("I don't know what happened: I lost the dragged event")
     return
   }
   let newEvent: CalendarEvent = _.cloneDeep(eventDragged.value)
