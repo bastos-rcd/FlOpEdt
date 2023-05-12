@@ -30,7 +30,7 @@
 import type { CalendarEvent, CalendarDropzoneEvent, CalendarColumn } from './declaration'
 import _ from 'lodash'
 import { Timestamp, parseDate, parseTime, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
-import { ref, Ref } from 'vue'
+import { ref, Ref, computed } from 'vue'
 
 import Calendar from './Calendar.vue'
 
@@ -516,9 +516,32 @@ const useCase3: UseCase = {
 </script>
 
 <docs lang="md">
-# Welcome
+# Welcome To a copied doc
 
-This is a demo book using Vue 3.
+## Technical use
+
+### Input/output
+- The component receives 3 types of data:
+  - A list of **CalendarEvent**s
+    This data is used to create visual events inside bodies of the days
+  - A list of **CalendarColumn**s
+    This data is used to create the columns at the top of each days
+  - A list of **CalendarDropzoneEvent**s
+    This data can be passed as a list of every zones for every events or
+    already filtered for the currently dragged event (with the dragstart event)
+    It is used to display the possible drop zone areas
+
+## User interface
+
+- Click on an event and start dragging => dropzones appear inside day bodies
+- Stop dragging => event is dropped on the nearest dropzone and change its value
+  or put back at its original place
+- Click on the navigation bar above the calendar => change the week displayed
+
+## TODO
+
+- The aesthetics should be improved
+- Drag computation could be optimized
 
 ---
 
