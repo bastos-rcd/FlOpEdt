@@ -36,11 +36,12 @@
 </template>
 
 <script setup lang="ts">
-import { QCalendarResource, today } from '@quasar/quasar-ui-qcalendar/src/index.js' //'@quasar/quasar-ui-qcalendar/src/QCalendarResource.js'
+import { QCalendarResource, today } from '@quasar/quasar-ui-qcalendar/src/index.js'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarResource.sass'
 import { onBeforeMount, ref } from 'vue'
+import { CalendarResourceScope, CalendarResourceEvent } from './declaration'
 
 const calendar = ref(null)
 const selectedDate = ref(today())
@@ -51,7 +52,7 @@ const props = defineProps<{
 
 const resources = ref(props.resources)
 
-function getEvents(scope) {
+function getEvents(scope: CalendarResourceScope) {
   const scopedEvents = []
   if (props.events[scope.resource.id]) {
     // get events for the specified resource
@@ -70,7 +71,8 @@ function getEvents(scope) {
   }
   return scopedEvents
 }
-function getStyle(event) {
+
+function getStyle(event: CalendarResourceEvent) {
   return {
     position: 'absolute',
     background: 'grey',

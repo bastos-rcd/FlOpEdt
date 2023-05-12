@@ -37,6 +37,19 @@ export interface CalendarColumn {
   // active: boolean
 }
 
+export interface CalendarResourceScope {
+  resource: { id: number }
+  timeStartPosX(time: Timestamp): number
+  timeDurationWidth(duration: number): number
+}
+
+// This is expected to change, but for now, let's start with that
+export interface CalendarResourceEvent {
+  left: number
+  width: number
+  title: string
+}
+
 // export interface CalendarDynamicColumn extends CalendarColumn {
 //   active: boolean
 // }
