@@ -1,4 +1,4 @@
-import { Timestamp } from "@quasar/quasar-ui-qcalendar"
+import { Timestamp } from '@quasar/quasar-ui-qcalendar'
 
 /**
  * Calendar event, for display purpose
@@ -12,7 +12,7 @@ export interface CalendarEvent {
 
   columnIds?: number[]
 
-  data : EventData
+  data: EventData
 }
 
 export interface EventData {
@@ -41,15 +41,12 @@ export interface CalendarColumn {
 //   active: boolean
 // }
 
-
 export interface CalendarDropzoneEvent {
   eventId: number
   duration: number
   columnIds: number[]
-  possibleStarts: Record<string, { isClose: boolean, timeStart: Timestamp }[]>
+  possibleStarts: Record<string, { isClose: boolean; timeStart: Timestamp }[]>
 }
-
-
 
 export interface IdX {
   id: number
@@ -57,9 +54,9 @@ export interface IdX {
 }
 
 export interface GridCell {
-  id:   number,
-  xmin: number,
-  xmax: number,
-  ymin: number,
+  id: number
+  xmin: number
+  xmax: number
+  ymin: number
   ymax: number
 }

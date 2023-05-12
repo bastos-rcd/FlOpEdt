@@ -27,13 +27,15 @@ a:hover {
 body {
   min-width: 320px;
   min-height: 100vh;
-  background: linear-gradient(to bottom, rgb(176,176,176), rgb(255,255,255));
+  background: linear-gradient(to bottom, rgb(176, 176, 176), rgb(255, 255, 255));
 }
 
-html, body, #q-app {
-	width: 100%;
-	direction: ltr;
-	height: 100%;
+html,
+body,
+#q-app {
+  width: 100%;
+  direction: ltr;
+  height: 100%;
 }
 
 h1 {

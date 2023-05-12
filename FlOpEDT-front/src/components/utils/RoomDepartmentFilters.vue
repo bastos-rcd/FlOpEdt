@@ -1,39 +1,41 @@
 <template>
-    <!-- Filters -->
-    <div class="col">
-        <!-- Room filter -->
-        <div class="row mb-3">
-            <FilterSelector
-                filterSelectorLabel = 'roomreservation.sidebar.rooms'
-                filterSelectorUndefinedLabel = 'roomreservation.sidebar.rooms-label'
-                itemVariableName = 'name'
-                :selectedItem = selectedRoom
-                :items="filterRoomstoDisplay"
-                @itemSelected="(newRoom: Room) => emit('selectedRoomChange', newRoom)">
-            </FilterSelector>
-        </div>
-        <!-- Department filter -->
-        <!--:items="departmentStore.getAllDepartmentsFetched"-->
-        <div class="row mb-3">
-            <FilterSelector
-                filterSelectorLabel = 'roomreservation.sidebar.department'
-                filterSelectorUndefinedLabel = 'roomreservation.sidebar.department-label'
-                itemVariableName = 'abbrev'
-                :selectedItem = selectedDepartment
-                :items="departmentStore.getAllDepartmentsFetched"
-                @itemSelected="(newDept: Department) => emit('selectedDepartmentChange', newDept)">
-            </FilterSelector>
-        </div>
-        <!-- Room attribute and name filters -->
-        <div v-if="!selectedRoom" class="row">
-            <div class="mb-3">
-                <ClearableInput
-                    :input-id="'filter-input-roomName'"
-                    :label="`${$t('roomreservation.sidebar.room-filter')}`"
-                    v-model:text="roomNameFilter"
-                ></ClearableInput>
-            </div>
-            <!--
+  <!-- Filters -->
+  <div class="col">
+    <!-- Room filter -->
+    <div class="row mb-3">
+      <FilterSelector
+        filterSelectorLabel="roomreservation.sidebar.rooms"
+        filterSelectorUndefinedLabel="roomreservation.sidebar.rooms-label"
+        itemVariableName="name"
+        :selectedItem="selectedRoom"
+        :items="filterRoomstoDisplay"
+        @itemSelected="(newRoom: Room) => emit('selectedRoomChange', newRoom)"
+      >
+      </FilterSelector>
+    </div>
+    <!-- Department filter -->
+    <!--:items="departmentStore.getAllDepartmentsFetched"-->
+    <div class="row mb-3">
+      <FilterSelector
+        filterSelectorLabel="roomreservation.sidebar.department"
+        filterSelectorUndefinedLabel="roomreservation.sidebar.department-label"
+        itemVariableName="abbrev"
+        :selectedItem="selectedDepartment"
+        :items="departmentStore.getAllDepartmentsFetched"
+        @itemSelected="(newDept: Department) => emit('selectedDepartmentChange', newDept)"
+      >
+      </FilterSelector>
+    </div>
+    <!-- Room attribute and name filters -->
+    <div v-if="!selectedRoom" class="row">
+      <div class="mb-3">
+        <ClearableInput
+          :input-id="'filter-input-roomName'"
+          :label="`${$t('roomreservation.sidebar.room-filter')}`"
+          v-model:text="roomNameFilter"
+        ></ClearableInput>
+      </div>
+      <!--
             <div class="mb-3">
                 <DynamicSelect
                     v-bind="{
@@ -45,13 +47,13 @@
                 ></DynamicSelect>
             </div>
             -->
-        </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { Department, Room} from '@/ts/type'
+import { Department, Room } from '@/ts/type'
 import { useRoomStore } from '@/stores/room'
 import { computed, ref } from 'vue'
 import { useDepartmentStore } from '@/stores/department'
@@ -60,13 +62,13 @@ import ClearableInput from '@/components/utils/ClearableInput.vue'
 import { watch } from 'vue'
 
 interface Props {
-    selectedRoom : Room | undefined,
-    selectedDepartment: Department | undefined,
+  selectedRoom: Room | undefined
+  selectedDepartment: Department | undefined
 }
 const emit = defineEmits<{
-    (e: 'selectedRoomChange', room : Room): void
-    (e: 'selectedDepartmentChange', dept: Department): void
-    (e: 'roomNameFilterChange', newRoomNameFilter: string) : void
+  (e: 'selectedRoomChange', room: Room): void
+  (e: 'selectedDepartmentChange', dept: Department): void
+  (e: 'roomNameFilterChange', newRoomNameFilter: string): void
 }>()
 
 const props = defineProps<Props>()
@@ -76,29 +78,30 @@ const roomNameFilter = ref('')
 const { t } = useI18n()
 
 const filterRoomstoDisplay = computed(() => {
-    return roomStore.rooms.filter((r : Room) => {
-            if (props.selectedDepartment) {
-                let belongsToDept = false
-                if(r.departments.length === 0) {
-                    belongsToDept = true
-                } else {
-                    r.departments.forEach((dept: Department) => {
-                        if(dept.id === props.selectedDepartment?.id) {
-                            belongsToDept = true
-                        }
-                    })
-                }
-                return r.is_basic && belongsToDept || r.departments.length === 0
+  return roomStore.rooms
+    .filter((r: Room) => {
+      if (props.selectedDepartment) {
+        let belongsToDept = false
+        if (r.departments.length === 0) {
+          belongsToDept = true
+        } else {
+          r.departments.forEach((dept: Department) => {
+            if (dept.id === props.selectedDepartment?.id) {
+              belongsToDept = true
             }
-            return r.is_basic
-        })
-        .sort((r1 : Room, r2 : Room) => {
-            return r1.name.toLowerCase().localeCompare(r2.name.toLowerCase())
-        })
+          })
+        }
+        return (r.is_basic && belongsToDept) || r.departments.length === 0
+      }
+      return r.is_basic
+    })
+    .sort((r1: Room, r2: Room) => {
+      return r1.name.toLowerCase().localeCompare(r2.name.toLowerCase())
+    })
 })
 
 watch(roomNameFilter, (newName, oldName) => {
-    emit('roomNameFilterChange', newName)
+  emit('roomNameFilterChange', newName)
 })
 
 /*
@@ -141,6 +144,4 @@ function createFiltersValues(): Array<RoomAttributeEntry> {
 }*/
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

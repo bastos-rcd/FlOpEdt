@@ -1,15 +1,13 @@
 <template>
   <Story>
     <Variant title="Use case 1">
-      <ScheduleView/>
+      <ScheduleView />
     </Variant>
   </Story>
 </template>
 
 <script setup lang="ts">
-import ScheduleView from './ScheduleView.vue';
-
-
+import ScheduleView from './ScheduleView.vue'
 </script>
 
 <docs lang="md">

@@ -3,76 +3,81 @@
     <legend>{{ $t('contact.title') }}</legend>
     <fieldset>
       <legend>{{ $t('contact.infos-title') }}</legend>
-      <label for="email">{{ $t('contact.email-label') }}</label> 
-      <input 
-        v-model="emailadress" 
-        id="email" type="email" 
-        @input="updateEmail()" 
+      <label for="email">{{ $t('contact.email-label') }}</label>
+      <input
+        v-model="emailadress"
+        id="email"
+        type="email"
+        @input="updateEmail()"
         :placeholder="$t('contact.email-placeholder')"
-        required/>
+        required
+      />
       <label for="recipient">{{ $t('contact.recipient-label') }}</label>
-      <input 
+      <input
         v-model="recipient"
         id="recipient"
-        maxlength="20" 
-        @input="updateRecipient()" 
+        maxlength="20"
+        @input="updateRecipient()"
         :placeholder="$t('contact.recipient-placeholder')"
-        required/>
+        required
+      />
     </fieldset>
     <fieldset>
       <legend>{{ $t('contact.message-title') }}</legend>
       <label for="subject">{{ $t('contact.object-label') }}</label>
-      <input 
+      <input
         v-model="subject"
         type="text"
         maxlength="100"
-        id="subject" 
-        @input="updateSubject()" 
-        :placeholder="$t('contact.object-placeholder')" 
-        required/>
+        id="subject"
+        @input="updateSubject()"
+        :placeholder="$t('contact.object-placeholder')"
+        required
+      />
 
       <label for="message">{{ $t('contact.message-label') }}</label>
-      <textarea 
-        v-model="message" 
-        id="message" 
-        cols="50" 
+      <textarea
+        v-model="message"
+        id="message"
+        cols="50"
         rows="10"
         maxlength="2000"
-        @input="updateMessage()" 
-        :placeholder="$t('contact.message-placeholder')" 
-        required>
+        @input="updateMessage()"
+        :placeholder="$t('contact.message-placeholder')"
+        required
+      >
       </textarea>
     </fieldset>
-    <input class="form-button" type="submit" :value="$t('contact.submit-button')"/>  
+    <input class="form-button" type="submit" :value="$t('contact.submit-button')" />
   </form>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n';
-const emailadress = ref("")
-const recipient = ref("")
-const subject = ref("")
-const message = ref("")
+import { useI18n } from 'vue-i18n'
+const emailadress = ref('')
+const recipient = ref('')
+const subject = ref('')
+const message = ref('')
 const t = useI18n()
 
 function updateEmail() {
-    console.log(emailadress.value)
+  console.log(emailadress.value)
 }
 function updateRecipient() {
-    console.log(recipient.value)
+  console.log(recipient.value)
 }
 function updateSubject() {
-    console.log(subject.value)
+  console.log(subject.value)
 }
 function updateMessage() {
-    console.log(message.value)
+  console.log(message.value)
 }
 </script>
 
 <style scoped>
 fieldset {
-  background: linear-gradient(#b4bbbe ,#f3f3f3);
+  background: linear-gradient(#b4bbbe, #f3f3f3);
   border-radius: 10px;
   border-style: solid;
   border-color: #000000;
@@ -89,7 +94,8 @@ fieldset {
 legend {
   font-weight: bolder;
 }
-input, textarea {
+input,
+textarea {
   background-color: aliceblue;
   color: black;
   margin: 10px;
@@ -100,7 +106,7 @@ label {
   padding-right: 4px;
 }
 form {
-  background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.1));
+  background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
   width: 100%;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
@@ -108,5 +114,4 @@ form {
 .form-button:hover {
   background: #9bb6a4;
 }
-
 </style>

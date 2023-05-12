@@ -1,8 +1,6 @@
 <template>
-<slot v-if="isUserLoaded"></slot>
-<div v-else>
-  Chargement...
-</div>
+  <slot v-if="isUserLoaded"></slot>
+  <div v-else>Chargement...</div>
 </template>
 
 <script setup lang="ts">

@@ -10,26 +10,26 @@
 </template>
 
 <script setup lang="ts">
-import Header from '@/components/Header.vue';
-import ProvideDepartment from '@/components/providers/ProvideDepartment.vue';
+import Header from '@/components/Header.vue'
+import ProvideDepartment from '@/components/providers/ProvideDepartment.vue'
 </script>
 
 <style>
 * {
   font-family: Arial, sans-serif;
-  alignment-baseline:middle;
-  dominant-baseline:middle;
+  alignment-baseline: middle;
+  dominant-baseline: middle;
 }
 h1 {
-  font-size:22px;
+  font-size: 22px;
 }
 h2 {
-  font-size:20px;
+  font-size: 20px;
 }
 h3 {
-  font-size:18px;
+  font-size: 18px;
 }
 h4 {
-  font-size:16px;
+  font-size: 16px;
 }
 </style>

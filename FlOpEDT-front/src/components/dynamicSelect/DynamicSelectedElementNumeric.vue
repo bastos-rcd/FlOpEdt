@@ -1,14 +1,14 @@
 <template>
-    <DynamicSelectedElement :value="props.value">
-        <template #input>
-            <DoubleThumbSlider
-                :initial-min="props.value.initialMin"
-                :initial-max="props.value.initialMax"
-                v-model:min="minValue"
-                v-model:max="maxValue"
-            ></DoubleThumbSlider>
-        </template>
-    </DynamicSelectedElement>
+  <DynamicSelectedElement :value="props.value">
+    <template #input>
+      <DoubleThumbSlider
+        :initial-min="props.value.initialMin"
+        :initial-max="props.value.initialMax"
+        v-model:min="minValue"
+        v-model:max="maxValue"
+      ></DoubleThumbSlider>
+    </template>
+  </DynamicSelectedElement>
 </template>
 
 <script setup lang="ts">
@@ -18,18 +18,18 @@ import type { DynamicSelectElementNumericValue } from '@/ts/type'
 import DoubleThumbSlider from '@/components/DoubleThumbSlider.vue'
 
 interface Props {
-    value: DynamicSelectElementNumericValue
+  value: DynamicSelectElementNumericValue
 }
 
 const props = defineProps<Props>()
 
 interface Emits {
-    /**
-     * Calls the update of the `value` model.
-     * @param e The event that triggers the model change.
-     * @param value The new value of the model.
-     */
-    (e: 'update:value', value: DynamicSelectElementNumericValue): void
+  /**
+   * Calls the update of the `value` model.
+   * @param e The event that triggers the model change.
+   * @param value The new value of the model.
+   */
+  (e: 'update:value', value: DynamicSelectElementNumericValue): void
 }
 
 const emit = defineEmits<Emits>()
@@ -44,20 +44,20 @@ const minValue = ref(inputValues.value.min)
 const maxValue = ref(inputValues.value.max)
 
 watch(minValue, (newMin) => {
-    inputValues.value.min = newMin
-    emit('update:value', inputValues.value)
+  inputValues.value.min = newMin
+  emit('update:value', inputValues.value)
 })
 
 watch(maxValue, (newMax) => {
-    inputValues.value.max = newMax
-    emit('update:value', inputValues.value)
+  inputValues.value.max = newMax
+  emit('update:value', inputValues.value)
 })
 </script>
 
 <script lang="ts">
 export default {
-    name: 'DynamicSelectedElementNumeric',
-    components: {},
+  name: 'DynamicSelectedElementNumeric',
+  components: {},
 }
 </script>
 

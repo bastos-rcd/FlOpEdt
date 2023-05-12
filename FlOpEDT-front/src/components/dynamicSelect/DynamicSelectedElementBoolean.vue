@@ -1,13 +1,13 @@
 <template>
-    <DynamicSelectedElement :value="props.value">
-        <template #input>
-            <div>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" v-model="updatedValue" />
-                </div>
-            </div>
-        </template>
-    </DynamicSelectedElement>
+  <DynamicSelectedElement :value="props.value">
+    <template #input>
+      <div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" v-model="updatedValue" />
+        </div>
+      </div>
+    </template>
+  </DynamicSelectedElement>
 </template>
 
 <script setup lang="ts">
@@ -16,13 +16,13 @@ import type { DynamicSelectElementBooleanValue } from '@/ts/type'
 import { computed, ref } from 'vue'
 
 interface Props {
-    value: DynamicSelectElementBooleanValue
+  value: DynamicSelectElementBooleanValue
 }
 
 const props = defineProps<Props>()
 
 interface Emits {
-    (e: 'update:value', value: DynamicSelectElementBooleanValue): void
+  (e: 'update:value', value: DynamicSelectElementBooleanValue): void
 }
 
 const emit = defineEmits<Emits>()
@@ -30,20 +30,20 @@ const emit = defineEmits<Emits>()
 const elementValue = ref(props.value)
 
 const updatedValue = computed({
-    get() {
-        return elementValue.value.value
-    },
-    set(value) {
-        elementValue.value.value = value
-    },
+  get() {
+    return elementValue.value.value
+  },
+  set(value) {
+    elementValue.value.value = value
+  },
 })
 emit('update:value', elementValue.value)
 </script>
 
 <script lang="ts">
 export default {
-    name: 'DynamicSelectedElementBoolean',
-    components: {},
+  name: 'DynamicSelectedElementBoolean',
+  components: {},
 }
 </script>
 

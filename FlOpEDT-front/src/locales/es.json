@@ -1,75 +1,75 @@
 {
-    "navbar": {
-        "home": "Bienvenida",
-        "schedule": "Horario",
-        "move-cancel": "Mover/Cancelar",
-        "preferences": "Preferencias",
-        "iCal": "iCal",
-        "help": "Ayuda",
-        "messages": "Mensajes",
-        "modules": "Modulos",
-        "reservations": "Reservaciones",
-        "constraints": "Limitaciones",
-        "generate": "generar",
-        "flop-editor": "flop!Editor",
-        "import": "importar",
-        "admin": "Admin" 
+  "navbar": {
+    "home": "Bienvenida",
+    "schedule": "Horario",
+    "move-cancel": "Mover/Cancelar",
+    "preferences": "Preferencias",
+    "iCal": "iCal",
+    "help": "Ayuda",
+    "messages": "Mensajes",
+    "modules": "Modulos",
+    "reservations": "Reservaciones",
+    "constraints": "Limitaciones",
+    "generate": "generar",
+    "flop-editor": "flop!Editor",
+    "import": "importar",
+    "admin": "Admin"
+  },
+  "home": {
+    "welcome": "Bienvenido a FlOpEDT !",
+    "department-message": "Estas en department",
+    "department-button-change": "Cambiar de departamento"
+  },
+  "department-selection": {
+    "title": "Seleccione un departamento por favor"
+  },
+  "language-selection": {
+    "label": "Cambiar idioma"
+  },
+  "authentication": {
+    "title": "Authentication Error",
+    "message": "Inicie sesión para acceder a esta página",
+    "login-button": "conexión"
+  },
+  "contact": {
+    "title": "Formulario de contacto",
+    "infos-title": "Coordenadas y destinatario",
+    "email-label": "Dirección de correo electrónico",
+    "email-placeholder": "your[at]adresse.mail",
+    "recipient-label": "Nombre del destinatario",
+    "recipient-placeholder": "Pérez",
+    "message-title": "Contenido del mensaje",
+    "object-label": "Asunto del mensaje",
+    "object-placeholder": "Nueva sala de examen final",
+    "message-label": "El mensaje",
+    "message-placeholder": "Buenas tardes profesora...",
+    "submit-button": "enviar"
+  },
+  "roomreservation": {
+    "weekpicker": {
+      "today-button": "Hoy"
     },
-    "home": {
-        "welcome" : "Bienvenido a FlOpEDT !",
-        "department-message" : "Estas en department",
-        "department-button-change" : "Cambiar de departamento"
+    "sidebar": {
+      "rooms": "Salas",
+      "rooms-label": "Todas salas",
+      "department": "Departamento",
+      "department-label": "Todos departamentos",
+      "room-filter": "Sala filtro",
+      "option-filter": "Sala alternativa filtro"
     },
-    "department-selection": {
-        "title" : "Seleccione un departamento por favor"
+    "dynamicselect": {
+      "option-label": "Seleccionna una alternativa"
     },
-    "language-selection": {
-        "label": "Cambiar idioma"
+    "schedule-caption": {
+      "course": "Curso",
+      "meeting": "Reunión",
+      "student-activity": "Estudientes actividad",
+      "conference": "Conferencia",
+      "external": "Externo",
+      "other": "Otro"
     },
-    "authentication": {
-        "title": "Authentication Error",
-        "message": "Inicie sesión para acceder a esta página",
-        "login-button": "conexión"
-    },
-    "contact": {
-        "title" : "Formulario de contacto",
-        "infos-title" : "Coordenadas y destinatario",
-        "email-label" : "Dirección de correo electrónico",
-        "email-placeholder" : "your[at]adresse.mail",
-        "recipient-label" : "Nombre del destinatario",
-        "recipient-placeholder" : "Pérez",
-        "message-title" : "Contenido del mensaje",
-        "object-label" : "Asunto del mensaje",
-        "object-placeholder" : "Nueva sala de examen final",
-        "message-label" : "El mensaje",
-        "message-placeholder" : "Buenas tardes profesora...",
-        "submit-button" : "enviar"
-    },
-    "roomreservation": {
-        "weekpicker": {
-            "today-button" : "Hoy"
-        },
-        "sidebar": {
-            "rooms": "Salas",
-            "rooms-label" : "Todas salas",
-            "department": "Departamento",
-            "department-label": "Todos departamentos",
-            "room-filter": "Sala filtro",
-            "option-filter": "Sala alternativa filtro"
-        },
-        "dynamicselect": {
-            "option-label" : "Seleccionna una alternativa"
-        },
-        "schedule-caption": {
-            "course": "Curso",
-            "meeting": "Reunión",
-            "student-activity": "Estudientes actividad",
-            "conference": "Conferencia",
-            "external": "Externo",
-            "other": "Otro"
-        },
-        "roomcalendar": {
-            "room-label": "Sala"
-        }
+    "roomcalendar": {
+      "room-label": "Sala"
     }
+  }
 }

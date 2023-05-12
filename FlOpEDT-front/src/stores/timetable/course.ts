@@ -29,6 +29,6 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     loadingError,
     scheduledCourses,
 
-    fetchScheduledCourses
+    fetchScheduledCourses,
   }
 })

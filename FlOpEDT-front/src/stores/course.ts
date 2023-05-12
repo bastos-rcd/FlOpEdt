@@ -20,7 +20,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       scheduledCourses.value = await api.fetch.scheduledCourses({
         week: week.week,
         year: week.year,
-        department
+        department,
       })
     } catch (e) {
       loadingError.value = e as Error
@@ -33,6 +33,6 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     loadingError,
     scheduledCourses,
 
-    fetchScheduledCourses
+    fetchScheduledCourses,
   }
 })

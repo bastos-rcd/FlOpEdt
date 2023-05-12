@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { useUndoredo } from "@/composables/undoredo"
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useUndoredo } from '@/composables/undoredo'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
-import { storeToRefs } from "pinia"
-import { getScheduledCoursesData } from "@/composables/scheduled"
-import { ScheduledCourse } from "@/ts/type"
+import { storeToRefs } from 'pinia'
+import { getScheduledCoursesData } from '@/composables/scheduled'
+import { ScheduledCourse } from '@/ts/type'
 import { setActivePinia, createPinia } from 'pinia'
 
 vi.mock('../utils/api.ts')
@@ -24,23 +24,21 @@ describe('undoredo composable', () => {
 
     scheduledCourses.value = getScheduledCoursesData() as unknown as ScheduledCourse[]
 
-    const scheduledCourseToUpdate = scheduledCourses.value.find(sc => sc.id === 65692)
+    const scheduledCourseToUpdate = scheduledCourses.value.find((sc) => sc.id === 65692)
 
     addUpdate(scheduledCourseToUpdate!.id as number, {
-      date: "2022-01-10",
-      time: "08:20"
+      date: '2022-01-10',
+      time: '08:20',
     })
 
-    expect(scheduledCourseToUpdate?.start_time).toBe("2022-01-10T08:20:00")
-
+    expect(scheduledCourseToUpdate?.start_time).toBe('2022-01-10T08:20:00')
 
     addUpdate(scheduledCourseToUpdate!.id as number, {
-      date: "2025-01-10",
-      time: "08:15"
+      date: '2025-01-10',
+      time: '08:15',
     })
 
-    expect(scheduledCourseToUpdate?.start_time).toBe("2025-01-10T08:15:00")
-
+    expect(scheduledCourseToUpdate?.start_time).toBe('2025-01-10T08:15:00')
   })
 
   it('revert an update of a scheduled course', () => {
@@ -51,18 +49,17 @@ describe('undoredo composable', () => {
 
     scheduledCourses.value = getScheduledCoursesData() as unknown as ScheduledCourse[]
 
-    const scheduledCourseToUpdate = scheduledCourses.value.find(sc => sc.id === 65692)
+    const scheduledCourseToUpdate = scheduledCourses.value.find((sc) => sc.id === 65692)
     addUpdate(scheduledCourseToUpdate!.id as number, {
-      date: "2022-01-10",
-      time: "08:20"
+      date: '2022-01-10',
+      time: '08:20',
     })
 
-    expect(scheduledCourseToUpdate?.start_time).toBe("2022-01-10T08:20:00")
+    expect(scheduledCourseToUpdate?.start_time).toBe('2022-01-10T08:20:00')
 
     revertUpdate()
 
-    expect(scheduledCourseToUpdate?.start_time).toBe("2023-04-25T14:15:00")
-
+    expect(scheduledCourseToUpdate?.start_time).toBe('2023-04-25T14:15:00')
   })
 
   it('revert several updates of a scheduled course', () => {
@@ -73,31 +70,28 @@ describe('undoredo composable', () => {
 
     scheduledCourses.value = getScheduledCoursesData() as unknown as ScheduledCourse[]
 
-    const scheduledCourseToUpdate = scheduledCourses.value.find(sc => sc.id === 65692)
+    const scheduledCourseToUpdate = scheduledCourses.value.find((sc) => sc.id === 65692)
 
     addUpdate(scheduledCourseToUpdate!.id as number, {
-      date: "2022-01-10",
-      time: "08:20"
+      date: '2022-01-10',
+      time: '08:20',
     })
 
-    expect(scheduledCourseToUpdate?.start_time).toBe("2022-01-10T08:20:00")
-
+    expect(scheduledCourseToUpdate?.start_time).toBe('2022-01-10T08:20:00')
 
     addUpdate(scheduledCourseToUpdate!.id as number, {
-      date: "2025-01-10",
-      time: "08:15"
+      date: '2025-01-10',
+      time: '08:15',
     })
 
-    expect(scheduledCourseToUpdate?.start_time).toBe("2025-01-10T08:15:00")
+    expect(scheduledCourseToUpdate?.start_time).toBe('2025-01-10T08:15:00')
 
     revertUpdate()
 
-    expect(scheduledCourseToUpdate?.start_time).toBe("2022-01-10T08:20:00")
+    expect(scheduledCourseToUpdate?.start_time).toBe('2022-01-10T08:20:00')
 
     revertUpdate()
 
-    expect(scheduledCourseToUpdate?.start_time).toBe("2023-04-25T14:15:00")
-
-
+    expect(scheduledCourseToUpdate?.start_time).toBe('2023-04-25T14:15:00')
   })
 })

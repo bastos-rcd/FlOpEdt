@@ -1,56 +1,68 @@
-import { ComputedRef, Ref } from "vue"
-import { CalendarSlot, BooleanRoomAttributeValue, CourseType, DynamicSelectElementValue, NumericRoomAttributeValue, ReservationPeriodicity, Room, RoomAttribute, RoomReservation, RoomReservationType, User } from "@/ts/type"
+import { ComputedRef, Ref } from 'vue'
+import {
+  CalendarSlot,
+  BooleanRoomAttributeValue,
+  CourseType,
+  DynamicSelectElementValue,
+  NumericRoomAttributeValue,
+  ReservationPeriodicity,
+  Room,
+  RoomAttribute,
+  RoomReservation,
+  RoomReservationType,
+  User,
+} from '@/ts/type'
 
 export interface RoomAttributeEntry {
-    component: any
-    value: DynamicSelectElementValue
+  component: any
+  value: DynamicSelectElementValue
 }
 
 export interface Rooms {
-    perDepartmentFilterBySelectedDepartments: ComputedRef<{ [departmentId: string]: Array<Room> }>
-    listFilterBySelectedDepartments: ComputedRef<Array<Room>>
-    perIdFilterBySelectedDepartments: ComputedRef<{ [roomId: string]: Room }>
-    listFilterBySelectedDepartmentsAndFilters: ComputedRef<Array<Room>>
+  perDepartmentFilterBySelectedDepartments: ComputedRef<{ [departmentId: string]: Array<Room> }>
+  listFilterBySelectedDepartments: ComputedRef<Array<Room>>
+  perIdFilterBySelectedDepartments: ComputedRef<{ [roomId: string]: Room }>
+  listFilterBySelectedDepartmentsAndFilters: ComputedRef<Array<Room>>
 }
 
 export interface CourseTypes {
-    perDepartment: Ref<{ [departmentId: string]: Array<CourseType> }>
-    listFilterBySelectedDepartments: ComputedRef<Array<CourseType>>
+  perDepartment: Ref<{ [departmentId: string]: Array<CourseType> }>
+  listFilterBySelectedDepartments: ComputedRef<Array<CourseType>>
 }
 
 export interface RoomReservations {
-    list: Ref<Array<RoomReservation>>
-    perDay: ComputedRef<{ [day: string]: Array<RoomReservation> }>
+  list: Ref<Array<RoomReservation>>
+  perDay: ComputedRef<{ [day: string]: Array<RoomReservation> }>
 }
 
 export interface RoomReservationTypes {
-    list: Ref<Array<RoomReservationType>>
-    perId: ComputedRef<{ [typeId: string]: RoomReservationType }>
+  list: Ref<Array<RoomReservationType>>
+  perId: ComputedRef<{ [typeId: string]: RoomReservationType }>
 }
 
 export interface ReservationPeriodicities {
-    list: Ref<Array<ReservationPeriodicity>>
-    perId: ComputedRef<{ [periodicityId: string]: ReservationPeriodicity }>
+  list: Ref<Array<ReservationPeriodicity>>
+  perId: ComputedRef<{ [periodicityId: string]: ReservationPeriodicity }>
 }
 
 export interface Users {
-    list: Ref<Array<User>>
-    perId: ComputedRef<{ [userId: string]: User }>
+  list: Ref<Array<User>>
+  perId: ComputedRef<{ [userId: string]: User }>
 }
 
 export interface RoomAttributes {
-    booleanList: Ref<Array<RoomAttribute>>
-    numericList: Ref<Array<RoomAttribute>>
+  booleanList: Ref<Array<RoomAttribute>>
+  numericList: Ref<Array<RoomAttribute>>
 }
 
 export interface RoomAttributeValues {
-    booleanList: Ref<Array<BooleanRoomAttributeValue>>
-    numericList: Ref<Array<NumericRoomAttributeValue>>
+  booleanList: Ref<Array<BooleanRoomAttributeValue>>
+  numericList: Ref<Array<NumericRoomAttributeValue>>
 }
 
 export interface TemporaryCalendarSlots {
-    perDay: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
-    perDayPerRoom: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
+  perDay: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
+  perDayPerRoom: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
 }
 
 /**
@@ -58,18 +70,18 @@ export interface TemporaryCalendarSlots {
  */
 
 export interface RoomReservationSlots {
-    list: ComputedRef<Array<CalendarSlot>>
-    perDay: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
-    perDayFilterBySelectedDepartmentsAndRooms: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
-    perDayPerRoomFilterBySelectedDepartments: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
+  list: ComputedRef<Array<CalendarSlot>>
+  perDay: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
+  perDayFilterBySelectedDepartmentsAndRooms: ComputedRef<{ [day: string]: Array<CalendarSlot> }>
+  perDayPerRoomFilterBySelectedDepartments: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
 }
 
 /**
  * Computes the slots to display all the scheduled courses, grouped by day.
  */
 export interface ScheduledCourseSlots {
-    perRooms: ComputedRef<{
-        [departmentId: string]: Array<CalendarSlot>
-    }>
-    perDayPerRoom: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
+  perRooms: ComputedRef<{
+    [departmentId: string]: Array<CalendarSlot>
+  }>
+  perDayPerRoom: ComputedRef<{ [day: string]: { [roomId: string]: Array<CalendarSlot> } }>
 }

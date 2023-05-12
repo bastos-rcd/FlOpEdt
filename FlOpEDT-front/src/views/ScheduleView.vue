@@ -10,7 +10,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { CalendarEvent } from '@/components/qcalendar/declaration'
 import Calendar from '@/components/qcalendar/Calendar.vue'
 import { onBeforeMount, ref, watch } from 'vue'
@@ -37,31 +36,38 @@ const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 
-watch(() => scheduledCourses.value, () => {
-  calendarEvents.value = scheduledCourses.value.map(s => {
-    let timeS = updateWorkWeek(parsed(s.start_time.toString().substring(0,10) + " " + s.start_time.toString().substring(11)))
-    timeS.date = timeS.date.substring(0, 10)
-    const currentEvent: CalendarEvent = {
-      title: s.course.type.name,
-      details: '',
-      bgcolor: s.course.module.display.color_bg,
-      columnIds: [],
-      data: {
-        dataId: s.id,
-        dataType: "event",
-        start: timeS,
-        duration: s.course.type.duration,
-      }
-    }
-    s.course.groups.forEach(courseGroup => {
-      const currentGroup = groups.value.find(g => g.id === courseGroup.id)
-      if (currentGroup) {
-        currentEvent.columnIds?.push(...currentGroup.columnIds)
-      }
-    })
-    return currentEvent
-  }).filter(sc => sc.columnIds?.length > 0)
-})
+watch(
+  () => scheduledCourses.value,
+  () => {
+    calendarEvents.value = scheduledCourses.value
+      .map((s) => {
+        let timeS = updateWorkWeek(
+          parsed(s.start_time.toString().substring(0, 10) + ' ' + s.start_time.toString().substring(11))
+        )
+        timeS.date = timeS.date.substring(0, 10)
+        const currentEvent: CalendarEvent = {
+          title: s.course.type.name,
+          details: '',
+          bgcolor: s.course.module.display.color_bg,
+          columnIds: [],
+          data: {
+            dataId: s.id,
+            dataType: 'event',
+            start: timeS,
+            duration: s.course.type.duration,
+          },
+        }
+        s.course.groups.forEach((courseGroup) => {
+          const currentGroup = groups.value.find((g) => g.id === courseGroup.id)
+          if (currentGroup) {
+            currentEvent.columnIds?.push(...currentGroup.columnIds)
+          }
+        })
+        return currentEvent
+      })
+      .filter((sc) => sc.columnIds?.length > 0)
+  }
+)
 
 const currentScheduledCourseId = ref<number | null>(null)
 function setCurrentScheduledCourse(scheduledCourseId: number) {
@@ -73,6 +79,9 @@ function changeDate(newDate: Timestamp) {
 }
 
 function fetchScheduledCurrentWeek(week: number, year: number) {
-  scheduledCourseStore.fetchScheduledCourses({ week: week, year: year }, { id: 1, abbrev: 'INFO', name: 'informatique'})
+  scheduledCourseStore.fetchScheduledCourses(
+    { week: week, year: year },
+    { id: 1, abbrev: 'INFO', name: 'informatique' }
+  )
 }
 </script>

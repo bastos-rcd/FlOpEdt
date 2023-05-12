@@ -9,7 +9,6 @@ import { ref } from 'vue'
  * This store is not related to the scheduledCourse
  */
 export const useColumnStore = defineStore('column', () => {
-
   const columns = ref<CalendarColumn[]>([
     {
       id: 422,

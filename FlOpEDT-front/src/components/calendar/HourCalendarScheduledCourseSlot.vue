@@ -1,12 +1,12 @@
 <template>
-    <CalendarScheduledCourseSlot :data="props.data">
-        <template #text>
-            <p class="col-xl-6">{{ props.data.course.course.module.abbrev }}</p>
-            <p class="col-xl-6">{{ props.data.department }}</p>
-            <p class="col-xl-6">{{ props.data.course.tutor }}</p>
-            <p class="col-xl-6">{{ roomName }}</p>
-        </template>
-    </CalendarScheduledCourseSlot>
+  <CalendarScheduledCourseSlot :data="props.data">
+    <template #text>
+      <p class="col-xl-6">{{ props.data.course.course.module.abbrev }}</p>
+      <p class="col-xl-6">{{ props.data.department }}</p>
+      <p class="col-xl-6">{{ props.data.course.tutor }}</p>
+      <p class="col-xl-6">{{ roomName }}</p>
+    </template>
+  </CalendarScheduledCourseSlot>
 </template>
 
 <script setup lang="ts">
@@ -15,25 +15,25 @@ import { computed } from 'vue'
 import type { CalendarScheduledCourseSlotData, Room } from '@/ts/type'
 
 interface Props {
-    data: CalendarScheduledCourseSlotData
+  data: CalendarScheduledCourseSlotData
 }
 
 const props = defineProps<Props>()
 
 const roomName = computed(() => {
-    let r: Room
-    if (props.data.course.room) {
-        r = props.data.rooms[props.data.course.room.id]
-        return r.name
-    }
-    return 'UNKNOWN'
+  let r: Room
+  if (props.data.course.room) {
+    r = props.data.rooms[props.data.course.room.id]
+    return r.name
+  }
+  return 'UNKNOWN'
 })
 </script>
 
 <script lang="ts">
 export default {
-    name: 'HourCalendarScheduledCourseSlot',
-    components: {},
+  name: 'HourCalendarScheduledCourseSlot',
+  components: {},
 }
 </script>
 

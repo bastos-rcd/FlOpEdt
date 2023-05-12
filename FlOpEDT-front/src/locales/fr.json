@@ -1,75 +1,75 @@
 {
-    "navbar": {
-        "home": "Accueil",
-        "schedule": "Consulter",
-        "move-cancel": "Décaler/Annuler",
-        "preferences": "Préférences",
-        "iCal": "iCal",
-        "help": "Aide",
-        "messages": "Contact",
-        "modules": "Modules",
-        "reservations": "Réservations",
-        "constraints": "Contraintes",
-        "generate": "Générer",
-        "flop-editor": "flop!Editor",
-        "import": "Importer",
-        "admin": "Admin" 
+  "navbar": {
+    "home": "Accueil",
+    "schedule": "Consulter",
+    "move-cancel": "Décaler/Annuler",
+    "preferences": "Préférences",
+    "iCal": "iCal",
+    "help": "Aide",
+    "messages": "Contact",
+    "modules": "Modules",
+    "reservations": "Réservations",
+    "constraints": "Contraintes",
+    "generate": "Générer",
+    "flop-editor": "flop!Editor",
+    "import": "Importer",
+    "admin": "Admin"
+  },
+  "home": {
+    "welcome": "Bienvenue sur FlOpEDT !",
+    "department-message": "Vous êtes dans le département",
+    "department-button-change": "Choix departement"
+  },
+  "department-selection": {
+    "title": "Veuillez sélectionner un département"
+  },
+  "language-selection": {
+    "label": "Changer la langue"
+  },
+  "authentication": {
+    "title": "Erreur d'authentification",
+    "message": "Veuillez vous connecter pour accéder à la page",
+    "login-button": "Connexion"
+  },
+  "contact": {
+    "title": "Formulaire de contact",
+    "infos-title": "Coordonnées et Destinataire",
+    "email-label": "Votre adresse mail",
+    "email-placeholder": "votre[at]adresse.mail",
+    "recipient-label": "Nom de votre destinataire",
+    "recipient-placeholder": "Dupont",
+    "message-title": "Contenu du message",
+    "object-label": "Objet de votre message",
+    "object-placeholder": "Changement de salle pour l'examen",
+    "message-label": "Votre message",
+    "message-placeholder": "Bonjour Professeure ...",
+    "submit-button": "Envoyer"
+  },
+  "roomreservation": {
+    "weekpicker": {
+      "today-button": "Aujourd'hui"
     },
-    "home": {
-        "welcome" : "Bienvenue sur FlOpEDT !",
-        "department-message" : "Vous êtes dans le département",
-        "department-button-change" : "Choix departement"
+    "sidebar": {
+      "rooms": "Salles",
+      "rooms-label": "Toutes les salles",
+      "department": "Département",
+      "department-label": "Tous les départements",
+      "room-filter": "Filtre des salles",
+      "option-filter": "Filtre par type de salle"
     },
-    "department-selection": {
-        "title" : "Veuillez sélectionner un département"
+    "dynamicselect": {
+      "option-label": "Selectionnez un type"
     },
-    "language-selection": {
-        "label": "Changer la langue"
+    "schedule-caption": {
+      "course": "Cours",
+      "meeting": "Réunion",
+      "student-activity": "Activité étudiante",
+      "conference": "Conférence",
+      "external": "Extérieurs",
+      "other": "Autre"
     },
-    "authentication": {
-        "title": "Erreur d'authentification",
-        "message": "Veuillez vous connecter pour accéder à la page",
-        "login-button": "Connexion"
-    },
-    "contact": {
-        "title" : "Formulaire de contact",
-        "infos-title" : "Coordonnées et Destinataire",
-        "email-label" : "Votre adresse mail",
-        "email-placeholder" : "votre[at]adresse.mail",
-        "recipient-label" : "Nom de votre destinataire",
-        "recipient-placeholder" : "Dupont",
-        "message-title" : "Contenu du message",
-        "object-label" : "Objet de votre message",
-        "object-placeholder" : "Changement de salle pour l'examen",
-        "message-label" : "Votre message",
-        "message-placeholder" : "Bonjour Professeure ...",
-        "submit-button" : "Envoyer"
-    },
-    "roomreservation": {
-        "weekpicker": {
-            "today-button" : "Aujourd'hui"
-        },
-        "sidebar": {
-            "rooms": "Salles",
-            "rooms-label" : "Toutes les salles",
-            "department": "Département",
-            "department-label": "Tous les départements",
-            "room-filter": "Filtre des salles",
-            "option-filter": "Filtre par type de salle"
-        },
-        "dynamicselect": {
-            "option-label" : "Selectionnez un type"
-        },
-        "schedule-caption": {
-            "course": "Cours",
-            "meeting": "Réunion",
-            "student-activity": "Activité étudiante",
-            "conference": "Conférence",
-            "external": "Extérieurs",
-            "other": "Autre"
-        },
-        "roomcalendar": {
-            "room-label": "Salle"
-        }
+    "roomcalendar": {
+      "room-label": "Salle"
     }
+  }
 }

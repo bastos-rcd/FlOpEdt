@@ -10,7 +10,7 @@ export const routeNames = {
   contact: Symbol('contact'),
   notFound: Symbol('notFound'),
   login: Symbol('login'),
-  schedule: Symbol('schedule')
+  schedule: Symbol('schedule'),
 }
 
 const routes = [
@@ -19,8 +19,8 @@ const routes = [
     name: routeNames.schedule,
     component: () => import('@/views/ScheduleView.vue'),
     meta: {
-      needsAuth: false
-    }
+      needsAuth: false,
+    },
   },
   {
     path: '/roomreservation/:locale?/:dept?',

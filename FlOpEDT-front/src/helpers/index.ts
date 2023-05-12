@@ -1,11 +1,11 @@
-import { Department, type Time, type Room, type WeekDay, type FlopWeek } from "@/ts/type"
-import { useRoomStore } from "@/stores/room"
+import { Department, type Time, type Room, type WeekDay, type FlopWeek } from '@/ts/type'
+import { useRoomStore } from '@/stores/room'
 import { api } from '@/utils/api'
 
 export function convertDecimalTimeToHuman(time: number): string {
-    const hours = Math.trunc(time)
-    const minutes = Math.round((time - hours) * 60)
-    return `${hours}:${toStringAtLeastTwoDigits(minutes)}`
+  const hours = Math.trunc(time)
+  const minutes = Math.round((time - hours) * 60)
+  return `${hours}:${toStringAtLeastTwoDigits(minutes)}`
 }
 
 /**
@@ -15,26 +15,26 @@ export function convertDecimalTimeToHuman(time: number): string {
  * @returns {string} The two-digits string
  */
 export function toStringAtLeastTwoDigits(element: number | string) {
-    if (typeof element === 'string') {
-        element = parseInt(element, 10)
-        if (isNaN(element)) {
-            throw new Error(`Given value (${element}) cannot not be parsed as number`)
-        }
+  if (typeof element === 'string') {
+    element = parseInt(element, 10)
+    if (isNaN(element)) {
+      throw new Error(`Given value (${element}) cannot not be parsed as number`)
     }
-    return `${element < 10 ? `0${element}` : element}`
+  }
+  return `${element < 10 ? `0${element}` : element}`
 }
 
 export function parseReason(reason: unknown, onAlert?: (level: string, message: string) => void) {
-    // Reason can be either a response body or a thrown error
-    if (reason instanceof Object && !(reason instanceof Error)) {
-        // Reason is a response body, display each message separately
-        const reasonObj = reason as { [key: string]: string }
-        Object.keys(reasonObj).forEach((key) => {
-            onAlert?.('danger', `${key}: ${reasonObj[key]}`)
-        })
-    } else {
-        onAlert?.('danger', `${reason}.`)
-    }
+  // Reason can be either a response body or a thrown error
+  if (reason instanceof Object && !(reason instanceof Error)) {
+    // Reason is a response body, display each message separately
+    const reasonObj = reason as { [key: string]: string }
+    Object.keys(reasonObj).forEach((key) => {
+      onAlert?.('danger', `${key}: ${reasonObj[key]}`)
+    })
+  } else {
+    onAlert?.('danger', `${reason}.`)
+  }
 }
 
 /**
@@ -44,20 +44,20 @@ export function parseReason(reason: unknown, onAlert?: (level: string, message: 
  * @param keyPredicate The function to extract a key from each element
  */
 export function listGroupBy<T>(list: Array<T>, keyPredicate: (value: T) => string): { [p: string]: Array<T> } {
-    const out: { [day: string]: Array<T> } = {}
-    list.forEach((value) => {
-        const key = keyPredicate(value)
-        if (!(key in out)) {
-            out[key] = []
-        }
-        out[key].push(value)
-    })
-    return out
+  const out: { [day: string]: Array<T> } = {}
+  list.forEach((value) => {
+    const key = keyPredicate(value)
+    if (!(key in out)) {
+      out[key] = []
+    }
+    out[key].push(value)
+  })
+  return out
 }
 
 export function createTime(time: number): Time {
-    const text = convertDecimalTimeToHuman(time / 60)
-    return {value: time, text: text} as Time
+  const text = convertDecimalTimeToHuman(time / 60)
+  return { value: time, text: text } as Time
 }
 
 /**
@@ -65,22 +65,22 @@ export function createTime(time: number): Time {
  * @param list
  */
 export function mapListId(list: Array<{ id: number }>): Array<number> {
-    return list.map((element) => element.id)
+  return list.map((element) => element.id)
 }
-
 
 /**
  * Takes an object having departments id as key and an array.
  * Returns the filtered entries of selected departments.
  * @param object
  */
-export function filterBySelectedDepartments<T>(object: { [key: string]: Array<T> }, selectedDepartments: Array<Department>) {
-    const out: { [departmentId: string]: Array<T> } = Object.fromEntries(
-        Object.entries(object).filter(
-            ([key]) => selectedDepartments.findIndex((dept) => `${dept.id}` === key) >= 0
-        )
-    )
-    return out
+export function filterBySelectedDepartments<T>(
+  object: { [key: string]: Array<T> },
+  selectedDepartments: Array<Department>
+) {
+  const out: { [departmentId: string]: Array<T> } = Object.fromEntries(
+    Object.entries(object).filter(([key]) => selectedDepartments.findIndex((dept) => `${dept.id}` === key) >= 0)
+  )
+  return out
 }
 
 /**
@@ -88,23 +88,23 @@ export function filterBySelectedDepartments<T>(object: { [key: string]: Array<T>
  * returns true if the room is available to the selected departments, false otherwise
  * @param roomId The room id
  */
-export function isRoomInSelectedDepartments(roomId: number, departments : Array<Department>): boolean {
-    const roomStore = useRoomStore()
-    let inDept = false
-    const room = roomStore.rooms.find((r: Room) => r.id === roomId)
-    if(room)
-        room.departments.forEach((roomDept: Department) => {
-            departments.forEach(dept => {
-                if(dept.id === roomDept.id) {
-                    inDept = true
-                }
-            })
-        })
-    return room !== undefined && inDept
+export function isRoomInSelectedDepartments(roomId: number, departments: Array<Department>): boolean {
+  const roomStore = useRoomStore()
+  let inDept = false
+  const room = roomStore.rooms.find((r: Room) => r.id === roomId)
+  if (room)
+    room.departments.forEach((roomDept: Department) => {
+      departments.forEach((dept) => {
+        if (dept.id === roomDept.id) {
+          inDept = true
+        }
+      })
+    })
+  return room !== undefined && inDept
 }
 
 export function handleReason(level: string, message: string) {
-    console.error(`${level}: ${message}`)
+  console.error(`${level}: ${message}`)
 }
 
 /**
@@ -114,20 +114,20 @@ export function handleReason(level: string, message: string) {
  * @param element The new data element
  */
 export function addTo<T>(collection: { [p: string]: Array<T> }, id: string | number, element: T): void {
-    if (!collection[id]) {
-        collection[id] = []
-    }
-    collection[id].push(element)
+  if (!collection[id]) {
+    collection[id] = []
+  }
+  collection[id].push(element)
 }
 
 export async function getCurrentWeekDays(flopWeek: FlopWeek): Promise<Array<WeekDay>> {
-    let newWeekdays : Array<WeekDay> = []
-    await api.fetch
+  let newWeekdays: Array<WeekDay> = []
+  await api.fetch
     .weekdays({ week: flopWeek.week, year: flopWeek.year })
     .then((value: { date: string; name: string; num: number; ref: string }[]) => {
-        newWeekdays = value
+      newWeekdays = value
     })
-    return newWeekdays
+  return newWeekdays
 }
 
 /**
@@ -137,7 +137,7 @@ export async function getCurrentWeekDays(flopWeek: FlopWeek): Promise<Array<Week
  * @returns The formatted string as "dd/MM"
  */
 export function createDateId(day: string | number, month: string | number): string {
-    return `${toStringAtLeastTwoDigits(day)}/${toStringAtLeastTwoDigits(month)}`
+  return `${toStringAtLeastTwoDigits(day)}/${toStringAtLeastTwoDigits(month)}`
 }
 
 /**
@@ -146,19 +146,20 @@ export function createDateId(day: string | number, month: string | number): stri
  * @returns Nothing ?
  */
 export function deleteReservationPeriodicity(periodicityId: number): Promise<unknown> {
-    return api.delete
-        .reservationPeriodicity(periodicityId)
+  return api.delete.reservationPeriodicity(periodicityId)
 }
 
-export function isRoomSelected(roomId: number, selectedRoom : Room | undefined): boolean {
-    const roomStore = useRoomStore()
-    if (selectedRoom) {
-        // Return false if the course's sub rooms are not selected
-        if (!roomStore.perId[roomId]?.basic_rooms.find((val: {id:number, name: string}) => val.id === selectedRoom?.id)) {
-            return false
-        }
+export function isRoomSelected(roomId: number, selectedRoom: Room | undefined): boolean {
+  const roomStore = useRoomStore()
+  if (selectedRoom) {
+    // Return false if the course's sub rooms are not selected
+    if (
+      !roomStore.perId[roomId]?.basic_rooms.find((val: { id: number; name: string }) => val.id === selectedRoom?.id)
+    ) {
+      return false
     }
-    return true
+  }
+  return true
 }
 
 /**
@@ -167,18 +168,18 @@ export function isRoomSelected(roomId: number, selectedRoom : Room | undefined):
  * @returns the week number in the current year
  */
 export function getNumberOfTheWeek(date: Date) {
-    // We get the first day of the year
-    const yearStart = new Date(Date.UTC(date.getFullYear(), 0, 1))
-    // We get the thursday of our week
-    const currentThursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
-    currentThursday.setUTCDate(currentThursday.getUTCDate() + 4 - (currentThursday.getUTCDay() || 7))
-    return Math.ceil(((currentThursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+  // We get the first day of the year
+  const yearStart = new Date(Date.UTC(date.getFullYear(), 0, 1))
+  // We get the thursday of our week
+  const currentThursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  currentThursday.setUTCDate(currentThursday.getUTCDate() + 4 - (currentThursday.getUTCDay() || 7))
+  return Math.ceil(((currentThursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
 }
 
-export function minutesFromDate(d: Date) : number {
-    const midnight = new Date(d)
-    midnight.setMinutes(0)
-    midnight.setHours(0)
-    const diff = new Date(d.getTime() - midnight.getTime())
-    return diff.getHours() * 60 + diff.getMinutes()
+export function minutesFromDate(d: Date): number {
+  const midnight = new Date(d)
+  midnight.setMinutes(0)
+  midnight.setHours(0)
+  const diff = new Date(d.getTime() - midnight.getTime())
+  return diff.getHours() * 60 + diff.getMinutes()
 }

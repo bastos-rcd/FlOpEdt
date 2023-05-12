@@ -33,7 +33,7 @@ describe('Calendar component', () => {
           },
         ],
         events: [],
-        totalWeight: 2
+        totalWeight: 2,
       },
     })
 

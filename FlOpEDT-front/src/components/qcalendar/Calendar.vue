@@ -77,9 +77,7 @@
                 :class="badgeClasses('event', event.bgcolor)"
                 :style="badgeStyles(event, columnId, timeStartPos, timeDurationHeight)"
               >
-                <slot 
-                v-if="props.columns.find((c) => c.id === columnId)"
-                name="event" :event="event">
+                <slot v-if="props.columns.find((c) => c.id === columnId)" name="event" :event="event">
                   <span class="title q-calendar__ellipsis">
                     {{ event.title }}
                   </span>
@@ -140,7 +138,7 @@ import _ from 'lodash'
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
 import { computed, ref } from 'vue'
-import { TimestampOrNull, Timestamp, parsed, updateWorkWeek} from '@quasar/quasar-ui-qcalendar'
+import { TimestampOrNull, Timestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 /**
  * Data passed to the component to handle the display in
@@ -160,10 +158,7 @@ const emits = defineEmits<{
   (e: 'update:week', value: Timestamp): void
 }>()
 
-const totalWeight = computed(() => _.sumBy(
-  props.columns,
-  (c : CalendarColumn) => c.weight)
-)
+const totalWeight = computed(() => _.sumBy(props.columns, (c: CalendarColumn) => c.weight))
 
 const preWeight = computed(() => {
   const map: Record<number, number> = {}
@@ -175,7 +170,6 @@ const preWeight = computed(() => {
   return map
 })
 
-  
 /**
  * QCalendar DATA TO DISPLAY
  * * Format the data from the events to match the calendar display,
@@ -183,10 +177,13 @@ const preWeight = computed(() => {
  */
 const selectedDate = ref<string>(today())
 
-watch(() => selectedDate.value, () => {
-  console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
-  emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
-})
+watch(
+  () => selectedDate.value,
+  () => {
+    console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+    emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+  }
+)
 
 const eventsByDate = computed(() => {
   const map: Record<string, any[]> = {}

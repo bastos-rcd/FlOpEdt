@@ -1,55 +1,55 @@
 <template>
-    <BaseCalendar ref="calendar">
-        <template #table>
-            <table class="w-100">
-                <!--First Row of the Calendar-->
-                <!--"Room" | "Date1" | "Date2"-->
-                <tr>
-                    <th class="col text-center border-dark border">{{ $t('roomreservation.roomcalendar.room-label') }}</th>
-                    <th v-for="day in props.values.days" :key="day.date" class="col text-center border-dark border">
-                        {{ day.name }} {{ day.date }}
-                    </th>
-                </tr>
-                <!--Next lines: represent data relative to a room-->
-                <tr v-for="room in props.values.rooms" :key="room.id" class="border-dark border align-top h-100">
-                    <!--First cell: Room Name-->
-                    <td class="h-100">
-                        <button
-                            type="button"
-                            class="btn btn-outline-dark h-100 w-100 align-middle rounded-0"
-                            @click="$emit('rowHeaderClick', room.id)"
-                        >
-                            {{ room.name }}
-                        </button>
-                    </td>
-                    <!--The next cells represent for each day of the week the data of-->
-                    <!--the room of the row-->
-                    <td
-                        v-for="day in props.values.days"
-                        :key="day.date"
-                        class="border-dark border pb-3"
-                        @click.self.left="createSlot(day.date, room.id)"
-                    >
-                        <!--Fills the cell with slots of scheduled courses and other reservations-->
-                        <div v-if="day.date in props.values.slots && room.id in props.values.slots[day.date]">
-                            <component
-                                :is="slot.component.value"
-                                v-for="slot in props.values.slots[day.date][room.id]"
-                                :key="slot.slotData.id"
-                                :data="slot.slotData"
-                                :actions="slot.actions"
-                                class="col noselect slot m-0 border border-dark"
-                                @click.right.prevent
-                                @contextmenu="contextMenu(slot.slotData.id)"
-                                @interface="storeSlotInterface"
-                            >
-                            </component>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </template>
-    </BaseCalendar>
+  <BaseCalendar ref="calendar">
+    <template #table>
+      <table class="w-100">
+        <!--First Row of the Calendar-->
+        <!--"Room" | "Date1" | "Date2"-->
+        <tr>
+          <th class="col text-center border-dark border">{{ $t('roomreservation.roomcalendar.room-label') }}</th>
+          <th v-for="day in props.values.days" :key="day.date" class="col text-center border-dark border">
+            {{ day.name }} {{ day.date }}
+          </th>
+        </tr>
+        <!--Next lines: represent data relative to a room-->
+        <tr v-for="room in props.values.rooms" :key="room.id" class="border-dark border align-top h-100">
+          <!--First cell: Room Name-->
+          <td class="h-100">
+            <button
+              type="button"
+              class="btn btn-outline-dark h-100 w-100 align-middle rounded-0"
+              @click="$emit('rowHeaderClick', room.id)"
+            >
+              {{ room.name }}
+            </button>
+          </td>
+          <!--The next cells represent for each day of the week the data of-->
+          <!--the room of the row-->
+          <td
+            v-for="day in props.values.days"
+            :key="day.date"
+            class="border-dark border pb-3"
+            @click.self.left="createSlot(day.date, room.id)"
+          >
+            <!--Fills the cell with slots of scheduled courses and other reservations-->
+            <div v-if="day.date in props.values.slots && room.id in props.values.slots[day.date]">
+              <component
+                :is="slot.component.value"
+                v-for="slot in props.values.slots[day.date][room.id]"
+                :key="slot.slotData.id"
+                :data="slot.slotData"
+                :actions="slot.actions"
+                class="col noselect slot m-0 border border-dark"
+                @click.right.prevent
+                @contextmenu="contextMenu(slot.slotData.id)"
+                @interface="storeSlotInterface"
+              >
+              </component>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </template>
+  </BaseCalendar>
 </template>
 
 <script setup lang="ts">
@@ -59,45 +59,45 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 interface Props {
-    values: RoomCalendarProps
+  values: RoomCalendarProps
 }
 
 const props = defineProps<Props>()
 const { t } = useI18n()
 
 interface Emits {
-    (e: 'newSlot', day: Date, roomId: string): void
+  (e: 'newSlot', day: Date, roomId: string): void
 
-    (e: 'rowHeaderClick', id: number): void
+  (e: 'rowHeaderClick', id: number): void
 }
 
 const emit = defineEmits<Emits>()
 
 function createSlot(day: string, roomId: string | number) {
-    // Format the date as yyyy-MM-dd
-    const dayArray = day.split('/')
-    emit('newSlot', new Date(`${props.values.year}-${dayArray[1]}-${dayArray[0]}`), `${roomId}`)
+  // Format the date as yyyy-MM-dd
+  const dayArray = day.split('/')
+  emit('newSlot', new Date(`${props.values.year}-${dayArray[1]}-${dayArray[0]}`), `${roomId}`)
 }
 
 const calendar = ref()
 
 function contextMenu(id: string) {
-    if (calendar.value) {
-        calendar.value.openContextMenu(id)
-    }
+  if (calendar.value) {
+    calendar.value.openContextMenu(id)
+  }
 }
 
 function storeSlotInterface(id: string, slotInterface: CalendarSlotInterface) {
-    if (calendar.value) {
-        calendar.value.storeSlotInterface(id, slotInterface)
-    }
+  if (calendar.value) {
+    calendar.value.storeSlotInterface(id, slotInterface)
+  }
 }
 </script>
 
 <script lang="ts">
 export default {
-    name: 'RoomCalendar',
-    components: {},
+  name: 'RoomCalendar',
+  components: {},
 }
 </script>
 

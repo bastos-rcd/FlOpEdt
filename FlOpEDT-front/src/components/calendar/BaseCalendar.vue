@@ -1,7 +1,7 @@
 <template>
-    <div @click="clicked">
-        <slot name="table"></slot>
-    </div>
+  <div @click="clicked">
+    <slot name="table"></slot>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -13,27 +13,27 @@ const slotInterfaces = ref<{ [key: string]: CalendarSlotInterface }>({})
 const currentContextMenu = ref<string>('')
 
 function storeSlotInterface(id: string, slotInterface: CalendarSlotInterface) {
-    slotInterfaces.value[id] = slotInterface
+  slotInterfaces.value[id] = slotInterface
 }
 
 function openContextMenu(slotId: string) {
-    closeCurrentContextMenu()
+  closeCurrentContextMenu()
 
-    // Store the current context menu if opened successfully
-    if (slotInterfaces.value[slotId].openContextMenu()) {
-        currentContextMenu.value = slotId
-    }
+  // Store the current context menu if opened successfully
+  if (slotInterfaces.value[slotId].openContextMenu()) {
+    currentContextMenu.value = slotId
+  }
 }
 
 function closeCurrentContextMenu() {
-    // Close currently opened context menu (if exists)
-    if (currentContextMenu.value) {
-        slotInterfaces.value[currentContextMenu.value].closeContextMenu()
-    }
+  // Close currently opened context menu (if exists)
+  if (currentContextMenu.value) {
+    slotInterfaces.value[currentContextMenu.value].closeContextMenu()
+  }
 }
 
 function clicked() {
-    closeCurrentContextMenu()
+  closeCurrentContextMenu()
 }
 
 defineExpose({ openContextMenu, closeCurrentContextMenu, storeSlotInterface })
@@ -41,13 +41,13 @@ defineExpose({ openContextMenu, closeCurrentContextMenu, storeSlotInterface })
 
 <script lang="ts">
 export default {
-    name: 'BaseCalendar',
-    components: {},
+  name: 'BaseCalendar',
+  components: {},
 }
 </script>
 
 <style>
 .slot > div {
-    height: 100%;
+  height: 100%;
 }
 </style>

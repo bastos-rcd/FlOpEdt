@@ -1,7 +1,7 @@
 <template>
-    <Story>
-        <Header></Header>
-    </Story>
+  <Story>
+    <Header></Header>
+  </Story>
 </template>
 
 <script setup lang="ts">

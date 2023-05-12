@@ -1,35 +1,35 @@
 <template>
-    <div class="row">
-        <button type="button" class="btn-close col-auto" aria-label="Close" @click="remove"></button>
-        <div class="col">{{ props.value.name }}</div>
-        <slot name="input"></slot>
-    </div>
+  <div class="row">
+    <button type="button" class="btn-close col-auto" aria-label="Close" @click="remove"></button>
+    <div class="col">{{ props.value.name }}</div>
+    <slot name="input"></slot>
+  </div>
 </template>
 
 <script setup lang="ts">
 import type { DynamicSelectElementValue } from '@/ts/type'
 
 interface Props {
-    value: DynamicSelectElementValue
+  value: DynamicSelectElementValue
 }
 
 const props = defineProps<Props>()
 
 interface Emits {
-    (e: 'removed', id: number): void
+  (e: 'removed', id: number): void
 }
 
 const emit = defineEmits<Emits>()
 
 function remove() {
-    emit('removed', props.value.id)
+  emit('removed', props.value.id)
 }
 </script>
 
 <script lang="ts">
 export default {
-    name: 'DynamicSelectedElement',
-    components: {},
+  name: 'DynamicSelectedElement',
+  components: {},
 }
 </script>
 

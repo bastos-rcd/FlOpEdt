@@ -28,12 +28,18 @@ const days = Math.floor((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 
 const week = Math.ceil(days / 7)
 
 const currentWeek: Ref<FlopWeek> = ref({
-    week: week,
-    year: now.getFullYear(),
+  week: week,
+  year: now.getFullYear(),
 })
 
 app.provide('currentWeek', readonly(currentWeek.value))
 app.component('PopperComponent', Popper)
-app.use(router).use(createPinia()).use(i18n).use(Plugin).use(Quasar, {
+app
+  .use(router)
+  .use(createPinia())
+  .use(i18n)
+  .use(Plugin)
+  .use(Quasar, {
     plugins: {},
-  }).mount('#app')
+  })
+  .mount('#app')
