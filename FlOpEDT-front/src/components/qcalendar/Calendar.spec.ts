@@ -23,17 +23,14 @@ describe('Calendar component', () => {
             id: 23,
             name: '1A',
             weight: 1,
-            x: 0,
           },
           {
             id: 24,
             name: '1B',
             weight: 1,
-            x: 1,
           },
         ],
         events: [],
-        totalWeight: 2,
       },
     })
 
@@ -57,7 +54,6 @@ describe('Calendar component', () => {
       props: {
         columns: useCase.columns,
         events: useCase.events.value,
-        totalWeight: useCase.totalWeight,
         dropzoneEvents: useCase.dropzoneEvents,
       },
     })

@@ -14,97 +14,81 @@ export const useColumnStore = defineStore('column', () => {
       id: 422,
       name: 'BUT1',
       weight: 1,
-      x: 0,
     },
     {
       id: 24,
       name: '1B',
       weight: 1,
-      x: 1,
     },
     {
       id: 25,
       name: '2A',
       weight: 1,
-      x: 2,
     },
     {
       id: 26,
       name: '2B',
       weight: 1,
-      x: 3,
     },
     {
       id: 27,
       name: '3A',
       weight: 1,
-      x: 4,
     },
     {
       id: 28,
       name: '3B',
       weight: 1,
-      x: 5,
     },
     {
       id: 29,
       name: '4A',
       weight: 1,
-      x: 6,
     },
     {
       id: 30,
       name: '4B',
       weight: 1,
-      x: 7,
     },
     /*     {
         "id": 36,
         "name": "1A",
-        "weight": 1,
-        "x": 8
+        "weight": 1
     },
     {
         "id": 37,
         "name": "1B",
-        "weight": 1,
-        "x": 9
+        "weight": 1
     },
     {
         "id": 38,
         "name": "2A",
-        "weight": 1,
-        "x": 10
+        "weight": 1
     },
     {
         "id": 39,
         "name": "2B",
-        "weight": 1,
-        "x": 11
+        "weight": 1
     },
     {
         "id": 40,
         "name": "3A",
-        "weight": 1,
-        "x": 12
+        "weight": 1
     },
     {
         "id": 41,
         "name": "3B",
-        "weight": 1,
-        "x": 13
+        "weight": 1
     },
     {
         "id": 35,
         "name": "4",
-        "weight": 1,
-        "x": 14
+        "weight": 1
     },
     {
         "id": 43,
         "name": "LP",
-        "weight": 1,
-        "x": 15
+        "weight": 1
     } */
   ])
 

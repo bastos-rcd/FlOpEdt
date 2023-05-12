@@ -40,7 +40,7 @@ import { QCalendarResource, today } from '@quasar/quasar-ui-qcalendar/src/index.
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarResource.sass'
-import { onBeforeMount, ref } from 'vue'
+import { ref, CSSProperties } from 'vue'
 import { CalendarResourceScope, CalendarResourceEvent } from './declaration'
 
 const calendar = ref(null)
@@ -72,7 +72,7 @@ function getEvents(scope: CalendarResourceScope) {
   return scopedEvents
 }
 
-function getStyle(event: CalendarResourceEvent) {
+function getStyle(event: CalendarResourceEvent): CSSProperties {
   return {
     position: 'absolute',
     background: 'grey',

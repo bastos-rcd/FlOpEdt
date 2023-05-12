@@ -44,7 +44,6 @@ function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
 
 interface UseCase {
   columns: CalendarColumn[]
-  totalWeight: number
   events: Ref<CalendarEvent[]>
   dropzoneEvents: CalendarDropzoneEvent[]
 }
@@ -72,14 +71,16 @@ const useCase2: UseCase = {
       weight: 1,
     },
   ],
-  totalWeight: 6,
   events: ref([
     {
       title: 'TP INFO',
       details: "Let' work on our Python project",
+
       bgcolor: 'red',
       icon: 'fas fa-handshake',
+
       columnIds: [2, 3],
+
       data: {
         dataId: 3,
         dataType: 'mok',
@@ -270,31 +271,26 @@ const useCase1 = {
       id: 0,
       name: 'TPA',
       weight: 1,
-      x: 0,
     },
     {
       id: 1,
       name: 'TPB',
       weight: 1,
-      x: 1,
     },
     {
       id: 2,
       name: 'TPC',
       weight: 1,
-      x: 2,
     },
     {
       id: 3,
       name: 'TPD',
       weight: 1,
-      x: 3,
     },
     {
       id: 4,
       name: 'GIM2',
       weight: 3,
-      x: 4,
     },
   ],
   totalWeight: 7,
@@ -303,6 +299,7 @@ const useCase1 = {
       title: '1st of the Month',
       details: 'Everything is funny as long as it is happening to someone else',
       bgcolor: 'orange',
+      columnIds: [1],
       data: {
         dataId: 1,
         dataType: 'mok',
@@ -310,12 +307,12 @@ const useCase1 = {
       },
     },
     {
-      id: 2,
       title: 'Sisters Birthday',
       details: 'Buy a nice present',
       date: shiftInCurrentWeek(1),
       bgcolor: 'green',
       icon: 'fas fa-birthday-cake',
+      columnIds: [1],
       data: {
         dataId: 2,
         dataType: 'mok',
@@ -379,6 +376,7 @@ const useCase1 = {
       details: 'Meet GF for dinner at Swanky Restaurant',
       bgcolor: 'teal',
       icon: 'fas fa-utensils',
+      columnIds: [1],
       data: {
         dataId: 7,
         dataType: 'mok',
@@ -391,6 +389,7 @@ const useCase1 = {
       details: 'Time for some weekend R&R',
       bgcolor: 'purple',
       icon: 'fas fa-fish',
+      columnIds: [1],
       data: {
         dataId: 8,
         dataType: 'mok',
@@ -403,6 +402,7 @@ const useCase1 = {
       details: "Trails and hikes, going camping! Don't forget to bring bear spray!",
       bgcolor: 'purple',
       icon: 'fas fa-plane',
+      columnIds: [1],
       data: {
         dataId: 9,
         dataType: 'mok',
@@ -497,7 +497,6 @@ const useCase3: UseCase = {
     },
   ],
   events: useCase1.events,
-  totalWeight: 7,
   dropzoneEvents: [],
 }
 </script>

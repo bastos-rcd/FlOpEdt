@@ -25,25 +25,21 @@ export const useCase: UseCase = {
       id: 0,
       name: 'TD1',
       weight: 2,
-      x: 0,
     },
     {
       id: 1,
       name: 'TD2',
       weight: 2,
-      x: 2,
     },
     {
       id: 2,
       name: 'TP31',
       weight: 1,
-      x: 4,
     },
     {
       id: 3,
       name: 'TP32',
       weight: 1,
-      x: 5,
     },
   ],
   totalWeight: 6,
@@ -108,11 +104,11 @@ export const useCase: UseCase = {
       columnIds: [0, 1],
       possibleStarts: {
         [shiftInCurrentWeek(0)!.date]: [
-          { isclose: false, timeStart: shiftInCurrentWeek(0, '08:10') },
-          { isclose: false, timeStart: shiftInCurrentWeek(0, '08:50') },
-          { isclose: false, timeStart: shiftInCurrentWeek(0, '09:10') },
-          { isclose: false, timeStart: shiftInCurrentWeek(0, '10:10') },
-          { isclose: false, timeStart: shiftInCurrentWeek(0, '15:30') },
+          { isClose: false, timeStart: shiftInCurrentWeek(0, '08:10') },
+          { isClose: false, timeStart: shiftInCurrentWeek(0, '08:50') },
+          { isClose: false, timeStart: shiftInCurrentWeek(0, '09:10') },
+          { isClose: false, timeStart: shiftInCurrentWeek(0, '10:10') },
+          { isClose: false, timeStart: shiftInCurrentWeek(0, '15:30') },
         ],
         [shiftInCurrentWeek(1)!.date]: [
           { isClose: false, timeStart: shiftInCurrentWeek(1, '10:10') },

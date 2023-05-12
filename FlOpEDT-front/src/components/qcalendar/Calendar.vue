@@ -137,8 +137,8 @@ import _ from 'lodash'
 
 import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
 
-import { computed, ref } from 'vue'
-import { TimestampOrNull, Timestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { Ref, computed, ref } from 'vue'
+import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 /**
  * Data passed to the component to handle the display in
@@ -448,7 +448,9 @@ function updateEventDropped(): void {
 /**
  * Functions relative to the navigation-bar
  */
-const calendar = ref(null)
+// I still have issues with the doc
+// I found this QCalendar here: https://github.com/quasarframework/quasar-ui-qcalendar/releases/tag/v2.2.1
+const calendar: Ref<QCalendar | null> = ref(null)
 function onToday(): void {
   calendar.value?.moveToToday()
 }

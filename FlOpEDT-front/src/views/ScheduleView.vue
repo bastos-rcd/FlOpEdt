@@ -60,12 +60,12 @@ watch(
         s.course.groups.forEach((courseGroup) => {
           const currentGroup = groups.value.find((g) => g.id === courseGroup.id)
           if (currentGroup) {
-            currentEvent.columnIds?.push(...currentGroup.columnIds)
+            currentEvent.columnIds.push(...currentGroup.columnIds)
           }
         })
         return currentEvent
       })
-      .filter((sc) => sc.columnIds?.length > 0)
+      .filter((sc) => sc.columnIds.length > 0)
   }
 )
 

@@ -144,7 +144,7 @@ function buildUrl(base: string, uri: string) {
   return `${base}/${uri}`
 }
 export interface FlopAPI {
-  getScheduledCourses(week: number, year: number, department?: string): Promise<Array<Group>>
+  getScheduledCourses(week: number, year: number, department?: string): Promise<Array<ScheduledCourse>>
   getGroups(department?: Department): Promise<Group[]>
   getModules(department?: Department): Promise<Module[]>
   getCurrentUser(): Promise<User>

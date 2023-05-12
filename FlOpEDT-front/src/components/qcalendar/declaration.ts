@@ -10,7 +10,7 @@ export interface CalendarEvent {
   bgcolor: string
   icon?: string
 
-  columnIds?: number[]
+  columnIds: number[]
 
   data: EventData
 }
