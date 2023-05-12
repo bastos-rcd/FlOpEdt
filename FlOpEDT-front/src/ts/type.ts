@@ -400,3 +400,10 @@ export interface WeekDay {
   num: number
   ref: string
 }
+
+export interface Group {
+  pouet: string
+}
+export interface Module {
+  tut: string
+}

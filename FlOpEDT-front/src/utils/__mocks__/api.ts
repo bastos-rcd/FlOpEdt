@@ -472,9 +472,10 @@ async function sendData<T>(method: string, url: string, optional: { data?: unkno
   console.log('optional : ', optional)
   console.log('method : ', method)
   console.log('url :', url)
-  if (csrfToken) {
-    requestHeaders.set('X-CSRFToken', csrfToken)
-  }
+  // Paul: I comment out this, I don't know what it is supposed to do
+  // if (csrfToken) {
+  //   requestHeaders.set('X-CSRFToken', csrfToken)
+  // }
   // Setup request
   const requestInit: RequestInit = {
     method: method,
