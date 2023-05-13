@@ -24,32 +24,6 @@
 import os
 from .base import *
 
-# DEFAULT POSTGRES CREDENTIALS
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'postgres'),
-        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-    }
-}
-
-REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
-REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
-REDIS_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/1'
-
-CACHE_MACHINE_USE_REDIS = True
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [(REDIS_HOST, REDIS_PORT)],
-        },
-    },
-}
-
 LOGGING = {  
     'version': 1,  
     'disable_existing_loggers': False,
@@ -79,9 +53,6 @@ LOGGING = {
         }
     }
 }
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'al0bzdna)@6&n9mfn_vlm0wl&38#xrf@h%&^^h-q783g$e&*h!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
