@@ -379,43 +379,44 @@ try:
     EMAIL_HOST_USER = flop_config['email']['email_user']
 except KeyError:
     print("WARNING - email_user is not configured. Mail sending won't working if your email server requires authentication.")
-    pass
 try:
     EMAIL_HOST_PASSWORD = flop_config['email']['email_password']
 except KeyError:
     print("WARNING - email_password is not configured. Mail sending won't working if your email server requires authentication.")
-    pass
 
 # Logging settings
-LOGGING = {  
-    'version': 1,  
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-        }
+try:
+    if flop_config['flopedt']['log_level'] in [ 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+        CONFIG_LOG_LEVEL = flop_config['flopedt']['log_level']
+    else:
+        print("ERROR - Uncorrect log level defined in configuration file. Accepted values are : DEBUG, INFO, WARNING, ERROR, CRITICAL")
+        sys.exit(1)
+except KeyError:
+    # No log_level configured => Let's fall back to INFO
+    CONFIG_LOG_LEVEL = "INFO"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
     },
-    'loggers': {
-        'base': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },        
-        'configuration': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },        
-        'django.db.backends': {
-            'level': 'INFO',
-            'handlers': ['console'],
-            'propagate': False,
-        }
-    }
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": CONFIG_LOG_LEVEL,
+            "propagate": False,
+        },
+    },
 }
 
-# Specific cronjobq
+# Specific cronjob
 CRONJOBS = [
     ('0 4 * * *', 'notifications.cron.backup_and_notify')
 ]
