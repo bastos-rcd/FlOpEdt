@@ -310,7 +310,11 @@ except KeyError:
 
 # Secret Key
 try:
-    SECRET_KEY = flop_config['flopedt']['secret_key']
+    if flop_config['flopedt']['secret_key'] is None:
+        print("ERROR - Secret key is empty. The application won't start")
+        sys.exit(1)
+    else:
+        SECRET_KEY = flop_config['flopedt']['secret_key']
 except KeyError:
     print("ERROR - Secret key not defined. The application won't start")
     sys.exit(1)
