@@ -53,6 +53,10 @@ override_dh_auto_install:
 	cp -a gurobi1001/linux64/bin/gurobi_cl debian/flopedt/usr/bin
 	cp -a gurobi1001/linux64/bin/grbgetkey debian/flopedt/usr/bin
 
+	# Deploy default configuration file
+	mkdir -p debian/flopedt/etc/flopedt
+	cp -a config_file/flopedt-system.ini debian/flopedt/etc/flopedt/flopedt.ini
+
 override_dh_virtualenv:
 	dh_virtualenv --python python3
 
