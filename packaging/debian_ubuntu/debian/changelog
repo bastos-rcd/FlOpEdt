@@ -1,5 +1,6 @@
-flopedt (1.0.0) unstable; urgency=medium
+flopedt (0.5.0) unstable; urgency=medium
 
-  * Initial release.
+  * FlOp - Version 0.5.0
+  * First packaging version
 
- -- Olivier Bonhomme <olivier@bonhomme.io>  Sat, 25 Mar 2023 21:19:20 +0100
+ -- Olivier Bonhomme <olivier@bonhomme.io>  Sun, 14 May 2023 21:19:20 +0100
