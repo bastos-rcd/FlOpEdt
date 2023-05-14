@@ -144,7 +144,7 @@ import { watch } from 'vue'
  * Data passed to the component to handle the display in
  * columns for each day
  * *  The dropzoneEvents have references of events ids and
- * *  the totaleWeight is the total of each columns weight
+ * *  the totalWeight is the total of each columns weight
  */
 const props = defineProps<{
   events: CalendarEvent[]
@@ -374,7 +374,7 @@ function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, la
  * @param event The event we are currently dragging
  */
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
-  currentTime.value = event.data.start
+  currentTime.value = copyTimestamp(event.data.start)
   isDragging.value = true
   eventDragged.value = _.cloneDeep(event)
   emits('dragstart', event.data.dataId)
