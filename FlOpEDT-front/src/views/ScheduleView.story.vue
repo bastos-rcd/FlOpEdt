@@ -1,6 +1,6 @@
 <template>
   <Story>
-    <Variant title="Use case 1">
+    <Variant title="Test with Filter">
       <div>
         <div class="filters">
           <FilterSelector
@@ -13,6 +13,9 @@
           <p><q-badge v-for="r in roomsSelected" rounded color="red" :label="r.name" /></p>
         </div>
       </div>
+      <ScheduleView />
+    </Variant>
+    <Variant title="Use case">
       <ScheduleView />
     </Variant>
   </Story>

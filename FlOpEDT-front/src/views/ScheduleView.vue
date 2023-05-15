@@ -1,17 +1,28 @@
 <template>
   <Calendar
     v-model:events="calendarEvents"
-    :columns="columns"
+    :columns="columnsToDisplay"
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
   />
+  <HierarchicalColumnFilter
+    v-model:active-ids="activeIds"
+    :flatNodes="flatNodes">
+      <template #item="{ nodeId, active }">
+        <div :class="['node', active ? 'ac' : 'nac']">
+          {{ find(flatNodes, (n) => n.id === nodeId)?.name }}
+          {{ active }}
+        </div>
+      </template>
+    </HierarchicalColumnFilter>
   <button @click="revertUpdate">Revert</button>
 </template>
 
 <script setup lang="ts">
-import { CalendarEvent } from '@/components/calendar/declaration'
+import { CalendarColumn, CalendarEvent } from '@/components/calendar/declaration'
+import HierarchicalColumnFilter from '@/components/hierarchicalFilter/HierarchicalColumnFilter.vue'
 import Calendar from '@/components/calendar/Calendar.vue'
-import { onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
@@ -19,20 +30,35 @@ import { useUndoredo } from '@/composables/undoredo'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
-
-
-const scheduledCourseStore = useScheduledCourseStore()
-const groupStore = useGroupStore()
-const columnStore = useColumnStore()
+import { filter, find } from 'lodash'
+/**
+ * Data translated to be passed to components
+ */
 const calendarEvents = ref<CalendarEvent[]>([])
+const activeIds = ref<Array<number>>([1,2,3])
+const flatNodes = computed(() => {
+  return groups.value
+})
+const columnsToDisplay = computed(() => {
+  console.log(filter(columns.value, (c: CalendarColumn) => {
+    return c.id in activeIds.value
+  }))
+  return filter(columns.value, (c: CalendarColumn) => {
+    return c.id in activeIds.value
+  })
+})
+
 
 const { addUpdate, revertUpdate } = useUndoredo()
 
-onBeforeMount(async () => {
-  let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
-  fetchScheduledCurrentWeek(todayDate.workweek, todayDate.year)
-  
-})
+/**
+ * API data waiting to be translated in Calendar events
+ * * The scheduledCourses becoming events
+ * * The groups and columns helping to put events in schedule
+ */
+const groupStore = useGroupStore()
+const columnStore = useColumnStore()
+const scheduledCourseStore = useScheduledCourseStore()
 const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
@@ -75,16 +101,31 @@ function setCurrentScheduledCourse(scheduledCourseId: number) {
   currentScheduledCourseId.value = scheduledCourseId
 }
 
-function changeDate(newDate: Timestamp) {
-  fetchScheduledCurrentWeek(newDate.workweek, newDate.year)
-}
-
 function fetchScheduledCurrentWeek(week: number, year: number) {
   scheduledCourseStore.fetchScheduledCourses(
     { week: week, year: year },
     { id: 1, abbrev: 'INFO', name: 'informatique' }
   )
 }
+
+function changeDate(newDate: Timestamp) {
+  fetchScheduledCurrentWeek(newDate.workweek, newDate.year)
+}
+
+/**
+ * Fetching data required on mount
+ */
+onBeforeMount(async () => {
+  let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
+  fetchScheduledCurrentWeek(todayDate.workweek, todayDate.year)
+})
 </script>
 
-<style scoped></style>
+<style scoped>
+.ac {
+  background-color: rgba(25, 124, 25, 0.685);
+}
+.nac {
+  background-color: rgb(133, 34, 34);
+}
+</style>
