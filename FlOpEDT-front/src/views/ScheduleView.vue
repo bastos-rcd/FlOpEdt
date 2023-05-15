@@ -1,16 +1,4 @@
 <template>
-  <div>
-    <div class="filters">
-      <FilterSelector
-        :items="rooms"
-        filterSelectorUndefinedLabel="Select a room"
-        v-model:selectedItems="roomsSelected"
-        itemVariableName="name"
-        :multiple="true"
-      />
-      <p><q-badge v-for="r in roomsSelected" rounded color="red" :label="r.name" /></p>
-    </div>
-  </div>
   <Calendar
     v-model:events="calendarEvents"
     :columns="columns"
@@ -31,28 +19,23 @@ import { useUndoredo } from '@/composables/undoredo'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
-import FilterSelector from '@/components/utils/FilterSelector.vue'
-import { useRoomStore } from '@/stores/room'
-import { Room } from '@/ts/type'
+
 
 const scheduledCourseStore = useScheduledCourseStore()
 const groupStore = useGroupStore()
 const columnStore = useColumnStore()
-const roomStore = useRoomStore()
 const calendarEvents = ref<CalendarEvent[]>([])
-const roomsSelected = ref<Room[] | null>([])
 
 const { addUpdate, revertUpdate } = useUndoredo()
 
 onBeforeMount(async () => {
   let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
   fetchScheduledCurrentWeek(todayDate.workweek, todayDate.year)
-  roomStore.remote.fetch()
+  
 })
 const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
-const { rooms } = storeToRefs(roomStore)
 
 watch(
   () => scheduledCourses.value,
@@ -104,8 +87,4 @@ function fetchScheduledCurrentWeek(week: number, year: number) {
 }
 </script>
 
-<style scoped>
-.filters {
-  width: 200px;
-}
-</style>
+<style scoped></style>
