@@ -3,10 +3,11 @@
     <FilterSelector
       :items="rooms"
       filterSelectorUndefinedLabel="Select a room"
-      v-model:selectedItem="roomSelected"
+      v-model:selectedItems="roomsSelected"
       itemVariableName="name"
+      :multiple="true"
     />
-    <h6 v-if="roomSelected">{{ roomSelected.name }}</h6>
+    <p><span v-for="r in roomsSelected">{{ r.id }}<br/></span></p>
   </div>
   <Calendar
     v-model:events="calendarEvents"
@@ -37,7 +38,7 @@ const groupStore = useGroupStore()
 const columnStore = useColumnStore()
 const roomStore = useRoomStore()
 const calendarEvents = ref<CalendarEvent[]>([])
-const roomSelected = ref<Room | null>(null)
+const roomsSelected = ref<Room[] | null>([])
 
 const { addUpdate, revertUpdate } = useUndoredo()
 
