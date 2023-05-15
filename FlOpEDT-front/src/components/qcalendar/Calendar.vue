@@ -177,13 +177,10 @@ const preWeight = computed(() => {
  */
 const selectedDate = ref<string>(today())
 
-watch(
-  () => selectedDate.value,
-  () => {
-    console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
-    emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
-  }
-)
+watch(selectedDate, () => {
+  console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+  emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+})
 
 const eventsByDate = computed(() => {
   const map: Record<string, any[]> = {}
