@@ -49,8 +49,7 @@
 
 <script setup lang="ts">
 import HierarchicalColumnFilter from './HierarchicalColumnFilter.vue'
-import { Tree, ITree } from '@/ts/tree'
-import { find, forEach, remove, filter } from 'lodash'
+import { find, filter } from 'lodash'
 import { ref } from 'vue'
 
 const useCase1 = {

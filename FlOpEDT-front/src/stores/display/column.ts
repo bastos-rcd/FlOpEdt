@@ -1,4 +1,4 @@
-import { CalendarColumn } from '@/components/qcalendar/declaration'
+import { CalendarColumn } from '@/components/calendar/declaration'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 

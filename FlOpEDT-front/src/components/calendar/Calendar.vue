@@ -363,8 +363,8 @@ function dropZoneCloseUpdate(dateTime: Timestamp): void {
  */
 function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, layerY: number): void {
   if (dateTime) {
-    if (!currentTime.value || currentTime.value.date !== dateTime.date) currentTime.value = copyTimestamp(dateTime)
-    updateMinutes(currentTime.value, Math.round(parseTime(dateTime.time) + timeDurationHeight(layerY)))
+    if (!currentTime.value || currentTime.value.date !== dateTime.date) currentTime.value = copyTimestamp(dateTime) as TimestampOrNull
+    updateMinutes((currentTime.value as Timestamp), Math.round(parseTime(dateTime.time) + timeDurationHeight(layerY)))
   }
 }
 
@@ -374,7 +374,7 @@ function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, la
  * @param event The event we are currently dragging
  */
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
-  currentTime.value = copyTimestamp(event.data.start)
+  currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
   eventDragged.value = _.cloneDeep(event)
   emits('dragstart', event.data.dataId)

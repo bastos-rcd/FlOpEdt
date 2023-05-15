@@ -1,8 +1,16 @@
 <template>
+  <div class="filters">
+    <FilterSelector
+      :items="rooms"
+      filterSelectorUndefinedLabel="Select a room"
+      v-model:selectedItem="roomSelected"
+      itemVariableName="name"
+    />
+    <h6 v-if="roomSelected">{{ roomSelected.name }}</h6>
+  </div>
   <Calendar
     v-model:events="calendarEvents"
     :columns="columns"
-    :total-weight="8"
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
   />
@@ -10,8 +18,8 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarEvent } from '@/components/qcalendar/declaration'
-import Calendar from '@/components/qcalendar/Calendar.vue'
+import { CalendarEvent } from '@/components/calendar/declaration'
+import Calendar from '@/components/calendar/Calendar.vue'
 import { onBeforeMount, ref, watch } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
@@ -20,21 +28,28 @@ import { useUndoredo } from '@/composables/undoredo'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import FilterSelector from '@/components/utils/FilterSelector.vue'
+import { useRoomStore } from '@/stores/room'
+import { Room } from '@/ts/type'
 
 const scheduledCourseStore = useScheduledCourseStore()
 const groupStore = useGroupStore()
 const columnStore = useColumnStore()
+const roomStore = useRoomStore()
 const calendarEvents = ref<CalendarEvent[]>([])
+const roomSelected = ref<Room | null>(null)
 
 const { addUpdate, revertUpdate } = useUndoredo()
 
 onBeforeMount(async () => {
   let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
   fetchScheduledCurrentWeek(todayDate.workweek, todayDate.year)
+  roomStore.remote.fetch()
 })
 const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
+const { rooms } = storeToRefs(roomStore)
 
 watch(
   () => scheduledCourses.value,

@@ -50,26 +50,10 @@ export interface CalendarResourceEvent {
   title: string
 }
 
-// export interface CalendarDynamicColumn extends CalendarColumn {
-//   active: boolean
-// }
 
 export interface CalendarDropzoneEvent {
   eventId: number
   duration: number
   columnIds: number[]
   possibleStarts: Record<string, { isClose: boolean; timeStart: Timestamp }[]>
-}
-
-export interface IdX {
-  id: number
-  xmin: number
-}
-
-export interface GridCell {
-  id: number
-  xmin: number
-  xmax: number
-  ymin: number
-  ymax: number
 }

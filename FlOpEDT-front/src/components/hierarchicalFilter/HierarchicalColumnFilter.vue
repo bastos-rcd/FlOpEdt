@@ -14,10 +14,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { CalendarColumn, GridCell, IdX } from './declaration'
+import { computed } from 'vue'
+import { GridCell, IdX } from './declaration'
 import { Tree, LinkIdUp } from '@/ts/tree'
-import { forEach, map, filter, values, indexOf, cloneDeep, difference, find } from 'lodash'
+import { forEach, indexOf, cloneDeep, find } from 'lodash'
 
 const props = defineProps<{
   activeIds: Array<number>
