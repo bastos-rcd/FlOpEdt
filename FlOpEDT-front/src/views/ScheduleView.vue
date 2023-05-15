@@ -8,7 +8,7 @@
         itemVariableName="name"
         :multiple="true"
       />
-      <p><q-badge v-for="r in roomsSelected" rounded color="red" :label="r.name"/></p>
+      <p><q-badge v-for="r in roomsSelected" rounded color="red" :label="r.name" /></p>
     </div>
   </div>
   <Calendar

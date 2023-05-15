@@ -149,8 +149,6 @@ import { watch } from 'vue'
  * events data in it.
  */
 
-
-
 /**
  * Data passed to the component to handle the display in
  * columns for each day
@@ -371,8 +369,9 @@ function dropZoneCloseUpdate(dateTime: Timestamp): void {
  */
 function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, layerY: number): void {
   if (dateTime) {
-    if (!currentTime.value || currentTime.value.date !== dateTime.date) currentTime.value = copyTimestamp(dateTime) as TimestampOrNull
-    updateMinutes((currentTime.value as Timestamp), Math.round(parseTime(dateTime.time) + timeDurationHeight(layerY)))
+    if (!currentTime.value || currentTime.value.date !== dateTime.date)
+      currentTime.value = copyTimestamp(dateTime) as TimestampOrNull
+    updateMinutes(currentTime.value as Timestamp, Math.round(parseTime(dateTime.time) + timeDurationHeight(layerY)))
   }
 }
 

@@ -50,7 +50,6 @@ export interface CalendarResourceEvent {
   title: string
 }
 
-
 export interface CalendarDropzoneEvent {
   eventId: number
   duration: number
