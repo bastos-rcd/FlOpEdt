@@ -20,7 +20,6 @@ import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 
-
 const scheduledCourseStore = useScheduledCourseStore()
 const groupStore = useGroupStore()
 const columnStore = useColumnStore()
@@ -31,7 +30,6 @@ const { addUpdate, revertUpdate } = useUndoredo()
 onBeforeMount(async () => {
   let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
   fetchScheduledCurrentWeek(todayDate.workweek, todayDate.year)
-  
 })
 const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
