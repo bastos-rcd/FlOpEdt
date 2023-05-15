@@ -1,13 +1,15 @@
 <template>
-  <div class="filters">
-    <FilterSelector
-      :items="rooms"
-      filterSelectorUndefinedLabel="Select a room"
-      v-model:selectedItems="roomsSelected"
-      itemVariableName="name"
-      :multiple="true"
-    />
-    <p><span v-for="r in roomsSelected">{{ r.id }}<br/></span></p>
+  <div>
+    <div class="filters">
+      <FilterSelector
+        :items="rooms"
+        filterSelectorUndefinedLabel="Select a room"
+        v-model:selectedItems="roomsSelected"
+        itemVariableName="name"
+        :multiple="true"
+      />
+      <p><q-badge v-for="r in roomsSelected" rounded color="red" :label="r.name"/></p>
+    </div>
   </div>
   <Calendar
     v-model:events="calendarEvents"
@@ -101,3 +103,9 @@ function fetchScheduledCurrentWeek(week: number, year: number) {
   )
 }
 </script>
+
+<style scoped>
+.filters {
+  width: 200px;
+}
+</style>
