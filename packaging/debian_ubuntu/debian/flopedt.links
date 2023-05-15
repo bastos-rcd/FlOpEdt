@@ -1,0 +1,2 @@
+opt/venvs/flopedt/bin/flop_admin usr/bin/flop_admin
+usr/lib/libgurobi.so.10.0.1 usr/lib/libgurobi100.so

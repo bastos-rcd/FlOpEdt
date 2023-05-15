@@ -1,0 +1,184 @@
+default:
+  image: python:3.11
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# Pip's cache doesn't store the python packages
+# https://pip.pypa.io/en/stable/reference/pip_install/#caching
+cache:
+  paths:
+    - .cache/pip
+
+stages:
+  - build
+  - deploy
+
+build_pip_artifact:
+  stage: build
+
+  before_script:
+  - pip install virtualenv
+  - virtualenv venv
+  - source venv/bin/activate
+  - apt update && apt install python3-pip -y
+
+  script:
+    - pip3 install --upgrade build wheel
+    - python -m build
+  artifacts:
+    paths:
+      - dist/*.tar.gz
+build_deb_package:focal:
+  cache: []
+  image: ubuntu:focal
+  stage: build
+  script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
+    - apt install debhelper build-essential virtualenv python3-venv python3-pip libpq-dev libpython3-dev wget -y
+    - ln -sf packaging/debian_ubuntu/debian .
+    - dpkg-buildpackage -us -uc -b
+    - mv ../*.deb .
+  artifacts:
+    paths:
+      - ./*.deb
+
+build_deb_package:jammy:
+  cache: []
+  image: ubuntu:jammy
+  stage: build
+  script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
+    - apt install debhelper build-essential virtualenv python3-venv python3-pip libpq-dev libpython3-dev wget -y
+    - ln -sf packaging/debian_ubuntu/debian .
+    - dpkg-buildpackage -us -uc -b
+    - mv ../*.deb .
+  artifacts:
+    paths:
+      - ./*.deb
+
+build_deb_package:bullseye:
+  cache: []
+  image: debian:bullseye
+  stage: build
+  script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
+    - apt install debhelper build-essential virtualenv python3-venv python3-pip libpq-dev libpython3-dev wget -y
+    - ln -sf packaging/debian_ubuntu/debian .
+    - dpkg-buildpackage -us -uc -b
+    - mv ../*.deb .
+  artifacts:
+    paths:
+      - ./*.deb
+
+install_deb_package:focal:
+  cache: []
+  image: ubuntu:focal
+  stage: deploy
+  needs: ["build_deb_package:focal"]
+  services:
+    - postgres:15-alpine
+  variables:
+    POSTGRES_DB: "flop"
+    POSTGRES_USER: "flop"
+    POSTGRES_PASSWORD: "flop"
+    POSTGRES_HOST: "postgres"
+    POSTGRES_PORT: 5432
+  script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
+    - apt install ./*.deb -y
+    - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^tmp_directory=\).*/\1\/var\/flopedt\/tmp/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
+    - cat /etc/flopedt/flopedt.ini
+    - flop_admin migrate
+    - bunzip2 dump.json.bz2
+    - flop_admin loaddata dump.json
+
+install_deb_package:jammy:
+  cache: []
+  image: ubuntu:jammy
+  stage: deploy
+  needs: ["build_deb_package:jammy"]
+  services:
+    - postgres:15-alpine
+  variables:
+    POSTGRES_DB: "flop"
+    POSTGRES_USER: "flop"
+    POSTGRES_PASSWORD: "flop"
+    POSTGRES_HOST: "postgres"
+    POSTGRES_PORT: 5432
+  script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata bzip2
+    - apt install ./*.deb -y
+    - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^tmp_directory=\).*/\1\/var\/flopedt\/tmp/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
+    - cat /etc/flopedt/flopedt.ini
+    - flop_admin migrate
+    - bunzip2 dump.json.bz2
+    - flop_admin loaddata dump.json
+
+install_deb_package:bullseye:
+  cache: []
+  image: debian:bullseye
+  stage: deploy
+  needs: ["build_deb_package:bullseye"]
+  services:
+    - postgres:15-alpine
+  variables:
+    POSTGRES_DB: "flop"
+    POSTGRES_USER: "flop"
+    POSTGRES_PASSWORD: "flop"
+    POSTGRES_HOST: "postgres"
+    POSTGRES_PORT: 5432
+  script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata bzip2
+    - apt install ./*.deb -y
+    - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^tmp_directory=\).*/\1\/var\/flopedt\/tmp/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
+    - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
+    - cat /etc/flopedt/flopedt.ini
+    - flop_admin migrate
+    - bunzip2 dump.json.bz2
+    - flop_admin loaddata dump.json
+
+install_pip_artifact:
+  stage: deploy
+  needs: ["build_pip_artifact"]
+  services:
+    - postgres:15-alpine
+  variables:
+    POSTGRES_DB: "flop"
+    POSTGRES_USER: "flop"
+    POSTGRES_PASSWORD: "flop"
+    POSTGRES_HOST: "postgres"
+    POSTGRES_PORT: 5432
+  
+  before_script:
+  - pip install virtualenv
+  - virtualenv venv
+  - source venv/bin/activate
+  - apt update && apt install python3-pip -y
+  
+  script:
+    - pip install dist/FlOpEDT*.tar.gz
+    - mkdir -p /var/flopedt/{tmp,cache}
+    - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' config_file/flopedt.ini
+    - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin migrate
+    - bunzip2 dump.json.bz2
+    - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin loaddata dump.json
+
+  dependencies:
+    - build_pip_artifact

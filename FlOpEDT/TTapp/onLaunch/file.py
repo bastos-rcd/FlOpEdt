@@ -1,11 +1,11 @@
-
 import os
+from  django.conf import settings as ds
 from pathlib import Path
 from MyFlOp.colors import Tcolors
 from TTapp.onLaunch.settings import settings
 import shutil
 
-TEMP_DIR = os.path.join(os.getcwd(),'temp')
+TEMP_DIR = os.path.join(ds.TMP_DIRECTORY,'constraints')
 CLEAR_TEMP_FILES = settings()["clearTempFile"]
 
 LANG_LIST = settings()["langs"]
