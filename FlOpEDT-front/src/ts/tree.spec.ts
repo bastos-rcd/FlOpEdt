@@ -1,6 +1,6 @@
-import { TreeNode, Tree } from './tree'
+import { ITreeNode, Tree } from './tree'
 import { describe, expect, it } from 'vitest'
-import { map, reverse, filter, values } from 'lodash'
+import { map, reverse, values } from 'lodash'
 
 describe('Tree utils', () => {
   it('stores a reasonable list', () => {
@@ -33,9 +33,9 @@ describe('Tree utils', () => {
       []
     )
     expect(tree.byId[1].children.length).toBe(2)
-    expect(map(tree.byId[1].children, (c) => c.id)).toEqual(expect.arrayContaining([5, 2]))
+    expect(map(tree.byId[1].children, (c: ITreeNode) => c.id)).toEqual(expect.arrayContaining([5, 2]))
     expect(tree.byId[2].children.length).toBe(0)
-    expect(map(tree.byId[5].children, (c) => c.id)).toEqual([8])
+    expect(map(tree.byId[5].children, (c: ITreeNode) => c.id)).toEqual([8])
     expect(tree.byId[5].parent).toBe(tree.byId[1])
 
     expect(tree.byId[5].parent?.id).toBe(1)
@@ -58,24 +58,24 @@ describe('Tree utils', () => {
     )
 
     expect(tree.byId[1].children.length).toBe(2)
-    expect(map(tree.byId[1].children, (c) => c.id)).toEqual(expect.arrayContaining([5, 2]))
+    expect(map(tree.byId[1].children, (c: ITreeNode) => c.id)).toEqual(expect.arrayContaining([5, 2]))
     expect(tree.byId[2].children.length).toBe(0)
-    expect(map(tree.byId[5].children, (c) => c.id)).toEqual([8])
+    expect(map(tree.byId[5].children, (c: ITreeNode) => c.id)).toEqual([8])
     expect(tree.byId[5].parent).toBe(tree.byId[1])
 
     expect(tree.byId[1].descendants.length).toBe(3)
-    expect(map(tree.byId[1].descendants, (c) => c.id)).toEqual(expect.arrayContaining([2, 5, 8]))
+    expect(map(tree.byId[1].descendants, (c: ITreeNode) => c.id)).toEqual(expect.arrayContaining([2, 5, 8]))
     expect(tree.byId[1].ancestors.length).toBe(0)
     expect(tree.byId[5].descendants.length).toBe(1)
-    expect(map(tree.byId[5].descendants, (c) => c.id)).toEqual(expect.arrayContaining([8]))
+    expect(map(tree.byId[5].descendants, (c: ITreeNode) => c.id)).toEqual(expect.arrayContaining([8]))
     expect(tree.byId[5].ancestors.length).toBe(1)
-    expect(map(tree.byId[5].ancestors, (c) => c.id)).toEqual(expect.arrayContaining([1]))
+    expect(map(tree.byId[5].ancestors, (c: ITreeNode) => c.id)).toEqual(expect.arrayContaining([1]))
     expect(tree.byId[8].descendants.length).toBe(0)
     expect(tree.byId[8].ancestors.length).toBe(2)
-    expect(map(tree.byId[8].ancestors, (c) => c.id)).toEqual(expect.arrayContaining([1, 5]))
+    expect(map(tree.byId[8].ancestors, (c: ITreeNode) => c.id)).toEqual(expect.arrayContaining([1, 5]))
     expect(tree.byId[2].descendants.length).toBe(0)
     expect(tree.byId[2].ancestors.length).toBe(1)
-    expect(map(tree.byId[2].ancestors, (c) => c.id)).toEqual(expect.arrayContaining([1]))
+    expect(map(tree.byId[2].ancestors, (c: ITreeNode) => c.id)).toEqual(expect.arrayContaining([1]))
   })
 
   it('sorts the children correctly', () => {
@@ -91,13 +91,13 @@ describe('Tree utils', () => {
 
     tree.addNodes(linkIdUps, [])
     tree.sortChildren()
-    expect(map(tree.byId[1].children, (c) => c.id)).toEqual([5, 2])
+    expect(map(tree.byId[1].children, (c: ITreeNode) => c.id)).toEqual([5, 2])
 
     const reverseTree = new Tree()
     reverse(linkIdUps)
     reverseTree.addNodes(linkIdUps, [])
     reverseTree.sortChildren()
-    expect(map(reverseTree.byId[1].children, (c) => c.id)).toEqual([2, 5])
+    expect(map(reverseTree.byId[1].children, (c: ITreeNode) => c.id)).toEqual([2, 5])
   })
 
   it('computes correctly levels', () => {

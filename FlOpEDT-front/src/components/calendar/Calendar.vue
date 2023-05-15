@@ -145,6 +145,13 @@ import { Ref, computed, ref } from 'vue'
 import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 /**
+ * Calendar component handling the display of a week with
+ * events data in it.
+ */
+
+
+
+/**
  * Data passed to the component to handle the display in
  * columns for each day
  * *  The dropzoneEvents have references of events ids and

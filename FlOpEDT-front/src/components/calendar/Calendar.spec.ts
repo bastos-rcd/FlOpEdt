@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { shallowMount, VueWrapper } from '@vue/test-utils'
 import Calendar from './Calendar.vue'
 import { describe, expect, it } from 'vitest'
 import { useCase } from './test.data'
@@ -7,7 +7,7 @@ describe('Calendar component', () => {
   it.skip('render correctly', () => {
     expect.assertions(3)
     expect(Calendar).toBeTruthy()
-    const wrapper = mount(Calendar)
+    const wrapper = shallowMount(Calendar as any)
 
     expect(wrapper).toBeDefined()
     expect(wrapper.html()).toMatchSnapshot()
@@ -16,7 +16,7 @@ describe('Calendar component', () => {
   it.skip('displays columns', async () => {
     expect.assertions(3)
     expect(Calendar).toBeTruthy()
-    const wrapper = mount(Calendar, {
+    const wrapper: VueWrapper = shallowMount(Calendar as any, {
       props: {
         columns: [
           {
@@ -50,7 +50,7 @@ describe('Calendar component', () => {
   it('renders with formated data', async () => {
     expect.assertions(2)
     expect(Calendar).toBeTruthy()
-    const wrapper = mount(Calendar, {
+    const wrapper: VueWrapper = shallowMount(Calendar as any, {
       props: {
         columns: useCase.columns,
         events: useCase.events.value,

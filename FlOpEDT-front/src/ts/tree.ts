@@ -83,8 +83,8 @@ export class TreeNode implements ITreeNode {
   toggleActive(): void {
     if (this.active) {
       // if all active
-      const allNodeIds = map(keys(this.tree.byId), (nidStr) => parseInt(nidStr))
-      const activeNodeIds = filter(allNodeIds, (id) => this.tree.byId[id].active)
+      const allNodeIds = map(keys(this.tree.byId), (nidStr: string) => parseInt(nidStr))
+      const activeNodeIds = filter(allNodeIds, (id: number) => this.tree.byId[id].active)
       if (allNodeIds.length == activeNodeIds.length) {
         console.log('all there')
 
@@ -92,22 +92,22 @@ export class TreeNode implements ITreeNode {
         console.log(
           difference(
             allNodeIds,
-            map(activeNodes, (n) => n.id)
+            map(activeNodes, (n: TreeNode) => n.id)
           )
         )
         forEach(
           difference(
             allNodeIds,
-            map(activeNodes, (n) => n.id)
+            map(activeNodes, (n: TreeNode) => n.id)
           ),
-          (nid) => {
+          (nid: number) => {
             this.tree.byId[nid].active = false
           }
         )
       } else {
         forEach(
-          filter(this.descendants, (node) => node.children.length == 0),
-          (node) => {
+          filter(this.descendants, (node: TreeNode) => node.children.length == 0),
+          (node: TreeNode) => {
             node.active = false
           }
         )
@@ -116,8 +116,8 @@ export class TreeNode implements ITreeNode {
       }
     } else {
       this.active = true
-      forEach(this.descendants, (node) => (node.active = true))
-      forEach(this.ancestors, (node) => (node.active = true))
+      forEach(this.descendants, (node: TreeNode) => (node.active = true))
+      forEach(this.ancestors, (node: TreeNode) => (node.active = true))
     }
   }
 
@@ -136,7 +136,7 @@ export class TreeNode implements ITreeNode {
   }
 
   propageDownAncestors(ancestors: ITreeNode[]) {
-    forEach(this.children, (child) => {
+    forEach(this.children, (child: ITreeNode) => {
       child.ancestors = ancestors.concat(child.ancestors)
       child.propageDownAncestors(ancestors)
     })
@@ -150,13 +150,13 @@ export class TreeNode implements ITreeNode {
   }
 
   sortChildren(): void {
-    this.children = sortBy(this.children, (child) => child.rank)
-    forEach(this.children, (child) => child.sortChildren())
+    this.children = sortBy(this.children, (child: ITreeNode) => child.rank)
+    forEach(this.children, (child: ITreeNode) => child.sortChildren())
   }
 
   computeDepthMin(yours: number): void {
     this.depthMin = yours
-    forEach(this.children, (child) => {
+    forEach(this.children, (child: ITreeNode) => {
       child.computeDepthMin(yours + 1)
     })
   }
@@ -165,7 +165,7 @@ export class TreeNode implements ITreeNode {
     if (this.children.length == 0) {
       return
     }
-    const newLevel = (minBy(this.children, (child) => child.depthMax)?.depthMax as number) - 1
+    const newLevel = (minBy(this.children, (child: ITreeNode) => child.depthMax)?.depthMax as number) - 1
     if (newLevel != this.depthMax) {
       this.depthMax = newLevel
       this.parent?.computeDepthMax()
@@ -178,7 +178,7 @@ export class TreeNode implements ITreeNode {
     } else {
       this.nLeaves = 0
     }
-    forEach(this.children, (child) => {
+    forEach(this.children, (child: ITreeNode) => {
       child.countLeaves()
       this.nLeaves += child.nLeaves
     })
@@ -188,8 +188,8 @@ export class TreeNode implements ITreeNode {
     if (this.children.length == 0) {
       return
     }
-    forEach(this.children, (child) => child.inferActiveBottomUp())
-    this.active = find(this.children, (child) => child.active) ? true : false
+    forEach(this.children, (child: ITreeNode) => child.inferActiveBottomUp())
+    this.active = find(this.children, (child: ITreeNode) => child.active) ? true : false
   }
 }
 
@@ -215,8 +215,8 @@ export class Tree implements ITree {
   }
   getActiveIds(): Array<number> {
     return map(
-      filter(values(this.byId), (node) => node.active),
-      (node) => {
+      filter(values(this.byId), (node: TreeNode) => node.active),
+      (node: TreeNode) => {
         return node.id
       }
     )
@@ -226,7 +226,7 @@ export class Tree implements ITree {
     if (active === undefined) {
       active = []
     }
-    forEach(linkIdUps, (linkIdUp, rank) => {
+    forEach(linkIdUps, (linkIdUp: LinkIdUp, rank: number) => {
       if (this.byId[linkIdUp.id] !== undefined) {
         throw new Error('Tree: non-unique id in the nodes')
       }
@@ -234,7 +234,7 @@ export class Tree implements ITree {
       ;(linkIdUp as LinkUp).active = indexOf(active, linkIdUp.id) > -1 ? true : false
       this.byId[linkIdUp.id] = new TreeNode(this, null, linkIdUp as LinkUp)
     })
-    forOwn(this.byId as Record<number, TreeNode>, (val, key) => {
+    forOwn(this.byId as Record<number, TreeNode>, (val: TreeNode) => {
       if (val.parentId === null) {
         if (this.root !== null) {
           throw new Error('Tree: multiple roots')
@@ -259,7 +259,7 @@ export class Tree implements ITree {
   inferActiveBottomUp(): void {
     this.root?.inferActiveBottomUp()
     if (!this.root?.active) {
-      forEach(values(this.byId), (n) => {
+      forEach(values(this.byId), (n: ITreeNode) => {
         n.active = true
       })
     }
@@ -279,8 +279,8 @@ export class Tree implements ITree {
     if (values(this.byId).length == 0) {
       return
     }
-    const maxLevel = maxBy(values(this.byId), (child) => child.depthMin)?.depthMin as number
-    forEach(values(this.byId), (node) => {
+    const maxLevel = maxBy(values(this.byId), (child: ITreeNode) => child.depthMin)?.depthMin as number
+    forEach(values(this.byId), (node: ITreeNode) => {
       if (node.children.length == 0) {
         node.depthMax = maxLevel
         node.parent?.computeDepthMax()

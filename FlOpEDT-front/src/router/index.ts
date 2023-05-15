@@ -22,15 +22,15 @@ const routes = [
       needsAuth: false,
     },
   },
-  {
-    path: '/roomreservation/:locale?/:dept?',
-    name: routeNames.roomReservation,
-    component: () => import('@/views/RoomReservationView.vue'),
-    meta: {
-      title: 'Réservation de salles',
-      needsAuth: true,
-    },
-  },
+  // {
+  //   path: '/roomreservation/:locale?/:dept?',
+  //   name: routeNames.roomReservation,
+  //   component: () => import('@/views/RoomReservationView.vue'),
+  //   meta: {
+  //     title: 'Réservation de salles',
+  //     needsAuth: true,
+  //   },
+  // },
   {
     path: '/contact/:locale?/:dept?',
     name: routeNames.contact,
