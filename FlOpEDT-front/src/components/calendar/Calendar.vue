@@ -69,7 +69,11 @@
         <!-- events to display -->
         <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
           <template v-if="event.data.duration !== undefined">
-            <div draggable="true" @dragstart="onDragStart($event, event)">
+            <div
+              draggable="true"
+              @dragstart="onDragStart($event, event)"
+              @dragover="onDragOver($event, 'event', { timeDurationHeight, timestamp: event.data.start })"
+            >
               <div
                 v-for="columnId in event.columnIds"
                 :key="event.id + '_' + columnId"
@@ -177,13 +181,10 @@ const preWeight = computed(() => {
  */
 const selectedDate = ref<string>(today())
 
-watch(
-  () => selectedDate.value,
-  () => {
-    console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
-    emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
-  }
-)
+watch(selectedDate, () => {
+  console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+  emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+})
 
 const eventsByDate = computed(() => {
   const map: Record<string, any[]> = {}
