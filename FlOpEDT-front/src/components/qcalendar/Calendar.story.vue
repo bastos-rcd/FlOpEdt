@@ -525,6 +525,14 @@ const useCase3: UseCase = {
   or put back at its original place
 - Click on the navigation bar above the calendar => change the week displayed
 
+### Implementation details
+
+I don't know why, but a dragover event, supposedly listened via `:drag-over-func="onDragOver"`
+at the `q-calendar` level does not go to there if we are dragging over a calendar event. Someone
+seems to stop the propagation, but I could not figure out who.
+
+**Workaround:** we force the call to `onDragOver` at the calendar event level.
+
 ## TODO
 
 - The aesthetics should be improved

@@ -69,7 +69,11 @@
         <!-- events to display -->
         <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
           <template v-if="event.data.duration !== undefined">
-            <div draggable="true" @dragstart="onDragStart($event, event)">
+            <div
+              draggable="true"
+              @dragstart="onDragStart($event, event)"
+              @dragover="onDragOver($event, 'event', { timeDurationHeight, timestamp: event.data.start })"
+            >
               <div
                 v-for="columnId in event.columnIds"
                 :key="event.id + '_' + columnId"
