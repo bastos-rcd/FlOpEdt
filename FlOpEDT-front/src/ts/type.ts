@@ -1,70 +1,4 @@
 import { MappableToIdArray } from '@/stores/store'
-import type { ComputedRef, Ref, ShallowRef } from 'vue'
-
-export interface BooleanRoomAttributeValue extends RoomAttributeValue {
-  value: boolean
-}
-
-export interface CalendarDragEvent {
-  startDate: Date
-  startTime: Time
-  endDate: Date
-  endTime: Time
-}
-
-export interface CalendarProps {
-  days: {
-    [index: number]: {
-      name: string
-      date: string
-    }
-  }
-  year: string
-}
-
-export interface CalendarRoomReservationSlotData extends CalendarSlotData {
-  reservation: RoomReservation
-  rooms: { [roomId: number]: Room }
-  reservationTypes: Array<RoomReservationType>
-  users: { [userId: number]: User }
-  periodicityTypes: Array<ReservationPeriodicityType>
-  weekdays: Array<WeekDay>
-  periodicity: ReservationPeriodicity | null
-  onPeriodicityDelete: (reservation: RoomReservation) => Promise<void>
-  dayStart: Time
-  dayEnd: Time
-}
-
-export interface CalendarScheduledCourseSlotData extends CalendarSlotData {
-  course: ScheduledCourse
-  department: string
-  rooms: { [roomId: number]: Room }
-}
-
-export interface CalendarSlot {
-  slotData: CalendarSlotData
-  component: ShallowRef
-  actions: CalendarSlotActions
-}
-
-export interface CalendarSlotActions {
-  delete?(toDelete: CalendarSlotData): void
-
-  save?(newValue: CalendarSlotData, oldValue?: CalendarSlotData): void
-}
-
-export interface CalendarSlotData {
-  startTime: Time
-  endTime: Time
-  title: string
-  id: string
-  displayStyle: object
-}
-
-export interface CalendarSlotInterface {
-  openContextMenu: () => boolean
-  closeContextMenu: () => void
-}
 
 export class Course {
   id: number
@@ -157,83 +91,10 @@ export class Department implements Department {
   }
 }
 
-export interface DialogInterface {
-  close: () => void
-}
-
-export interface DynamicSelectElementBooleanValue extends DynamicSelectElementValue {
-  value: boolean
-}
-
-export interface DynamicSelectElementNumericValue extends DynamicSelectElementValue {
-  initialMin: number
-  initialMax: number
-  min: number
-  max: number
-}
-
-export interface DynamicSelectElementValue {
-  id: number
-  name: string
-}
-
 export interface FlopWeek {
   week: number
   year: number
 }
-
-export interface FormAlert {
-  level: string // info | warning | danger | success
-  message: string
-}
-
-export interface FormInterface {
-  close: () => void
-  addAlert: (level: string, message: string) => void
-  dismissAlerts: () => void
-}
-
-export interface HourCalendarProps extends CalendarProps {
-  slots: {
-    // The slot date formatted as yyyy-MM-dd
-    [index: string]: Array<CalendarSlot>
-  }
-  startTime: number
-  endTime: number
-}
-
-export interface NumericRoomAttributeValue extends RoomAttributeValue {
-  value: number
-}
-
-export interface ReservationPeriodicity {
-  periodicity: ReservationPeriodicityData
-}
-
-export interface ReservationPeriodicityByMonth extends ReservationPeriodicityData {
-  bm_x_choice: number
-  bm_day_choice: string
-}
-
-export type ReservationPeriodicityByMonthXChoice = [number, string]
-
-export interface ReservationPeriodicityByWeek extends ReservationPeriodicityData {
-  bw_weekdays: Array<string>
-  bw_weeks_interval: number
-}
-
-export interface ReservationPeriodicityData {
-  id: number
-  start: string
-  end: string
-  periodicity_type: ReservationPeriodicityTypeName | ''
-}
-
-export type ReservationPeriodicityEachMonthSameDate = ReservationPeriodicityData
-
-export type ReservationPeriodicityType = [ReservationPeriodicityTypeName, string]
-
-export type ReservationPeriodicityTypeName = 'BM' | 'BW' | 'EM'
 
 export interface RoomAPI {
   departments: Array<number>
@@ -265,38 +126,6 @@ export interface RoomAttributeValue {
   attribute: number
 }
 
-export interface RoomCalendarProps extends CalendarProps {
-  slots: {
-    // The slot date formatted as yyyy-MM-dd
-    [index: string]: {
-      // The room id
-      [index: string]: Array<CalendarSlot>
-    }
-  }
-  rooms: Array<Room>
-}
-
-export interface RoomReservation {
-  date: string
-  description: string
-  email: boolean
-  end_time: string
-  id: number
-  responsible: number
-  room: number
-  reservation_type: number
-  start_time: string
-  title: string
-  periodicity: ReservationPeriodicity | null
-  create_repetitions?: boolean
-}
-
-export interface RoomReservationType {
-  id: number
-  name: string
-  bg_color: string
-}
-
 export class ScheduledCourse {
   id: number
   room?: { id: number; name: string; is_basic: boolean }
@@ -322,28 +151,6 @@ export class ScheduledCourse {
     this.course = course
     this.tutor = tutor
     this.id_visio = id_visio
-  }
-}
-
-export interface ScheduledCourses {
-  perDepartment: Ref<{ [departmentId: string]: Array<ScheduledCourse> }>
-  perDepartmentFilterByDepartmentsAndRooms: ComputedRef<{ [departmentId: string]: Array<ScheduledCourse> }>
-  perDay: ComputedRef<{ [day: string]: Array<ScheduledCourse> }>
-  perDayPerRoomFilterBySelectedDepartments: ComputedRef<{
-    [day: string]: { [roomId: string]: Array<ScheduledCourse> }
-  }>
-  perDayPerRoom: ComputedRef<{
-    [day: string]: { [roomId: string]: Array<ScheduledCourse> }
-  }>
-}
-
-export class Time {
-  value: number
-  text: string
-
-  constructor(value: number, text: string) {
-    this.value = value
-    this.text = text
   }
 }
 
@@ -392,13 +199,6 @@ export interface UserD {
   groups: []
   user_permissions: []
   departments: Array<Department>
-}
-
-export interface WeekDay {
-  date: string
-  name: string
-  num: number
-  ref: string
 }
 
 export interface Group {
