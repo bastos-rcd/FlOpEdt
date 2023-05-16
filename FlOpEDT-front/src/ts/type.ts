@@ -402,7 +402,10 @@ export interface WeekDay {
 }
 
 export interface Group {
-  pouet: string
+  id: number
+  name: string
+  columnIds: number[]
+  parentId: number | null
 }
 export interface Module {
   tut: string

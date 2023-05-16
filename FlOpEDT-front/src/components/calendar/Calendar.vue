@@ -56,7 +56,7 @@
               "
               :style="{
                 'flex-basis': Math.round((100 * column.weight) / totalWeight) + '%',
-                'align-items': 'center',
+                'text-align': 'center',
               }"
             >
               {{ column.name }}

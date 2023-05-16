@@ -5,16 +5,14 @@
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
   />
-  <HierarchicalColumnFilter
-    v-model:active-ids="activeIds"
-    :flatNodes="flatNodes">
-      <template #item="{ nodeId, active }">
-        <div :class="['node', active ? 'ac' : 'nac']">
-          {{ find(flatNodes, (n) => n.id === nodeId)?.name }}
-          {{ active }}
-        </div>
-      </template>
-    </HierarchicalColumnFilter>
+  <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="flatNodes">
+    <template #item="{ nodeId, active }">
+      <div :class="['node', active ? 'ac' : 'nac']">
+        {{ find(flatNodes, (n) => n.id === nodeId)?.name }}
+        {{ active }}
+      </div>
+    </template>
+  </HierarchicalColumnFilter>
   <button @click="revertUpdate">Revert</button>
 </template>
 
@@ -30,24 +28,23 @@ import { useUndoredo } from '@/composables/undoredo'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
-import { filter, find } from 'lodash'
+import { filter, find, union } from 'lodash'
+import { Group } from '@/ts/type'
+
 /**
  * Data translated to be passed to components
  */
 const calendarEvents = ref<CalendarEvent[]>([])
-const activeIds = ref<Array<number>>([1,2,3])
+const activeIds = ref<Array<number>>([])
 const flatNodes = computed(() => {
   return groups.value
 })
+
 const columnsToDisplay = computed(() => {
-  console.log(filter(columns.value, (c: CalendarColumn) => {
-    return c.id in activeIds.value
-  }))
   return filter(columns.value, (c: CalendarColumn) => {
-    return c.id in activeIds.value
+    return find(activeIds.value, (ai) => ai === c.id)
   })
 })
-
 
 const { addUpdate, revertUpdate } = useUndoredo()
 
@@ -62,6 +59,19 @@ const scheduledCourseStore = useScheduledCourseStore()
 const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
+
+function findGroupChildren(group: Group | undefined, groups: Group[]): Group[] {
+  let children: Group[] = []
+  if (group) {
+    groups.forEach((iGroup) => {
+      if (iGroup.parentId === group.id) {
+        children.push(iGroup)
+        union(children, findGroupChildren(iGroup, groups))
+      }
+    })
+  }
+  return children
+}
 
 watch(
   () => scheduledCourses.value,
@@ -88,6 +98,12 @@ watch(
           const currentGroup = groups.value.find((g) => g.id === courseGroup.id)
           if (currentGroup) {
             currentEvent.columnIds.push(...currentGroup.columnIds)
+            const currentGroups = findGroupChildren(currentGroup, groups.value)
+            if (currentGroups.length > 0) {
+              currentGroups.forEach((currentGroupI) => {
+                currentEvent.columnIds.push(...currentGroupI.columnIds)
+              })
+            }
           }
         })
         return currentEvent

@@ -11,42 +11,42 @@ import { ref } from 'vue'
 export const useColumnStore = defineStore('column', () => {
   const columns = ref<CalendarColumn[]>([
     {
-      id: 422,
-      name: 'BUT1',
+      id: 424,
+      name: '1A',
       weight: 1,
     },
     {
-      id: 24,
+      id: 425,
       name: '1B',
       weight: 1,
     },
     {
-      id: 25,
+      id: 426,
       name: '2A',
       weight: 1,
     },
     {
-      id: 26,
+      id: 427,
       name: '2B',
       weight: 1,
     },
     {
-      id: 27,
+      id: 428,
       name: '3A',
       weight: 1,
     },
     {
-      id: 28,
+      id: 429,
       name: '3B',
       weight: 1,
     },
     {
-      id: 29,
+      id: 430,
       name: '4A',
       weight: 1,
     },
     {
-      id: 30,
+      id: 431,
       name: '4B',
       weight: 1,
     },
