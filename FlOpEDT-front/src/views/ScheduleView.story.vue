@@ -175,11 +175,53 @@ const rooms = [
 }
 </style>
 <docs lang="md">
-# Welcome
+Département donné
 
-This is a demo book using Vue 3.
+0 Roomtypes + Room (tout)
 
----
+1 Groupes
 
-Learn more about Histoire [here](https://histoire.dev/).
+2 ScheduledCourse minimal
+
+2 -> 3 avec la liste des id_module : Module (sauf description, period) + ModuleDisplay
+2 -> 4 Profs (id, username, first_name, last_name, email) + TutorDisplay
+
+1, 2 : afficher sans info (rectangles incolores seulement)
+0, 1, 2, 3, 4 : afficher sans modif
+
+Double-click
+
+- 2 -> 6 Détails cours
+
+Annexes:
+
+- 100 : Bknews
+- 101 : Regen
+
+Si modification :
+
+- 2 -> 7 dispos prof (cf modules)
+- 2 -> 8 dispos salles (résa + salles partagées + )
+- 9 contraintes start_time
+
+```js
+Prof {
+id
+username
+firstname
+lastname
+}
+```
+
+cours dans un autre dépt
+
+## Dispos prof :
+
+- Toutes les dispos de tous les profs de tous les modules qui sont présents dans la période
+- Quand modification de prof pour un cours dont on a pas les dispos
+  - dispos en grisées
+  - appel immédiat pour récupérer les dispos
+  - acceptation ou non
+
+## Dispos salles :
 </docs>
