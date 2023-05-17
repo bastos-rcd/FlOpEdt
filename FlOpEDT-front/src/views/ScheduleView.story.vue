@@ -178,6 +178,51 @@ const rooms = [
 Département donné
 
 0 Roomtypes + Room (tout)
+```ts
+Room {
+  id: number
+  name: string
+  subroom_of: number[]
+  is_basic: boolean
+  department: number[]
+}
+
+// ScheduleView.vue
+Group {
+  id: number
+  name: string
+  columnIds: number[]
+  parentId: number
+}
+
+// Association groupe - colonnes ? NON
+// Record<number, number[]>  // groupId -> columnIds
+
+// Course {
+//   id: number
+//   no: number
+//   tutorId: number
+//   suppTutorIds: number[]
+//   moduleId: number
+//  
+// }
+
+// Gathers Course and ScheduledCourse from the back
+Course {
+  id: number // id of ScheduledCourse
+  no: number
+  courseTypeId: number // ??
+  courseId: number
+  roomIds: number[]
+  start_time: Timestamp
+  end_time: Timestamp
+  tutorId: number
+  suppTutorIds: number[]
+  groupIds: number[]
+  moduleId: number
+  graded: boolean
+}
+```
 
 1 Groupes
 
