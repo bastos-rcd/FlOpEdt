@@ -71,8 +71,6 @@ const grid = computed(() => {
         ymin: node.depthMin,
         ymax: node.depthMax + 1,
       }
-      console.log(cellList)
-      console.log(newCell)
       const prev = find(cellList, (cell) => cell.id == node.id)
       if (prev === undefined) {
         cellList.push(newCell)
