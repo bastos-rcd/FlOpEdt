@@ -1,6 +1,6 @@
 Source: flopedt
-Section: contrib/python
-Priority: extra
+Section: python
+Priority: optional
 Maintainer: Olivier Bonhomme <olivier@bonhomme.io>
 Build-Depends: debhelper (>= 9), python3, python3-venv, python3-dev, tar, libpq-dev, wget
 X-Python-Version: >=3.9
