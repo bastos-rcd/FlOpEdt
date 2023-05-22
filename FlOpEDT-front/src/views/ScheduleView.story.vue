@@ -178,6 +178,36 @@ const rooms = [
 Département donné
 
 0 Roomtypes + Room (tout)
+
+1 Groupes
+
+2 ScheduledCourse minimal
+
+2 -> 3 avec la liste des id_module : Module (sauf description, period) + ModuleDisplay
+2 -> 4 Profs (id, username, first_name, last_name, email) + TutorDisplay
+
+1, 2 : afficher sans info (rectangles incolores seulement)
+0, 1, 2, 3, 4 : afficher sans modif
+
+Double-click
+
+- 2 -> 6 Détails cours
+
+Annexes:
+
+- 100 : Bknews
+- 101 : Regen
+
+Si modification :
+
+- 2 -> 7 dispos prof (cf modules)
+- 2 -> 8 dispos salles (résa + salles partagées + )
+- 9 contraintes start_time
+
+
+cours dans un autre dépt
+
+## TODO :
 ```ts
 Room {
   id: number
@@ -193,6 +223,7 @@ Group {
   name: string
   columnIds: number[]
   parentId: number
+  size: number
 }
 
 // Association groupe - colonnes ? NON
@@ -224,41 +255,76 @@ Course {
 }
 ```
 
-1 Groupes
-
-2 ScheduledCourse minimal
-
-2 -> 3 avec la liste des id_module : Module (sauf description, period) + ModuleDisplay
-2 -> 4 Profs (id, username, first_name, last_name, email) + TutorDisplay
-
-1, 2 : afficher sans info (rectangles incolores seulement)
-0, 1, 2, 3, 4 : afficher sans modif
-
-Double-click
-
-- 2 -> 6 Détails cours
-
-Annexes:
-
-- 100 : Bknews
-- 101 : Regen
-
-Si modification :
-
-- 2 -> 7 dispos prof (cf modules)
-- 2 -> 8 dispos salles (résa + salles partagées + )
-- 9 contraintes start_time
-
 ```js
-Prof {
-id
-username
-firstname
-lastname
+Tutor {
+id: number,
+username: string,
+firstname: string,
+lastname: string
 }
 ```
 
-cours dans un autre dépt
+
+Nouvelle entrée pour les modules: Rajouter les IDs 
+
+```ts
+Module
+  {
+    id: number,
+    name: string,
+    abbrev: string,
+    head: number, //Personne responsable du module
+    url: string | null,
+    trainProgId: number
+  }
+
+//Actuellement
+Module
+  {
+    name: string,
+    abbrev: string,
+    head: number, //Personne responsable du module
+    ppn: string,
+    url: string,
+    train_prog: TrainingProgramme
+    period: {
+      starting_week: number,
+      ending_week: number,
+      name: string
+    }
+  },
+
+
+// Note sur les groupes : sur le serveur, en base, l'id d'un Structural ou TransversalGroup
+// doit être le même que l'id de son parent Generic
+
+// Est-ce qu'on a vraiment besoin de savoir dans le front si un groupe est structural ou transversal ?
+
+Group {
+  id: number
+  name: string
+  size: number
+  trainProgId: number
+  parentGroupIds?: number[]
+  conflictingGroupIds?: number[]
+  parallelGroupIds?: number[]
+}
+
+// liste de Group ?
+// computed:
+//   - Structural
+//   - Transversal
+```
+
+```ts
+TrainingProgramme
+  {
+    id: number,
+    name: string,
+    abbrev: string,
+    department: number
+  },
+```
 
 ## Dispos prof :
 
@@ -269,4 +335,6 @@ cours dans un autre dépt
   - acceptation ou non
 
 ## Dispos salles :
+
+- Toutes les dispos de toutes les salles qui sont disponibles au département ou à tous les départements
 </docs>
