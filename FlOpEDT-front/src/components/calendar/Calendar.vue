@@ -75,13 +75,13 @@
               @dragover="onDragOver($event, 'event', { timeDurationHeight, timestamp: event.data.start })"
             >
               <div
-                v-for="columnId in event.columnIds"
-                :key="event.id + '_' + columnId"
+                v-for="data in event.displayData"
+                :key="event.id"
                 class="my-event"
                 :class="badgeClasses('event', event.bgcolor)"
-                :style="badgeStyles(event, columnId, timeStartPos, timeDurationHeight)"
+                :style="badgeStyles(event, data, timeStartPos, timeDurationHeight)"
               >
-                <slot v-if="props.columns.find((c) => c.id === columnId)" name="event" :event="event">
+                <slot v-if="props.columns.find((c) => c.id === data.columnId)" name="event" :event="event">
                   <span class="title q-calendar__ellipsis">
                     {{ event.title }}
                   </span>
@@ -112,7 +112,7 @@
                 {
                   data: { start: ts.timeStart, duration: dropZoneToDisplay.duration, dataId: 0, dataType: 'dropzone' },
                 },
-                columnId,
+                {columnId: columnId, weight: 1},
                 timeStartPos,
                 timeDurationHeight
               )
@@ -229,15 +229,15 @@ function badgeClasses(type: 'event' | 'dropzoneevent' | 'header', bgcolor?: stri
 }
 function badgeStyles(
   event: Partial<CalendarEvent>,
-  columnId: number,
+  displayData: { columnId: number, weight: number},
   timeStartPos: any = undefined,
   timeDurationHeight: any = undefined
 ) {
-  const currentGroup = props.columns.find((c) => c.id === columnId)
+  const currentGroup = props.columns.find((c) => c.id === displayData.columnId)
 
   if (!currentGroup) return undefined
 
-  const preceedingWeight = preWeight.value[columnId]
+  const preceedingWeight = preWeight.value[displayData.columnId]
 
   const s: Record<string, string> = {
     top: '',
@@ -246,8 +246,8 @@ function badgeStyles(
   }
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.data?.start) + 'px'
-    s.left = Math.round((preWeight.value[columnId] / totalWeight.value) * 100) + '%'
-    s.width = Math.round((100 * currentGroup.weight) / totalWeight.value) + '%'
+    s.left = Math.round((preWeight.value[displayData.columnId] / totalWeight.value) * 100) + '%'
+    s.width = Math.round((100 * displayData.weight) / totalWeight.value) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
   if (

@@ -1,6 +1,6 @@
 import { CalendarColumn } from '@/components/calendar/declaration'
-import { defineStore, storeToRefs } from 'pinia'
-import { computed, ref } from 'vue'
+import { defineStore } from 'pinia'
+import { computed } from 'vue'
 import { useGroupStore } from '@/stores/timetable/group'
 
 /**
