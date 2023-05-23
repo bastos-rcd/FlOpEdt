@@ -5,7 +5,6 @@ import i18n from '@/i18n'
 
 export const routeNames = {
   home: Symbol('Home'),
-  roomReservation: Symbol('room-reservation'),
   departmentSelection: Symbol('department-selection'),
   contact: Symbol('contact'),
   notFound: Symbol('notFound'),

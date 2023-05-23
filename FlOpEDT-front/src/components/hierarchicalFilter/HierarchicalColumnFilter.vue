@@ -17,7 +17,7 @@
 import { computed } from 'vue'
 import { GridCell, IdX } from './declaration'
 import { Tree, LinkIdUp } from '@/ts/tree'
-import { forEach, indexOf, cloneDeep, find } from 'lodash'
+import { forEach, indexOf, cloneDeep, find, range, values, filter, sortBy } from 'lodash'
 
 const props = defineProps<{
   activeIds: Array<number>
@@ -31,6 +31,9 @@ const emits = defineEmits<{
 const hierarchy = computed(() => {
   const tree = new Tree()
   tree.addNodes(props.flatNodes, props.activeIds)
+  tree.adjustDepth()
+  tree.distributeWeight()
+  tree.sortFamily()
   updateActiveIds(tree.getActiveIds())
   return tree
 })
@@ -50,40 +53,46 @@ function updateActiveIds(newValue: Array<number>) {
 }
 
 const grid = computed(() => {
-  if (hierarchy.value.root === null) {
+  if (hierarchy.value.roots.length == 0) {
     return []
   }
 
   const cellList: Array<GridCell> = []
 
-  const queue: Array<IdX> = [{ id: hierarchy.value.root.id, xmin: 0 }]
-  while (queue.length != 0) {
-    const cur = queue.pop() as IdX
-    let curx = cur.xmin
-    const tnode = hierarchy.value.byId[cur.id]
-    forEach(tnode?.children, (child) => {
-      queue.push({ id: child.id, xmin: curx })
-      curx += child.nLeaves
+  forEach(range(hierarchy.value.depth + 1), (d) => {
+    const filtered = filter(values(hierarchy.value.byId), (node) => node.depthMin <= d && node.depthMax >= d)
+    const sorted = sortBy(filtered, (node) => node.rank)
+    let preWeight = 0
+    forEach(sorted, (node) => {
+      const newCell = {
+        id: node.id,
+        xmin: preWeight,
+        xmax: preWeight + node.weight,
+        ymin: node.depthMin,
+        ymax: node.depthMax + 1,
+      }
+      const prev = find(cellList, (cell) => cell.id == node.id)
+      if (prev === undefined) {
+        cellList.push(newCell)
+      } else {
+        if (prev.xmin != preWeight) {
+          throw new Error('Most probably the groups are not given in the right order...')
+        }
+      }
+      preWeight += node.weight
     })
+  })
 
-    cellList.push({
-      id: cur.id,
-      xmin: cur.xmin,
-      xmax: curx,
-      ymin: tnode.depthMin,
-      ymax: tnode.depthMax,
-    })
-  }
   return cellList
 })
 
 function styleItem(node: GridCell) {
-  return 'grid-area: ' + (node.ymin + 1) + ' / ' + (node.xmin + 1) + ' / ' + (node.ymax + 2) + ' / ' + (node.xmax + 1)
+  return 'grid-area: ' + (node.ymin + 1) + ' / ' + (node.xmin + 1) + ' / ' + (node.ymax + 1) + ' / ' + (node.xmax + 1)
 }
 
 function styleContainer() {
   return {
-    gridTemplateColumns: 'repeat(' + hierarchy.value.root?.nLeaves + ', 1fr)',
+    gridTemplateColumns: 'repeat(' + hierarchy.value.weight + ', 1fr)',
   }
 }
 
