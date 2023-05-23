@@ -207,10 +207,10 @@ Si modification :
 - 2 -> 8 dispos salles (résa + salles partagées + )
 - 9 contraintes start_time
 
-
 cours dans un autre dépt
 
 ## TODO :
+
 ```ts
 Room {
   id: number
@@ -238,7 +238,7 @@ Group {
 //   tutorId: number
 //   suppTutorIds: number[]
 //   moduleId: number
-//  
+//
 // }
 
 // Gathers Course and ScheduledCourse from the back
@@ -267,8 +267,7 @@ lastname: string
 }
 ```
 
-
-Nouvelle entrée pour les modules: Rajouter les IDs 
+Nouvelle entrée pour les modules: Rajouter les IDs
 
 ```ts
 Module
