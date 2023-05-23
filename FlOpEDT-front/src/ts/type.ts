@@ -205,7 +205,7 @@ export interface Group {
   id: number
   name: string
   columnIds: number[]
-  parentId: number | null
+  parentsId: number[]
 }
 export interface Module {
   tut: string

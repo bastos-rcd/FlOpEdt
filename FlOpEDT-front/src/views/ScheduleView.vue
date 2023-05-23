@@ -43,7 +43,7 @@ const flatNodes = computed(() => {
 const columnsToDisplay = computed(() => {
   return filter(columns.value, (c: CalendarColumn) => {
     return find(activeIds.value, (ai) => ai === c.id)
-  })
+  }) as CalendarColumn[]
 })
 
 const { addUpdate, revertUpdate } = useUndoredo()
@@ -64,7 +64,7 @@ function findGroupChildren(group: Group | undefined, groups: Group[]): Group[] {
   let children: Group[] = []
   if (group) {
     groups.forEach((iGroup) => {
-      if (iGroup.parentId === group.id) {
+      if (iGroup.parentsId.find(pI => pI === group.id)) {
         children.push(iGroup)
         union(children, findGroupChildren(iGroup, groups))
       }
@@ -86,7 +86,7 @@ watch(
           title: s.course.type.name,
           details: '',
           bgcolor: s.course.module.display.color_bg,
-          columnIds: [],
+          displayData: [],
           data: {
             dataId: s.id,
             dataType: 'event',
@@ -97,18 +97,22 @@ watch(
         s.course.groups.forEach((courseGroup) => {
           const currentGroup = groups.value.find((g) => g.id === courseGroup.id)
           if (currentGroup) {
-            currentEvent.columnIds.push(...currentGroup.columnIds)
+            currentGroup.columnIds.forEach(cI => {
+              currentEvent.displayData.push({columnId: cI, weight: 1})
+            })
             const currentGroups = findGroupChildren(currentGroup, groups.value)
             if (currentGroups.length > 0) {
               currentGroups.forEach((currentGroupI) => {
-                currentEvent.columnIds.push(...currentGroupI.columnIds)
+                currentGroupI.columnIds.forEach(cI => {
+                  currentEvent.displayData.push({columnId: cI, weight: 1})
+                })
               })
             }
           }
         })
         return currentEvent
       })
-      .filter((sc) => sc.columnIds.length > 0)
+      .filter((ce) => ce.displayData.length > 0)
   }
 )
 
