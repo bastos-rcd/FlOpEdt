@@ -207,6 +207,7 @@ export class Tree implements ITree {
       this.byId[linkIdUp.id] = new TreeNode(this, [], linkIdUp as LinkUp)
     })
     _.forEach(_.values(this.byId), (val) => {
+      if(!val.parentsId) val.parentsId = []
       _.forEach(val.parentsId, (parentId) => {
         if (this.byId[parentId] === undefined) {
           throw new Error('Tree: unknown parent')

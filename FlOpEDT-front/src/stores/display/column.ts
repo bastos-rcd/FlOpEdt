@@ -1,6 +1,7 @@
 import { CalendarColumn } from '@/components/calendar/declaration'
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore, storeToRefs } from 'pinia'
+import { computed, ref } from 'vue'
+import { useGroupStore } from '@/stores/timetable/group'
 
 /**
  * This store is a work in progress,
@@ -9,48 +10,18 @@ import { ref } from 'vue'
  * This store is not related to the scheduledCourse
  */
 export const useColumnStore = defineStore('column', () => {
-  const columns = ref<CalendarColumn[]>([
-    {
-      id: 424,
-      name: '1A',
-      weight: 1,
-    },
-    {
-      id: 425,
-      name: '1B',
-      weight: 1,
-    },
-    {
-      id: 426,
-      name: '2A',
-      weight: 1,
-    },
-    {
-      id: 427,
-      name: '2B',
-      weight: 1,
-    },
-    {
-      id: 428,
-      name: '3A',
-      weight: 1,
-    },
-    {
-      id: 429,
-      name: '3B',
-      weight: 1,
-    },
-    {
-      id: 430,
-      name: '4A',
-      weight: 1,
-    },
-    {
-      id: 431,
-      name: '4B',
-      weight: 1,
-    },
-  ])
+  const groupStore = useGroupStore()
+
+  const columns = computed(() => {
+    //const totalWeight = groups.value.filter(g => g.columnIds.length === 1).length
+    let columns: CalendarColumn[] = []
+    groupStore.groups.forEach(g => {
+      if(g.columnIds.length === 1) {
+        columns.push({ id: g.id, name: g.name, weight: 1})
+      }
+    })
+    return columns
+  })
 
   return {
     columns,
