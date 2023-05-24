@@ -10,10 +10,9 @@ export interface CalendarEvent {
   bgcolor: string
   icon?: string
 
-
-  displayData: { 
+  displayData: {
     columnId: number
-    weight: number 
+    weight: number
   }[]
 
   data: EventData
