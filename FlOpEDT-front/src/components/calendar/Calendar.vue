@@ -112,7 +112,7 @@
                 {
                   data: { start: ts.timeStart, duration: dropZoneToDisplay.duration, dataId: 0, dataType: 'dropzone' },
                 },
-                {columnId: columnId, weight: 1},
+                { columnId: columnId, weight: 1 },
                 timeStartPos,
                 timeDurationHeight
               )
@@ -191,10 +191,46 @@ watch(selectedDate, () => {
   emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
 })
 
+// Events send to the qcalendar ordered by their date
+// Their columnIds are changed to merge the same events
+// occuring on different columns
 const eventsByDate = computed(() => {
   const map: Record<string, any[]> = {}
-
+  // Copy of events
+  let newEvents: CalendarEvent[] = []
+  let i = 0
+  // Dict of column ids keys to their index
+  let columnIndexes: Record<number, number> = {}
+  props.columns.forEach((c) => {
+    columnIndexes[c.id] = i
+    i++
+  })
   props.events.forEach((event) => {
+    let newEvent = _.cloneDeep(event)
+    let newDisplayData = _.cloneDeep(newEvent.displayData)
+    newEvent.displayData.forEach((dd) => {
+      if (!(dd.columnId in columnIndexes)) {
+        _.remove(newDisplayData, (disD) => {
+          return disD.columnId === dd.columnId && disD.weight === dd.weight
+        })
+      }
+    })
+    newEvent.displayData = newDisplayData
+    i = newEvent.displayData.length - 1
+    while (i > 0) {
+      if (
+        Math.abs(
+          columnIndexes[newEvent.displayData[i].columnId] - columnIndexes[newEvent.displayData[i - 1].columnId]
+        ) === 1
+      ) {
+        newEvent.displayData[i - 1].weight = newEvent.displayData[i].weight + 1
+        _.pullAt(newEvent.displayData, i)
+      }
+      i = i - 1
+    }
+    newEvents.push(newEvent)
+  })
+  newEvents.forEach((event) => {
     if (!map[event.data.start.date]) {
       map[event.data.start.date] = []
     }
@@ -229,7 +265,7 @@ function badgeClasses(type: 'event' | 'dropzoneevent' | 'header', bgcolor?: stri
 }
 function badgeStyles(
   event: Partial<CalendarEvent>,
-  displayData: { columnId: number, weight: number},
+  displayData: { columnId: number; weight: number },
   timeStartPos: any = undefined,
   timeDurationHeight: any = undefined
 ) {

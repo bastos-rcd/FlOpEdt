@@ -60,19 +60,6 @@ const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 
-function findGroupChildren(group: Group | undefined, groups: Group[]): Group[] {
-  let children: Group[] = []
-  if (group) {
-    groups.forEach((iGroup) => {
-      if (iGroup.parentsId.find(pI => pI === group.id)) {
-        children.push(iGroup)
-        union(children, findGroupChildren(iGroup, groups))
-      }
-    })
-  }
-  return children
-}
-
 watch(
   () => scheduledCourses.value,
   () => {
@@ -97,17 +84,9 @@ watch(
         s.course.groups.forEach((courseGroup) => {
           const currentGroup = groups.value.find((g) => g.id === courseGroup.id)
           if (currentGroup) {
-            currentGroup.columnIds.forEach(cI => {
-              currentEvent.displayData.push({columnId: cI, weight: 1})
+            currentGroup.columnIds.forEach((cI) => {
+              currentEvent.displayData.push({ columnId: cI, weight: 1 })
             })
-            const currentGroups = findGroupChildren(currentGroup, groups.value)
-            if (currentGroups.length > 0) {
-              currentGroups.forEach((currentGroupI) => {
-                currentGroupI.columnIds.forEach(cI => {
-                  currentEvent.displayData.push({columnId: cI, weight: 1})
-                })
-              })
-            }
           }
         })
         return currentEvent
