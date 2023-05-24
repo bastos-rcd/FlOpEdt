@@ -49,7 +49,10 @@ export const useCase: UseCase = {
       details: "Let' work on our Python project",
       bgcolor: 'red',
       icon: 'fas fa-handshake',
-      columnIds: [2, 3],
+      displayData: [
+        { weight: 1, columnId: 2 },
+        { weight: 1, columnId: 3 },
+      ],
       data: {
         dataId: 3,
         dataType: 'mok',
@@ -62,7 +65,12 @@ export const useCase: UseCase = {
       details: 'Company is paying!',
       bgcolor: 'teal',
       icon: 'fas fa-hamburger',
-      columnIds: [0, 1, 2, 3],
+      displayData: [
+        { weight: 1, columnId: 0 },
+        { weight: 1, columnId: 1 },
+        { weight: 1, columnId: 2 },
+        { weight: 1, columnId: 3 },
+      ],
       data: {
         dataId: 4,
         dataType: 'mok',
@@ -75,7 +83,7 @@ export const useCase: UseCase = {
       details: 'Always a nice chat with mom',
       bgcolor: 'grey',
       icon: 'fas fa-car',
-      columnIds: [0],
+      displayData: [{ weight: 1, columnId: 0 }],
       data: {
         dataId: 5,
         dataType: 'mok',
@@ -88,7 +96,7 @@ export const useCase: UseCase = {
       details: 'Teaching Javascript 101',
       bgcolor: 'grey',
       icon: 'fas fa-chalkboard-teacher',
-      columnIds: [1],
+      displayData: [{ weight: 1, columnId: 1 }],
       data: {
         dataId: 6,
         dataType: 'mok',

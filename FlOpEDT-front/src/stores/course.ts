@@ -1,7 +1,7 @@
 import { api } from '@/utils/api'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ScheduledCourse, FlopWeek, Department, WeekDay } from '@/ts/type'
+import { ScheduledCourse, FlopWeek } from '@/ts/type'
 
 /**
  * This store is a work in progress,

@@ -28,8 +28,7 @@ import { useUndoredo } from '@/composables/undoredo'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
-import { filter, find, union } from 'lodash'
-import { Group } from '@/ts/type'
+import { filter, find } from 'lodash'
 
 /**
  * Data translated to be passed to components

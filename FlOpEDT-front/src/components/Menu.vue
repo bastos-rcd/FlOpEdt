@@ -42,18 +42,6 @@
       <li v-if="deptStore.isCurrentDepartmentSelected">
         <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/modules`">{{ $t('navbar.modules') }}</a>
       </li>
-      <li v-if="deptStore.isCurrentDepartmentSelected">
-        <router-link
-          :to="{
-            name: routeNames.roomReservation,
-            params: {
-              dept: deptStore.getCurrentDepartment.abbrev,
-              locale: locale,
-            },
-          }"
-          >{{ $t('navbar.reservations') }}</router-link
-        >
-      </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
         <a :href="`/${locale}/edt/INFO/decale`">{{ $t('navbar.move-cancel') }}</a>
       </li>

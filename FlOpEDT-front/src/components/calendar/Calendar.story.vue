@@ -71,7 +71,7 @@ const useCase2: UseCase = {
       weight: 1,
     },
   ],
-  events: ref([
+  events: ref<CalendarEvent[]>([
     {
       title: 'TP INFO',
       details: "Let' work on our Python project",
@@ -79,7 +79,10 @@ const useCase2: UseCase = {
       bgcolor: 'red',
       icon: 'fas fa-handshake',
 
-      columnIds: [2, 3],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
 
       data: {
         dataId: 3,
@@ -93,7 +96,12 @@ const useCase2: UseCase = {
       details: 'Company is paying!',
       bgcolor: 'teal',
       icon: 'fas fa-hamburger',
-      columnIds: [0, 1, 2, 3],
+      displayData: [
+        { columnId: 0, weight: 1 },
+        { columnId: 1, weight: 1 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'mok',
@@ -106,7 +114,7 @@ const useCase2: UseCase = {
       details: 'Always a nice chat with mom',
       bgcolor: 'grey',
       icon: 'fas fa-car',
-      columnIds: [0],
+      displayData: [{ columnId: 0, weight: 1 }],
       data: {
         dataId: 5,
         dataType: 'mok',
@@ -119,7 +127,7 @@ const useCase2: UseCase = {
       details: 'Teaching Javascript 101',
       bgcolor: 'grey',
       icon: 'fas fa-chalkboard-teacher',
-      columnIds: [1],
+      displayData: [{ columnId: 1, weight: 1 }],
       data: {
         dataId: 6,
         dataType: 'mok',
@@ -299,7 +307,7 @@ const useCase1 = {
       title: '1st of the Month',
       details: 'Everything is funny as long as it is happening to someone else',
       bgcolor: 'orange',
-      columnIds: [1],
+      displayData: [{ columnId: 1, weight: 1 }],
       data: {
         dataId: 1,
         dataType: 'mok',
@@ -312,7 +320,7 @@ const useCase1 = {
       date: shiftInCurrentWeek(1),
       bgcolor: 'green',
       icon: 'fas fa-birthday-cake',
-      columnIds: [1],
+      displayData: [{ columnId: 1, weight: 1 }],
       data: {
         dataId: 2,
         dataType: 'mok',
@@ -324,7 +332,10 @@ const useCase1 = {
       details: 'Time to pitch my idea to the company',
       bgcolor: 'red',
       icon: 'fas fa-handshake',
-      columnIds: [1, 3],
+      displayData: [
+        { columnId: 1, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'mok',
@@ -337,7 +348,10 @@ const useCase1 = {
       details: 'Company is paying!',
       bgcolor: 'teal',
       icon: 'fas fa-hamburger',
-      columnIds: [2, 4],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 4, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'mok',
@@ -350,7 +364,7 @@ const useCase1 = {
       details: 'Always a nice chat with mom',
       bgcolor: 'grey',
       icon: 'fas fa-car',
-      columnIds: [1],
+      displayData: [{ columnId: 1, weight: 1 }],
       data: {
         dataId: 5,
         dataType: 'mok',
@@ -363,7 +377,11 @@ const useCase1 = {
       details: 'Teaching Javascript 101',
       bgcolor: 'blue',
       icon: 'fas fa-chalkboard-teacher',
-      columnIds: [1, 2, 3],
+      displayData: [
+        { columnId: 1, weight: 1 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 6,
         dataType: 'mok',
@@ -376,7 +394,7 @@ const useCase1 = {
       details: 'Meet GF for dinner at Swanky Restaurant',
       bgcolor: 'teal',
       icon: 'fas fa-utensils',
-      columnIds: [1],
+      displayData: [{ columnId: 1, weight: 1 }],
       data: {
         dataId: 7,
         dataType: 'mok',
@@ -389,7 +407,7 @@ const useCase1 = {
       details: 'Time for some weekend R&R',
       bgcolor: 'purple',
       icon: 'fas fa-fish',
-      columnIds: [1],
+      displayData: [{ columnId: 1, weight: 1 }],
       data: {
         dataId: 8,
         dataType: 'mok',
@@ -402,7 +420,7 @@ const useCase1 = {
       details: "Trails and hikes, going camping! Don't forget to bring bear spray!",
       bgcolor: 'purple',
       icon: 'fas fa-plane',
-      columnIds: [1],
+      displayData: [{ columnId: 1, weight: 1 }],
       data: {
         dataId: 9,
         dataType: 'mok',

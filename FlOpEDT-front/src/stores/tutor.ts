@@ -1,4 +1,4 @@
-import { api } from '@/composables/api'
+import { api } from '@/utils/api'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { User, Department } from '@/ts/type'

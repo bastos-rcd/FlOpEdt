@@ -1,4 +1,4 @@
-import { Department, type Time, type Room, type WeekDay, type FlopWeek } from '@/ts/type'
+import { Department, type Room } from '@/ts/type'
 import { useRoomStore } from '@/stores/room'
 import { api } from '@/utils/api'
 
@@ -53,11 +53,6 @@ export function listGroupBy<T>(list: Array<T>, keyPredicate: (value: T) => strin
     out[key].push(value)
   })
   return out
-}
-
-export function createTime(time: number): Time {
-  const text = convertDecimalTimeToHuman(time / 60)
-  return { value: time, text: text } as Time
 }
 
 /**
@@ -118,16 +113,6 @@ export function addTo<T>(collection: { [p: string]: Array<T> }, id: string | num
     collection[id] = []
   }
   collection[id].push(element)
-}
-
-export async function getCurrentWeekDays(flopWeek: FlopWeek): Promise<Array<WeekDay>> {
-  let newWeekdays: Array<WeekDay> = []
-  await api.fetch
-    .weekdays({ week: flopWeek.week, year: flopWeek.year })
-    .then((value: { date: string; name: string; num: number; ref: string }[]) => {
-      newWeekdays = value
-    })
-  return newWeekdays
 }
 
 /**
