@@ -1,3 +1,10 @@
+flopedt (0.5.1) unstable; urgency=medium
+
+  * Define correctly directories for constraints generation interface (#59) 
+  * Make ALLOWED_HOSTS configurable via flopedt.ini (#60)
+
+ -- Olivier Bonhomme <olivier@bonhomme.io>  Sun, 28 May 2023 17:05:45 +0200
+
 flopedt (0.5.0) unstable; urgency=medium
 
   * FlOp - Version 0.5.0
