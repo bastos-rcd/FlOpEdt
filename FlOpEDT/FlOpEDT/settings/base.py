@@ -201,7 +201,6 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-
 #
 # FLOPEDT Settings
 #
@@ -245,9 +244,6 @@ TEMPLATE_DIRS = (
 SHELL_PLUS_MODEL_IMPORTS_RESOLVER = 'django_extensions.collision_resolvers.AppLabelSuffixCR'
 
 CORS_ALLOW_ALL_ORIGINS = True
-
-# YOU NEED TO SPECIFY ALLOWED_HOSTS FOR PRODUCTION ENVIRONMENT
-ALLOWED_HOSTS = [ '127.0.0.1', 'localhost' ]
 
 ###############################
 # Configuration File Parsing  #
@@ -398,6 +394,17 @@ try:
 except KeyError:
     # No log_level configured => Let's fall back to INFO
     CONFIG_LOG_LEVEL = "INFO"
+
+# YOU NEED TO SPECIFY ALLOWED_HOSTS FOR PRODUCTION ENVIRONMENT
+ALLOWED_HOSTS = [ '127.0.0.1', 'localhost' ]
+
+# Import additional ALLOWED_HOSTS from configuration file
+try:
+    new_allowed_hosts = flop_config['flopedt']['allowed_hosts'].split(',')
+    ALLOWED_HOSTS = ALLOWED_HOSTS + new_allowed_hosts
+except KeyError:
+    # No additionnal hosts ==> Continue
+    pass
 
 LOGGING = {
     "version": 1,
