@@ -22,9 +22,10 @@ export interface CalendarEvent {
 
 export interface EventData {
   dataId: number
-  dataType: 'event' | 'dropzone' | 'header'
+  dataType: 'event' | 'dropzone' | 'header' | 'avail'
   start: Timestamp
   duration?: number
+  value?: number
 }
 
 /**
