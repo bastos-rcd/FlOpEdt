@@ -5,6 +5,11 @@
       <q-btn no-caps class="button" style="margin: 2px" @click="onPrev"> &lt; Prev </q-btn>
       <q-btn no-caps class="button" style="margin: 2px" @click="onNext"> Next &gt; </q-btn>
     </div>
+    <div class="q-pa-md q-gutter-sm row">
+      <q-btn no-caps class="button" style="margin: 2px" @click="showAvailabilities = !showAvailabilities">
+        Show Availabilities
+      </q-btn>
+    </div>
   </div>
   <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
     <!-- <div style="display: flex">
@@ -42,7 +47,7 @@
     >
       <template #head-day-event="{ scope: { timestamp } }">
         <div style="display: flex">
-          <template v-for="column in props.columns" :key="column.name">
+          <template v-for="column in columnsToDisplay" :key="column.name">
             <div
               :class="badgeClasses('header')"
               style="
@@ -71,7 +76,9 @@
           <template
             v-if="
               event.data.duration !== undefined &&
-              (event.data.dataType === 'event' || (isDragging && event.data.dataId === eventDragged?.data.dataId))
+              (event.data.dataType === 'event' ||
+                event.data.dataType === 'avail' ||
+                (isDragging && event.data.dataId === eventDragged?.data.dataId))
             "
           >
             <div
@@ -86,7 +93,7 @@
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
                 :style="badgeStyles(event, data, timeStartPos, timeDurationHeight)"
               >
-                <slot v-if="props.columns.find((c) => c.id === data.columnId)" name="event" :event="event">
+                <slot v-if="columnsToDisplay.find((c) => c.id === data.columnId)" name="event" :event="event">
                   <span class="title q-calendar__ellipsis">
                     {{ event.title }}
                   </span>
@@ -142,12 +149,10 @@ const emits = defineEmits<{
   (e: 'update:week', value: Timestamp): void
 }>()
 
-const totalWeight = computed(() => _.sumBy(props.columns, (c: CalendarColumn) => c.weight))
-
 const preWeight = computed(() => {
   const map: Record<number, number> = {}
   let preceeding = 0
-  _.forEach(props.columns, (col: CalendarColumn) => {
+  _.forEach(columnsToDisplay.value, (col: CalendarColumn) => {
     map[col.id] = preceeding
     preceeding += col.weight
   })
@@ -160,6 +165,7 @@ const preWeight = computed(() => {
  * * Functions to compute the style to render for each event
  */
 const selectedDate = ref<string>(today())
+const showAvailabilities = ref<boolean>(false)
 
 watch(selectedDate, () => {
   console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
@@ -176,20 +182,28 @@ const eventsByDate = computed(() => {
   let i = 0
   // Dict of column ids keys to their index
   let columnIndexes: Record<number, number> = {}
-  props.columns.forEach((c) => {
+  columnsToDisplay.value.forEach((c) => {
     columnIndexes[c.id] = i
     i++
   })
   props.events.forEach((event) => {
     let newEvent = _.cloneDeep(event)
+    if (newEvent.data.dataType === 'avail') {
+      newEvent.displayData[0].columnId = (_.maxBy(props.columns, 'id')?.id as number) + 1
+    }
     let newDisplayData = _.cloneDeep(newEvent.displayData)
     newEvent.displayData.forEach((dd) => {
+      if (newEvent.data.dataType === 'avail') {
+        console.log('dd: ', dd)
+        console.log('in ? ', dd.columnId in columnIndexes)
+      }
       if (!(dd.columnId in columnIndexes)) {
         _.remove(newDisplayData, (disD) => {
           return disD.columnId === dd.columnId && disD.weight === dd.weight
         })
       }
     })
+    if (newEvent.data.dataType === 'avail') console.log('newdd :', newDisplayData)
     newEvent.displayData = newDisplayData
     i = newEvent.displayData.length - 1
     while (i > 0) {
@@ -211,10 +225,29 @@ const eventsByDate = computed(() => {
     }
     map[event.data.start.date].push(event)
   })
+  console.log('MAP: ', map)
+  console.log('Events: ', props.events)
   return map
 })
 
-function badgeClasses(type: 'event' | 'dropzone' | 'header', bgcolor?: string, toggled?: boolean) {
+const columnsToDisplay = computed((): CalendarColumn[] => {
+  if (showAvailabilities.value) {
+    // TODO: Which component is responsible for columns IDs ?
+    const availColumn: CalendarColumn = { id: (_.maxBy(props.columns, 'id')?.id as number) + 1, name: 'Av.', weight: 1 }
+    return _.union(props.columns, [availColumn])
+  }
+  return props.columns
+})
+
+const totalWeight = computed(() => {
+  // TODO: Rework of computed dependencies
+  if (columnsToDisplay.value !== undefined) {
+    return _.sumBy(columnsToDisplay.value, (c: CalendarColumn) => c.weight)
+  }
+  return _.sumBy(props.columns, (c: CalendarColumn) => c.weight)
+})
+
+function badgeClasses(type: 'event' | 'dropzone' | 'header' | 'avail', bgcolor?: string, toggled?: boolean) {
   switch (type) {
     case 'event':
       return {
@@ -225,6 +258,8 @@ function badgeClasses(type: 'event' | 'dropzone' | 'header', bgcolor?: string, t
       return 'my-dropzone border-dashed'
     case 'header':
       return {}
+    case 'avail':
+      return { 'rounded-border': true }
   }
 }
 function badgeStyles(
@@ -233,7 +268,7 @@ function badgeStyles(
   timeStartPos: any = undefined,
   timeDurationHeight: any = undefined
 ) {
-  const currentColumn = props.columns.find((c) => displayData.columnId == c.id)
+  const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
   if (!currentColumn) return undefined
   const preceedingWeight = preWeight.value[displayData.columnId]
 
