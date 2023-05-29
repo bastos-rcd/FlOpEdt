@@ -68,17 +68,17 @@
       <template #day-body="{ scope: { timestamp, timeStartPos, timeDurationHeight } }">
         <!-- events to display -->
         <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
-          <template v-if="event.data.duration !== undefined">
+          <template v-if="event.data.duration !== undefined && (event.data.dataType === 'event' || (isDragging && event.data.dataId === eventDragged?.data.dataId))">
             <div
               draggable="true"
               @dragstart="onDragStart($event, event)"
-              @dragover="onDragOver($event, 'event', { timeDurationHeight, timestamp: event.data.start })"
+              @dragover="onDragOver($event, event.data.dataType, { timeDurationHeight, timestamp: event.data.start })"
             >
               <div
                 v-for="data in event.displayData"
-                :key="event.id"
+                :key="`${event.id} ${data.columnId}`"
                 class="my-event"
-                :class="badgeClasses('event', event.bgcolor)"
+                :class="badgeClasses(event.data.dataType, event.bgcolor)"
                 :style="badgeStyles(event, data, timeStartPos, timeDurationHeight)"
               >
                 <slot v-if="props.columns.find((c) => c.id === data.columnId)" name="event" :event="event">
@@ -90,42 +90,13 @@
             </div>
           </template>
         </template>
-
-        <!-- drop zone events to display -->
-        <template
-          v-if="
-            dropZoneToDisplay &&
-            isDragging &&
-            dropZoneToDisplay.eventId !== -1 &&
-            dropZoneToDisplay.possibleStarts[timestamp.date]
-          "
-          v-for="ts in dropZoneToDisplay.possibleStarts[timestamp.date]"
-          :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts"
-        >
-          <div
-            v-for="columnId in dropZoneToDisplay.columnIds"
-            :key="dropZoneToDisplay.eventId + '_' + timestamp.date + '_' + ts.timeStart + '_' + columnId"
-            class="my-dropzone my-event"
-            :class="badgeClasses('dropzoneevent')"
-            :style="
-              badgeStyles(
-                {
-                  data: { start: ts.timeStart, duration: dropZoneToDisplay.duration, dataId: 0, dataType: 'dropzone' },
-                },
-                { columnId: columnId, weight: 1 },
-                timeStartPos,
-                timeDurationHeight
-              )
-            "
-          ></div>
-        </template>
       </template>
     </q-calendar-day>
   </div>
 </template>
 
 <script setup lang="ts">
-import { addToDate, parseTimestamp, today } from '@quasar/quasar-ui-qcalendar/src/index.js'
+import { today } from '@quasar/quasar-ui-qcalendar/src/index.js'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
@@ -139,7 +110,7 @@ import {
 
 import _ from 'lodash'
 
-import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
+import { CalendarColumn, CalendarEvent } from './declaration'
 
 import { Ref, computed, ref } from 'vue'
 import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar } from '@quasar/quasar-ui-qcalendar'
@@ -158,7 +129,6 @@ import { watch } from 'vue'
 const props = defineProps<{
   events: CalendarEvent[]
   columns: CalendarColumn[]
-  dropzoneEvents?: CalendarDropzoneEvent[]
 }>()
 
 const emits = defineEmits<{
@@ -195,7 +165,7 @@ watch(selectedDate, () => {
 // Their columnIds are changed to merge the same events
 // occuring on different columns
 const eventsByDate = computed(() => {
-  const map: Record<string, any[]> = {}
+  const map: Record<string, CalendarEvent[]> = {}
   // Copy of events
   let newEvents: CalendarEvent[] = []
   let i = 0
@@ -223,7 +193,7 @@ const eventsByDate = computed(() => {
           columnIndexes[newEvent.displayData[i].columnId] - columnIndexes[newEvent.displayData[i - 1].columnId]
         ) === 1
       ) {
-        newEvent.displayData[i - 1].weight = newEvent.displayData[i].weight + 1
+        newEvent.displayData[i - 1].weight += newEvent.displayData[i].weight
         _.pullAt(newEvent.displayData, i)
       }
       i = i - 1
@@ -235,56 +205,47 @@ const eventsByDate = computed(() => {
       map[event.data.start.date] = []
     }
     map[event.data.start.date].push(event)
-    if (event.data.days) {
-      let timestamp = parseTimestamp(event.data.start.date)
-      let days = event.data.days
-      do {
-        timestamp = addToDate(timestamp, { day: 1 })
-        if (!map[timestamp.date]) {
-          map[timestamp.date] = []
-        }
-        map[timestamp.date].push(event)
-      } while (--days > 0)
-    }
   })
   return map
 })
 
-function badgeClasses(type: 'event' | 'dropzoneevent' | 'header', bgcolor?: string) {
+function badgeClasses(type: 'event' | 'dropzone' | 'header', bgcolor?: string, toggled?: boolean) {
   switch (type) {
     case 'event':
       return {
         [`text-white bg-${bgcolor}`]: true,
         'rounded-border': true,
       }
-    case 'dropzoneevent':
-      return 'border-dashed'
+    case 'dropzone':
+      return 'my-dropzone border-dashed'
     case 'header':
       return {}
   }
 }
 function badgeStyles(
-  event: Partial<CalendarEvent>,
-  displayData: { columnId: number; weight: number },
+  event: CalendarEvent,
+  displayData: {columnId: number, weight: number},
   timeStartPos: any = undefined,
   timeDurationHeight: any = undefined
 ) {
-  const currentGroup = props.columns.find((c) => c.id === displayData.columnId)
-
-  if (!currentGroup) return undefined
-
+  const currentColumn = props.columns.find((c) => displayData.columnId == c.id)
+  if (!currentColumn) return undefined
   const preceedingWeight = preWeight.value[displayData.columnId]
 
   const s: Record<string, string> = {
     top: '',
     height: '',
-    'background-color': event.bgcolor || 'transparent',
   }
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.data?.start) + 'px'
     s.left = Math.round((preWeight.value[displayData.columnId] / totalWeight.value) * 100) + '%'
     s.width = Math.round((100 * displayData.weight) / totalWeight.value) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
+  }
+  if (event.data.dataType === 'dropzone') {
+    s['background-color'] = 'transparent'
+  } else {
+    s['background-color'] = event.bgcolor
   }
   if (
     event.data?.dataType === 'dropzone' &&
@@ -331,13 +292,8 @@ const eventsModel = computed({
 /**
  * Only returns the dropZone with the same ID as the event dragged
  */
-const dropZoneToDisplay = computed((): CalendarDropzoneEvent | undefined => {
-  if (isDragging.value) {
-    return _.find(props.dropzoneEvents, (dp) => {
-      return dp.eventId === eventDragged.value?.data.dataId
-    })
-  }
-  return { eventId: -1, duration: 0, columnIds: [], possibleStarts: {} }
+const dropZoneToDisplay = computed((): CalendarEvent[] | undefined => {
+  return _.filter(props.events, e => e.data.dataType === "dropzone" && currentTime.value?.date === e.data.start.date && eventDragged.value?.data.dataId === e.data.dataId)
 })
 
 /**
@@ -346,32 +302,32 @@ const dropZoneToDisplay = computed((): CalendarDropzoneEvent | undefined => {
  */
 const closestStartTime = computed(() => {
   let closest: string = ''
-  if (!currentTime.value || !props.dropzoneEvents || !dropZoneToDisplay.value || dropZoneToDisplay.value.eventId === -1)
+  if (!currentTime.value || !dropZoneToDisplay.value || dropZoneToDisplay.value.length < 1)
     return closest
   let i = 0
   let timeDiff: number = 0
-  while (i < dropZoneToDisplay.value.possibleStarts[currentTime.value.date]?.length) {
+  while (i < dropZoneToDisplay.value.length) {
     let currentDiff: number = 0
     if (i === 0) {
       timeDiff = Math.abs(
         diffTimestamp(
-          dropZoneToDisplay.value.possibleStarts[currentTime.value.date][i].timeStart,
+          dropZoneToDisplay.value[i].data.start,
           currentTime.value,
           false
         )
       )
-      closest = dropZoneToDisplay.value.possibleStarts[currentTime.value.date][i].timeStart.time
+      closest = dropZoneToDisplay.value[i].data.start.time
     } else {
       currentDiff = Math.abs(
         diffTimestamp(
-          dropZoneToDisplay.value.possibleStarts[currentTime.value.date][i].timeStart,
+          dropZoneToDisplay.value[i].data.start,
           currentTime.value,
           false
         )
       )
       if (timeDiff > currentDiff) {
         timeDiff = currentDiff
-        closest = dropZoneToDisplay.value.possibleStarts[currentTime.value.date][i].timeStart.time
+        closest = dropZoneToDisplay.value[i].data.start.time
       }
     }
     i = i + 1
@@ -387,12 +343,12 @@ const closestStartTime = computed(() => {
  * @param dateTime The date referring to the day in which we are
  */
 function dropZoneCloseUpdate(dateTime: Timestamp): void {
-  if (!dropZoneToDisplay.value || dropZoneToDisplay.value.eventId === -1) return
-  dropZoneToDisplay.value.possibleStarts[dateTime.date]?.forEach((ts: { isClose: boolean; timeStart: Timestamp }) => {
-    if (ts.timeStart.time === closestStartTime.value) {
-      ts.isClose = true
+  if (!dropZoneToDisplay.value || dropZoneToDisplay.value.length < 1) return
+  dropZoneToDisplay.value.forEach(cdze => {
+    if (cdze.data.start.time === closestStartTime.value && cdze.data.start.date == dateTime.date) {
+      cdze.toggled = true
     } else {
-      ts.isClose = false
+      cdze.toggled = false
     }
   })
 }
@@ -474,11 +430,10 @@ function updateEventDropped(): void {
     return
   }
   let newEvent: CalendarEvent = _.cloneDeep(eventDragged.value)
-  if (dropZoneToDisplay.value && dropZoneToDisplay.value.eventId === newEvent.data.dataId) {
-    dropZoneToDisplay.value.possibleStarts[currentTime.value.date]?.forEach(
-      (ps: { isClose: boolean; timeStart: Timestamp }) => {
-        if (ps.isClose) {
-          newEvent.data.start = copyTimestamp(ps.timeStart)
+  if (dropZoneToDisplay.value) {
+    dropZoneToDisplay.value.forEach(cdze => {
+        if (cdze.toggled) {
+          newEvent.data.start = copyTimestamp(cdze.data.start)
         }
       }
     )
@@ -487,7 +442,7 @@ function updateEventDropped(): void {
   }
   let newEvents: CalendarEvent[] = _.cloneDeep(props.events)
   _.remove(newEvents, (e: CalendarEvent) => {
-    return e.data.dataId === newEvent.data.dataId
+    return e.id === newEvent.id
   })
   newEvents.push(newEvent)
   eventsModel.value = newEvents

@@ -38,6 +38,7 @@ const activeIds = ref<Array<number>>([])
 const flatNodes = computed(() => {
   return groups.value
 })
+let id = 1
 
 const columnsToDisplay = computed(() => {
   return filter(columns.value, (c: CalendarColumn) => {
@@ -45,7 +46,7 @@ const columnsToDisplay = computed(() => {
   }) as CalendarColumn[]
 })
 
-const { addUpdate, revertUpdate } = useUndoredo()
+const { revertUpdate } = useUndoredo()
 
 /**
  * API data waiting to be translated in Calendar events
@@ -69,8 +70,9 @@ watch(
         )
         timeS.date = timeS.date.substring(0, 10)
         const currentEvent: CalendarEvent = {
+          id: id++,
           title: s.course.type.name,
-          details: '',
+          toggled: true,
           bgcolor: s.course.module.display.color_bg,
           displayData: [],
           data: {
