@@ -4,8 +4,10 @@ import { Timestamp } from '@quasar/quasar-ui-qcalendar'
  * Calendar event, for display purpose
  */
 export interface CalendarEvent {
+  id: number
   title: string
-  details: string
+
+  toggled: boolean
 
   bgcolor: string
   icon?: string
@@ -20,10 +22,9 @@ export interface CalendarEvent {
 
 export interface EventData {
   dataId: number
-  dataType: string
+  dataType: "event" | "dropzone" | "header"
   start: Timestamp
   duration?: number
-  days?: number
 }
 
 /**
