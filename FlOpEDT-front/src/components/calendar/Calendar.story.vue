@@ -1,18 +1,10 @@
 <template>
   <Story>
     <Variant title="Use case 1">
-      <Calendar
-        :columns="useCase1.columns"
-        v-model:events="useCase2.events.value"
-        @dragstart="onDragStart"
-      />
+      <Calendar :columns="useCase1.columns" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
     </Variant>
     <Variant title="Use case 2">
-      <Calendar
-        :columns="useCase2.columns"
-        v-model:events="useCase2.events.value"
-        @dragstart="onDragStart"
-      />
+      <Calendar :columns="useCase2.columns" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
     </Variant>
     <Variant title="Use case 3">
       <Calendar :columns="useCase3.columns" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
@@ -43,7 +35,6 @@ function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
 interface UseCase {
   columns: CalendarColumn[]
   events: Ref<CalendarEvent[]>
-  dropzoneEvents: Ref<CalendarEvent[]>
 }
 
 const useCase2: UseCase = {
@@ -273,7 +264,12 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -286,7 +282,12 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -299,7 +300,12 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -312,7 +318,12 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -325,7 +336,12 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -338,7 +354,12 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -347,11 +368,16 @@ const useCase2: UseCase = {
       },
     },
     {
-      id: 19,
+      id: 57,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -360,11 +386,16 @@ const useCase2: UseCase = {
       },
     },
     {
-      id: 20,
+      id: 58,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -373,11 +404,16 @@ const useCase2: UseCase = {
       },
     },
     {
-      id: 19,
+      id: 59,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -386,11 +422,16 @@ const useCase2: UseCase = {
       },
     },
     {
-      id: 20,
+      id: 60,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }, { columnId: 1, weight: 2 }, { columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 0, weight: 2 },
+        { columnId: 1, weight: 2 },
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -403,7 +444,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -416,7 +460,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -429,7 +476,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -442,7 +492,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -455,7 +508,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -468,7 +524,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -481,7 +540,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -494,7 +556,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -507,7 +572,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -520,7 +588,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -533,7 +604,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -546,7 +620,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -559,7 +636,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -572,7 +652,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -585,7 +668,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -598,7 +684,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -611,7 +700,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -624,7 +716,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -637,7 +732,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -650,7 +748,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -663,7 +764,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -676,7 +780,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -689,7 +796,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -702,7 +812,10 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 2, weight: 1 }, { columnId: 3, weight: 1 }],
+      displayData: [
+        { columnId: 2, weight: 1 },
+        { columnId: 3, weight: 1 },
+      ],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -715,7 +828,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -728,7 +841,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -741,7 +854,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -754,7 +867,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -767,7 +880,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -780,7 +893,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -793,7 +906,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -806,7 +919,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -819,7 +932,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -832,7 +945,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -845,7 +958,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -858,7 +971,7 @@ const useCase2: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 },],
+      displayData: [{ columnId: 0, weight: 2 }],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -868,7 +981,6 @@ const useCase2: UseCase = {
     },
   ]),
 }
-
 
 const useCase1 = {
   columns: [
@@ -1032,10 +1144,8 @@ const useCase1 = {
         start: shiftInCurrentWeek(3),
       },
     },
-  ]),
-  dropzoneEvents: [
-  {
-      id: 5,
+    {
+      id: 10,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1048,7 +1158,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 11,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1061,7 +1171,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 12,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1074,7 +1184,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 13,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1087,7 +1197,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 14,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1100,7 +1210,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 15,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1113,7 +1223,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 16,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1126,7 +1236,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 17,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1139,7 +1249,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 18,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1152,7 +1262,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 19,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1165,7 +1275,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 20,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1178,7 +1288,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 21,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1191,7 +1301,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 22,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1204,7 +1314,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 23,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1217,7 +1327,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 24,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1230,7 +1340,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 25,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1243,7 +1353,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 26,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1256,7 +1366,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 27,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1269,7 +1379,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 28,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1282,7 +1392,7 @@ const useCase1 = {
       },
     },
     {
-      id: 5,
+      id: 29,
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
@@ -1294,14 +1404,13 @@ const useCase1 = {
         duration: 150,
       },
     },
-  ],
+  ]),
 }
 
 const currentEventId = ref<number | null>(null)
 function onDragStart(eventId: number) {
   currentEventId.value = eventId
 }
-
 
 const useCase3: UseCase = {
   columns: [
@@ -1331,8 +1440,7 @@ const useCase3: UseCase = {
       weight: 3,
     },
   ],
-  events: useCase1.events,
-  dropzoneEvents: ref([]),
+  events: useCase2.events,
 }
 </script>
 

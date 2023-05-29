@@ -22,7 +22,7 @@ export interface CalendarEvent {
 
 export interface EventData {
   dataId: number
-  dataType: "event" | "dropzone" | "header"
+  dataType: 'event' | 'dropzone' | 'header'
   start: Timestamp
   duration?: number
 }
@@ -52,11 +52,4 @@ export interface CalendarResourceEvent {
   left: number
   width: number
   title: string
-}
-
-export interface CalendarDropzoneEvent {
-  eventId: number
-  duration: number
-  columnIds: number[]
-  possibleStarts: Record<string, { isClose: boolean; timeStart: Timestamp }[]>
 }

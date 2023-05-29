@@ -54,7 +54,6 @@ describe('Calendar component', () => {
       props: {
         columns: useCase.columns,
         events: useCase.events.value,
-        dropzoneEvents: useCase.dropzoneEvents,
       },
     })
     expect(wrapper).toBeDefined()
