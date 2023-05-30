@@ -193,17 +193,12 @@ const eventsByDate = computed(() => {
     }
     let newDisplayData = _.cloneDeep(newEvent.displayData)
     newEvent.displayData.forEach((dd) => {
-      if (newEvent.data.dataType === 'avail') {
-        console.log('dd: ', dd)
-        console.log('in ? ', dd.columnId in columnIndexes)
-      }
       if (!(dd.columnId in columnIndexes)) {
         _.remove(newDisplayData, (disD) => {
           return disD.columnId === dd.columnId && disD.weight === dd.weight
         })
       }
     })
-    if (newEvent.data.dataType === 'avail') console.log('newdd :', newDisplayData)
     newEvent.displayData = newDisplayData
     i = newEvent.displayData.length - 1
     while (i > 0) {
@@ -225,8 +220,6 @@ const eventsByDate = computed(() => {
     }
     map[event.data.start.date].push(event)
   })
-  console.log('MAP: ', map)
-  console.log('Events: ', props.events)
   return map
 })
 
@@ -275,6 +268,9 @@ function badgeStyles(
   const s: Record<string, string> = {
     top: '',
     height: '',
+  }
+  if (!event.toggled) {
+    s['opacity'] = '0.5'
   }
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.data?.start) + 'px'
