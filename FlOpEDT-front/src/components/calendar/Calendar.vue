@@ -463,8 +463,8 @@ function updateEventDropped(): void {
     console.log('ERREUR CURRENT TIME')
     return
   }
-  if (!eventDragged.value) {
-    console.log("I don't know what happened: I lost the dragged event")
+  if (!eventDragged.value || eventDragged.value.data.dataType !== 'event') {
+    console.log("I don't know what happened: Maybe it was an availability")
     return
   }
   let newEvent: CalendarEvent = _.cloneDeep(props.events.find((e) => eventDragged.value?.id === e.id) as CalendarEvent)

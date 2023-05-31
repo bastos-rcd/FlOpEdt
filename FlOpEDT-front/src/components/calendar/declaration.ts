@@ -1,4 +1,15 @@
 import { Timestamp } from '@quasar/quasar-ui-qcalendar'
+import {
+  matBattery0Bar,
+  matBattery1Bar,
+  matBattery2Bar,
+  matBattery3Bar,
+  matBattery4Bar,
+  matBattery5Bar,
+  matBattery6Bar,
+  matBatteryFull,
+  matBatteryChargingFull,
+} from '@quasar/extras/material-icons'
 
 /**
  * Calendar event, for display purpose
@@ -54,18 +65,6 @@ export interface CalendarResourceEvent {
   width: number
   title: string
 }
-
-import {
-  matBattery0Bar,
-  matBattery1Bar,
-  matBattery2Bar,
-  matBattery3Bar,
-  matBattery4Bar,
-  matBattery5Bar,
-  matBattery6Bar,
-  matBatteryFull,
-  matBatteryChargingFull,
-} from '@quasar/extras/material-icons'
 
 interface AvailabilityData {
   color: Record<string, string>
