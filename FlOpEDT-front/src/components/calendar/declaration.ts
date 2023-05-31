@@ -54,3 +54,45 @@ export interface CalendarResourceEvent {
   width: number
   title: string
 }
+
+import {
+  matBattery0Bar,
+  matBattery1Bar,
+  matBattery2Bar,
+  matBattery3Bar,
+  matBattery4Bar,
+  matBattery5Bar,
+  matBattery6Bar,
+  matBatteryFull,
+  matBatteryChargingFull,
+} from '@quasar/extras/material-icons'
+
+interface AvailabilityData {
+  color: Record<string, string>
+  icon: Record<string, string>
+}
+
+export const availabilityData: AvailabilityData = {
+  color: {
+    '0': '#fc0328',
+    '1': '#fc3403',
+    '2': '#fc6703',
+    '3': '#faa305',
+    '4': '#faf405',
+    '5': '#a4fa05',
+    '6': '#53fd02',
+    '7': '#04fb13',
+    '8': '#00ff5e',
+  },
+  icon: {
+    '0': matBattery0Bar,
+    '1': matBattery1Bar,
+    '2': matBattery2Bar,
+    '3': matBattery3Bar,
+    '4': matBattery4Bar,
+    '5': matBattery5Bar,
+    '6': matBattery6Bar,
+    '7': matBatteryFull,
+    '8': matBatteryChargingFull,
+  },
+}

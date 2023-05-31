@@ -94,9 +94,15 @@
                 :style="badgeStyles(event, data, timeStartPos, timeDurationHeight)"
               >
                 <slot v-if="columnsToDisplay.find((c) => c.id === data.columnId)" name="event" :event="event">
-                  <span class="title q-calendar__ellipsis">
+                  <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
                     {{ event.title }}
                   </span>
+                  <div
+                    v-else
+                    style="width: 100%; height: 100%; align-items: center; display: flex; justify-content: center"
+                  >
+                    <q-icon color="black" :name="event.icon" size="xs" />
+                  </div>
                 </slot>
               </div>
             </div>
@@ -119,6 +125,7 @@ import {
   parseTime,
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
+import '@quasar/extras/material-icons'
 
 import _ from 'lodash'
 
@@ -127,6 +134,7 @@ import { CalendarColumn, CalendarEvent } from './declaration'
 import { Ref, computed, ref } from 'vue'
 import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
+import { availabilityData } from './declaration'
 /**
  * Calendar component handling the display of a week with
  * events data in it.
@@ -190,6 +198,8 @@ const eventsByDate = computed(() => {
     let newEvent = _.cloneDeep(event)
     if (newEvent.data.dataType === 'avail') {
       newEvent.displayData[0].columnId = (_.maxBy(props.columns, 'id')?.id as number) + 1
+      newEvent.bgcolor = availabilityData.color[newEvent.data.value?.toString() || '0']
+      newEvent.icon = availabilityData.icon[newEvent.data.value?.toString() || '0']
     }
     let newDisplayData = _.cloneDeep(newEvent.displayData)
     newEvent.displayData.forEach((dd) => {
