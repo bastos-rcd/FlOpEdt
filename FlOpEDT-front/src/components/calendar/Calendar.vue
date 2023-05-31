@@ -88,7 +88,7 @@
             >
               <div
                 v-for="data in event.displayData"
-                :key="`${event.id} ${data.columnId}`"
+                :key="event.id"
                 class="my-event"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
                 :style="badgeStyles(event, data, timeStartPos, timeDurationHeight)"
@@ -233,7 +233,6 @@ const columnsToDisplay = computed((): CalendarColumn[] => {
 })
 
 const totalWeight = computed(() => {
-  // TODO: Rework of computed dependencies
   if (columnsToDisplay.value !== undefined) {
     return _.sumBy(columnsToDisplay.value, (c: CalendarColumn) => c.weight)
   }
@@ -458,7 +457,7 @@ function updateEventDropped(): void {
     console.log("I don't know what happened: I lost the dragged event")
     return
   }
-  let newEvent: CalendarEvent = _.cloneDeep(eventDragged.value)
+  let newEvent: CalendarEvent = _.cloneDeep(props.events.find((e) => eventDragged.value?.id === e.id) as CalendarEvent)
   if (dropZoneToDisplay.value) {
     dropZoneToDisplay.value.forEach((cdze) => {
       if (cdze.toggled) {
