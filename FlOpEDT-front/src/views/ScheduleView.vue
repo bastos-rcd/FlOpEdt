@@ -13,14 +13,21 @@
       </div>
     </template>
   </HierarchicalColumnFilter>
-  <button @click="revertUpdate">Revert</button>
+  <FilterSelector
+    :items="rooms"
+    filter-selector-undefined-label="Select a room"
+    v-model:selected-items="selectedRoom"
+    :multiple="false"
+    item-variable-name="name"
+  />
+  <!-- <button @click="revertUpdate">Revert</button> -->
 </template>
 
 <script setup lang="ts">
 import { CalendarColumn, CalendarEvent } from '@/components/calendar/declaration'
 import HierarchicalColumnFilter from '@/components/hierarchicalFilter/HierarchicalColumnFilter.vue'
 import Calendar from '@/components/calendar/Calendar.vue'
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref, watch, watchEffect } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
@@ -29,6 +36,9 @@ import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { filter, find } from 'lodash'
+import FilterSelector from '@/components/utils/FilterSelector.vue'
+import { useRoomStore } from '@/stores/room'
+import { Room } from '@/ts/type'
 
 /**
  * Data translated to be passed to components
@@ -56,13 +66,15 @@ const { revertUpdate } = useUndoredo()
 const groupStore = useGroupStore()
 const columnStore = useColumnStore()
 const scheduledCourseStore = useScheduledCourseStore()
+const roomStore = useRoomStore()
 const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
+const { rooms } = storeToRefs(roomStore)
+const selectedRoom = ref<Room>()
 
-watch(
-  () => scheduledCourses.value,
-  () => {
+
+watchEffect(() => {
     calendarEvents.value = scheduledCourses.value
       .map((s) => {
         let timeS = updateWorkWeek(
@@ -72,7 +84,7 @@ watch(
         const currentEvent: CalendarEvent = {
           id: id++,
           title: s.course.type.name,
-          toggled: true,
+          toggled: !selectedRoom.value || s.room?.id === selectedRoom.value.id,
           bgcolor: s.course.module.display.color_bg,
           displayData: [],
           data: {
@@ -106,6 +118,7 @@ function fetchScheduledCurrentWeek(week: number, year: number) {
     { week: week, year: year },
     { id: 1, abbrev: 'INFO', name: 'informatique' }
   )
+  roomStore.remote.fetch()
 }
 
 function changeDate(newDate: Timestamp) {
