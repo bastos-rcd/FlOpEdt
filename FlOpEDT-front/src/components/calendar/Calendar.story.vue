@@ -16,7 +16,7 @@
 import type { CalendarEvent, CalendarColumn } from './declaration'
 import _ from 'lodash'
 import { Timestamp, parseDate, parseTime, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
-import { ref, Ref, computed } from 'vue'
+import { ref, Ref } from 'vue'
 
 import Calendar from './Calendar.vue'
 
@@ -64,7 +64,7 @@ const useCase2: UseCase = {
     {
       id: 1,
       title: 'TP INFO',
-      toggled: true,
+      toggled: false,
 
       bgcolor: 'red',
       icon: 'fas fa-handshake',
@@ -103,7 +103,7 @@ const useCase2: UseCase = {
     {
       id: 3,
       title: 'Conference TD1',
-      toggled: true,
+      toggled: false,
       bgcolor: 'grey',
       icon: 'fas fa-car',
       displayData: [{ columnId: 0, weight: 2 }],
@@ -982,22 +982,120 @@ const useCase2: UseCase = {
     {
       id: 57,
       title: '1',
-      toggled: false,
-      bgcolor: '#25FF34',
+      toggled: true,
+      bgcolor: '',
       displayData: [{ columnId: -1, weight: 1 }],
       data: {
         dataId: 69,
         dataType: 'avail',
         start: shiftInCurrentWeek(0, '07:00'),
-        duration: 600,
+        duration: 150,
+        value: 0,
+      },
+    },
+    {
+      id: 62,
+      title: '1',
+      toggled: true,
+      bgcolor: '',
+      displayData: [{ columnId: -1, weight: 1 }],
+      data: {
+        dataId: 69,
+        dataType: 'avail',
+        start: shiftInCurrentWeek(0, '09:30'),
+        duration: 90,
+        value: 4,
+      },
+    },
+    {
+      id: 63,
+      title: '1',
+      toggled: true,
+      bgcolor: '',
+      displayData: [{ columnId: -1, weight: 1 }],
+      data: {
+        dataId: 69,
+        dataType: 'avail',
+        start: shiftInCurrentWeek(0, '11:00'),
+        duration: 60,
+        value: 6,
+      },
+    },
+    {
+      id: 64,
+      title: '1',
+      toggled: true,
+      bgcolor: '',
+      displayData: [{ columnId: -1, weight: 1 }],
+      data: {
+        dataId: 69,
+        dataType: 'avail',
+        start: shiftInCurrentWeek(0, '12:00'),
+        duration: 120,
+        value: 0,
+      },
+    },
+    {
+      id: 65,
+      title: '1',
+      toggled: true,
+      bgcolor: '',
+      displayData: [{ columnId: -1, weight: 1 }],
+      data: {
+        dataId: 69,
+        dataType: 'avail',
+        start: shiftInCurrentWeek(0, '14:00'),
+        duration: 60,
+        value: 7,
+      },
+    },
+    {
+      id: 66,
+      title: '1',
+      toggled: true,
+      bgcolor: '',
+      displayData: [{ columnId: -1, weight: 1 }],
+      data: {
+        dataId: 69,
+        dataType: 'avail',
+        start: shiftInCurrentWeek(0, '15:00'),
+        duration: 60,
+        value: 3,
+      },
+    },
+    {
+      id: 67,
+      title: '1',
+      toggled: true,
+      bgcolor: '',
+      displayData: [{ columnId: -1, weight: 1 }],
+      data: {
+        dataId: 69,
+        dataType: 'avail',
+        start: shiftInCurrentWeek(0, '16:00'),
+        duration: 180,
         value: 1,
+      },
+    },
+    {
+      id: 68,
+      title: '1',
+      toggled: true,
+      bgcolor: '',
+      displayData: [{ columnId: -1, weight: 1 }],
+      data: {
+        dataId: 69,
+        dataType: 'avail',
+        start: shiftInCurrentWeek(1, '12:00'),
+        duration: 120,
+        value: 0,
       },
     },
     {
       id: 58,
       title: '1',
-      toggled: false,
-      bgcolor: '#25FF34',
+      toggled: true,
+      bgcolor: '',
       displayData: [{ columnId: -1, weight: 1 }],
       data: {
         dataId: 69,
@@ -1010,8 +1108,8 @@ const useCase2: UseCase = {
     {
       id: 59,
       title: '2',
-      toggled: false,
-      bgcolor: '#55AA34',
+      toggled: true,
+      bgcolor: '',
       displayData: [{ columnId: -1, weight: 1 }],
       data: {
         dataId: 69,
@@ -1024,13 +1122,13 @@ const useCase2: UseCase = {
     {
       id: 60,
       title: '3',
-      toggled: false,
-      bgcolor: '#95AA00',
+      toggled: true,
+      bgcolor: '',
       displayData: [{ columnId: -1, weight: 1 }],
       data: {
         dataId: 69,
         dataType: 'avail',
-        start: shiftInCurrentWeek(3, '15:00'),
+        start: shiftInCurrentWeek(3, '11:30'),
         duration: 450,
         value: 3,
       },
@@ -1038,14 +1136,14 @@ const useCase2: UseCase = {
     {
       id: 61,
       title: '8',
-      toggled: false,
-      bgcolor: '#BB2222',
+      toggled: true,
+      bgcolor: '',
       displayData: [{ columnId: -1, weight: 1 }],
       data: {
         dataId: 69,
         dataType: 'avail',
         start: shiftInCurrentWeek(4, '07:00'),
-        duration: 900,
+        duration: 720,
         value: 8,
       },
     },
