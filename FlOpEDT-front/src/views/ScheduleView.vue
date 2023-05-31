@@ -73,40 +73,38 @@ const { columns } = storeToRefs(columnStore)
 const { rooms } = storeToRefs(roomStore)
 const selectedRoom = ref<Room>()
 
-
 watchEffect(() => {
-    calendarEvents.value = scheduledCourses.value
-      .map((s) => {
-        let timeS = updateWorkWeek(
-          parsed(s.start_time.toString().substring(0, 10) + ' ' + s.start_time.toString().substring(11))
-        )
-        timeS.date = timeS.date.substring(0, 10)
-        const currentEvent: CalendarEvent = {
-          id: id++,
-          title: s.course.type.name,
-          toggled: !selectedRoom.value || s.room?.id === selectedRoom.value.id,
-          bgcolor: s.course.module.display.color_bg,
-          displayData: [],
-          data: {
-            dataId: s.id,
-            dataType: 'event',
-            start: timeS,
-            duration: s.course.type.duration,
-          },
+  calendarEvents.value = scheduledCourses.value
+    .map((s) => {
+      let timeS = updateWorkWeek(
+        parsed(s.start_time.toString().substring(0, 10) + ' ' + s.start_time.toString().substring(11))
+      )
+      timeS.date = timeS.date.substring(0, 10)
+      const currentEvent: CalendarEvent = {
+        id: id++,
+        title: s.course.type.name,
+        toggled: !selectedRoom.value || s.room?.id === selectedRoom.value.id,
+        bgcolor: s.course.module.display.color_bg,
+        displayData: [],
+        data: {
+          dataId: s.id,
+          dataType: 'event',
+          start: timeS,
+          duration: s.course.type.duration,
+        },
+      }
+      s.course.groups.forEach((courseGroup) => {
+        const currentGroup = groups.value.find((g) => g.id === courseGroup.id)
+        if (currentGroup) {
+          currentGroup.columnIds.forEach((cI) => {
+            currentEvent.displayData.push({ columnId: cI, weight: 1 })
+          })
         }
-        s.course.groups.forEach((courseGroup) => {
-          const currentGroup = groups.value.find((g) => g.id === courseGroup.id)
-          if (currentGroup) {
-            currentGroup.columnIds.forEach((cI) => {
-              currentEvent.displayData.push({ columnId: cI, weight: 1 })
-            })
-          }
-        })
-        return currentEvent
       })
-      .filter((ce) => ce.displayData.length > 0)
-  }
-)
+      return currentEvent
+    })
+    .filter((ce) => ce.displayData.length > 0)
+})
 
 const currentScheduledCourseId = ref<number | null>(null)
 function setCurrentScheduledCourse(scheduledCourseId: number) {
