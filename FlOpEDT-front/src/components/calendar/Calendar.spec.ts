@@ -58,4 +58,6 @@ describe('Calendar component', () => {
     })
     expect(wrapper).toBeDefined()
   })
+
+  it.todo('Formats data without duplicating ids')
 })
