@@ -12,8 +12,14 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
+## [0.5.1] -- 2023-06-05
+**Note:** `0.5` is the last `0.*` version.
+### Changed
+- Debugs:
+  - Define correctly directories for constraints generation interface (#59) 
+  - Make ALLOWED_HOSTS configurable via flopedt.ini (#60)
+
 ## [0.5.0] -- 2023-05-11
-**Note:** this is the last `0.*` version.
 ### Added
 - DevOps
   - pip package
