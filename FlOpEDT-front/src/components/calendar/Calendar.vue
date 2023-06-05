@@ -6,27 +6,55 @@
       <q-btn no-caps class="button" style="margin: 2px" @click="onNext"> Next &gt; </q-btn>
     </div>
     <div class="q-pa-md q-gutter-sm row">
-      <q-btn no-caps class="button" style="margin: 2px" @click="showAvailabilities = !showAvailabilities">
+      <q-btn color="orange" no-caps class="glossy" style="margin: 2px" @click="showAvailabilities = !showAvailabilities">
         Show Availabilities
       </q-btn>
+      <q-btn-dropdown
+        class="glossy"
+        color="blue" style="margin: 2px">
+        <q-list>
+          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5, 6, 0]">
+            <q-item-section>
+              <q-item-label>Full Week</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5]">
+            <q-item-section>
+              <q-item-label>Monday to Friday</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item v-close-popup>
+            <q-item-section>
+              <q-item-label>Select a day</q-item-label>
+              <q-btn-group push>
+                <q-btn push label="Monday" @click="weekdays=[1]"/>
+                <q-btn push label="Tuesday" @click="weekdays=[2]"/>
+                <q-btn push label="Wednesday" @click="weekdays=[3]"/>
+                <q-btn push label="Thursday" @click="weekdays=[4]"/>
+                <q-btn push label="Friday" @click="weekdays=[5]"/>
+                <q-btn push label="Saturday" @click="weekdays=[6]"/>
+                <q-btn push label="Sunday" @click="weekdays=[0]"/>
+              </q-btn-group>
+            </q-item-section>
+          </q-item>
+          <q-item v-close-popup>
+            <q-item-section>
+              <q-item-label>Select a day</q-item-label>
+              <q-range
+                :marker-labels="arrayWeekdaysLabel"
+                :min="1"
+                :max="7"
+                label-always
+                v-model="dayStart"/>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
     </div>
   </div>
   <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
-    <!-- <div style="display: flex">
-      <template v-for="column in props.columns" :key="column.name">
-        <div
-              :class="badgeClasses('header')"
-              style="cursor: pointer;height: 12px;font-size: 10px;margin-bottom: 1px;margin-top: 1px;border-color: 1px solid black;color: black;"
-              :style="{
-                'flex-basis': Math.round((100 * column.weight) / totalWeight) + '%',
-                'align-items': 'center',
-              }"
-              @click="toggleActive(column.id)"
-            >
-              {{ column.name }}
-        </div>
-      </template>
-    </div> -->
     <q-calendar-day
       ref="calendar"
       v-model="selectedDate"
@@ -39,7 +67,7 @@
       :interval-start="6"
       :interval-count="18"
       :interval-height="28"
-      :weekdays="[1, 2, 3, 4, 5]"
+      :weekdays="weekdays"
       :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
       :drag-leave-func="onDragLeave"
@@ -174,6 +202,28 @@ const preWeight = computed(() => {
  */
 const selectedDate = ref<string>(today())
 const showAvailabilities = ref<boolean>(false)
+const weekdays = ref<number[]>([1, 2, 3, 4, 5])
+const arrayWeekdaysLabel = [
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
+  { value: 7, label: 'Sunday' },
+]
+const dayStart = ref<{min : number, max: number}>()
+
+watch(dayStart, () => {
+  let newValue: number[] = []
+  if (dayStart.value)
+    for(let i = dayStart.value?.min; i <= dayStart.value?.max; i++) {
+      if (i === 7) newValue.push(0)
+      else newValue.push(i)
+    }
+  weekdays.value = newValue
+})
+
 
 watch(selectedDate, () => {
   console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
