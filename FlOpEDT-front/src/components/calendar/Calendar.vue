@@ -183,6 +183,7 @@ const emits = defineEmits<{
   (e: 'dragstart', id: number): void
   (e: 'update:events', value: CalendarEvent[]): void
   (e: 'update:week', value: Timestamp): void
+  (e: 'weekdays', value: number[]) : void
 }>()
 
 const preWeight = computed(() => {
@@ -202,6 +203,16 @@ const preWeight = computed(() => {
  */
 const selectedDate = ref<string>(today())
 const showAvailabilities = ref<boolean>(false)
+
+watch(selectedDate, () => {
+  console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+  emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+})
+
+/**
+ * Time and date data defining which days will
+ * be displayed in a week
+ */
 const weekdays = ref<number[]>([1, 2, 3, 4, 5])
 const arrayWeekdaysLabel = [
   { value: 1, label: 'Monday' },
@@ -222,12 +233,6 @@ watch(dayStart, () => {
       else newValue.push(i)
     }
   weekdays.value = newValue
-})
-
-
-watch(selectedDate, () => {
-  console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
-  emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
 })
 
 // Events send to the qcalendar ordered by their date
@@ -280,6 +285,7 @@ const eventsByDate = computed(() => {
     }
     map[event.data.start.date].push(event)
   })
+  console.log("map :", map)
   return map
 })
 
