@@ -4,7 +4,7 @@
       <Calendar :columns="useCase1.columns" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
     </Variant>
     <Variant title="Use case 2">
-      <Calendar :columns="useCase2.columns" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
+      <Calendar :columns="useCase2.columns" v-model:events="useCase2.events.value" @dragstart="onDragStart" @weekdays="(wd) => weekdays=wd" />
     </Variant>
     <Variant title="Use case 3">
       <Calendar :columns="useCase3.columns" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
@@ -21,8 +21,8 @@ import { ref, Ref } from 'vue'
 import Calendar from './Calendar.vue'
 
 const CURRENT_DAY = new Date()
-
-const weekStart = getStartOfWeek(parseDate(CURRENT_DAY) as Timestamp, [1, 2, 3, 4, 5])
+const weekdays = ref([1,2,3,4,5])
+const weekStart = getStartOfWeek(parseDate(CURRENT_DAY) as Timestamp, weekdays.value)
 
 function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
   const tm = addToDate(weekStart, { day: relativeDay })
