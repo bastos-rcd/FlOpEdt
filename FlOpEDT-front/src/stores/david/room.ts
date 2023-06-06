@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { StoreAction } from '@/stores/store'
+import { StoreAction } from '@/stores/david/store'
 import type { Department, Room, RoomAPI } from '@/ts/type'
 import { useDepartmentStore } from '@/stores/department'
 import { mapListId } from '@/helpers'
@@ -29,7 +29,7 @@ export const useRoomStore = defineStore('room', () => {
     const out: {
       [deptId: string]: Array<Room>
     } = {}
-    departmentStore.getAllDepartmentsFetched.forEach((dept: Department) => {
+    departmentStore.all.forEach((dept: Department) => {
       out[dept.id] = r.value.filter((room) => room.departments.findIndex((d: Department) => d.id === dept.id) >= 0)
     })
     return out
@@ -42,7 +42,7 @@ export const useRoomStore = defineStore('room', () => {
     return {
       id: room.id ?? -1,
       departments: room.departments
-        ? departmentStore.getAllDepartmentsFetched.filter((dept: Department) => room.departments?.includes(dept.id))
+        ? departmentStore.all.filter((dept: Department) => room.departments?.includes(dept.id))
         : [],
       basic_rooms: room.basic_rooms ?? [],
       is_basic: room.is_basic ?? true,

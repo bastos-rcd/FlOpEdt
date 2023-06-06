@@ -1,4 +1,4 @@
-import { MappableToIdArray } from '@/stores/store'
+import { MappableToIdArray } from '@/stores/david/store'
 
 export class Course {
   id: number

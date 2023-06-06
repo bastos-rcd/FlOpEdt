@@ -2,14 +2,14 @@
   <main class="text-center">
     <h2>{{ $t('department-selection.title') }}</h2>
     <div class="container w-50">
-      <div v-if="deptStore.getAllDepartmentsFetched.length !== 0">
-        <div v-for="department in deptStore.getAllDepartmentsFetched" :key="department.id" class="row mb-1">
+      <div v-if="deptStore.all.length !== 0">
+        <div v-for="department in deptStore.all" :key="department.id" class="row mb-1">
           <router-link
             :to="{
               name: routeNames.home,
               params: { dept: department.abbrev },
             }"
-            @click.native="deptStore.setCurrentDepartment(new Department(department.id, department.abbrev))"
+            @click.native="deptStore.current = new Department(department.id, department.abbrev)"
             class="choices"
           >
             {{ department.abbrev }}

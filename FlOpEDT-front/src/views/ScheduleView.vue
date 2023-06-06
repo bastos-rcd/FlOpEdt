@@ -37,7 +37,7 @@ import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { filter, find } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
-import { useRoomStore } from '@/stores/room'
+import { useRoomStore } from '@/stores/david/room'
 import { Room } from '@/ts/type'
 
 /**

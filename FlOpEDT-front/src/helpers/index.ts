@@ -1,5 +1,5 @@
 import { Department, type Room } from '@/ts/type'
-import { useRoomStore } from '@/stores/room'
+import { useRoomStore } from '@/stores/david/room'
 import { api } from '@/utils/api'
 
 export function convertDecimalTimeToHuman(time: number): string {

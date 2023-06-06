@@ -6,7 +6,7 @@
           :to="{
             name: routeNames.home,
             params: {
-              dept: deptStore.getCurrentDepartment.abbrev,
+              dept: deptStore.current.abbrev,
               locale: locale,
             },
           }"
@@ -14,25 +14,23 @@
         >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/`">{{ $t('navbar.schedule') }}</a>
+        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/`">{{ $t('navbar.schedule') }}</a>
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/semaine-type`">{{
-          $t('navbar.preferences')
-        }}</a>
+        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/semaine-type`">{{ $t('navbar.preferences') }}</a>
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/ics/${deptStore.getCurrentDepartment.abbrev}/`">{{ $t('navbar.iCal') }}</a>
+        <a :href="`/${locale}/ics/${deptStore.current.abbrev}/`">{{ $t('navbar.iCal') }}</a>
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/aide`">{{ $t('navbar.help') }}</a>
+        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/aide`">{{ $t('navbar.help') }}</a>
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
         <router-link
           :to="{
             name: routeNames.contact,
             params: {
-              dept: deptStore.getCurrentDepartment.abbrev,
+              dept: deptStore.current.abbrev,
               locale: locale,
             },
           }"
@@ -40,7 +38,7 @@
         >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/modules`">{{ $t('navbar.modules') }}</a>
+        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/modules`">{{ $t('navbar.modules') }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
         <a :href="`/${locale}/edt/INFO/decale`">{{ $t('navbar.move-cancel') }}</a>
@@ -49,14 +47,10 @@
         <a :href="`/${locale}/cstmanager/manager/`">{{ $t('navbar.constraints') }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/solve-board/${deptStore.getCurrentDepartment.abbrev}/main/`">{{
-          $t('navbar.generate')
-        }}</a>
+        <a :href="`/${locale}/solve-board/${deptStore.current.abbrev}/main/`">{{ $t('navbar.generate') }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/flopeditor/${deptStore.getCurrentDepartment.abbrev}/parameters`">{{
-          $t('navbar.flop-editor')
-        }}</a>
+        <a :href="`/${locale}/flopeditor/${deptStore.current.abbrev}/parameters`">{{ $t('navbar.flop-editor') }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
         <a :href="`/${locale}/configuration/`">{{ $t('navbar.import') }}</a>
