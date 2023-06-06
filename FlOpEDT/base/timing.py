@@ -26,6 +26,7 @@
  ---------------------------
 """
 from datetime import date, time, datetime
+import base.models as bm
 from enum import Enum
 from django.utils.translation import gettext_lazy as _
 
@@ -125,7 +126,7 @@ def time_to_floptime(time_data):
 
 def date_to_flopday(date):
     isocalendar = date.isocalendar()
-    flop_week = Week.objects.get(nb=isocalendar[1], year=isocalendar[0])
+    flop_week = bm.Week.objects.get(nb=isocalendar[1], year=isocalendar[0])
     flop_day = Day.CHOICES[isocalendar[2] - 1][0]
     return Day(week=flop_week, day=flop_day)
 
