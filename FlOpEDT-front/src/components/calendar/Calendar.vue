@@ -13,13 +13,13 @@
         class="glossy"
         color="blue" style="margin: 2px">
         <q-list>
-          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5, 6, 0]">
+          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5, 6, 0]; typeCalendar='week'">
             <q-item-section>
               <q-item-label>Full Week</q-item-label>
             </q-item-section>
           </q-item>
 
-          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5]">
+          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5]; typeCalendar='week'">
             <q-item-section>
               <q-item-label>Monday to Friday</q-item-label>
             </q-item-section>
@@ -29,13 +29,13 @@
             <q-item-section>
               <q-item-label>Select a day</q-item-label>
               <q-btn-group push>
-                <q-btn push label="Monday" @click="weekdays=[1]"/>
-                <q-btn push label="Tuesday" @click="weekdays=[2]"/>
-                <q-btn push label="Wednesday" @click="weekdays=[3]"/>
-                <q-btn push label="Thursday" @click="weekdays=[4]"/>
-                <q-btn push label="Friday" @click="weekdays=[5]"/>
-                <q-btn push label="Saturday" @click="weekdays=[6]"/>
-                <q-btn push label="Sunday" @click="weekdays=[0]"/>
+                <q-btn push label="Monday" @click="weekdays=[1]; typeCalendar='day'"/>
+                <q-btn push label="Tuesday" @click="weekdays=[2]; typeCalendar='day'"/>
+                <q-btn push label="Wednesday" @click="weekdays=[3]; typeCalendar='day'"/>
+                <q-btn push label="Thursday" @click="weekdays=[4]; typeCalendar='day'"/>
+                <q-btn push label="Friday" @click="weekdays=[5]; typeCalendar='day'"/>
+                <q-btn push label="Saturday" @click="weekdays=[6]; typeCalendar='day'"/>
+                <q-btn push label="Sunday" @click="weekdays=[0]; typeCalendar='day'"/>
               </q-btn-group>
             </q-item-section>
           </q-item>
@@ -58,7 +58,8 @@
     <q-calendar-day
       ref="calendar"
       v-model="selectedDate"
-      view="week"
+      :selected-dates="selectedDates"
+      :view="typeCalendar"
       bordered
       hoverable
       transition-next="slide-left"
@@ -160,7 +161,7 @@ import _ from 'lodash'
 import { CalendarColumn, CalendarEvent } from './declaration'
 
 import { Ref, computed, ref } from 'vue'
-import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar } from '@quasar/quasar-ui-qcalendar'
+import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar, getStartOfWeek, parseTimestamp, findWeekday, prevDay, nextDay } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
 /**
@@ -214,6 +215,8 @@ watch(selectedDate, () => {
  * be displayed in a week
  */
 const weekdays = ref<number[]>([1, 2, 3, 4, 5])
+const selectedDates = ref<string[]>([today()])
+const typeCalendar = ref<string>("week")
 const arrayWeekdaysLabel = [
   { value: 1, label: 'Monday' },
   { value: 2, label: 'Tuesday' },
@@ -233,7 +236,34 @@ watch(dayStart, () => {
       else newValue.push(i)
     }
   weekdays.value = newValue
+  if (weekdays.value.length === 1) {
+    typeCalendar.value = "day"
+  } else {
+    typeCalendar.value = "week"
+  }
+  let newSelectedDates = []
+  let now_date = parseTimestamp(selectedDate.value)
+
+  let i = 0
+  while(now_date!.weekday > 1) {
+    now_date = prevDay(now_date as Timestamp)
+    now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
+  }
+  while(newSelectedDates.length < weekdays.value.length) {
+    if (_.includes(weekdays.value, now_date?.weekday)){
+      newSelectedDates.push(now_date?.date)
+    }
+    now_date = nextDay(now_date as Timestamp)
+    now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
+  }
+  selectedDates.value = newSelectedDates as string[]
+  selectedDate.value = selectedDates.value[0]
 })
+
+function putAZero(i: number): string {
+  if (i <= 9) return `0${i}`
+  return `${i}`
+}
 
 // Events send to the qcalendar ordered by their date
 // Their columnIds are changed to merge the same events
