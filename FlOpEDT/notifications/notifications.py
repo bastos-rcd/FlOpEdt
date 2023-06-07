@@ -254,7 +254,7 @@ def send_notifications():
         intro_text = _("Hi ") + student.first_name + ",<br /> <br />"
         intro_text += _("Here are the changes of your planning for the %g following days :") % nb_of_notified_days
         intro_text += "<br /> <br />"
-        groups = student.belong_to.all()
+        groups = student.generic_groups.all()
         department = groups[0].train_prog.department.abbrev
         student_changes = []
         for group in groups:
