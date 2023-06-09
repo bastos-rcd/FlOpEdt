@@ -35,17 +35,6 @@ maximisent la satisfaction générale.
 ## Installation et lancement de l'application
 Voir le wiki du projet [ici](https://framagit.org/flopedt/FlOpEDT/-/wikis/home).
 
-Vous y trouverez une procédure de lancement 
-[via Docker](https://framagit.org/flopedt/FlOpEDT/-/wikis/Installation-en-utilisant-Docker)
-(pour un test ne nécessitant pas d'installation) et le processus
-à suivre pour une [installation de l'application](https://framagit.org/flopedt/FlOpEDT/-/wikis/Installation-Linux-(sans-Docker)).
-
-Vous y trouverez également la documentation pour 
-[déployer l'application sur un serveur](https://framagit.org/flopedt/FlOpEDT/-/wikis/deploiement), 
-et pour [définir votre base de données](https://framagit.org/flopedt/FlOpEDT/-/wikis/import)
-à partir de tableurs à remplir à la main.
-
-
 ## Interface de programmation (API) REST
 Voir [la documentation dédiée](./FlOpEDT/api/README.md)
 
