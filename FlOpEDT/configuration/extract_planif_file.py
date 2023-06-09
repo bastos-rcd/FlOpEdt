@@ -76,6 +76,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
     sheet = book[feuille]
     period=Period.objects.get(name=feuille, department=department)
     Course.objects.filter(type__department=department, week=week, module__period=period).delete()
+    after_type_dependencies = []
     # lookup week column
     wc = 1
     for wr in [1]:
@@ -222,11 +223,9 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                     relevant_groups = set()
                     for g in GROUPS:
                         relevant_groups |= g.ancestor_groups() | {g} | g.descendants_groups()
-                    courses = Course.objects.filter(type__name=course_type, module=MODULE, week=week,
-                                                    groups__in=relevant_groups)
-                    for course in courses[:n]:
-                        P = Dependency(course1=course, course2=C)
-                        P.save()
+                    courses_queryset = Course.objects.filter(type__name=course_type, module=MODULE, week=week,
+                                                             groups__in=relevant_groups).exclude(id=C.id)
+                    after_type_dependencies.append((C.id, courses_queryset, n))
 
                 if 'P' in all_comments:
                     course_additional, created = CourseAdditional.objects.get_or_create(course=C)
@@ -250,6 +249,13 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                 for i in range(N-1):
                     P = Dependency(course1=relevant_courses[i], course2=relevant_courses[i+1], ND=True)
                     P.save()
+
+            # Add after_type dependecies
+            for id, courses_queryset, n in after_type_dependencies:
+                course2 = Course.objects.get(id=id)
+                for course1 in courses_queryset[:n]:
+                        P = Dependency.objects.create(course1=course1, course2=course2)
+
         except Exception as e:
             raise Exception(f"Exception ligne {row}, semaine {week.nb} de {feuille}: {e} \n")
 
