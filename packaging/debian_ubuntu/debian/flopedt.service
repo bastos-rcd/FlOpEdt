@@ -10,3 +10,6 @@ ExecStartPre=+/usr/bin/flop_admin collectstatic --noinput
 ExecStartPre=+/bin/sh -c '/usr/bin/find /var/flopedt/tmp -type f -exec /usr/bin/rm -Rf {} \\;'
 ExecStartPre=+/bin/sh -c '/usr/bin/find /var/flopedt/cache -type f -exec /usr/bin/rm -Rf {} \\;'
 ExecStart=/opt/venvs/flopedt/bin/daphne -v 3 FlOpEDT.asgi:application
+
+[Install]
+WantedBy=multi-user.target
