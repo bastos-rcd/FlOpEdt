@@ -198,7 +198,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "var/static")
 # Folders used to find some additional static files
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 #
@@ -253,6 +252,7 @@ SYSTEM_FLOP_CONFIG_FILE="/etc/flopedt/flopedt.ini"
 STATIC_ROOT="/var/flopedt/static"
 CACHE_DIRECTORY="/var/flopedt/cache"
 TMP_DIRECTORY="/var/flopedt/tmp"
+STORAGE_DIRECTORY="/var/flopedt/storage"
 
 if os.environ.get('FLOP_CONFIG_FILE') is not None:
     if os.path.exists(os.environ.get('FLOP_CONFIG_FILE')):
@@ -294,6 +294,14 @@ except KeyError:
     print("Temp directory not defined in configuration file. Let's fall back to %s" % TMP_DIRECTORY)
     pass
 
+# Define storage configuration
+try:
+    # The directory is available let's set the configuration parameter
+    STORAGE_DIRECTORY=flop_config['flopedt']['storage_directory']
+except KeyError:
+    print("Storage directory not defined in configuration file. Let's fall back to %s" % STORAGE_DIRECTORY)
+    pass
+
 # Define environment variable for GUROBI license
 try:
     if os.path.exists(flop_config['gurobi']['license_file']):
@@ -303,6 +311,10 @@ try:
 except KeyError:
     print("WARNING - GUROBI License is not declared. GUROBI solver won't be available")
     pass
+
+# Define subdirs and other dirs
+MEDIA_ROOT=TMP_DIRECTORY
+CONF_XLS_DIR=os.path.join(STORAGE_DIRECTORY,'configuration')
 
 # Secret Key
 try:

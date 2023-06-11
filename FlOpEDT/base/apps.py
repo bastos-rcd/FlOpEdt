@@ -38,6 +38,13 @@ class BaseConfig(AppConfig):
             # Directory doesn't exist let's create it
             print("Let's create %s" % ds.STATIC_ROOT)
             os.makedirs(ds.STATIC_ROOT,exist_ok=True)
+
+        # Create directory for serving media content in production
+        if not os.path.exists(ds.MEDIA_ROOT):
+        
+            # Directory doesn't exist let's create it
+            print("Let's create %s" % ds.MEDIA_ROOT)
+            os.makedirs(ds.MEDIA_ROOT,exist_ok=True)
         
         # Create directory for django cache
         if not os.path.exists(ds.CACHE_DIRECTORY):
@@ -52,6 +59,19 @@ class BaseConfig(AppConfig):
             # Directory doesn't exist let's create it
             print("Let's create %s" % ds.TMP_DIRECTORY)
             os.makedirs(ds.TMP_DIRECTORY,exist_ok=True)
+
+        # Create storage directory
+        if not os.path.exists(ds.STORAGE_DIRECTORY):
         
-        # Let's create the missing directories
-        os.makedirs(os.path.join(ds.TMP_DIRECTORY,"misc/logs/iis"),exist_ok=True)
+            # Directory doesn't exist let's create it
+            print("Let's create %s" % ds.STORAGE_DIRECTORY)
+            os.makedirs(ds.STORAGE_DIRECTORY,exist_ok=True)
+        
+        # Let's create the missing subdirectories
+        directories_to_create= [ os.path.join(ds.TMP_DIRECTORY,"misc/logs/iis"),os.path.join(ds.STORAGE_DIRECTORY,'configuration') ]
+        for cur_directory in directories_to_create:
+
+            if not os.path.exists(cur_directory):
+                # Directory doesn't exist let's create it
+                print("Let's create %s" % cur_directory)
+                os.makedirs(cur_directory,exist_ok=True)

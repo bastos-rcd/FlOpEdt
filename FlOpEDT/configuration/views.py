@@ -31,7 +31,7 @@ import logging
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.db import transaction
-from django.conf import settings
+from django.conf import settings as ds
 
 from core.decorators import dept_admin_required
 
@@ -113,10 +113,8 @@ def import_config_file(req, **kwargs):
                         extract_database_file(department_name=dept_name,
                                               department_abbrev=dept_abbrev, bookname=path)
                         logger.debug("extract OK")
-
-                        os.rename(path, os.path.join(settings.MEDIA_ROOT,
-                                                     'configuration',
-                                                     f'database_file_{dept_abbrev}.xlsx'))
+                        os.rename(path, os.path.join(ds.CONF_XLS_DIR,
+                                                     'database_file_{dept_abbrev}.xlsx'))
                         logger.warning("rename OK")
                         response = {'status': 'ok',
                                     'data': 'OK',
@@ -129,11 +127,9 @@ def import_config_file(req, **kwargs):
                     response = {'status': 'error', 'data': str(e)}
                     return HttpResponse(json.dumps(response), content_type='application/json')
                 dept = Department.objects.get(abbrev=dept_abbrev)
-                source = os.path.join(settings.MEDIA_ROOT,
-                                      'configuration',
-                                      'empty_planif_file.xlsx')
-                target_repo = os.path.join(settings.MEDIA_ROOT,
-                                           'configuration')
+                source = os.path.join(os.path.dirname(__file__),
+                                      'xls/empty_planif_file.xlsx')
+                target_repo = ds.CONF_XLS_DIR
                 logger.info("start planif")
                 make_planif_file(dept, empty_bookname=source, target_repo=target_repo)
                 logger.info("make planif OK")
@@ -152,7 +148,7 @@ def get_config_file(req, **kwargs):
     :param req:
     :return:
     """
-    f = open(f"{settings.MEDIA_ROOT}/configuration/empty_database_file.xlsx", "rb")
+    f = open(f"{os.path.join(os.path.dirname(__file__))}/xls/empty_database_file.xlsx", "rb")
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename="database_file.xls"'
     f.close()
@@ -168,17 +164,15 @@ def get_planif_file(req, with_courses=False, **kwargs):
     :return:
     """
     logger.debug(req.GET['departement'])
-    filename = os.path.join(settings.MEDIA_ROOT,
-                             'configuration',
+    filename = os.path.join(ds.CONF_XLS_DIR,
                              f"planif_file_{req.GET['departement']}")
     if with_courses:
         filename += '_with_courses'
     filename += ".xlsx"
 
     if not os.path.exists(filename):
-        filename = os.path.join(settings.MEDIA_ROOT,
-                                'configuration',
-                                f"empty_planif_file.xlsx")
+        filename = os.path.join(os.path.join(os.path.dirname(__file__)),
+                                "xls/empty_planif_file.xlsx")
     f = open(filename, "rb")
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename="planif_file.xlsx"'
@@ -195,15 +189,13 @@ def get_filled_database_file(req, **kwargs):
     """
     logger.debug(req.GET['departement'])
     basic_filename = f"database_file_{req.GET['departement']}"
-    filename = os.path.join(settings.MEDIA_ROOT,
-                             'configuration',
+    filename = os.path.join(ds.CONF_XLS_DIR,
                              basic_filename)
     filename += ".xlsx"
 
     if not os.path.exists(filename):
-        filename = os.path.join(settings.MEDIA_ROOT,
-                                'configuration',
-                                f"empty_database_file.xlsx")
+        filename = os.path.join(os.path.dirname(__file__),
+                                "xls/empty_database_file.xlsx")
     f = open(filename, "rb")
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename="planif_file.xlsx"'
@@ -216,11 +208,9 @@ def mk_and_dl_planif(req, with_courses, **kwargs):
     logger.debug(req.GET['departement'])
     dept_abbrev = req.GET['departement']
     dept = Department.objects.get(abbrev=dept_abbrev)
-    source = os.path.join(settings.MEDIA_ROOT,
-                          'configuration',
-                          'empty_planif_file.xlsx')
-    target_repo = os.path.join(settings.MEDIA_ROOT,
-                               'configuration')
+    source = os.path.join(os.path.dirname(__file__),
+                          'xls/empty_planif_file.xlsx')
+    target_repo = os.path.join(ds.CONF_XLS_DIR)
     logger.info("start planif")
     make_planif_file(dept, empty_bookname=source, target_repo=target_repo, with_courses=with_courses)
     return get_planif_file(req, with_courses, **kwargs)
@@ -249,7 +239,7 @@ def import_planif_file(req, **kwargs):
     if form.is_valid():
         if check_ext_file(req.FILES['fichier'], ['.xlsx', '.xls']):
             logger.info(req.FILES['fichier'])
-            path = upload_file(req.FILES['fichier'], "configuration/planif_file_.xlsx")
+            path = upload_file(req.FILES['fichier'], "planif_file_.xlsx")
             # If one of methods fail, the transaction will be not commit.
             try:
                 with transaction.atomic():
@@ -295,7 +285,7 @@ def import_planif_file(req, **kwargs):
                     logger.info("Extract file OK")
                     rep = "OK !"
 
-                    os.rename(path, f"{settings.MEDIA_ROOT}/configuration/planif_file.xlsx")
+                    os.rename(path, f"{ds.CONF_XLS_DIR}/planif_file.xlsx")
                     logger.info("Rename OK")
 
                     response = {'status': 'ok', 'data': rep}

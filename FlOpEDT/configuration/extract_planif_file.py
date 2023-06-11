@@ -39,6 +39,7 @@ from TTapp.models import StabilizationThroughWeeks
 
 from django.db import transaction
 from django.db.models import Q
+from django.conf import settings as ds
 
 def do_assign(module, course_type, week, book):
     already_done = ModuleTutorRepartition.objects.filter(module=module, course_type=course_type,
@@ -308,7 +309,7 @@ def extract_planif(department, bookname=None, stabilize_courses=False, year=actu
     Generate the courses from bookname; the school year starts in actual_year
     '''
     if bookname is None:
-        bookname = 'media/configuration/planif_file_'+department.abbrev+'.xlsx'
+        bookname = os.path.join(ds.MEDIA_ROOT,'media/configuration/planif_file_'+department.abbrev+'.xlsx')
     book = load_workbook(filename=bookname, data_only=True)
     periods = define_periods(department, book, periods)
     for period in periods:
@@ -321,7 +322,7 @@ def extract_planif(department, bookname=None, stabilize_courses=False, year=actu
 @transaction.atomic
 def extract_planif_weeks(week_year_list, department, bookname=None, periods = None):
     if bookname is None:
-        bookname = 'media/configuration/planif_file_'+department.abbrev+'.xlsx'
+        bookname = os.path.join(ds.MEDIA_ROOT,'media/configuration/planif_file_'+department.abbrev+'.xlsx')
     book = load_workbook(filename=bookname, data_only=True)
     periods = define_periods(department, book, periods)
     for period in periods:

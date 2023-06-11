@@ -51,7 +51,7 @@ case "$1" in
 	chown -R root:flopedt /var/flopedt/static
 	chown -R flopedt:flopedt /var/flopedt/cache
 	chown -R flopedt:flopedt /var/flopedt/tmp
-	
+	chown -R flopedt:flopedt /var/flopedt/storage
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
