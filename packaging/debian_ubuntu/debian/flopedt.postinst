@@ -11,7 +11,7 @@ set -e
 #
 #   dh_venv_package         Name of the Debian package
 #   dh_venv_install_dir     Root directory for the installed virtualenv
-
+#
 case "$1" in
     configure)
 	# create user to avoid running server as root
@@ -44,6 +44,20 @@ case "$1" in
 	chmod 0750 /etc/flopedt
 	chmod 0640 /etc/flopedt/flopedt.ini
 	chown -R root:flopedt /etc/flopedt
+
+	# Create directories
+	for cur_dir in "/var/flopedt/tmp" \
+		"/var/flopedt/cache" \
+		"/var/flopedt/tmp/misc/logs/solutions" \
+		"/var/flopedt/tmp/misc/logs/iis" \
+		"/var/flopedt/static" \
+		"/var/flopedt/storage/configuration"
+	do
+	        if ! [ -d ${cur_dir} ]
+	        then
+	                mkdir -p ${cur_dir}
+	        fi
+	done
 
 	# 5. fix rights for /var/flop directory for cache and static content
 	find /var/flopedt -type d -exec chmod 0755 {} \;

@@ -38,13 +38,6 @@ override_dh_auto_install:
 	sed -i 's/\(^setenv VIRTUAL_ENV \).*/\1\"\/opt\/venvs\/flopedt\/"/' debian/flopedt/opt/venvs/flopedt/bin/activate.csh
 	sed -i 's/\(^set -gx VIRTUAL_ENV \).*/\1\"\/opt\/venvs\/flopedt\"/' debian/flopedt/opt/venvs/flopedt/bin/activate.fish
 
-	# Create directories
-	mkdir -p debian/flopedt/var/flopedt/cache
-	mkdir -p debian/flopedt/var/flopedt/tmp/misc/logs/solutions
-	mkdir -p debian/flopedt/var/flopedt/tmp/misc/logs/iis
-	mkdir -p debian/flopedt/var/flopedt/static
-	mkdir -p debian/flopedt/var/flopedt/storage/configuration
-
 	# Install GUROBI C libs
 	install -d debian/flopedt/usr/lib/
 	cp -a gurobi1001/linux64/lib/libgurobi.so.10.0.1 debian/flopedt/usr/lib/
