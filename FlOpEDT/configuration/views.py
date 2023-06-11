@@ -165,18 +165,20 @@ def get_planif_file(req, with_courses=False, **kwargs):
     """
     logger.debug(req.GET['departement'])
     dept_abbrev = req.GET['departement']
-    filename = os.path.join(ds.CONF_XLS_DIR,
-                            f"planif_file_{dept_abbrev}")
+    basic_filename =  f"planif_file_{dept_abbrev}"
     if with_courses:
-        filename += '_with_courses'
-    filename += ".xlsx"
+        basic_filename += '_with_courses'
+    basic_filename += ".xlsx"
+    filename = os.path.join(ds.CONF_XLS_DIR,
+                            basic_filename)
 
     if not os.path.exists(filename):
+        basic_filename = "empty_planif_file.xlsx"
         filename = os.path.join(os.path.join(os.path.dirname(__file__)),
-                                "xls/empty_planif_file.xlsx")
+                                f"xls/{basic_filename}")
     f = open(filename, "rb")
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response['Content-Disposition'] = f'attachment; filename="{basic_filename}"'
     f.close()
     return response
 
@@ -189,17 +191,17 @@ def get_filled_database_file(req, **kwargs):
     :return:
     """
     logger.debug(req.GET['departement'])
-    basic_filename = f"database_file_{req.GET['departement']}"
+    basic_filename = f"database_file_{req.GET['departement']}.xlsx"
     filename = os.path.join(ds.CONF_XLS_DIR,
                              basic_filename)
-    filename += ".xlsx"
 
     if not os.path.exists(filename):
+        basic_filename = "empty_database_file.xlsx"
         filename = os.path.join(os.path.dirname(__file__),
-                                "xls/empty_database_file.xlsx")
+                                f"xls/{basic_filename}")
     f = open(filename, "rb")
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = f'attachment; filename={filename}'
+    response['Content-Disposition'] = f'attachment; filename={basic_filename}'
     f.close()
     return response
 
