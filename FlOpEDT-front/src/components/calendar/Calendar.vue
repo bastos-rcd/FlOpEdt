@@ -116,13 +116,13 @@
               @dragover="onDragOver($event, event.data.dataType, { timeDurationHeight, timestamp: event.data.start })"
             >
               <div
-                v-for="data in event.displayData"
+                v-for="span in event.span"
                 :key="event.id"
                 class="my-event"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
-                :style="badgeStyles(event, data, timeStartPos, timeDurationHeight)"
+                :style="badgeStyles(event, span, timeStartPos, timeDurationHeight)"
               >
-                <slot v-if="columnsToDisplay.find((c) => c.id === data.columnId)" name="event" :event="event">
+                <slot name="event" :event="event">
                   <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
                     {{ event.title }}
                   </span>
@@ -158,7 +158,7 @@ import '@quasar/extras/material-icons'
 
 import _ from 'lodash'
 
-import { CalendarColumn, CalendarEvent } from './declaration'
+import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 
 import { Ref, computed, ref } from 'vue'
 import {
@@ -187,13 +187,13 @@ import { availabilityData } from './declaration'
  * *  the totalWeight is the total of each columns weight
  */
 const props = defineProps<{
-  events: CalendarEvent[]
+  events: InputCalendarEvent[]
   columns: CalendarColumn[]
 }>()
 
 const emits = defineEmits<{
   (e: 'dragstart', id: number): void
-  (e: 'update:events', value: CalendarEvent[]): void
+  (e: 'update:events', value: InputCalendarEvent[]): void
   (e: 'update:week', value: Timestamp): void
   (e: 'weekdays', value: number[]): void
 }>()
@@ -283,43 +283,66 @@ const eventsByDate = computed(() => {
   const map: Record<string, CalendarEvent[]> = {}
   // Copy of events
   let newEvents: CalendarEvent[] = []
-  let i = 0
   // Dict of column ids keys to their index
   let columnIndexes: Record<number, number> = {}
-  columnsToDisplay.value.forEach((c) => {
+  columnsToDisplay.value.forEach((c, i) => {
     columnIndexes[c.id] = i
-    i++
   })
   props.events.forEach((event) => {
     let newEvent = _.cloneDeep(event)
+    let columnIds = newEvent.columnIds
+
+    // availability column
     if (newEvent.data.dataType === 'avail') {
-      newEvent.displayData[0].columnId = (_.maxBy(props.columns, 'id')?.id as number) + 1
+      if (columnIds.length != 1) {
+        console.log('WARNING: Availability events are supposed to span over a single column')
+      }
+      columnIds = [(_.maxBy(props.columns, 'id')?.id as number) + 1]
       newEvent.bgcolor = availabilityData.color[newEvent.data.value?.toString() || '0']
       newEvent.icon = availabilityData.icon[newEvent.data.value?.toString() || '0']
     }
-    let newDisplayData = _.cloneDeep(newEvent.displayData)
-    newEvent.displayData.forEach((dd) => {
-      if (!(dd.columnId in columnIndexes)) {
-        _.remove(newDisplayData, (disD) => {
-          return disD.columnId === dd.columnId && disD.weight === dd.weight
-        })
+
+    // filter out absent columns
+    _.remove(columnIds, (colId) => !(colId in columnIndexes))
+
+    // merge columns
+    columnIds = _.sortBy(columnIds, (colId) => columnIndexes[colId])
+
+    const span: Array<{ istart: number; weight: number; columnIds: number[] }> = []
+    if (columnIds.length > 0) {
+      let currentSlice = {
+        istart: columnIndexes[columnIds[0]],
+        weight: 0,
+        iend: columnIndexes[columnIds[0]],
+        columnIds: [] as number[],
       }
-    })
-    newEvent.displayData = newDisplayData
-    i = newEvent.displayData.length - 1
-    while (i > 0) {
-      if (
-        Math.abs(
-          columnIndexes[newEvent.displayData[i].columnId] - columnIndexes[newEvent.displayData[i - 1].columnId]
-        ) === 1
-      ) {
-        newEvent.displayData[i - 1].weight += newEvent.displayData[i].weight
-        _.pullAt(newEvent.displayData, i)
-      }
-      i = i - 1
+      _.forEach(columnIds, (colId, i) => {
+        let colProps = _.find(columnsToDisplay.value, (col) => col.id == colId) as CalendarColumn
+        if (columnIndexes[colId] == currentSlice.iend) {
+          currentSlice.weight += colProps.weight
+          currentSlice.iend = columnIndexes[colId] + 1
+          currentSlice.columnIds.push(colId)
+        } else {
+          span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
+          currentSlice = {
+            istart: columnIndexes[colId],
+            weight: colProps.weight,
+            iend: columnIndexes[colId] + 1,
+            columnIds: [colId],
+          }
+        }
+      })
+      span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
     }
-    newEvents.push(newEvent)
+
+    const cnewEvent = newEvent as any
+    delete cnewEvent.columnIds
+    cnewEvent.span = span
+
+    newEvents.push(cnewEvent as CalendarEvent)
   })
+
+  // sort by date
   newEvents.forEach((event) => {
     if (!map[event.data.start.date]) {
       map[event.data.start.date] = []
@@ -363,13 +386,13 @@ function badgeClasses(type: 'event' | 'dropzone' | 'header' | 'avail', bgcolor?:
 }
 function badgeStyles(
   event: CalendarEvent,
-  displayData: { columnId: number; weight: number },
+  span: { istart: number; weight: number; columnIds: number[] },
   timeStartPos: any = undefined,
   timeDurationHeight: any = undefined
 ) {
-  const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
-  if (!currentColumn) return undefined
-  const preceedingWeight = preWeight.value[displayData.columnId]
+  // const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
+  // if (!currentColumn) return undefined
+  const preceedingWeight = preWeight.value[columnsToDisplay.value[span.istart].id]
 
   const s: Record<string, string> = {
     top: '',
@@ -380,8 +403,8 @@ function badgeStyles(
   }
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.data?.start) + 'px'
-    s.left = Math.round((preWeight.value[displayData.columnId] / totalWeight.value) * 100) + '%'
-    s.width = Math.round((100 * displayData.weight) / totalWeight.value) + '%'
+    s.left = Math.round((preceedingWeight / totalWeight.value) * 100) + '%'
+    s.width = Math.round((100 * span.weight) / totalWeight.value) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
   if (event.data.dataType === 'dropzone') {
@@ -426,7 +449,7 @@ const eventsModel = computed({
   get() {
     return props.events
   },
-  set(value: CalendarEvent[]) {
+  set(value: InputCalendarEvent[]) {
     emits('update:events', value)
   },
 })
@@ -434,7 +457,7 @@ const eventsModel = computed({
 /**
  * Only returns the dropZone with the same ID as the event dragged
  */
-const dropZoneToDisplay = computed((): CalendarEvent[] | undefined => {
+const dropZoneToDisplay = computed((): InputCalendarEvent[] | undefined => {
   return _.filter(
     props.events,
     (e) =>
@@ -564,7 +587,9 @@ function updateEventDropped(): void {
     console.log("I don't know what happened: Maybe it was an availability")
     return
   }
-  let newEvent: CalendarEvent = _.cloneDeep(props.events.find((e) => eventDragged.value?.id === e.id) as CalendarEvent)
+  let newEvent: InputCalendarEvent = _.cloneDeep(
+    props.events.find((e) => eventDragged.value?.id === e.id) as InputCalendarEvent
+  )
   if (dropZoneToDisplay.value) {
     dropZoneToDisplay.value.forEach((cdze) => {
       if (cdze.toggled) {
@@ -574,8 +599,8 @@ function updateEventDropped(): void {
   } else {
     console.log('NO DROPZONE FOR THIS EVENT OU ERREUR DE DROPZONE')
   }
-  let newEvents: CalendarEvent[] = _.cloneDeep(props.events)
-  _.remove(newEvents, (e: CalendarEvent) => {
+  let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
+  _.remove(newEvents, (e: InputCalendarEvent) => {
     return e.id === newEvent.id
   })
   newEvents.push(newEvent)
