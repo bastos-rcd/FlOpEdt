@@ -161,7 +161,18 @@ import _ from 'lodash'
 import { CalendarColumn, CalendarEvent } from './declaration'
 
 import { Ref, computed, ref } from 'vue'
-import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar, getStartOfWeek, parseTimestamp, findWeekday, prevDay, nextDay } from '@quasar/quasar-ui-qcalendar'
+import {
+  TimestampOrNull,
+  Timestamp,
+  parsed,
+  updateWorkWeek,
+  QCalendar,
+  getStartOfWeek,
+  parseTimestamp,
+  findWeekday,
+  prevDay,
+  nextDay,
+} from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
 /**
@@ -184,7 +195,7 @@ const emits = defineEmits<{
   (e: 'dragstart', id: number): void
   (e: 'update:events', value: CalendarEvent[]): void
   (e: 'update:week', value: Timestamp): void
-  (e: 'weekdays', value: number[]) : void
+  (e: 'weekdays', value: number[]): void
 }>()
 
 const preWeight = computed(() => {
@@ -216,7 +227,7 @@ watch(selectedDate, () => {
  */
 const weekdays = ref<number[]>([1, 2, 3, 4, 5])
 const selectedDates = ref<string[]>([today()])
-const typeCalendar = ref<string>("week")
+const typeCalendar = ref<string>('week')
 const arrayWeekdaysLabel = [
   { value: 1, label: 'Monday' },
   { value: 2, label: 'Tuesday' },
@@ -226,31 +237,31 @@ const arrayWeekdaysLabel = [
   { value: 6, label: 'Saturday' },
   { value: 7, label: 'Sunday' },
 ]
-const dayStart = ref<{min : number, max: number}>()
+const dayStart = ref<{ min: number; max: number }>()
 
 watch(dayStart, () => {
   let newValue: number[] = []
   if (dayStart.value)
-    for(let i = dayStart.value?.min; i <= dayStart.value?.max; i++) {
+    for (let i = dayStart.value?.min; i <= dayStart.value?.max; i++) {
       if (i === 7) newValue.push(0)
       else newValue.push(i)
     }
   weekdays.value = newValue
   if (weekdays.value.length === 1) {
-    typeCalendar.value = "day"
+    typeCalendar.value = 'day'
   } else {
-    typeCalendar.value = "week"
+    typeCalendar.value = 'week'
   }
   let newSelectedDates = []
   let now_date = parseTimestamp(selectedDate.value)
 
   let i = 0
-  while(now_date!.weekday > 1) {
+  while (now_date!.weekday > 1) {
     now_date = prevDay(now_date as Timestamp)
     now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
   }
-  while(newSelectedDates.length < weekdays.value.length) {
-    if (_.includes(weekdays.value, now_date?.weekday)){
+  while (newSelectedDates.length < weekdays.value.length) {
+    if (_.includes(weekdays.value, now_date?.weekday)) {
       newSelectedDates.push(now_date?.date)
     }
     now_date = nextDay(now_date as Timestamp)
@@ -315,7 +326,7 @@ const eventsByDate = computed(() => {
     }
     map[event.data.start.date].push(event)
   })
-  console.log("map :", map)
+  // console.log('map :', map)
   return map
 })
 
