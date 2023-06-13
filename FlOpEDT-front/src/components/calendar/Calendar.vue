@@ -9,17 +9,15 @@
       <q-btn color="orange" no-caps class="glossy" style="margin: 2px" @click="showAvailabilities = !showAvailabilities">
         Show Availabilities
       </q-btn>
-      <q-btn-dropdown
-        class="glossy"
-        color="blue" style="margin: 2px">
+      <q-btn-dropdown class="glossy" color="blue" style="margin: 2px">
         <q-list>
-          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5, 6, 0]; typeCalendar='week'">
+          <q-item clickable v-close-popup @click=";[weekdays, typeCalendar] = [[1, 2, 3, 4, 5, 6, 0], 'week']">
             <q-item-section>
               <q-item-label>Full Week</q-item-label>
             </q-item-section>
           </q-item>
 
-          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5]; typeCalendar='week'">
+          <q-item clickable v-close-popup @click=";[weekdays, typeCalendar] = [[1, 2, 3, 4, 5], 'week']">
             <q-item-section>
               <q-item-label>Monday to Friday</q-item-label>
             </q-item-section>
@@ -29,25 +27,20 @@
             <q-item-section>
               <q-item-label>Select a day</q-item-label>
               <q-btn-group push>
-                <q-btn push label="Monday" @click="weekdays=[1]; typeCalendar='day'"/>
-                <q-btn push label="Tuesday" @click="weekdays=[2]; typeCalendar='day'"/>
-                <q-btn push label="Wednesday" @click="weekdays=[3]; typeCalendar='day'"/>
-                <q-btn push label="Thursday" @click="weekdays=[4]; typeCalendar='day'"/>
-                <q-btn push label="Friday" @click="weekdays=[5]; typeCalendar='day'"/>
-                <q-btn push label="Saturday" @click="weekdays=[6]; typeCalendar='day'"/>
-                <q-btn push label="Sunday" @click="weekdays=[0]; typeCalendar='day'"/>
+                <q-btn push label="Monday" @click=";[weekdays, typeCalendar] = [[1], 'day']" />
+                <q-btn push label="Tuesday" @click=";[weekdays, typeCalendar] = [[2], 'day']" />
+                <q-btn push label="Wednesday" @click=";[weekdays, typeCalendar] = [[3], 'day']" />
+                <q-btn push label="Thursday" @click=";[weekdays, typeCalendar] = [[4], 'day']" />
+                <q-btn push label="Friday" @click=";[weekdays, typeCalendar] = [[5], 'day']" />
+                <q-btn push label="Saturday" @click=";[weekdays, typeCalendar] = [[6], 'day']" />
+                <q-btn push label="Sunday" @click=";[weekdays, typeCalendar] = [[0], 'day']" />
               </q-btn-group>
             </q-item-section>
           </q-item>
           <q-item v-close-popup>
             <q-item-section>
               <q-item-label>Select a day</q-item-label>
-              <q-range
-                :marker-labels="arrayWeekdaysLabel"
-                :min="1"
-                :max="7"
-                label-always
-                v-model="dayStart"/>
+              <q-range :marker-labels="arrayWeekdaysLabel" :min="1" :max="7" label-always v-model="dayStart" />
             </q-item-section>
           </q-item>
         </q-list>
