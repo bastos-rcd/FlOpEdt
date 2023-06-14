@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarColumn, CalendarEvent } from '@/components/calendar/declaration'
+import { CalendarColumn, CalendarEvent, InputCalendarEvent } from '@/components/calendar/declaration'
 import HierarchicalColumnFilter from '@/components/hierarchicalFilter/HierarchicalColumnFilter.vue'
 import Calendar from '@/components/calendar/Calendar.vue'
 import { computed, onBeforeMount, ref, watch, watchEffect } from 'vue'
@@ -43,7 +43,7 @@ import { Room } from '@/ts/type'
 /**
  * Data translated to be passed to components
  */
-const calendarEvents = ref<CalendarEvent[]>([])
+const calendarEvents = ref<InputCalendarEvent[]>([])
 const activeIds = ref<Array<number>>([])
 const flatNodes = computed(() => {
   return groups.value
@@ -80,12 +80,12 @@ watchEffect(() => {
         parsed(s.start_time.toString().substring(0, 10) + ' ' + s.start_time.toString().substring(11))
       )
       timeS.date = timeS.date.substring(0, 10)
-      const currentEvent: CalendarEvent = {
+      const currentEvent: InputCalendarEvent = {
         id: id++,
         title: s.course.type.name,
         toggled: !selectedRoom.value || s.room?.id === selectedRoom.value.id,
         bgcolor: s.course.module.display.color_bg,
-        displayData: [],
+        columnIds: [],
         data: {
           dataId: s.id,
           dataType: 'event',
@@ -97,13 +97,13 @@ watchEffect(() => {
         const currentGroup = groups.value.find((g) => g.id === courseGroup.id)
         if (currentGroup) {
           currentGroup.columnIds.forEach((cI) => {
-            currentEvent.displayData.push({ columnId: cI, weight: 1 })
+            currentEvent.columnIds.push(cI)
           })
         }
       })
       return currentEvent
     })
-    .filter((ce) => ce.displayData.length > 0)
+    .filter((ce) => ce.columnIds.length > 0)
 })
 
 const currentScheduledCourseId = ref<number | null>(null)
