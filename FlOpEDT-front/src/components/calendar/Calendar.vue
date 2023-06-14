@@ -6,9 +6,6 @@
       <q-btn no-caps class="button" style="margin: 2px" @click="onNext"> Next &gt; </q-btn>
     </div>
     <div class="q-pa-md q-gutter-sm row">
-      <q-btn color="orange" no-caps class="glossy" style="margin: 2px" @click="showAvailabilities = !showAvailabilities">
-        Show Availabilities
-      </q-btn>
       <q-btn-dropdown class="glossy" color="blue" style="margin: 2px">
         <q-list>
           <q-item clickable v-close-popup @click=";[weekdays, typeCalendar] = [[1, 2, 3, 4, 5, 6, 0], 'week']">
@@ -69,7 +66,7 @@
     >
       <template #head-day-event="{ scope: { timestamp } }">
         <div style="display: flex">
-          <template v-for="column in columnsToDisplay" :key="column.name">
+          <template v-for="column in props.columns" :key="column.id">
             <div
               :class="badgeClasses('header')"
               style="
@@ -194,7 +191,7 @@ const emits = defineEmits<{
 const preWeight = computed(() => {
   const map: Record<number, number> = {}
   let preceeding = 0
-  _.forEach(columnsToDisplay.value, (col: CalendarColumn) => {
+  _.forEach(props.columns, (col: CalendarColumn) => {
     map[col.id] = preceeding
     preceeding += col.weight
   })
@@ -207,7 +204,6 @@ const preWeight = computed(() => {
  * * Functions to compute the style to render for each event
  */
 const selectedDate = ref<string>(today())
-const showAvailabilities = ref<boolean>(false)
 
 watch(selectedDate, () => {
   console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
@@ -278,7 +274,7 @@ const eventsByDate = computed(() => {
   let newEvents: CalendarEvent[] = []
   // Dict of column ids keys to their index
   let columnIndexes: Record<number, number> = {}
-  columnsToDisplay.value.forEach((c, i) => {
+  _.forEach(props.columns, (c, i) => {
     columnIndexes[c.id] = i
   })
   props.events.forEach((event) => {
@@ -287,10 +283,6 @@ const eventsByDate = computed(() => {
 
     // availability column
     if (newEvent.data.dataType === 'avail') {
-      if (columnIds.length != 1) {
-        console.log('WARNING: Availability events are supposed to span over a single column')
-      }
-      columnIds = [(_.maxBy(props.columns, 'id')?.id as number) + 1]
       newEvent.bgcolor = availabilityData.color[newEvent.data.value?.toString() || '0']
       newEvent.icon = availabilityData.icon[newEvent.data.value?.toString() || '0']
     }
@@ -310,7 +302,7 @@ const eventsByDate = computed(() => {
         columnIds: [] as number[],
       }
       _.forEach(columnIds, (colId, i) => {
-        let colProps = _.find(columnsToDisplay.value, (col) => col.id == colId) as CalendarColumn
+        let colProps = _.find(props.columns, (col) => col.id == colId) as CalendarColumn
         if (columnIndexes[colId] == currentSlice.iend) {
           currentSlice.weight += colProps.weight
           currentSlice.iend = columnIndexes[colId] + 1
@@ -346,19 +338,7 @@ const eventsByDate = computed(() => {
   return map
 })
 
-const columnsToDisplay = computed((): CalendarColumn[] => {
-  if (showAvailabilities.value) {
-    // TODO: Which component is responsible for columns IDs ?
-    const availColumn: CalendarColumn = { id: (_.maxBy(props.columns, 'id')?.id as number) + 1, name: 'Av.', weight: 1 }
-    return _.union(props.columns, [availColumn])
-  }
-  return props.columns
-})
-
 const totalWeight = computed(() => {
-  if (columnsToDisplay.value !== undefined) {
-    return _.sumBy(columnsToDisplay.value, (c: CalendarColumn) => c.weight)
-  }
   return _.sumBy(props.columns, (c: CalendarColumn) => c.weight)
 })
 
@@ -385,7 +365,7 @@ function badgeStyles(
 ) {
   // const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
   // if (!currentColumn) return undefined
-  const preceedingWeight = preWeight.value[columnsToDisplay.value[span.istart].id]
+  const preceedingWeight = preWeight.value[props.columns[span.istart].id]
 
   const s: Record<string, string> = {
     top: '',
