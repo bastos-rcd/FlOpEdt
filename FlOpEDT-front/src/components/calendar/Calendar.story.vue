@@ -1,18 +1,24 @@
 <template>
   <Story>
     <Variant title="Use case 1">
-      <Calendar :columns="useCase1.columns" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
+      <Calendar :columns="useCase1.columns.value" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
     </Variant>
     <Variant title="Use case 2">
       <Calendar
-        :columns="useCase2.columns"
+        :columns="useCase2.columns.value"
         v-model:events="useCase2.events.value"
         @dragstart="onDragStart"
         @weekdays="(wd) => (weekdays = wd)"
       />
     </Variant>
     <Variant title="Use case 3">
-      <Calendar :columns="useCase3.columns" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
+      <Calendar :columns="useCase3.columns.value" v-model:events="useCase3.events.value" @dragstart="onDragStart" />
+    </Variant>
+    <Variant title="Availabilities">
+      <q-btn color="orange" no-caps class="glossy" style="margin: 2px" @click="toggleAvailabilities()">
+        Show Availabilities
+      </q-btn>
+      <Calendar :columns="useCase4.columns.value" v-model:events="useCase4.events.value" @dragstart="onDragStart" />
     </Variant>
   </Story>
 </template>
@@ -69,12 +75,12 @@ function createDZ(
 }
 
 interface UseCase {
-  columns: CalendarColumn[]
+  columns: Ref<CalendarColumn[]>
   events: Ref<InputCalendarEvent[]>
 }
 
 const useCase2: UseCase = {
-  columns: [
+  columns: ref([
     {
       id: 0,
       name: 'TD1',
@@ -95,7 +101,7 @@ const useCase2: UseCase = {
       name: 'TP32',
       weight: 1,
     },
-  ],
+  ]),
   events: ref<InputCalendarEvent[]>([
     {
       id: 1,
@@ -241,181 +247,8 @@ dzs = _.concat(
 
 useCase2.events.value = _.concat(useCase2.events.value, dzs)
 
-let nextEventId = (_.maxBy(useCase2.events.value, (event) => event.id)?.id as number) + 1
-
-useCase2.events.value = _.concat(useCase2.events.value, [
-  {
-    id: nextEventId++,
-    title: '1',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(0, '07:00'),
-      duration: 150,
-      value: 0,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '1',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(0, '09:30'),
-      duration: 90,
-      value: 4,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '1',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(0, '11:00'),
-      duration: 60,
-      value: 6,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '1',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(0, '12:00'),
-      duration: 120,
-      value: 0,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '1',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(0, '14:00'),
-      duration: 60,
-      value: 7,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '1',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(0, '15:00'),
-      duration: 60,
-      value: 3,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '1',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(0, '16:00'),
-      duration: 180,
-      value: 1,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '1',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(1, '12:00'),
-      duration: 120,
-      value: 0,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '1',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(1, '07:00'),
-      duration: 300,
-      value: 1,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '2',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(1, '14:00'),
-      duration: 300,
-      value: 2,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '3',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(3, '11:30'),
-      duration: 450,
-      value: 3,
-    },
-  },
-  {
-    id: nextEventId++,
-    title: '8',
-    toggled: true,
-    bgcolor: '',
-    columnIds: [-1],
-    data: {
-      dataId: 69,
-      dataType: 'avail',
-      start: shiftInCurrentWeek(4, '07:00'),
-      duration: 720,
-      value: 8,
-    },
-  },
-])
-
 const useCase1: UseCase = {
-  columns: [
+  columns: ref([
     {
       id: 0,
       name: 'TPA',
@@ -441,7 +274,7 @@ const useCase1: UseCase = {
       name: 'GIM2',
       weight: 3,
     },
-  ],
+  ]),
   events: ref<InputCalendarEvent[]>([
     {
       id: 1,
@@ -600,7 +433,7 @@ function onDragStart(eventId: number) {
 }
 
 const useCase3: UseCase = {
-  columns: [
+  columns: ref([
     {
       id: 0,
       name: 'TPA',
@@ -626,9 +459,202 @@ const useCase3: UseCase = {
       name: 'GIM2',
       weight: 3,
     },
-  ],
+  ]),
   events: useCase2.events,
 }
+
+const useCase4: UseCase = {
+  columns: ref(useCase2.columns.value),
+  events: ref(useCase2.events.value),
+}
+// _.cloneDeep(useCase2)
+
+let nextEventId = (_.maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1
+
+const availabilityColumn = {
+  id: 4,
+  name: 'av',
+  weight: 1,
+}
+
+function toggleAvailabilities() {
+  console.log('toggle')
+  const excluded = _.remove(useCase4.columns.value, (c) => c.id == availabilityColumn.id)
+  if (excluded.length == 0) {
+    useCase4.columns.value.push(availabilityColumn)
+  }
+}
+
+useCase4.events.value = _.concat(useCase4.events.value, [
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '07:00'),
+      duration: 150,
+      value: 0,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '09:30'),
+      duration: 90,
+      value: 4,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '11:00'),
+      duration: 60,
+      value: 6,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '12:00'),
+      duration: 120,
+      value: 0,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '14:00'),
+      duration: 60,
+      value: 7,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '15:00'),
+      duration: 60,
+      value: 3,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '16:00'),
+      duration: 180,
+      value: 1,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(1, '12:00'),
+      duration: 120,
+      value: 0,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(1, '07:00'),
+      duration: 300,
+      value: 1,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '2',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(1, '14:00'),
+      duration: 300,
+      value: 2,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '3',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(3, '11:30'),
+      duration: 450,
+      value: 3,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '8',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(4, '07:00'),
+      duration: 720,
+      value: 8,
+    },
+  },
+])
 </script>
 
 <docs lang="md">
