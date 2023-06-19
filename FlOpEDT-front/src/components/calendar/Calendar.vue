@@ -5,27 +5,61 @@
       <q-btn no-caps class="button" style="margin: 2px" @click="onPrev"> &lt; Prev </q-btn>
       <q-btn no-caps class="button" style="margin: 2px" @click="onNext"> Next &gt; </q-btn>
     </div>
+    <div class="q-pa-md q-gutter-sm row">
+      <q-btn color="orange" no-caps class="glossy" style="margin: 2px" @click="showAvailabilities = !showAvailabilities">
+        Show Availabilities
+      </q-btn>
+      <q-btn-dropdown
+        class="glossy"
+        color="blue" style="margin: 2px">
+        <q-list>
+          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5, 6, 0]; typeCalendar='week'">
+            <q-item-section>
+              <q-item-label>Full Week</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5]; typeCalendar='week'">
+            <q-item-section>
+              <q-item-label>Monday to Friday</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item v-close-popup>
+            <q-item-section>
+              <q-item-label>Select a day</q-item-label>
+              <q-btn-group push>
+                <q-btn push label="Monday" @click="weekdays=[1]; typeCalendar='day'"/>
+                <q-btn push label="Tuesday" @click="weekdays=[2]; typeCalendar='day'"/>
+                <q-btn push label="Wednesday" @click="weekdays=[3]; typeCalendar='day'"/>
+                <q-btn push label="Thursday" @click="weekdays=[4]; typeCalendar='day'"/>
+                <q-btn push label="Friday" @click="weekdays=[5]; typeCalendar='day'"/>
+                <q-btn push label="Saturday" @click="weekdays=[6]; typeCalendar='day'"/>
+                <q-btn push label="Sunday" @click="weekdays=[0]; typeCalendar='day'"/>
+              </q-btn-group>
+            </q-item-section>
+          </q-item>
+          <q-item v-close-popup>
+            <q-item-section>
+              <q-item-label>Select a day</q-item-label>
+              <q-range
+                :marker-labels="arrayWeekdaysLabel"
+                :min="1"
+                :max="7"
+                label-always
+                v-model="dayStart"/>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+    </div>
   </div>
   <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
-    <!-- <div style="display: flex">
-      <template v-for="column in props.columns" :key="column.name">
-        <div
-              :class="badgeClasses('header')"
-              style="cursor: pointer;height: 12px;font-size: 10px;margin-bottom: 1px;margin-top: 1px;border-color: 1px solid black;color: black;"
-              :style="{
-                'flex-basis': Math.round((100 * column.weight) / totalWeight) + '%',
-                'align-items': 'center',
-              }"
-              @click="toggleActive(column.id)"
-            >
-              {{ column.name }}
-        </div>
-      </template>
-    </div> -->
     <q-calendar-day
       ref="calendar"
       v-model="selectedDate"
-      view="week"
+      :selected-dates="selectedDates"
+      :view="typeCalendar"
       bordered
       hoverable
       transition-next="slide-left"
@@ -34,7 +68,7 @@
       :interval-start="6"
       :interval-count="18"
       :interval-height="28"
-      :weekdays="[1, 2, 3, 4, 5]"
+      :weekdays="weekdays"
       :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
       :drag-leave-func="onDragLeave"
@@ -42,7 +76,7 @@
     >
       <template #head-day-event="{ scope: { timestamp } }">
         <div style="display: flex">
-          <template v-for="column in props.columns" :key="column.name">
+          <template v-for="column in columnsToDisplay" :key="column.name">
             <div
               :class="badgeClasses('header')"
               style="
@@ -56,7 +90,7 @@
               "
               :style="{
                 'flex-basis': Math.round((100 * column.weight) / totalWeight) + '%',
-                'align-items': 'center',
+                'text-align': 'center',
               }"
             >
               {{ column.name }}
@@ -68,56 +102,40 @@
       <template #day-body="{ scope: { timestamp, timeStartPos, timeDurationHeight } }">
         <!-- events to display -->
         <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
-          <template v-if="event.data.duration !== undefined">
+          <template
+            v-if="
+              event.data.duration !== undefined &&
+              (event.data.dataType === 'event' ||
+                event.data.dataType === 'avail' ||
+                (isDragging && event.data.dataId === eventDragged?.data.dataId))
+            "
+          >
             <div
               draggable="true"
               @dragstart="onDragStart($event, event)"
-              @dragover="onDragOver($event, 'event', { timeDurationHeight, timestamp: event.data.start })"
+              @dragover="onDragOver($event, event.data.dataType, { timeDurationHeight, timestamp: event.data.start })"
             >
               <div
-                v-for="columnId in event.columnIds"
-                :key="event.id + '_' + columnId"
+                v-for="data in event.displayData"
+                :key="event.id"
                 class="my-event"
-                :class="badgeClasses('event', event.bgcolor)"
-                :style="badgeStyles(event, columnId, timeStartPos, timeDurationHeight)"
+                :class="badgeClasses(event.data.dataType, event.bgcolor)"
+                :style="badgeStyles(event, data, timeStartPos, timeDurationHeight)"
               >
-                <slot v-if="props.columns.find((c) => c.id === columnId)" name="event" :event="event">
-                  <span class="title q-calendar__ellipsis">
+                <slot v-if="columnsToDisplay.find((c) => c.id === data.columnId)" name="event" :event="event">
+                  <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
                     {{ event.title }}
                   </span>
+                  <div
+                    v-else
+                    style="width: 100%; height: 100%; align-items: center; display: flex; justify-content: center"
+                  >
+                    <q-icon color="black" :name="event.icon" size="xs" />
+                  </div>
                 </slot>
               </div>
             </div>
           </template>
-        </template>
-
-        <!-- drop zone events to display -->
-        <template
-          v-if="
-            dropZoneToDisplay &&
-            isDragging &&
-            dropZoneToDisplay.eventId !== -1 &&
-            dropZoneToDisplay.possibleStarts[timestamp.date]
-          "
-          v-for="ts in dropZoneToDisplay.possibleStarts[timestamp.date]"
-          :key="dropzoneEvents.eventId + '_' + timestamp.date + '_' + ts"
-        >
-          <div
-            v-for="columnId in dropZoneToDisplay.columnIds"
-            :key="dropZoneToDisplay.eventId + '_' + timestamp.date + '_' + ts.timeStart + '_' + columnId"
-            class="my-dropzone my-event"
-            :class="badgeClasses('dropzoneevent')"
-            :style="
-              badgeStyles(
-                {
-                  data: { start: ts.timeStart, duration: dropZoneToDisplay.duration, dataId: 0, dataType: 'dropzone' },
-                },
-                columnId,
-                timeStartPos,
-                timeDurationHeight
-              )
-            "
-          ></div>
         </template>
       </template>
     </q-calendar-day>
@@ -125,7 +143,7 @@
 </template>
 
 <script setup lang="ts">
-import { addToDate, parseTimestamp, today } from '@quasar/quasar-ui-qcalendar/src/index.js'
+import { today } from '@quasar/quasar-ui-qcalendar/src/index.js'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
@@ -136,14 +154,16 @@ import {
   parseTime,
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
+import '@quasar/extras/material-icons'
 
 import _ from 'lodash'
 
-import { CalendarColumn, CalendarEvent, CalendarDropzoneEvent } from './declaration'
+import { CalendarColumn, CalendarEvent } from './declaration'
 
 import { Ref, computed, ref } from 'vue'
-import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar } from '@quasar/quasar-ui-qcalendar'
+import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar, getStartOfWeek, parseTimestamp, findWeekday, prevDay, nextDay } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
+import { availabilityData } from './declaration'
 /**
  * Calendar component handling the display of a week with
  * events data in it.
@@ -158,21 +178,19 @@ import { watch } from 'vue'
 const props = defineProps<{
   events: CalendarEvent[]
   columns: CalendarColumn[]
-  dropzoneEvents?: CalendarDropzoneEvent[]
 }>()
 
 const emits = defineEmits<{
   (e: 'dragstart', id: number): void
   (e: 'update:events', value: CalendarEvent[]): void
   (e: 'update:week', value: Timestamp): void
+  (e: 'weekdays', value: number[]) : void
 }>()
-
-const totalWeight = computed(() => _.sumBy(props.columns, (c: CalendarColumn) => c.weight))
 
 const preWeight = computed(() => {
   const map: Record<number, number> = {}
   let preceeding = 0
-  _.forEach(props.columns, (col: CalendarColumn) => {
+  _.forEach(columnsToDisplay.value, (col: CalendarColumn) => {
     map[col.id] = preceeding
     preceeding += col.weight
   })
@@ -185,70 +203,180 @@ const preWeight = computed(() => {
  * * Functions to compute the style to render for each event
  */
 const selectedDate = ref<string>(today())
+const showAvailabilities = ref<boolean>(false)
 
 watch(selectedDate, () => {
   console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
   emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
 })
 
-const eventsByDate = computed(() => {
-  const map: Record<string, any[]> = {}
+/**
+ * Time and date data defining which days will
+ * be displayed in a week
+ */
+const weekdays = ref<number[]>([1, 2, 3, 4, 5])
+const selectedDates = ref<string[]>([today()])
+const typeCalendar = ref<string>("week")
+const arrayWeekdaysLabel = [
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
+  { value: 7, label: 'Sunday' },
+]
+const dayStart = ref<{min : number, max: number}>()
 
+watch(dayStart, () => {
+  let newValue: number[] = []
+  if (dayStart.value)
+    for(let i = dayStart.value?.min; i <= dayStart.value?.max; i++) {
+      if (i === 7) newValue.push(0)
+      else newValue.push(i)
+    }
+  weekdays.value = newValue
+  if (weekdays.value.length === 1) {
+    typeCalendar.value = "day"
+  } else {
+    typeCalendar.value = "week"
+  }
+  let newSelectedDates = []
+  let now_date = parseTimestamp(selectedDate.value)
+
+  let i = 0
+  while(now_date!.weekday > 1) {
+    now_date = prevDay(now_date as Timestamp)
+    now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
+  }
+  while(newSelectedDates.length < weekdays.value.length) {
+    if (_.includes(weekdays.value, now_date?.weekday)){
+      newSelectedDates.push(now_date?.date)
+    }
+    now_date = nextDay(now_date as Timestamp)
+    now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
+  }
+  selectedDates.value = newSelectedDates as string[]
+  selectedDate.value = selectedDates.value[0]
+})
+
+function putAZero(i: number): string {
+  if (i <= 9) return `0${i}`
+  return `${i}`
+}
+
+// Events send to the qcalendar ordered by their date
+// Their columnIds are changed to merge the same events
+// occuring on different columns
+const eventsByDate = computed(() => {
+  const map: Record<string, CalendarEvent[]> = {}
+  // Copy of events
+  let newEvents: CalendarEvent[] = []
+  let i = 0
+  // Dict of column ids keys to their index
+  let columnIndexes: Record<number, number> = {}
+  columnsToDisplay.value.forEach((c) => {
+    columnIndexes[c.id] = i
+    i++
+  })
   props.events.forEach((event) => {
+    let newEvent = _.cloneDeep(event)
+    if (newEvent.data.dataType === 'avail') {
+      newEvent.displayData[0].columnId = (_.maxBy(props.columns, 'id')?.id as number) + 1
+      newEvent.bgcolor = availabilityData.color[newEvent.data.value?.toString() || '0']
+      newEvent.icon = availabilityData.icon[newEvent.data.value?.toString() || '0']
+    }
+    let newDisplayData = _.cloneDeep(newEvent.displayData)
+    newEvent.displayData.forEach((dd) => {
+      if (!(dd.columnId in columnIndexes)) {
+        _.remove(newDisplayData, (disD) => {
+          return disD.columnId === dd.columnId && disD.weight === dd.weight
+        })
+      }
+    })
+    newEvent.displayData = newDisplayData
+    i = newEvent.displayData.length - 1
+    while (i > 0) {
+      if (
+        Math.abs(
+          columnIndexes[newEvent.displayData[i].columnId] - columnIndexes[newEvent.displayData[i - 1].columnId]
+        ) === 1
+      ) {
+        newEvent.displayData[i - 1].weight += newEvent.displayData[i].weight
+        _.pullAt(newEvent.displayData, i)
+      }
+      i = i - 1
+    }
+    newEvents.push(newEvent)
+  })
+  newEvents.forEach((event) => {
     if (!map[event.data.start.date]) {
       map[event.data.start.date] = []
     }
     map[event.data.start.date].push(event)
-    if (event.data.days) {
-      let timestamp = parseTimestamp(event.data.start.date)
-      let days = event.data.days
-      do {
-        timestamp = addToDate(timestamp, { day: 1 })
-        if (!map[timestamp.date]) {
-          map[timestamp.date] = []
-        }
-        map[timestamp.date].push(event)
-      } while (--days > 0)
-    }
   })
+  console.log("map :", map)
   return map
 })
 
-function badgeClasses(type: 'event' | 'dropzoneevent' | 'header', bgcolor?: string) {
+const columnsToDisplay = computed((): CalendarColumn[] => {
+  if (showAvailabilities.value) {
+    // TODO: Which component is responsible for columns IDs ?
+    const availColumn: CalendarColumn = { id: (_.maxBy(props.columns, 'id')?.id as number) + 1, name: 'Av.', weight: 1 }
+    return _.union(props.columns, [availColumn])
+  }
+  return props.columns
+})
+
+const totalWeight = computed(() => {
+  if (columnsToDisplay.value !== undefined) {
+    return _.sumBy(columnsToDisplay.value, (c: CalendarColumn) => c.weight)
+  }
+  return _.sumBy(props.columns, (c: CalendarColumn) => c.weight)
+})
+
+function badgeClasses(type: 'event' | 'dropzone' | 'header' | 'avail', bgcolor?: string, toggled?: boolean) {
   switch (type) {
     case 'event':
       return {
         [`text-white bg-${bgcolor}`]: true,
         'rounded-border': true,
       }
-    case 'dropzoneevent':
-      return 'border-dashed'
+    case 'dropzone':
+      return 'my-dropzone border-dashed'
     case 'header':
       return {}
+    case 'avail':
+      return { 'rounded-border': true }
   }
 }
 function badgeStyles(
-  event: Partial<CalendarEvent>,
-  columnId: number,
+  event: CalendarEvent,
+  displayData: { columnId: number; weight: number },
   timeStartPos: any = undefined,
   timeDurationHeight: any = undefined
 ) {
-  const currentGroup = props.columns.find((c) => c.id === columnId)
-
-  if (!currentGroup) return undefined
-
-  const preceedingWeight = preWeight.value[columnId]
+  const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
+  if (!currentColumn) return undefined
+  const preceedingWeight = preWeight.value[displayData.columnId]
 
   const s: Record<string, string> = {
     top: '',
     height: '',
-    'background-color': event.bgcolor || 'transparent',
+  }
+  if (!event.toggled) {
+    s['opacity'] = '0.5'
   }
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.data?.start) + 'px'
-    s.left = Math.round((preWeight.value[columnId] / totalWeight.value) * 100) + '%'
-    s.width = Math.round((100 * currentGroup.weight) / totalWeight.value) + '%'
+    s.left = Math.round((preWeight.value[displayData.columnId] / totalWeight.value) * 100) + '%'
+    s.width = Math.round((100 * displayData.weight) / totalWeight.value) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
+  }
+  if (event.data.dataType === 'dropzone') {
+    s['background-color'] = 'transparent'
+  } else {
+    s['background-color'] = event.bgcolor
   }
   if (
     event.data?.dataType === 'dropzone' &&
@@ -295,13 +423,14 @@ const eventsModel = computed({
 /**
  * Only returns the dropZone with the same ID as the event dragged
  */
-const dropZoneToDisplay = computed((): CalendarDropzoneEvent | undefined => {
-  if (isDragging.value) {
-    return _.find(props.dropzoneEvents, (dp) => {
-      return dp.eventId === eventDragged.value?.data.dataId
-    })
-  }
-  return { eventId: -1, duration: 0, columnIds: [], possibleStarts: {} }
+const dropZoneToDisplay = computed((): CalendarEvent[] | undefined => {
+  return _.filter(
+    props.events,
+    (e) =>
+      e.data.dataType === 'dropzone' &&
+      currentTime.value?.date === e.data.start.date &&
+      eventDragged.value?.data.dataId === e.data.dataId
+  )
 })
 
 /**
@@ -310,32 +439,19 @@ const dropZoneToDisplay = computed((): CalendarDropzoneEvent | undefined => {
  */
 const closestStartTime = computed(() => {
   let closest: string = ''
-  if (!currentTime.value || !props.dropzoneEvents || !dropZoneToDisplay.value || dropZoneToDisplay.value.eventId === -1)
-    return closest
+  if (!currentTime.value || !dropZoneToDisplay.value || dropZoneToDisplay.value.length < 1) return closest
   let i = 0
   let timeDiff: number = 0
-  while (i < dropZoneToDisplay.value.possibleStarts[currentTime.value.date]?.length) {
+  while (i < dropZoneToDisplay.value.length) {
     let currentDiff: number = 0
     if (i === 0) {
-      timeDiff = Math.abs(
-        diffTimestamp(
-          dropZoneToDisplay.value.possibleStarts[currentTime.value.date][i].timeStart,
-          currentTime.value,
-          false
-        )
-      )
-      closest = dropZoneToDisplay.value.possibleStarts[currentTime.value.date][i].timeStart.time
+      timeDiff = Math.abs(diffTimestamp(dropZoneToDisplay.value[i].data.start, currentTime.value, false))
+      closest = dropZoneToDisplay.value[i].data.start.time
     } else {
-      currentDiff = Math.abs(
-        diffTimestamp(
-          dropZoneToDisplay.value.possibleStarts[currentTime.value.date][i].timeStart,
-          currentTime.value,
-          false
-        )
-      )
+      currentDiff = Math.abs(diffTimestamp(dropZoneToDisplay.value[i].data.start, currentTime.value, false))
       if (timeDiff > currentDiff) {
         timeDiff = currentDiff
-        closest = dropZoneToDisplay.value.possibleStarts[currentTime.value.date][i].timeStart.time
+        closest = dropZoneToDisplay.value[i].data.start.time
       }
     }
     i = i + 1
@@ -351,12 +467,12 @@ const closestStartTime = computed(() => {
  * @param dateTime The date referring to the day in which we are
  */
 function dropZoneCloseUpdate(dateTime: Timestamp): void {
-  if (!dropZoneToDisplay.value || dropZoneToDisplay.value.eventId === -1) return
-  dropZoneToDisplay.value.possibleStarts[dateTime.date]?.forEach((ts: { isClose: boolean; timeStart: Timestamp }) => {
-    if (ts.timeStart.time === closestStartTime.value) {
-      ts.isClose = true
+  if (!dropZoneToDisplay.value || dropZoneToDisplay.value.length < 1) return
+  dropZoneToDisplay.value.forEach((cdze) => {
+    if (cdze.data.start.time === closestStartTime.value && cdze.data.start.date == dateTime.date) {
+      cdze.toggled = true
     } else {
-      ts.isClose = false
+      cdze.toggled = false
     }
   })
 }
@@ -433,25 +549,23 @@ function updateEventDropped(): void {
     console.log('ERREUR CURRENT TIME')
     return
   }
-  if (!eventDragged.value) {
-    console.log("I don't know what happened: I lost the dragged event")
+  if (!eventDragged.value || eventDragged.value.data.dataType !== 'event') {
+    console.log("I don't know what happened: Maybe it was an availability")
     return
   }
-  let newEvent: CalendarEvent = _.cloneDeep(eventDragged.value)
-  if (dropZoneToDisplay.value && dropZoneToDisplay.value.eventId === newEvent.data.dataId) {
-    dropZoneToDisplay.value.possibleStarts[currentTime.value.date]?.forEach(
-      (ps: { isClose: boolean; timeStart: Timestamp }) => {
-        if (ps.isClose) {
-          newEvent.data.start = copyTimestamp(ps.timeStart)
-        }
+  let newEvent: CalendarEvent = _.cloneDeep(props.events.find((e) => eventDragged.value?.id === e.id) as CalendarEvent)
+  if (dropZoneToDisplay.value) {
+    dropZoneToDisplay.value.forEach((cdze) => {
+      if (cdze.toggled) {
+        newEvent.data.start = copyTimestamp(cdze.data.start)
       }
-    )
+    })
   } else {
     console.log('NO DROPZONE FOR THIS EVENT OU ERREUR DE DROPZONE')
   }
   let newEvents: CalendarEvent[] = _.cloneDeep(props.events)
   _.remove(newEvents, (e: CalendarEvent) => {
-    return e.data.dataId === newEvent.data.dataId
+    return e.id === newEvent.id
   })
   newEvents.push(newEvent)
   eventsModel.value = newEvents

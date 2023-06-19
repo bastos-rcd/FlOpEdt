@@ -1,6 +1,6 @@
 <template>
   <Story>
-    <Variant title="Use case 1">
+    <Variant title="Test with Filter">
       <div>
         <div class="filters">
           <FilterSelector
@@ -13,6 +13,9 @@
           <p><q-badge v-for="r in roomsSelected" rounded color="red" :label="r.name" /></p>
         </div>
       </div>
+      <ScheduleView />
+    </Variant>
+    <Variant title="Use case">
       <ScheduleView />
     </Variant>
   </Story>
@@ -204,10 +207,10 @@ Si modification :
 - 2 -> 8 dispos salles (résa + salles partagées + )
 - 9 contraintes start_time
 
-
 cours dans un autre dépt
 
 ## TODO :
+
 ```ts
 Room {
   id: number
@@ -235,7 +238,7 @@ Group {
 //   tutorId: number
 //   suppTutorIds: number[]
 //   moduleId: number
-//  
+//
 // }
 
 // Gathers Course and ScheduledCourse from the back
@@ -264,8 +267,7 @@ lastname: string
 }
 ```
 
-
-Nouvelle entrée pour les modules: Rajouter les IDs 
+Nouvelle entrée pour les modules: Rajouter les IDs
 
 ```ts
 Module

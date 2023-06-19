@@ -2,7 +2,7 @@
   <section>
     <h1>{{ $t('home.welcome') }}</h1>
     <div v-if="deptStore.isCurrentDepartmentSelected">
-      <p>{{ $t('home.department-message') }} {{ deptStore.getCurrentDepartment.abbrev }}</p>
+      <p>{{ $t('home.department-message') }} {{ deptStore.current.abbrev }}</p>
       <button @click="deptStore.cleanCurrentDepartment()">{{ $t('home.department-button-change') }}</button>
     </div>
     <DepartmentSelection v-else />

@@ -1,4 +1,4 @@
-import { MappableToIdArray } from '@/stores/store'
+import { MappableToIdArray } from '@/stores/david/store'
 
 export class Course {
   id: number
@@ -202,7 +202,10 @@ export interface UserD {
 }
 
 export interface Group {
-  pouet: string
+  id: number
+  name: string
+  columnIds: number[]
+  parentsId: number[]
 }
 export interface Module {
   tut: string

@@ -77,7 +77,7 @@ router.beforeEach(async (to, from, next) => {
   const { availableLocales, locale } = i18n.global
   const deptStore = useDepartmentStore()
   const authStore = useAuth()
-  if (deptStore.getCurrentDepartment.id === -1) deptStore.getDepartmentFromURL(to.fullPath)
+  if (deptStore.current.id === -1) deptStore.getDepartmentFromURL(to.fullPath)
 
   if (!authStore.isUserFetchTried) await authStore.fetchAuthUser()
 
@@ -90,7 +90,7 @@ router.beforeEach(async (to, from, next) => {
     })
   })
   if (to.meta.needsAuth && !authStore.isUserAuthenticated) {
-    next({ path: `/login/${deptStore.getCurrentDepartment.abbrev}`, query: { redirect: to.fullPath } })
+    next({ path: `/login/${deptStore.current.abbrev}`, query: { redirect: to.fullPath } })
   } else {
     next()
   }

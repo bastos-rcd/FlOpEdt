@@ -1,21 +1,10 @@
 import {
-  ReservationPeriodicity,
-  ReservationPeriodicityByMonth,
-  ReservationPeriodicityByMonthXChoice,
-  ReservationPeriodicityByWeek,
-  ReservationPeriodicityEachMonthSameDate,
-  ReservationPeriodicityType,
   Room,
   Department,
-  WeekDay,
   User,
-  BooleanRoomAttributeValue,
   Course,
   CourseType,
-  NumericRoomAttributeValue,
   RoomAttribute,
-  RoomReservation,
-  RoomReservationType,
   ScheduledCourse,
   TimeSettings,
   Group,
@@ -153,61 +142,14 @@ export interface FlopAPI {
   getTutorById(id: number): Promise<User>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
-    booleanRoomAttributeValues(): Promise<Array<BooleanRoomAttributeValue>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
     courseTypes(params: { department: string }): Promise<Array<CourseType>>
     numericRoomAttributes(): Promise<Array<RoomAttribute>>
-    numericRoomAttributeValues(): Promise<Array<NumericRoomAttributeValue>>
-    reservationPeriodicities(): Promise<Array<ReservationPeriodicity>>
-    reservationPeriodicity(id: number): Promise<ReservationPeriodicity>
-    reservationPeriodicityByMonthXChoices(): Promise<Array<ReservationPeriodicityByMonthXChoice>>
-    reservationPeriodicityTypes(): Promise<Array<ReservationPeriodicityType>>
     room(id: number): Promise<Room>
     rooms(params: { department: string }): Promise<Array<Room>>
-    roomReservations(params: {
-      week?: number
-      year?: number
-      roomId?: number
-      periodicityId?: number
-    }): Promise<Array<RoomReservation>>
-    roomReservationTypes(): Promise<Array<RoomReservationType>>
     scheduledCourses(params: { week?: number; year?: number; department?: string }): Promise<Array<ScheduledCourse>>
     timeSettings(): Promise<Array<TimeSettings>>
     users(): Promise<Array<User>>
-    weekdays(params: { week: number; year: number }): Promise<Array<WeekDay>>
-  }
-  put: {
-    roomReservation(value: RoomReservation): Promise<RoomReservation>
-    reservationPeriodicityByMonth(value: ReservationPeriodicityByMonth): Promise<ReservationPeriodicityByMonth>
-    reservationPeriodicityByWeek(value: ReservationPeriodicityByWeek): Promise<ReservationPeriodicityByWeek>
-    reservationPeriodicityEachMonthSameDate(
-      value: ReservationPeriodicityEachMonthSameDate
-    ): Promise<ReservationPeriodicityEachMonthSameDate>
-  }
-  post: {
-    roomReservation(value: RoomReservation): Promise<RoomReservation>
-    reservationPeriodicityByMonth(value: ReservationPeriodicityByMonth): Promise<ReservationPeriodicityByMonth>
-    reservationPeriodicityByWeek(value: ReservationPeriodicityByWeek): Promise<ReservationPeriodicityByWeek>
-    reservationPeriodicityEachMonthSameDate(
-      value: ReservationPeriodicityEachMonthSameDate
-    ): Promise<ReservationPeriodicityEachMonthSameDate>
-  }
-  patch: {
-    reservationPeriodicityByMonth(
-      id: number,
-      params: { start?: string; end?: string }
-    ): Promise<ReservationPeriodicityByMonth>
-    reservationPeriodicityByWeek(
-      id: number,
-      params: { start?: string; end?: string }
-    ): Promise<ReservationPeriodicityByWeek>
-    reservationPeriodicityEachMonthSameDate(
-      id: number,
-      params: {
-        start?: string
-        end?: string
-      }
-    ): Promise<ReservationPeriodicityEachMonthSameDate>
   }
   delete: {
     reservationPeriodicity(id: number): Promise<unknown>
@@ -392,9 +334,6 @@ const api: FlopAPI = {
     booleanRoomAttributes() {
       return fetcher(urls.booleanroomattributes)
     },
-    booleanRoomAttributeValues() {
-      return fetcher(urls.booleanroomattributevalues)
-    },
     courses(params: { week?: number; year?: number; department?: string }) {
       return fetcher2(urls.courses, params, [['department', 'dept']])
     },
@@ -404,35 +343,11 @@ const api: FlopAPI = {
     numericRoomAttributes() {
       return fetcher(urls.numericroomattributes)
     },
-    numericRoomAttributeValues() {
-      return fetcher(urls.numericroomattributevalues)
-    },
-    reservationPeriodicities() {
-      return fetcher(urls.reservationperiodicity)
-    },
-    reservationPeriodicity(periodicityId: number): Promise<ReservationPeriodicity> {
-      return fetcher(urls.reservationperiodicity, { id: periodicityId })
-    },
-    reservationPeriodicityByMonthXChoices() {
-      return fetcher(urls.reservationperiodicitybymonthxchoice)
-    },
-    reservationPeriodicityTypes() {
-      return fetcher(urls.reservationperiodicitytype)
-    },
     room(id: number, additionalParams?: object) {
       return fetcher(buildUrl(urls.rooms, id.toString()), additionalParams)
     },
     rooms(params: { department?: string }) {
       return fetcher(urls.rooms, params, [['department', 'dept']])
-    },
-    roomReservations(params: { week?: number; year?: number; roomId?: number; periodicityId?: number }) {
-      return fetcher(urls.roomreservation, params, [
-        ['roomId', 'room'],
-        ['periodicityId', 'periodicity'],
-      ])
-    },
-    roomReservationTypes() {
-      return fetcher(urls.roomreservationtype)
     },
     scheduledCourses(params: { week?: number; year?: number; department?: string }) {
       return fetcher(urls.scheduledcourses, params)
@@ -442,52 +357,6 @@ const api: FlopAPI = {
     },
     users() {
       return fetcher(urls.users)
-    },
-    weekdays(params: { week: number; year: number }) {
-      return fetcher(urls.weekdays, params)
-    },
-  },
-  put: {
-    roomReservation(value: RoomReservation) {
-      return putData<RoomReservation>(urls.roomreservation, value.id, value)
-    },
-    reservationPeriodicityByMonth(value: ReservationPeriodicityByMonth) {
-      return putData<ReservationPeriodicityByMonth>(urls.reservationperiodicitybymonth, value.id, value)
-    },
-    reservationPeriodicityByWeek(value: ReservationPeriodicityByWeek) {
-      return putData<ReservationPeriodicityByWeek>(urls.reservationperiodicitybyweek, value.id, value)
-    },
-    reservationPeriodicityEachMonthSameDate(value: ReservationPeriodicityEachMonthSameDate) {
-      return putData<ReservationPeriodicityEachMonthSameDate>(
-        urls.reservationperiodicityeachmonthsamedate,
-        value.id,
-        value
-      )
-    },
-  },
-  post: {
-    roomReservation(value: RoomReservation) {
-      return postData(urls.roomreservation, value)
-    },
-    reservationPeriodicityByMonth(value: ReservationPeriodicityByMonth) {
-      return postData<ReservationPeriodicityByMonth>(urls.reservationperiodicitybymonth, value)
-    },
-    reservationPeriodicityByWeek(value: ReservationPeriodicityByWeek) {
-      return postData<ReservationPeriodicityByWeek>(urls.reservationperiodicitybyweek, value)
-    },
-    reservationPeriodicityEachMonthSameDate(value: ReservationPeriodicityEachMonthSameDate) {
-      return postData<ReservationPeriodicityEachMonthSameDate>(urls.reservationperiodicityeachmonthsamedate, value)
-    },
-  },
-  patch: {
-    reservationPeriodicityByMonth(id: number, params: { start?: string; end?: string }) {
-      return patchData(urls.reservationperiodicitybymonth, id, params)
-    },
-    reservationPeriodicityByWeek(id: number, params: { start?: string; end?: string }) {
-      return patchData(urls.reservationperiodicitybyweek, id, params)
-    },
-    reservationPeriodicityEachMonthSameDate(id: number, params: { start?: string; end?: string }) {
-      return patchData(urls.reservationperiodicityeachmonthsamedate, id, params)
     },
   },
   delete: {

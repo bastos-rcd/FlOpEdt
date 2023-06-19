@@ -1,6 +1,7 @@
 import { CalendarColumn } from '@/components/calendar/declaration'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useGroupStore } from '@/stores/timetable/group'
 
 /**
  * This store is a work in progress,
@@ -9,88 +10,18 @@ import { ref } from 'vue'
  * This store is not related to the scheduledCourse
  */
 export const useColumnStore = defineStore('column', () => {
-  const columns = ref<CalendarColumn[]>([
-    {
-      id: 422,
-      name: 'BUT1',
-      weight: 1,
-    },
-    {
-      id: 24,
-      name: '1B',
-      weight: 1,
-    },
-    {
-      id: 25,
-      name: '2A',
-      weight: 1,
-    },
-    {
-      id: 26,
-      name: '2B',
-      weight: 1,
-    },
-    {
-      id: 27,
-      name: '3A',
-      weight: 1,
-    },
-    {
-      id: 28,
-      name: '3B',
-      weight: 1,
-    },
-    {
-      id: 29,
-      name: '4A',
-      weight: 1,
-    },
-    {
-      id: 30,
-      name: '4B',
-      weight: 1,
-    },
-    /*     {
-        "id": 36,
-        "name": "1A",
-        "weight": 1
-    },
-    {
-        "id": 37,
-        "name": "1B",
-        "weight": 1
-    },
-    {
-        "id": 38,
-        "name": "2A",
-        "weight": 1
-    },
-    {
-        "id": 39,
-        "name": "2B",
-        "weight": 1
-    },
-    {
-        "id": 40,
-        "name": "3A",
-        "weight": 1
-    },
-    {
-        "id": 41,
-        "name": "3B",
-        "weight": 1
-    },
-    {
-        "id": 35,
-        "name": "4",
-        "weight": 1
-    },
-    {
-        "id": 43,
-        "name": "LP",
-        "weight": 1
-    } */
-  ])
+  const groupStore = useGroupStore()
+
+  const columns = computed(() => {
+    //const totalWeight = groups.value.filter(g => g.columnIds.length === 1).length
+    let columns: CalendarColumn[] = []
+    groupStore.groups.forEach((g) => {
+      if (g.columnIds.length === 1) {
+        columns.push({ id: g.id, name: g.name, weight: 1 })
+      }
+    })
+    return columns
+  })
 
   return {
     columns,
