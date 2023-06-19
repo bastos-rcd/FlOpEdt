@@ -81,4 +81,3 @@ export interface TrainingProgramme {
   abbrev: string
   departmentId: number
 }
-

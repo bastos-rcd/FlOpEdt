@@ -48,9 +48,7 @@ export const useCase: UseCase = {
       bgcolor: 'red',
       icon: 'fas fa-handshake',
 
-      span: [
-        { istart: 2, columnIds: [2, 3], weight: 2 },
-      ],
+      span: [{ istart: 2, columnIds: [2, 3], weight: 2 }],
 
       data: {
         dataId: 3,
@@ -65,9 +63,7 @@ export const useCase: UseCase = {
       toggled: true,
       bgcolor: 'teal',
       icon: 'fas fa-hamburger',
-      span: [
-        { istart: 0, columnIds: [0, 1, 2, 3], weight: 6 },
-      ],
+      span: [{ istart: 0, columnIds: [0, 1, 2, 3], weight: 6 }],
       data: {
         dataId: 4,
         dataType: 'event',
@@ -75,5 +71,5 @@ export const useCase: UseCase = {
         duration: 120,
       },
     },
-  ])
+  ]),
 }

@@ -317,7 +317,7 @@ const eventsByDate = computed(() => {
       })
       span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
     }
-    
+
     // Created as InputCalendarEvent
     const cnewEvent = newEvent as any
     // Changing properties to convert to an CalendarEvent
