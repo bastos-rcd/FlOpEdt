@@ -23,7 +23,7 @@ export const useTutorStore = defineStore('tutor', () => {
     })
   }
 
-  async function fetchTutorById(tutorId: number) {
+  async function fetchTutorById(tutorId: number): Promise<void> {
     await api.getTutorById(tutorId).then((value: User) => {
       tutors.value.push(value)
       isAllTutorsFetched.value = true
