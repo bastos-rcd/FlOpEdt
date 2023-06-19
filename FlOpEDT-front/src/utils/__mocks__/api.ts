@@ -1,5 +1,4 @@
 import {
-  Room,
   Department,
   User,
   Course,
@@ -10,6 +9,7 @@ import {
   Group,
   Module,
 } from '@/ts/type'
+import type { Room } from '@/stores/declarations'
 
 const API_ENDPOINT = '/fr/api/'
 

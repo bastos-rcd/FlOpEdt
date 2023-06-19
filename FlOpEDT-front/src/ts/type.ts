@@ -105,15 +105,6 @@ export interface RoomAPI {
   basic_rooms: Array<{ id: number; name: string }>
 }
 
-export interface Room {
-  departments: Array<Department>
-  id: number
-  name: string
-  subroom_of: MappableToIdArray<Room>
-  is_basic: boolean
-  basic_rooms: Array<{ id: number; name: string }>
-}
-
 export interface RoomAttribute {
   id: number
   name: string

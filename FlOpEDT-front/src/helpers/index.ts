@@ -1,4 +1,5 @@
-import { Department, type Room } from '@/ts/type'
+import { Department } from '@/ts/type'
+import { Room } from '@/stores/declarations'
 import { useRoomStore } from '@/stores/timetable/room'
 import { api } from '@/utils/api'
 
@@ -86,11 +87,11 @@ export function filterBySelectedDepartments<T>(
 export function isRoomInSelectedDepartments(roomId: number, departments: Array<Department>): boolean {
   const roomStore = useRoomStore()
   let inDept = false
-  const room = roomStore.rooms.find((r: Room) => r.id === roomId)
+  const room: Room = roomStore.getRoomById(roomId) as unknown as Room
   if (room)
-    room.departments.forEach((roomDept: Department) => {
+    room.departmentIds.forEach((roomDeptId: number) => {
       departments.forEach((dept) => {
-        if (dept.id === roomDept.id) {
+        if (dept.id === roomDeptId) {
           inDept = true
         }
       })
@@ -134,18 +135,6 @@ export function deleteReservationPeriodicity(periodicityId: number): Promise<unk
   return api.delete.reservationPeriodicity(periodicityId)
 }
 
-export function isRoomSelected(roomId: number, selectedRoom: Room | undefined): boolean {
-  const roomStore = useRoomStore()
-  if (selectedRoom) {
-    // Return false if the course's sub rooms are not selected
-    if (
-      !roomStore.perId[roomId]?.basic_rooms.find((val: { id: number; name: string }) => val.id === selectedRoom?.id)
-    ) {
-      return false
-    }
-  }
-  return true
-}
 
 /**
  * Helpers for WeekPicker.vue

@@ -1,5 +1,4 @@
 import {
-  Room,
   Department,
   User,
   Course,
@@ -11,13 +10,17 @@ import {
   Module,
 } from '@/ts/type'
 
+import {
+  Room
+} from '@/stores/declarations'
+
 const API_ENDPOINT = '/fr/api/'
 
 const urls = {
   getcurrentuser: 'user/getcurrentuser',
   getAllDepartments: 'fetch/alldepts',
   getScheduledcourses: 'fetch/new_api_scheduledcourses',
-  rooms: 'rooms/room',
+  getRooms: 'rooms/room',
   weekdays: 'fetch/weekdays',
   timesettings: 'base/timesettings',
   roomreservation: 'roomreservations/reservation',
@@ -140,13 +143,13 @@ export interface FlopAPI {
   getAllDepartments(): Promise<Array<Department>>
   getTutors(department?: Department): Promise<Array<User>>
   getTutorById(id: number): Promise<User>
+  getAllRooms(department?: Department): Promise<Array<Room>>
+  getRoomById(id: number): Promise<Room>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
     courseTypes(params: { department: string }): Promise<Array<CourseType>>
     numericRoomAttributes(): Promise<Array<RoomAttribute>>
-    room(id: number): Promise<Room>
-    rooms(params: { department: string }): Promise<Array<Room>>
     scheduledCourses(params: { week?: number; year?: number; department?: string }): Promise<Array<ScheduledCourse>>
     timeSettings(): Promise<Array<TimeSettings>>
     users(): Promise<Array<User>>
@@ -330,6 +333,72 @@ const api: FlopAPI = {
       })
     return departments
   },
+  async getAllRooms(department?: Department): Promise<Array<Room>> {
+    let rooms: Array<Room> = []
+    let finalUrl = API_ENDPOINT + urls.getRooms
+    if (department) finalUrl += '/?dept=' + department?.abbrev
+    await fetch(finalUrl, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+        }
+        await response
+          .json()
+          .then((data) => {
+            data.forEach((r: any) => {
+              rooms.push({
+                id: r.id,
+                abbrev: '',
+                name: r.name,
+                subroomIdOf: r.subroom_of,
+                departmentIds: r.departments
+              })
+            })
+          })
+          .catch((error) => {
+            return Promise.reject(error.message)
+          })
+      })
+      .catch((error) => {
+        console.log(error.message)
+      })
+    return rooms
+  },
+  async getRoomById(id: number): Promise<Room> {
+    let room: Room = {
+      id: -1,
+      abbrev: "",
+      name: "",
+      subroomIdOf: [],
+      departmentIds: [],
+    }
+    await fetch(API_ENDPOINT + urls.getRooms + '/?id=' + id, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+        }
+        await response
+          .json()
+          .then((data) => {
+            room = data
+          })
+          .catch((error) => {
+            return Promise.reject(error.message)
+          })
+      })
+      .catch((error) => {
+        console.log(error.message)
+      })
+    return room
+  },
   fetch: {
     booleanRoomAttributes() {
       return fetcher(urls.booleanroomattributes)
@@ -342,12 +411,6 @@ const api: FlopAPI = {
     },
     numericRoomAttributes() {
       return fetcher(urls.numericroomattributes)
-    },
-    room(id: number, additionalParams?: object) {
-      return fetcher(buildUrl(urls.rooms, id.toString()), additionalParams)
-    },
-    rooms(params: { department?: string }) {
-      return fetcher(urls.rooms, params, [['department', 'dept']])
     },
     scheduledCourses(params: { week?: number; year?: number; department?: string }) {
       return fetcher(urls.scheduledcourses, params)

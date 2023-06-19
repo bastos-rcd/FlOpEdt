@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { Room } from '@/ts/type'
+import { Room } from '@/stores/declarations'
 import ScheduleView from './ScheduleView.vue'
 import { ref } from 'vue'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
