@@ -6,20 +6,15 @@
       <q-btn no-caps class="button" style="margin: 2px" @click="onNext"> Next &gt; </q-btn>
     </div>
     <div class="q-pa-md q-gutter-sm row">
-      <q-btn color="orange" no-caps class="glossy" style="margin: 2px" @click="showAvailabilities = !showAvailabilities">
-        Show Availabilities
-      </q-btn>
-      <q-btn-dropdown
-        class="glossy"
-        color="blue" style="margin: 2px">
+      <q-btn-dropdown class="glossy" color="blue" style="margin: 2px">
         <q-list>
-          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5, 6, 0]; typeCalendar='week'">
+          <q-item clickable v-close-popup @click=";[weekdays, typeCalendar] = [[1, 2, 3, 4, 5, 6, 0], 'week']">
             <q-item-section>
               <q-item-label>Full Week</q-item-label>
             </q-item-section>
           </q-item>
 
-          <q-item clickable v-close-popup @click="weekdays=[1, 2, 3, 4, 5]; typeCalendar='week'">
+          <q-item clickable v-close-popup @click=";[weekdays, typeCalendar] = [[1, 2, 3, 4, 5], 'week']">
             <q-item-section>
               <q-item-label>Monday to Friday</q-item-label>
             </q-item-section>
@@ -29,25 +24,20 @@
             <q-item-section>
               <q-item-label>Select a day</q-item-label>
               <q-btn-group push>
-                <q-btn push label="Monday" @click="weekdays=[1]; typeCalendar='day'"/>
-                <q-btn push label="Tuesday" @click="weekdays=[2]; typeCalendar='day'"/>
-                <q-btn push label="Wednesday" @click="weekdays=[3]; typeCalendar='day'"/>
-                <q-btn push label="Thursday" @click="weekdays=[4]; typeCalendar='day'"/>
-                <q-btn push label="Friday" @click="weekdays=[5]; typeCalendar='day'"/>
-                <q-btn push label="Saturday" @click="weekdays=[6]; typeCalendar='day'"/>
-                <q-btn push label="Sunday" @click="weekdays=[0]; typeCalendar='day'"/>
+                <q-btn push label="Monday" @click=";[weekdays, typeCalendar] = [[1], 'day']" />
+                <q-btn push label="Tuesday" @click=";[weekdays, typeCalendar] = [[2], 'day']" />
+                <q-btn push label="Wednesday" @click=";[weekdays, typeCalendar] = [[3], 'day']" />
+                <q-btn push label="Thursday" @click=";[weekdays, typeCalendar] = [[4], 'day']" />
+                <q-btn push label="Friday" @click=";[weekdays, typeCalendar] = [[5], 'day']" />
+                <q-btn push label="Saturday" @click=";[weekdays, typeCalendar] = [[6], 'day']" />
+                <q-btn push label="Sunday" @click=";[weekdays, typeCalendar] = [[0], 'day']" />
               </q-btn-group>
             </q-item-section>
           </q-item>
           <q-item v-close-popup>
             <q-item-section>
               <q-item-label>Select a day</q-item-label>
-              <q-range
-                :marker-labels="arrayWeekdaysLabel"
-                :min="1"
-                :max="7"
-                label-always
-                v-model="dayStart"/>
+              <q-range :marker-labels="arrayWeekdaysLabel" :min="1" :max="7" label-always v-model="dayStart" />
             </q-item-section>
           </q-item>
         </q-list>
@@ -76,7 +66,7 @@
     >
       <template #head-day-event="{ scope: { timestamp } }">
         <div style="display: flex">
-          <template v-for="column in columnsToDisplay" :key="column.name">
+          <template v-for="column in props.columns" :key="column.id">
             <div
               :class="badgeClasses('header')"
               style="
@@ -116,13 +106,13 @@
               @dragover="onDragOver($event, event.data.dataType, { timeDurationHeight, timestamp: event.data.start })"
             >
               <div
-                v-for="data in event.displayData"
+                v-for="span in event.span"
                 :key="event.id"
                 class="my-event"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
-                :style="badgeStyles(event, data, timeStartPos, timeDurationHeight)"
+                :style="badgeStyles(event, span, timeStartPos, timeDurationHeight)"
               >
-                <slot v-if="columnsToDisplay.find((c) => c.id === data.columnId)" name="event" :event="event">
+                <slot name="event" :event="event">
                   <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
                     {{ event.title }}
                   </span>
@@ -158,10 +148,21 @@ import '@quasar/extras/material-icons'
 
 import _ from 'lodash'
 
-import { CalendarColumn, CalendarEvent } from './declaration'
+import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 
 import { Ref, computed, ref } from 'vue'
-import { TimestampOrNull, Timestamp, parsed, updateWorkWeek, QCalendar, getStartOfWeek, parseTimestamp, findWeekday, prevDay, nextDay } from '@quasar/quasar-ui-qcalendar'
+import {
+  TimestampOrNull,
+  Timestamp,
+  parsed,
+  updateWorkWeek,
+  QCalendar,
+  getStartOfWeek,
+  parseTimestamp,
+  findWeekday,
+  prevDay,
+  nextDay,
+} from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
 /**
@@ -176,21 +177,21 @@ import { availabilityData } from './declaration'
  * *  the totalWeight is the total of each columns weight
  */
 const props = defineProps<{
-  events: CalendarEvent[]
+  events: InputCalendarEvent[]
   columns: CalendarColumn[]
 }>()
 
 const emits = defineEmits<{
   (e: 'dragstart', id: number): void
-  (e: 'update:events', value: CalendarEvent[]): void
+  (e: 'update:events', value: InputCalendarEvent[]): void
   (e: 'update:week', value: Timestamp): void
-  (e: 'weekdays', value: number[]) : void
+  (e: 'weekdays', value: number[]): void
 }>()
 
 const preWeight = computed(() => {
   const map: Record<number, number> = {}
   let preceeding = 0
-  _.forEach(columnsToDisplay.value, (col: CalendarColumn) => {
+  _.forEach(props.columns, (col: CalendarColumn) => {
     map[col.id] = preceeding
     preceeding += col.weight
   })
@@ -203,7 +204,6 @@ const preWeight = computed(() => {
  * * Functions to compute the style to render for each event
  */
 const selectedDate = ref<string>(today())
-const showAvailabilities = ref<boolean>(false)
 
 watch(selectedDate, () => {
   console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
@@ -216,7 +216,7 @@ watch(selectedDate, () => {
  */
 const weekdays = ref<number[]>([1, 2, 3, 4, 5])
 const selectedDates = ref<string[]>([today()])
-const typeCalendar = ref<string>("week")
+const typeCalendar = ref<string>('week')
 const arrayWeekdaysLabel = [
   { value: 1, label: 'Monday' },
   { value: 2, label: 'Tuesday' },
@@ -226,31 +226,31 @@ const arrayWeekdaysLabel = [
   { value: 6, label: 'Saturday' },
   { value: 7, label: 'Sunday' },
 ]
-const dayStart = ref<{min : number, max: number}>()
+const dayStart = ref<{ min: number; max: number }>()
 
 watch(dayStart, () => {
   let newValue: number[] = []
   if (dayStart.value)
-    for(let i = dayStart.value?.min; i <= dayStart.value?.max; i++) {
+    for (let i = dayStart.value?.min; i <= dayStart.value?.max; i++) {
       if (i === 7) newValue.push(0)
       else newValue.push(i)
     }
   weekdays.value = newValue
   if (weekdays.value.length === 1) {
-    typeCalendar.value = "day"
+    typeCalendar.value = 'day'
   } else {
-    typeCalendar.value = "week"
+    typeCalendar.value = 'week'
   }
   let newSelectedDates = []
   let now_date = parseTimestamp(selectedDate.value)
 
   let i = 0
-  while(now_date!.weekday > 1) {
+  while (now_date!.weekday > 1) {
     now_date = prevDay(now_date as Timestamp)
     now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
   }
-  while(newSelectedDates.length < weekdays.value.length) {
-    if (_.includes(weekdays.value, now_date?.weekday)){
+  while (newSelectedDates.length < weekdays.value.length) {
+    if (_.includes(weekdays.value, now_date?.weekday)) {
       newSelectedDates.push(now_date?.date)
     }
     now_date = nextDay(now_date as Timestamp)
@@ -272,66 +272,73 @@ const eventsByDate = computed(() => {
   const map: Record<string, CalendarEvent[]> = {}
   // Copy of events
   let newEvents: CalendarEvent[] = []
-  let i = 0
   // Dict of column ids keys to their index
   let columnIndexes: Record<number, number> = {}
-  columnsToDisplay.value.forEach((c) => {
+  _.forEach(props.columns, (c, i) => {
     columnIndexes[c.id] = i
-    i++
   })
   props.events.forEach((event) => {
     let newEvent = _.cloneDeep(event)
+    let columnIds = newEvent.columnIds
+
+    // availability column
     if (newEvent.data.dataType === 'avail') {
-      newEvent.displayData[0].columnId = (_.maxBy(props.columns, 'id')?.id as number) + 1
       newEvent.bgcolor = availabilityData.color[newEvent.data.value?.toString() || '0']
       newEvent.icon = availabilityData.icon[newEvent.data.value?.toString() || '0']
     }
-    let newDisplayData = _.cloneDeep(newEvent.displayData)
-    newEvent.displayData.forEach((dd) => {
-      if (!(dd.columnId in columnIndexes)) {
-        _.remove(newDisplayData, (disD) => {
-          return disD.columnId === dd.columnId && disD.weight === dd.weight
-        })
+
+    // filter out absent columns
+    _.remove(columnIds, (colId) => !(colId in columnIndexes))
+
+    // merge columns
+    columnIds = _.sortBy(columnIds, (colId) => columnIndexes[colId])
+
+    const span: Array<{ istart: number; weight: number; columnIds: number[] }> = []
+    if (columnIds.length > 0) {
+      let currentSlice = {
+        istart: columnIndexes[columnIds[0]],
+        weight: 0,
+        iend: columnIndexes[columnIds[0]],
+        columnIds: [] as number[],
       }
-    })
-    newEvent.displayData = newDisplayData
-    i = newEvent.displayData.length - 1
-    while (i > 0) {
-      if (
-        Math.abs(
-          columnIndexes[newEvent.displayData[i].columnId] - columnIndexes[newEvent.displayData[i - 1].columnId]
-        ) === 1
-      ) {
-        newEvent.displayData[i - 1].weight += newEvent.displayData[i].weight
-        _.pullAt(newEvent.displayData, i)
-      }
-      i = i - 1
+      _.forEach(columnIds, (colId, i) => {
+        let colProps = _.find(props.columns, (col) => col.id == colId) as CalendarColumn
+        if (columnIndexes[colId] == currentSlice.iend) {
+          currentSlice.weight += colProps.weight
+          currentSlice.iend = columnIndexes[colId] + 1
+          currentSlice.columnIds.push(colId)
+        } else {
+          span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
+          currentSlice = {
+            istart: columnIndexes[colId],
+            weight: colProps.weight,
+            iend: columnIndexes[colId] + 1,
+            columnIds: [colId],
+          }
+        }
+      })
+      span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
     }
-    newEvents.push(newEvent)
+
+    const cnewEvent = newEvent as any
+    delete cnewEvent.columnIds
+    cnewEvent.span = span
+
+    newEvents.push(cnewEvent as CalendarEvent)
   })
+
+  // sort by date
   newEvents.forEach((event) => {
     if (!map[event.data.start.date]) {
       map[event.data.start.date] = []
     }
     map[event.data.start.date].push(event)
   })
-  console.log("map :", map)
+  // console.log('map :', map)
   return map
 })
 
-const columnsToDisplay = computed((): CalendarColumn[] => {
-  if (showAvailabilities.value) {
-    // TODO: Which component is responsible for columns IDs ?
-    const availColumn: CalendarColumn = { id: (_.maxBy(props.columns, 'id')?.id as number) + 1, name: 'Av.', weight: 1 }
-    return _.union(props.columns, [availColumn])
-  }
-  return props.columns
-})
-
 const totalWeight = computed(() => {
-  if (columnsToDisplay.value !== undefined) {
-    return _.sumBy(columnsToDisplay.value, (c: CalendarColumn) => c.weight)
-  }
   return _.sumBy(props.columns, (c: CalendarColumn) => c.weight)
 })
 
@@ -352,13 +359,13 @@ function badgeClasses(type: 'event' | 'dropzone' | 'header' | 'avail', bgcolor?:
 }
 function badgeStyles(
   event: CalendarEvent,
-  displayData: { columnId: number; weight: number },
+  span: { istart: number; weight: number; columnIds: number[] },
   timeStartPos: any = undefined,
   timeDurationHeight: any = undefined
 ) {
-  const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
-  if (!currentColumn) return undefined
-  const preceedingWeight = preWeight.value[displayData.columnId]
+  // const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
+  // if (!currentColumn) return undefined
+  const preceedingWeight = preWeight.value[props.columns[span.istart].id]
 
   const s: Record<string, string> = {
     top: '',
@@ -369,8 +376,8 @@ function badgeStyles(
   }
   if (timeStartPos && timeDurationHeight) {
     s.top = timeStartPos(event.data?.start) + 'px'
-    s.left = Math.round((preWeight.value[displayData.columnId] / totalWeight.value) * 100) + '%'
-    s.width = Math.round((100 * displayData.weight) / totalWeight.value) + '%'
+    s.left = Math.round((preceedingWeight / totalWeight.value) * 100) + '%'
+    s.width = Math.round((100 * span.weight) / totalWeight.value) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
   if (event.data.dataType === 'dropzone') {
@@ -415,7 +422,7 @@ const eventsModel = computed({
   get() {
     return props.events
   },
-  set(value: CalendarEvent[]) {
+  set(value: InputCalendarEvent[]) {
     emits('update:events', value)
   },
 })
@@ -423,7 +430,7 @@ const eventsModel = computed({
 /**
  * Only returns the dropZone with the same ID as the event dragged
  */
-const dropZoneToDisplay = computed((): CalendarEvent[] | undefined => {
+const dropZoneToDisplay = computed((): InputCalendarEvent[] | undefined => {
   return _.filter(
     props.events,
     (e) =>
@@ -553,7 +560,9 @@ function updateEventDropped(): void {
     console.log("I don't know what happened: Maybe it was an availability")
     return
   }
-  let newEvent: CalendarEvent = _.cloneDeep(props.events.find((e) => eventDragged.value?.id === e.id) as CalendarEvent)
+  let newEvent: InputCalendarEvent = _.cloneDeep(
+    props.events.find((e) => eventDragged.value?.id === e.id) as InputCalendarEvent
+  )
   if (dropZoneToDisplay.value) {
     dropZoneToDisplay.value.forEach((cdze) => {
       if (cdze.toggled) {
@@ -563,8 +572,8 @@ function updateEventDropped(): void {
   } else {
     console.log('NO DROPZONE FOR THIS EVENT OU ERREUR DE DROPZONE')
   }
-  let newEvents: CalendarEvent[] = _.cloneDeep(props.events)
-  _.remove(newEvents, (e: CalendarEvent) => {
+  let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
+  _.remove(newEvents, (e: InputCalendarEvent) => {
     return e.id === newEvent.id
   })
   newEvents.push(newEvent)

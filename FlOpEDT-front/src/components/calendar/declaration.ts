@@ -14,7 +14,7 @@ import {
 /**
  * Calendar event, for display purpose
  */
-export interface CalendarEvent {
+export interface CalendarEventNoCol {
   id: number
   title: string
 
@@ -23,12 +23,15 @@ export interface CalendarEvent {
   bgcolor: string
   icon?: string
 
-  displayData: {
-    columnId: number
-    weight: number
-  }[]
-
   data: EventData
+}
+
+export interface InputCalendarEvent extends CalendarEventNoCol {
+  columnIds: number[]
+}
+
+export interface CalendarEvent extends CalendarEventNoCol {
+  span: Array<{ istart: number; weight: number; columnIds: number[] }>
 }
 
 export interface EventData {
