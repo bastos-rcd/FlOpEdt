@@ -132,7 +132,7 @@ export class ScheduledCourse {
   start_time: Date
   end_time: Date
   course: Course
-  tutor: string
+  tutor: number
   id_visio: number
 
   constructor(
@@ -141,7 +141,7 @@ export class ScheduledCourse {
     start_time = '',
     end_time = '',
     course = new Course(),
-    tutor = '',
+    tutor = -1,
     id_visio = 0
   ) {
     this.id = id
@@ -167,16 +167,16 @@ export interface TimeSettings {
 
 export interface User {
   username: string
-  first_name: string
-  last_name: string
+  firstname: string
+  lastname: string
   email: string
   id: number
 }
 
 export class User implements User {
   username = ''
-  first_name = ''
-  last_name = 'AnonymousUser'
+  firstname = ''
+  lastname = 'AnonymousUser'
   email = ''
   id = -1
 }

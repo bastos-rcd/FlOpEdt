@@ -8,7 +8,7 @@
         :columns="useCase2.columns.value"
         v-model:events="useCase2.events.value"
         @dragstart="onDragStart"
-        @weekdays="(wd) => (weekdays = wd)"
+        @weekdays="(wd: number[]) => (weekdays = wd)"
       />
     </Variant>
     <Variant title="Use case 3">
@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CalendarEvent, CalendarColumn, InputCalendarEvent } from './declaration'
+import type { CalendarColumn, InputCalendarEvent } from './declaration'
 import _ from 'lodash'
 import { Timestamp, parseDate, parseTime, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
 import { ref, Ref } from 'vue'

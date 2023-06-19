@@ -17,7 +17,6 @@ interface Room {
 //   tutorId: number
 //   suppTutorIds: number[]
 //   moduleId: number
-//
 // }
 
 export interface User {
@@ -31,7 +30,7 @@ export interface User {
 }
 
 // Gathers Course and ScheduledCourse from the back
-interface Course {
+export interface Course {
   id: number // id of ScheduledCourse
   no: number
   room: Room
@@ -49,7 +48,7 @@ interface Course {
 
 // Nouvelle entrée pour les modules: Rajouter les IDs
 
-interface Module {
+export interface Module {
   id: number
   name: string
   abbrev: string
@@ -64,7 +63,7 @@ interface Module {
 
 // Est-ce qu'on a vraiment besoin de savoir dans le front si un groupe est structural ou transversal ?
 
-interface Group {
+export interface Group {
   id: number
   name: string
   size: number
@@ -76,9 +75,10 @@ interface Group {
   columnIds: number[] // cf calendar/types.ts: CalendarColumn
 }
 
-interface TrainingProgramme {
+export interface TrainingProgramme {
   id: number
   name: string
   abbrev: string
   departmentId: number
 }
+

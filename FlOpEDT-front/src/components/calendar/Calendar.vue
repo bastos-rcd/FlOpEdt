@@ -157,9 +157,7 @@ import {
   parsed,
   updateWorkWeek,
   QCalendar,
-  getStartOfWeek,
   parseTimestamp,
-  findWeekday,
   prevDay,
   nextDay,
 } from '@quasar/quasar-ui-qcalendar'
@@ -319,8 +317,10 @@ const eventsByDate = computed(() => {
       })
       span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
     }
-
+    
+    // Created as InputCalendarEvent
     const cnewEvent = newEvent as any
+    // Changing properties to convert to an CalendarEvent
     delete cnewEvent.columnIds
     cnewEvent.span = span
 
