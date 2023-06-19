@@ -135,7 +135,6 @@ export function deleteReservationPeriodicity(periodicityId: number): Promise<unk
   return api.delete.reservationPeriodicity(periodicityId)
 }
 
-
 /**
  * Helpers for WeekPicker.vue
  * @param date The date we wanna know the week number of

@@ -10,9 +10,7 @@ import {
   Module,
 } from '@/ts/type'
 
-import {
-  Room
-} from '@/stores/declarations'
+import { Room } from '@/stores/declarations'
 
 const API_ENDPOINT = '/fr/api/'
 
@@ -355,7 +353,7 @@ const api: FlopAPI = {
                 abbrev: '',
                 name: r.name,
                 subroomIdOf: r.subroom_of,
-                departmentIds: r.departments
+                departmentIds: r.departments,
               })
             })
           })
@@ -371,8 +369,8 @@ const api: FlopAPI = {
   async getRoomById(id: number): Promise<Room> {
     let room: Room = {
       id: -1,
-      abbrev: "",
-      name: "",
+      abbrev: '',
+      name: '',
       subroomIdOf: [],
       departmentIds: [],
     }

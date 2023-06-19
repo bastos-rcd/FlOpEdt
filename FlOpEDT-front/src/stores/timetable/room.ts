@@ -10,7 +10,7 @@ export const useRoomStore = defineStore('room', () => {
   const loadingError = ref<Error | null>(null)
   const getRoomById = computed(() => {
     return async (roomId: number) => {
-      let room : Room | undefined = roomsFetched.value?.find((r) => r.id == roomId)
+      let room: Room | undefined = roomsFetched.value?.find((r) => r.id == roomId)
       if (!room) {
         try {
           await api.getRoomById(roomId).then((result) => {
@@ -31,8 +31,8 @@ export const useRoomStore = defineStore('room', () => {
       await api.getAllRooms(department).then((result) => {
         roomsFetched.value = result
         isLoading.value = false
-        console.log("Result: ", result)
-        console.log("RoomsFetched: ", roomsFetched.value)
+        console.log('Result: ', result)
+        console.log('RoomsFetched: ', roomsFetched.value)
       })
     } catch (e) {
       loadingError.value = e as Error
