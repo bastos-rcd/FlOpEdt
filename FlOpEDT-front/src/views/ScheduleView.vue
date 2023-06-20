@@ -5,7 +5,7 @@
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
   />
-  <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="flatNodes as LinkIdUp[]">
+  <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="(flatNodes as LinkIdUp[])">
     <template #item="{ nodeId, active }">
       <div :class="['node', active ? 'ac' : 'nac']">
         {{ find(flatNodes, (n) => n.id === nodeId)?.name }}

@@ -159,6 +159,11 @@ export interface TrainingProgrammeAPI {
   name: string
 }
 
+export interface UserAPI {
+  name: string
+  id: number
+}
+
 export interface User {
   username: string
   firstname: string
