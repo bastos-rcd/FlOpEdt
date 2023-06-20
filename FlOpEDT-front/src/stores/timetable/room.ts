@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { Room } from '@/stores/declarations'
-import { Department } from '@/ts/type'
+import { Department, RoomAPI } from '@/ts/type'
 import { api } from '@/utils/api'
 
 export const useRoomStore = defineStore('room', () => {
@@ -14,8 +14,14 @@ export const useRoomStore = defineStore('room', () => {
       if (!room) {
         try {
           await api.getRoomById(roomId).then((result) => {
-            room = result
-            roomsFetched.value.push(result)
+            room = {
+              id: result.id,
+              abbrev: '',
+              name: result.name,
+              subroomIdOf: [],
+              departmentIds: [],
+            }
+            roomsFetched.value.push(room)
           })
         } catch (e) {
           loadingError.value = e as Error
@@ -29,10 +35,16 @@ export const useRoomStore = defineStore('room', () => {
     isLoading.value = true
     try {
       await api.getAllRooms(department).then((result) => {
-        roomsFetched.value = result
+        result.forEach((r: RoomAPI) => {
+          roomsFetched.value.push({
+            id: r.id,
+            abbrev: '',
+            name: r.name,
+            subroomIdOf: [],
+            departmentIds: [],
+          })
+        })
         isLoading.value = false
-        console.log('Result: ', result)
-        console.log('RoomsFetched: ', roomsFetched.value)
       })
     } catch (e) {
       loadingError.value = e as Error

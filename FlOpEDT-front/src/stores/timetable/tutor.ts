@@ -12,10 +12,6 @@ export const useTutorStore = defineStore('tutor', () => {
     }
   })
 
-  const getAllTutorsById = computed(() => {
-    return Object.fromEntries(tutors.value.map((tutor: User) => [tutor.id, tutor]))
-  })
-
   async function fetchTutors(department?: Department): Promise<void> {
     await api.getTutors(department).then((value: User[]) => {
       tutors.value = value
@@ -42,6 +38,5 @@ export const useTutorStore = defineStore('tutor', () => {
     fetchTutorById,
     clearTutors,
     getTutorById,
-    getAllTutorsById,
   }
 })

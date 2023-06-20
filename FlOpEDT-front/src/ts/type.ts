@@ -97,12 +97,9 @@ export interface FlopWeek {
 }
 
 export interface RoomAPI {
-  departments: Array<number>
   id: number
   name: string
-  subroom_of: Array<number>
-  is_basic: boolean
-  basic_rooms: Array<{ id: number; name: string }>
+  is_basic: string
 }
 
 export interface RoomAttribute {
@@ -156,6 +153,12 @@ export interface TimeSettings {
   department: number
 }
 
+export interface TrainingProgrammeAPI {
+  id: number
+  abbrev: string
+  name: string
+}
+
 export interface User {
   username: string
   firstname: string
@@ -192,12 +195,13 @@ export interface UserD {
   departments: Array<Department>
 }
 
-export interface Group {
+export interface GroupAPI {
   id: number
   name: string
-  columnIds: number[]
-  parentsId: number[]
+  train_prog: string
 }
-export interface Module {
-  tut: string
+export interface ModuleAPI {
+  id: number
+  abbrev: string
+  name: string
 }

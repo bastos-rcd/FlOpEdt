@@ -4,12 +4,12 @@ import { Timestamp } from '@quasar/quasar-ui-qcalendar'
 export interface Course {
   id: number // id of ScheduledCourse
   no: number
-  room: Room
+  room: number
   start: Timestamp
   end: Timestamp
-  tutor: User
-  suppTutors: User[]
-  module: Module
+  tutor: number
+  suppTutors: number[]
+  module: number
   groupIds: number[]
   courseTypeId: number
   roomTypeId: number
@@ -28,7 +28,7 @@ export interface Group {
   size: number
   trainProgId: number
   type: string // structural or transversal
-  parentGroupIds?: number[]
+  parentsId?: number[]
   conflictingGroupIds?: number[]
   parallelGroupIds?: number[]
   columnIds: number[] // cf calendar/types.ts: CalendarColumn

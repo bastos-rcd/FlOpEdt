@@ -5,7 +5,7 @@
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
   />
-  <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="flatNodes">
+  <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="flatNodes as LinkIdUp[]">
     <template #item="{ nodeId, active }">
       <div :class="['node', active ? 'ac' : 'nac']">
         {{ find(flatNodes, (n) => n.id === nodeId)?.name }}
@@ -39,6 +39,9 @@ import { filter, find } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
 import { Room } from '@/stores/declarations'
+import { useTutorStore } from '@/stores/timetable/tutor'
+import { useDepartmentStore } from '@/stores/department'
+import { LinkIdUp } from '@/ts/tree'
 
 /**
  * Data translated to be passed to components
@@ -71,6 +74,8 @@ const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
+const tutorStore = useTutorStore()
+const deptStore = useDepartmentStore()
 const selectedRoom = ref<Room>()
 
 watchEffect(() => {
@@ -129,6 +134,7 @@ onBeforeMount(async () => {
   let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
   fetchScheduledCurrentWeek(todayDate.workweek, todayDate.year)
   roomStore.fetchRooms()
+  tutorStore.fetchTutors(deptStore.current)
 })
 </script>
 
