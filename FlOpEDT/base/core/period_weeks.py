@@ -52,14 +52,28 @@ class PeriodWeeks():
                             self.end_year,
                             1, 
                             self.end_week)
+            next_year_start_weeks = PeriodWeeks.filter_empty_weeks(
+                            self.department,
+                            self.start_year+1, 
+                            self.start_week, 
+                            self.max_week)
+            next_year_end_weeks = PeriodWeeks.filter_empty_weeks(
+                            self.department,
+                            self.end_year+1,
+                            1, 
+                            self.end_week)
         else:
             start_weeks = range(self.start_week, self.max_week + 1)
             end_weeks = range(1, self.end_week + 1)
-
+            next_year_start_weeks = start_weeks
+            next_year_end_weeks = end_weeks
+            
         # Set final lists
         self.__period_raw = (
             (self.start_year, set(start_weeks)),
             (self.end_year, set(end_weeks)),
+            (self.start_year+1, set(next_year_start_weeks)),
+            (self.end_year+1, set(next_year_end_weeks)),
             )
 
         self.__period_weeks = self.__period_raw[0][1] | self.__period_raw[1][1]
