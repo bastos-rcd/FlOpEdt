@@ -55,7 +55,7 @@ def assign_tutor_color(department=None):
         
     
 
-def assign_module_color(department, overwrite=True, diff_across_train_prog=False):
+def assign_module_color(department, overwrite=True, diff_across_train_prog=False, build_graph_matrices=False):
     """
     Assigns a color to each module
     :param department department
@@ -70,29 +70,44 @@ def assign_module_color(department, overwrite=True, diff_across_train_prog=False
     if department is None:
         raise Exception('Please provide a department')
     if diff_across_train_prog:
-        keys, mat = build_graph_matrices(None, department)
+        if build_graph_matrices:
+            keys, mat = build_graph_matrices(None, department)
+        else:
+            keys, mat = list(Module.objects.filter(train_prog__department=department)), None
         optim_and_save(keys, mat, overwrite)
     else:
         for train_prog in TrainingProgramme.objects.filter(department=department):
             print(train_prog)
-            keys, mat = build_graph_matrices(train_prog, department)
+            if build_graph_matrices:
+                keys, mat = build_graph_matrices(train_prog, department)
+            else:
+                keys, mat = list(Module.objects.filter(train_prog=train_prog)), None
             optim_and_save(keys, mat, overwrite)
 
 
 def optim_and_save(keys, mat, overwrite):
-    if len(mat) == 0:
-        print("No course in this training programme!")
-        return
-    opti = dsatur(mat)
-    opti.process()
-    color_indices = opti.get_colors()
-    print(color_indices, max(color_indices))
-    color_set = get_color_set(os.path.join(settings.BASE_DIR,
-                                           'misc',
-                                           'colors.json'),
-                              max(color_indices))
+    if mat is not None:
+        if len(mat) == 0:
+            print("No course in this training programme!")
+            return
+        opti = dsatur(mat)
+        opti.process()
+        color_indices = opti.get_colors()
+        print(color_indices, max(color_indices))
+        color_set = get_color_set(os.path.join(settings.BASE_DIR,
+                                            'misc',
+                                            'colors.json'),
+                                max(color_indices))
+    else:
+        color_set = ["#208eb7", "#8fba06", "#961d6b", "#63e118", "#ef6ade", "#207a3f", "#fe16f4", "#83c989", "#af3014", 
+                    "#20d8fd", "#6a3747", "#1cf1a3", "#1932bf", "#efd453", 
+                    "#5310f0", "#fca552", "#274c56", "#ddc0bd", "#2d68c7", "#9a5c0d", "#c098fd", "#474a09", "#fb899b"]
     for mi in range(len(keys)):
-        cbg = color_set[color_indices[mi] - 1]
+        if mat is not None:
+            cbg = color_set[mi % len(color_set)]
+        else:
+            cbg = color_set[color_indices[mi] - 1]
+
         try:
             mod_disp = ModuleDisplay.objects.get(module=keys[mi])
             if overwrite:
