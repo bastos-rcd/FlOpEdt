@@ -176,6 +176,7 @@ import { availabilityData } from './declaration'
  */
 const props = defineProps<{
   events: InputCalendarEvent[]
+  dropzones?: InputCalendarEvent[]
   columns: CalendarColumn[]
 }>()
 
@@ -268,6 +269,7 @@ function putAZero(i: number): string {
 // occuring on different columns
 const eventsByDate = computed(() => {
   const map: Record<string, CalendarEvent[]> = {}
+  let allEvents: InputCalendarEvent[] = props.events
   // Copy of events
   let newEvents: CalendarEvent[] = []
   // Dict of column ids keys to their index
@@ -275,7 +277,8 @@ const eventsByDate = computed(() => {
   _.forEach(props.columns, (c, i) => {
     columnIndexes[c.id] = i
   })
-  props.events.forEach((event) => {
+  if (props.dropzones) allEvents = _.concat(allEvents, props.dropzones)
+  allEvents.forEach((event) => {
     let newEvent = _.cloneDeep(event)
     let columnIds = newEvent.columnIds
 
@@ -432,7 +435,7 @@ const eventsModel = computed({
  */
 const dropZoneToDisplay = computed((): InputCalendarEvent[] | undefined => {
   return _.filter(
-    props.events,
+    props.dropzones,
     (e) =>
       e.data.dataType === 'dropzone' &&
       currentTime.value?.date === e.data.start.date &&

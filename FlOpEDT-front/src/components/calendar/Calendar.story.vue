@@ -7,6 +7,7 @@
       <Calendar
         :columns="useCase2.columns.value"
         v-model:events="useCase2.events.value"
+        :dropzones="dzs"
         @dragstart="onDragStart"
         @weekdays="(wd: number[]) => (weekdays = wd)"
       />
@@ -245,7 +246,7 @@ dzs = _.concat(
   ])
 )
 
-useCase2.events.value = _.concat(useCase2.events.value, dzs)
+//useCase2.events.value = _.concat(useCase2.events.value, dzs)
 
 const useCase1: UseCase = {
   columns: ref([
@@ -400,32 +401,32 @@ const useCase1: UseCase = {
   ]),
 }
 
-dzs = []
-dzs = _.concat(
-  dzs,
-  createDZ((_.maxBy(useCase1.events.value, (event) => event.id)?.id as number) + 1, 6, useCase1.events.value, [
-    { dayShift: 2, hhmm: '14:00' },
-    { dayShift: 2, hhmm: '11:00' },
-    { dayShift: 2, hhmm: '09:50' },
-    { dayShift: 2, hhmm: '09:00' },
-    { dayShift: 2, hhmm: '08:50' },
-    { dayShift: 0, hhmm: '14:00' },
-    { dayShift: 0, hhmm: '11:00' },
-    { dayShift: 0, hhmm: '09:50' },
-    { dayShift: 0, hhmm: '09:00' },
-    { dayShift: 0, hhmm: '08:50' },
-    { dayShift: 3, hhmm: '14:00' },
-    { dayShift: 3, hhmm: '11:00' },
-    { dayShift: 3, hhmm: '09:50' },
-    { dayShift: 3, hhmm: '09:00' },
-    { dayShift: 3, hhmm: '08:50' },
-    { dayShift: 1, hhmm: '14:00' },
-    { dayShift: 1, hhmm: '11:00' },
-    { dayShift: 1, hhmm: '09:50' },
-    { dayShift: 1, hhmm: '09:00' },
-    { dayShift: 1, hhmm: '08:50' },
-  ])
-)
+// dzs = []
+// dzs = _.concat(
+//   dzs,
+//   createDZ((_.maxBy(useCase1.events.value, (event) => event.id)?.id as number) + 1, 6, useCase1.events.value, [
+//     { dayShift: 2, hhmm: '14:00' },
+//     { dayShift: 2, hhmm: '11:00' },
+//     { dayShift: 2, hhmm: '09:50' },
+//     { dayShift: 2, hhmm: '09:00' },
+//     { dayShift: 2, hhmm: '08:50' },
+//     { dayShift: 0, hhmm: '14:00' },
+//     { dayShift: 0, hhmm: '11:00' },
+//     { dayShift: 0, hhmm: '09:50' },
+//     { dayShift: 0, hhmm: '09:00' },
+//     { dayShift: 0, hhmm: '08:50' },
+//     { dayShift: 3, hhmm: '14:00' },
+//     { dayShift: 3, hhmm: '11:00' },
+//     { dayShift: 3, hhmm: '09:50' },
+//     { dayShift: 3, hhmm: '09:00' },
+//     { dayShift: 3, hhmm: '08:50' },
+//     { dayShift: 1, hhmm: '14:00' },
+//     { dayShift: 1, hhmm: '11:00' },
+//     { dayShift: 1, hhmm: '09:50' },
+//     { dayShift: 1, hhmm: '09:00' },
+//     { dayShift: 1, hhmm: '08:50' },
+//   ])
+// )
 
 const currentEventId = ref<number | null>(null)
 function onDragStart(eventId: number) {
