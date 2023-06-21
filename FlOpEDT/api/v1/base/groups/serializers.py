@@ -25,19 +25,19 @@ import base.models as bm
 from rest_framework import serializers
 
 
-class StructuralGroupSerializer(serializers.ModelSerializer):
+class StructuralGroupsSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.StructuralGroup
         fields = '__all__'
 
 
-class TransversalGroupSerializer(serializers.ModelSerializer): 
+class TransversalGroupsSerializer(serializers.ModelSerializer): 
     class Meta:
         model = bm.TransversalGroup
         fields = '__all__'
 
 
-class TrainingProgramsSerializer(serializers.ModelSerializer):
+class TrainingProgrammesSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TrainingProgramme
         fields = '__all__'

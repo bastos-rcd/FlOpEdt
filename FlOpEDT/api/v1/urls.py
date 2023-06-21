@@ -22,15 +22,22 @@
 # without disclosing the source code of your own applications.
 from rest_framework import routers
 from django.urls import path
-from .base.courses import views as courses_views
-from .people import views as people_views
-from .base.groups import views as groups_views
+from api.v1.base.courses import views as courses_views
+from api.v1.people import views as people_views
+from api.v1.base.groups import views as groups_views
 
 routerV1 = routers.SimpleRouter()
 
 routerV1.register(r'scheduled_courses', courses_views.ScheduledCoursesViewSet, basename="scheduled_courses")
 routerV1.register(r'users', people_views.UsersViewSet, basename="users")
-routerV1.register(r'getcurrentuser', people_views.getCurrentUserView.as_view(), basename='getcurrentuser'),
-routerV1.register(r'structural_groups', groups_views.StructuralGroupViewSet, basename="structura_groups")
-routerV1.register(r'transversal_groups', groups_views.TransversalGroupViewSet, basename="transversal_groups")
-routerV1.register(r'training_programmes', groups_views.TrainingProgrammeViewset, basename="training_programmes")
+routerV1.register(r'structural_groups', groups_views.StructuralGroupsViewSet, basename="structural_groups")
+routerV1.register(r'transversal_groups', groups_views.TransversalGroupsViewSet, basename="transversal_groups")
+routerV1.register(r'training_programmes', groups_views.TrainingProgramsViewSet, basename="training_programmes")
+routerV1.register(r'rooms', courses_views.RoomsViewSet, basename="rooms")
+routerV1.register(r'modules', courses_views.ModulesViewSet, basename="modules")
+
+url_V1_patterns = [
+    path(r'getcurrentuser/', people_views.getCurrentUserView.as_view(), name='getcurrentuser'),
+]
+
+url_V1_patterns += routerV1.urls

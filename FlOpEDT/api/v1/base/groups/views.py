@@ -37,15 +37,15 @@ from base import queries
 
 ### Groups ###
 
-class TrainingProgramsFilterSet(viewsets.ModelViewSet):
-    dept = filters.CharFilter(field_name='department__abbrev',required=True)
+class TrainingProgramsFilterSet(filters.FilterSet):
+    dept = filters.CharFilter(field_name='department__abbrev')
     
     class Meta:
         model = bm.TrainingProgramme
         fields = ['dept']
 
 class StructuralGroupsFilterSet(filters.FilterSet):
-    dept = filters.CharFilter(field_name='train_prog__department__abbrev',required=True)
+    dept = filters.CharFilter(field_name='train_prog__department__abbrev')
 
     class Meta:
         model = bm.StructuralGroup
@@ -53,14 +53,14 @@ class StructuralGroupsFilterSet(filters.FilterSet):
         
 
 class TransversalGroupsFilterSet(filters.FilterSet):
-    dept = filters.CharFilter(field_name='train_prog__department__abbrev',required=True)
+    dept = filters.CharFilter(field_name='train_prog__department__abbrev')
     
     class Meta:
         model = bm.TransversalGroup
         fields = ['dept']
 
 
-class GenericGroupViewSet(viewsets.ModelViewSet):
+class GenericGroupsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         dept_abbrev = self.request.query_params.get('dept', None)
         if dept_abbrev is None:
@@ -69,26 +69,26 @@ class GenericGroupViewSet(viewsets.ModelViewSet):
             return self.queryset.filter(train_prog__department__abbrev=dept_abbrev)
 
 
-class StructuralGroupViewSet(GenericGroupViewSet):
+class StructuralGroupsViewSet(GenericGroupsViewSet):
     """
     ViewSet to see all the groups
 
     Can be filtered as wanted with parameter="dept"[required] of a Group object, with the function GroupsFilterSet
     """
     queryset = bm.StructuralGroup.objects.all()
-    serializer_class = serializers.StructuralGroupSerializer
+    serializer_class = serializers.StructuralGroupsSerializer
     filterset_class = StructuralGroupsFilterSet
     permission_classes = [IsAdminOrReadOnly]
 
 
-class TransversalGroupViewSet(GenericGroupViewSet):
+class TransversalGroupsViewSet(GenericGroupsViewSet):
     queryset = bm.TransversalGroup.objects.all()
-    serializer_class = serializers.TransversalGroupSerializer
+    serializer_class = serializers.TransversalGroupsSerializer
     filterset_class = TransversalGroupsFilterSet
     permission_classes = [IsAdminOrReadOnly]
 
 
-class TrainingProgrammeViewset(viewsets.ModelViewSet):
+class TrainingProgramsViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the training programs
 
@@ -102,6 +102,6 @@ class TrainingProgrammeViewset(viewsets.ModelViewSet):
             return self.queryset.filter(department__abbrev=dept_abbrev)
         
     queryset = bm.TrainingProgramme.objects.all()
-    serializer_class = serializers.TrainingProgramsSerializer
+    serializer_class = serializers.TrainingProgrammesSerializer
     filterset_class = TrainingProgramsFilterSet
     permission_classes = [IsAdminOrReadOnly]

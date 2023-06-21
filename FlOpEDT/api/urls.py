@@ -45,7 +45,7 @@ from api.preferences.urls import routerPreferences
 from api.roomreservation.urls import routerRoomReservation
 
 #TODO remove V1...
-from api.v1.urls import routerV1
+from api.v1.urls import url_V1_patterns
 
 
 #####################################
@@ -118,6 +118,6 @@ urlpatterns = [
     path('roomreservations/',
          include((routerRoomReservation.urls, 'api'),
                  namespace='roomreservations')),
-    path('v1/', include((routerV1.urls, 'api'), namespace='v1')),
+    path('v1/', include((url_V1_patterns, 'api'), namespace='V1')),
 
 ]

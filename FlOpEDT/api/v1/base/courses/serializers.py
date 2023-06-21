@@ -37,7 +37,6 @@ from api.base.courses.serializers import CoursesSerializer, Group_SC_Serializer,
 
 class ScheduledCoursesSerializer(serializers.Serializer):
     # Specification of wanted fields
-    id = serializers.IntegerField(read_only=True)    
     course = serializers.IntegerField(source='course.id')
     module = serializers.IntegerField(source='course.module.id')
     tutor = serializers.IntegerField(source='tutor.id', allow_null=True)
@@ -78,13 +77,13 @@ class ScheduledCoursesSerializer(serializers.Serializer):
         return obj.course.groups.first().train_prog.id
 
 
-class RoomSerializer(serializers.ModelSerializer):
+class RoomsSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Room
         fields = '__all__'
 
 
-class ModuleSerializer(serializers.ModelSerializer):
+class ModulesSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Module
         fields = '__all__'

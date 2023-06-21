@@ -28,15 +28,25 @@ import base.models as bm
 
 class UserSerializer(serializers.ModelSerializer):
     departments = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
+
+    def get_type(self, obj):
+        if obj.is_tutor:
+            return "tutor"
+        if obj.is_student:
+            return "student"
 
     def get_departments(self, obj):
-        for dep in bm.Department.objects.all():
-            if obj.has_department_perm(dep):
+        if obj.is_superuser:
+            for dep in bm.Department.objects.all():
                 yield {'departmentId': dep.id, 'rights': 'true'} 
-            else:
-                yield {'departmentId': dep.id, 'rights': 'false'}
-                
+        else:
+            for dep in obj.departments.all():
+                if obj.has_department_perm:
+                    yield {'departmentId': dep.id, 'rights': 'true'} 
+                else:
+                    yield {'departmentId': dep.id, 'rights': 'false'}
 
     class Meta:
         model = pm.User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'id', 'departments')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'type', 'departments')

@@ -36,7 +36,7 @@ from django.apps import apps
 import base.models as bm
 import people.models as pm
 
-from .serializers import ScheduledCoursesSerializer
+from . import serializers
 from api.shared.params import dept_param, from_date_param, to_date_param, \
     work_copy_param, group_param, train_prog_param, lineage_param, tutor_param
 from api.permissions import IsAdminOrReadOnly
@@ -73,7 +73,7 @@ from datetime import date
 class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     # filterset_class = ScheduledCourseFilterSet
-    serializer_class = ScheduledCoursesSerializer
+    serializer_class = serializers.ScheduledCoursesSerializer
 
     def get_queryset(self):
         # avoid warning
@@ -175,3 +175,36 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                                        Q(course__week=flop_to_date.week, day__in=days_list[:days_index[flop_to_date.day]+1]))
 
         return queryset
+
+
+class RoomFilterSet(filters.FilterSet):
+    permission_classes = [IsAdminOrReadOnly]
+
+    dept = filters.CharFilter(field_name='departments__abbrev', required=False)
+
+    class Meta:
+        model = bm.Room
+        fields = ['dept']
+
+
+class RoomsViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the rooms.
+
+    Can be filtered as wanted with parameter="dept"[required] of a Room object, with the function RoomsFilterSet
+    """
+    permission_classes = [IsAdminOrReadOnly]
+
+    queryset = bm.Room.objects.all()
+    serializer_class = serializers.RoomsSerializer
+    filterset_class = RoomFilterSet
+
+
+class ModulesViewSet(viewsets.ModelViewSet):
+    """
+    """
+    permission_classes = [IsAdminOrReadOnly]
+
+    queryset = bm.Module.objects.all()
+    serializer_class = serializers.ModulesSerializer
+    filterset_fields = '__all__'
