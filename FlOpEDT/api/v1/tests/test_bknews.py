@@ -2,7 +2,7 @@ import pytest
 from base.models import Department
 from displayweb.models import BreakingNews
 from rest_framework.test import APIClient
-from fixtures import department_a
+from FlOpEDT.api.v1.tests.fixtures import department_a
 
 
 @pytest.fixture
