@@ -12,8 +12,15 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.1] -- 2023-06-05
+## [0.5.2] -- 2023-06-
 **Note:** `0.5` is the last `0.*` version.
+### Changed
+- Debugs:
+  - show TTModel logs in solve_board
+  - optimize the way in which weeks appears in solve_board
+  - change color assignation of modules
+
+## [0.5.1] -- 2023-06-05
 ### Changed
 - Debugs:
   - Define correctly directories for constraints generation interface (#59) 
