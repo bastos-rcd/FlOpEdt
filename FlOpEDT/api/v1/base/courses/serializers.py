@@ -76,3 +76,15 @@ class ScheduledCoursesSerializer(serializers.Serializer):
     
     def get_train_prog(self, obj):
         return obj.course.groups.first().train_prog.id
+
+
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.Room
+        fields = '__all__'
+
+
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.Module
+        fields = '__all__'

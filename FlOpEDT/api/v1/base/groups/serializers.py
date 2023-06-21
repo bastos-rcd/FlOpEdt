@@ -20,17 +20,24 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-from rest_framework import routers
-from django.urls import path
-from .base.courses import views as courses_views
-from .people import views as people_views
-from .base.groups import views as groups_views
 
-routerV1 = routers.SimpleRouter()
+import base.models as bm
+from rest_framework import serializers
 
-routerV1.register(r'scheduled_courses', courses_views.ScheduledCoursesViewSet, basename="scheduled_courses")
-routerV1.register(r'users', people_views.UsersViewSet, basename="users")
-routerV1.register(r'getcurrentuser', people_views.getCurrentUserView.as_view(), basename='getcurrentuser'),
-routerV1.register(r'structural_groups', groups_views.StructuralGroupViewSet, basename="structura_groups")
-routerV1.register(r'transversal_groups', groups_views.TransversalGroupViewSet, basename="transversal_groups")
-routerV1.register(r'training_programmes', groups_views.TrainingProgrammeViewset, basename="training_programmes")
+
+class StructuralGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.StructuralGroup
+        fields = '__all__'
+
+
+class TransversalGroupSerializer(serializers.ModelSerializer): 
+    class Meta:
+        model = bm.TransversalGroup
+        fields = '__all__'
+
+
+class TrainingProgramsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.TrainingProgramme
+        fields = '__all__'
