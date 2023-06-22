@@ -22,7 +22,6 @@ This version will include incompatible changes. More specifically:
   * Embbed missing colors.json file (#68)
   * systemd unit: Daphne listens now on only on 127.0.0.1 with default verbosity (#69)
   * systemd unit: Launch daphne in unbufferized mode in order to have a correct solve board log display (#70)
-  * show TTModel logs in solve_board
   * optimize the way in which weeks appears in solve_board
   * change color assignation of modules
 
