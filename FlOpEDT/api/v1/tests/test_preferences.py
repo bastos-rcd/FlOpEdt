@@ -1,6 +1,7 @@
 import pytest
 from base.models.groups import Department
 from base.models.preferences import UserPreference
+from base.models import Week, Day
 from people.models import Tutor
 from rest_framework.test import APIClient
 from api.v1.tests.fixtures import department_a, tutor_fs_a
@@ -13,7 +14,10 @@ first_may_2023_10AM = datetime.datetime(year=2023, month=5, day=1, hour=10)
 first_may_2023_11AM = datetime.datetime(year=2023, month=5, day=1, hour=11)
 
 # To be removed when floptime is abandonned
-flop_first_may_2023 = datetime_to_floptime(first_may_2023_8AM)[0]
+@pytest.fixture
+def flop_first_may_2023(db):
+    w = Week.objects.create(year=2023, nb=18)
+    return Day(week=w, day='m')
 
 time_8AM = datetime.time(hour=8)
 time_9AM = datetime.time(hour=9)
@@ -30,7 +34,7 @@ flop_time_1PM = time_to_floptime(time_1PM)
 
 
 @pytest.fixture
-def user_preference1(db, tutor_fs_a: Tutor) -> UserPreference:
+def user_preference1(db, tutor_fs_a: Tutor, flop_first_may_2023: Day) -> UserPreference:
     return UserPreference.objects.create(user=tutor_fs_a,
                                          value=4,
                                          start_time=flop_time_8AM,
