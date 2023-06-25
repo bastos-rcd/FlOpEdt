@@ -78,9 +78,10 @@ def default_user_preference1(db, tutor_fs_a: Tutor) -> UserPreference:
     return UserPreference.objects.create(user=tutor_fs_a,
                                          value=8,
                                          week=None,
-                                         week_day='m',
+                                         day='m',
                                          start_time=flop_time_8AM,
-                                         end_time=flop_time_10AM)
+                                         duration=120
+                                         )
 
 
 @pytest.fixture
@@ -88,9 +89,9 @@ def default_user_preference2(db, tutor_fs_a: Tutor) -> UserPreference:
     return UserPreference.objects.create(user=tutor_fs_a,
                                          value=8,
                                          week=None,
-                                         week_day='m',
+                                         day='m',
                                          start_time=flop_time_10AM,
-                                         end_time=flop_time_1PM)
+                                         duration=180)
 
 @pytest.fixture
 def client():
@@ -99,11 +100,12 @@ def client():
 
 # Query
 def test_preferences(client,
+                     flop_first_may_2023: Day,
                      user_preference1: UserPreference,
-                     default_user_preference2,
-                     default_user_preference3):
-    endpoint_default = "/fr/api/preferences/user-default"
-    endpoint_actual = "fr/api/preferences/user-actual/?week=18&year=2023"
+                     default_user_preference1: UserPreference,
+                     default_user_preference2: UserPreference):
+    endpoint_default = "/fr/api/preferences/user-default/"
+    endpoint_actual = "/fr/api/preferences/user-actual/?week=18&year=2023"
 
     response_default = client.get(endpoint_default)
     assert response_default.status_code == 200
