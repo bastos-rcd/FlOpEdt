@@ -1,8 +1,9 @@
 import pytest
-from base.models import Department, DefaultWeekUserPreference, UserPreference
+from base.models.groups import Department
+from base.models.preferences import UserPreference
 from people.models import Tutor
 from rest_framework.test import APIClient
-from fixtures import department_a, tutor_fs_a
+from api.v1.tests.fixtures import department_a, tutor_fs_a
 from base.timing import datetime_to_floptime, date_to_flopday, time_to_floptime
 import datetime
 

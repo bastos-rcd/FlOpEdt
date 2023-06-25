@@ -2,7 +2,7 @@ import pytest
 from base.models import Department, Course, ScheduledCourse, Week, Module, \
     StructuralGroup, TrainingProgramme, Period, CourseType
 from rest_framework.test import APIClient
-from FlOpEDT.api.v1.tests.fixtures import department_a, week_2021_11, period_a, module_a, train_prog_a, basic_group_a, parent_group_a, course_type_a
+from api.v1.tests.fixtures import department_a, week_2021_11, period_a, module_a, train_prog_a, basic_group_a, parent_group_a, course_type_a
 
 
 @pytest.fixture
