@@ -35,3 +35,4 @@ pyprof2calltree
 django-crontab
 python-dateutil
 pytest
+pytest-django
