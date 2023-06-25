@@ -21,10 +21,10 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 from rest_framework import routers
+from api.v1.base.courses import views as courses_views
 
-from api.v1.preferences import views
+routerCourses = routers.SimpleRouter()
 
-routerPreferences= routers.SimpleRouter()
-
-routerPreferences.register(r'user-default', views.UserPreferenceDefaultDayViewSet, basename="user-def")
-routerPreferences.register(r'user-actual', views.DatedUserPreferenceViewSet, basename="user-actual")
+routerCourses.register(r'scheduled_courses', courses_views.ScheduledCoursesViewSet, basename="scheduled_courses")
+routerCourses.register(r'rooms', courses_views.RoomsViewSet, basename="rooms")
+routerCourses.register(r'modules', courses_views.ModulesViewSet, basename="modules")

@@ -21,10 +21,17 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 from rest_framework import routers
+from django.urls import path, re_path, include
+from api.v1.people import views as people_views
 
-from api.v1.preferences import views
 
-routerPreferences= routers.SimpleRouter()
+routerPeople = routers.SimpleRouter()
 
-routerPreferences.register(r'user-default', views.UserPreferenceDefaultDayViewSet, basename="user-def")
-routerPreferences.register(r'user-actual', views.DatedUserPreferenceViewSet, basename="user-actual")
+routerPeople.register(r'users', people_views.UsersViewSet, basename="users")
+
+
+url_people_patterns = [
+    path(r'getcurrentuser/', people_views.getCurrentUserView.as_view(), name='getcurrentuser'),
+]
+
+url_people_patterns += routerPeople.urls

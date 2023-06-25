@@ -20,11 +20,13 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-from rest_framework import routers
+from django.urls import path, re_path, include
+from api.v1.base.courses.urls import routerCourses
+from api.v1.base.groups.urls import routerGroups
 
-from api.v1.preferences import views
-
-routerPreferences= routers.SimpleRouter()
-
-routerPreferences.register(r'user-default', views.UserPreferenceDefaultDayViewSet, basename="user-def")
-routerPreferences.register(r'user-actual', views.DatedUserPreferenceViewSet, basename="user-actual")
+url_base_patterns = [
+    path('courses/',
+         include((routerCourses.urls, 'api'), namespace='course')),
+    path('groups/',
+         include((routerGroups.urls, 'api'), namespace='groups')),
+]
