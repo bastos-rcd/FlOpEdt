@@ -88,17 +88,6 @@ def default_user_preference2(db, tutor_fs_a: Tutor) -> UserPreference:
                                          start_time=flop_time_10AM,
                                          end_time=flop_time_1PM)
 
-
-@pytest.fixture
-def default_user_preference3(db, tutor_fs_a: Tutor) -> UserPreference:
-    return DefaultWeekUserPreference.objects.create(user=tutor_fs_a,
-                                                    value=8,
-                                                    week=None,
-                                                    week_day='m',
-                                                    start_time=flop_time_10AM,
-                                                    end_time=flop_time_11AM)
-
-
 @pytest.fixture
 def client():
     return APIClient()
