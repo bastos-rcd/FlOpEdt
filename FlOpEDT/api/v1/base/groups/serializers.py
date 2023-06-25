@@ -26,18 +26,28 @@ from rest_framework import serializers
 
 
 class StructuralGroupsSerializer(serializers.ModelSerializer):
+    train_prog_id = serializers.IntegerField(source='train_prog.id')
+    parents_ids = serializers.IntegerField(source='parent_groups.id', many=True)
+    
     class Meta:
         model = bm.StructuralGroup
-        fields = '__all__'
+        fields = ('id', 'name', 'train_prog_id', 'type', 'parents_ids')
 
 
 class TransversalGroupsSerializer(serializers.ModelSerializer): 
+    train_prog_id = serializers.IntegerField(source='train_prog.id')
+    conflicting_groups_ids = serializers.IntegerField(source='conflicting_groups.id', many=True)
+    parallel_groups_ids = serializers.IntegerField(source='parallel_groups.id', many=True)
+        
+    
     class Meta:
         model = bm.TransversalGroup
-        fields = '__all__'
+        fields = ('id', 'name', 'train_prog_id', 'type', 'conflicting_groups_ids', 'parallel_groups_ids')
 
 
 class TrainingProgrammesSerializer(serializers.ModelSerializer):
+    department_id = serializers.IntegerField(source='department.id')
+
     class Meta:
         model = bm.TrainingProgramme
-        fields = '__all__'
+        fields = ('id', 'name', 'abbrev', 'department_id')

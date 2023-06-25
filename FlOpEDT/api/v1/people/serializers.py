@@ -26,27 +26,28 @@ import people.models as pm
 import base.models as bm
 
 
-class UserSerializer(serializers.ModelSerializer):
+class TutorSerializer(serializers.ModelSerializer):
     departments = serializers.SerializerMethodField()
-    type = serializers.SerializerMethodField()
-
-    def get_type(self, obj):
-        if obj.is_tutor:
-            return "tutor"
-        if obj.is_student:
-            return "student"
 
     def get_departments(self, obj):
         if obj.is_superuser:
             for dep in bm.Department.objects.all():
-                yield {'departmentId': dep.id, 'rights': 'true'} 
+                yield {'departmentId': dep.id, 'is_admin': 'true'} 
         else:
             for dep in obj.departments.all():
                 if obj.has_department_perm:
-                    yield {'departmentId': dep.id, 'rights': 'true'} 
+                    yield {'departmentId': dep.id, 'is_admin': 'true'} 
                 else:
-                    yield {'departmentId': dep.id, 'rights': 'false'}
+                    yield {'departmentId': dep.id, 'is_admin': 'false'}
 
     class Meta:
-        model = pm.User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'type', 'departments')
+        model = pm.Tutor
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'rights', 'departments')
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    department_ids = serializers.IntegerField(source='departments.id', many=True)
+
+    class Meta:
+        model = pm.Student
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'rights', 'department_ids')

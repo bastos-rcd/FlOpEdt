@@ -47,7 +47,7 @@ class ScheduledCoursesSerializer(serializers.Serializer):
     # end_time = serializers.DateTimeField()
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
-    train_prog = serializers.SerializerMethodField()
+    train_prog_id = serializers.SerializerMethodField()
     groups = serializers.SerializerMethodField()    
 
     # Sructuration of the data
@@ -78,12 +78,17 @@ class ScheduledCoursesSerializer(serializers.Serializer):
 
 
 class RoomsSerializer(serializers.ModelSerializer):
+    department_ids = serializers.IntegerField(source='department.id', many=True)
+    subroom_of_ids = serializers.IntegerField(source='subroom_of.id', many=True)
     class Meta:
         model = bm.Room
-        fields = '__all__'
+        fields = ('id', 'name', 'abbrev', 'subroom_of_ids', 'department_ids')
 
 
 class ModulesSerializer(serializers.ModelSerializer):
+    head_id = serializers.IntegerField(source='head.id')
+    train_prog_id = serializers.IntegerField(source='train_prog.id')
+    
     class Meta:
         model = bm.Module
-        fields = '__all__'
+        fields = ('id', 'name', 'abbrev','head_id', 'train_prog_id', 'description')
