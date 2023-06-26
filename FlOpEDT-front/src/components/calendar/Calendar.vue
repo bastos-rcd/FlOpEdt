@@ -118,9 +118,28 @@
                   </span>
                   <div
                     v-else
-                    style="width: 100%; height: 100%; align-items: center; display: flex; justify-content: center"
+                    style="width: 100%; height: 100%; flex-direction: column; align-items: center; display: flex"
                   >
-                    <q-icon color="black" :name="event.icon" size="xs" />
+                    <div>
+                      <q-icon color="grey" :name="matChevronRight" size="xs" style="align-self: flex-start" />
+                      <q-popup-edit v-model="newAvailValue" v-slot="scope" anchor="bottom left">
+                        <q-btn-group style="display: flex; flex-direction: column">
+                          <q-btn
+                            v-for="(icon, index) in availabilityData.icon"
+                            :icon="icon"
+                            size="sm"
+                            @click="changeAvail(event.id, parseInt(index))"
+                          />
+                        </q-btn-group>
+                      </q-popup-edit>
+                    </div>
+                    <q-icon
+                      color="black"
+                      :name="event.icon"
+                      size="xs"
+                      style="flex: 2"
+                      @click="onAvailClick(event.id)"
+                    />
                   </div>
                 </slot>
               </div>
@@ -144,7 +163,7 @@ import {
   parseTime,
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import '@quasar/extras/material-icons'
+import { matChevronRight } from '@quasar/extras/material-icons'
 
 import _ from 'lodash'
 
@@ -597,6 +616,48 @@ function onPrev(): void {
 }
 function onNext(): void {
   calendar.value?.next()
+}
+
+/**
+ * Functions for onclick management
+ */
+
+let newAvailValue: number = 0
+let timeoutId: any = null
+
+function onAvailClick(eventId: number): void {
+  if (!timeoutId) {
+    timeoutId = setTimeout(() => {
+      changeAvail(eventId)
+      timeoutId = null
+    }, 200)
+  } else {
+    clearTimeout(timeoutId)
+    timeoutId = null
+    console.log('DoubleClick')
+  }
+}
+
+function changeAvail(eventId: number, value?: number): void {
+  let newEvent: InputCalendarEvent | undefined = _.cloneDeep(
+    eventsModel.value.find((ev: InputCalendarEvent) => ev.id == eventId)
+  )
+  if (newEvent !== undefined && newEvent.data.dataType === 'avail') {
+    let newEvents: InputCalendarEvent[] = _.cloneDeep(eventsModel.value)
+    if (value || value === 0) {
+      newEvent.data.value = value
+    } else {
+      if (newEvent.data.value || newEvent.data.value === 0) newEvent.data.value = (newEvent.data.value + 1) % 9
+      else {
+        newEvent.data.value = 8
+      }
+    }
+    _.remove(newEvents, (e: InputCalendarEvent) => {
+      return e.id === newEvent!.id
+    })
+    newEvents.push(newEvent)
+    eventsModel.value = newEvents
+  }
 }
 </script>
 
