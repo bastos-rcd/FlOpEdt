@@ -28,6 +28,8 @@ from api.v1.people import views as people_views
 routerPeople = routers.SimpleRouter()
 
 routerPeople.register(r'users', people_views.UsersViewSet, basename="users")
+routerPeople.register(r'students', people_views.UsersViewSet, basename="students")
+routerPeople.register(r'tutors', people_views.TutorsViewSet, basename="tutors")
 
 
 url_people_patterns = [

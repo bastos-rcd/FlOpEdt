@@ -169,7 +169,7 @@ class TutorViewSet(viewsets.ModelViewSet):
         else:
             return pm.Tutor.objects.all()
 
-    serializer_class = serializers.TutorSerializer
+    serializer_class = serializers.ExTutorSerializer
     filterset_class = TutorFilterSet
     permission_classes = [IsAdminOrReadOnly]
 

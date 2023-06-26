@@ -26,24 +26,32 @@ from rest_framework import serializers
 
 
 class StructuralGroupsSerializer(serializers.ModelSerializer):
+    type_id = serializers.IntegerField(source='type.id')
     train_prog_id = serializers.IntegerField(source='train_prog.id')
-    parents_ids = serializers.IntegerField(source='parent_groups.id', many=True)
+    parent_ids = serializers.SerializerMethodField()
     
     class Meta:
         model = bm.StructuralGroup
-        fields = ('id', 'name', 'train_prog_id', 'type', 'parents_ids')
+        fields = ('id', 'name', 'train_prog_id', 'type_id', 'parent_ids')
+    
+    def get_parent_ids(self, obj):
+        return [parent.id for parent in obj.parent_groups.all()]
 
 
 class TransversalGroupsSerializer(serializers.ModelSerializer): 
+    type_id = serializers.IntegerField(source='type.id')
     train_prog_id = serializers.IntegerField(source='train_prog.id')
-    conflicting_groups_ids = serializers.IntegerField(source='conflicting_groups.id', many=True)
-    parallel_groups_ids = serializers.IntegerField(source='parallel_groups.id', many=True)
-        
+    conflicting_group_ids = serializers.SerializerMethodField()
+    parallel_group_ids = serializers.SerializerMethodField()
     
     class Meta:
         model = bm.TransversalGroup
-        fields = ('id', 'name', 'train_prog_id', 'type', 'conflicting_groups_ids', 'parallel_groups_ids')
-
+        fields = ('id', 'name', 'train_prog_id', 'type_id', 'conflicting_group_ids', 'parallel_group_ids')
+    
+    def get_conflicting_group_ids(self, obj):
+        return [conflicting_group.id for conflicting_group in obj.conflicting_groups.all()]
+    def get_parallel_group_ids(self, obj):
+        return [parallel_group.id for parallel_group in obj.parallel_groups.all()]
 
 class TrainingProgrammesSerializer(serializers.ModelSerializer):
     department_id = serializers.IntegerField(source='department.id')

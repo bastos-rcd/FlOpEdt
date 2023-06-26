@@ -30,7 +30,7 @@ from rest_framework.response import Response
 
 import people.models as pm
 import base.models as bm
-from . import serializers
+from api.v1.people.serializers import UserSerializer, StudentSerializer
 
 from api.permissions import IsAdminOrReadOnly
 
@@ -43,11 +43,33 @@ class UsersViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [IsAdminOrReadOnly]
     queryset = pm.User.objects.all()
-    serializer_class = serializers.UserSerializer
+    serializer_class = UserSerializer
 
 
 class getCurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self,request):
-        return Response(serializers.UserSerializer(request.user).data)
+        return Response(UserSerializer(request.user).data)
+
+
+class TutorsViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the users
+
+    Can be filtered as wanted with every field of a User object.
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = pm.Tutor.objects.all()
+    serializer_class = UserSerializer
+
+
+class StudentsViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the users
+
+    Can be filtered as wanted with eveUserSerializerry field of a User object.
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = pm.Student.objects.all()
+    serializer_class = StudentSerializer

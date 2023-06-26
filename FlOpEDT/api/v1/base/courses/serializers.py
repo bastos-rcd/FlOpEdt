@@ -37,23 +37,23 @@ from api.base.courses.serializers import CoursesSerializer, Group_SC_Serializer,
 
 class ScheduledCoursesSerializer(serializers.Serializer):
     # Specification of wanted fields
-    course = serializers.IntegerField(source='course.id')
-    module = serializers.IntegerField(source='course.module.id')
-    tutor = serializers.IntegerField(source='tutor.id', allow_null=True)
-    supp_tutors = serializers.SerializerMethodField()
-    room = serializers.IntegerField(source='room.id', allow_null=True)
+    course_id = serializers.IntegerField(source='course.id')
+    module_id = serializers.IntegerField(source='course.module.id')
+    tutor_id = serializers.IntegerField(source='tutor.id', allow_null=True)
+    supp_tutor_ids = serializers.SerializerMethodField()
+    room_id = serializers.IntegerField(source='room.id', allow_null=True)
     # TODO V1: change into DatetimeFields
     # start_time = serializers.DatetimeField()
     # end_time = serializers.DateTimeField()
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
     train_prog_id = serializers.SerializerMethodField()
-    groups = serializers.SerializerMethodField()    
+    group_ids = serializers.SerializerMethodField()    
 
     # Sructuration of the data
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['id', 'course', "module", 'tutor', 'supp_tutors', 'room', 'start_time', 'end_time', 'train_prog', 'groups']
+        fields = ['id', 'course_id', 'module_id', 'tutor_id', 'supp_tutor_ids', 'room_id', 'start_time', 'end_time', 'train_prog_id', 'group_ids']
         ref_name = "New api scheduled course serializer"
 
     def get_start_time(self, obj):
@@ -67,26 +67,33 @@ class ScheduledCoursesSerializer(serializers.Serializer):
         duration = obj.course.type.duration
         return start_time + timedelta(seconds=duration * 60)
     
-    def get_groups(self, obj):
+    def get_group_ids(self, obj):
         return list(g.id for g in obj.course.groups.all())
     
-    def get_supp_tutors(self, obj):
+    def get_supp_tutor_ids(self, obj):
         return list(t.id for t in obj.course.supp_tutor.all())
     
-    def get_train_prog(self, obj):
+    def get_train_prog_id(self, obj):
         return obj.course.groups.first().train_prog.id
 
 
 class RoomsSerializer(serializers.ModelSerializer):
-    department_ids = serializers.IntegerField(source='department.id', many=True)
-    subroom_of_ids = serializers.IntegerField(source='subroom_of.id', many=True)
+    department_ids = serializers.SerializerMethodField()
+    over_room_ids = serializers.SerializerMethodField()
+
     class Meta:
         model = bm.Room
-        fields = ('id', 'name', 'abbrev', 'subroom_of_ids', 'department_ids')
+        fields = ('id', 'name', 'over_room_ids', 'department_ids')
+
+    def get_department_ids(self, obj):
+        return [dep.id for dep in obj.departments.all()]
+    
+    def get_over_room_ids(self, obj):
+        return [over_room.id for over_room in obj.subroom_of.all()]
 
 
 class ModulesSerializer(serializers.ModelSerializer):
-    head_id = serializers.IntegerField(source='head.id')
+    head_id = serializers.IntegerField(source='head.id', allow_null=True)
     train_prog_id = serializers.IntegerField(source='train_prog.id')
     
     class Meta:
