@@ -5,19 +5,25 @@ from roomreservation.models import RoomReservation, RoomReservationType
 from django.db import transaction
 from people.models import User
 
-ade_reservations_filename =f"/var/flopedt/tmp/misc/Export_Salles_utf8.csv"
-tomorrow = datetime.date.today() + datetime.timedelta(days=1)
 
 @transaction.atomic
-def import_reservations_from_ade(filename=ade_reservations_filename,
-                                 from_date=tomorrow,
+def import_ade_reservations_from_tomorrow():
+    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    ade_reservations_filename = f"/var/flopedt/tmp/misc/Export_Salles_utf8.csv"
+    import_reservations_from_ade(filename=ade_reservations_filename, from_date=tomorrow)
+
+
+@transaction.atomic
+def import_reservations_from_ade(filename,
+                                 from_date=None,
                                  to_date=None):
     responsible = User.objects.get_or_create(username='ADE')[0]
     reservation_type = RoomReservationType.objects.get_or_create(name='ADE')[0]
-    room_reservations_to_delete = RoomReservation.objects.filter(reservation_type=reservation_type)
-    if from_date:
+    room_reservations_to_delete = RoomReservation.objects.filter(reservation_type=reservation_type, 
+                                                                 responsible=responsible)
+    if from_date is not None:
         room_reservations_to_delete = room_reservations_to_delete.filter(date__gte=from_date)
-    if to_date:
+    if to_date is not None:
         room_reservations_to_delete = room_reservations_to_delete.filter(date__lte=to_date)
     room_reservations_to_delete.delete()
     with open(filename, newline='') as csvfile:
