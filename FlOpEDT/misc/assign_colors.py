@@ -104,10 +104,9 @@ def optim_and_save(keys, mat, overwrite):
                     "#5310f0", "#fca552", "#274c56", "#ddc0bd", "#2d68c7", "#9a5c0d", "#c098fd", "#474a09", "#fb899b"]
     for mi in range(len(keys)):
         if mat is not None:
-            cbg = color_set[mi % len(color_set)]
-        else:
             cbg = color_set[color_indices[mi] - 1]
-
+        else:
+            cbg = color_set[mi % len(color_set)]
         try:
             mod_disp = ModuleDisplay.objects.get(module=keys[mi])
             if overwrite:
