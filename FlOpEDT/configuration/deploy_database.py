@@ -48,7 +48,8 @@ from misc.assign_colors import assign_module_color
 
 from configuration.database_description_checker import database_description_check
 
-media_dir = 'media/configuration'
+from django.conf import settings as ds
+
 logger = logging.getLogger('base')
 
 @transaction.atomic
@@ -69,7 +70,7 @@ def extract_database_file(department_name=None, department_abbrev=None, bookname
                     f"It will be updated")
     if book is None:
         if bookname is None:
-            bookname = f"{media_dir}/database_file_{department_abbrev}.xlsx"
+            bookname = f"{ds.MEDIA_ROOT}/database_file_{department_abbrev}.xlsx"
 
         book = database_description_load_xlsx_file(bookname)
 

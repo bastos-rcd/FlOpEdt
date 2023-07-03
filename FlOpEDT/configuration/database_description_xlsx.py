@@ -32,6 +32,7 @@
 
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
+from django.conf import settings as ds
 
 import logging
 logger = logging.getLogger(__name__)
@@ -492,7 +493,7 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
 
 
 def database_description_save_xlsx_file(filename, database):
-    wb = load_workbook('/home/jpuydt/Logiciel/FlOpEDT/FlOpEDT/media/configuration/empty_database_file.xlsx') # FIXME HELP!
+    wb = load_workbook(f"{ds.MEDIA_ROOT}/empty_database_file.xlsx") 
 
     sheet = wb[settings_sheet]
     row, col = find_marker_cell(sheet, 'Jalon')

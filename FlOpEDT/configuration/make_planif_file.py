@@ -25,6 +25,7 @@
 # without disclosing the source code of your own applications.
 
 import logging
+import os
 
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
@@ -39,6 +40,7 @@ from django.db.models import Count
 
 from django.utils.translation import gettext_lazy as _
 
+from django.conf import settings as ds
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +84,7 @@ def order_CT(department):
     return CT
 
 
-default_empty_bookname = 'media/configuration/empty_planif_file.xlsx'
+default_empty_bookname = os.path.join(os.path.dirname(__file__),'xls/empty_planif_file.xlsx')
 
 def adjust_column_length(sheet):
     for i, col in enumerate(sheet.columns):
@@ -93,7 +95,7 @@ def adjust_column_length(sheet):
         sheet.column_dimensions[get_column_letter(i + 1)].width = adjusted_length
 
 
-def make_planif_file(department, empty_bookname=default_empty_bookname, target_repo="media/configuration",
+def make_planif_file(department, empty_bookname=default_empty_bookname, target_repo=ds.CONF_XLS_DIR,
                      with_courses=False):
     new_book = load_workbook(filename=empty_bookname)
 

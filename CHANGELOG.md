@@ -12,8 +12,21 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.1] -- 2023-06-05
+## [0.5.2] -- 2023-06-21
 **Note:** `0.5` is the last `0.*` version.
+### Changed
+- Debugs:
+  * Add an [Install] section in systemd unit (#64)
+  * Store generated content in a dedicated storage directory and embbed missing XLS files (#65)
+  * Change the way /var directories are created and removed in debian package (#67)
+  * Embbed missing colors.json file (#68)
+  * systemd unit: Daphne listens now on only on 127.0.0.1 with default verbosity (#69)
+  * systemd unit: Launch daphne in unbufferized mode in order to have a correct solve board log display (#70)
+  * systemd unit: Daphne IP and port are configurable using a system configuration file (#71)
+  * optimize the way in which weeks appears in solve_board
+  * change color assignation of modules
+
+## [0.5.1] -- 2023-06-05
 ### Changed
 - Debugs:
   - Define correctly directories for constraints generation interface (#59) 

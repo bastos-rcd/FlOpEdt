@@ -1,3 +1,16 @@
+flopedt (0.5.2) stable; urgency=medium
+
+  * Update to version 0.5.2 (#66)
+  * Add an [Install] section in systemd unit (#64)
+  * Store generated content in a dedicated storage directory and embbed missing XLS files (#65)
+  * Change the way /var directories are created and removed in debian package (#67)
+  * Embbed missing colors.json file (#68)
+  * systemd unit: Daphne listens now on only on 127.0.0.1 with default verbosity (#69)
+  * systemd unit: Launch daphne in unbufferized mode in order to have a correct solve board log display (#70)
+  * systemd unit: Daphne IP and port are configurable using a system configuration file (#71)
+
+ -- Olivier Bonhomme <olivier@bonhomme.io>  Sat, 21 Jun 2023 11:47:03 +0200
+
 flopedt (0.5.1) unstable; urgency=medium
 
   * Define correctly directories for constraints generation interface (#59) 

@@ -4,6 +4,8 @@ recursive-include FlOpEDT/**/templates *
 recursive-include FlOpEDT/TTapp/onLaunch *.json
 recursive-include FlOpEDT/TTapp/TTConstraints *.md
 recursive-include FlOpEDT/TTapp/TTConstraints/doc *.png
+recursive-include FlOpEDT/configuration/xls *
+recursive-include FlOpEDT/misc *.json
 
 global-exclude FlOpEDT/settings/local.py
 global-exclude FlOpEDT/settings/local_ci.py
