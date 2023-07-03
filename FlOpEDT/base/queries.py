@@ -285,8 +285,12 @@ def get_coursetype_constraints(department_abbrev):
             dic[ct.name]['allowed_st'] += ct_constraint.allowed_start_times
         dic[ct.name]['allowed_st'].sort()
         if len(dic[ct.name]['allowed_st']) == 0:
-            dic[ct.name]['allowed_st'] += \
-                CourseStartTimeConstraint.objects.get(course_type=None).allowed_start_times
+            d=Department.objects.get(abbrev=department_abbrev)
+            tgs = d.time_general_settings
+            default_start_times = list(range(tgs.day_start_time, tgs.lunch_break_start_time, tgs.default_preference_duration)) + \
+                    list(range(tgs.lunch_break_finish_time, tgs.day_finish_time, tgs.default_preference_duration))
+            dic[ct.name]['allowed_st'] = default_start_times
+
     return dic
 
 
