@@ -439,6 +439,14 @@ LOGGING = {
     },
 }
 
+# Configure django-crontab to use flop_admin as manage script when it exists
+try:
+    if os.path.isfile(os.path.join(os.environ['VIRTUAL_ENV'],"bin/flop_admin")):
+        CRONTAB_DJANGO_MANAGE_PATH=os.path.join(os.environ['VIRTUAL_ENV'],"bin/flop_admin")
+except KeyError:
+    # No venv defined => no flop_admin
+    pass
+
 # Specific cronjob
 CRONJOBS = [
     ('0 4 * * *', 'notifications.cron.backup_and_notify')
