@@ -254,11 +254,11 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
         except Exception as e:
             raise Exception(f"Exception ligne {row}, semaine {week.nb} de {feuille}: {e} \n")
 
-        # Add after_type dependecies
-        for id, courses_queryset, n in after_type_dependencies:
-            course2 = Course.objects.get(id=id)
-            for course1 in courses_queryset[:n]:
-                    P = Dependency.objects.create(course1=course1, course2=course2)        
+    # Add after_type dependecies
+    for id, courses_queryset, n in after_type_dependencies:
+        course2 = Course.objects.get(id=id)
+        for course1 in courses_queryset[:n]:
+            P = Dependency.objects.create(course1=course1, course2=course2)        
 
 
 @transaction.atomic
