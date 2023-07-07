@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     'quote',
     'people',
     'solve_board',
-    'ics',
+    'flop_ics',
     'displayweb',
     'configuration',
     'easter_egg',

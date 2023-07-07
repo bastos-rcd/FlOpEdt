@@ -109,7 +109,7 @@
             <li><a href="{% url "base:decale" department %}">{% trans 'Move/Cancel' %}</a></li>
           {% endif %}
           <li><a href="{% url "base:preferences" department %}">{% trans 'Preferences' %}</a></li>
-          <li><a href="{% url "ics:index" department %}">{% trans 'iCal' %}</a></li>
+          <li><a href="{% url "flop_ics:index" department %}">{% trans 'iCal' %}</a></li>
           <li><a href="{% url "base:aide" department %}">{% trans 'Help' %}</a></li>
           <li><a href="{% url "base:contact" department %}">{% trans 'Messages' %}</a></li>
           <li><a href="{% url "base:modules" department %}">{% trans 'Modules' %}</a></li>
