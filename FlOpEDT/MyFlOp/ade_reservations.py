@@ -33,21 +33,14 @@ from people.models import User
 from ics import Calendar
 import requests
 
-ade_reservations_filename = f"/var/flopedt/tmp/misc/Export_Salles_utf8.csv"
-ade_reservations_ics_url = "https://sedna.univ-fcomte.fr/jsp/custom/ufc/cal.jsp?data=7d2be45f7963012e7330cb059c72f77f1c3c057a13954fcb73e210929d5c5728c6412a77b23057dfc03c0942972f2bb1de5b64a61bcf70e2db430bbabcd5338c57066d130b9a7621faf9c42a9c2ef5fc74ed3b5838e481265e30c5a102f3790c16e4212ea9e129e77f2e06fc8dfba77830a5f72847b0c2c00c79892a4ff650a79975b678970c7724d3997a83ca8b8c5b1e3e63b85b4fe4163e5444e84e51c091,1"
-
-
-
 @transaction.atomic
-def import_ade_reservations_from_tomorrow(ade_reservations_filename=None):
+def import_ade_reservations_from_tomorrow(ade_reservations_filename):
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    if ade_reservations_filename is None:
-        ade_reservations_filename = f"/var/flopedt/tmp/misc/Export_Salles_utf8.csv"
     import_reservations_from_ade_csv_file(csv_filename=ade_reservations_filename, from_date=tomorrow)
 
 
 @transaction.atomic
-def import_reservations_from_ade_ics_url(ade_reservations_ics_url=ade_reservations_ics_url, 
+def import_reservations_from_ade_ics_url(ade_reservations_ics_url, 
                                          future_only=True):
     responsible = User.objects.get_or_create(username='ADE')[0]
     reservation_type = RoomReservationType.objects.get_or_create(name='ADE')[0]
