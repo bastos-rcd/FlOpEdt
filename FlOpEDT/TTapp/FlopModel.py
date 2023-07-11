@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
 GUROBI = 'GUROBI'
 GUROBI_NAME = 'GUROBI_CMD'
-solution_files_path = os.path.join(settings.TMP_DIRECTORY,"/misc/logs/solutions")
+solution_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/solutions")
 iis_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/iis")
 
 
