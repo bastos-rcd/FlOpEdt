@@ -47,6 +47,8 @@ from base.timing import  flopday_to_date, floptime_to_time
 
 from roomreservation.models import RoomReservation
 
+from django.conf import settings
+
 
 class RoomModel(FlopModel):
     @timer
@@ -78,7 +80,7 @@ class RoomModel(FlopModel):
                 print("%s : %s" % (key, ", ".join([str(x) for x in key_warnings])))
 
     def solution_files_prefix(self):
-        return f"room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
+        return f"{settings.TMP_DIRECTORY}/room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
 
     @timer
     def courses_init(self):

@@ -1021,7 +1021,7 @@ class TTModel(FlopModel):
 
     # Some extra Utils
     def solution_files_prefix(self):
-        return f"{settings.TMP_DIRECTORY}/flopmodel_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
+        return f"{settings.TMP_DIRECTORY}/TTmodel_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
 
     def add_tt_to_db_from_file(self, filename=None, target_work_copy=None):
         if filename is None:
