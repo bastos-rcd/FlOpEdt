@@ -24,8 +24,6 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.conf import settings
-
 from django.core.mail import EmailMessage
 
 from base.models import RoomType, RoomPreference, ScheduledCourse, TrainingProgramme, \
@@ -61,7 +59,7 @@ from TTapp.ilp_constraints.constraints.slotInstructorConstraint import SlotInstr
 
 from core.decorators import timer
 
-from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_ttconstraints, get_room_constraints
+from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_ttconstraints, get_room_constraints, solution_files_path
 from TTapp.RoomModel import RoomModel
 
 from django.utils.translation import gettext_lazy as _
@@ -1021,7 +1019,7 @@ class TTModel(FlopModel):
 
     # Some extra Utils
     def solution_files_prefix(self):
-        return f"{settings.TMP_DIRECTORY}/TTmodel_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
+        return f"{solution_files_path}/TTmodel_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
 
     def add_tt_to_db_from_file(self, filename=None, target_work_copy=None):
         if filename is None:

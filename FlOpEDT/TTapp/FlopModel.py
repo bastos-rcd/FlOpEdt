@@ -298,7 +298,7 @@ class FlopModel(object):
                 options.append(("Threads",threads))
             if self.keep_many_solution_files:
                 options.append(('SolFiles',
-                                f"{solution_files_path}/{self.solution_files_prefix()}"))
+                                f"{self.solution_files_prefix()}"))
             result = self.model.solve(GUROBI_CMD(keepFiles=1,
                                                  msg=True,
                                                  options=options))
