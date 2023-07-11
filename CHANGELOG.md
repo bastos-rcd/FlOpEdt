@@ -12,8 +12,16 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.2] -- 2023-06-21
+## [0.5.3] -- 2023-07-12
 **Note:** `0.5` is the last `0.*` version.
+### Changed
+- Debugs:
+  * Debug rooms post_assignment solution_file storage in FlopModel
+  * Debug after_type comments in planif_file extraction
+  * Debug color assignment
+  * crontab command is now working with flop_admin (#72)
+
+## [0.5.2] -- 2023-06-21
 ### Changed
 - Debugs:
   * Add an [Install] section in systemd unit (#64)
