@@ -69,7 +69,7 @@ def parse_time(sheet, row, column):
     "(will return None if anything goes wrong)"
     try:
         val = sheet.cell(row=row, column=column).value
-        if type(val) is str:
+        if isinstance(val, str):
             val = datetime.strptime(val, '%H:%M').time()
         return 60 * val.hour + val.minute
     except:
