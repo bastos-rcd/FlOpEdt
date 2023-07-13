@@ -38,7 +38,7 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 
 from core.decorators import timer
 
-from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints
+from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints, solution_files_path
 from TTapp.RoomConstraints.RoomConstraint import LocateAllCourses, \
     LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts, LimitSimultaneousRoomCourses
 from TTapp.FlopConstraint import max_weight
@@ -78,7 +78,7 @@ class RoomModel(FlopModel):
                 print("%s : %s" % (key, ", ".join([str(x) for x in key_warnings])))
 
     def solution_files_prefix(self):
-        return f"room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
+        return f"{solution_files_path}/room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
 
     @timer
     def courses_init(self):
