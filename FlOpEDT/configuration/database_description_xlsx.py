@@ -155,6 +155,7 @@ def find_marker_cell(sheet, marker, row = 1, col = 1):
         col = 1
     return None, None
 
+# TODO : transform into time object
 def time_from_integer(time):
     hours = time // 60
     minutes = time % 60
