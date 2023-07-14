@@ -286,7 +286,7 @@ def get_coursetype_constraints(department_abbrev):
         dic[ct.name]['allowed_st'].sort()
         if len(dic[ct.name]['allowed_st']) == 0:
             d=Department.objects.get(abbrev=department_abbrev)
-            tgs = d.time_general_settings
+            tgs = d.timegeneralsettings
             default_start_times = list(range(tgs.day_start_time, tgs.lunch_break_start_time, tgs.default_preference_duration)) + \
                     list(range(tgs.lunch_break_finish_time, tgs.day_finish_time, tgs.default_preference_duration))
             dic[ct.name]['allowed_st'] = default_start_times
