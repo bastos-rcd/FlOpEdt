@@ -390,11 +390,15 @@ except KeyError:
 try:
     EMAIL_HOST_USER = flop_config['email']['email_user']
 except KeyError:
-    print("WARNING - email_user is not configured. Mail sending won't working if your email server requires authentication.")
+    print("WARNING - email_user is not configured. Mail sending won't work if your email server requires authentication.")
 try:
     EMAIL_HOST_PASSWORD = flop_config['email']['email_password']
 except KeyError:
-    print("WARNING - email_password is not configured. Mail sending won't working if your email server requires authentication.")
+    print("WARNING - email_password is not configured. Mail sending won't work if your email server requires authentication.")
+try:
+    DEFAULT_FROM_EMAIL = flop_config['email']['email_sender']
+except KeyError:
+    print("WARNING - email_sender is not configured. Mail sending won't work if sender email is not defined. Default value is webmaster@localhost")
 
 # Logging settings
 try:
@@ -440,12 +444,7 @@ LOGGING = {
 }
 
 # Configure django-crontab to use flop_admin as manage script when it exists
-try:
-    if os.path.isfile(os.path.join(os.environ['VIRTUAL_ENV'],"bin/flop_admin")):
-        CRONTAB_DJANGO_MANAGE_PATH=os.path.join(os.environ['VIRTUAL_ENV'],"bin/flop_admin")
-except KeyError:
-    # No venv defined => no flop_admin
-    pass
+CRONTAB_DJANGO_MANAGE_PATH=sys.argv[0]
 
 # Specific cronjob
 CRONJOBS = [
