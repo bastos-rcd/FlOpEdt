@@ -23,6 +23,7 @@ This version will include incompatible changes. More specifically:
   * Consider room constraints in solve_board HMI
   * Debug split_preferences if no departments
   * Consider email_sender parameter (#73)
+  * Consider NoTutorCoursesOnDay in visible availabilities
 
 ## [0.5.2] -- 2023-06-21
 ### Changed
