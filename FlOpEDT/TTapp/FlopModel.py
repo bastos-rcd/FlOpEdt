@@ -328,7 +328,7 @@ class FlopModel(object):
 
 def get_ttconstraints(department, week=None, train_prog=None, is_active=None):
     #
-    #  Return constraints corresponding to the specific filters
+    #  Return tt_constraints corresponding to the specific filters
     #
     query = Q(department=department)
 
@@ -360,7 +360,7 @@ def get_ttconstraints(department, week=None, train_prog=None, is_active=None):
 
 def get_room_constraints(department, week=None, is_active=None):
     #
-    #  Return constraints corresponding to the specific filters
+    #  Return room_constraints corresponding to the specific filters
     #
     query = Q(department=department)
 
@@ -381,3 +381,12 @@ def get_room_constraints(department, week=None, is_active=None):
 
         for constraint in queryset.order_by('id'):
             yield constraint
+
+
+def get_flop_constraints(department, week=None, is_active=None, train_prog=None):
+    #
+    #  Return FlopConstraints corresponding to the specific filters
+    #
+    tt_constraints = get_ttconstraints(department, week, train_prog, is_active)
+    room_constraints = get_room_constraints(department, week, is_active)
+    return list(tt_constraints) + list(room_constraints)
