@@ -178,14 +178,29 @@ def pref_requirements(department, tutor, year, week_nb):
         holidays = [h.day for h in holidays_query]
         week_av = week_av.exclude(day__in=holidays)
 
+    
+    # Exclude NoTutorCourseOnDay 
+    tutor_no_course_on_day_query = tm.NoTutorCourseOnDay.objects.filter(Q(tutors=tutor) | Q(tutors__isnull=True),
+                                                                         Q(weeks=week) | Q(weeks__isnull=True),
+                                                                         weight=None)
+    if tutor_no_course_on_day_query.exists():
+        for tncod in tutor_no_course_on_day_query:
+            if tncod.fampm_period == tm.NoTutorCourseOnDay.FULL_DAY:
+                week_av = week_av.exclude(day=tncod.weekday)
+            elif tncod.fampm_period == tm.NoTutorCourseOnDay.AM:
+                week_av = week_av.exclude(day=tncod.weekday, start_time__lt=department.timegeneralsettings.lunch_break_start_time)
+            elif tncod.fampm_period == tm.NoTutorCourseOnDay.PM:
+                week_av = week_av.exclude(day=tncod.weekday, start_time__gte=department.timegeneralsettings.lunch_break_end_time)
+
     filled = sum(a.duration for a in
                  week_av.filter(value__gte=1,
                                 day__in=queries.get_working_days(department))
                  )
-
+    
     # Exclude lunch break TODO
     tutor_lunch_break_query = tm.TutorsLunchBreak.objects.filter(Q(tutors=tutor) | Q(tutors__isnull=True),
-                                                                 Q(weeks=week) | Q(weeks__isnull=True))
+                                                                 Q(weeks=week) | Q(weeks__isnull=True),
+                                                                 weight=None)
 
     return filled, courses_time
 
