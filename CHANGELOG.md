@@ -20,6 +20,7 @@ This version will include incompatible changes. More specifically:
   * Debug after_type comments in planif_file extraction
   * Debug color assignment
   * crontab command is now working with flop_admin (#72)
+  * Consider room constraints in solve_board HMI
 
 ## [0.5.2] -- 2023-06-21
 ### Changed
