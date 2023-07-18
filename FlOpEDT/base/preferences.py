@@ -36,6 +36,8 @@ def split_preferences(tutor, departments=None):
     days = set()
     if departments is None:
         departments = tutor.departments.all()
+        if not departments:
+            return
 
 
     # compute all possible times of events in the departments
