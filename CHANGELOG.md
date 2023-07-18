@@ -12,7 +12,7 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.3] -- 2023-07-12
+## [0.5.3] -- 2023-07-18
 **Note:** `0.5` is the last `0.*` version.
 ### Changed
 - Debugs:
