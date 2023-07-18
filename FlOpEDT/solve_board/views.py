@@ -37,7 +37,7 @@ from core.decorators import dept_admin_required
 
 from base.models import TrainingProgramme, ScheduledCourse, Week
 from base.core.period_weeks import PeriodWeeks
-from TTapp.TTModel import get_ttconstraints
+from TTapp.FlopModel import get_flop_constraints
 
 from django.utils.functional import Promise
 from django.utils.encoding import force_text
@@ -104,7 +104,7 @@ def get_constraints_viewmodel(department, **kwargs):
     #
     # Extract simplified datas from constraints instances
     #
-    constraints = get_ttconstraints(department, **kwargs)
+    constraints = get_flop_constraints(department, **kwargs)
     return [c.get_viewmodel() for c in constraints]
 
 

@@ -356,6 +356,9 @@ class ConsiderRoomSorts(RoomConstraint):
                 room_model.add_to_inst_cost(tutor,
                                             self.local_weight() * ponderation * (unpreferred_sum - preferred_sum),
                                             week=week)
+    def one_line_description(self):
+        text =  f"Prend en compte les préférences de salles des enseignant·e·s "
+        return text
 
 
 class LocateAllCourses(RoomConstraint):
@@ -401,6 +404,18 @@ class LocateAllCourses(RoomConstraint):
             else:
                 room_model.add_to_generic_cost((room_model.one_var - relevant_sum) * self.local_weight() * ponderation,
                                                week)
+    
+    def one_line_description(self):
+        text =  f"Attribue une salle à tous les cours"
+        if self.groups.exists():
+            text += ' des groupes ' + ', '.join([group.name for group in self.groups.all()])
+        if self.modules.exists():
+            text += ' pour les modules ' + ', '.join([module.abbrev for module in self.modules.all()])
+        if self.course_types.exists():
+            text += ' pour les types ' + ', '.join([ct.name for ct in self.course_types.all()])
+        text+='.'
+        return text
+
 
 class LimitMoves(RoomConstraint):
     class Meta:
@@ -455,6 +470,15 @@ class LimitGroupMoves(LimitMoves):
     @property
     def ponderation(self):
         return 2
+    
+    def one_line_description(self):
+        text =  f"Limite les changements de salles"
+        if self.groups.exists():
+            text += ' des groupes ' + ', '.join([group.name for group in self.groups.all()]) + "."
+        else:
+            text += ' de tous les groupes.'
+        return text
+    
 
 class LimitTutorMoves(LimitMoves):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
@@ -471,6 +495,14 @@ class LimitTutorMoves(LimitMoves):
 
     def add_to_obj_method(self, room_model):
         return room_model.add_to_inst_cost
+    
+    def one_line_description(self):
+        text =  f"Limite les changements de salles"
+        if self.tutors.exists():
+            text += ' des profs ' + ', '.join([tutor.username for tutor in self.tutors.all()]) + "."
+        else:
+            text += ' de tous les profs.'
+        return text
 
     @property
     def ponderation(self):
