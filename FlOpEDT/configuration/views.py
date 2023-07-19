@@ -103,9 +103,6 @@ def import_config_file(req, **kwargs):
                                 response = {'status': 'error',
                                             'data': "Il existe déjà un département utilisant cette abbréviation."}
                                 return HttpResponse(json.dumps(response), content_type='application/json')
-                            dept_name = dept.name
-                            dept.delete()
-                            logger.debug("flush OK")
                         except Exception as e:
                             logger.warning(f'Exception with dept')
                             logger.warning(e)
