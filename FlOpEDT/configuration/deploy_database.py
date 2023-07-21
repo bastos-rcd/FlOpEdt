@@ -82,22 +82,29 @@ def extract_database_file(department_name=None, department_abbrev=None, bookname
         raise Exception('\n'.join(check))
 
     settings_extract(department, book['settings'])
-    people_extract(department, book['people'], fill_default_preferences)
     rooms_extract(department, book['room_groups'], book['room_categories'], book['rooms'])
     groups_extract(department, book['promotions'], book['group_types'], book['groups'], book['transversal_groups'])
     modules_extract(department, book['modules'])
     courses_extract(department, book['courses'])
+    people_extract(department, book['people'], fill_default_preferences)
+
 
 def people_extract(department, people, fill_default_preferences):
 
     logger.info("People extraction : start")
     for id_, person in people.items():
 
-        try:
-            tutor = Tutor.objects.get(username=id_)
+        tutor = Tutor.objects.filter(username=id_)
+        if tutor.exists():
+            del person['status']
+            del person["employer"]
+            tutor.update(**person)
+            UserDepartmentSettings.objects.get_or_create(department=department, user=tutor)
+            if fill_default_preferences:
+                split_preferences(tutor)
             logger.debug(f"update tutor : '{id_}'")
 
-        except Tutor.DoesNotExist:
+        else:
 
             try:
 
@@ -110,7 +117,6 @@ def people_extract(department, people, fill_default_preferences):
                     tutor = SupplyStaff(username=id_, position='Salarié', **person)
                     tutor.status = Tutor.SUPP_STAFF
 
-                tutor.set_password("passe")
                 tutor.is_tutor = True
                 tutor.save()
 
@@ -124,8 +130,6 @@ def people_extract(department, people, fill_default_preferences):
                 pass
             else:
                 logger.info(f'create tutor with id:{id_}')
-        else:
-            UserDepartmentSettings.objects.get_or_create(department=department, user=tutor)
 
     logger.info('People extraction : finish')
 

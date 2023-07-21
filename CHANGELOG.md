@@ -12,7 +12,7 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.3] -- 2023-07-12
+## [0.5.3] -- 2023-07-18
 **Note:** `0.5` is the last `0.*` version.
 ### Changed
 - Debugs:
@@ -21,6 +21,9 @@ This version will include incompatible changes. More specifically:
   * Debug color assignment
   * crontab command is now working with flop_admin (#72)
   * Consider room constraints in solve_board HMI
+  * Debug split_preferences if no departments
+  * Consider email_sender parameter (#73)
+  * Consider NoTutorCoursesOnDay in visible availabilities
 
 ## [0.5.2] -- 2023-06-21
 ### Changed
