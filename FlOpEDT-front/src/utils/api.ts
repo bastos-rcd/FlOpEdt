@@ -1,14 +1,16 @@
 import {
-  Room,
   Department,
   User,
+  UserAPI,
   Course,
   CourseType,
   RoomAttribute,
   ScheduledCourse,
   TimeSettings,
-  Group,
-  Module,
+  RoomAPI,
+  GroupAPI,
+  ModuleAPI,
+  TrainingProgrammeAPI,
 } from '@/ts/type'
 
 const API_ENDPOINT = '/fr/api/'
@@ -17,7 +19,7 @@ const urls = {
   getcurrentuser: 'user/getcurrentuser',
   getAllDepartments: 'fetch/alldepts',
   getScheduledcourses: 'fetch/new_api_scheduledcourses',
-  rooms: 'rooms/room',
+  getRooms: 'fetch/idroom',
   weekdays: 'fetch/weekdays',
   timesettings: 'base/timesettings',
   roomreservation: 'roomreservations/reservation',
@@ -32,14 +34,16 @@ const urls = {
   scheduledcourses: 'fetch/new_api_scheduledcourses',
   coursetypes: 'courses/type',
   users: 'user/users',
-  getTutors: 'user/tutor',
+  getTutors: 'fetch/idtutor',
   booleanroomattributes: 'rooms/booleanattributes',
   numericroomattributes: 'rooms/numericattributes',
   booleanroomattributevalues: 'rooms/booleanattributevalues',
   numericroomattributevalues: 'rooms/numericattributevalues',
   weeks: 'base/weeks',
-  getGroups: 'groups/structural',
-  getModules: 'courses/module',
+  getGroups: 'fetch/idgroup',
+  getTransversalGroups: 'groups/transversal',
+  getModules: 'fetch/idmodule',
+  getTrainProgs: 'fetch/idtrainprog',
 }
 
 function getCookie(name: string) {
@@ -129,24 +133,22 @@ function filterObject(obj: { [key: string]: any }, renameList?: Array<[oldName: 
 const fetcher2 = (url: string, params?: object, renameList?: Array<[string, string]>) =>
   fetchData(url, params ? filterObject(params, renameList) : {})
 
-function buildUrl(base: string, uri: string) {
-  return `${base}/${uri}`
-}
 export interface FlopAPI {
   getScheduledCourses(week: number, year: number, department?: string): Promise<Array<ScheduledCourse>>
-  getGroups(department?: Department): Promise<Group[]>
-  getModules(department?: Department): Promise<Module[]>
+  getGroups(): Promise<GroupAPI[]>
+  getModules(department?: Department): Promise<ModuleAPI[]>
   getCurrentUser(): Promise<User>
   getAllDepartments(): Promise<Array<Department>>
-  getTutors(department?: Department): Promise<Array<User>>
-  getTutorById(id: number): Promise<User>
+  getTutors(department?: Department): Promise<Array<UserAPI>>
+  getTutorById(id: number): Promise<UserAPI>
+  getTrainProgs(): Promise<TrainingProgrammeAPI[]>
+  getAllRooms(department?: Department): Promise<Array<RoomAPI>>
+  getRoomById(id: number): Promise<RoomAPI>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
     courseTypes(params: { department: string }): Promise<Array<CourseType>>
     numericRoomAttributes(): Promise<Array<RoomAttribute>>
-    room(id: number): Promise<Room>
-    rooms(params: { department: string }): Promise<Array<Room>>
     scheduledCourses(params: { week?: number; year?: number; department?: string }): Promise<Array<ScheduledCourse>>
     timeSettings(): Promise<Array<TimeSettings>>
     users(): Promise<Array<User>>
@@ -183,10 +185,9 @@ const api: FlopAPI = {
       })
     return scheduledCourses
   },
-  async getGroups(department?: Department): Promise<Array<Group>> {
-    let groups: Array<Group> = []
+  async getGroups(): Promise<Array<GroupAPI>> {
+    let groups: Array<GroupAPI> = []
     let finalUrl: string = API_ENDPOINT + urls.getGroups
-    if (department) finalUrl += '/?dept=' + department.abbrev
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',
@@ -198,7 +199,7 @@ const api: FlopAPI = {
         }
         await response
           .json()
-          .then((data) => {
+          .then((data: GroupAPI[]) => {
             groups = data
           })
           .catch((error) => console.log('Error : ' + error.message))
@@ -208,10 +209,26 @@ const api: FlopAPI = {
       })
     return groups
   },
-  async getModules(department?: Department): Promise<Array<Module>> {
-    let modules: Array<Module> = []
+  async getTrainProgs(): Promise<TrainingProgrammeAPI[]> {
+    let trainProgs: Array<TrainingProgrammeAPI> = []
+    await fetch(API_ENDPOINT + urls.getTrainProgs, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    }).then(async (response) => {
+      if (!response.ok) {
+        throw Error('Error : ' + response.status)
+      }
+      await response.json().then((data) => {
+        trainProgs = data
+      })
+    })
+    return trainProgs
+  },
+  async getModules(): Promise<Array<ModuleAPI>> {
+    let modules: Array<ModuleAPI> = []
     let finalUrl: string = API_ENDPOINT + urls.getModules
-    if (department) finalUrl += '/?dept=' + department.abbrev
+    //if (department) finalUrl += '/?dept=' + department.abbrev
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',
@@ -223,7 +240,7 @@ const api: FlopAPI = {
         }
         await response
           .json()
-          .then((data) => {
+          .then((data: any) => {
             modules = data
           })
           .catch((error) => console.log('Error : ' + error.message))
@@ -233,8 +250,8 @@ const api: FlopAPI = {
       })
     return modules
   },
-  async getTutors(department?: Department): Promise<Array<User>> {
-    let tutors: Array<User> = []
+  async getTutors(department?: Department): Promise<Array<UserAPI>> {
+    let tutors: Array<UserAPI> = []
     let finalUrl: string = API_ENDPOINT + urls.getTutors
     if (department) finalUrl += '/?dept=' + department.abbrev
     await fetch(finalUrl, {
@@ -258,8 +275,8 @@ const api: FlopAPI = {
       })
     return tutors
   },
-  async getTutorById(id: number): Promise<User> {
-    let tutor: User = new User()
+  async getTutorById(id: number): Promise<UserAPI> {
+    let tutor: UserAPI = { id: -1, name: '' }
     let finalUrl: string = API_ENDPOINT + urls.getTutors + '/?id=' + id
     await fetch(finalUrl, {
       method: 'GET',
@@ -330,6 +347,62 @@ const api: FlopAPI = {
       })
     return departments
   },
+  async getAllRooms(department?: Department): Promise<Array<RoomAPI>> {
+    let rooms: Array<RoomAPI> = []
+    let finalUrl = API_ENDPOINT + urls.getRooms
+    if (department) finalUrl += '/?dept=' + department?.abbrev
+    await fetch(finalUrl, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+        }
+        await response
+          .json()
+          .then((data: RoomAPI[]) => {
+            rooms = data
+          })
+          .catch((error) => {
+            return Promise.reject(error.message)
+          })
+      })
+      .catch((error) => {
+        console.log(error.message)
+      })
+    return rooms
+  },
+  async getRoomById(id: number): Promise<RoomAPI> {
+    let room: RoomAPI = {
+      id: -1,
+      name: '',
+      is_basic: 'true',
+    }
+    await fetch(API_ENDPOINT + urls.getRooms + '/?id=' + id, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+        }
+        await response
+          .json()
+          .then((data) => {
+            room = data
+          })
+          .catch((error) => {
+            return Promise.reject(error.message)
+          })
+      })
+      .catch((error) => {
+        console.log(error.message)
+      })
+    return room
+  },
   fetch: {
     booleanRoomAttributes() {
       return fetcher(urls.booleanroomattributes)
@@ -342,12 +415,6 @@ const api: FlopAPI = {
     },
     numericRoomAttributes() {
       return fetcher(urls.numericroomattributes)
-    },
-    room(id: number, additionalParams?: object) {
-      return fetcher(buildUrl(urls.rooms, id.toString()), additionalParams)
-    },
-    rooms(params: { department?: string }) {
-      return fetcher(urls.rooms, params, [['department', 'dept']])
     },
     scheduledCourses(params: { week?: number; year?: number; department?: string }) {
       return fetcher(urls.scheduledcourses, params)

@@ -97,21 +97,9 @@ export interface FlopWeek {
 }
 
 export interface RoomAPI {
-  departments: Array<number>
   id: number
   name: string
-  subroom_of: Array<number>
-  is_basic: boolean
-  basic_rooms: Array<{ id: number; name: string }>
-}
-
-export interface Room {
-  departments: Array<Department>
-  id: number
-  name: string
-  subroom_of: MappableToIdArray<Room>
-  is_basic: boolean
-  basic_rooms: Array<{ id: number; name: string }>
+  is_basic: string
 }
 
 export interface RoomAttribute {
@@ -132,7 +120,7 @@ export class ScheduledCourse {
   start_time: Date
   end_time: Date
   course: Course
-  tutor: string
+  tutor: number
   id_visio: number
 
   constructor(
@@ -141,7 +129,7 @@ export class ScheduledCourse {
     start_time = '',
     end_time = '',
     course = new Course(),
-    tutor = '',
+    tutor = -1,
     id_visio = 0
   ) {
     this.id = id
@@ -165,18 +153,29 @@ export interface TimeSettings {
   department: number
 }
 
+export interface TrainingProgrammeAPI {
+  id: number
+  abbrev: string
+  name: string
+}
+
+export interface UserAPI {
+  name: string
+  id: number
+}
+
 export interface User {
   username: string
-  first_name: string
-  last_name: string
+  firstname: string
+  lastname: string
   email: string
   id: number
 }
 
 export class User implements User {
   username = ''
-  first_name = ''
-  last_name = 'AnonymousUser'
+  firstname = ''
+  lastname = 'AnonymousUser'
   email = ''
   id = -1
 }
@@ -201,12 +200,13 @@ export interface UserD {
   departments: Array<Department>
 }
 
-export interface Group {
+export interface GroupAPI {
   id: number
   name: string
-  columnIds: number[]
-  parentsId: number[]
+  train_prog: string
 }
-export interface Module {
-  tut: string
+export interface ModuleAPI {
+  id: number
+  abbrev: string
+  name: string
 }
