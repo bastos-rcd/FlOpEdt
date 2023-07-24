@@ -2,9 +2,8 @@ import { api } from '@/utils/api'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { ScheduledCourse, FlopWeek, Department } from '@/ts/type'
-import { Course, Module, User } from '@/stores/declarations'
+import { Course } from '@/stores/declarations'
 import { Timestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
-import { useTutorStore } from './tutor'
 import _ from 'lodash'
 
 /**
@@ -38,8 +37,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
             end: updateWorkWeek(
               parsed(sc.end_time.toString().substring(0, 10) + ' ' + sc.end_time.toString().substring(11)) as Timestamp
             ),
-            tutor: sc.tutor,
-            suppTutors: [],
+            tutorId: sc.tutor,
+            suppTutorIds: [],
             module: -1,
             groupIds: _.map(sc.course.groups, (gp) => gp.id),
             courseTypeId: -1,
