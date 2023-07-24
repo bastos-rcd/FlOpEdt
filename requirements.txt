@@ -34,3 +34,5 @@ django-cors-headers
 pyprof2calltree
 django-crontab
 python-dateutil
+pytest
+pytest-django

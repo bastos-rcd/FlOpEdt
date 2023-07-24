@@ -24,10 +24,42 @@
 from drf_yasg import openapi
 
 
-def week_param(**kwargs):
-    return openapi.Parameter('week',
+def date_param(**kwargs):
+    return openapi.Parameter("date",
                              openapi.IN_QUERY,
-                             description="week",
+                             description="date",
+                             type=openapi.FORMAT_DATE,
+                             **kwargs)
+
+
+def weekday_param(**kwargs):
+    return openapi.Parameter('weekday',
+                             openapi.IN_QUERY,
+                             description="weekday",
+                             type=openapi.TYPE_STRING,
+                             **kwargs)
+
+
+def from_date_param(**kwargs):
+    return openapi.Parameter("from_date",
+                             openapi.IN_QUERY,
+                             description="from date",
+                             type=openapi.FORMAT_DATE,
+                             **kwargs)
+
+
+def to_date_param(**kwargs):
+    return openapi.Parameter("to_date",
+                             openapi.IN_QUERY,
+                             description="to date",
+                             type=openapi.FORMAT_DATE,
+                             **kwargs)
+
+
+def week_param(**kwargs):
+    return openapi.Parameter('week_number',
+                             openapi.IN_QUERY,
+                             description="week number",
                              type=openapi.TYPE_INTEGER,
                              **kwargs)
 
@@ -51,7 +83,7 @@ def user_param(**kwargs):
 def tutor_param(**kwargs):
     return openapi.Parameter('tutor_name',
                              openapi.IN_QUERY,
-                             description="Tutor username",
+                             description="tutor username",
                              type=openapi.TYPE_STRING,
                              **kwargs)
 

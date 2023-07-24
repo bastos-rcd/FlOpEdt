@@ -26,6 +26,7 @@
  ---------------------------
 """
 from datetime import date, time, datetime
+import base.models as bm
 from enum import Enum
 from django.utils.translation import gettext_lazy as _
 
@@ -107,6 +108,8 @@ def flopdate_to_datetime(day, time):
 ##Takes a day (with week and year)
 #and returns the date object corresponding
 def flopday_to_date(day):
+    if day.week is None:
+        return date.fromordinal(days_index[day.day])
     nb_leap_year = day.week.year // 4 - day.week.year // 100 + day.week.year // 400
     return date.fromordinal((day.week.year-1) * 365 + (day.week.nb-1)*7 + days_index[day.day] + 1 + nb_leap_year + first_day_first_week(day))
 
@@ -125,7 +128,7 @@ def time_to_floptime(time_data):
 
 def date_to_flopday(date):
     isocalendar = date.isocalendar()
-    flop_week = Week.objects.get(nb=isocalendar[1], year=isocalendar[0])
+    flop_week = bm.Week.objects.get(nb=isocalendar[1], year=isocalendar[0])
     flop_day = Day.CHOICES[isocalendar[2] - 1][0]
     return Day(week=flop_week, day=flop_day)
 
