@@ -44,6 +44,10 @@ from api.people.urls import url_user_patterns
 from api.preferences.urls import routerPreferences
 from api.roomreservation.urls import routerRoomReservation
 
+#TODO remove V1...
+from api.v1.urls import url_V1_patterns
+
+
 #####################################
 # URLS based on django applications #
 #####################################
@@ -114,4 +118,6 @@ urlpatterns = [
     path('roomreservations/',
          include((routerRoomReservation.urls, 'api'),
                  namespace='roomreservations')),
+    path('v1/', include((url_V1_patterns, 'api'), namespace='V1')),
+
 ]

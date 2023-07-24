@@ -46,7 +46,7 @@ class UserDepartmentSettingsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class TutorSerializer(serializers.ModelSerializer):
+class ExTutorSerializer(serializers.ModelSerializer):
     departments = DepartmentAbbrevSerializer(many=True)
     class Meta:
         model = pm.Tutor
