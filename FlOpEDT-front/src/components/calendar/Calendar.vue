@@ -631,7 +631,9 @@ let newAvailValue: number = 0
 let timeoutId: any = null
 
 function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
+  // @ts-expect-error
   console.log(mouseEvent.target?.classList)
+  // @ts-expect-error
   if (!mouseEvent.target!.classList.contains('resizable-handle')) {
     onAvailClick(mouseEvent, eventId)
   }
