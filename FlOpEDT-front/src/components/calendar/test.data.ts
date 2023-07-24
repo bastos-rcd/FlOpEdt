@@ -1,10 +1,10 @@
 import { Timestamp, addToDate, getStartOfWeek, parseDate, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
-import { CalendarColumn, CalendarEvent } from './declaration'
+import { CalendarColumn, InputCalendarEvent } from './declaration'
 import { Ref, ref } from 'vue'
 
 interface UseCase {
   columns: CalendarColumn[]
-  events: Ref<CalendarEvent[]>
+  events: Ref<InputCalendarEvent[]>
 }
 
 const CURRENT_DAY = new Date()
@@ -39,7 +39,7 @@ export const useCase: UseCase = {
       weight: 1,
     },
   ],
-  events: ref<CalendarEvent[]>([
+  events: ref<InputCalendarEvent[]>([
     {
       id: 1,
       title: 'TP INFO',
@@ -48,9 +48,9 @@ export const useCase: UseCase = {
       bgcolor: 'red',
       icon: 'fas fa-handshake',
 
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
 
       data: {
@@ -66,11 +66,11 @@ export const useCase: UseCase = {
       toggled: true,
       bgcolor: 'teal',
       icon: 'fas fa-hamburger',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -85,7 +85,7 @@ export const useCase: UseCase = {
       toggled: true,
       bgcolor: 'grey',
       icon: 'fas fa-car',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [ 0 ],
       data: {
         dataId: 5,
         dataType: 'event',
@@ -99,7 +99,7 @@ export const useCase: UseCase = {
       toggled: true,
       bgcolor: 'grey',
       icon: 'fas fa-chalkboard-teacher',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'event',
@@ -113,7 +113,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -126,7 +126,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -139,7 +139,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -152,7 +152,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -165,7 +165,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -178,7 +178,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -191,7 +191,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -204,7 +204,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -217,7 +217,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -230,7 +230,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 1, weight: 2 }],
+      columnIds: [1],
       data: {
         dataId: 6,
         dataType: 'dropzone',
@@ -243,11 +243,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -261,11 +261,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -279,11 +279,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -297,11 +297,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -315,11 +315,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -333,11 +333,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -351,11 +351,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -369,11 +369,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -387,11 +387,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -405,11 +405,11 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 0, weight: 2 },
-        { columnId: 1, weight: 2 },
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        0,
+        1,
+        2,
+        3,
       ],
       data: {
         dataId: 4,
@@ -423,9 +423,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -439,9 +439,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -455,9 +455,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -471,9 +471,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -487,9 +487,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -503,9 +503,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -519,9 +519,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -535,9 +535,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -551,9 +551,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -567,9 +567,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -583,9 +583,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -599,9 +599,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -615,9 +615,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -631,9 +631,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -647,9 +647,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -663,9 +663,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -679,9 +679,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -695,9 +695,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -711,9 +711,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -727,9 +727,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -743,9 +743,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -759,9 +759,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -775,9 +775,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -791,9 +791,9 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [
-        { columnId: 2, weight: 1 },
-        { columnId: 3, weight: 1 },
+      columnIds: [
+        2,
+        3,
       ],
       data: {
         dataId: 3,
@@ -807,7 +807,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -820,7 +820,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -833,7 +833,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -846,7 +846,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -859,7 +859,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -872,7 +872,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -885,7 +885,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -898,7 +898,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -911,7 +911,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -924,7 +924,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -937,7 +937,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
@@ -950,7 +950,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      displayData: [{ columnId: 0, weight: 2 }],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'dropzone',
