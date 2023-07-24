@@ -1,7 +1,7 @@
-import { Timestamp } from "@quasar/quasar-ui-qcalendar"
+import { Timestamp } from '@quasar/quasar-ui-qcalendar'
 
 export interface UpdatesHistory {
-  type: "course" | "availability"
+  type: 'course' | 'availability'
   objectId: number
 }
 

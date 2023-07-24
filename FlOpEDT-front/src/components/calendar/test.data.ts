@@ -48,10 +48,7 @@ export const useCase: UseCase = {
       bgcolor: 'red',
       icon: 'fas fa-handshake',
 
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
 
       data: {
         dataId: 3,
@@ -66,12 +63,7 @@ export const useCase: UseCase = {
       toggled: true,
       bgcolor: 'teal',
       icon: 'fas fa-hamburger',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'event',
@@ -85,7 +77,7 @@ export const useCase: UseCase = {
       toggled: true,
       bgcolor: 'grey',
       icon: 'fas fa-car',
-      columnIds: [ 0 ],
+      columnIds: [0],
       data: {
         dataId: 5,
         dataType: 'event',
@@ -243,12 +235,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -261,12 +248,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -279,12 +261,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -297,12 +274,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -315,12 +287,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -333,12 +300,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -351,12 +313,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -369,12 +326,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -387,12 +339,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -405,12 +352,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        0,
-        1,
-        2,
-        3,
-      ],
+      columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
         dataType: 'dropzone',
@@ -423,10 +365,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -439,10 +378,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -455,10 +391,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -471,10 +404,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -487,10 +417,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -503,10 +430,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -519,10 +443,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -535,10 +456,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -551,10 +469,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -567,10 +482,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -583,10 +495,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -599,10 +508,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -615,10 +521,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -631,10 +534,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -647,10 +547,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -663,10 +560,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -679,10 +573,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -695,10 +586,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -711,10 +599,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -727,10 +612,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -743,10 +625,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -759,10 +638,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -775,10 +651,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',
@@ -791,10 +664,7 @@ export const useCase: UseCase = {
       title: '',
       toggled: false,
       bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: [
-        2,
-        3,
-      ],
+      columnIds: [2, 3],
       data: {
         dataId: 3,
         dataType: 'dropzone',

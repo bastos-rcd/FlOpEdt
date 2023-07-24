@@ -9,13 +9,9 @@ export function useUndoredo() {
 
   const updatesHistory = ref<UpdatesHistory[]>([])
 
-  function addUpdate(
-    objectId: number | null,
-    data: CourseData | AvailabilityData,
-    type: "course" | "availability"
-  ) {
+  function addUpdate(objectId: number | null, data: CourseData | AvailabilityData, type: 'course' | 'availability') {
     if (objectId === null) return
-    if (type === "course") {
+    if (type === 'course') {
       const currentCourse = courses.value.find((course) => course.id === objectId)
       if (!currentCourse) return
       updatesHistory.value.push({
@@ -33,7 +29,7 @@ export function useUndoredo() {
         },
         to: data,
       } as UpdateCourse)
-    } else if (type === "availability") {
+    } else if (type === 'availability') {
       // TODO
     }
   }
@@ -41,7 +37,7 @@ export function useUndoredo() {
   function revertUpdate() {
     const lastUpdate: UpdatesHistory | undefined = updatesHistory.value.pop()
     if (lastUpdate === undefined) return
-    if (lastUpdate?.type === "course") {
+    if (lastUpdate?.type === 'course') {
       const lastCourseUpdate = lastUpdate as UpdateCourse
       const lastScheduledCourseUpdated = courses.value.find((course) => course.id === lastCourseUpdate?.objectId)
       lastScheduledCourseUpdated!.tutorId = lastCourseUpdate.from.tutorId
