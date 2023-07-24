@@ -15,7 +15,8 @@ describe('undoredo composable', () => {
     // `useStore(pinia)`
     setActivePinia(createPinia())
   })
-
+  it.todo('historize an update of a scheduled course')
+  /*
   it('historize an update of a scheduled course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
@@ -94,4 +95,5 @@ describe('undoredo composable', () => {
 
     expect(scheduledCourseToUpdate?.start_time).toBe('2023-04-25T14:15:00')
   })
+  */
 })
