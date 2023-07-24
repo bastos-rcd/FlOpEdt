@@ -101,7 +101,7 @@
             "
           >
             <div
-              draggable="true"
+              :draggable="event.data.dataType !== 'avail'"
               @dragstart="onDragStart($event, event)"
               @dragover="onDragOver($event, event.data.dataType, { timeDurationHeight, timestamp: event.data.start })"
             >
@@ -119,27 +119,32 @@
                   <div
                     v-else
                     style="width: 100%; height: 100%; flex-direction: column; align-items: center; display: flex"
+                    class="avail-div resizable-div"
+                    @mousedown="onMouseDown($event, event.id)"
                   >
-                    <div>
-                      <q-icon color="grey" :name="matChevronRight" size="xs" style="align-self: flex-start" />
-                      <q-popup-edit v-model="newAvailValue" v-slot="scope" anchor="bottom left">
+                    <div style="flex: 1" class="resizable-handle resizable-handle-top">
+                      <q-icon class="avail-hide resizable-handle" :name="matHorizontalRule" size="xs" />
+                    </div>
+                    <div style="flex: 2; display: flex; align-items: center" class="center-area">
+                      <q-popup-edit v-model="newAvailValue" v-slot="scope" anchor="bottom left" context-menu>
                         <q-btn-group style="display: flex; flex-direction: column">
                           <q-btn
                             v-for="(icon, index) in availabilityData.icon"
+                            :style="availMenuStyle(index)"
                             :icon="icon"
                             size="sm"
                             @click="changeAvail(event.id, parseInt(index))"
                           />
                         </q-btn-group>
                       </q-popup-edit>
+                      <q-icon color="black" :name="event.icon" size="xs" />
                     </div>
-                    <q-icon
-                      color="black"
-                      :name="event.icon"
-                      size="xs"
-                      style="flex: 2"
-                      @click="onAvailClick(event.id)"
-                    />
+                    <div
+                      style="flex: 1; align-items: flex-end; display: flex"
+                      class="resizable-handle resizable-handle-bottom"
+                    >
+                      <q-icon :name="matHorizontalRule" size="xs" class="avail-hide resizable-handle" />
+                    </div>
                   </div>
                 </slot>
               </div>
@@ -163,7 +168,7 @@ import {
   parseTime,
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import { matChevronRight } from '@quasar/extras/material-icons'
+import { matHorizontalRule } from '@quasar/extras/material-icons'
 
 import _ from 'lodash'
 
@@ -545,7 +550,7 @@ function onDragEnter(e: any, type: string, scope: { timeDurationHeight: any; tim
 /**
  * Function called when the dragOver event is triggered, computes the current mouse position
  * time and update the closest dropZone
- * @param e the event triggered with data of the DOM object in it
+ * @param e the mouse event triggered with data of the DOM object in it
  * @param type the type of element of the calendar
  * @param scope context containing utilitary functions
  */
@@ -625,16 +630,26 @@ function onNext(): void {
 let newAvailValue: number = 0
 let timeoutId: any = null
 
-function onAvailClick(eventId: number): void {
-  if (!timeoutId) {
-    timeoutId = setTimeout(() => {
-      changeAvail(eventId)
+function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
+  console.log(mouseEvent.target?.classList)
+  if (!mouseEvent.target!.classList.contains('resizable-handle')) {
+    onAvailClick(mouseEvent, eventId)
+  }
+}
+
+function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
+  if (mouseEvent.button === 0) {
+    if (!timeoutId) {
+      timeoutId = setTimeout(() => {
+        changeAvail(eventId)
+        clearTimeout(timeoutId)
+        timeoutId = null
+      }, 200)
+    } else {
+      clearTimeout(timeoutId)
       timeoutId = null
-    }, 200)
-  } else {
-    clearTimeout(timeoutId)
-    timeoutId = null
-    console.log('DoubleClick')
+      console.log('DoubleClick Cut')
+    }
   }
 }
 
@@ -647,9 +662,14 @@ function changeAvail(eventId: number, value?: number): void {
     if (value || value === 0) {
       newEvent.data.value = value
     } else {
-      if (newEvent.data.value || newEvent.data.value === 0) newEvent.data.value = (newEvent.data.value + 1) % 9
-      else {
+      if (newEvent.data.value! < 3) {
+        newEvent.data.value = 3
+      } else if (newEvent.data.value! >= 3 && newEvent.data.value! < 6) {
+        newEvent.data.value = 6
+      } else if (newEvent.data.value! >= 6 && newEvent.data.value! < 8) {
         newEvent.data.value = 8
+      } else {
+        newEvent.data.value = 0
       }
     }
     _.remove(newEvents, (e: InputCalendarEvent) => {
@@ -658,6 +678,10 @@ function changeAvail(eventId: number, value?: number): void {
     newEvents.push(newEvent)
     eventsModel.value = newEvents
   }
+}
+
+function availMenuStyle(index: string): any {
+  return { 'background-color': availabilityData.color[index] }
 }
 </script>
 
@@ -705,9 +729,30 @@ function changeAvail(eventId: number, value?: number): void {
   border-radius: 2px
   padding-x: 2px
   text-align: center
-
 .border-dashed
   border: 1px dashed grey
 .my-dropzone
   pointer-events: none
+.avail-hide
+  display: none
+.avail-div:hover .avail-hide
+  display: block
+.resizable-div
+  position: relative
+  border: 1px solid black
+  overflow: hidden
+.resizable-content
+  width: 100%
+  height: 100%
+  cursor: pointer
+.resizable-handle
+  position: absolute
+  width: 100%
+  height: 8px
+  cursor: ns-resize
+  background-color: #ccc
+.resizable-handle-top
+  top: 0
+.resizable-handle-bottom
+  bottom: 0
 </style>

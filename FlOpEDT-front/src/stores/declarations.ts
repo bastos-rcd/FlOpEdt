@@ -7,8 +7,8 @@ export interface Course {
   room: number
   start: Timestamp
   end: Timestamp
-  tutor: number
-  suppTutors: number[]
+  tutorId: number
+  suppTutorIds: number[]
   module: number
   groupIds: number[]
   courseTypeId: number
