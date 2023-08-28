@@ -12,7 +12,7 @@ export function useUndoredo() {
   function addUpdate(objectId: number | null, data: CourseData | AvailabilityData, type: 'course' | 'availability') {
     if (objectId === null) return
     if (type === 'course') {
-      const currentCourse = courses.value.find((course) => course.id === objectId)
+      let currentCourse = courses.value.find((course) => course.id === objectId)
       if (!currentCourse) return
       updatesHistory.value.push({
         type: type,
@@ -29,6 +29,20 @@ export function useUndoredo() {
         },
         to: data,
       } as UpdateCourse)
+      //@ts-ignore
+      currentCourse.tutorId = data.tutorId
+      currentCourse.start = data.start
+      currentCourse.end = data.end
+      //@ts-ignore
+      currentCourse.room = data.roomId
+      //@ts-ignore
+      currentCourse.suppTutorIds = data.suppTutorIds
+      //@ts-ignore
+      currentCourse.graded = data.graded
+      //@ts-ignore
+      currentCourse.roomTypeId = data.roomTypeId
+      //@ts-ignore
+      currentCourse.groupIds = data.groupIds
     } else if (type === 'availability') {
       // TODO
     }
