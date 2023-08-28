@@ -58,28 +58,38 @@ describe('undoredo composable', () => {
     )
     expect(getDateTime(courseToUpdate!.start)).toBe('2025-01-10 08:15')
   })
-  /*
+
   it('revert an update of a scheduled course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
-    const { scheduledCourses } = storeToRefs(scheduledCourseStore)
+    const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate, revertUpdate } = useUndoredo()
 
-    scheduledCourses.value = getScheduledCoursesData() as unknown as ScheduledCourse[]
+    courses.value = getCoursesData() as unknown as Course[]
 
-    const courseToUpdate = scheduledCourses.value.find((sc) => sc.id === 65692)
-    addUpdate(courseToUpdate!.id as number, {
-      date: '2022-01-10',
-      time: '08:20',
-    })
+    const courseToUpdate = courses.value.find((course) => course.id === 65692)
+    addUpdate(
+      courseToUpdate!.id as number,
+      {
+        tutorId: courseToUpdate!.tutorId,
+        start: updateWorkWeek(parsed('2022-01-10 08:20') as Timestamp),
+        end: courseToUpdate!.end,
+        roomId: courseToUpdate?.room || -1,
+        suppTutorIds: courseToUpdate!.suppTutorIds,
+        graded: courseToUpdate!.graded,
+        roomTypeId: courseToUpdate!.roomTypeId,
+        groupIds: courseToUpdate!.groupIds,
+      },
+      'course'
+    )
 
-    expect(courseToUpdate?.start_time).toBe('2022-01-10T08:20:00')
+    expect(getDateTime(courseToUpdate!.start)).toBe('2022-01-10 08:20')
 
     revertUpdate()
 
-    expect(courseToUpdate?.start_time).toBe('2023-04-25T14:15:00')
+    expect(getDateTime(courseToUpdate!.start)).toBe('2023-04-25 14:15')
   })
-
+  /*
   it('revert several updates of a scheduled course', () => {
     expect.assertions(4)
     const scheduledCourseStore = useScheduledCourseStore()
