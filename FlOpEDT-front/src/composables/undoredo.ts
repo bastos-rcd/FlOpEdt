@@ -1,7 +1,8 @@
 import { ref } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { storeToRefs } from 'pinia'
-import { AvailabilityData, CourseData, UpdateCourse, UpdatesHistory } from './declaration'
+import { AvailabilityData, CourseData, UpdateAvailability, UpdateCourse, UpdatesHistory } from './declaration'
+import { Timestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 
 export function useUndoredo() {
   const scheduledCourseStore = useScheduledCourseStore()
@@ -12,7 +13,8 @@ export function useUndoredo() {
   function addUpdate(objectId: number | null, data: CourseData | AvailabilityData, type: 'course' | 'availability') {
     if (objectId === null) return
     if (type === 'course') {
-      let currentCourse = courses.value.find((course) => course.id === objectId)
+      const courseData = data as CourseData
+      const currentCourse = courses.value.find((course) => course.id === objectId)
       if (!currentCourse) return
       updatesHistory.value.push({
         type: type,
@@ -27,24 +29,42 @@ export function useUndoredo() {
           roomTypeId: currentCourse.roomTypeId,
           groupIds: currentCourse.groupIds,
         },
-        to: data,
+        to: courseData,
       } as UpdateCourse)
-      //@ts-ignore
-      currentCourse.tutorId = data.tutorId
-      currentCourse.start = data.start
-      currentCourse.end = data.end
-      //@ts-ignore
-      currentCourse.room = data.roomId
-      //@ts-ignore
-      currentCourse.suppTutorIds = data.suppTutorIds
-      //@ts-ignore
-      currentCourse.graded = data.graded
-      //@ts-ignore
-      currentCourse.roomTypeId = data.roomTypeId
-      //@ts-ignore
-      currentCourse.groupIds = data.groupIds
+      currentCourse.tutorId = courseData.tutorId
+      currentCourse.start = courseData.start
+      currentCourse.end = courseData.end
+      currentCourse.room = courseData.roomId
+      currentCourse.suppTutorIds = courseData.suppTutorIds
+      currentCourse.graded = courseData.graded
+      currentCourse.roomTypeId = courseData.roomTypeId
+      currentCourse.groupIds = courseData.groupIds
     } else if (type === 'availability') {
-      // TODO
+      const availData = data as AvailabilityData
+      // TODO call to API/store to retrieve the avail
+      const currentAvail = {
+        id: 1,
+        start: updateWorkWeek(parsed('2022-01-10 08:20') as Timestamp),
+        end: updateWorkWeek(parsed('2022-01-10 11:20') as Timestamp),
+        duration: 180,
+        value: 5,
+      }
+      if (!currentAvail) return
+      updatesHistory.value.push({
+        type: type,
+        objectId: currentAvail?.id,
+        from: {
+          start: currentAvail.start,
+          end: currentAvail.end,
+          value: currentAvail.value,
+          duration: currentAvail.duration,
+        },
+        to: availData,
+      } as UpdateAvailability)
+      currentAvail.duration = availData.duration
+      currentAvail.value = availData.value
+      currentAvail.start = availData.start
+      currentAvail.end = availData.end
     }
   }
 
@@ -62,9 +82,22 @@ export function useUndoredo() {
       lastScheduledCourseUpdated!.graded = lastCourseUpdate.from.graded
       lastScheduledCourseUpdated!.roomTypeId = lastCourseUpdate.from.roomTypeId
       lastScheduledCourseUpdated!.groupIds = lastCourseUpdate.from.groupIds
+    } else if (lastUpdate?.type === 'availability') {
+      // TODO call to API/store to retrieve the avail
+      const lastAvailUpdate = lastUpdate as UpdateAvailability
+      const lastAvailUpdated = {
+        id: 1,
+        start: updateWorkWeek(parsed('2022-01-10 08:20') as Timestamp),
+        end: updateWorkWeek(parsed('2022-01-10 11:20') as Timestamp),
+        duration: 180,
+        value: 5,
+      }
+      lastAvailUpdated.duration = lastAvailUpdate.from.duration
+      lastAvailUpdated.start = lastAvailUpdate.from.start
+      lastAvailUpdated.end = lastAvailUpdate.from.end
+      lastAvailUpdated.value = lastAvailUpdate.from.value
     }
   }
-
   return {
     addUpdate,
     revertUpdate,

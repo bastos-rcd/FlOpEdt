@@ -18,7 +18,7 @@ describe('undoredo composable', () => {
     setActivePinia(createPinia())
   })
 
-  it('historize an update of a scheduled course', () => {
+  it('historize an update of a course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
     const { courses } = storeToRefs(scheduledCourseStore)
@@ -59,7 +59,7 @@ describe('undoredo composable', () => {
     expect(getDateTime(courseToUpdate!.start)).toBe('2025-01-10 08:15')
   })
 
-  it('revert an update of a scheduled course', () => {
+  it('revert an update of a course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
     const { courses } = storeToRefs(scheduledCourseStore)
@@ -89,38 +89,57 @@ describe('undoredo composable', () => {
 
     expect(getDateTime(courseToUpdate!.start)).toBe('2023-04-25 14:15')
   })
-  /*
-  it('revert several updates of a scheduled course', () => {
+
+  it('revert several updates of a course', () => {
     expect.assertions(4)
     const scheduledCourseStore = useScheduledCourseStore()
-    const { scheduledCourses } = storeToRefs(scheduledCourseStore)
+    const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate, revertUpdate } = useUndoredo()
 
-    scheduledCourses.value = getScheduledCoursesData() as unknown as ScheduledCourse[]
+    courses.value = getCoursesData() as unknown as Course[]
 
-    const scheduledCourseToUpdate = scheduledCourses.value.find((sc) => sc.id === 65692)
+    const courseToUpdate = courses.value.find((course) => course.id === 65692)
 
-    addUpdate(scheduledCourseToUpdate!.id as number, {
-      date: '2022-01-10',
-      time: '08:20',
-    })
+    addUpdate(
+      courseToUpdate!.id as number,
+      {
+        tutorId: courseToUpdate!.tutorId,
+        start: updateWorkWeek(parsed('2022-01-10 08:20') as Timestamp),
+        end: courseToUpdate!.end,
+        roomId: courseToUpdate?.room || -1,
+        suppTutorIds: courseToUpdate!.suppTutorIds,
+        graded: courseToUpdate!.graded,
+        roomTypeId: courseToUpdate!.roomTypeId,
+        groupIds: courseToUpdate!.groupIds,
+      },
+      'course'
+    )
 
-    expect(scheduledCourseToUpdate?.start_time).toBe('2022-01-10T08:20:00')
+    expect(getDateTime(courseToUpdate!.start)).toBe('2022-01-10 08:20')
 
-    addUpdate(scheduledCourseToUpdate!.id as number, {
-      date: '2025-01-10',
-      time: '08:15',
-    })
+    addUpdate(
+      courseToUpdate!.id as number,
+      {
+        tutorId: courseToUpdate!.tutorId,
+        start: updateWorkWeek(parsed('2025-01-10 08:15') as Timestamp),
+        end: courseToUpdate!.end,
+        roomId: courseToUpdate?.room || -1,
+        suppTutorIds: [],
+        graded: false,
+        roomTypeId: -1,
+        groupIds: [],
+      },
+      'course'
+    )
 
-    expect(scheduledCourseToUpdate?.start_time).toBe('2025-01-10T08:15:00')
+    expect(getDateTime(courseToUpdate!.start)).toBe('2025-01-10 08:15')
 
     revertUpdate()
 
-    expect(scheduledCourseToUpdate?.start_time).toBe('2022-01-10T08:20:00')
+    expect(getDateTime(courseToUpdate!.start)).toBe('2022-01-10 08:20')
 
     revertUpdate()
 
-    expect(scheduledCourseToUpdate?.start_time).toBe('2023-04-25T14:15:00')
+    expect(getDateTime(courseToUpdate!.start)).toBe('2023-04-25 14:15')
   })
-  */
 })
