@@ -302,7 +302,7 @@ def room_preference(req, department, tutor=None):
         pass
 
     base_pref = {}
-    for rs in RoomSort.objects.filter(tutor=tutor):
+    for rs in RoomSort.objects.filter(tutor=tutor, for_type__department=req.department):
         if rs.for_type not in base_pref:
             base_pref[rs.for_type] = []
         base_pref[rs.for_type].append(
