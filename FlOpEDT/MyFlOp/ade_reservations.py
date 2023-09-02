@@ -34,9 +34,10 @@ from ics import Calendar
 import requests
 
 ics_url = "https://sedna.univ-fcomte.fr/jsp/custom/ufc/cal.jsp?data=7d2be45f7963012e7330cb059c72f77f1c3c057a13954fcb73e210929d5c5728c6412a77b23057dfc03c0942972f2bb1de5b64a61bcf70e2db430bbabcd5338c57066d130b9a7621faf9c42a9c2ef5fc898f05a22db19ed958bbd3365974a91d8e4c269081acb149549b1efcd6956429af3394813212094e614092d2a1f22c8b45c8c1bb728a3ed2b8894bbf6177d16ddc5c094f7d1a811b903031bde802c7f54ea96e924ac2d84b6c9efdb9c27a36421499c8bc82c40b5e49788f37fdf1f617166c54e36382c1aa3eb0ff5cb8980cdb,1"
+ade_reservations_filename = '/home/vsonigo/Export_Salles_utf8.csv'
 
 @transaction.atomic
-def import_ade_reservations_from_tomorrow(ade_reservations_filename):
+def import_ade_reservations_from_tomorrow(ade_reservations_filename=ade_reservations_filename):
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
     import_reservations_from_ade_csv_file(csv_filename=ade_reservations_filename, from_date=tomorrow)
 
@@ -103,13 +104,7 @@ def import_reservations_from_ade_csv_file(csv_filename,
     with open(csv_filename, newline='') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=';', quotechar='|')
         next(csv_reader)
-        for row in csv_reader:
-            if not row:
-                continue
-            date_str = row[1]
-            date = datetime.datetime.strptime(date_str, '%d/%m/%Y').date()
-            if from_date is not None:
-                if date < from_date:
+        for row in csv_reader:import_reservations_from_ade_ics_url
                     continue
             if to_date is not None:
                 if date > to_date:
