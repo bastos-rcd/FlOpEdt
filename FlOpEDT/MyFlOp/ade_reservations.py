@@ -33,6 +33,8 @@ from people.models import User
 from ics import Calendar
 import requests
 
+ics_url = "https://sedna.univ-fcomte.fr/jsp/custom/ufc/cal.jsp?data=7d2be45f7963012e7330cb059c72f77f1c3c057a13954fcb73e210929d5c5728c6412a77b23057dfc03c0942972f2bb1de5b64a61bcf70e2db430bbabcd5338c57066d130b9a7621faf9c42a9c2ef5fc898f05a22db19ed958bbd3365974a91d8e4c269081acb149549b1efcd6956429af3394813212094e614092d2a1f22c8b45c8c1bb728a3ed2b8894bbf6177d16ddc5c094f7d1a811b903031bde802c7f54ea96e924ac2d84b6c9efdb9c27a36421499c8bc82c40b5e49788f37fdf1f617166c54e36382c1aa3eb0ff5cb8980cdb,1"
+
 @transaction.atomic
 def import_ade_reservations_from_tomorrow(ade_reservations_filename):
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
@@ -40,8 +42,9 @@ def import_ade_reservations_from_tomorrow(ade_reservations_filename):
 
 
 @transaction.atomic
-def import_reservations_from_ade_ics_url(ade_reservations_ics_url, 
-                                         future_only=True):
+def import_reservations_from_ade_ics_url(ade_reservations_ics_url=ics_url, 
+                                         future_only=True,
+                                         exclude_if_key_starts_with={'description':'\n\nMLT'}):
     responsible = User.objects.get_or_create(username='ADE')[0]
     reservation_type = RoomReservationType.objects.get_or_create(name='ADE')[0]
     room_reservations_to_delete = RoomReservation.objects.filter(reservation_type=reservation_type, 
@@ -53,6 +56,7 @@ def import_reservations_from_ade_ics_url(ade_reservations_ics_url,
     room_reservations_to_delete.delete()
     calendar = Calendar(requests.get(ade_reservations_ics_url).text)
     for e in calendar.events:
+        to_be_saved=True
         date = e.begin.date()
         if future_only:
             if date < tomorrow:
@@ -67,15 +71,20 @@ def import_reservations_from_ade_ics_url(ade_reservations_ics_url,
         end_time = e.end.time()
         description = e.description.split('(')[0]
         title = "ADE"
-        for room in rooms:
-            RoomReservation.objects.create(room=room, 
-                                           reservation_type=reservation_type, 
-                                           date=date, 
-                                           start_time=start_time, 
-                                           end_time=end_time,
-                                           title=title,
-                                           responsible=responsible,
-                                           description=description) 
+        for key, value in exclude_if_key_starts_with.items():
+            if getattr(e, key).startswith(value):
+                to_be_saved=False
+                continue
+        if to_be_saved:
+            for room in rooms:
+                RoomReservation.objects.create(room=room, 
+                                               reservation_type=reservation_type, 
+                                               date=date, 
+                                               start_time=start_time, 
+                                               end_time=end_time,
+                                               title=title,
+                                               responsible=responsible,
+                                               description=description) 
 
 
 @transaction.atomic
