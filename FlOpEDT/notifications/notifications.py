@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 from core.decorators import timer
-from base.models import Course, ScheduledCourse, Week, GenericGroup
+from base.models import Course, ScheduledCourse, Week, GenericGroup, Room
 from notifications.models import BackUpModif
 from base.timing import flopdate_to_datetime, Day, french_format
 from people.models import Tutor, NotificationsPreferences
@@ -37,6 +37,8 @@ from django.utils.translation import gettext
 
 from django.core.mail import send_mail
 from django.utils.html import strip_tags
+
+from django.conf import settings as ds
 
 def backup():
     print("Deleting old backup")
@@ -111,6 +113,7 @@ def check_changes(save_json_files=False):
     # Create two dict that will be save as JSON at the end
     student_changes_dict = {}
     tutor_changes_dict = {}
+    room_changes_dict = {}
 
     departments = {change.department_abbrev for change in changes}
 
@@ -168,6 +171,20 @@ def check_changes(save_json_files=False):
                         gettext('Room'): room}
         tutor_changes_dict[tutor_username][department].append(tutor_object)
 
+        # Store all changes for rooms
+        if room not in room_changes_dict:
+            room_changes_dict[room] = []
+        room_object = {gettext('Mode'): mode,
+                       gettext('Date'): change_datetime.date().strftime('%d/%m/%Y'),
+                       gettext('Start time'): french_format(start_time),
+                       gettext('Course Type'): course_type,
+                       gettext('Module'): module,
+                       gettext('Train_prog'): train_prog,
+                       gettext('Group'): group,
+                       gettext('Tutor'): tutor_username}
+        room_changes_dict[room].append(room_object)
+
+
         if save_json_files:
             # Save users changes as JSON
             with open("notifications/modifs_student.json", "w") as outfile:
@@ -177,7 +194,11 @@ def check_changes(save_json_files=False):
             with open("notifications/modifs_tutor.json", "w") as outfile:
                 json.dump(tutor_changes_dict, outfile)
 
-    return student_changes_dict, tutor_changes_dict
+            # Save rooms changes as JSON
+            with open("notifications/modifs_room.json", "w") as outfile:
+                json.dump(room_changes_dict, outfile)
+
+    return student_changes_dict, tutor_changes_dict, room_changes_dict
 
 
 def days_nb_from_today(change):
@@ -187,11 +208,12 @@ def days_nb_from_today(change):
 
 
 def send_notifications():
-    student_changes_dict, tutor_changes_dict = check_changes()
+    student_changes_dict, tutor_changes_dict, room_changes_dict = check_changes()
     # Choose department
     if not student_changes_dict:
         if not tutor_changes_dict:
-            return
+            if not room_changes_dict:
+                return
         else:
             department = list(list(tutor_changes_dict.values())[0].keys())[0]
     else:
@@ -268,6 +290,17 @@ def send_notifications():
         filtered_changes.sort(key=lambda x: (x[gettext('Date')], x[gettext('Start time')]))
         html_msg = html_table_with_changes(filtered_changes)
         send_changes_email(subject, intro_text, html_msg, outro_text, to_email=student.email)
+
+    # Send changes for rooms        
+    subject = "[flop!Scheduler] Changes on rooms planning"
+    intro_text = "Hi " + ",<br /> <br />"
+    intro_text += "Here are the changes of rooms planning for the following days :"
+    intro_text += "<br /> <br />"
+    html_msg = ""
+    for room_name, room_dic in room_changes_dict.items():
+        html_msg += "For the room %s :" % room_name + "<br />"
+        html_msg += html_table_with_changes(room_dic)
+    send_changes_email(subject, intro_text, html_msg, outro_text, to_email=ds.DEFAULT_FROM_EMAIL)
 
 
 def html_table_with_changes(filtered_changes):
