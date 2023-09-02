@@ -449,5 +449,5 @@ CRONTAB_DJANGO_MANAGE_PATH=sys.argv[0]
 # Specific cronjob
 CRONJOBS = [
     ('0 4 * * *', 'notifications.cron.backup_and_notify'),
-    ('0 3 * * *', 'MyFlOp.ade_reservations.import_reservations_from_ade_ics_url')
+    ('30 23 * * *', 'MyFlOp.ade_reservations.import_ade_reservations_from_tomorrow')
 ]
