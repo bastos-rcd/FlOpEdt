@@ -104,7 +104,13 @@ def import_reservations_from_ade_csv_file(csv_filename,
     with open(csv_filename, newline='') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=';', quotechar='|')
         next(csv_reader)
-        for row in csv_reader:import_reservations_from_ade_ics_url
+        for row in csv_reader:
+            if not row:
+                continue
+            date_str = row[1]
+            date = datetime.datetime.strptime(date_str, '%d/%m/%Y').date()
+            if from_date is not None:
+                if date < from_date:
                     continue
             if to_date is not None:
                 if date > to_date:
