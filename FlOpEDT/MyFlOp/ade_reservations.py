@@ -70,7 +70,7 @@ def import_reservations_from_ade_ics_url(ade_reservations_ics_url=ics_url,
         start_time = e.begin.time()
         end_time = e.end.time()
         description = e.description.split('(')[0]
-        title = "ADE"
+        title = e.name[:30]
         for key, value in exclude_if_key_starts_with.items():
             if getattr(e, key).startswith(value):
                 to_be_saved=False
