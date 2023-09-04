@@ -166,6 +166,8 @@ def rooms_extract(department, room_groups, room_categories, rooms):
         try:
             room_group, _ = Room.objects.get_or_create(name=group_id)
             room_group.types.add(temporary_room_type)
+            room_group.departments.add(department)
+
 
         except IntegrityError as ie:
             logger.warning(f"A constraint has not been respected creating the room group '{group_id}' : {ie}")
@@ -180,6 +182,7 @@ def rooms_extract(department, room_groups, room_categories, rooms):
                 else:
                     logger.info(f"Add room '{room_id}' to group '{group_id}'")
                     room.subroom_of.add(room_group)
+                    room.departments.add(department)
                     room.save()
 
             except Room.DoesNotExist:
@@ -193,6 +196,7 @@ def rooms_extract(department, room_groups, room_categories, rooms):
             try:
                 room = Room.objects.get(name=member)
                 room.types.add(room_type)
+                room.departments.add(department)
                 room.save()
             except Room.DoesNotExist:
                 logger.warning(f"Unable to find room '{member}'")
