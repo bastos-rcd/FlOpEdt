@@ -371,10 +371,10 @@ class AvoidStartTimes(StartTimeConstraint):
         if not (self.forbidden_week_days or self.forbidden_start_times):
             text += ' ... Tout le temps!'
         else:
-            if self.possible_week_days:
+            if self.forbidden_week_days:
                 text += ' les '
                 text += ', '.join(self.forbidden_week_days)
-            if self.possible_start_times:
+            if self.forbidden_week_days:
                 text += ' à '
                 text += ', '.join([french_format(pst) for pst in self.forbidden_start_times])
         text += '.'
