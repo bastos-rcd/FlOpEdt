@@ -32,6 +32,8 @@ from django.db import transaction
 from people.models import User
 from ics import Calendar
 import requests
+from pytz import timezone
+paris = timezone("Europe/Paris")
 
 ics_url = "https://sedna.univ-fcomte.fr/jsp/custom/ufc/cal.jsp?data=7d2be45f7963012e7330cb059c72f77f1c3c057a13954fcb73e210929d5c5728c6412a77b23057dfc03c0942972f2bb1de5b64a61bcf70e2db430bbabcd5338c57066d130b9a7621faf9c42a9c2ef5fc898f05a22db19ed958bbd3365974a91d8e4c269081acb149549b1efcd6956429af3394813212094e614092d2a1f22c8b45c8c1bb728a3ed2b8894bbf6177d16ddc5c094f7d1a811b903031bde802c7f54ea96e924ac2d84b6c9efdb9c27a36421499c8bc82c40b5e49788f37fdf1f617166c54e36382c1aa3eb0ff5cb8980cdb,1"
 ade_reservations_filename = '/home/vsonigo/Export_Salles_utf8.csv'
@@ -57,8 +59,10 @@ def import_reservations_from_ade_ics_url(ade_reservations_ics_url=ics_url,
     room_reservations_to_delete.delete()
     calendar = Calendar(requests.get(ade_reservations_ics_url).text)
     for e in calendar.events:
+        begin = e.begin.astimezone(paris)
+        end = e.end.astimezone(paris)
         to_be_saved=True
-        date = e.begin.date()
+        date = begin.date()
         if future_only:
             if date < tomorrow:
                 continue
@@ -68,8 +72,8 @@ def import_reservations_from_ade_ics_url(ade_reservations_ics_url=ics_url,
         for room_name in room_names:
             room = Room.objects.get_or_create(name=room_name)[0]
             rooms.add(room)
-        start_time = e.begin.time()
-        end_time = e.end.time()
+        start_time = begin.time()
+        end_time = end.time()
         description = e.description.split('(')[0]
         title = e.name[:30]
         for key, value in exclude_if_key_starts_with.items():
