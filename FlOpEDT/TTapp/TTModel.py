@@ -48,6 +48,8 @@ from TTapp.slots import slots_filter, days_filter
 
 from TTapp.WeeksDatabase import WeeksDatabase
 
+from TTapp.TTUtils import print_differences
+
 from django.db import close_old_connections
 from django.db.models import F
 
@@ -978,6 +980,11 @@ class TTModel(FlopModel):
                 sca.scheduled_course = cp
                 sca.save()
             cp.save()
+            
+       # On imprime les différences si demandé
+        if self.stabilize_work_copy is not None:
+            print_differences(self.department, self.weeks,
+                              self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
 
         # # On enregistre les coûts dans la BDD
         TutorCost.objects.filter(department=self.department,

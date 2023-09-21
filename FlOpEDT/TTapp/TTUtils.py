@@ -480,6 +480,21 @@ def number_courses(department, modules=None, course_types=None, periods=None, tr
                     sc.number = past_courses_number + i + 1
                     sc.save()
 
-
-
-
+def print_differences(department, weeks, old_copy, new_copy, tutors=Tutor.objects.all()):
+    for week in weeks:
+        print("For", week)
+        for tutor in tutors:
+            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=old_copy, course__week=week,
+                                                 course__type__department=department)
+            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=new_copy, course__week=week,
+                                                 course__type__department=department)
+            slots_a = set([(x.day, x.start_time//60) for x in SCa])
+            slots_b = set([(x.day, x.start_time//60) for x in SCb])
+            if slots_a ^ slots_b:
+                result = "For %s old copy has :" % tutor
+                for sl in slots_a - slots_b:
+                    result += "%s, " % str(sl)
+                result += "and new copy has :"
+                for sl in slots_b - slots_a:
+                    result += "%s, " % str(sl)
+                print(result)
