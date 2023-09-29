@@ -483,7 +483,7 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                 if field.name in ["tutor", "tutors", "room", "rooms", "possible_rooms", "guide_tutors"]:
                     acceptablelist = acceptablelist.filter(departments=department)
 
-                elif field.name in ["train_progs", "course_type", "course_types"]:
+                elif field.name in ["train_progs", "course_type", "course_types", "room_type", "room_types"]:
                     acceptablelist = acceptablelist.filter(department=department)
 
                 elif field.name in ["modules", "module", "groups", "group"]:
