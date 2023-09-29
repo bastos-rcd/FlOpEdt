@@ -16,7 +16,8 @@ let paramaters_translation=[gettext("time2"), gettext("nb_max"), gettext("weekda
     gettext("weekday"), gettext("lunch_length"), gettext("min_break_length"), gettext("tutor_status"),
     gettext("course_types"), gettext("possible_week_days"), gettext("groups"), gettext("tutors"),
     gettext("modules"), gettext("possible_start_times"), gettext("forbidden_week_days"),
-    gettext("forbidden_start_times"), gettext("pre_assigned_only"), gettext("percentage"), gettext("time1")]
+    gettext("forbidden_start_times"), gettext("pre_assigned_only"), gettext("percentage"), gettext("time1"),
+    gettext("room_type"), gettext("room_types")]
 
 //should/could be replaced by django-js-choices
 let choices = {
@@ -557,7 +558,21 @@ let fetchers = {
                 });
             })
             .catch(err => {
-                console.error('something went wrong while fetching modules');
+                console.error('something went wrong while fetching course types');
+                console.error(err);
+            });
+    },
+    fetchRoomTypes: (e) => {
+        fetch(build_url(urlRoomTypes, {'dept': department}))
+            .then(resp => resp.json())
+            .then(jsonObj => {
+                database['room_types'] = {};
+                Object.values(jsonObj).forEach(obj => {
+                    database['room_types'][obj['id']] = obj['name'];
+                });
+            })
+            .catch(err => {
+                console.error('something went wrong while fetching room types');
                 console.error(err);
             });
     },
@@ -716,6 +731,7 @@ let database = {
     'tutors_ids': null,
     'modules': null,
     'course_types': null,
+    'room_types': null,
     'courses': null,
     'weeks': null,
     'acceptable_values': null,
@@ -1253,6 +1269,9 @@ let getCorrespondingDatabase = (param) => {
         case 'course_type':
         case 'course_types':
             return database['course_types'];
+        case 'room_type':
+        case 'room_types':
+            return database['room_types'];
         case 'train_prog':
         case 'train_progs':
             return database['train_progs'];
@@ -1292,6 +1311,8 @@ let getCorrespondingInfo = (id, param) => {
             return db[id]['name'];
         case 'course_type':
         case 'course_types':
+        case 'room_type':
+        case 'room_types':
             return db[id];
         case 'weeks':
             return `${db[id]['year']}-${db[id]['nb']}`;
@@ -2093,6 +2114,7 @@ fetchers.fetchTutors(null);
 fetchers.fetchModules(null);
 fetchers.fetchRooms(null);
 fetchers.fetchCourseTypes(null);
+fetchers.fetchRoomTypes(null);
 fetchers.fetchTutorsIDs(null);
 //fetchers.fetchCourses(null);
 fetchers.fetchWeeks();
