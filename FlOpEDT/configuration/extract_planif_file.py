@@ -224,9 +224,11 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                     relevant_groups = set()
                     for g in GROUPS:
                         relevant_groups |= g.ancestor_groups() | {g} | g.descendants_groups()
-                    courses_queryset = Course.objects.filter(type__name=course_type, module=MODULE, week=week,
-                                                             groups__in=relevant_groups).exclude(id=C.id)
-                    after_type_dependencies.append((C.id, courses_queryset, n))
+                    course_type_queryset = Course.objects.filter(type__name=course_type, module=MODULE, week=week).exclude(id=C.id)
+                    for relevant_group in relevant_groups:
+                        courses_queryset = course_type_queryset.filter(groups=relevant_group)
+                        if courses_queryset.exists():
+                            after_type_dependencies.append((C.id, courses_queryset, n, row))
 
                 if 'P' in all_comments:
                     course_additional, created = CourseAdditional.objects.get_or_create(course=C)

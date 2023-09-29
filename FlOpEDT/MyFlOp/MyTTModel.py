@@ -28,7 +28,7 @@ import importlib
 
 from TTapp.TTModel import TTModel, GUROBI_NAME
 
-from MyFlOp.MyTTUtils import print_differences, number_courses
+from MyFlOp.MyTTUtils import number_courses
 
 
 class MyTTModel(TTModel):
@@ -92,9 +92,6 @@ class MyTTModel(TTModel):
                                          solver=solver,
                                          threads=threads,
                                          ignore_sigint=ignore_sigint)
-        if result_work_copy is not None and self.stabilize_work_copy is not None:
-            print_differences(self.department, self.weeks,
-                              self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
         if with_numerotation:
             number_courses(self.department, from_week=self.weeks[0], until_week=self.weeks[-1],
                            work_copy=result_work_copy)
