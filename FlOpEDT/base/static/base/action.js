@@ -229,6 +229,7 @@ function are_rooms_free(candidates,
       j++;
     }
 
+    // is a room in the roomgroup occupied in another department?
     if (!is_occupied && is_available) {
       // other depts
       is_occupied_in_other_depts = false;
@@ -248,9 +249,10 @@ function are_rooms_free(candidates,
         free_rooms.push(cur_roomgroup)
       }
     }
-    return free_rooms ;
   }
+  return free_rooms ;
 }
+
 
 
 // return: true iff a change is needed (i.e. unassigned room or already occupied) (or level>0)
