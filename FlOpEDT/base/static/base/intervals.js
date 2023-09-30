@@ -201,7 +201,7 @@ function fill_holes(pref, def_value) {
       pref.splice(i + 1, 0,
         {
           start_time: pref[i].start_time + pref[i].duration,
-          duration: pref[i + 1].start_time - pref[i].duration,
+          duration: pref[i + 1].start_time - (pref[i].start_time + pref[i].duration),
           value: def_value
         });
       i++;
