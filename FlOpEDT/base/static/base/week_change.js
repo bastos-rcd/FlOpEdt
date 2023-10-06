@@ -1223,9 +1223,17 @@ function fetch_room_extra_unavailability() {
             fill_holes(extra_pref.rooms[shared_rooms[i]][busy_days[d]], 1);
           }
         }
+        for (ir = 0 ; ir < Object.keys(rooms.roomgroups).length ; ir++) {
+          let rgroup = Object.keys(rooms.roomgroups)[ir];
+          let room_list = rooms.roomgroups[rgroup];
+          for (iname = 0 ; iname < room_list.length ; iname++) {
+            if (room_list[iname] != rgroup) {
+              merge_pref(extra_pref.rooms, rgroup, room_list[iname]);
+            }
+          }
+        }
       }
       show_loader(false);
-
     },
     error: function (xhr, error) {
       console.log("error");
