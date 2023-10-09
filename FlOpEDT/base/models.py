@@ -439,6 +439,12 @@ class Room(models.Model):
             ret |= over.and_overrooms()
         return ret
 
+    def related_rooms(self):
+        result = set()
+        for r in self.basic_rooms():
+            result |= r.and_overrooms()
+        return result
+
     def __str__(self):
         return self.name
 

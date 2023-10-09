@@ -140,7 +140,7 @@ def compute_conflicts(department, week, copy_a):
     conflict_room_list = get_shared_rooms()
     
     for room in conflict_room_list:
-        dic_subrooms[str(room.id)] = [r.name for r in room.and_subrooms()]
+        dic_subrooms[str(room.id)] = [r.name for r in room.related_rooms()]
     print(dic_subrooms)
     courses_list = ScheduledCourse.objects.select_related('course__type__duration')\
                                           .filter(Q(work_copy=copy_a) & Q(course__module__train_prog__department__abbrev=department) \
