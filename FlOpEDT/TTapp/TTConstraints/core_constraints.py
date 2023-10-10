@@ -215,12 +215,13 @@ class NoSimultaneousGroupCourses(TTConstraint):
         relevant_slots = slots_filter(ttmodel.wdb.availability_slots, week=week)
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         # Count the number of transversal groups
-        if ttmodel.wdb.transversal_groups.exists():
-            n_tg = ttmodel.wdb.transversal_groups.count()
-        else:
-            n_tg = 1
+
         for sl in relevant_slots:
             for bg in relevant_basic_groups:
+                if ttmodel.wdb.transversal_groups_of[bg]:
+                    n_tg = len(ttmodel.wdb.transversal_groups_of[bg])
+                else:
+                    n_tg = 1
                 relevant_sum = n_tg * ttmodel.sum(ttmodel.TT[(sl2, c2)]
                                                   for sl2 in slots_filter(ttmodel.wdb.courses_slots,
                                                                           simultaneous_to=sl)

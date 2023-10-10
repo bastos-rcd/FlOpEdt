@@ -99,6 +99,7 @@ def people_extract(department, people, fill_default_preferences):
             del person['status']
             del person["employer"]
             tutor.update(**person)
+            tutor=tutor.get()
             UserDepartmentSettings.objects.get_or_create(department=department, user=tutor)
             if fill_default_preferences:
                 split_preferences(tutor)
