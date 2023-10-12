@@ -284,7 +284,7 @@ class RoomModel(FlopModel):
 
         return cost_I, cost_G, cost_SL, generic_cost
 
-    def add_to_slot_cost(self, slot, cost):
+    def add_to_slot_cost(self, slot, cost, week=None):
         self.cost_SL[slot] += cost
 
     def add_to_inst_cost(self, instructor, cost, week=None):
