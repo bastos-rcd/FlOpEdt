@@ -88,11 +88,14 @@ def str_to_min(time_string):
 #Returns the index of the first monday of the given year.
 #Argument "day" being a flop_day type
 def first_day_first_week(day):
+    year = day.week.year
+    if year == 0:
+        year = 1
     i = 1
-    first = datetime(day.week.year, 1, i)
+    first = datetime(year, 1, i)
     while first.weekday() != 0:
         i+=1
-        first = datetime(day.week.year, 1, i)
+        first = datetime(year, 1, i)
     return i - 1
 
 
