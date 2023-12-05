@@ -119,12 +119,9 @@
                   <div
                     v-else
                     style="width: 100%; height: 100%; flex-direction: column; align-items: center; display: flex"
-                    class="avail-div resizable-div"
+                    class="avail-div"
                     @mousedown="onMouseDown($event, event.id)"
                   >
-                    <div style="flex: 1" class="resizable-handle resizable-handle-top">
-                      <q-icon class="avail-hide resizable-handle" :name="matHorizontalRule" size="xs" />
-                    </div>
                     <div style="flex: 2; display: flex; align-items: center" class="center-area">
                       <q-popup-edit v-model="newAvailValue" v-slot="scope" anchor="bottom left" context-menu>
                         <q-btn-group style="display: flex; flex-direction: column">
@@ -138,12 +135,6 @@
                         </q-btn-group>
                       </q-popup-edit>
                       <q-icon color="black" :name="event.icon" size="xs" />
-                    </div>
-                    <div
-                      style="flex: 1; align-items: flex-end; display: flex"
-                      class="resizable-handle resizable-handle-bottom"
-                    >
-                      <q-icon :name="matHorizontalRule" size="xs" class="avail-hide resizable-handle" />
                     </div>
                   </div>
                 </slot>
@@ -412,6 +403,9 @@ function badgeStyles(
   } else {
     s['background-color'] = event.bgcolor
   }
+  if (event.data.dataType === 'avail') {
+    s['resize'] = 'vertical'
+  }
   if (
     event.data?.dataType === 'dropzone' &&
     event.data.start.time === closestStartTime.value &&
@@ -633,10 +627,7 @@ let timeoutId: any = null
 function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
   // @ts-expect-error
   console.log(mouseEvent.target?.classList)
-  // @ts-expect-error
-  if (!mouseEvent.target!.classList.contains('resizable-handle')) {
-    onAvailClick(mouseEvent, eventId)
-  }
+  onAvailClick(mouseEvent, eventId)
 }
 
 function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
@@ -702,59 +693,4 @@ function availMenuStyle(index: string): any {
   justify-content: center
   align-items: center
   height: 100%
-.text-white
-  color: white
-.bg-blue
-  background: blue
-.bg-green
-  background: green
-.bg-orange
-  background: orange
-.bg-red
-  background: red
-.bg-teal
-  background: teal
-.bg-grey
-  background: grey
-.bg-purple
-  background: purple
-.full-width
-   left: 0
-   width: calc(100% - 2px)
-.left-side
-   left: 0
-   width: calc(50% - 3px)
-.right-side
-  left: 50%
-  width: calc(50% - 3px)
-.rounded-border
-  border-radius: 2px
-  padding-x: 2px
-  text-align: center
-.border-dashed
-  border: 1px dashed grey
-.my-dropzone
-  pointer-events: none
-.avail-hide
-  display: none
-.avail-div:hover .avail-hide
-  display: block
-.resizable-div
-  position: relative
-  border: 1px solid black
-  overflow: hidden
-.resizable-content
-  width: 100%
-  height: 100%
-  cursor: pointer
-.resizable-handle
-  position: absolute
-  width: 100%
-  height: 8px
-  cursor: ns-resize
-  background-color: #ccc
-.resizable-handle-top
-  top: 0
-.resizable-handle-bottom
-  bottom: 0
 </style>
