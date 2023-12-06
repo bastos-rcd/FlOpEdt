@@ -17,8 +17,10 @@ let paramaters_translation=[gettext("time2"), gettext("nb_max"), gettext("weekda
     gettext("course_types"), gettext("possible_week_days"), gettext("groups"), gettext("tutors"),
     gettext("modules"), gettext("possible_start_times"), gettext("forbidden_week_days"),
     gettext("forbidden_start_times"), gettext("pre_assigned_only"), gettext("percentage"), gettext("time1"),
-    gettext("room_type"), gettext("room_types"), gettex('Can combine two groups if no tutor'), gettext('Desired busy slots duration'),
+    gettext("room_type"), gettext("room_types"), gettext('transversal_groups_included'),
+    gettext('Can combine two groups if no tutor'), gettext('Desired busy slots duration'),
     gettext('min_hours')]
+
 
 //should/could be replaced by django-js-choices
 let choices = {
