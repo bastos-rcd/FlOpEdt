@@ -336,7 +336,7 @@ class AssignAllCourses(TTConstraint):
     groups = models.ManyToManyField('base.StructuralGroup',
                                     blank=True)
     course_types = models.ManyToManyField('base.CourseType', blank=True)
-    pre_assigned_only = models.BooleanField(default=False, verbose_name=_('Pre-assigned courses only'))
+    pre_assigned_only = models.BooleanField(default=False, verbose_name=_('pre_assigned_only'))
 
     class Meta:
         verbose_name = _('Each course is assigned to one tutor (max)')

@@ -6,7 +6,7 @@ const list_close = new Event('list-close');
 
 // usefull_translations
 let paramaters_translation=[gettext("time2"), gettext("nb_max"), gettext("weekdays"), gettext("nb_min"),
-    gettext("join2courses"), gettext("slot_start_time"), gettext("curfew_time"), gettext("weeks"),
+    gettext("If a tutor has 2 or 4 courses only, join it?"), gettext("slot_start_time"), gettext("curfew_time"), gettext("weeks"),
     gettext("slot_end_time"), gettext("max_number"), gettext("max_holes_per_day"), gettext("train_progs"),
     gettext("max_holes_per_week"), gettext("limit"), gettext("min_time_per_period"), gettext("max_time_per_period"),
     gettext("course_type"), gettext("max_hours"), gettext("fhd_period"), gettext("tolerated_margin"),
@@ -17,7 +17,8 @@ let paramaters_translation=[gettext("time2"), gettext("nb_max"), gettext("weekda
     gettext("course_types"), gettext("possible_week_days"), gettext("groups"), gettext("tutors"),
     gettext("modules"), gettext("possible_start_times"), gettext("forbidden_week_days"),
     gettext("forbidden_start_times"), gettext("pre_assigned_only"), gettext("percentage"), gettext("time1"),
-    gettext("room_type"), gettext("room_types")]
+    gettext("room_type"), gettext("room_types"), gettex('Can combine two groups if no tutor'), gettext('Desired busy slots duration'),
+    gettext('min_hours')]
 
 //should/could be replaced by django-js-choices
 let choices = {

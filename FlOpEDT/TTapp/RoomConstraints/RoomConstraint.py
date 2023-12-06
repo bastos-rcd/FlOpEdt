@@ -103,7 +103,7 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
     Only one course for each considered room on simultaneous slots
     """
     rooms = models.ManyToManyField('base.Room', blank=True)
-    can_combine_two_groups_if_no_tutor = models.BooleanField(default=False)
+    can_combine_two_groups_if_no_tutor = models.BooleanField(default=False, verbose_name=_('Can combine two groups if no tutor'))
 
     class Meta:
         verbose_name = _('Limit simultaneous courses for rooms')

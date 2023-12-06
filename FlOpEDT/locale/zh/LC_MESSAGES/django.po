@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-06 08:50+0000\n"
+"POT-Creation-Date: 2023-12-06 10:31+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -101,6 +101,10 @@ msgstr "蓝精灵语"
 
 #: TTapp/FlopConstraint.py:59
 msgid "Is active?"
+msgstr ""
+
+#: TTapp/RoomConstraints/RoomConstraint.py:106
+msgid "Can combine two groups if no tutor"
 msgstr ""
 
 #: TTapp/RoomConstraints/RoomConstraint.py:109
@@ -200,7 +204,7 @@ msgid "Schedule once every considered course"
 msgstr ""
 
 #: TTapp/TTConstraints/core_constraints.py:339
-msgid "Pre-assigned courses only"
+msgid "pre_assigned_only"
 msgstr ""
 
 #: TTapp/TTConstraints/core_constraints.py:342
@@ -293,6 +297,10 @@ msgstr ""
 
 #: TTapp/TTConstraints/groups_constraints.py:216
 msgid "Minimize groups non-preferred slots"
+msgstr ""
+
+#: TTapp/TTConstraints/groups_constraints.py:224
+msgid "min_hours"
 msgstr ""
 
 #: TTapp/TTConstraints/groups_constraints.py:228
@@ -409,6 +417,10 @@ msgstr "教师"
 msgid "Not alone for these course types"
 msgstr ""
 
+#: TTapp/TTConstraints/simultaneity_constraints.py:145
+msgid "Desired busy slots duration"
+msgstr ""
+
 #: TTapp/TTConstraints/simultaneity_constraints.py:149
 msgid "Parallelize courses"
 msgstr ""
@@ -511,6 +523,10 @@ msgstr ""
 #| msgid "Stabilization ?"
 msgid "Stabilization through weeks"
 msgstr "稳定？"
+
+#: TTapp/TTConstraints/tutors_constraints.py:52
+msgid "If a tutor has 2 or 4 courses only, join it?"
+msgstr ""
 
 #: TTapp/TTConstraints/tutors_constraints.py:56
 msgid "Minimize busy half days for tutors"
