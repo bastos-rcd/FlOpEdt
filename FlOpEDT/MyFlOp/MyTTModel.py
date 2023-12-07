@@ -81,7 +81,8 @@ class MyTTModel(TTModel):
         TTModel.add_specific_constraints(self)
 
     def solve(self, time_limit=None, target_work_copy=None,
-              solver=GUROBI_NAME, threads=None, ignore_sigint=True, with_numerotation=True):
+              solver=GUROBI_NAME, threads=None, ignore_sigint=True, send_gurobi_logs_email_to=None,
+              with_numerotation=True):
         """
         If you shall add pre (or post) processing apps, you may write them down
         here.
@@ -91,7 +92,8 @@ class MyTTModel(TTModel):
                                          target_work_copy=target_work_copy,
                                          solver=solver,
                                          threads=threads,
-                                         ignore_sigint=ignore_sigint)
+                                         ignore_sigint=ignore_sigint,
+                                         send_gurobi_logs_email_to=send_gurobi_logs_email_to)
         if with_numerotation:
             number_courses(self.department, from_week=self.weeks[0], until_week=self.weeks[-1],
                            work_copy=result_work_copy)

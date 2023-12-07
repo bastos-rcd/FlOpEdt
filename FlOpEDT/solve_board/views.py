@@ -168,7 +168,6 @@ def launch_pre_analyse(req, train_prog, year, week, type, **kwargs):
         for constraint in constraints:
             result = constraint.pre_analyse(week=Week.objects.get(nb= week, year =year))
             resultat[type].append(result)
-            
     return JsonResponse(resultat)
 
 
