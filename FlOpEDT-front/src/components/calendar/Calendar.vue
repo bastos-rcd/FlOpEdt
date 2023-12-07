@@ -111,8 +111,8 @@
                 class="my-event"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
                 :style="badgeStyles(event, span, timeStartPos, timeDurationHeight)"
-                @mousedown="onMouseDown($event, event.id)"
-                @mouseup="onMouseUp($event, event.id)"
+                @mousedown="onMouseDown($event, event.id, timeDurationHeight)"
+                @mouseup="onMouseUp()"
               >
                 <slot name="event" :event="event">
                   <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
@@ -121,7 +121,7 @@
                   <div
                     v-else
                     style="width: 100%; height: 100%; flex-direction: column; align-items: center; display: flex"
-                    class="avail" 
+                    class="avail"
                   >
                     <div style="flex: 2; display: flex; align-items: center" class="avail">
                       <q-popup-edit v-model="newAvailValue" v-slot="scope" anchor="bottom left" context-menu>
@@ -160,7 +160,7 @@ import {
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
-import _ from 'lodash'
+import _, { forEach } from 'lodash'
 
 import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 
@@ -623,23 +623,46 @@ function onNext(): void {
 
 let newAvailValue: number = 0
 let timeoutId: any = null
+let currentEventId: number = -1
 let availResizeObs = new ResizeObserver((entries) => {
-  console.log(entries)
+  if (timePixelConverter) {
+    console.log('id: ', currentEventId)
+    let newEvent: InputCalendarEvent = _.cloneDeep(
+      props.events.find((e) => currentEventId === e.id) as InputCalendarEvent
+    )
+    if (newEvent) {
+      newEvent.data.duration = Math.round(newEvent.data.duration + timePixelConverter(entries[0].contentRect.height))
+      console.log(timePixelConverter(entries[0].contentRect.height))
+      let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
+      _.remove(newEvents, (e: InputCalendarEvent) => {
+        return e.id === newEvent.id
+      })
+      newEvents.push(newEvent)
+      eventsModel.value = newEvents
+    }
+  }
 })
 
-function onMouseUp(mouseEvent: MouseEvent, eventId: number): void {
+let timePixelConverter: Function
+
+function onMouseUp(): void {
   availResizeObs.disconnect()
+  currentEventId = -1
 }
 
-function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
-  console.log(_.words(mouseEvent.target.className))
-  if((_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG')))
+function onMouseDown(mouseEvent: MouseEvent, eventId: number, timeDurationHeight: Function): void {
+  timePixelConverter = timeDurationHeight
+  currentEventId = eventId
+  //@ts-expect-error
+  console.log(mouseEvent.target.className)
+  //@ts-expect-error
+  if (_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG'))
     onAvailClick(mouseEvent, eventId)
-  else
-    //TODO: resize
-    console.log("resize")
-    if(mouseEvent.target)
-      availResizeObs.observe(mouseEvent.target as Element)
+  //@ts-expect-error
+  else if (!_.includes(mouseEvent.target.className, 'title')) {
+    console.log('resize')
+    if (mouseEvent.target) availResizeObs.observe(mouseEvent.target as Element)
+  }
 }
 
 function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
@@ -706,4 +729,8 @@ function availMenuStyle(index: string): any {
   justify-content: center
   align-items: center
   height: 100%
+.border-dashed
+  border: 1px dashed grey
+.my-dropzone
+  pointer-events: none
 </style>
