@@ -647,6 +647,42 @@ function onMouseUp(): void {
         return e.id === newEvent.id
       })
       newEvents.push(newEvent)
+      let availId = -1
+      let availsToDelete: number[] = []
+      newEvents.forEach((currentAvail: InputCalendarEvent) => {
+        if (currentAvail.data.dataType === 'avail') {
+          if (newEvent.data.start.date === currentAvail.data.start.date) {
+            let diffBetweenStarts = diffTimestamp(newEvent.data.start, currentAvail.data.start) / 60000
+            console.log('diff:', diffBetweenStarts, 'duration:', newEvent.data.duration)
+            //@ts-expect-error
+            if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration) {
+              if (availId !== -1) {
+                availsToDelete.push(availId)
+              }
+              availId = currentAvail.id
+            }
+          }
+        }
+      })
+      console.log('array', availsToDelete)
+      console.log('availId', availId)
+      availsToDelete.forEach((id) => {
+        _.remove(newEvents, (e: InputCalendarEvent) => {
+          e.id === id
+        })
+      })
+
+      if (availId !== -1) {
+        let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === availId))
+        updateMinutes(
+          availToUpdate,
+          Math.round(parseTime(newEvent.data.start.time) + timePixelConverter(newEvent.data.duration))
+        )
+        _.remove(newEvents, (e: InputCalendarEvent) => {
+          e.id === availToUpdate!.id
+        })
+        newEvents.push(availToUpdate!)
+      }
       eventsModel.value = newEvents
     }
     currentAvailId = -1
