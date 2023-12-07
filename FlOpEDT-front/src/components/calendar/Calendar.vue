@@ -351,7 +351,6 @@ const eventsByDate = computed(() => {
     }
     map[event.data.start.date].push(event)
   })
-  // console.log('map :', map)
   return map
 })
 
@@ -623,16 +622,26 @@ function onNext(): void {
 
 let newAvailValue: number = 0
 let timeoutId: any = null
-let currentEventId: number = -1
+let currentAvailId: number = -1
+let newAvailDuration: number = 0
+
 let availResizeObs = new ResizeObserver((entries) => {
   if (timePixelConverter) {
-    console.log('id: ', currentEventId)
+    let rate: number = 1000 / timePixelConverter(1000)
+    newAvailDuration = entries[0].contentRect.height * rate
+  }
+})
+
+let timePixelConverter: Function
+
+function onMouseUp(): void {
+  if (currentAvailId !== -1) {
+    availResizeObs.disconnect()
     let newEvent: InputCalendarEvent = _.cloneDeep(
-      props.events.find((e) => currentEventId === e.id) as InputCalendarEvent
+      props.events.find((e) => currentAvailId === e.id) as InputCalendarEvent
     )
     if (newEvent) {
-      newEvent.data.duration = Math.round(newEvent.data.duration + timePixelConverter(entries[0].contentRect.height))
-      console.log(timePixelConverter(entries[0].contentRect.height))
+      newEvent.data.duration = newAvailDuration
       let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
       _.remove(newEvents, (e: InputCalendarEvent) => {
         return e.id === newEvent.id
@@ -640,28 +649,21 @@ let availResizeObs = new ResizeObserver((entries) => {
       newEvents.push(newEvent)
       eventsModel.value = newEvents
     }
+    currentAvailId = -1
   }
-})
-
-let timePixelConverter: Function
-
-function onMouseUp(): void {
-  availResizeObs.disconnect()
-  currentEventId = -1
 }
 
 function onMouseDown(mouseEvent: MouseEvent, eventId: number, timeDurationHeight: Function): void {
   timePixelConverter = timeDurationHeight
-  currentEventId = eventId
-  //@ts-expect-error
-  console.log(mouseEvent.target.className)
   //@ts-expect-error
   if (_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG'))
     onAvailClick(mouseEvent, eventId)
   //@ts-expect-error
   else if (!_.includes(mouseEvent.target.className, 'title')) {
-    console.log('resize')
-    if (mouseEvent.target) availResizeObs.observe(mouseEvent.target as Element)
+    if (mouseEvent.target) {
+      availResizeObs.observe(mouseEvent.target as Element)
+      currentAvailId = eventId
+    }
   }
 }
 
