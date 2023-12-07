@@ -111,6 +111,8 @@
                 class="my-event"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
                 :style="badgeStyles(event, span, timeStartPos, timeDurationHeight)"
+                @mousedown="onMouseDown($event, event.id)"
+                @mouseup="onMouseUp($event, event.id)"
               >
                 <slot name="event" :event="event">
                   <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
@@ -119,10 +121,9 @@
                   <div
                     v-else
                     style="width: 100%; height: 100%; flex-direction: column; align-items: center; display: flex"
-                    class="avail-div"
-                    @mousedown="onMouseDown($event, event.id)"
+                    class="avail" 
                   >
-                    <div style="flex: 2; display: flex; align-items: center" class="center-area">
+                    <div style="flex: 2; display: flex; align-items: center" class="avail">
                       <q-popup-edit v-model="newAvailValue" v-slot="scope" anchor="bottom left" context-menu>
                         <q-btn-group style="display: flex; flex-direction: column">
                           <q-btn
@@ -130,7 +131,6 @@
                             :style="availMenuStyle(index)"
                             :icon="icon"
                             size="sm"
-                            @click="changeAvail(event.id, parseInt(index))"
                           />
                         </q-btn-group>
                       </q-popup-edit>
@@ -159,7 +159,6 @@ import {
   parseTime,
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import { matHorizontalRule } from '@quasar/extras/material-icons'
 
 import _ from 'lodash'
 
@@ -405,6 +404,7 @@ function badgeStyles(
   }
   if (event.data.dataType === 'avail') {
     s['resize'] = 'vertical'
+    s['overflow'] = 'auto'
   }
   if (
     event.data?.dataType === 'dropzone' &&
@@ -623,11 +623,23 @@ function onNext(): void {
 
 let newAvailValue: number = 0
 let timeoutId: any = null
+let availResizeObs = new ResizeObserver((entries) => {
+  console.log(entries)
+})
+
+function onMouseUp(mouseEvent: MouseEvent, eventId: number): void {
+  availResizeObs.disconnect()
+}
 
 function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
-  // @ts-expect-error
-  console.log(mouseEvent.target?.classList)
-  onAvailClick(mouseEvent, eventId)
+  console.log(_.words(mouseEvent.target.className))
+  if((_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG')))
+    onAvailClick(mouseEvent, eventId)
+  else
+    //TODO: resize
+    console.log("resize")
+    if(mouseEvent.target)
+      availResizeObs.observe(mouseEvent.target as Element)
 }
 
 function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
@@ -642,6 +654,7 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
       clearTimeout(timeoutId)
       timeoutId = null
       console.log('DoubleClick Cut')
+      // TODO
     }
   }
 }
