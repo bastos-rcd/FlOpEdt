@@ -65,6 +65,7 @@ from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_ttconstraints, get_room_
 from TTapp.RoomModel import RoomModel
 
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 
 
 class TTModel(FlopModel):
@@ -1130,8 +1131,8 @@ class TTModel(FlopModel):
     
     def send_gurobi_log_files_email(self, subject, to, iis_files_included=False):
         from django.core.mail import EmailMessage
-        message = _("This email was automatically sent by the flop!EDT timetable generator\n\n")
-        message += _("Here is the log of the last run of the generator:\n\n")
+        message = gettext("This email was automatically sent by the flop!EDT timetable generator\n\n")
+        message += gettext("Here is the log of the last run of the generator:\n\n")
         message += open("gurobi.log",'r').read().split('logging started')[-1]
         email = EmailMessage(subject, message, to=to)
         if iis_files_included:
