@@ -1133,7 +1133,12 @@ class TTModel(FlopModel):
         from django.core.mail import EmailMessage
         message = gettext("This email was automatically sent by the flop!EDT timetable generator\n\n")
         message += gettext("Here is the log of the last run of the generator:\n\n")
-        message += open("gurobi.log",'r').read().split('logging started')[-1]
+        logs = open("gurobi.log",'r').read().split('logging started')
+        if self.post_assign_rooms:
+            message += logs[-2] + '\n\n'
+            message += logs[-1] + '\n\n'
+        else:
+            message += logs[-1]
         email = EmailMessage(subject, message, to=to)
         if iis_files_included:
             email.attach_file("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe()))
