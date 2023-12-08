@@ -22,7 +22,7 @@ If yes, which dependencies?
 
 ### Licenses
 
-If new dependencies have been added, their licenses is  avec une inclusion dans un logiciel sous AGPL.
+If new dependencies have been added, their licenses are compatible with the inclusion in a software project licensed under the AGPL version 3.0 or later.
 
 - [ ] Yes indeed.
 - [ ] I have looked, but I am not sure. Licensing is such a pain.
@@ -41,7 +41,7 @@ Please check the type of change your MR introduces:
 - [ ] Code style update (formatting, renaming)
 - [ ] Refactoring (no functional changes, no api changes)
 - [ ] Build related changes
-- [ ] Documentation content changes
+- [ ] Documentation contents changes
 - [ ] Other (please describe): 
 
 
