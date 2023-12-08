@@ -36,6 +36,8 @@ services:
       - DJANGO_LOADDATA=off
       - DJANGO_FLUSHDATA=off
       - CONFIG=development
+      - EMAIL_HOST=maildev
+      - EMAIL_PORT=1025
     entrypoint: /code/docker/script/init.sh      
     volumes:
       - .:/code
@@ -59,6 +61,13 @@ services:
       - "5173:5173"
     entrypoint: ["yarn", "dev", "--host"]
 
+  maildev:
+    image: maildev/maildev:2.1.0
+    profiles:
+      - full
+    ports:
+      - "1080:1080"
+
 volumes:
-  db-data:
+  flop-db-data:
     driver: local
