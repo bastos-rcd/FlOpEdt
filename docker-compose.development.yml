@@ -9,7 +9,9 @@ services:
       PGDATA: /var/lib/postgresql/data/flopedt-${BRANCH:-master}
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      - /var/lib/postgresql/:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   redis:
     image: redis:latest
@@ -50,9 +52,13 @@ services:
       - full
     environment:
       - CONFIG=development
+      - FLOP_BACKEND_URL=http://backend:8000
     volumes:
       - ./FlOpEDT-front:/front
-    network_mode: "host"
     ports:
       - "5173:5173"
-    entrypoint: ["yarn", "dev"]
+    entrypoint: ["yarn", "dev", "--host"]
+
+volumes:
+  db-data:
+    driver: local
