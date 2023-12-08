@@ -1116,8 +1116,7 @@ class TTModel(FlopModel):
                 subject = f"Logs {self.department.abbrev} {self.weeks} : copy {target_work_copy}"
             self.send_gurobi_log_files_email(
                 subject=subject,
-                message=f"",
-                to=send_gurobi_logs_email_to,
+                to=[send_gurobi_logs_email_to],
                 iis_files_included=iis_files_included
             )
         return target_work_copy
@@ -1129,10 +1128,12 @@ class TTModel(FlopModel):
             raise Exception(f"Wrong slots among weeks {week}, {slot.day.week} \n {slot} vs {other_slots}")
         return other_slots.pop()
     
-    def send_gurobi_log_files_email(self, subject, message, to, iis_files_included=False):
+    def send_gurobi_log_files_email(self, subject, to, iis_files_included=False):
         from django.core.mail import EmailMessage
+        message = _("This email was automatically sent by the flop!EDT timetable generator\n\n")
+        message += _("Here is the log of the last run of the generator:\n\n")
+        message += open("gurobi.log",'r').read().split('logging started')[-1]
         email = EmailMessage(subject, message, to=to)
-        email.attach_file(f"{gurobi_log_files_path}/{self.solution_files_prefix()}_gurobi.log")
         if iis_files_included:
             email.attach_file("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe()))
             email.attach_file("%s/constraints_summary%s.txt" % (iis_files_path, self.iis_filename_suffixe()))
