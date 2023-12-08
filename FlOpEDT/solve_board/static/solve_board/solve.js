@@ -133,7 +133,7 @@ function open_connection() {
         var post_assign_rooms = post_assign_rooms_checkbox.checked;
         var all_weeks_together = all_weeks_together_checkbox.checked;
         var send_log_email = send_log_email_checkbox.checked;
-        var user_email = currentUser.email;
+
 
         // Get working copy number for stabilization
         var stabilize_working_copy = stabilize_select.value;
@@ -154,7 +154,7 @@ function open_connection() {
             'post_assign_rooms': post_assign_rooms,
             'all_weeks_together': all_weeks_together,
             'send_log_email': send_log_email,
-            'user_email': user_email
+            'current_user_email': current_user_email
         }))
     }
 
@@ -694,7 +694,7 @@ document.getElementById("divAnalyse").style.overflow = "scroll";
 var pre_assign_rooms_checkbox = document.querySelector("#pre-assign-rooms");
 var post_assign_rooms_checkbox = document.querySelector("#post-assign-rooms");
 var all_weeks_together_checkbox = document.querySelector("#all-weeks-together-checkbox");
-var send_log_email_checkbox = document.querySelector("#send-log-email");
+var send_log_email_checkbox = document.querySelector("send-log-email");
 
 
 time_limit_select = document.querySelector("#limit");

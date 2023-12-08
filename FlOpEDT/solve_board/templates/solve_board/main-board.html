@@ -48,6 +48,7 @@
     var tutor_id_url = '{% url "api:people:tutor-list" %}';
     var constraints = JSON.parse('{{ constraints|escapejs }}');
     var work_copies = JSON.parse('{{ work_copies|escapejs }}');
+    var current_user_email = '{{ email }}';
   </script>
 
   <template id="constraints_template">

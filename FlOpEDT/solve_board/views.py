@@ -194,6 +194,7 @@ def main_board(req, **kwargs):
                    'weeks': json.dumps(week_list),
                    'train_progs': json.dumps(all_tps),
                    'solvers': solvers_viewmodel,
+                   'email': req.user.email,
                    }
     
     # Get contextual datas (constraints, work_copies)

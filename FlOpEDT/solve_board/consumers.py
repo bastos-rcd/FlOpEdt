@@ -113,7 +113,7 @@ class SolverConsumer(WebsocketConsumer):
                 stabilize_work_copy=stabilize,
                 all_weeks_together=data['all_weeks_together'],
                 send_log_email=data['send_log_email'],
-                user_email=data['user_email']
+                user_email=data['current_user_email']
                 ).start()
 
         elif data['action'] == 'stop':
