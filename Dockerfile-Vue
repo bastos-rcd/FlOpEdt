@@ -2,4 +2,4 @@ FROM node:18-alpine
 
 WORKDIR /code/FlOpEDT/frontend
 
-RUN yarn global add @vue/cli && yarn install
+RUN yarn global add @vue/cli && yarn install --frozen-lockfile
