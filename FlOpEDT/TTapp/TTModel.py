@@ -61,10 +61,11 @@ from TTapp.ilp_constraints.constraints.slotInstructorConstraint import SlotInstr
 
 from core.decorators import timer
 
-from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_ttconstraints, get_room_constraints, solution_files_path
+from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_ttconstraints, get_room_constraints, solution_files_path, gurobi_log_files_path, iis_files_path
 from TTapp.RoomModel import RoomModel
 
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 
 
 class TTModel(FlopModel):
@@ -1069,7 +1070,8 @@ class TTModel(FlopModel):
                                  tutor=fc.tutor)
             cp.save()
 
-    def solve(self, time_limit=None, target_work_copy=None, solver=GUROBI_NAME, threads=None, ignore_sigint=True):
+    def solve(self, time_limit=None, target_work_copy=None, solver=GUROBI_NAME, threads=None, 
+              ignore_sigint=True, send_gurobi_logs_email_to=None):
         """
         Generates a schedule from the TTModel
         The solver stops either when the best schedule is obtained or timeLimit
@@ -1105,10 +1107,40 @@ class TTModel(FlopModel):
             if self.post_assign_rooms:
                 RoomModel(self.department.abbrev, self.weeks, target_work_copy).solve()
                 print("Rooms assigned")
-            return target_work_copy
+        
+        if send_gurobi_logs_email_to is not None:
+            if self.result is None:
+                iis_files_included=True
+                subject = f"Logs {self.department.abbrev} {self.weeks} : not solved"
+            else:
+                iis_files_included=False
+                subject = f"Logs {self.department.abbrev} {self.weeks} : copy {target_work_copy}"
+            self.send_gurobi_log_files_email(
+                subject=subject,
+                to=[send_gurobi_logs_email_to],
+                iis_files_included=iis_files_included
+            )
+        return target_work_copy
+
 
     def find_same_course_slot_in_other_week(self, slot, week):
         other_slots = slots_filter(self.wdb.courses_slots, week=week, same=slot)
         if len(other_slots) != 1:
             raise Exception(f"Wrong slots among weeks {week}, {slot.day.week} \n {slot} vs {other_slots}")
         return other_slots.pop()
+    
+    def send_gurobi_log_files_email(self, subject, to, iis_files_included=False):
+        from django.core.mail import EmailMessage
+        message = gettext("This email was automatically sent by the flop!EDT timetable generator\n\n")
+        message += gettext("Here is the log of the last run of the generator:\n\n")
+        logs = open("gurobi.log",'r').read().split('logging started')
+        if self.post_assign_rooms:
+            message += logs[-2] + '\n\n'
+            message += logs[-1] + '\n\n'
+        else:
+            message += logs[-1]
+        email = EmailMessage(subject, message, to=to)
+        if iis_files_included:
+            email.attach_file("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe()))
+            email.attach_file("%s/constraints_summary%s.txt" % (iis_files_path, self.iis_filename_suffixe()))
+        email.send()

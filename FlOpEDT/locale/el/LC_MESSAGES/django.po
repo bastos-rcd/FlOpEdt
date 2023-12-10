@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-06 10:31+0000\n"
+"POT-Creation-Date: 2023-12-08 15:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,83 +18,83 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: FlOpEDT/settings/base.py:161
+#: FlOpEDT/settings/base.py:162
 msgid "French"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:162
+#: FlOpEDT/settings/base.py:163
 msgid "English"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:163
+#: FlOpEDT/settings/base.py:164
 msgid "Spanish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:164
+#: FlOpEDT/settings/base.py:165
 msgid "Arabic"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:165
+#: FlOpEDT/settings/base.py:166
 msgid "Basque"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:166
+#: FlOpEDT/settings/base.py:167
 msgid "Breton"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:167
+#: FlOpEDT/settings/base.py:168
 msgid "Catalan"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:168
+#: FlOpEDT/settings/base.py:169
 msgid "Corsican"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:169
+#: FlOpEDT/settings/base.py:170
 msgid "Danish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:170
+#: FlOpEDT/settings/base.py:171
 msgid "German"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:171
+#: FlOpEDT/settings/base.py:172
 msgid "Dutch"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:172
+#: FlOpEDT/settings/base.py:173
 msgid "Greek"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:173
+#: FlOpEDT/settings/base.py:174
 msgid "Italian"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:174
+#: FlOpEDT/settings/base.py:175
 msgid "Latin"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:175
+#: FlOpEDT/settings/base.py:176
 msgid "Norwegian"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:176
+#: FlOpEDT/settings/base.py:177
 msgid "Polish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:177
+#: FlOpEDT/settings/base.py:178
 msgid "Portuguese"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:178
+#: FlOpEDT/settings/base.py:179
 msgid "Swedish"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:179
+#: FlOpEDT/settings/base.py:180
 msgid "Chinese"
 msgstr ""
 
-#: FlOpEDT/settings/base.py:180
+#: FlOpEDT/settings/base.py:181
 msgid "Smurf"
 msgstr ""
 
@@ -579,6 +579,18 @@ msgstr ""
 msgid "Relevant warnings :"
 msgstr ""
 
+#: TTapp/TTModel.py:1141
+msgid ""
+"This email was automatically sent by the flop!EDT timetable generator\n"
+"\n"
+msgstr ""
+
+#: TTapp/TTModel.py:1142
+msgid ""
+"Here is the log of the last run of the generator:\n"
+"\n"
+msgstr ""
+
 #: TTapp/TTUtils.py:45
 msgid "Reload..."
 msgstr ""
@@ -592,7 +604,7 @@ msgstr ""
 msgid "Impossible to assign rooms"
 msgstr ""
 
-#: TTapp/TTUtils.py:415
+#: TTapp/TTUtils.py:419
 #, python-format
 msgid "%s, "
 msgstr ""
@@ -613,7 +625,7 @@ msgstr ""
 msgid "POST, PUT, PATCH and DELETE methods reserved for admin"
 msgstr ""
 
-#: base/admin.py:608 base/admin.py:634 base/admin.py:647
+#: base/admin.py:609 base/admin.py:635 base/admin.py:648
 msgid "Week"
 msgstr ""
 
@@ -677,51 +689,51 @@ msgstr ""
 msgid "Coop. (worker)"
 msgstr ""
 
-#: base/models.py:505 notifications/models.py:47
+#: base/models.py:499 notifications/models.py:47
 msgid "Abbreviation"
 msgstr ""
 
-#: base/models.py:549
+#: base/models.py:543
 msgid "graded?"
 msgstr ""
 
-#: base/models.py:576
+#: base/models.py:570
 msgid "Suspens?"
 msgstr ""
 
-#: base/models.py:609
+#: base/models.py:603
 msgid "Graded?"
 msgstr ""
 
-#: base/models.py:610
+#: base/models.py:604
 msgid "Over time"
 msgstr ""
 
-#: base/models.py:990
+#: base/models.py:984
 msgid "Successives?"
 msgstr ""
 
-#: base/models.py:991 base/models.py:1002
+#: base/models.py:985 base/models.py:996
 msgid "On different days"
 msgstr ""
 
-#: base/models.py:992
+#: base/models.py:986
 msgid "Minimal day gap between courses"
 msgstr ""
 
-#: base/models.py:1020
+#: base/models.py:1014
 msgid "Full"
 msgstr ""
 
-#: base/models.py:1022
+#: base/models.py:1016
 msgid "Full generation date"
 msgstr ""
 
-#: base/models.py:1023
+#: base/models.py:1017
 msgid "Stabilized"
 msgstr ""
 
-#: base/models.py:1025
+#: base/models.py:1019
 msgid "Partial generation date"
 msgstr ""
 
@@ -810,7 +822,7 @@ msgid ""
 "for that week, the typical week defines the availability."
 msgstr ""
 
-#: base/templates/base/help.html:59
+#: base/templates/base/help.html:60
 msgid "Some Tutorial Videos"
 msgstr ""
 
@@ -878,31 +890,31 @@ msgstr ""
 msgid " How ?"
 msgstr ""
 
-#: base/templates/base/show-edt.html:49
+#: base/templates/base/show-edt.html:50
 msgid "Check election"
 msgstr ""
 
-#: base/templates/base/show-edt.html:53
+#: base/templates/base/show-edt.html:54
 msgid "Elect this copy"
 msgstr ""
 
-#: base/templates/base/show-edt.html:57
+#: base/templates/base/show-edt.html:58
 msgid "Duplicate this copy"
 msgstr ""
 
-#: base/templates/base/show-edt.html:61
+#: base/templates/base/show-edt.html:62
 msgid "Delete this copy"
 msgstr ""
 
-#: base/templates/base/show-edt.html:65
+#: base/templates/base/show-edt.html:66
 msgid "Delete all copies except the 0"
 msgstr ""
 
-#: base/templates/base/show-edt.html:69
+#: base/templates/base/show-edt.html:70
 msgid "Reassign rooms"
 msgstr ""
 
-#: base/templates/base/show-edt.html:73
+#: base/templates/base/show-edt.html:74
 msgid "Duplicate (what can be) in other weeks"
 msgstr ""
 
@@ -986,21 +998,21 @@ msgstr ""
 msgid "Select my favorite rooms"
 msgstr ""
 
-#: base/templates/base/show-stype.html:171
+#: base/templates/base/show-stype.html:172
 msgid "Teachers"
 msgstr ""
 
-#: base/templates/base/show-stype.html:172
-#: base/templates/base/show-stype.html:192
+#: base/templates/base/show-stype.html:173
+#: base/templates/base/show-stype.html:193
 msgid "Transformation in : "
 msgstr ""
 
-#: base/templates/base/show-stype.html:178
-#: base/templates/base/show-stype.html:184
+#: base/templates/base/show-stype.html:179
+#: base/templates/base/show-stype.html:185
 msgid "Types of classes"
 msgstr ""
 
-#: base/templates/base/show-stype.html:191 ics/templates/ics/index.html:82
+#: base/templates/base/show-stype.html:192 ics/templates/ics/index.html:82
 msgid "Rooms"
 msgstr ""
 
@@ -1048,23 +1060,23 @@ msgstr ""
 msgid "sunday"
 msgstr ""
 
-#: base/views.py:1588
+#: base/views.py:1658
 msgid "Not authorized. New link then."
 msgstr ""
 
-#: base/views.py:1591
+#: base/views.py:1661
 msgid "Unknown link. New link then."
 msgstr ""
 
-#: base/views.py:1603 notifications/notifications.py:129
+#: base/views.py:1672 notifications/notifications.py:129
 msgid "Created"
 msgstr ""
 
-#: base/views.py:1603
+#: base/views.py:1672
 msgid "Modified"
 msgstr ""
 
-#: base/views.py:1606
+#: base/views.py:1675
 msgid "Tutor does not exist"
 msgstr ""
 
@@ -1406,39 +1418,47 @@ msgstr ""
 msgid "Planned generations"
 msgstr ""
 
-#: notifications/notifications.py:125
-msgid "Deleted"
+#: notifications/discord/discord_notifications.py:127
+#: notifications/notifications.py:151 notifications/notifications.py:165
+msgid "Module"
 msgstr ""
 
-#: notifications/notifications.py:147 notifications/notifications.py:161
-msgid "Mode"
+#: notifications/discord/discord_notifications.py:127
+#: notifications/notifications.py:152
+msgid "Tutor"
 msgstr ""
 
+#: notifications/discord/discord_notifications.py:128
+#: notifications/discord/discord_notifications.py:164
 #: notifications/notifications.py:148 notifications/notifications.py:162
 #: notifications/notifications.py:184 notifications/notifications.py:232
 #: notifications/notifications.py:267
 msgid "Date"
 msgstr ""
 
+#: notifications/discord/discord_notifications.py:128
+#: notifications/discord/discord_notifications.py:164
 #: notifications/notifications.py:149 notifications/notifications.py:163
 #: notifications/notifications.py:232 notifications/notifications.py:267
 msgid "Start time"
 msgstr ""
 
-#: notifications/notifications.py:150 notifications/notifications.py:164
-msgid "Course Type"
+#: notifications/discord/discord_notifications.py:130
+#: notifications/notifications.py:147 notifications/notifications.py:161
+msgid "Mode"
 msgstr ""
 
-#: notifications/notifications.py:151 notifications/notifications.py:165
-msgid "Module"
-msgstr ""
-
-#: notifications/notifications.py:152
-msgid "Tutor"
-msgstr ""
-
+#: notifications/discord/discord_notifications.py:133
 #: notifications/notifications.py:153 notifications/notifications.py:168
 msgid "Room"
+msgstr ""
+
+#: notifications/notifications.py:125
+msgid "Deleted"
+msgstr ""
+
+#: notifications/notifications.py:150 notifications/notifications.py:164
+msgid "Course Type"
 msgstr ""
 
 #: notifications/notifications.py:166
@@ -1507,11 +1527,11 @@ msgstr ""
 msgid "Eat early or late?"
 msgstr ""
 
-#: people/views.py:223
+#: people/views.py:257
 msgid "Not allowed"
 msgstr ""
 
-#: people/views.py:229
+#: people/views.py:263
 #, python-brace-format
 msgid "No such user as {user}"
 msgstr ""
@@ -1592,54 +1612,58 @@ msgstr ""
 msgid "Schedule Generation"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:66 templates/base.html:118
+#: solve_board/templates/solve_board/main-board.html:67 templates/base.html:118
 msgid "Constraints"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:67
+#: solve_board/templates/solve_board/main-board.html:68
 msgid ""
 "All constraints appearing in bolded - with no weight - will be considered "
 "mandatory, the other ones will considered as preferences."
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:72
+#: solve_board/templates/solve_board/main-board.html:73
 msgid "Configuration"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:77
+#: solve_board/templates/solve_board/main-board.html:78
 msgid "Week⋅s"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:82
+#: solve_board/templates/solve_board/main-board.html:83
 msgid "All weeks together ?"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:86
+#: solve_board/templates/solve_board/main-board.html:87
 msgid "Training Program"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:90
+#: solve_board/templates/solve_board/main-board.html:91
 msgid "Stabilization"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:95
+#: solve_board/templates/solve_board/main-board.html:96
 msgid "Solver"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:107
+#: solve_board/templates/solve_board/main-board.html:108
 msgid "Pre-assign rooms"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:109
+#: solve_board/templates/solve_board/main-board.html:110
 msgid "Post-assign rooms"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:112
+#: solve_board/templates/solve_board/main-board.html:113
 msgid "Time limit (minuts)"
 msgstr ""
 
-#: solve_board/templates/solve_board/main-board.html:118
+#: solve_board/templates/solve_board/main-board.html:119
 msgid "Unlimited"
+msgstr ""
+
+#: solve_board/templates/solve_board/main-board.html:125
+msgid "Send log email"
 msgstr ""
 
 #: templates/base.html:53
