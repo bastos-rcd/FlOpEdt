@@ -191,8 +191,13 @@ function init_dropdowns() {
         .append("option")
         .text(function (d) { return d; });
 
+    // modify solver dropdown such that it shows log email checkbox when gurobi is selected
+    select_solver = d3.select("#solver");
+    select_solver.on("change", function () { show_hide_log_email_div(); fetch_context();});
+    
     choose_week();
     choose_train_prog();
+    show_hide_log_email_div();
 }
 
 function choose_week() {
@@ -207,6 +212,18 @@ function choose_train_prog() {
         .filter(function (d, i) { return i == di; })
         .datum();
     train_prog_sel = sa;
+}
+
+function show_hide_log_email_div() {
+    selected_solver_id = select_solver.property('selectedIndex');
+    selected_solver_name = select_solver.selectAll("option")
+    .filter(function (d, i) { return i === selected_solver_id; })
+    .property("value");
+    if (selected_solver_name.startsWith('GUROBI')) {
+        log_email_div.style.display = "block";
+    } else {
+        log_email_div.style.display = "none";
+    }
 }
 
 /* 
@@ -695,6 +712,7 @@ var pre_assign_rooms_checkbox = document.querySelector("#pre-assign-rooms");
 var post_assign_rooms_checkbox = document.querySelector("#post-assign-rooms");
 var all_weeks_together_checkbox = document.querySelector("#all-weeks-together-checkbox");
 var send_log_email_checkbox = document.querySelector("#send-log-email");
+var log_email_div = document.querySelector("#divEmail");
 
 
 time_limit_select = document.querySelector("#limit");
