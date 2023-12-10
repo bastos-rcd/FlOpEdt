@@ -215,6 +215,7 @@ function choose_train_prog() {
 }
 
 function show_hide_log_email_div() {
+    send_log_email_checkbox.checked = false;
     selected_solver_id = select_solver.property('selectedIndex');
     selected_solver_name = select_solver.selectAll("option")
     .filter(function (d, i) { return i === selected_solver_id; })
