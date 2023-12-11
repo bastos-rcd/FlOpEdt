@@ -1110,15 +1110,15 @@ class TTModel(FlopModel):
         
         if send_gurobi_logs_email_to is not None:
             if self.result is None:
-                iis_files_included=True
+                solved=False
                 subject = f"Logs {self.department.abbrev} {self.weeks} : not solved"
             else:
-                iis_files_included=False
+                solved=True
                 subject = f"Logs {self.department.abbrev} {self.weeks} : copy {target_work_copy}"
             self.send_gurobi_log_files_email(
                 subject=subject,
                 to=[send_gurobi_logs_email_to],
-                iis_files_included=iis_files_included
+                solved=solved
             )
         return target_work_copy
 
@@ -1129,18 +1129,17 @@ class TTModel(FlopModel):
             raise Exception(f"Wrong slots among weeks {week}, {slot.day.week} \n {slot} vs {other_slots}")
         return other_slots.pop()
     
-    def send_gurobi_log_files_email(self, subject, to, iis_files_included=False):
+    def send_gurobi_log_files_email(self, subject, to, solved):
         from django.core.mail import EmailMessage
         message = gettext("This email was automatically sent by the flop!EDT timetable generator\n\n")
-        message += gettext("Here is the log of the last run of the generator:\n\n")
-        logs = open("gurobi.log",'r').read().split('logging started')
-        if self.post_assign_rooms:
-            message += logs[-2] + '\n\n'
-            message += logs[-1] + '\n\n'
+        if solved:
+            message += gettext("Here is the log of the last run of the generator:\n\n")
+            logs = open("gurobi.log",'r').read().split('logging started')
+            if self.post_assign_rooms:
+                message += logs[-2] + '\n\n'
+                message += logs[-1] + '\n\n'
         else:
-            message += logs[-1]
+            message += open("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe())).read() + '\n\n'
+            message += open("%s/constraints_summary%s.txt" % (iis_files_path, self.iis_filename_suffixe())).read()
         email = EmailMessage(subject, message, to=to)
-        if iis_files_included:
-            email.attach_file("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe()))
-            email.attach_file("%s/constraints_summary%s.txt" % (iis_files_path, self.iis_filename_suffixe()))
         email.send()
