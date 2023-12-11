@@ -131,6 +131,7 @@
                             :style="availMenuStyle(index)"
                             :icon="icon"
                             size="sm"
+                            @click="changeAvail(event.id, parseInt(index))"
                           />
                         </q-btn-group>
                       </q-popup-edit>
