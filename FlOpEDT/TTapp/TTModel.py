@@ -1109,7 +1109,7 @@ class TTModel(FlopModel):
                 print("Rooms assigned")
         
         if send_gurobi_logs_email_to is not None:
-            if self.result is None:
+            if result is None:
                 solved=False
                 subject = f"Logs {self.department.abbrev} {self.weeks} : not solved"
             else:
