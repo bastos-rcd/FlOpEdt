@@ -699,6 +699,7 @@ seems to stop the propagation, but I could not figure out who.
 
 - The aesthetics should be improved
 - Drag computation could be optimized
+- Put the avail step and day boundaries as component's parameters
 
 ---
 

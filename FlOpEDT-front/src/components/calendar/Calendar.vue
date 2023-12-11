@@ -643,7 +643,14 @@ function onMouseUp(): void {
     )
     if (newEvent) {
       oldAvailDuration = newEvent.data.duration as number
-      newEvent.data.duration = newAvailDuration
+      let newEnd = parseTime(newEvent.data.start) + newAvailDuration
+      if (
+        newEnd > 19 * 60 ||
+        (oldAvailDuration > newAvailDuration && parseTime(newEvent.data.start) + oldAvailDuration === 19 * 60)
+      )
+        newEnd = 19 * 60
+      newEvent.data.duration = closestStep(newEnd) - parseTime(newEvent.data.start)
+      newAvailDuration = newEvent.data.duration
       let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
       _.remove(newEvents, (e: InputCalendarEvent) => {
         return e.id === newEvent.id
@@ -651,34 +658,24 @@ function onMouseUp(): void {
       newEvents.push(newEvent)
       let availsToDelete: number[] = []
       let bigger: boolean = newAvailDuration - oldAvailDuration > 0
-      let i = 0
       if (bigger) {
         newEvents.forEach((currentEvent: InputCalendarEvent) => {
           if (currentEvent.data.dataType === 'avail' && newEvent.id !== currentEvent.id) {
             if (newEvent.data.start.date === currentEvent.data.start.date) {
-              i++
-              console.log('Same Day')
               let diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
               //@ts-expect-error
               if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration) {
-                console.log('Over it !')
                 availsToDelete.push(currentEvent.id)
               }
             }
           }
         })
-        console.log('i :', i)
-        console.log('array', availsToDelete)
         for (let k = 0; k < availsToDelete.length; k++) {
           let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === availsToDelete[k]))
           if (availToUpdate) {
             let diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
-
-            console.log('Diff:', diffBetweenStarts)
-            console.log('AvailToUpdateDuration: ', availToUpdate.data.duration)
-            console.log('newEvent.data.duration : ', newEvent.data.duration)
             //@ts-expect-error
-            if (diffBetweenStarts + availToUpdate.data.duration < newEvent.data.duration) {
+            if (diffBetweenStarts + availToUpdate.data.duration <= newEvent.data.duration) {
               _.remove(newEvents, (e: InputCalendarEvent) => {
                 return e.id === availsToDelete[k]
               })
@@ -698,31 +695,46 @@ function onMouseUp(): void {
         }
       } else {
         let mins = Math.round(parseTime(newEvent.data.start) + newAvailDuration)
-        console.log('mins :', mins)
         let availToUpdate: InputCalendarEvent
         newEvents.forEach((currentEvent: InputCalendarEvent) => {
-          console.log('Compared to:', parseTime(currentEvent.data.start))
           if (
             currentEvent.data.dataType === 'avail' &&
             newEvent.id !== currentEvent.id &&
             newEvent.data.start.date === currentEvent.data.start.date &&
             parseTime(currentEvent.data.start) === parseTime(newEvent.data.start) + oldAvailDuration
           ) {
-            console.log('Found!')
             availToUpdate = _.cloneDeep(currentEvent)
           }
         })
         //@ts-expect-error
         if (availToUpdate) {
           updateMinutes(availToUpdate!.data.start, mins)
+          //@ts-expect-error
+          availToUpdate.data.duration += oldAvailDuration - newAvailDuration
           _.remove(newEvents, (e) => e.id === availToUpdate.id)
           newEvents.push(availToUpdate)
         }
       }
       eventsModel.value = newEvents
-      console.log('NES:', newEvents)
     }
     currentAvailId = -1
+  }
+}
+
+function isItOnStep(nbMinutes: number, step: number = 15): boolean {
+  return nbMinutes % step === 0
+}
+
+function closestStep(nbMinutes: number, step: number = 15): number {
+  if (!isItOnStep(nbMinutes)) {
+    let mod = nbMinutes % step
+    if (mod < step / 2) {
+      return nbMinutes - mod
+    } else {
+      return nbMinutes + (step - mod)
+    }
+  } else {
+    return nbMinutes
   }
 }
 
