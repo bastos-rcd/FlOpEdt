@@ -1139,7 +1139,8 @@ class TTModel(FlopModel):
                 message += logs[-2] + '\n\n'
                 message += logs[-1] + '\n\n'
         else:
-            message += open("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe())).read() + '\n\n'
-            message += open("%s/constraints_summary%s.txt" % (iis_files_path, self.iis_filename_suffixe())).read()
+            message += open("%s/constraints_summary%s.txt" % (iis_files_path, self.iis_filename_suffixe())).read() + '\n\n'
+            message += open("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe())).read() 
+            
         email = EmailMessage(subject, message, to=to)
         email.send()
