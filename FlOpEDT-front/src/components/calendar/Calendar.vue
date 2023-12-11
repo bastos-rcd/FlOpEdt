@@ -507,7 +507,7 @@ function dropZoneCloseUpdate(dateTime: Timestamp): void {
 /**
  * Compute the current time of the mouse y position
  * @param dateTime the data concerning the day and the time when the parent element starts
- * @param timeDurationHeight function calculating the number of minutes from the position
+ * @param timeDurationHeight function computing the number of minutes from the position
  * @param layerY The position of the mouse on the Y-axis from the start of the parent element
  */
 function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, layerY: number): void {
@@ -624,6 +624,7 @@ let newAvailValue: number = 0
 let timeoutId: any = null
 let currentAvailId: number = -1
 let newAvailDuration: number = 0
+let oldAvailDuration: number = 0
 
 let availResizeObs = new ResizeObserver((entries) => {
   if (timePixelConverter) {
@@ -641,49 +642,85 @@ function onMouseUp(): void {
       props.events.find((e) => currentAvailId === e.id) as InputCalendarEvent
     )
     if (newEvent) {
+      oldAvailDuration = newEvent.data.duration as number
       newEvent.data.duration = newAvailDuration
       let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
       _.remove(newEvents, (e: InputCalendarEvent) => {
         return e.id === newEvent.id
       })
       newEvents.push(newEvent)
-      let availId = -1
       let availsToDelete: number[] = []
-      newEvents.forEach((currentAvail: InputCalendarEvent) => {
-        if (currentAvail.data.dataType === 'avail') {
-          if (newEvent.data.start.date === currentAvail.data.start.date) {
-            let diffBetweenStarts = diffTimestamp(newEvent.data.start, currentAvail.data.start) / 60000
-            console.log('diff:', diffBetweenStarts, 'duration:', newEvent.data.duration)
-            //@ts-expect-error
-            if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration) {
-              if (availId !== -1) {
-                availsToDelete.push(availId)
+      let bigger: boolean = newAvailDuration - oldAvailDuration > 0
+      let i = 0
+      if (bigger) {
+        newEvents.forEach((currentEvent: InputCalendarEvent) => {
+          if (currentEvent.data.dataType === 'avail' && newEvent.id !== currentEvent.id) {
+            if (newEvent.data.start.date === currentEvent.data.start.date) {
+              i++
+              console.log('Same Day')
+              let diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
+              //@ts-expect-error
+              if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration) {
+                console.log('Over it !')
+                availsToDelete.push(currentEvent.id)
               }
-              availId = currentAvail.id
+            }
+          }
+        })
+        console.log('i :', i)
+        console.log('array', availsToDelete)
+        for (let k = 0; k < availsToDelete.length; k++) {
+          let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === availsToDelete[k]))
+          if (availToUpdate) {
+            let diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
+
+            console.log('Diff:', diffBetweenStarts)
+            console.log('AvailToUpdateDuration: ', availToUpdate.data.duration)
+            console.log('newEvent.data.duration : ', newEvent.data.duration)
+            //@ts-expect-error
+            if (diffBetweenStarts + availToUpdate.data.duration < newEvent.data.duration) {
+              _.remove(newEvents, (e: InputCalendarEvent) => {
+                return e.id === availsToDelete[k]
+              })
+            } else {
+              updateMinutes(
+                availToUpdate?.data.start,
+                Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
+              )
+              //@ts-expect-error
+              availToUpdate.data.duration -= newAvailDuration - oldAvailDuration
+              _.remove(newEvents, (e: InputCalendarEvent) => {
+                return e.id === availToUpdate!.id
+              })
+              newEvents.push(availToUpdate!)
             }
           }
         }
-      })
-      console.log('array', availsToDelete)
-      console.log('availId', availId)
-      availsToDelete.forEach((id) => {
-        _.remove(newEvents, (e: InputCalendarEvent) => {
-          e.id === id
+      } else {
+        let mins = Math.round(parseTime(newEvent.data.start) + newAvailDuration)
+        console.log('mins :', mins)
+        let availToUpdate: InputCalendarEvent
+        newEvents.forEach((currentEvent: InputCalendarEvent) => {
+          console.log('Compared to:', parseTime(currentEvent.data.start))
+          if (
+            currentEvent.data.dataType === 'avail' &&
+            newEvent.id !== currentEvent.id &&
+            newEvent.data.start.date === currentEvent.data.start.date &&
+            parseTime(currentEvent.data.start) === parseTime(newEvent.data.start) + oldAvailDuration
+          ) {
+            console.log('Found!')
+            availToUpdate = _.cloneDeep(currentEvent)
+          }
         })
-      })
-
-      if (availId !== -1) {
-        let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === availId))
-        updateMinutes(
-          availToUpdate,
-          Math.round(parseTime(newEvent.data.start.time) + timePixelConverter(newEvent.data.duration))
-        )
-        _.remove(newEvents, (e: InputCalendarEvent) => {
-          e.id === availToUpdate!.id
-        })
-        newEvents.push(availToUpdate!)
+        //@ts-expect-error
+        if (availToUpdate) {
+          updateMinutes(availToUpdate!.data.start, mins)
+          _.remove(newEvents, (e) => e.id === availToUpdate.id)
+          newEvents.push(availToUpdate)
+        }
       }
       eventsModel.value = newEvents
+      console.log('NES:', newEvents)
     }
     currentAvailId = -1
   }
