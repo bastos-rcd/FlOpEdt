@@ -175,6 +175,7 @@ import {
   parseTimestamp,
   prevDay,
   nextDay,
+  getTime,
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
@@ -657,7 +658,8 @@ function onMouseUp(): void {
         return e.id === newEvent.id
       })
       newEvents.push(newEvent)
-      let availsToDelete: number[] = []
+      let idAvailsToUpdate: number[] = []
+      let oldDurationTotal: number = 0
       let bigger: boolean = newAvailDuration - oldAvailDuration > 0
       if (bigger) {
         newEvents.forEach((currentEvent: InputCalendarEvent) => {
@@ -666,27 +668,30 @@ function onMouseUp(): void {
               let diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
               //@ts-expect-error
               if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration) {
-                availsToDelete.push(currentEvent.id)
+                idAvailsToUpdate.push(currentEvent.id)
               }
             }
           }
         })
-        for (let k = 0; k < availsToDelete.length; k++) {
-          let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === availsToDelete[k]))
+        for (let k = 0; k < idAvailsToUpdate.length; k++) {
+          let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === idAvailsToUpdate[k]))
           if (availToUpdate) {
             let diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
             //@ts-expect-error
+            oldDurationTotal += availToUpdate.data.duration
+            //@ts-expect-error
             if (diffBetweenStarts + availToUpdate.data.duration <= newEvent.data.duration) {
               _.remove(newEvents, (e: InputCalendarEvent) => {
-                return e.id === availsToDelete[k]
+                return e.id === idAvailsToUpdate[k]
               })
             } else {
+              let oldTimeAvail = parseTime(getTime(availToUpdate.data.start))
               updateMinutes(
                 availToUpdate?.data.start,
                 Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
               )
               //@ts-expect-error
-              availToUpdate.data.duration -= newAvailDuration - oldAvailDuration
+              availToUpdate.data.duration -= parseTime(getTime(availToUpdate.data.start)) - oldTimeAvail
               _.remove(newEvents, (e: InputCalendarEvent) => {
                 return e.id === availToUpdate!.id
               })
