@@ -52,13 +52,17 @@
       :view="typeCalendar"
       bordered
       hoverable
+      animated
       transition-next="slide-left"
       transition-prev="slide-right"
       no-active-date
-      :interval-start="6"
-      :interval-count="18"
+      :interval-start="13"
+      :interval-count="26"
+      :interval-minutes="30"
       :interval-height="28"
+      time-clicks-clamped
       :weekdays="weekdays"
+      @click-time="onClickTime"
       :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
       :drag-leave-func="onDragLeave"
@@ -89,7 +93,7 @@
         </div>
       </template>
 
-      <template #day-body="{ scope: { timestamp, timeStartPos, timeDurationHeight } }">
+      <template #day-body="{ scope: { timestamp, timeStartPos } }">
         <!-- events to display -->
         <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
           <template
@@ -103,16 +107,15 @@
             <div
               :draggable="event.data.dataType !== 'avail'"
               @dragstart="onDragStart($event, event)"
-              @dragover="onDragOver($event, event.data.dataType, { timeDurationHeight, timestamp: event.data.start })"
+              @mouseup="onMouseUp()"
             >
               <div
                 v-for="span in event.span"
                 :key="event.id"
                 class="my-event"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
-                :style="badgeStyles(event, span, timeStartPos, timeDurationHeight)"
-                @mousedown="onMouseDown($event, event.id, timeDurationHeight)"
-                @mouseup="onMouseUp()"
+                :style="badgeStyles(event, span, timeStartPos)"
+                @mousedown="onMouseDown($event, event.id)"
               >
                 <slot name="event" :event="event">
                   <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
@@ -161,7 +164,7 @@ import {
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
-import _, { forEach } from 'lodash'
+import _ from 'lodash'
 
 import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 
@@ -212,6 +215,8 @@ const preWeight = computed(() => {
   })
   return map
 })
+
+const calendar: Ref<QCalendar | null> = ref(null)
 
 /**
  * QCalendar DATA TO DISPLAY
@@ -345,7 +350,6 @@ const eventsByDate = computed(() => {
 
     newEvents.push(cnewEvent as CalendarEvent)
   })
-
   // sort by date
   newEvents.forEach((event) => {
     if (!map[event.data.start.date]) {
@@ -378,8 +382,7 @@ function badgeClasses(type: 'event' | 'dropzone' | 'header' | 'avail', bgcolor?:
 function badgeStyles(
   event: CalendarEvent,
   span: { istart: number; weight: number; columnIds: number[] },
-  timeStartPos: any = undefined,
-  timeDurationHeight: any = undefined
+  timeStartPos: any = undefined
 ) {
   // const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
   // if (!currentColumn) return undefined
@@ -392,11 +395,11 @@ function badgeStyles(
   if (!event.toggled) {
     s['opacity'] = '0.5'
   }
-  if (timeStartPos && timeDurationHeight) {
+  if (timeStartPos) {
     s.top = timeStartPos(event.data?.start) + 'px'
     s.left = Math.round((preceedingWeight / totalWeight.value) * 100) + '%'
     s.width = Math.round((100 * span.weight) / totalWeight.value) + '%'
-    s.height = timeDurationHeight(event.data?.duration) + 'px'
+    s.height = calendar.value!.timeDurationHeight(event.data?.duration) + 'px'
   }
   if (event.data.dataType === 'dropzone') {
     s['background-color'] = 'transparent'
@@ -436,7 +439,7 @@ function badgeStyles(
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
 const eventDragged = ref<CalendarEvent>()
-let minutesToPixelRate: number = -1
+let minutesToPixelRate: number
 
 /**
  * V-MODEL IMPLEMENTATION OF EVENTS
@@ -510,14 +513,13 @@ function dropZoneCloseUpdate(dateTime: Timestamp): void {
 /**
  * Compute the current time of the mouse y position
  * @param dateTime the data concerning the day and the time when the parent element starts
- * @param timeDurationHeight Given a duration (in minutes), will return the css height value
  * @param layerY The position of the mouse on the Y-axis from the start of the parent element
  */
-function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, layerY: number): void {
+function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
   if (dateTime) {
     if (!currentTime.value || currentTime.value.date !== dateTime.date)
       currentTime.value = copyTimestamp(dateTime) as TimestampOrNull
-    minutesToPixelRate = 1000 / timeDurationHeight(1000)
+    if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
     updateMinutes(currentTime.value as Timestamp, Math.round(parseTime(dateTime.time) + layerY * minutesToPixelRate))
   }
 }
@@ -538,8 +540,8 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
 }
 
-function onDragEnter(e: any, type: string, scope: { timeDurationHeight: any; timestamp: Timestamp }): boolean {
-  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp }): boolean {
+  currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return true
 }
@@ -551,15 +553,15 @@ function onDragEnter(e: any, type: string, scope: { timeDurationHeight: any; tim
  * @param type the type of element of the calendar
  * @param scope context containing utilitary functions
  */
-function onDragOver(e: any, type: string, scope: { timeDurationHeight: any; timestamp: Timestamp }) {
+function onDragOver(e: any, type: string, scope: { timestamp: Timestamp }) {
   e.preventDefault()
-  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+  currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return true
 }
 
-function onDragLeave(e: any, type: string, scope: { timeDurationHeight: any; timestamp: Timestamp }) {
-  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp }) {
+  currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return false
 }
@@ -609,7 +611,7 @@ function updateEventDropped(): void {
  */
 // I still have issues with the doc
 // I found this QCalendar here: https://github.com/quasarframework/quasar-ui-qcalendar/releases/tag/v2.2.1
-const calendar: Ref<QCalendar | null> = ref(null)
+
 function onToday(): void {
   calendar.value?.moveToToday()
 }
@@ -631,13 +633,10 @@ let newAvailDuration: number = 0
 let oldAvailDuration: number = 0
 
 let availResizeObs = new ResizeObserver((entries) => {
-  if (timePixelConverter) {
-    minutesToPixelRate = 1000 / timePixelConverter(1000)
+  if (calendar.value?.timeDurationHeight) {
     newAvailDuration = entries[0].contentRect.height * minutesToPixelRate
   }
 })
-
-let timePixelConverter: Function
 
 function onMouseUp(): void {
   if (currentAvailId !== -1) {
@@ -746,8 +745,22 @@ function closestStep(nbMinutes: number, step: number = 15): number {
   }
 }
 
-function onMouseDown(mouseEvent: MouseEvent, eventId: number, timeDurationHeight: Function): void {
-  timePixelConverter = timeDurationHeight
+function onClickTime(e: any) {
+  if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
+  console.log('Clicked')
+  console.log('layerY:', e)
+  console.log('minutesToPixelRate:', minutesToPixelRate)
+  console.log(
+    (parseTime(e.scope.timestamp.time) + e.event.layerY * minutesToPixelRate) / 60,
+    'h',
+    (parseTime(e.scope.timestamp.time) + e.event.layerY * minutesToPixelRate) % 60,
+    'min'
+  )
+  console.log(e.event.layerY * minutesToPixelRate, 'min')
+}
+
+function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
+  if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
   //@ts-expect-error
   if (_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG'))
     onAvailClick(mouseEvent, eventId)
@@ -771,10 +784,33 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
     } else {
       clearTimeout(timeoutId)
       timeoutId = null
-      console.log('DoubleClick Cut')
-      // TODO
+      let firstAvail = _.cloneDeep(props.events.find((e) => e.id === eventId))
+      if (firstAvail) {
+        let secondAvail = _.cloneDeep(firstAvail)
+        let allEvents = _.cloneDeep(props.events)
+        //@ts-expect-error
+        let layerY = mouseEvent.layerY
+        firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY)
+        updateMinutes(
+          secondAvail.data.start,
+          parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY)
+        )
+        secondAvail.id = nextId()
+        //@ts-expect-error
+        secondAvail.data.duration -= firstAvail.data.duration
+        secondAvail.data.value = firstAvail.data.value! + 1
+        _.remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
+        allEvents.push(firstAvail, secondAvail)
+        eventsModel.value = allEvents
+      }
     }
   }
+}
+
+let idAvail = 900
+
+function nextId(): number {
+  return idAvail++
 }
 
 function changeAvail(eventId: number, value?: number): void {
