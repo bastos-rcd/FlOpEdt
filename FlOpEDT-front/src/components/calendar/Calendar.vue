@@ -436,6 +436,7 @@ function badgeStyles(
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
 const eventDragged = ref<CalendarEvent>()
+let minutesToPixelRate: number = -1
 
 /**
  * V-MODEL IMPLEMENTATION OF EVENTS
@@ -509,14 +510,15 @@ function dropZoneCloseUpdate(dateTime: Timestamp): void {
 /**
  * Compute the current time of the mouse y position
  * @param dateTime the data concerning the day and the time when the parent element starts
- * @param timeDurationHeight function computing the number of minutes from the position
+ * @param timeDurationHeight Given a duration (in minutes), will return the css height value
  * @param layerY The position of the mouse on the Y-axis from the start of the parent element
  */
 function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, layerY: number): void {
   if (dateTime) {
     if (!currentTime.value || currentTime.value.date !== dateTime.date)
       currentTime.value = copyTimestamp(dateTime) as TimestampOrNull
-    updateMinutes(currentTime.value as Timestamp, Math.round(parseTime(dateTime.time) + timeDurationHeight(layerY)))
+    minutesToPixelRate = 1000 / timeDurationHeight(1000)
+    updateMinutes(currentTime.value as Timestamp, Math.round(parseTime(dateTime.time) + layerY * minutesToPixelRate))
   }
 }
 
@@ -630,8 +632,8 @@ let oldAvailDuration: number = 0
 
 let availResizeObs = new ResizeObserver((entries) => {
   if (timePixelConverter) {
-    let rate: number = 1000 / timePixelConverter(1000)
-    newAvailDuration = entries[0].contentRect.height * rate
+    minutesToPixelRate = 1000 / timePixelConverter(1000)
+    newAvailDuration = entries[0].contentRect.height * minutesToPixelRate
   }
 })
 
