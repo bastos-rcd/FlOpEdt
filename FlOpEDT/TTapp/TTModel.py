@@ -1138,6 +1138,8 @@ class TTModel(FlopModel):
             if self.post_assign_rooms:
                 message += logs[-2] + '\n\n'
                 message += logs[-1] + '\n\n'
+            else:
+                message += logs[-1] + '\n\n'
         else:
             message += open("%s/constraints_summary%s.txt" % (iis_files_path, self.iis_filename_suffixe()), errors='replace').read() + '\n\n'
             message += open("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe()), errors='replace').read() 
