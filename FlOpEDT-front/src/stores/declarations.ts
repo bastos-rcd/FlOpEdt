@@ -1,6 +1,6 @@
 import { Timestamp } from '@quasar/quasar-ui-qcalendar'
 
-export interface availability {
+export interface Availability {
   id: number
   duration: number
   start: Timestamp
