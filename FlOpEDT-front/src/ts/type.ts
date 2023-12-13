@@ -98,7 +98,7 @@ export interface Preference {
   id: number
   startTimeMinutes: number
   duration: number
-  // week: number
+  week: number
   day: string
   value: number
 }
