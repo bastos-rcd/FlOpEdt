@@ -33,7 +33,7 @@ import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import { Timestamp, parseTime, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp, getDate, parseTime, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { filter, find } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
@@ -82,15 +82,16 @@ watchEffect(() => {
         id: id++,
         title: c.module.toString(),
         toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
-        bgcolor: '#124567',
+        bgcolor: 'red',
         columnIds: [],
         data: {
           dataId: c.id,
           dataType: 'event',
-          start: c.start,
+          start: copyTimestamp(c.start),
           duration: parseTime(c.end) - parseTime(c.start),
         },
       }
+      currentEvent.data.start.date = getDate(currentEvent.data.start)
       c.groupIds.forEach((courseGroup) => {
         const currentGroup = groups.value.find((g) => g.id === courseGroup)
         if (currentGroup) {
