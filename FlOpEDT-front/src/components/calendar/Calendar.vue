@@ -798,7 +798,7 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
         secondAvail.id = nextId()
         //@ts-expect-error
         secondAvail.data.duration -= firstAvail.data.duration
-        secondAvail.data.value = firstAvail.data.value! + 1
+        secondAvail.data.value = (firstAvail.data.value! + 1) % 9
         _.remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
         allEvents.push(firstAvail, secondAvail)
         eventsModel.value = allEvents

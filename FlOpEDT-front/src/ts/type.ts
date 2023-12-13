@@ -1,5 +1,3 @@
-import { MappableToIdArray } from '@/stores/david/store'
-
 export class Course {
   id: number
   type: {
@@ -94,6 +92,15 @@ export class Department implements Department {
 export interface FlopWeek {
   week: number
   year: number
+}
+
+export interface Preference {
+  id: number
+  startTimeMinutes: number
+  duration: number
+  // week: number
+  day: string
+  value: number
 }
 
 export interface RoomAPI {
