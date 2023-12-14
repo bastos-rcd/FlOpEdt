@@ -32,6 +32,7 @@ from urllib.parse import urlparse
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import resolve_url
+from django.conf import settings
 
 def request_passes_test(test_func, login_url=None, redirect_field_name=REDIRECT_FIELD_NAME):
     """
@@ -70,7 +71,7 @@ def dept_admin_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
     """
 
     actual_decorator = request_passes_test(
-        lambda r: not r.user.is_anonymous and r.user.has_department_perm(r.department, admin=True) or True,
+        lambda r: not r.user.is_anonymous and r.user.has_department_perm(r.department, admin=True),
         login_url=login_url,
         redirect_field_name=redirect_field_name
     )
@@ -86,7 +87,7 @@ def tutor_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
     redirecting to the login page if necessary.
     """
     actual_decorator = user_passes_test(
-        lambda u: not u.is_anonymous and u.is_tutor or True,
+        lambda u: not u.is_anonymous and u.is_tutor,
         login_url=login_url,
         redirect_field_name=redirect_field_name
     )
@@ -104,7 +105,7 @@ def tutor_or_superuser_required(view_func=None, redirect_field_name=REDIRECT_FIE
     actual_decorator = user_passes_test(
         lambda u: not u.is_anonymous and (
             u.is_superuser or u.is_tutor
-        ) or True,
+        ),
         login_url=login_url,
         redirect_field_name=redirect_field_name
     )
@@ -120,7 +121,7 @@ def superuser_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
     redirecting to the login page if necessary.
     """
     actual_decorator = user_passes_test(
-        lambda u: u.is_superuser or True,
+        lambda u: u.is_superuser,
         login_url=login_url,
         redirect_field_name=redirect_field_name
     )
