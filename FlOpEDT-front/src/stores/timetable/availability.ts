@@ -11,12 +11,13 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
 
   function fetchPreferences(): void {}
 
-  function preferenceToAvailability(preference: Preference): Availability {
+  function preferenceToAvailability(preference: Preference, year?: number): Availability {
+    if (!year) year = new Date().getFullYear()
     let newAvailability: Availability = {
       id: preference.id,
       duration: preference.duration,
       start: parseDate(
-        getDateFromWeekDayOfWeekYear(preference.week, getDayOfWeek(preference.day), preference.startTimeMinutes)
+        getDateFromWeekDayOfWeekYear(preference.week, getDayOfWeek(preference.day), preference.startTimeMinutes, year)
       ) as Timestamp,
       value: preference.value,
     }
