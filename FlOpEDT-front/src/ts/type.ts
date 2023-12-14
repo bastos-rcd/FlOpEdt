@@ -94,17 +94,13 @@ export interface FlopWeek {
   year: number
 }
 
-export interface Preference {
+export interface AvailabilityBack {
   id: number
   type: string
-  startTimeMinutes: number
-  duration: number
-  week: number
-  day: string
+  start: Date
+  end: Date
   value: number
-  year: number
-  //dataId: number
-  userName: string
+  dataId: number
 }
 
 export interface RoomAPI {

@@ -1,6 +1,7 @@
 import {
   Department,
   User,
+  UserAPI,
   Course,
   CourseType,
   RoomAttribute,
@@ -10,6 +11,7 @@ import {
   GroupAPI,
   ModuleAPI,
   TrainingProgrammeAPI,
+  AvailabilityBack,
 } from '@/ts/type'
 
 const API_ENDPOINT = '/fr/api/'
@@ -33,7 +35,7 @@ const urls = {
   scheduledcourses: 'fetch/new_api_scheduledcourses',
   coursetypes: 'courses/type',
   users: 'user/users',
-  getTutors: 'user/tutor',
+  getTutors: 'fetch/idtutor',
   booleanroomattributes: 'rooms/booleanattributes',
   numericroomattributes: 'rooms/numericattributes',
   booleanroomattributevalues: 'rooms/booleanattributevalues',
@@ -43,6 +45,7 @@ const urls = {
   getTransversalGroups: 'groups/transversal',
   getModules: 'fetch/idmodule',
   getTrainProgs: 'fetch/idtrainprog',
+  getPrefsByWeek: 'preferences/user-actual',
 }
 
 function getCookie(name: string) {
@@ -138,11 +141,12 @@ export interface FlopAPI {
   getModules(department?: Department): Promise<ModuleAPI[]>
   getCurrentUser(): Promise<User>
   getAllDepartments(): Promise<Array<Department>>
-  getTutors(department?: Department): Promise<Array<User>>
-  getTutorById(id: number): Promise<User>
+  getTutors(department?: Department): Promise<Array<UserAPI>>
+  getTutorById(id: number): Promise<UserAPI>
   getTrainProgs(): Promise<TrainingProgrammeAPI[]>
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
   getRoomById(id: number): Promise<RoomAPI>
+  getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
@@ -208,45 +212,6 @@ const api: FlopAPI = {
       })
     return groups
   },
-  // async getTransversalGroups(department: Department): Promise<Array<GroupAPI>> {
-  //   let groups: Array<GroupAPI> = []
-  //   let finalUrl: string = API_ENDPOINT
-  //       + urls.getTransversalGroups
-  //       + '/?dept='
-  //       + department.abbrev
-  //   await fetch(finalUrl, {
-  //     method: 'GET',
-  //     credentials: 'same-origin',
-  //     headers: { 'Content-Type': 'application/json' },
-  //   })
-  //     .then(async (response) => {
-  //       if (!response.ok) {
-  //         throw Error('Error : ' + response.status)
-  //       }
-  //       await response
-  //         .json()
-  //         .then((data) => {
-  //           data.forEach((transversalGp: GroupAPI) => {
-  //             groups.push({
-  //               id: transversalGp.id,
-  //               name: transversalGp.name,
-  //               size: transversalGp.size,
-  //               trainProgId: -1, // string in API call
-  //               type: 'transversal', // structural or transversal
-  //               conflictingGroupIds: [], // string array in API call
-  //               parallelGroupIds: [], // string array in API call
-  //               columnIds: [],
-  //             })
-  //           })
-  //           groups = data
-  //         })
-  //         .catch((error) => console.log('Error : ' + error.message))
-  //     })
-  //     .catch((error) => {
-  //       console.log(error.message)
-  //     })
-  //   return groups
-  // },
   async getTrainProgs(): Promise<TrainingProgrammeAPI[]> {
     let trainProgs: Array<TrainingProgrammeAPI> = []
     await fetch(API_ENDPOINT + urls.getTrainProgs, {
@@ -288,8 +253,8 @@ const api: FlopAPI = {
       })
     return modules
   },
-  async getTutors(department?: Department): Promise<Array<User>> {
-    let tutors: Array<User> = []
+  async getTutors(department?: Department): Promise<Array<UserAPI>> {
+    let tutors: Array<UserAPI> = []
     let finalUrl: string = API_ENDPOINT + urls.getTutors
     if (department) finalUrl += '/?dept=' + department.abbrev
     await fetch(finalUrl, {
@@ -313,8 +278,8 @@ const api: FlopAPI = {
       })
     return tutors
   },
-  async getTutorById(id: number): Promise<User> {
-    let tutor: User = new User()
+  async getTutorById(id: number): Promise<UserAPI> {
+    let tutor: UserAPI = { id: -1, name: '' }
     let finalUrl: string = API_ENDPOINT + urls.getTutors + '/?id=' + id
     await fetch(finalUrl, {
       method: 'GET',
@@ -440,6 +405,32 @@ const api: FlopAPI = {
         console.log(error.message)
       })
     return room
+  },
+  //TODO change userName for userId
+  async getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>> {
+    let preferences: AvailabilityBack[] = []
+    await fetch(API_ENDPOINT + urls.getPrefsByWeek + '/?user=' + userName + '&week_number=' + week + '&year=' + year, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+        }
+        await response
+          .json()
+          .then((data) => {
+            preferences = data
+          })
+          .catch((error) => {
+            return Promise.reject(error.message)
+          })
+      })
+      .catch((error) => {
+        console.log(error.message)
+      })
+    return preferences
   },
   fetch: {
     booleanRoomAttributes() {

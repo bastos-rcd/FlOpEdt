@@ -2,8 +2,7 @@ import { AvailabilityBack } from '@/ts/type'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { Availability } from '../declarations'
-import { getDateFromWeekDayOfWeekYear, getDayOfWeek, getDayOfWeekString } from '@/helpers'
-import { Timestamp, getWeekday, getWorkWeek, parseDate, parseTime } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, makeDateTime, parseDate, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
@@ -12,15 +11,11 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
 
-  async function fetchUserPreferences(userName: string = '', week: number, year: number): Promise<void> {
+  async function fetchUserPreferences(userId: number, week: number, year: number): Promise<void> {
     isLoading.value = true
     try {
-      await api.getPreferencesForWeek(userName, week, year).then((result) => {
+      await api.getPreferencesForWeek(userId, week, year).then((result) => {
         preferences.value = result
-        preferences.value.forEach((pref) => {
-          if (!pref.week) pref.week = week
-          if (!pref.year) pref.year = year
-        })
         isLoading.value = false
         preferences.value.forEach((pref) => {
           availabilities.value.push(preferenceToAvailability(pref))
@@ -32,22 +27,14 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function preferenceToAvailability(preference: AvailabilityBack): Availability {
-    if (!preference.year) preference.year = new Date().getFullYear()
     let newAvailability: Availability = {
       id: preference.id,
       type: preference.type,
-      duration: preference.duration,
-      start: parseDate(
-        getDateFromWeekDayOfWeekYear(
-          preference.week,
-          getDayOfWeek(preference.day),
-          preference.startTimeMinutes,
-          preference.year
-        )
-      ) as Timestamp,
+      //@ts-expect-error
+      duration: (preference.end - preference.start) / 1000,
+      start: parseDate(preference.start) as Timestamp,
       value: preference.value,
-      userName: preference.userName,
-      //dataId: preference.dataId,
+      dataId: preference.dataId,
     }
     return newAvailability
   }
@@ -55,15 +42,11 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   function availabilityToPreference(availability: Availability): AvailabilityBack {
     let newPreference: AvailabilityBack = {
       id: availability.id,
-      startTimeMinutes: parseTime(availability.start),
-      duration: availability.duration,
-      week: getWorkWeek(availability.start),
-      day: getDayOfWeekString(getWeekday(availability.start)),
+      start: makeDateTime(availability.start),
+      end: makeDateTime(updateMinutes(availability.start, availability.duration + parseTime(availability.start))),
       value: availability.value,
       type: availability.type,
-      //dataId: availability.dataId,
-      userName: availability.userName,
-      year: availability.start.year,
+      dataId: availability.dataId,
     }
     return newPreference
   }

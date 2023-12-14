@@ -146,7 +146,7 @@ export interface FlopAPI {
   getTrainProgs(): Promise<TrainingProgrammeAPI[]>
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
   getRoomById(id: number): Promise<RoomAPI>
-  getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>>
+  getPreferencesForWeek(userId: number, week: number, year: number): Promise<Array<AvailabilityBack>>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
@@ -407,9 +407,9 @@ const api: FlopAPI = {
     return room
   },
   //TODO change userName for userId
-  async getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>> {
+  async getPreferencesForWeek(userId: number, week: number, year: number): Promise<Array<AvailabilityBack>> {
     let preferences: AvailabilityBack[] = []
-    await fetch(API_ENDPOINT + urls.getPrefsByWeek + '/?user=' + userName + '&week_number=' + week + '&year=' + year, {
+    await fetch(API_ENDPOINT + urls.getPrefsByWeek + '/?user=' + userId + '&week_number=' + week + '&year=' + year, {
       method: 'GET',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
@@ -421,7 +421,16 @@ const api: FlopAPI = {
         await response
           .json()
           .then((data) => {
-            preferences = data
+            data.forEach((pref: any) => {
+              preferences.push({
+                id: pref.id,
+                type: 'userAvail',
+                start: new Date(pref.start_time),
+                end: new Date(pref.end_time),
+                dataId: pref.userId,
+                value: pref.value,
+              })
+            })
           })
           .catch((error) => {
             return Promise.reject(error.message)
