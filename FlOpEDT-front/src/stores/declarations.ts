@@ -1,5 +1,15 @@
 import { Timestamp } from '@quasar/quasar-ui-qcalendar'
 
+export interface Availability {
+  id: number
+  duration: number
+  start: Timestamp
+  value: number
+  type: string
+  //dataId: number
+  userName: string
+}
+
 // Gathers Course and ScheduledCourse from the back
 export interface Course {
   id: number // id of ScheduledCourse

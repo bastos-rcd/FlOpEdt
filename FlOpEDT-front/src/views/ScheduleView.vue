@@ -31,10 +31,9 @@ import { computed, onBeforeMount, ref, watchEffect } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
-import { useUndoredo } from '@/composables/undoredo'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp, getDate, parseTime, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { filter, find } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
@@ -59,8 +58,6 @@ const columnsToDisplay = computed(() => {
   }) as CalendarColumn[]
 })
 
-const { revertUpdate } = useUndoredo()
-
 /**
  * API data waiting to be translated in Calendar events
  * * The scheduledCourses becoming events
@@ -70,7 +67,7 @@ const groupStore = useGroupStore()
 const columnStore = useColumnStore()
 const scheduledCourseStore = useScheduledCourseStore()
 const roomStore = useRoomStore()
-const { scheduledCourses } = storeToRefs(scheduledCourseStore)
+const { courses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
@@ -79,27 +76,24 @@ const deptStore = useDepartmentStore()
 const selectedRoom = ref<Room>()
 
 watchEffect(() => {
-  calendarEvents.value = scheduledCourses.value
-    .map((s) => {
-      let timeS = updateWorkWeek(
-        parsed(s.start_time.toString().substring(0, 10) + ' ' + s.start_time.toString().substring(11))
-      )
-      timeS.date = timeS.date.substring(0, 10)
+  calendarEvents.value = courses.value
+    .map((c) => {
       const currentEvent: InputCalendarEvent = {
         id: id++,
-        title: s.course.type.name,
-        toggled: !selectedRoom.value || s.room?.id === selectedRoom.value.id,
-        bgcolor: s.course.module.display.color_bg,
+        title: c.module.toString(),
+        toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
+        bgcolor: 'red',
         columnIds: [],
         data: {
-          dataId: s.id,
+          dataId: c.id,
           dataType: 'event',
-          start: timeS,
-          duration: s.course.type.duration,
+          start: copyTimestamp(c.start),
+          duration: parseTime(c.end) - parseTime(c.start),
         },
       }
-      s.course.groups.forEach((courseGroup) => {
-        const currentGroup = groups.value.find((g) => g.id === courseGroup.id)
+      currentEvent.data.start.date = getDate(currentEvent.data.start)
+      c.groupIds.forEach((courseGroup) => {
+        const currentGroup = groups.value.find((g) => g.id === courseGroup)
         if (currentGroup) {
           currentGroup.columnIds.forEach((cI) => {
             currentEvent.columnIds.push(cI)

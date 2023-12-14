@@ -19,7 +19,12 @@
       <q-btn color="orange" no-caps class="glossy" style="margin: 2px" @click="toggleAvailabilities()">
         Show Availabilities
       </q-btn>
-      <Calendar :columns="useCase4.columns.value" v-model:events="useCase4.events.value" @dragstart="onDragStart" />
+      <Calendar
+        :columns="useCase4.columns.value"
+        v-model:events="useCase4.events.value"
+        :dropzones="dzs"
+        @dragstart="onDragStart"
+      />
     </Variant>
   </Story>
 </template>
@@ -694,6 +699,7 @@ seems to stop the propagation, but I could not figure out who.
 
 - The aesthetics should be improved
 - Drag computation could be optimized
+- Put the avail step and day boundaries as component's parameters
 
 ---
 

@@ -52,13 +52,17 @@
       :view="typeCalendar"
       bordered
       hoverable
+      animated
       transition-next="slide-left"
       transition-prev="slide-right"
       no-active-date
-      :interval-start="6"
-      :interval-count="18"
+      :interval-start="13"
+      :interval-count="26"
+      :interval-minutes="30"
       :interval-height="28"
+      time-clicks-clamped
       :weekdays="weekdays"
+      @click-time="onClickTime"
       :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
       :drag-leave-func="onDragLeave"
@@ -89,7 +93,7 @@
         </div>
       </template>
 
-      <template #day-body="{ scope: { timestamp, timeStartPos, timeDurationHeight } }">
+      <template #day-body="{ scope: { timestamp, timeStartPos } }">
         <!-- events to display -->
         <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
           <template
@@ -103,14 +107,15 @@
             <div
               :draggable="event.data.dataType !== 'avail'"
               @dragstart="onDragStart($event, event)"
-              @dragover="onDragOver($event, event.data.dataType, { timeDurationHeight, timestamp: event.data.start })"
+              @mouseup="onMouseUp()"
             >
               <div
                 v-for="span in event.span"
                 :key="event.id"
                 class="my-event"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
-                :style="badgeStyles(event, span, timeStartPos, timeDurationHeight)"
+                :style="badgeStyles(event, span, timeStartPos)"
+                @mousedown="onMouseDown($event, event.id)"
               >
                 <slot name="event" :event="event">
                   <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
@@ -119,13 +124,9 @@
                   <div
                     v-else
                     style="width: 100%; height: 100%; flex-direction: column; align-items: center; display: flex"
-                    class="avail-div resizable-div"
-                    @mousedown="onMouseDown($event, event.id)"
+                    class="avail"
                   >
-                    <div style="flex: 1" class="resizable-handle resizable-handle-top">
-                      <q-icon class="avail-hide resizable-handle" :name="matHorizontalRule" size="xs" />
-                    </div>
-                    <div style="flex: 2; display: flex; align-items: center" class="center-area">
+                    <div style="flex: 2; display: flex; align-items: center" class="avail">
                       <q-popup-edit v-model="newAvailValue" v-slot="scope" anchor="bottom left" context-menu>
                         <q-btn-group style="display: flex; flex-direction: column">
                           <q-btn
@@ -138,12 +139,6 @@
                         </q-btn-group>
                       </q-popup-edit>
                       <q-icon color="black" :name="event.icon" size="xs" />
-                    </div>
-                    <div
-                      style="flex: 1; align-items: flex-end; display: flex"
-                      class="resizable-handle resizable-handle-bottom"
-                    >
-                      <q-icon :name="matHorizontalRule" size="xs" class="avail-hide resizable-handle" />
                     </div>
                   </div>
                 </slot>
@@ -168,7 +163,6 @@ import {
   parseTime,
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import { matHorizontalRule } from '@quasar/extras/material-icons'
 
 import _ from 'lodash'
 
@@ -184,6 +178,7 @@ import {
   parseTimestamp,
   prevDay,
   nextDay,
+  getTime,
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
@@ -220,6 +215,8 @@ const preWeight = computed(() => {
   })
   return map
 })
+
+const calendar: Ref<QCalendar | null> = ref(null)
 
 /**
  * QCalendar DATA TO DISPLAY
@@ -353,7 +350,6 @@ const eventsByDate = computed(() => {
 
     newEvents.push(cnewEvent as CalendarEvent)
   })
-
   // sort by date
   newEvents.forEach((event) => {
     if (!map[event.data.start.date]) {
@@ -361,7 +357,6 @@ const eventsByDate = computed(() => {
     }
     map[event.data.start.date].push(event)
   })
-  // console.log('map :', map)
   return map
 })
 
@@ -387,8 +382,7 @@ function badgeClasses(type: 'event' | 'dropzone' | 'header' | 'avail', bgcolor?:
 function badgeStyles(
   event: CalendarEvent,
   span: { istart: number; weight: number; columnIds: number[] },
-  timeStartPos: any = undefined,
-  timeDurationHeight: any = undefined
+  timeStartPos: any = undefined
 ) {
   // const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
   // if (!currentColumn) return undefined
@@ -401,16 +395,20 @@ function badgeStyles(
   if (!event.toggled) {
     s['opacity'] = '0.5'
   }
-  if (timeStartPos && timeDurationHeight) {
+  if (timeStartPos) {
     s.top = timeStartPos(event.data?.start) + 'px'
     s.left = Math.round((preceedingWeight / totalWeight.value) * 100) + '%'
     s.width = Math.round((100 * span.weight) / totalWeight.value) + '%'
-    s.height = timeDurationHeight(event.data?.duration) + 'px'
+    s.height = calendar.value!.timeDurationHeight(event.data?.duration) + 'px'
   }
   if (event.data.dataType === 'dropzone') {
     s['background-color'] = 'transparent'
   } else {
     s['background-color'] = event.bgcolor
+  }
+  if (event.data.dataType === 'avail') {
+    s['resize'] = 'vertical'
+    s['overflow'] = 'auto'
   }
   if (
     event.data?.dataType === 'dropzone' &&
@@ -441,6 +439,7 @@ function badgeStyles(
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
 const eventDragged = ref<CalendarEvent>()
+let minutesToPixelRate: number
 
 /**
  * V-MODEL IMPLEMENTATION OF EVENTS
@@ -514,14 +513,14 @@ function dropZoneCloseUpdate(dateTime: Timestamp): void {
 /**
  * Compute the current time of the mouse y position
  * @param dateTime the data concerning the day and the time when the parent element starts
- * @param timeDurationHeight function calculating the number of minutes from the position
  * @param layerY The position of the mouse on the Y-axis from the start of the parent element
  */
-function currentTimeUpdate(dateTime: Timestamp, timeDurationHeight: Function, layerY: number): void {
+function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
   if (dateTime) {
     if (!currentTime.value || currentTime.value.date !== dateTime.date)
       currentTime.value = copyTimestamp(dateTime) as TimestampOrNull
-    updateMinutes(currentTime.value as Timestamp, Math.round(parseTime(dateTime.time) + timeDurationHeight(layerY)))
+    if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
+    updateMinutes(currentTime.value as Timestamp, Math.round(parseTime(dateTime.time) + layerY * minutesToPixelRate))
   }
 }
 
@@ -541,8 +540,8 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
 }
 
-function onDragEnter(e: any, type: string, scope: { timeDurationHeight: any; timestamp: Timestamp }): boolean {
-  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp }): boolean {
+  currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return true
 }
@@ -554,15 +553,15 @@ function onDragEnter(e: any, type: string, scope: { timeDurationHeight: any; tim
  * @param type the type of element of the calendar
  * @param scope context containing utilitary functions
  */
-function onDragOver(e: any, type: string, scope: { timeDurationHeight: any; timestamp: Timestamp }) {
+function onDragOver(e: any, type: string, scope: { timestamp: Timestamp }) {
   e.preventDefault()
-  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+  currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return true
 }
 
-function onDragLeave(e: any, type: string, scope: { timeDurationHeight: any; timestamp: Timestamp }) {
-  currentTimeUpdate(scope.timestamp, scope.timeDurationHeight, e.layerY)
+function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp }) {
+  currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return false
 }
@@ -612,7 +611,7 @@ function updateEventDropped(): void {
  */
 // I still have issues with the doc
 // I found this QCalendar here: https://github.com/quasarframework/quasar-ui-qcalendar/releases/tag/v2.2.1
-const calendar: Ref<QCalendar | null> = ref(null)
+
 function onToday(): void {
   calendar.value?.moveToToday()
 }
@@ -629,13 +628,148 @@ function onNext(): void {
 
 let newAvailValue: number = 0
 let timeoutId: any = null
+let currentAvailId: number = -1
+let newAvailDuration: number = 0
+let oldAvailDuration: number = 0
+
+let availResizeObs = new ResizeObserver((entries) => {
+  if (calendar.value?.timeDurationHeight) {
+    newAvailDuration = entries[0].contentRect.height * minutesToPixelRate
+  }
+})
+
+function onMouseUp(): void {
+  if (currentAvailId !== -1) {
+    availResizeObs.disconnect()
+    let newEvent: InputCalendarEvent = _.cloneDeep(
+      props.events.find((e) => currentAvailId === e.id) as InputCalendarEvent
+    )
+    if (newEvent) {
+      oldAvailDuration = newEvent.data.duration as number
+      let newEnd = parseTime(newEvent.data.start) + newAvailDuration
+      if (
+        newEnd > 19 * 60 ||
+        (oldAvailDuration > newAvailDuration && parseTime(newEvent.data.start) + oldAvailDuration === 19 * 60)
+      )
+        newEnd = 19 * 60
+      newEvent.data.duration = closestStep(newEnd) - parseTime(newEvent.data.start)
+      newAvailDuration = newEvent.data.duration
+      let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
+      _.remove(newEvents, (e: InputCalendarEvent) => {
+        return e.id === newEvent.id
+      })
+      newEvents.push(newEvent)
+      let idAvailsToUpdate: number[] = []
+      let oldDurationTotal: number = 0
+      let bigger: boolean = newAvailDuration - oldAvailDuration > 0
+      if (bigger) {
+        newEvents.forEach((currentEvent: InputCalendarEvent) => {
+          if (currentEvent.data.dataType === 'avail' && newEvent.id !== currentEvent.id) {
+            if (newEvent.data.start.date === currentEvent.data.start.date) {
+              let diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
+              //@ts-expect-error
+              if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration) {
+                idAvailsToUpdate.push(currentEvent.id)
+              }
+            }
+          }
+        })
+        for (let k = 0; k < idAvailsToUpdate.length; k++) {
+          let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === idAvailsToUpdate[k]))
+          if (availToUpdate) {
+            let diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
+            //@ts-expect-error
+            oldDurationTotal += availToUpdate.data.duration
+            //@ts-expect-error
+            if (diffBetweenStarts + availToUpdate.data.duration <= newEvent.data.duration) {
+              _.remove(newEvents, (e: InputCalendarEvent) => {
+                return e.id === idAvailsToUpdate[k]
+              })
+            } else {
+              let oldTimeAvail = parseTime(getTime(availToUpdate.data.start))
+              updateMinutes(
+                availToUpdate?.data.start,
+                Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
+              )
+              //@ts-expect-error
+              availToUpdate.data.duration -= parseTime(getTime(availToUpdate.data.start)) - oldTimeAvail
+              _.remove(newEvents, (e: InputCalendarEvent) => {
+                return e.id === availToUpdate!.id
+              })
+              newEvents.push(availToUpdate!)
+            }
+          }
+        }
+      } else {
+        let mins = Math.round(parseTime(newEvent.data.start) + newAvailDuration)
+        let availToUpdate: InputCalendarEvent
+        newEvents.forEach((currentEvent: InputCalendarEvent) => {
+          if (
+            currentEvent.data.dataType === 'avail' &&
+            newEvent.id !== currentEvent.id &&
+            newEvent.data.start.date === currentEvent.data.start.date &&
+            parseTime(currentEvent.data.start) === parseTime(newEvent.data.start) + oldAvailDuration
+          ) {
+            availToUpdate = _.cloneDeep(currentEvent)
+          }
+        })
+        //@ts-expect-error
+        if (availToUpdate) {
+          updateMinutes(availToUpdate!.data.start, mins)
+          //@ts-expect-error
+          availToUpdate.data.duration += oldAvailDuration - newAvailDuration
+          _.remove(newEvents, (e) => e.id === availToUpdate.id)
+          newEvents.push(availToUpdate)
+        }
+      }
+      eventsModel.value = newEvents
+    }
+    currentAvailId = -1
+  }
+}
+
+function isItOnStep(nbMinutes: number, step: number = 15): boolean {
+  return nbMinutes % step === 0
+}
+
+function closestStep(nbMinutes: number, step: number = 15): number {
+  if (!isItOnStep(nbMinutes)) {
+    let mod = nbMinutes % step
+    if (mod < step / 2) {
+      return nbMinutes - mod
+    } else {
+      return nbMinutes + (step - mod)
+    }
+  } else {
+    return nbMinutes
+  }
+}
+
+function onClickTime(e: any) {
+  if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
+  console.log('Clicked')
+  console.log('layerY:', e)
+  console.log('minutesToPixelRate:', minutesToPixelRate)
+  console.log(
+    (parseTime(e.scope.timestamp.time) + e.event.layerY * minutesToPixelRate) / 60,
+    'h',
+    (parseTime(e.scope.timestamp.time) + e.event.layerY * minutesToPixelRate) % 60,
+    'min'
+  )
+  console.log(e.event.layerY * minutesToPixelRate, 'min')
+}
 
 function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
+  if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
   //@ts-expect-error
-  console.log(mouseEvent.target?.classList)
-  //@ts-expect-error
-  if (!mouseEvent.target!.classList.contains('resizable-handle')) {
+  if (_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG'))
     onAvailClick(mouseEvent, eventId)
+  //@ts-expect-error
+  else if (!_.includes(mouseEvent.target.className, 'title')) {
+    if (mouseEvent.target) {
+      availResizeObs.observe(mouseEvent.target as Element)
+      currentAvailId = eventId
+    }
   }
 }
 
@@ -650,9 +784,33 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
     } else {
       clearTimeout(timeoutId)
       timeoutId = null
-      console.log('DoubleClick Cut')
+      let firstAvail = _.cloneDeep(props.events.find((e) => e.id === eventId))
+      if (firstAvail) {
+        let secondAvail = _.cloneDeep(firstAvail)
+        let allEvents = _.cloneDeep(props.events)
+        //@ts-expect-error
+        let layerY = mouseEvent.layerY
+        firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY)
+        updateMinutes(
+          secondAvail.data.start,
+          parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY)
+        )
+        secondAvail.id = nextId()
+        //@ts-expect-error
+        secondAvail.data.duration -= firstAvail.data.duration
+        secondAvail.data.value = (firstAvail.data.value! + 1) % 9
+        _.remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
+        allEvents.push(firstAvail, secondAvail)
+        eventsModel.value = allEvents
+      }
     }
   }
+}
+
+let idAvail = 900
+
+function nextId(): number {
+  return idAvail++
 }
 
 function changeAvail(eventId: number, value?: number): void {
@@ -702,59 +860,8 @@ function availMenuStyle(index: string): any {
   justify-content: center
   align-items: center
   height: 100%
-.text-white
-  color: white
-.bg-blue
-  background: blue
-.bg-green
-  background: green
-.bg-orange
-  background: orange
-.bg-red
-  background: red
-.bg-teal
-  background: teal
-.bg-grey
-  background: grey
-.bg-purple
-  background: purple
-.full-width
-   left: 0
-   width: calc(100% - 2px)
-.left-side
-   left: 0
-   width: calc(50% - 3px)
-.right-side
-  left: 50%
-  width: calc(50% - 3px)
-.rounded-border
-  border-radius: 2px
-  padding-x: 2px
-  text-align: center
 .border-dashed
   border: 1px dashed grey
 .my-dropzone
   pointer-events: none
-.avail-hide
-  display: none
-.avail-div:hover .avail-hide
-  display: block
-.resizable-div
-  position: relative
-  border: 1px solid black
-  overflow: hidden
-.resizable-content
-  width: 100%
-  height: 100%
-  cursor: pointer
-.resizable-handle
-  position: absolute
-  width: 100%
-  height: 8px
-  cursor: ns-resize
-  background-color: #ccc
-.resizable-handle-top
-  top: 0
-.resizable-handle-bottom
-  bottom: 0
 </style>

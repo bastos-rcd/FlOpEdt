@@ -11,6 +11,7 @@ import {
   GroupAPI,
   ModuleAPI,
   TrainingProgrammeAPI,
+  AvailabilityBack,
 } from '@/ts/type'
 
 const API_ENDPOINT = '/fr/api/'
@@ -44,6 +45,7 @@ const urls = {
   getTransversalGroups: 'groups/transversal',
   getModules: 'fetch/idmodule',
   getTrainProgs: 'fetch/idtrainprog',
+  getPrefsByWeek: 'preferences/user-actual',
 }
 
 function getCookie(name: string) {
@@ -144,6 +146,7 @@ export interface FlopAPI {
   getTrainProgs(): Promise<TrainingProgrammeAPI[]>
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
   getRoomById(id: number): Promise<RoomAPI>
+  getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
@@ -402,6 +405,32 @@ const api: FlopAPI = {
         console.log(error.message)
       })
     return room
+  },
+  //TODO change userName for userId
+  async getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>> {
+    let preferences: AvailabilityBack[] = []
+    await fetch(API_ENDPOINT + urls.getPrefsByWeek + '/?user=' + userName + '&week_number=' + week + '&year=' + year, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+        }
+        await response
+          .json()
+          .then((data) => {
+            preferences = data
+          })
+          .catch((error) => {
+            return Promise.reject(error.message)
+          })
+      })
+      .catch((error) => {
+        console.log(error.message)
+      })
+    return preferences
   },
   fetch: {
     booleanRoomAttributes() {

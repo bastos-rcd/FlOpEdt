@@ -156,3 +156,69 @@ export function minutesFromDate(d: Date): number {
   const diff = new Date(d.getTime() - midnight.getTime())
   return diff.getHours() * 60 + diff.getMinutes()
 }
+
+export function getDateFromWeekDayOfWeekYear(
+  weekNumber: number,
+  dayOfWeek: number,
+  minutesSinceMidnight: number,
+  year: number = -1
+) {
+  if (year === -1) year = new Date().getFullYear() // Assuming current year
+  const firstJan = new Date(year, 0, 1) // January 1st of the current year
+  let daysFirstWeek = 0
+  if (firstJan.getDay() > 4 || firstJan.getDay() === 0) {
+    daysFirstWeek = 8 - (firstJan.getDay() || 7)
+  } else {
+    daysFirstWeek = -(firstJan.getDay() - 1)
+  }
+  if (dayOfWeek === 0) dayOfWeek = 7
+  const daysToAdd = (weekNumber - 1) * 7 + dayOfWeek + daysFirstWeek
+  const resultDate = new Date(year, 0, daysToAdd)
+
+  const hours = Math.floor(minutesSinceMidnight / 60)
+  const minutes = minutesSinceMidnight % 60
+  resultDate.setHours(hours, minutes, 0, 0)
+  return resultDate
+}
+
+export function getDayOfWeek(dayOfWeek: string): number {
+  switch (dayOfWeek) {
+    case 'm':
+      return 1
+    case 'tu':
+      return 2
+    case 'w':
+      return 3
+    case 'th':
+      return 4
+    case 'f':
+      return 5
+    case 'sa':
+      return 6
+    case 'su':
+      return 0
+    default:
+      return -1
+  }
+}
+
+export function getDayOfWeekString(dayOfWeek: number): string {
+  switch (dayOfWeek) {
+    case 1:
+      return 'm'
+    case 2:
+      return 'tu'
+    case 3:
+      return 'w'
+    case 4:
+      return 'th'
+    case 5:
+      return 'f'
+    case 6:
+      return 'sa'
+    case 0:
+      return 'su'
+    default:
+      return ''
+  }
+}
