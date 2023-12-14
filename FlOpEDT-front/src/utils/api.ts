@@ -11,7 +11,7 @@ import {
   GroupAPI,
   ModuleAPI,
   TrainingProgrammeAPI,
-  Preference,
+  AvailabilityBack,
 } from '@/ts/type'
 
 const API_ENDPOINT = '/fr/api/'
@@ -45,7 +45,7 @@ const urls = {
   getTransversalGroups: 'groups/transversal',
   getModules: 'fetch/idmodule',
   getTrainProgs: 'fetch/idtrainprog',
-  getPrefsByWeek: 'preferences/user-actual'
+  getPrefsByWeek: 'preferences/user-actual',
 }
 
 function getCookie(name: string) {
@@ -146,7 +146,7 @@ export interface FlopAPI {
   getTrainProgs(): Promise<TrainingProgrammeAPI[]>
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
   getRoomById(id: number): Promise<RoomAPI>
-  getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<Preference>>
+  getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
@@ -407,8 +407,8 @@ const api: FlopAPI = {
     return room
   },
   //TODO change userName for userId
-  async getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<Preference>> {
-    let preferences: Preference[] = []
+  async getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>> {
+    let preferences: AvailabilityBack[] = []
     await fetch(API_ENDPOINT + urls.getPrefsByWeek + '/?user=' + userName + '&week_number=' + week + '&year=' + year, {
       method: 'GET',
       credentials: 'same-origin',

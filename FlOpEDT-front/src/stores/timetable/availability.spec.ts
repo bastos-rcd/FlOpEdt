@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { useAvailabilityStore } from './availability'
 import { createPinia, setActivePinia } from 'pinia'
 import { Availability } from '../declarations'
-import { Preference } from '@/ts/type'
+import { AvailabilityBack } from '@/ts/type'
 
 describe('Availibility store utils', () => {
   beforeEach(() => {
@@ -17,8 +17,8 @@ describe('Availibility store utils', () => {
       duration: 20,
       start: parseTimestamp('2023-10-14 14:30') as Timestamp,
       value: 3,
-      type: "userPref",
-      userName: "Jack",
+      type: 'userPref',
+      userName: 'Jack',
     }
     const preference = availabilityStore.availabilityToPreference(availability)
     expect(preference.day).toBe('sa')
@@ -32,16 +32,16 @@ describe('Availibility store utils', () => {
   it('Transforms a Preference in Availability', () => {
     expect.assertions(6)
     const availabilityStore = useAvailabilityStore()
-    let preference: Preference = {
+    let preference: AvailabilityBack = {
       id: 1,
       startTimeMinutes: 870,
       duration: 210,
       week: 2,
       day: 'su',
       value: 0,
-      type: "userPref",
-      userName: "Jack",
-      year: 2017
+      type: 'userPref',
+      userName: 'Jack',
+      year: 2017,
     }
 
     const availability = availabilityStore.preferenceToAvailability(preference)
@@ -61,8 +61,8 @@ describe('Availibility store utils', () => {
       duration: 20,
       start: parseTimestamp('2020-05-01 14:30') as Timestamp,
       value: 3,
-      type: "userPref",
-      userName: "Jack",
+      type: 'userPref',
+      userName: 'Jack',
     }
     const preference = availabilityStore.availabilityToPreference(availability)
     expect(preference.day).toBe('f')
