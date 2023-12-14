@@ -101,7 +101,7 @@
             "
           >
             <div
-              draggable="true"
+              :draggable="event.data.dataType !== 'avail'"
               @dragstart="onDragStart($event, event)"
               @dragover="onDragOver($event, event.data.dataType, { timeDurationHeight, timestamp: event.data.start })"
             >
@@ -118,9 +118,33 @@
                   </span>
                   <div
                     v-else
-                    style="width: 100%; height: 100%; align-items: center; display: flex; justify-content: center"
+                    style="width: 100%; height: 100%; flex-direction: column; align-items: center; display: flex"
+                    class="avail-div resizable-div"
+                    @mousedown="onMouseDown($event, event.id)"
                   >
-                    <q-icon color="black" :name="event.icon" size="xs" />
+                    <div style="flex: 1" class="resizable-handle resizable-handle-top">
+                      <q-icon class="avail-hide resizable-handle" :name="matHorizontalRule" size="xs" />
+                    </div>
+                    <div style="flex: 2; display: flex; align-items: center" class="center-area">
+                      <q-popup-edit v-model="newAvailValue" v-slot="scope" anchor="bottom left" context-menu>
+                        <q-btn-group style="display: flex; flex-direction: column">
+                          <q-btn
+                            v-for="(icon, index) in availabilityData.icon"
+                            :style="availMenuStyle(index)"
+                            :icon="icon"
+                            size="sm"
+                            @click="changeAvail(event.id, parseInt(index))"
+                          />
+                        </q-btn-group>
+                      </q-popup-edit>
+                      <q-icon color="black" :name="event.icon" size="xs" />
+                    </div>
+                    <div
+                      style="flex: 1; align-items: flex-end; display: flex"
+                      class="resizable-handle resizable-handle-bottom"
+                    >
+                      <q-icon :name="matHorizontalRule" size="xs" class="avail-hide resizable-handle" />
+                    </div>
                   </div>
                 </slot>
               </div>
@@ -144,7 +168,7 @@ import {
   parseTime,
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import '@quasar/extras/material-icons'
+import { matHorizontalRule } from '@quasar/extras/material-icons'
 
 import _ from 'lodash'
 
@@ -157,9 +181,7 @@ import {
   parsed,
   updateWorkWeek,
   QCalendar,
-  getStartOfWeek,
   parseTimestamp,
-  findWeekday,
   prevDay,
   nextDay,
 } from '@quasar/quasar-ui-qcalendar'
@@ -178,6 +200,7 @@ import { availabilityData } from './declaration'
  */
 const props = defineProps<{
   events: InputCalendarEvent[]
+  dropzones?: InputCalendarEvent[]
   columns: CalendarColumn[]
 }>()
 
@@ -270,6 +293,7 @@ function putAZero(i: number): string {
 // occuring on different columns
 const eventsByDate = computed(() => {
   const map: Record<string, CalendarEvent[]> = {}
+  let allEvents: InputCalendarEvent[] = props.events
   // Copy of events
   let newEvents: CalendarEvent[] = []
   // Dict of column ids keys to their index
@@ -277,7 +301,8 @@ const eventsByDate = computed(() => {
   _.forEach(props.columns, (c, i) => {
     columnIndexes[c.id] = i
   })
-  props.events.forEach((event) => {
+  if (props.dropzones) allEvents = _.concat(allEvents, props.dropzones)
+  allEvents.forEach((event) => {
     let newEvent = _.cloneDeep(event)
     let columnIds = newEvent.columnIds
 
@@ -320,7 +345,9 @@ const eventsByDate = computed(() => {
       span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
     }
 
+    // Created as InputCalendarEvent
     const cnewEvent = newEvent as any
+    // Changing properties to convert to an CalendarEvent
     delete cnewEvent.columnIds
     cnewEvent.span = span
 
@@ -432,7 +459,7 @@ const eventsModel = computed({
  */
 const dropZoneToDisplay = computed((): InputCalendarEvent[] | undefined => {
   return _.filter(
-    props.events,
+    props.dropzones,
     (e) =>
       e.data.dataType === 'dropzone' &&
       currentTime.value?.date === e.data.start.date &&
@@ -523,7 +550,7 @@ function onDragEnter(e: any, type: string, scope: { timeDurationHeight: any; tim
 /**
  * Function called when the dragOver event is triggered, computes the current mouse position
  * time and update the closest dropZone
- * @param e the event triggered with data of the DOM object in it
+ * @param e the mouse event triggered with data of the DOM object in it
  * @param type the type of element of the calendar
  * @param scope context containing utilitary functions
  */
@@ -595,6 +622,69 @@ function onPrev(): void {
 function onNext(): void {
   calendar.value?.next()
 }
+
+/**
+ * Functions for onclick management
+ */
+
+let newAvailValue: number = 0
+let timeoutId: any = null
+
+function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
+  //@ts-expect-error
+  console.log(mouseEvent.target?.classList)
+  //@ts-expect-error
+  if (!mouseEvent.target!.classList.contains('resizable-handle')) {
+    onAvailClick(mouseEvent, eventId)
+  }
+}
+
+function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
+  if (mouseEvent.button === 0) {
+    if (!timeoutId) {
+      timeoutId = setTimeout(() => {
+        changeAvail(eventId)
+        clearTimeout(timeoutId)
+        timeoutId = null
+      }, 200)
+    } else {
+      clearTimeout(timeoutId)
+      timeoutId = null
+      console.log('DoubleClick Cut')
+    }
+  }
+}
+
+function changeAvail(eventId: number, value?: number): void {
+  let newEvent: InputCalendarEvent | undefined = _.cloneDeep(
+    eventsModel.value.find((ev: InputCalendarEvent) => ev.id == eventId)
+  )
+  if (newEvent !== undefined && newEvent.data.dataType === 'avail') {
+    let newEvents: InputCalendarEvent[] = _.cloneDeep(eventsModel.value)
+    if (value || value === 0) {
+      newEvent.data.value = value
+    } else {
+      if (newEvent.data.value! < 3) {
+        newEvent.data.value = 3
+      } else if (newEvent.data.value! >= 3 && newEvent.data.value! < 6) {
+        newEvent.data.value = 6
+      } else if (newEvent.data.value! >= 6 && newEvent.data.value! < 8) {
+        newEvent.data.value = 8
+      } else {
+        newEvent.data.value = 0
+      }
+    }
+    _.remove(newEvents, (e: InputCalendarEvent) => {
+      return e.id === newEvent!.id
+    })
+    newEvents.push(newEvent)
+    eventsModel.value = newEvents
+  }
+}
+
+function availMenuStyle(index: string): any {
+  return { 'background-color': availabilityData.color[index] }
+}
 </script>
 
 <style lang="sass" scoped>
@@ -641,9 +731,30 @@ function onNext(): void {
   border-radius: 2px
   padding-x: 2px
   text-align: center
-
 .border-dashed
   border: 1px dashed grey
 .my-dropzone
   pointer-events: none
+.avail-hide
+  display: none
+.avail-div:hover .avail-hide
+  display: block
+.resizable-div
+  position: relative
+  border: 1px solid black
+  overflow: hidden
+.resizable-content
+  width: 100%
+  height: 100%
+  cursor: pointer
+.resizable-handle
+  position: absolute
+  width: 100%
+  height: 8px
+  cursor: ns-resize
+  background-color: #ccc
+.resizable-handle-top
+  top: 0
+.resizable-handle-bottom
+  bottom: 0
 </style>

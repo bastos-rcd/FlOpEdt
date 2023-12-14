@@ -5,7 +5,7 @@
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
   />
-  <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="flatNodes">
+  <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="(flatNodes as LinkIdUp[])">
     <template #item="{ nodeId, active }">
       <div :class="['node', active ? 'ac' : 'nac']">
         {{ find(flatNodes, (n) => n.id === nodeId)?.name }}
@@ -14,7 +14,7 @@
     </template>
   </HierarchicalColumnFilter>
   <FilterSelector
-    :items="rooms"
+    :items="roomsFetched"
     filter-selector-undefined-label="Select a room"
     v-model:selected-items="selectedRoom"
     :multiple="false"
@@ -24,10 +24,10 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarColumn, CalendarEvent, InputCalendarEvent } from '@/components/calendar/declaration'
+import { CalendarColumn, InputCalendarEvent } from '@/components/calendar/declaration'
 import HierarchicalColumnFilter from '@/components/hierarchicalFilter/HierarchicalColumnFilter.vue'
 import Calendar from '@/components/calendar/Calendar.vue'
-import { computed, onBeforeMount, ref, watch, watchEffect } from 'vue'
+import { computed, onBeforeMount, ref, watchEffect } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
@@ -37,8 +37,11 @@ import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { Timestamp, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { filter, find } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
-import { useRoomStore } from '@/stores/david/room'
-import { Room } from '@/ts/type'
+import { useRoomStore } from '@/stores/timetable/room'
+import { Room } from '@/stores/declarations'
+import { useTutorStore } from '@/stores/timetable/tutor'
+import { useDepartmentStore } from '@/stores/department'
+import { LinkIdUp } from '@/ts/tree'
 
 /**
  * Data translated to be passed to components
@@ -70,7 +73,9 @@ const roomStore = useRoomStore()
 const { scheduledCourses } = storeToRefs(scheduledCourseStore)
 const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
-const { rooms } = storeToRefs(roomStore)
+const { roomsFetched } = storeToRefs(roomStore)
+const tutorStore = useTutorStore()
+const deptStore = useDepartmentStore()
 const selectedRoom = ref<Room>()
 
 watchEffect(() => {
@@ -116,7 +121,6 @@ function fetchScheduledCurrentWeek(week: number, year: number) {
     { week: week, year: year },
     { id: 1, abbrev: 'INFO', name: 'informatique' }
   )
-  roomStore.remote.fetch()
 }
 
 function changeDate(newDate: Timestamp) {
@@ -129,6 +133,8 @@ function changeDate(newDate: Timestamp) {
 onBeforeMount(async () => {
   let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
   fetchScheduledCurrentWeek(todayDate.workweek, todayDate.year)
+  roomStore.fetchRooms()
+  tutorStore.fetchTutors(deptStore.current)
 })
 </script>
 
