@@ -17,6 +17,8 @@ describe('Availibility store utils', () => {
       duration: 20,
       start: parseTimestamp('2023-10-14 14:30') as Timestamp,
       value: 3,
+      type: "userPref",
+      userName: "Jack",
     }
     const preference = availabilityStore.availabilityToPreference(availability)
     expect(preference.day).toBe('sa')
@@ -37,9 +39,12 @@ describe('Availibility store utils', () => {
       week: 2,
       day: 'su',
       value: 0,
+      type: "userPref",
+      userName: "Jack",
+      year: 2017
     }
 
-    const availability = availabilityStore.preferenceToAvailability(preference, 2017)
+    const availability = availabilityStore.preferenceToAvailability(preference)
     expect(availability.start).toStrictEqual(parseTimestamp('2017-01-15 14:30') as Timestamp)
     expect(availability.start.day).toBe(15)
     expect(availability.start.weekday).toBe(0)
@@ -56,6 +61,8 @@ describe('Availibility store utils', () => {
       duration: 20,
       start: parseTimestamp('2020-05-01 14:30') as Timestamp,
       value: 3,
+      type: "userPref",
+      userName: "Jack",
     }
     const preference = availabilityStore.availabilityToPreference(availability)
     expect(preference.day).toBe('f')
@@ -65,7 +72,7 @@ describe('Availibility store utils', () => {
     expect(preference.startTimeMinutes).toBe(parseTime(getTime(availability.start)))
     expect(preference.week).toBe(18)
 
-    const newAvailability = availabilityStore.preferenceToAvailability(preference, 2020)
+    const newAvailability = availabilityStore.preferenceToAvailability(preference)
     expect(newAvailability.start).toStrictEqual(parseTimestamp('2020-05-01 14:30') as Timestamp)
     expect(newAvailability.start.day).toBe(1)
     expect(newAvailability.start.weekday).toBe(5)

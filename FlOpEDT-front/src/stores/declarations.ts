@@ -5,6 +5,9 @@ export interface Availability {
   duration: number
   start: Timestamp
   value: number
+  type: string
+  //dataId: number
+  userName: string
 }
 
 // Gathers Course and ScheduledCourse from the back

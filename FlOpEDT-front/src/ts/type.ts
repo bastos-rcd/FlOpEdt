@@ -96,11 +96,15 @@ export interface FlopWeek {
 
 export interface Preference {
   id: number
+  type: string
   startTimeMinutes: number
   duration: number
   week: number
   day: string
   value: number
+  year: number
+  //dataId: number
+  userName: string
 }
 
 export interface RoomAPI {
