@@ -30,30 +30,26 @@ import base.models as bm
 from enum import Enum
 from django.utils.translation import gettext_lazy as _
 
+
 def hr_min(t):
-    h = t//60
-    m = t - h*60
+    h = t // 60
+    m = t - h * 60
     return h, m
 
 
-def hhmm(t):
-    h,m = hr_min(t)
-    return f'{h:02d}:{m:02d}'
-
-
-def str_slot(day, start_time, duration):
-    return f"{day}. {hhmm(start_time)}" + \
-        f"-{hhmm(start_time + duration)}"
-
-
-def min_to_str(minutes):
+def min_to_str(t):
     """Convert minute number into input time format
 
     :param minutes: integer minutes
     :return: string in hour:minute format
 
     """
-    return "%02d:%02d" % hr_min(minutes)
+    h, m = hr_min(t)
+    return f"{h:02d}:{m:02d}"
+
+
+def str_slot(day, start_time, duration):
+    return f"{day}. {min_to_str(start_time)}" + f"-{min_to_str(start_time + duration)}"
 
 
 def french_format(minutes):
@@ -63,13 +59,7 @@ def french_format(minutes):
     :return: string in hour h minute format
 
     """
-    result = str(minutes//60) + 'h'
-    minutes = minutes % 60
-    if 0 < minutes < 10:
-        result += '0' + str(minutes)
-    elif minutes >= 10:
-        result += str(minutes)
-    return result
+    return min_to_str(minutes, sep="h")
 
 
 def str_to_min(time_string):
