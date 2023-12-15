@@ -25,11 +25,14 @@ from drf_yasg import openapi
 
 
 def date_param(**kwargs):
-    return openapi.Parameter("date",
-                             openapi.IN_QUERY,
-                             description="date",
-                             type=openapi.FORMAT_DATE,
-                             **kwargs)
+    return openapi.Parameter(
+        "date",
+        openapi.IN_QUERY,
+        description="date",
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE,
+        **kwargs
+    )
 
 
 def weekday_param(**kwargs):
