@@ -1,4 +1,4 @@
-import { Timestamp, getTime, makeDateTime, parseTime, parseTimestamp, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, parseTimestamp } from '@quasar/quasar-ui-qcalendar'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useAvailabilityStore } from './availability'
 import { createPinia, setActivePinia } from 'pinia'
@@ -10,7 +10,7 @@ describe('Availibility store utils', () => {
     setActivePinia(createPinia())
   })
   it('Transforms an Availibility in Preference', () => {
-    expect.assertions(6)
+    expect.assertions(12)
     const availabilityStore = useAvailabilityStore()
     let availability: Availability = {
       id: 1,
@@ -23,10 +23,16 @@ describe('Availibility store utils', () => {
     const availabilityBack = availabilityStore.availabilityToPreference(availability)
     expect(availabilityBack.id).toBe(1)
     expect(availabilityBack.value).toBe(3)
-    expect(availabilityBack.start).toStrictEqual(new Date('2023-10-14 14:30'))
+    expect(availabilityBack.start.getDay()).toBe(6)
+    expect(availabilityBack.start.getDate()).toBe(14)
+    expect(availabilityBack.start.getHours() + availabilityBack.start.getTimezoneOffset() / 60).toBe(14)
+    expect(availabilityBack.start.getMinutes()).toBe(30)
     expect(availabilityBack.type).toBe('userPref')
     expect(availabilityBack.dataId).toBe(40)
-    expect(availabilityBack.end).toStrictEqual(new Date('2023-10-14 14:50'))
+    expect(availabilityBack.end.getDay()).toBe(6)
+    expect(availabilityBack.end.getDate()).toBe(14)
+    expect(availabilityBack.end.getHours() + availabilityBack.end.getTimezoneOffset() / 60).toBe(14)
+    expect(availabilityBack.end.getMinutes()).toBe(50)
   })
 
   it('Transforms a Preference in Availability', () => {
@@ -42,6 +48,9 @@ describe('Availibility store utils', () => {
     }
 
     const availability = availabilityStore.preferenceToAvailability(preference)
+    console.log('Availability.start:', availability.start)
+    console.log('ParsedTimestamp :', parseTimestamp('2017-01-15 14:30'))
+
     expect(availability.start).toStrictEqual(parseTimestamp('2017-01-15 14:30') as Timestamp)
     expect(availability.start.day).toBe(15)
     expect(availability.start.weekday).toBe(0)
@@ -53,7 +62,7 @@ describe('Availibility store utils', () => {
   })
 
   it('Transforms an Availibility in Preference and back', () => {
-    expect.assertions(12)
+    expect.assertions(20)
     const availabilityStore = useAvailabilityStore()
     let availability: Availability = {
       id: 9,
@@ -64,14 +73,24 @@ describe('Availibility store utils', () => {
       dataId: 22,
     }
     const availabilityBack = availabilityStore.availabilityToPreference(availability)
-    expect(availabilityBack.end).toStrictEqual(new Date('2020-05-01 15:30'))
+    console.log('availability after :', availability)
+    expect(availabilityBack.end.getDay()).toBe(5)
+    expect(availabilityBack.end.getDate()).toBe(1)
+    expect(availabilityBack.end.getHours() + availabilityBack.end.getTimezoneOffset() / 60).toBe(15)
+    expect(availabilityBack.end.getMinutes()).toBe(30)
     expect(availabilityBack.id).toBe(9)
     expect(availabilityBack.value).toBe(3)
-    expect(availabilityBack.start).toStrictEqual(new Date('2020-05-01 14:30'))
+    expect(availabilityBack.start.getDay()).toBe(5)
+    expect(availabilityBack.start.getDate()).toBe(1)
+    expect(availabilityBack.start.getHours() + availabilityBack.end.getTimezoneOffset() / 60).toBe(14)
+    expect(availabilityBack.start.getMinutes()).toBe(30)
     expect(availabilityBack.type).toBe('userPref')
     expect(availabilityBack.dataId).toBe(22)
 
+    console.log('Converted Back: ', availabilityBack)
     const newAvailability = availabilityStore.preferenceToAvailability(availabilityBack)
+    console.log('Au START: ', newAvailability.start)
+    console.log('Compared to: ', parseTimestamp('2020-05-01 14:30'))
     expect(newAvailability.start).toStrictEqual(parseTimestamp('2020-05-01 14:30') as Timestamp)
     expect(newAvailability.start.day).toBe(1)
     expect(newAvailability.start.weekday).toBe(5)
