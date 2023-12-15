@@ -26,12 +26,13 @@ import base.models as bm
 from base.timing import Day, flopdate_to_datetime
 from datetime import timedelta
 
+
 # -----------------
 # -- PREFERENCES --
 # -----------------
 class PreferenceSerializer(serializers.ModelSerializer):
     # TODO V1: change into DatetimeFields
-    # start_time = serializers.DatetimeField()
+    # start_time = serializers.DateTimeField()
     # end_time = serializers.DateTimeField()
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
@@ -53,19 +54,18 @@ class UserPreferenceSerializer(PreferenceSerializer):
 
     class Meta:
         model = bm.UserPreference
-        fields = '__all__'
-
+        fields = "__all__"
 
 
 class CoursePreferencesSerializer(PreferenceSerializer):
     class Meta:
         model = bm.CoursePreference
-        fields = '__all__'
+        fields = "__all__"
 
 
 class RoomPreferencesSerializer(PreferenceSerializer):
-    room = serializers.CharField(source='room.name')
+    room = serializers.CharField(source="room.name")
 
     class Meta:
         model = bm.RoomPreference
-        fields = '__all__'
+        fields = "__all__"
