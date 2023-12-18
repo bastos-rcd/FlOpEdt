@@ -52,7 +52,6 @@ function getCookie(name: string) {
   if (!document.cookie) {
     return null
   }
-  //console.log(`This is the cookieeee : ${document.cookie}`)
   const xsrfCookies = document.cookie
     .split(';')
     .map((c) => c.trim())

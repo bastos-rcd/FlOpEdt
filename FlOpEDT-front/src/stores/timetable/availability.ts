@@ -5,10 +5,9 @@ import { Availability } from '../declarations'
 import {
   Timestamp,
   copyTimestamp,
-  getTime,
-  makeDateTime,
-  parseDate,
+  getDateTime,
   parseTime,
+  parseTimestamp,
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
@@ -35,22 +34,26 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function preferenceToAvailability(preference: AvailabilityBack): Availability {
-    console.log('preference offSet: ', preference.start.getTimezoneOffset())
+    let dateString: string = preference.start.getFullYear() + '-'
+    if (preference.start.getMonth() < 9) dateString += '0'
+    dateString += preference.start.getMonth() + 1 + '-'
+    if (preference.start.getDate() < 10) dateString += '0'
+    dateString += preference.start.getDate() + ' '
+    if (preference.start.getHours() < 10) dateString += '0'
+    dateString += preference.start.getHours() + ':'
+    if (preference.start.getMinutes() < 10) dateString += '0'
+    dateString += preference.start.getMinutes()
+    let start: Timestamp = parseTimestamp(dateString) as Timestamp
+
     let newAvailability: Availability = {
       id: preference.id,
       type: preference.type,
       //@ts-expect-error
       duration: (preference.end - preference.start) / 1000 / 60,
-      start: parseDate(preference.start) as Timestamp,
+      start: start,
       value: preference.value,
       dataId: preference.dataId,
     }
-    updateMinutes(
-      newAvailability.start,
-      parseTime(getTime(newAvailability.start)) + preference.start.getTimezoneOffset()
-    )
-    console.log('preference : ', preference)
-    console.log('newAvailability : ', newAvailability)
     return newAvailability
   }
 
@@ -58,14 +61,12 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     let startCopy = copyTimestamp(availability.start)
     let newPreference: AvailabilityBack = {
       id: availability.id,
-      start: makeDateTime(availability.start),
-      end: makeDateTime(updateMinutes(startCopy, availability.duration + parseTime(availability.start))),
+      start: new Date(getDateTime(availability.start)),
+      end: new Date(getDateTime(updateMinutes(startCopy, availability.duration + parseTime(startCopy)))),
       value: availability.value,
       type: availability.type,
       dataId: availability.dataId,
     }
-    console.log('availability : ', availability)
-    console.log('newPreference : ', newPreference.start.getTimezoneOffset())
     return newPreference
   }
 
