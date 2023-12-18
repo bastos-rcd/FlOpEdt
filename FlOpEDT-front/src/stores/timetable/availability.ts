@@ -13,7 +13,7 @@ import {
 import { api } from '@/utils/api'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
-  const preferences = ref<AvailabilityBack[]>([])
+  const availabilitiesBack = ref<AvailabilityBack[]>([])
   const availabilities = ref<Availability[]>([])
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
@@ -22,44 +22,47 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     isLoading.value = true
     try {
       await api.getPreferencesForWeek(userId, week, year).then((result) => {
-        preferences.value = result
+        availabilitiesBack.value = result
         isLoading.value = false
-        preferences.value.forEach((pref) => {
-          availabilities.value.push(preferenceToAvailability(pref))
+        availabilitiesBack.value.forEach((availabilityBack) => {
+          availabilities.value.push(availabilityBackToAvailability(availabilityBack))
         })
       })
+      console.log('preferences :', availabilitiesBack)
+      console.log('availabilities :', availabilities)
     } catch (e) {
       loadingError.value = e as Error
+      isLoading.value = false
     }
   }
 
-  function preferenceToAvailability(preference: AvailabilityBack): Availability {
-    let dateString: string = preference.start.getFullYear() + '-'
-    if (preference.start.getMonth() < 9) dateString += '0'
-    dateString += preference.start.getMonth() + 1 + '-'
-    if (preference.start.getDate() < 10) dateString += '0'
-    dateString += preference.start.getDate() + ' '
-    if (preference.start.getHours() < 10) dateString += '0'
-    dateString += preference.start.getHours() + ':'
-    if (preference.start.getMinutes() < 10) dateString += '0'
-    dateString += preference.start.getMinutes()
+  function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
+    let dateString: string = availabilityBack.start.getFullYear() + '-'
+    if (availabilityBack.start.getMonth() < 9) dateString += '0'
+    dateString += availabilityBack.start.getMonth() + 1 + '-'
+    if (availabilityBack.start.getDate() < 10) dateString += '0'
+    dateString += availabilityBack.start.getDate() + ' '
+    if (availabilityBack.start.getHours() < 10) dateString += '0'
+    dateString += availabilityBack.start.getHours() + ':'
+    if (availabilityBack.start.getMinutes() < 10) dateString += '0'
+    dateString += availabilityBack.start.getMinutes()
     let start: Timestamp = parseTimestamp(dateString) as Timestamp
 
     let newAvailability: Availability = {
-      id: preference.id,
-      type: preference.type,
+      id: availabilityBack.id,
+      type: availabilityBack.type,
       //@ts-expect-error
-      duration: (preference.end - preference.start) / 1000 / 60,
+      duration: (availabilityBack.end - availabilityBack.start) / 1000 / 60,
       start: start,
-      value: preference.value,
-      dataId: preference.dataId,
+      value: availabilityBack.value,
+      dataId: availabilityBack.dataId,
     }
     return newAvailability
   }
 
-  function availabilityToPreference(availability: Availability): AvailabilityBack {
+  function availabilityToAvailabilityBack(availability: Availability): AvailabilityBack {
     let startCopy = copyTimestamp(availability.start)
-    let newPreference: AvailabilityBack = {
+    let newAvailabilityBack: AvailabilityBack = {
       id: availability.id,
       start: new Date(getDateTime(availability.start)),
       end: new Date(getDateTime(updateMinutes(startCopy, availability.duration + parseTime(startCopy)))),
@@ -67,12 +70,12 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
       type: availability.type,
       dataId: availability.dataId,
     }
-    return newPreference
+    return newAvailabilityBack
   }
 
   return {
-    availabilityToPreference,
-    preferenceToAvailability,
+    availabilityBackToAvailability,
+    availabilityToAvailabilityBack,
     fetchUserPreferences,
   }
 })
