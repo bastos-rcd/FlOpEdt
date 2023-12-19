@@ -21,51 +21,50 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from datetime import datetime, timedelta
+
 from distutils.util import strtobool
-from drf_yasg.utils import swagger_auto_schema
+
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import exceptions
+
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+
+import django_filters.rest_framework as filters
 from django.utils.decorators import method_decorator
+
+from base.timing import date_to_flopday, Day
+
 import base.models as bm
 import people.models as pm
 
-import django_filters.rest_framework as filters
-
-from drf_yasg import openapi
-from api.preferences import serializers
+from api.v1.availability import serializers
+from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly, IsTutor
 from api.shared.params import (
     week_param,
     year_param,
-    user_param,
+    user_id_param,
     dept_param,
     from_date_param,
     to_date_param,
     date_param,
     weekday_param,
 )
-from datetime import datetime
-
-
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly, IsTutor
 
 
 @method_decorator(
     name="list",
     decorator=swagger_auto_schema(
         manual_parameters=[
-            date_param(required=True),
-            user_param(),
-            dept_param(),
-            openapi.Parameter(
-                "tutors-only",
-                openapi.IN_QUERY,
-                description="only tutors teaching in this week",
-                type=openapi.TYPE_BOOLEAN,
-            ),
+            from_date_param(required=True),
+            to_date_param(required=True),
+            user_id_param(),
         ],
     ),
 )
-class DatedUserPreferenceViewSet(viewsets.ModelViewSet):
+class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
     """
     Helper for user preferences:
     - read parameters
@@ -74,70 +73,43 @@ class DatedUserPreferenceViewSet(viewsets.ModelViewSet):
 
     permission_classes = [IsAdminOrReadOnly]
 
-    serializer_class = serializers.UserPreferenceSerializer
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.params = {}
-        self.select = []
-        self.prefetch = []
+    serializer_class = serializers.UserAvailabilitySerializer
 
     def get_queryset(self):
-        # set initial parameters
-        self.set_common_params()
-        self.set_singular_params()
-        teach_only = self.request.query_params.get("teach-only", None)
-        teach_only = False if teach_only is None else strtobool(teach_only)
+        from_date = datetime.fromisoformat(
+            self.request.query_params.get("from_date")
+        ).date()
+        to_date = datetime.fromisoformat(
+            self.request.query_params.get("to_date")
+        ).date()
 
-        # get teaching teachers only
-        if teach_only:
-            course_params = {}
-            course_params["day"] = self.params["day"]
-            if "user__departments__abbrev" in self.params:
-                course_params["module__train_prog__department__abbrev"] = self.params[
-                    "user__departments__abbrev"
-                ]
-            teaching_ids = (
-                bm.Course.objects.select_related(*course_params.keys())
-                .filter(**course_params)
-                .distinct("tutor")
-                .exclude(tutor__isnull=True)
-                .values_list("tutor__id", flat=True)
+        if from_date > to_date:
+            raise exceptions.NotAcceptable(
+                '"from_date" parameter is later than "to_date" parameter'
             )
-            if self.request.user.is_authenticated:
-                teaching_ids = list(teaching_ids)
-                teaching_ids.append(self.request.user.id)
-            self.params["user__id__in"] = teaching_ids
 
-        # get preferences in singular week
-        qs = super().get_queryset()
+        user_id = int(self.request.query_params.get("user_id"))
 
-        # get users in play
-        if teach_only:
-            users = teaching_ids
-        else:
-            filter_user = {}
-            users = pm.User.objects
-            if "user__username" in self.params:
-                filter_user["username"] = self.params["user__username"]
-            if "user__departments__abbrev" in self.params:
-                filter_user["departments__abbrev"] = self.params[
-                    "user__departments__abbrev"
-                ]
-                users = users.prefetch_related("departments")
-            users = users.filter(**filter_user).values_list("id", flat=True)
-
-        # get users with no singular week
-        singular_users = qs.distinct("user__username").values_list(
-            "user__id", flat=True
+        # TODO V1-DB
+        # ugly but will be removed
+        ret = bm.UserPreference.objects.none()
+        py_date = from_date
+        cal = py_date.isocalendar()
+        y, w, days = cal[0], cal[1], [Day.CHOICES[cal[2] - 1][0]]
+        py_date += timedelta(days=1)
+        while py_date <= to_date:
+            cal = py_date.isocalendar()
+            if cal[1] != w:
+                ret |= bm.UserPreference.objects.filter(
+                    user__id=user_id, week__year=y, week__nb=w, day__in=days
+                )
+                y, w, days = cal[0], cal[1], [Day.CHOICES[cal[2] - 1][0]]
+            else:
+                days.append(Day.CHOICES[cal[2] - 1][0])
+            py_date += timedelta(days=1)
+        ret |= bm.UserPreference.objects.filter(
+            user__id=user_id, week__year=y, week__nb=w, day__in=days
         )
-        users = set(users).difference(set(singular_users))
 
-        # get remaining preferences in default week
-        if len(users) != 0:
-            self.params["user__id__in"] = list(users)
-            self.set_default_params()
-            qs_def = super().get_queryset()
-            qs = qs | qs_def
-
-        return qs
+        # TODO V1-DB
+        return ret
