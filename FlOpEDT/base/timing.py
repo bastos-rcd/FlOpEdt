@@ -37,7 +37,7 @@ def hr_min(t):
     return h, m
 
 
-def min_to_str(t):
+def min_to_str(t, sep=":"):
     """Convert minute number into input time format
 
     :param minutes: integer minutes
@@ -45,7 +45,7 @@ def min_to_str(t):
 
     """
     h, m = hr_min(t)
-    return f"{h:02d}:{m:02d}"
+    return f"{h:02d}{sep}{m:02d}"
 
 
 def str_slot(day, start_time, duration):
@@ -62,14 +62,14 @@ def french_format(minutes):
     return min_to_str(minutes, sep="h")
 
 
-def str_to_min(time_string):
+def str_to_min(time_string, sep=":"):
     """Convert input time format into minute number
 
     :param time_string string in hour:minute format
     :return: Integer minutes
 
     """
-    hours_minutes = time_string.split(':')
+    hours_minutes = time_string.split(sep)
     return int(hours_minutes[0]) * 60 + int(hours_minutes[1])
 
 
@@ -89,7 +89,7 @@ def first_day_first_week(day):
 
 #Takes a day (with week and year) and a starting time
 #and returns the datetime object corresponding
-def flopdate_to_datetime(day, time):
+def flopdate_to_datetime(day: Day, time):
     day_date = flopday_to_date(day)
     time_day = floptime_to_time(time)
     return datetime.combine(day_date, time_day)
@@ -116,7 +116,7 @@ def time_to_floptime(time_data):
     return time_data.hour*60 + time_data.minute
 
 
-def date_to_flopday(date):
+def date_to_flopday(date) -> Day:
     isocalendar = date.isocalendar()
     flop_week = bm.Week.objects.get(nb=isocalendar[1], year=isocalendar[0])
     flop_day = Day.CHOICES[isocalendar[2] - 1][0]
