@@ -41,7 +41,7 @@ import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import { Timestamp, copyTimestamp, getDate, parseTime, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp, getDate, makeDate, nextDay, parseTime, relativeDays, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { filter, find } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
@@ -123,15 +123,12 @@ function setCurrentScheduledCourse(scheduledCourseId: number) {
   currentScheduledCourseId.value = scheduledCourseId
 }
 
-function fetchScheduledCurrentWeek(week: number, year: number) {
-  scheduledCourseStore.fetchScheduledCourses(
-    { week: week, year: year },
-    { id: 1, abbrev: 'INFO', name: 'informatique' }
-  )
+function fetchScheduledCurrentWeek(from: Date, to: Date) {
+  scheduledCourseStore.fetchScheduledCourses(from = from, to = to)
 }
 
 function changeDate(newDate: Timestamp) {
-  fetchScheduledCurrentWeek(newDate.workweek, newDate.year)
+  fetchScheduledCurrentWeek(makeDate(newDate), makeDate(relativeDays(newDate, nextDay, 6)))
 }
 
 /**
@@ -139,7 +136,7 @@ function changeDate(newDate: Timestamp) {
  */
 onBeforeMount(async () => {
   let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
-  fetchScheduledCurrentWeek(todayDate.workweek, todayDate.year)
+  fetchScheduledCurrentWeek(makeDate(todayDate), makeDate(relativeDays(todayDate)))
   roomStore.fetchRooms()
   tutorStore.fetchTutors(deptStore.current)
 })

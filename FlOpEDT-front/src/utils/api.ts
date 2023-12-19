@@ -19,7 +19,7 @@ const API_ENDPOINT = '/fr/api/'
 const urls = {
   getcurrentuser: 'user/getcurrentuser',
   getAllDepartments: 'fetch/alldepts',
-  getScheduledcourses: 'fetch/new_api_scheduledcourses',
+  getScheduledcourses: 'v1/base/courses/scheduled_courses',
   getRooms: 'v1/base/courses/rooms',
   weekdays: 'fetch/weekdays',
   timesettings: 'base/timesettings',
@@ -164,11 +164,44 @@ export interface FlopAPI {
 const api: FlopAPI = {
   async getScheduledCourses(from?: Date, to?: Date, department?: string, tutor?: number): Promise<Array<ScheduledCourse>> {
     let scheduledCourses: Array<ScheduledCourse> = []
-    let finalUrl: string = API_ENDPOINT + urls.getScheduledcourses
-    if (department) finalUrl += '/?dept=' + department
-    if (from) finalUrl += '&from_date=' + from
-    if (to) finalUrl += '&to_date=' + to
-    if (tutor) finalUrl += '&tutor_name' + tutor
+    let firstParam : boolean = false
+    let finalUrl: string = API_ENDPOINT + urls.getScheduledcourses + '/'
+    if (department) {
+      finalUrl += '?dept=' + department
+      firstParam = true
+    }
+    if (from) {
+      if (firstParam) finalUrl += '&'
+      else {
+        finalUrl +='?'
+        firstParam = true
+      }
+      finalUrl += 'from_date=' + from.getFullYear() + "-"
+      if (from.getMonth() < 10) finalUrl+= "0" + from.getMonth() + "-" 
+      else finalUrl+= from.getMonth() + "-"
+      if (from.getDate() < 10) finalUrl+= "0" + from.getDate()
+      else finalUrl+= from.getDate()
+    }
+     if (to) {
+      if (firstParam) finalUrl += '&'
+      else {
+        finalUrl +='?'
+        firstParam = true
+      }
+      finalUrl += 'from_date=' + to.getFullYear() + "-"
+      if (to.getMonth() < 10) finalUrl+= "0" + to.getMonth() + "-" 
+      else finalUrl+= to.getMonth() + "-"
+      if (to.getDate() < 10) finalUrl+= "0" + to.getDate()
+      else finalUrl+= to.getDate()
+    }
+    if (tutor) {
+      if (firstParam) finalUrl += '&'
+      else {
+        finalUrl +='?'
+        firstParam = true
+      }
+      finalUrl += 'tutor_name' + tutor
+    }
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',
