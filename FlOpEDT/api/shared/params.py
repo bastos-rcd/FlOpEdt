@@ -50,7 +50,8 @@ def from_date_param(**kwargs):
         "from_date",
         openapi.IN_QUERY,
         description="from date",
-        type=openapi.FORMAT_DATE,
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE,
         **kwargs
     )
 
@@ -60,7 +61,8 @@ def to_date_param(**kwargs):
         "to_date",
         openapi.IN_QUERY,
         description="to date",
-        type=openapi.FORMAT_DATE,
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE,
         **kwargs
     )
 
@@ -91,6 +93,16 @@ def user_param(**kwargs):
         openapi.IN_QUERY,
         description="username",
         type=openapi.TYPE_STRING,
+        **kwargs
+    )
+
+
+def user_id_param(**kwargs):
+    return openapi.Parameter(
+        "user_id",
+        openapi.IN_QUERY,
+        description="username id",
+        type=openapi.TYPE_INTEGER,
         **kwargs
     )
 
