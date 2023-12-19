@@ -1,8 +1,8 @@
 import { api } from '@/utils/api'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ScheduledCourse, FlopWeek, Department } from '@/ts/type'
-import { Course } from '@/stores/declarations'
+import { ScheduledCourse, FlopWeek, Department, Course } from '@/ts/type'
+import { Course as CourseFront } from '@/stores/declarations'
 import { Timestamp, makeDate, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import _ from 'lodash'
 
@@ -14,7 +14,7 @@ import _ from 'lodash'
  */
 export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   const scheduledCourses = ref<ScheduledCourse[]>([])
-  const courses = ref<Course[]>([])
+  const courses = ref<CourseFront[]>([])
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
 
@@ -22,7 +22,21 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     isLoading.value = true
     try {
       await api.getScheduledCourses(week.week, week.year, department?.abbrev).then((result) => {
-        scheduledCourses.value = result
+        result.forEach((r: any) => {
+          scheduledCourses.value.push({
+            id: r.id,
+            roomId: r.room_id,
+            start_time: new Date(r.start_time),
+            end_time: new Date(r.end_time),
+            courseId: r.course_id,
+            tutor: r.tutor_id,
+            id_visio: -1,
+            moduleId: r.module_id,
+            trainProgId: r.train_prog_id,
+            groupIds: r.group_ids,
+            suppTutorsIds: r.supp_tutor_ids,
+          })
+        })
         isLoading.value = false
         scheduledCourses.value.forEach((sc) => {
           courses.value.push(scheduledCourseToCourse(sc))
@@ -33,20 +47,20 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     }
   }
 
-  async function updateScheduledCourses(course: Course) {
+  async function updateScheduledCourses(course: CourseFront) {
     let scheduledCourse: ScheduledCourse | undefined = scheduledCourses.value.find((sc) => sc.id === course.id)
     if (scheduledCourse) {
-      scheduledCourse.course.no = course.no
-      // scheduledCourse.room TODO with Roomstore
+      // graded: TODO
+      // roomTypeId: TODO
+      scheduledCourse.roomId = course.room
       scheduledCourse.start_time = makeDate(course.start)
       scheduledCourse.end_time = makeDate(course.end)
       scheduledCourse.tutor = course.tutorId
-      // scheduledCourse.suppTutorIds TODO
+      scheduledCourse.suppTutorsIds = course.suppTutorIds
+      scheduledCourse.groupIds = course.groupIds
       // scheduledCourse.module TODO
-      // scheduledCourse.groupIds TODO with groupstore or APIcall
       // scheduledCourse.courseTypeId TODO
       // scheduledCourse.roomTypeId TODO
-      scheduledCourse.course.is_graded = course.graded
       // scheduledCourse.workCopy TODO ?
       _.remove(scheduledCourses.value, (sc) => sc.id === course.id)
       scheduledCourses.value.push(scheduledCourse)
@@ -54,11 +68,11 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     // TODO UPDATE BACK
   }
 
-  function scheduledCourseToCourse(scheduledCourse: ScheduledCourse): Course {
-    let course: Course = {
+  function scheduledCourseToCourse(scheduledCourse: ScheduledCourse): CourseFront {
+    let course: CourseFront = {
       id: scheduledCourse.id,
-      no: scheduledCourse.course.no,
-      room: scheduledCourse.room?.id as number,
+      no: -1,
+      room: scheduledCourse.roomId as number,
       start: updateWorkWeek(
         parsed(
           scheduledCourse.start_time.toString().substring(0, 10) +
@@ -72,22 +86,24 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
         ) as Timestamp
       ),
       tutorId: scheduledCourse.tutor,
-      suppTutorIds: [],
-      module: -1,
-      groupIds: _.map(scheduledCourse.course.groups, (gp) => gp.id),
+      suppTutorIds: scheduledCourse.suppTutorsIds,
+      module: scheduledCourse.moduleId,
+      groupIds: scheduledCourse.groupIds,
       courseTypeId: -1,
       roomTypeId: -1,
-      graded: scheduledCourse.course.is_graded,
+      graded: false,
       workCopy: 0,
     }
     return course
   }
 
-  function courseToScheduledCourse(course: Course): ScheduledCourse | undefined {
+  function courseToScheduledCourse(course: CourseFront): ScheduledCourse | undefined {
     let scheduledCourse: ScheduledCourse | undefined = scheduledCourses.value.find((sc) => sc.id === course.id)
     if (scheduledCourse) {
-      scheduledCourse.course.no = course.no
-      // scheduledCourse.room TODO with Roomstore
+      scheduledCourse.roomId = course.room
+      scheduledCourse.suppTutorsIds = course.suppTutorIds
+      scheduledCourse.moduleId = course.module
+      scheduledCourse.groupIds = course.groupIds
       scheduledCourse.start_time = makeDate(course.start)
       scheduledCourse.end_time = makeDate(course.end)
       scheduledCourse.tutor = course.tutorId
@@ -96,7 +112,6 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       // scheduledCourse.groupIds TODO with groupstore or APIcall
       // scheduledCourse.courseTypeId TODO
       // scheduledCourse.roomTypeId TODO
-      scheduledCourse.course.is_graded = course.graded
       // scheduledCourse.workCopy TODO ?
       return scheduledCourse
     } else {
