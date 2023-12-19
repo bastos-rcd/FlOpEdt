@@ -1,9 +1,17 @@
 <template>
+  <q-btn
+    round
+    color="primary"
+    :icon="matBatteryFull"
+    style="margin: 5px"
+    @click="availabilityToggle = !availabilityToggle"
+  />
   <Calendar
     v-model:events="calendarEvents"
     :columns="columnsToDisplay"
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
+    :end-of-day-minutes="19"
   />
   <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="(flatNodes as LinkIdUp[])">
     <template #item="{ nodeId, active }">
@@ -20,7 +28,7 @@
     :multiple="false"
     item-variable-name="name"
   />
-  <!-- <button @click="revertUpdate">Revert</button> -->
+<!-- <button @click="revertUpdate">Revert</button> -->
 </template>
 
 <script setup lang="ts">
@@ -41,12 +49,14 @@ import { Room } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
 import { LinkIdUp } from '@/ts/tree'
+import { matBatteryFull } from '@quasar/extras/material-icons'
 
 /**
  * Data translated to be passed to components
  */
 const calendarEvents = ref<InputCalendarEvent[]>([])
 const activeIds = ref<Array<number>>([])
+const availabilityToggle = ref<boolean>(false)
 const flatNodes = computed(() => {
   return groups.value
 })
@@ -54,7 +64,10 @@ let id = 1
 
 const columnsToDisplay = computed(() => {
   return filter(columns.value, (c: CalendarColumn) => {
-    return find(activeIds.value, (ai) => ai === c.id)
+    return find(activeIds.value, (ai) => {
+      if (availabilityToggle.value) return ai === c.id || c.name === 'Avail'
+      return ai === c.id
+    })
   }) as CalendarColumn[]
 })
 

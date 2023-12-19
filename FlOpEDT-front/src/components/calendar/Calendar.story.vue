@@ -1,7 +1,12 @@
 <template>
   <Story>
     <Variant title="Use case 1">
-      <Calendar :columns="useCase1.columns.value" v-model:events="useCase2.events.value" @dragstart="onDragStart" />
+      <Calendar
+        :columns="useCase1.columns.value"
+        v-model:events="useCase2.events.value"
+        @dragstart="onDragStart"
+        :end-of-day-minutes="19"
+      />
     </Variant>
     <Variant title="Use case 2">
       <Calendar
@@ -10,10 +15,16 @@
         :dropzones="dzs"
         @dragstart="onDragStart"
         @weekdays="(wd: number[]) => (weekdays = wd)"
+        :end-of-day-minutes="19"
       />
     </Variant>
     <Variant title="Use case 3">
-      <Calendar :columns="useCase3.columns.value" v-model:events="useCase3.events.value" @dragstart="onDragStart" />
+      <Calendar
+        :columns="useCase3.columns.value"
+        v-model:events="useCase3.events.value"
+        @dragstart="onDragStart"
+        :end-of-day-minutes="19"
+      />
     </Variant>
     <Variant title="Availabilities">
       <q-btn color="orange" no-caps class="glossy" style="margin: 2px" @click="toggleAvailabilities()">
@@ -24,6 +35,7 @@
         v-model:events="useCase4.events.value"
         :dropzones="dzs"
         @dragstart="onDragStart"
+        :end-of-day-minutes="19"
       />
     </Variant>
   </Story>
@@ -479,7 +491,7 @@ let nextEventId = (_.maxBy(useCase4.events.value, (event) => event.id)?.id as nu
 
 const availabilityColumn = {
   id: 4,
-  name: 'av',
+  name: 'Avail',
   weight: 1,
 }
 

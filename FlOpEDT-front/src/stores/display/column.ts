@@ -15,11 +15,14 @@ export const useColumnStore = defineStore('column', () => {
   const columns = computed(() => {
     //const totalWeight = groups.value.filter(g => g.columnIds.length === 1).length
     let columns: CalendarColumn[] = []
+    let max: number = 0
     groupStore.groups.forEach((g) => {
       if (g.columnIds.length === 1) {
         columns.push({ id: g.id, name: g.name, weight: 1 })
+        if (max < g.id) max = g.id
       }
     })
+    columns.push({ id: max + 1, name: 'Avail', weight: 1 })
     return columns
   })
 

@@ -1,3 +1,12 @@
+export interface AvailabilityBack {
+  id: number
+  type: string
+  start: Date
+  end: Date
+  value: number
+  dataId: number
+}
+
 export class Course {
   id: number
   type: {
@@ -94,15 +103,6 @@ export interface FlopWeek {
   year: number
 }
 
-export interface AvailabilityBack {
-  id: number
-  type: string
-  start: Date
-  end: Date
-  value: number
-  dataId: number
-}
-
 export interface RoomAPI {
   id: number
   name: string
@@ -123,29 +123,41 @@ export interface RoomAttributeValue {
 
 export class ScheduledCourse {
   id: number
-  room?: { id: number; name: string; is_basic: boolean }
+  roomId: number
   start_time: Date
   end_time: Date
-  course: Course
+  courseId: number
   tutor: number
   id_visio: number
+  moduleId: number
+  trainProgId: number
+  groupIds: number[]
+  suppTutorsIds: number[]
 
   constructor(
-    id = 0,
-    room = { id: 0, name: '', is_basic: true },
+    id = -1,
+    room = -1,
     start_time = '',
     end_time = '',
-    course = new Course(),
+    courseId = -1,
     tutor = -1,
-    id_visio = 0
+    id_visio = -1,
+    moduleId = -1,
+    trainProgId = -1,
+    groupIds = [],
+    suppTutorsIds = []
   ) {
     this.id = id
-    this.room = room
+    this.roomId = room
     this.start_time = new Date(start_time)
     this.end_time = new Date(end_time)
-    this.course = course
+    this.courseId = courseId
     this.tutor = tutor
     this.id_visio = id_visio
+    this.moduleId = moduleId
+    this.trainProgId = trainProgId
+    this.groupIds = groupIds
+    this.suppTutorsIds = suppTutorsIds
   }
 }
 

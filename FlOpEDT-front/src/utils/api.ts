@@ -20,7 +20,7 @@ const urls = {
   getcurrentuser: 'user/getcurrentuser',
   getAllDepartments: 'fetch/alldepts',
   getScheduledcourses: 'fetch/new_api_scheduledcourses',
-  getRooms: 'fetch/idroom',
+  getRooms: 'v1/base/courses/rooms',
   weekdays: 'fetch/weekdays',
   timesettings: 'base/timesettings',
   roomreservation: 'roomreservations/reservation',
