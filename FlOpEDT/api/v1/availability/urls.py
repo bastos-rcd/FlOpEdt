@@ -20,11 +20,13 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
+
 from rest_framework import routers
 
-from api.v1.preferences import views
+from api.v1.availability import views
 
-routerPreferences= routers.SimpleRouter()
+routerAvailability = routers.SimpleRouter()
 
-routerPreferences.register(r'user-default', views.UserPreferenceDefaultDayViewSet, basename="user-def")
-routerPreferences.register(r'user-actual', views.DatedUserPreferenceViewSet, basename="user-actual")
+routerAvailability.register(
+    r"user-actual", views.UserDatedAvailabilityViewSet, basename="user-actual"
+)

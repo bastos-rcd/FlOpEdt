@@ -1,5 +1,5 @@
 from django.db import models
-from base.timing import Day, hhmm
+from base.timing import Day, min_to_str
 from base.models.courses import ScheduledCourse, ScheduledCourseAdditional
 from base import weeks
 
@@ -75,7 +75,9 @@ class CourseModification(models.Model):
             for d in day_list:
                 if d['ref'] == sched_course.day:
                     day = d
-            same += f', {day["name"]} {day["date"]} à {hhmm(sched_course.start_time)}'
+            same += (
+                f', {day["name"]} {day["date"]} à {min_to_str(sched_course.start_time)}'
+            )
         else:
             changed += al + 'Horaire : '
             if self.day_old is None or self.start_time_old is None:
@@ -84,12 +86,16 @@ class CourseModification(models.Model):
                 for d in day_list:
                     if d['ref'] == self.day_old:
                         day = d
-                changed += f'{day["name"]} {day["date"]} à {hhmm(self.start_time_old)}'
-            changed += ' -> '
+                changed += (
+                    f'{day["name"]} {day["date"]} à {min_to_str(self.start_time_old)}'
+                )
+            changed += " -> "
             for d in day_list:
                 if d['ref'] == sched_course.day:
                     day = d
-            changed += f'{day["name"]} {day["date"]} à {hhmm(sched_course.start_time)}'
+            changed += (
+                f'{day["name"]} {day["date"]} à {min_to_str(sched_course.start_time)}'
+            )
 
         return same, changed
 

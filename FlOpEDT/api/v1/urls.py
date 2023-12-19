@@ -20,16 +20,20 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
+
 from rest_framework import routers
 from django.urls import path, re_path, include
 from api.v1.base.urls import url_base_patterns
 from api.v1.people.urls import url_people_patterns
-from api.v1.preferences.urls import routerPreferences
+from api.v1.availability.urls import routerAvailability
 
 routerV1 = routers.SimpleRouter()
 
 url_V1_patterns = [
-    path('base/', include((url_base_patterns, 'api'), namespace='base')),
-    path('people/', include((url_people_patterns, 'api'), namespace='people')),
-    path('preferences/', include((routerPreferences.urls, 'api'), namespace='preferences')),
+    # path("base/", include((url_base_patterns, "api"), namespace="base")),
+    # path("people/", include((url_people_patterns, "api"), namespace="people")),
+    path(
+        "availability/",
+        include((routerAvailability.urls, "api"), namespace="availability"),
+    ),
 ]
