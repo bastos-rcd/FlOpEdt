@@ -65,12 +65,6 @@ from api.shared.params import (
     ),
 )
 class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
-    """
-    Helper for user preferences:
-    - read parameters
-    - build queryset
-    """
-
     permission_classes = [IsAdminOrReadOnly]
 
     serializer_class = serializers.UserAvailabilitySerializer
@@ -110,6 +104,4 @@ class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
         ret |= bm.UserPreference.objects.filter(
             user__id=user_id, week__year=y, week__nb=w, day__in=days
         )
-
-        # TODO V1-DB
         return ret
