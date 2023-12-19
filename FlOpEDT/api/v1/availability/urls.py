@@ -28,8 +28,5 @@ from api.v1.availability import views
 routerAvailability = routers.SimpleRouter()
 
 routerAvailability.register(
-    r"user-default", views.UserPreferenceDefaultDayViewSet, basename="user-def"
-)
-routerAvailability.register(
-    r"user-actual", views.DatedUserPreferenceViewSet, basename="user-actual"
+    r"user-actual", views.UserDatedAvailabilityViewSet, basename="user-actual"
 )

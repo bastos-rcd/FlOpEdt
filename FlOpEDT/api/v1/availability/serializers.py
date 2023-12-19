@@ -30,8 +30,8 @@ from datetime import timedelta
 # -----------------
 # -- PREFERENCES --
 # -----------------
-class PreferenceSerializer(serializers.ModelSerializer):
-    # TODO V1: change into DatetimeFields
+class AvailabilitySerializer(serializers.ModelSerializer):
+    # TODO V1-DB: change into DatetimeFields
     # start_time = serializers.DateTimeField()
     # end_time = serializers.DateTimeField()
     start_time = serializers.SerializerMethodField()
@@ -49,23 +49,26 @@ class PreferenceSerializer(serializers.ModelSerializer):
         return start_time + timedelta(seconds=duration * 60)
 
 
-class UserPreferenceSerializer(PreferenceSerializer):
-    user = serializers.CharField()
+class UserAvailabilitySerializer(AvailabilitySerializer):
+    id = serializers.IntegerField(source="user.id")
+    av_type = serializers.ReadOnlyField(default="user")
 
     class Meta:
+        # TODO V1-DB:
+        # model = bm.userAvailability
         model = bm.UserPreference
-        fields = "__all__"
+        fields = ("id", "av_type", "start_time", "end_time", "value")
 
 
-class CoursePreferencesSerializer(PreferenceSerializer):
-    class Meta:
-        model = bm.CoursePreference
-        fields = "__all__"
+# class CoursePreferencesSerializer(PreferenceSerializer):
+#     class Meta:
+#         model = bm.CoursePreference
+#         fields = "__all__"
 
 
-class RoomPreferencesSerializer(PreferenceSerializer):
-    room = serializers.CharField(source="room.name")
+# class RoomPreferencesSerializer(PreferenceSerializer):
+#     room = serializers.CharField(source="room.name")
 
-    class Meta:
-        model = bm.RoomPreference
-        fields = "__all__"
+#     class Meta:
+#         model = bm.RoomPreference
+#         fields = "__all__"
