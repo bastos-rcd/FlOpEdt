@@ -31,6 +31,63 @@ from enum import Enum
 from django.utils.translation import gettext_lazy as _
 
 
+
+class Day(object):
+  MONDAY = "m"
+  TUESDAY = "tu"
+  WEDNESDAY = "w"
+  THURSDAY = "th"
+  FRIDAY = "f"
+  SATURDAY = "sa"
+  SUNDAY = "su"
+
+  CHOICES = ((MONDAY, _("monday")), (TUESDAY, _("tuesday")),
+              (WEDNESDAY, _("wednesday")), (THURSDAY, _("thursday")),
+              (FRIDAY, _("friday")), (SATURDAY, _("saturday")),
+              (SUNDAY, _("sunday")))
+
+  def __init__(self, day, week):
+      self.day = day
+      self.week = week
+
+  def __str__(self):
+      # return self.nom[:3]
+      return self.day + '_s' + str(self.week)
+
+  def __repr__(self):
+      return self.day + '_s' + str(self.week)
+
+  def equals(self, other):
+      if isinstance(other, Day):
+          return self.week == other.week and self.day == other.day
+      else:
+          return False
+
+  def __lt__(self, other):
+      if isinstance(other, Day):
+          return days_index[self.day] < days_index[other.day]
+      else:
+          return False
+
+  def __gt__(self, other):
+      if isinstance(other, Day):
+          return days_index[self.day] > days_index[other.day]
+      else:
+          return False
+
+  def __le__(self, other):
+      return self.equals(other) or self < other
+
+  def __ge__(self, other):
+      return self.equals(other) or self > other
+    
+
+days_list = [c[0] for c in Day.CHOICES]
+days_index = {}
+for c in Day.CHOICES:
+    days_index[c[0]] = days_list.index(c[0])
+
+
 def hr_min(t):
     h = t // 60
     m = t - h * 60
@@ -191,61 +248,6 @@ class TimeInterval(object):
             end_time = start_time + duration
         return TimeInterval(flopdate_to_datetime(day, start_time), flopdate_to_datetime(day, end_time))
 
-
-class Day(object):
-  MONDAY = "m"
-  TUESDAY = "tu"
-  WEDNESDAY = "w"
-  THURSDAY = "th"
-  FRIDAY = "f"
-  SATURDAY = "sa"
-  SUNDAY = "su"
-
-  CHOICES = ((MONDAY, _("monday")), (TUESDAY, _("tuesday")),
-              (WEDNESDAY, _("wednesday")), (THURSDAY, _("thursday")),
-              (FRIDAY, _("friday")), (SATURDAY, _("saturday")),
-              (SUNDAY, _("sunday")))
-
-  def __init__(self, day, week):
-      self.day = day
-      self.week = week
-
-  def __str__(self):
-      # return self.nom[:3]
-      return self.day + '_s' + str(self.week)
-
-  def __repr__(self):
-      return self.day + '_s' + str(self.week)
-
-  def equals(self, other):
-      if isinstance(other, Day):
-          return self.week == other.week and self.day == other.day
-      else:
-          return False
-
-  def __lt__(self, other):
-      if isinstance(other, Day):
-          return days_index[self.day] < days_index[other.day]
-      else:
-          return False
-
-  def __gt__(self, other):
-      if isinstance(other, Day):
-          return days_index[self.day] > days_index[other.day]
-      else:
-          return False
-
-  def __le__(self, other):
-      return self.equals(other) or self < other
-
-  def __ge__(self, other):
-      return self.equals(other) or self > other
-    
-
-days_list = [c[0] for c in Day.CHOICES]
-days_index = {}
-for c in Day.CHOICES:
-    days_index[c[0]] = days_list.index(c[0])
 
 def all_possible_start_times(department):
     apst_set = set()
