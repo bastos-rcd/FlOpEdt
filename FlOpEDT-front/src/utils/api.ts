@@ -32,7 +32,7 @@ const urls = {
   reservationperiodicitybymonth: 'roomreservations/reservationperiodicitybymonth',
   reservationperiodicitybymonthxchoice: 'roomreservations/reservationperiodicitybymonthxchoice',
   courses: 'courses/courses',
-  scheduledcourses: 'fetch/new_api_scheduledcourses',
+  scheduledcourses: 'v1/base/courses/scheduledcourses',
   coursetypes: 'courses/type',
   users: 'user/users',
   getTutors: 'fetch/idtutor',
@@ -380,7 +380,8 @@ const api: FlopAPI = {
     let room: RoomAPI = {
       id: -1,
       name: '',
-      is_basic: 'true',
+      over_room_ids: [],
+      department_ids: [],
     }
     await fetch(API_ENDPOINT + urls.getRooms + '/?id=' + id, {
       method: 'GET',

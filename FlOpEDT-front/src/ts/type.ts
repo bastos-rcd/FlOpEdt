@@ -106,7 +106,8 @@ export interface FlopWeek {
 export interface RoomAPI {
   id: number
   name: string
-  is_basic: string
+  over_room_ids: number[]
+  department_ids: number[]
 }
 
 export interface RoomAttribute {
