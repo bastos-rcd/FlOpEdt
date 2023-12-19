@@ -135,7 +135,7 @@ const fetcher2 = (url: string, params?: object, renameList?: Array<[string, stri
   fetchData(url, params ? filterObject(params, renameList) : {})
 
 export interface FlopAPI {
-  getScheduledCourses(week: number, year: number, department?: string): Promise<Array<ScheduledCourse>>
+  getScheduledCourses(from?: Date, to?: Date, department?: string, tutor?: number): Promise<Array<ScheduledCourse>>
   getGroups(): Promise<GroupAPI[]>
   getModules(department?: Department): Promise<ModuleAPI[]>
   getCurrentUser(): Promise<User>
@@ -162,10 +162,13 @@ export interface FlopAPI {
 }
 
 const api: FlopAPI = {
-  async getScheduledCourses(week: number, year: number, department?: string): Promise<Array<ScheduledCourse>> {
+  async getScheduledCourses(from?: Date, to?: Date, department?: string, tutor?: number): Promise<Array<ScheduledCourse>> {
     let scheduledCourses: Array<ScheduledCourse> = []
     let finalUrl: string = API_ENDPOINT + urls.getScheduledcourses
-    if (department) finalUrl += '/?dept=' + department + '&week=' + week + '&year=' + year
+    if (department) finalUrl += '/?dept=' + department
+    if (from) finalUrl += '&from_date=' + from
+    if (to) finalUrl += '&to_date=' + to
+    if (tutor) finalUrl += '&tutor_name' + tutor
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',
