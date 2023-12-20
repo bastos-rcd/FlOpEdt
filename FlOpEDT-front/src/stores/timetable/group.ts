@@ -134,7 +134,8 @@ export const useGroupStore = defineStore('group', () => {
   ])
 
   async function fetchGroups(department: Department): Promise<void> {
-    await api.getStructuralGroups(department.name).then((result: GroupAPI[]) => {
+    // TODO changer pour avoir le bon département
+    await api.getStructuralGroups('CS').then((result: GroupAPI[]) => {
       result.forEach((gp: GroupAPI) => {
         let newGp = {
           id: gp.id,
@@ -142,15 +143,51 @@ export const useGroupStore = defineStore('group', () => {
           size: 0,
           trainProgId: -1,
           type: 'structural',
-          parentsId: [],
+          parentsId: gp.parent_ids,
           columnIds: [],
         } as Group
-        gp.parent_ids.forEach((pId) => {
-          newGp.parentsId!.push(pId)
-        })
         fetchedGroups.value.push(newGp)
       })
       isAllGroupsFetched.value = true
+    })
+    fetchedGroups.value = populateGroupsColumnIds(fetchedGroups.value)
+  }
+
+  function populateGroupsColumnIds(groups: Group[]): Group[] {
+    // Map to keep track of children for each group
+    const childrenMap = new Map<number, number[]>()
+
+    // Initialize the map with empty arrays for each group
+    groups.forEach((group) => {
+      childrenMap.set(group.id, [])
+    })
+
+    // Populate the map with children IDs
+    groups.forEach((group) => {
+      if (group.parentsId) {
+        group.parentsId.forEach((parentId) => {
+          const children = childrenMap.get(parentId)
+          if (children) {
+            children.push(group.id)
+          }
+        })
+      }
+    })
+
+    // Recursive function to collect all descendant leaf node IDs
+    function collectDescendantLeafNodeIds(groupId: number): number[] {
+      const children = childrenMap.get(groupId)
+      if (!children || children.length === 0) {
+        return [groupId] // Leaf node
+      }
+      // Collect leaf node IDs from all children recursively
+      return children.flatMap((childId) => collectDescendantLeafNodeIds(childId))
+    }
+
+    // Generate columnIds for each group
+    return groups.map((group) => {
+      const descendantLeafNodeIds = collectDescendantLeafNodeIds(group.id)
+      return { ...group, columnIds: descendantLeafNodeIds }
     })
   }
 

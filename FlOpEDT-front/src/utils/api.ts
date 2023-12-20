@@ -193,13 +193,13 @@ const api: FlopAPI = {
         finalUrl += '?'
         firstParam = true
       }
-      finalUrl += 'from_date=' + to.getFullYear() + '-'
+      finalUrl += 'to_date=' + to.getFullYear() + '-'
       if (to.getMonth() < 10) finalUrl += '0' + to.getMonth() + '-'
       else finalUrl += to.getMonth() + '-'
       if (to.getDate() < 10) finalUrl += '0' + to.getDate()
       else finalUrl += to.getDate()
     }
-    if (tutor) {
+    if (tutor && tutor !== -1) {
       if (firstParam) finalUrl += '&'
       else {
         finalUrl += '?'
@@ -219,7 +219,28 @@ const api: FlopAPI = {
         await response
           .json()
           .then((data) => {
-            scheduledCourses = data
+            data.forEach((d: any) => {
+              const sc: ScheduledCourse = {
+                id: d.id,
+                roomId: d.room_id,
+                start_time: new Date(d.start_time),
+                end_time: new Date(d.end_time),
+                courseId: d.course_id,
+                tutor: d.tutor_id,
+                id_visio: -1,
+                moduleId: d.module_id,
+                trainProgId: d.train_prog_id,
+                groupIds: [],
+                suppTutorsIds: [],
+              }
+              d.supp_tutor_ids.forEach((sti: number) => {
+                sc.suppTutorsIds.push(sti)
+              })
+              d.group_ids.forEach((gId: number) => {
+                sc.groupIds.push(gId)
+              })
+              scheduledCourses.push(sc)
+            })
           })
           .catch((error) => console.log('Error : ' + error.message))
       })

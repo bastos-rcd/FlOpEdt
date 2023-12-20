@@ -5,12 +5,11 @@ import { Availability } from '../declarations'
 import {
   Timestamp,
   copyTimestamp,
-  getDateTime,
   parseTime,
-  parseTimestamp,
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
+import { dateToTimestamp, timestampToDate } from '@/helpers'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
   const availabilitiesBack = ref<AvailabilityBack[]>([])
@@ -35,17 +34,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
-    let dateString: string = availabilityBack.start.getFullYear() + '-'
-    if (availabilityBack.start.getMonth() < 9) dateString += '0'
-    dateString += availabilityBack.start.getMonth() + 1 + '-'
-    if (availabilityBack.start.getDate() < 10) dateString += '0'
-    dateString += availabilityBack.start.getDate() + ' '
-    if (availabilityBack.start.getHours() < 10) dateString += '0'
-    dateString += availabilityBack.start.getHours() + ':'
-    if (availabilityBack.start.getMinutes() < 10) dateString += '0'
-    dateString += availabilityBack.start.getMinutes()
-    let start: Timestamp = parseTimestamp(dateString) as Timestamp
-
+    let start: Timestamp = dateToTimestamp(availabilityBack.start)
     let newAvailability: Availability = {
       id: availabilityBack.id,
       type: availabilityBack.type,
@@ -62,8 +51,8 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     let startCopy = copyTimestamp(availability.start)
     let newAvailabilityBack: AvailabilityBack = {
       id: availability.id,
-      start: new Date(getDateTime(availability.start)),
-      end: new Date(getDateTime(updateMinutes(startCopy, availability.duration + parseTime(startCopy)))),
+      start: timestampToDate(availability.start),
+      end: timestampToDate(updateMinutes(startCopy, availability.duration + parseTime(startCopy))),
       value: availability.value,
       type: availability.type,
       dataId: availability.dataId,
