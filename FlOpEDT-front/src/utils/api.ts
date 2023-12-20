@@ -41,7 +41,7 @@ const urls = {
   booleanroomattributevalues: 'rooms/booleanattributevalues',
   numericroomattributevalues: 'rooms/numericattributevalues',
   weeks: 'base/weeks',
-  getGroups: 'fetch/idgroup',
+  getGroups: 'v1/base/groups/structural_groups',
   getTransversalGroups: 'groups/transversal',
   getModules: 'fetch/idmodule',
   getTrainProgs: 'fetch/idtrainprog',
@@ -136,7 +136,7 @@ const fetcher2 = (url: string, params?: object, renameList?: Array<[string, stri
 
 export interface FlopAPI {
   getScheduledCourses(from?: Date, to?: Date, department?: string, tutor?: number): Promise<Array<ScheduledCourse>>
-  getGroups(): Promise<GroupAPI[]>
+  getStructuralGroups(department?: string): Promise<GroupAPI[]>
   getModules(department?: Department): Promise<ModuleAPI[]>
   getCurrentUser(): Promise<User>
   getAllDepartments(): Promise<Array<Department>>
@@ -162,9 +162,14 @@ export interface FlopAPI {
 }
 
 const api: FlopAPI = {
-  async getScheduledCourses(from?: Date, to?: Date, department?: string, tutor?: number): Promise<Array<ScheduledCourse>> {
+  async getScheduledCourses(
+    from?: Date,
+    to?: Date,
+    department?: string,
+    tutor?: number
+  ): Promise<Array<ScheduledCourse>> {
     let scheduledCourses: Array<ScheduledCourse> = []
-    let firstParam : boolean = false
+    let firstParam: boolean = false
     let finalUrl: string = API_ENDPOINT + urls.getScheduledcourses + '/'
     if (department) {
       finalUrl += '?dept=' + department
@@ -173,31 +178,31 @@ const api: FlopAPI = {
     if (from) {
       if (firstParam) finalUrl += '&'
       else {
-        finalUrl +='?'
+        finalUrl += '?'
         firstParam = true
       }
-      finalUrl += 'from_date=' + from.getFullYear() + "-"
-      if (from.getMonth() < 10) finalUrl+= "0" + from.getMonth() + "-" 
-      else finalUrl+= from.getMonth() + "-"
-      if (from.getDate() < 10) finalUrl+= "0" + from.getDate()
-      else finalUrl+= from.getDate()
+      finalUrl += 'from_date=' + from.getFullYear() + '-'
+      if (from.getMonth() < 10) finalUrl += '0' + from.getMonth() + '-'
+      else finalUrl += from.getMonth() + '-'
+      if (from.getDate() < 10) finalUrl += '0' + from.getDate()
+      else finalUrl += from.getDate()
     }
-     if (to) {
+    if (to) {
       if (firstParam) finalUrl += '&'
       else {
-        finalUrl +='?'
+        finalUrl += '?'
         firstParam = true
       }
-      finalUrl += 'from_date=' + to.getFullYear() + "-"
-      if (to.getMonth() < 10) finalUrl+= "0" + to.getMonth() + "-" 
-      else finalUrl+= to.getMonth() + "-"
-      if (to.getDate() < 10) finalUrl+= "0" + to.getDate()
-      else finalUrl+= to.getDate()
+      finalUrl += 'from_date=' + to.getFullYear() + '-'
+      if (to.getMonth() < 10) finalUrl += '0' + to.getMonth() + '-'
+      else finalUrl += to.getMonth() + '-'
+      if (to.getDate() < 10) finalUrl += '0' + to.getDate()
+      else finalUrl += to.getDate()
     }
     if (tutor) {
       if (firstParam) finalUrl += '&'
       else {
-        finalUrl +='?'
+        finalUrl += '?'
         firstParam = true
       }
       finalUrl += 'tutor_name' + tutor
@@ -223,9 +228,10 @@ const api: FlopAPI = {
       })
     return scheduledCourses
   },
-  async getGroups(): Promise<Array<GroupAPI>> {
+  async getStructuralGroups(department?: string): Promise<Array<GroupAPI>> {
     let groups: Array<GroupAPI> = []
     let finalUrl: string = API_ENDPOINT + urls.getGroups
+    if (department) finalUrl += '?dept=' + department
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',

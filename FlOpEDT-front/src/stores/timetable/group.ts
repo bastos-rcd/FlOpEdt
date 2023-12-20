@@ -134,17 +134,21 @@ export const useGroupStore = defineStore('group', () => {
   ])
 
   async function fetchGroups(department: Department): Promise<void> {
-    await api.getGroups().then((result: GroupAPI[]) => {
+    await api.getStructuralGroups(department.name).then((result: GroupAPI[]) => {
       result.forEach((gp: GroupAPI) => {
-        fetchedGroups.value.push({
+        let newGp = {
           id: gp.id,
           name: gp.name,
           size: 0,
           trainProgId: -1,
-          type: 'structural', // structural or transversal
+          type: 'structural',
           parentsId: [],
           columnIds: [],
+        } as Group
+        gp.parent_ids.forEach((pId) => {
+          newGp.parentsId!.push(pId)
         })
+        fetchedGroups.value.push(newGp)
       })
       isAllGroupsFetched.value = true
     })
