@@ -1,7 +1,7 @@
 import { api } from '@/utils/api'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ScheduledCourse, FlopWeek, Department, Course } from '@/ts/type'
+import { ScheduledCourse, Department } from '@/ts/type'
 import { Course as CourseFront } from '@/stores/declarations'
 import { Timestamp, makeDate, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import _ from 'lodash'

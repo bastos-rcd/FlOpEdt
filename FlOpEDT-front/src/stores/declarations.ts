@@ -37,9 +37,9 @@ export interface Group {
   size: number
   trainProgId: number
   type: string // structural or transversal
-  parentsId?: number[]
-  conflictingGroupIds?: number[]
-  parallelGroupIds?: number[]
+  parentsId?: number[] // If not there then type = transversal
+  conflictingGroupIds?: number[] // If not there then type = structural
+  parallelGroupIds?: number[] // If not there then type = structural
   columnIds: number[] // cf calendar/types.ts: CalendarColumn
 }
 

@@ -28,8 +28,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
           availabilities.value.push(availabilityBackToAvailability(availabilityBack))
         })
       })
-      console.log('preferences :', availabilitiesBack)
-      console.log('availabilities :', availabilities)
     } catch (e) {
       loadingError.value = e as Error
       isLoading.value = false

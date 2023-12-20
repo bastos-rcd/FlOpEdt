@@ -28,7 +28,7 @@
     :multiple="false"
     item-variable-name="name"
   />
-<!-- <button @click="revertUpdate">Revert</button> -->
+  <!-- <button @click="revertUpdate">Revert</button> -->
 </template>
 
 <script setup lang="ts">
@@ -41,7 +41,18 @@ import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import { Timestamp, copyTimestamp, getDate, makeDate, nextDay, parseTime, relativeDays, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import {
+  Timestamp,
+  copyTimestamp,
+  getDate,
+  makeDate,
+  nextDay,
+  parseTime,
+  prevDay,
+  relativeDays,
+  today,
+  updateFormatted,
+} from '@quasar/quasar-ui-qcalendar'
 import { filter, find } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
@@ -124,21 +135,26 @@ function setCurrentScheduledCourse(scheduledCourseId: number) {
 }
 
 function fetchScheduledCurrentWeek(from: Date, to: Date) {
-  scheduledCourseStore.fetchScheduledCourses(from = from, to = to)
+  scheduledCourseStore.fetchScheduledCourses((from = from), (to = to), deptStore.current.id)
 }
 
 function changeDate(newDate: Timestamp) {
-  fetchScheduledCurrentWeek(makeDate(newDate), makeDate(relativeDays(newDate, nextDay, 6)))
+  newDate = updateFormatted(relativeDays(newDate, prevDay, newDate.weekday - 1 || 6))
+  fetchScheduledCurrentWeek(makeDate(newDate), makeDate(updateFormatted(relativeDays(newDate, nextDay, 6))))
 }
 
 /**
  * Fetching data required on mount
  */
 onBeforeMount(async () => {
-  let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
-  fetchScheduledCurrentWeek(makeDate(todayDate), makeDate(relativeDays(todayDate)))
+  let todayDate = updateFormatted(parsed(today()))
+  fetchScheduledCurrentWeek(
+    makeDate(todayDate),
+    makeDate(updateFormatted(relativeDays(todayDate, nextDay, todayDate.weekday - 1 || 6)))
+  )
   roomStore.fetchRooms()
   tutorStore.fetchTutors(deptStore.current)
+  groupStore.fetchGroups(deptStore.current)
 })
 </script>
 

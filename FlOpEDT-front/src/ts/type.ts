@@ -91,7 +91,7 @@ export class Department implements Department {
   abbrev = 'NF'
   name = 'not found'
 
-  constructor(id: number = -1, abbrev: string = 'NF', name = 'not found') {
+  constructor(id: number = -1, abbrev: string = '', name = '') {
     this.id = id
     this.abbrev = abbrev
     this.name = name
@@ -223,7 +223,9 @@ export interface UserD {
 export interface GroupAPI {
   id: number
   name: string
-  train_prog: string
+  train_prog_id: number
+  type_id: number
+  parent_ids: number[]
 }
 export interface ModuleAPI {
   id: number

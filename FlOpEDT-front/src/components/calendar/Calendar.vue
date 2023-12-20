@@ -179,6 +179,7 @@ import {
   prevDay,
   nextDay,
   getTime,
+  updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
@@ -227,8 +228,8 @@ const calendar: Ref<QCalendar | null> = ref(null)
 const selectedDate = ref<string>(today())
 
 watch(selectedDate, () => {
-  console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
-  emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+  console.log(updateFormatted(parsed(selectedDate.value) as Timestamp))
+  emits('update:week', updateFormatted(parsed(selectedDate.value) as Timestamp))
 })
 
 /**
