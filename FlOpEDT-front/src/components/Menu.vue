@@ -14,7 +14,16 @@
         >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/`">{{ $t('navbar.schedule') }}</a>
+        <router-link
+          :to="{
+            name: routeNames.schedule,
+            params: {
+              dept: deptStore.current.abbrev,
+              locale: locale,
+            },
+          }"
+          >{{ $t('navbar.schedule') }}</router-link
+        >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
         <a :href="`/${locale}/edt/${deptStore.current.abbrev}/semaine-type`">{{ $t('navbar.preferences') }}</a>

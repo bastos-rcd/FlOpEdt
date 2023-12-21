@@ -30,30 +30,83 @@ import base.models as bm
 from enum import Enum
 from django.utils.translation import gettext_lazy as _
 
+
+
+class Day(object):
+  MONDAY = "m"
+  TUESDAY = "tu"
+  WEDNESDAY = "w"
+  THURSDAY = "th"
+  FRIDAY = "f"
+  SATURDAY = "sa"
+  SUNDAY = "su"
+
+  CHOICES = ((MONDAY, _("monday")), (TUESDAY, _("tuesday")),
+              (WEDNESDAY, _("wednesday")), (THURSDAY, _("thursday")),
+              (FRIDAY, _("friday")), (SATURDAY, _("saturday")),
+              (SUNDAY, _("sunday")))
+
+  def __init__(self, day, week):
+      self.day = day
+      self.week = week
+
+  def __str__(self):
+      # return self.nom[:3]
+      return self.day + '_s' + str(self.week)
+
+  def __repr__(self):
+      return self.day + '_s' + str(self.week)
+
+  def equals(self, other):
+      if isinstance(other, Day):
+          return self.week == other.week and self.day == other.day
+      else:
+          return False
+
+  def __lt__(self, other):
+      if isinstance(other, Day):
+          return days_index[self.day] < days_index[other.day]
+      else:
+          return False
+
+  def __gt__(self, other):
+      if isinstance(other, Day):
+          return days_index[self.day] > days_index[other.day]
+      else:
+          return False
+
+  def __le__(self, other):
+      return self.equals(other) or self < other
+
+  def __ge__(self, other):
+      return self.equals(other) or self > other
+    
+
+days_list = [c[0] for c in Day.CHOICES]
+days_index = {}
+for c in Day.CHOICES:
+    days_index[c[0]] = days_list.index(c[0])
+
+
 def hr_min(t):
-    h = t//60
-    m = t - h*60
+    h = t // 60
+    m = t - h * 60
     return h, m
 
 
-def hhmm(t):
-    h,m = hr_min(t)
-    return f'{h:02d}:{m:02d}'
-
-
-def str_slot(day, start_time, duration):
-    return f"{day}. {hhmm(start_time)}" + \
-        f"-{hhmm(start_time + duration)}"
-
-
-def min_to_str(minutes):
+def min_to_str(t, sep=":"):
     """Convert minute number into input time format
 
     :param minutes: integer minutes
     :return: string in hour:minute format
 
     """
-    return "%02d:%02d" % hr_min(minutes)
+    h, m = hr_min(t)
+    return f"{h:02d}{sep}{m:02d}"
+
+
+def str_slot(day, start_time, duration):
+    return f"{day}. {min_to_str(start_time)}" + f"-{min_to_str(start_time + duration)}"
 
 
 def french_format(minutes):
@@ -63,23 +116,17 @@ def french_format(minutes):
     :return: string in hour h minute format
 
     """
-    result = str(minutes//60) + 'h'
-    minutes = minutes % 60
-    if 0 < minutes < 10:
-        result += '0' + str(minutes)
-    elif minutes >= 10:
-        result += str(minutes)
-    return result
+    return min_to_str(minutes, sep="h")
 
 
-def str_to_min(time_string):
+def str_to_min(time_string, sep=":"):
     """Convert input time format into minute number
 
     :param time_string string in hour:minute format
     :return: Integer minutes
 
     """
-    hours_minutes = time_string.split(':')
+    hours_minutes = time_string.split(sep)
     return int(hours_minutes[0]) * 60 + int(hours_minutes[1])
 
 
@@ -99,7 +146,7 @@ def first_day_first_week(day):
 
 #Takes a day (with week and year) and a starting time
 #and returns the datetime object corresponding
-def flopdate_to_datetime(day, time):
+def flopdate_to_datetime(day: Day, time):
     day_date = flopday_to_date(day)
     time_day = floptime_to_time(time)
     return datetime.combine(day_date, time_day)
@@ -126,7 +173,7 @@ def time_to_floptime(time_data):
     return time_data.hour*60 + time_data.minute
 
 
-def date_to_flopday(date):
+def date_to_flopday(date) -> Day:
     isocalendar = date.isocalendar()
     flop_week = bm.Week.objects.get(nb=isocalendar[1], year=isocalendar[0])
     flop_day = Day.CHOICES[isocalendar[2] - 1][0]
@@ -201,61 +248,6 @@ class TimeInterval(object):
             end_time = start_time + duration
         return TimeInterval(flopdate_to_datetime(day, start_time), flopdate_to_datetime(day, end_time))
 
-
-class Day(object):
-  MONDAY = "m"
-  TUESDAY = "tu"
-  WEDNESDAY = "w"
-  THURSDAY = "th"
-  FRIDAY = "f"
-  SATURDAY = "sa"
-  SUNDAY = "su"
-
-  CHOICES = ((MONDAY, _("monday")), (TUESDAY, _("tuesday")),
-              (WEDNESDAY, _("wednesday")), (THURSDAY, _("thursday")),
-              (FRIDAY, _("friday")), (SATURDAY, _("saturday")),
-              (SUNDAY, _("sunday")))
-
-  def __init__(self, day, week):
-      self.day = day
-      self.week = week
-
-  def __str__(self):
-      # return self.nom[:3]
-      return self.day + '_s' + str(self.week)
-
-  def __repr__(self):
-      return self.day + '_s' + str(self.week)
-
-  def equals(self, other):
-      if isinstance(other, Day):
-          return self.week == other.week and self.day == other.day
-      else:
-          return False
-
-  def __lt__(self, other):
-      if isinstance(other, Day):
-          return days_index[self.day] < days_index[other.day]
-      else:
-          return False
-
-  def __gt__(self, other):
-      if isinstance(other, Day):
-          return days_index[self.day] > days_index[other.day]
-      else:
-          return False
-
-  def __le__(self, other):
-      return self.equals(other) or self < other
-
-  def __ge__(self, other):
-      return self.equals(other) or self > other
-    
-
-days_list = [c[0] for c in Day.CHOICES]
-days_index = {}
-for c in Day.CHOICES:
-    days_index[c[0]] = days_list.index(c[0])
 
 def all_possible_start_times(department):
     apst_set = set()

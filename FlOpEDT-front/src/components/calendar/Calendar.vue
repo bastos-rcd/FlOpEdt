@@ -56,9 +56,9 @@
       transition-next="slide-left"
       transition-prev="slide-right"
       no-active-date
-      :interval-start="13"
-      :interval-count="26"
-      :interval-minutes="30"
+      :interval-start="26"
+      :interval-count="52"
+      :interval-minutes="15"
       :interval-height="28"
       time-clicks-clamped
       :weekdays="weekdays"
@@ -179,6 +179,7 @@ import {
   prevDay,
   nextDay,
   getTime,
+  updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
@@ -197,6 +198,7 @@ const props = defineProps<{
   events: InputCalendarEvent[]
   dropzones?: InputCalendarEvent[]
   columns: CalendarColumn[]
+  endOfDayMinutes: number
 }>()
 
 const emits = defineEmits<{
@@ -226,8 +228,8 @@ const calendar: Ref<QCalendar | null> = ref(null)
 const selectedDate = ref<string>(today())
 
 watch(selectedDate, () => {
-  console.log(updateWorkWeek(parsed(selectedDate.value) as Timestamp))
-  emits('update:week', updateWorkWeek(parsed(selectedDate.value) as Timestamp))
+  console.log(updateFormatted(parsed(selectedDate.value) as Timestamp))
+  emits('update:week', updateFormatted(parsed(selectedDate.value) as Timestamp))
 })
 
 /**
@@ -648,10 +650,11 @@ function onMouseUp(): void {
       oldAvailDuration = newEvent.data.duration as number
       let newEnd = parseTime(newEvent.data.start) + newAvailDuration
       if (
-        newEnd > 19 * 60 ||
-        (oldAvailDuration > newAvailDuration && parseTime(newEvent.data.start) + oldAvailDuration === 19 * 60)
+        newEnd > props.endOfDayMinutes * 60 ||
+        (oldAvailDuration > newAvailDuration &&
+          parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayMinutes * 60)
       )
-        newEnd = 19 * 60
+        newEnd = props.endOfDayMinutes * 60
       newEvent.data.duration = closestStep(newEnd) - parseTime(newEvent.data.start)
       newAvailDuration = newEvent.data.duration
       let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
@@ -667,8 +670,7 @@ function onMouseUp(): void {
           if (currentEvent.data.dataType === 'avail' && newEvent.id !== currentEvent.id) {
             if (newEvent.data.start.date === currentEvent.data.start.date) {
               let diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
-              //@ts-expect-error
-              if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration) {
+              if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration!) {
                 idAvailsToUpdate.push(currentEvent.id)
               }
             }
@@ -678,10 +680,8 @@ function onMouseUp(): void {
           let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === idAvailsToUpdate[k]))
           if (availToUpdate) {
             let diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
-            //@ts-expect-error
-            oldDurationTotal += availToUpdate.data.duration
-            //@ts-expect-error
-            if (diffBetweenStarts + availToUpdate.data.duration <= newEvent.data.duration) {
+            oldDurationTotal += availToUpdate.data.duration!
+            if (diffBetweenStarts + availToUpdate.data.duration! <= newEvent.data.duration) {
               _.remove(newEvents, (e: InputCalendarEvent) => {
                 return e.id === idAvailsToUpdate[k]
               })
@@ -691,8 +691,7 @@ function onMouseUp(): void {
                 availToUpdate?.data.start,
                 Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
               )
-              //@ts-expect-error
-              availToUpdate.data.duration -= parseTime(getTime(availToUpdate.data.start)) - oldTimeAvail
+              availToUpdate.data.duration! -= parseTime(getTime(availToUpdate.data.start)) - oldTimeAvail
               _.remove(newEvents, (e: InputCalendarEvent) => {
                 return e.id === availToUpdate!.id
               })
@@ -702,23 +701,23 @@ function onMouseUp(): void {
         }
       } else {
         let mins = Math.round(parseTime(newEvent.data.start) + newAvailDuration)
-        let availToUpdate: InputCalendarEvent
-        newEvents.forEach((currentEvent: InputCalendarEvent) => {
+        let availToUpdate: InputCalendarEvent | undefined
+        let i = 0
+        while (!availToUpdate && i < newEvents.length) {
           if (
-            currentEvent.data.dataType === 'avail' &&
-            newEvent.id !== currentEvent.id &&
-            newEvent.data.start.date === currentEvent.data.start.date &&
-            parseTime(currentEvent.data.start) === parseTime(newEvent.data.start) + oldAvailDuration
+            newEvents[i].data.dataType === 'avail' &&
+            newEvent.id !== newEvents[i].id &&
+            newEvent.data.start.date === newEvents[i].data.start.date &&
+            parseTime(newEvents[i].data.start) === parseTime(newEvent.data.start) + oldAvailDuration
           ) {
-            availToUpdate = _.cloneDeep(currentEvent)
+            availToUpdate = _.cloneDeep(newEvents[i])
           }
-        })
-        //@ts-expect-error
+          i++
+        }
         if (availToUpdate) {
-          updateMinutes(availToUpdate!.data.start, mins)
-          //@ts-expect-error
-          availToUpdate.data.duration += oldAvailDuration - newAvailDuration
-          _.remove(newEvents, (e) => e.id === availToUpdate.id)
+          updateMinutes(availToUpdate.data.start, mins)
+          availToUpdate.data.duration! += oldAvailDuration - newAvailDuration
+          _.remove(newEvents, (e) => e.id === availToUpdate!.id)
           newEvents.push(availToUpdate)
         }
       }
@@ -796,9 +795,7 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
           parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY)
         )
         secondAvail.id = nextId()
-        //@ts-expect-error
-        secondAvail.data.duration -= firstAvail.data.duration
-        secondAvail.data.value = (firstAvail.data.value! + 1) % 9
+        secondAvail.data.duration! -= firstAvail.data.duration
         _.remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
         allEvents.push(firstAvail, secondAvail)
         eventsModel.value = allEvents

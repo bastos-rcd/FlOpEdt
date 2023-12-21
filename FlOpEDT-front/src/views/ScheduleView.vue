@@ -1,18 +1,11 @@
 <template>
-  <Calendar
-    v-model:events="calendarEvents"
-    :columns="columnsToDisplay"
-    @dragstart="setCurrentScheduledCourse"
-    @update:week="changeDate"
+  <q-btn
+    round
+    color="primary"
+    :icon="matBatteryFull"
+    style="margin: 5px"
+    @click="availabilityToggle = !availabilityToggle"
   />
-  <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="(flatNodes as LinkIdUp[])">
-    <template #item="{ nodeId, active }">
-      <div :class="['node', active ? 'ac' : 'nac']">
-        {{ find(flatNodes, (n) => n.id === nodeId)?.name }}
-        {{ active }}
-      </div>
-    </template>
-  </HierarchicalColumnFilter>
   <FilterSelector
     :items="roomsFetched"
     filter-selector-undefined-label="Select a room"
@@ -20,12 +13,17 @@
     :multiple="false"
     item-variable-name="name"
   />
-  <!-- <button @click="revertUpdate">Revert</button> -->
+  <Calendar
+    v-model:events="calendarEvents"
+    :columns="columnsToDisplay"
+    @dragstart="setCurrentScheduledCourse"
+    @update:week="changeDate"
+    :end-of-day-minutes="19"
+  />
 </template>
 
 <script setup lang="ts">
 import { CalendarColumn, InputCalendarEvent } from '@/components/calendar/declaration'
-import HierarchicalColumnFilter from '@/components/hierarchicalFilter/HierarchicalColumnFilter.vue'
 import Calendar from '@/components/calendar/Calendar.vue'
 import { computed, onBeforeMount, ref, watchEffect } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
@@ -33,29 +31,35 @@ import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
 import { storeToRefs } from 'pinia'
 import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
-import { Timestamp, copyTimestamp, getDate, parseTime, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
-import { filter, find } from 'lodash'
+import {
+  Timestamp,
+  copyTimestamp,
+  makeDate,
+  nextDay,
+  parseTime,
+  prevDay,
+  relativeDays,
+  today,
+  updateFormatted,
+} from '@quasar/quasar-ui-qcalendar'
+import { filter } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
 import { Room } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
-import { LinkIdUp } from '@/ts/tree'
+import { matBatteryFull } from '@quasar/extras/material-icons'
 
 /**
  * Data translated to be passed to components
  */
 const calendarEvents = ref<InputCalendarEvent[]>([])
-const activeIds = ref<Array<number>>([])
-const flatNodes = computed(() => {
-  return groups.value
-})
+const availabilityToggle = ref<boolean>(false)
 let id = 1
 
 const columnsToDisplay = computed(() => {
-  return filter(columns.value, (c: CalendarColumn) => {
-    return find(activeIds.value, (ai) => ai === c.id)
-  }) as CalendarColumn[]
+  if (availabilityToggle.value) return columns.value
+  return filter(columns.value, (c: CalendarColumn) => c.name !== 'Avail')
 })
 
 /**
@@ -68,7 +72,6 @@ const columnStore = useColumnStore()
 const scheduledCourseStore = useScheduledCourseStore()
 const roomStore = useRoomStore()
 const { courses } = storeToRefs(scheduledCourseStore)
-const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const tutorStore = useTutorStore()
@@ -80,9 +83,9 @@ watchEffect(() => {
     .map((c) => {
       const currentEvent: InputCalendarEvent = {
         id: id++,
-        title: c.module.toString(),
+        title: c.module ? c.module.toString() : 'Cours',
         toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
-        bgcolor: 'red',
+        bgcolor: id % 2 === 0 ? 'red' : 'blue',
         columnIds: [],
         data: {
           dataId: c.id,
@@ -91,9 +94,8 @@ watchEffect(() => {
           duration: parseTime(c.end) - parseTime(c.start),
         },
       }
-      currentEvent.data.start.date = getDate(currentEvent.data.start)
       c.groupIds.forEach((courseGroup) => {
-        const currentGroup = groups.value.find((g) => g.id === courseGroup)
+        const currentGroup = groupStore.fetchedGroups.find((g) => g.id === courseGroup)
         if (currentGroup) {
           currentGroup.columnIds.forEach((cI) => {
             currentEvent.columnIds.push(cI)
@@ -110,25 +112,29 @@ function setCurrentScheduledCourse(scheduledCourseId: number) {
   currentScheduledCourseId.value = scheduledCourseId
 }
 
-function fetchScheduledCurrentWeek(week: number, year: number) {
-  scheduledCourseStore.fetchScheduledCourses(
-    { week: week, year: year },
-    { id: 1, abbrev: 'INFO', name: 'informatique' }
-  )
+function fetchScheduledCurrentWeek(from: Date, to: Date) {
+  scheduledCourseStore.fetchScheduledCourses((from = from), (to = to), deptStore.current.id)
 }
 
 function changeDate(newDate: Timestamp) {
-  fetchScheduledCurrentWeek(newDate.workweek, newDate.year)
+  const newMonday = updateFormatted(relativeDays(copyTimestamp(newDate), prevDay, newDate.weekday - 1 || 6))
+  const newSunday = updateFormatted(relativeDays(copyTimestamp(newMonday), nextDay, 6))
+  fetchScheduledCurrentWeek(makeDate(newMonday), makeDate(newSunday))
 }
 
 /**
  * Fetching data required on mount
  */
 onBeforeMount(async () => {
-  let todayDate = updateWorkWeek(parsed(today()) as Timestamp)
-  fetchScheduledCurrentWeek(todayDate.workweek, todayDate.year)
+  let todayDate = updateFormatted(parsed(today()))
+  fetchScheduledCurrentWeek(
+    makeDate(todayDate),
+    makeDate(updateFormatted(relativeDays(todayDate, nextDay, todayDate.weekday - 1 || 6)))
+  )
   roomStore.fetchRooms()
   tutorStore.fetchTutors(deptStore.current)
+  if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
+  groupStore.fetchGroups(deptStore.current)
 })
 </script>
 

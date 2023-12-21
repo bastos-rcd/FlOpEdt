@@ -25,104 +25,143 @@ from drf_yasg import openapi
 
 
 def date_param(**kwargs):
-    return openapi.Parameter("date",
-                             openapi.IN_QUERY,
-                             description="date",
-                             type=openapi.FORMAT_DATE,
-                             **kwargs)
+    return openapi.Parameter(
+        "date",
+        openapi.IN_QUERY,
+        description="date",
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE,
+        **kwargs
+    )
 
 
 def weekday_param(**kwargs):
-    return openapi.Parameter('weekday',
-                             openapi.IN_QUERY,
-                             description="weekday",
-                             type=openapi.TYPE_STRING,
-                             **kwargs)
+    return openapi.Parameter(
+        "weekday",
+        openapi.IN_QUERY,
+        description="weekday",
+        type=openapi.TYPE_STRING,
+        **kwargs
+    )
 
 
 def from_date_param(**kwargs):
-    return openapi.Parameter("from_date",
-                             openapi.IN_QUERY,
-                             description="from date",
-                             type=openapi.FORMAT_DATE,
-                             **kwargs)
+    return openapi.Parameter(
+        "from_date",
+        openapi.IN_QUERY,
+        description="from date",
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE,
+        **kwargs
+    )
 
 
 def to_date_param(**kwargs):
-    return openapi.Parameter("to_date",
-                             openapi.IN_QUERY,
-                             description="to date",
-                             type=openapi.FORMAT_DATE,
-                             **kwargs)
+    return openapi.Parameter(
+        "to_date",
+        openapi.IN_QUERY,
+        description="to date",
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE,
+        **kwargs
+    )
 
 
 def week_param(**kwargs):
-    return openapi.Parameter('week_number',
-                             openapi.IN_QUERY,
-                             description="week number",
-                             type=openapi.TYPE_INTEGER,
-                             **kwargs)
+    return openapi.Parameter(
+        "week_number",
+        openapi.IN_QUERY,
+        description="week number",
+        type=openapi.TYPE_INTEGER,
+        **kwargs
+    )
 
 
 def year_param(**kwargs):
-    return openapi.Parameter('year',
-                             openapi.IN_QUERY,
-                             description="year",
-                             type=openapi.TYPE_INTEGER,
-                             **kwargs)
+    return openapi.Parameter(
+        "year",
+        openapi.IN_QUERY,
+        description="year",
+        type=openapi.TYPE_INTEGER,
+        **kwargs
+    )
 
 
 def user_param(**kwargs):
-    return openapi.Parameter('user',
-                             openapi.IN_QUERY,
-                             description="username",
-                             type=openapi.TYPE_STRING,
-                             **kwargs)
+    return openapi.Parameter(
+        "user",
+        openapi.IN_QUERY,
+        description="username",
+        type=openapi.TYPE_STRING,
+        **kwargs
+    )
+
+
+def user_id_param(**kwargs):
+    return openapi.Parameter(
+        "user_id",
+        openapi.IN_QUERY,
+        description="username id",
+        type=openapi.TYPE_INTEGER,
+        **kwargs
+    )
 
 
 def tutor_param(**kwargs):
-    return openapi.Parameter('tutor_name',
-                             openapi.IN_QUERY,
-                             description="tutor username",
-                             type=openapi.TYPE_STRING,
-                             **kwargs)
+    return openapi.Parameter(
+        "tutor_name",
+        openapi.IN_QUERY,
+        description="tutor username",
+        type=openapi.TYPE_STRING,
+        **kwargs
+    )
 
 
 def dept_param(**kwargs):
-    return openapi.Parameter('dept',
-                             openapi.IN_QUERY,
-                             description="department abbreviation",
-                             type=openapi.TYPE_STRING,
-                             **kwargs)
+    return openapi.Parameter(
+        "dept",
+        openapi.IN_QUERY,
+        description="department abbreviation",
+        type=openapi.TYPE_STRING,
+        **kwargs
+    )
 
 
 def work_copy_param(**kwargs):
-    return openapi.Parameter('work_copy',
-                             openapi.IN_QUERY,
-                             description="N° of work copy (default: 0)",
-                             type=openapi.TYPE_INTEGER,
-                             **kwargs)
+    return openapi.Parameter(
+        "work_copy",
+        openapi.IN_QUERY,
+        description="N° of work copy (default: 0)",
+        type=openapi.TYPE_INTEGER,
+        **kwargs
+    )
 
 
 def group_param(**kwargs):
-    return openapi.Parameter('group',
-                             openapi.IN_QUERY,
-                             description="Group name",
-                             type=openapi.TYPE_STRING,
-                             **kwargs)
+    return openapi.Parameter(
+        "group",
+        openapi.IN_QUERY,
+        description="Group name",
+        type=openapi.TYPE_STRING,
+        **kwargs
+    )
 
 
 def train_prog_param(**kwargs):
-    return openapi.Parameter('train_prog',
-                             openapi.IN_QUERY,
-                             description="Training programme abbreviation",
-                             type=openapi.TYPE_STRING,
-                             **kwargs)
+    return openapi.Parameter(
+        "train_prog",
+        openapi.IN_QUERY,
+        description="Training programme abbreviation",
+        type=openapi.TYPE_STRING,
+        **kwargs
+    )
 
 
 def lineage_param(**kwargs):
-    return openapi.Parameter('lineage',
-                             openapi.IN_QUERY,
-                             description="includes parent groups (default: false)",
-                             type=openapi.TYPE_BOOLEAN,
-                             **kwargs)
+    return openapi.Parameter(
+        "lineage",
+        openapi.IN_QUERY,
+        description="includes parent groups (default: false)",
+        type=openapi.TYPE_BOOLEAN,
+        **kwargs
+    )

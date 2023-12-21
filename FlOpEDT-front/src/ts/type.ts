@@ -1,3 +1,12 @@
+export interface AvailabilityBack {
+  id: number
+  type: string
+  start: Date
+  end: Date
+  value: number
+  dataId: number
+}
+
 export class Course {
   id: number
   type: {
@@ -82,7 +91,7 @@ export class Department implements Department {
   abbrev = 'NF'
   name = 'not found'
 
-  constructor(id: number = -1, abbrev: string = 'NF', name = 'not found') {
+  constructor(id: number = -1, abbrev: string = '', name = '') {
     this.id = id
     this.abbrev = abbrev
     this.name = name
@@ -94,23 +103,11 @@ export interface FlopWeek {
   year: number
 }
 
-export interface AvailabilityBack {
-  id: number
-  type: string
-  startTimeMinutes: number
-  duration: number
-  week: number
-  day: string
-  value: number
-  year: number
-  //dataId: number
-  userName: string
-}
-
 export interface RoomAPI {
   id: number
   name: string
-  is_basic: string
+  over_room_ids: number[]
+  department_ids: number[]
 }
 
 export interface RoomAttribute {
@@ -127,29 +124,41 @@ export interface RoomAttributeValue {
 
 export class ScheduledCourse {
   id: number
-  room?: { id: number; name: string; is_basic: boolean }
+  roomId: number
   start_time: Date
   end_time: Date
-  course: Course
+  courseId: number
   tutor: number
   id_visio: number
+  moduleId: number
+  trainProgId: number
+  groupIds: number[]
+  suppTutorsIds: number[]
 
   constructor(
-    id = 0,
-    room = { id: 0, name: '', is_basic: true },
+    id = -1,
+    room = -1,
     start_time = '',
     end_time = '',
-    course = new Course(),
+    courseId = -1,
     tutor = -1,
-    id_visio = 0
+    id_visio = -1,
+    moduleId = -1,
+    trainProgId = -1,
+    groupIds = [],
+    suppTutorsIds = []
   ) {
     this.id = id
-    this.room = room
+    this.roomId = room
     this.start_time = new Date(start_time)
     this.end_time = new Date(end_time)
-    this.course = course
+    this.courseId = courseId
     this.tutor = tutor
     this.id_visio = id_visio
+    this.moduleId = moduleId
+    this.trainProgId = trainProgId
+    this.groupIds = groupIds
+    this.suppTutorsIds = suppTutorsIds
   }
 }
 
@@ -214,7 +223,9 @@ export interface UserD {
 export interface GroupAPI {
   id: number
   name: string
-  train_prog: string
+  train_prog_id: number
+  type_id: number
+  parent_ids: number[]
 }
 export interface ModuleAPI {
   id: number

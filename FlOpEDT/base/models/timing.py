@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 
-from base.timing import Day, Time, hhmm, days_list
+from base.timing import Day, Time, min_to_str, days_list
 
 
 MONDAY = "m"
@@ -105,11 +105,13 @@ class TimeGeneralSettings(models.Model):
     default_preference_duration = models.PositiveSmallIntegerField(default=90)  # FIXME : time with TimeField or DurationField
 
     def __str__(self):
-        return f"Dept {self.department.abbrev}: " + \
-               f"{hhmm(self.day_start_time)} - {hhmm(self.lunch_break_start_time)}" + \
-               f" | {hhmm(self.lunch_break_finish_time)} - " + \
-               f"{hhmm(self.day_finish_time)};" + \
-               f" Days: {self.days}"
+        return (
+            f"Dept {self.department.abbrev}: "
+            + f"{min_to_str(self.day_start_time)} - {min_to_str(self.lunch_break_start_time)}"
+            + f" | {min_to_str(self.lunch_break_finish_time)} - "
+            + f"{min_to_str(self.day_finish_time)};"
+            + f" Days: {self.days}"
+        )
 
 
 class Mode(models.Model):

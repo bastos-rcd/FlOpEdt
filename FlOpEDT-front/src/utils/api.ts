@@ -19,8 +19,8 @@ const API_ENDPOINT = '/fr/api/'
 const urls = {
   getcurrentuser: 'user/getcurrentuser',
   getAllDepartments: 'fetch/alldepts',
-  getScheduledcourses: 'fetch/new_api_scheduledcourses',
-  getRooms: 'fetch/idroom',
+  getScheduledcourses: 'v1/base/courses/scheduled_courses',
+  getRooms: 'v1/base/courses/rooms',
   weekdays: 'fetch/weekdays',
   timesettings: 'base/timesettings',
   roomreservation: 'roomreservations/reservation',
@@ -32,7 +32,7 @@ const urls = {
   reservationperiodicitybymonth: 'roomreservations/reservationperiodicitybymonth',
   reservationperiodicitybymonthxchoice: 'roomreservations/reservationperiodicitybymonthxchoice',
   courses: 'courses/courses',
-  scheduledcourses: 'fetch/new_api_scheduledcourses',
+  scheduledcourses: 'v1/base/courses/scheduledcourses',
   coursetypes: 'courses/type',
   users: 'user/users',
   getTutors: 'fetch/idtutor',
@@ -41,7 +41,7 @@ const urls = {
   booleanroomattributevalues: 'rooms/booleanattributevalues',
   numericroomattributevalues: 'rooms/numericattributevalues',
   weeks: 'base/weeks',
-  getGroups: 'fetch/idgroup',
+  getGroups: 'v1/base/groups/structural_groups',
   getTransversalGroups: 'groups/transversal',
   getModules: 'fetch/idmodule',
   getTrainProgs: 'fetch/idtrainprog',
@@ -52,7 +52,6 @@ function getCookie(name: string) {
   if (!document.cookie) {
     return null
   }
-  //console.log(`This is the cookieeee : ${document.cookie}`)
   const xsrfCookies = document.cookie
     .split(';')
     .map((c) => c.trim())
@@ -136,8 +135,8 @@ const fetcher2 = (url: string, params?: object, renameList?: Array<[string, stri
   fetchData(url, params ? filterObject(params, renameList) : {})
 
 export interface FlopAPI {
-  getScheduledCourses(week: number, year: number, department?: string): Promise<Array<ScheduledCourse>>
-  getGroups(): Promise<GroupAPI[]>
+  getScheduledCourses(from?: Date, to?: Date, department?: string, tutor?: number): Promise<Array<ScheduledCourse>>
+  getStructuralGroups(department?: string): Promise<GroupAPI[]>
   getModules(department?: Department): Promise<ModuleAPI[]>
   getCurrentUser(): Promise<User>
   getAllDepartments(): Promise<Array<Department>>
@@ -146,7 +145,7 @@ export interface FlopAPI {
   getTrainProgs(): Promise<TrainingProgrammeAPI[]>
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
   getRoomById(id: number): Promise<RoomAPI>
-  getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>>
+  getPreferencesForWeek(userId: number, week: number, year: number): Promise<Array<AvailabilityBack>>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
@@ -163,10 +162,51 @@ export interface FlopAPI {
 }
 
 const api: FlopAPI = {
-  async getScheduledCourses(week: number, year: number, department?: string): Promise<Array<ScheduledCourse>> {
+  async getScheduledCourses(
+    from?: Date,
+    to?: Date,
+    department?: string,
+    tutor?: number
+  ): Promise<Array<ScheduledCourse>> {
     let scheduledCourses: Array<ScheduledCourse> = []
-    let finalUrl: string = API_ENDPOINT + urls.getScheduledcourses
-    if (department) finalUrl += '/?dept=' + department + '&week=' + week + '&year=' + year
+    let firstParam: boolean = false
+    let finalUrl: string = API_ENDPOINT + urls.getScheduledcourses + '/'
+    if (department) {
+      finalUrl += '?dept=' + department
+      firstParam = true
+    }
+    if (from) {
+      if (firstParam) finalUrl += '&'
+      else {
+        finalUrl += '?'
+        firstParam = true
+      }
+      finalUrl += 'from_date=' + from.getFullYear() + '-'
+      if (from.getMonth() + 1 < 10) finalUrl += '0' + (from.getMonth() + 1) + '-'
+      else finalUrl += from.getMonth() + 1 + '-'
+      if (from.getDate() < 10) finalUrl += '0' + from.getDate()
+      else finalUrl += from.getDate()
+    }
+    if (to) {
+      if (firstParam) finalUrl += '&'
+      else {
+        finalUrl += '?'
+        firstParam = true
+      }
+      finalUrl += 'to_date=' + to.getFullYear() + '-'
+      if (to.getMonth() + 1 < 10) finalUrl += '0' + (to.getMonth() + 1) + '-'
+      else finalUrl += to.getMonth() + 1 + '-'
+      if (to.getDate() < 10) finalUrl += '0' + to.getDate()
+      else finalUrl += to.getDate()
+    }
+    if (tutor && tutor !== -1) {
+      if (firstParam) finalUrl += '&'
+      else {
+        finalUrl += '?'
+        firstParam = true
+      }
+      finalUrl += 'tutor_name' + tutor
+    }
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',
@@ -179,7 +219,28 @@ const api: FlopAPI = {
         await response
           .json()
           .then((data) => {
-            scheduledCourses = data
+            data.forEach((d: any) => {
+              const sc: ScheduledCourse = {
+                id: d.id,
+                roomId: d.room_id,
+                start_time: new Date(d.start_time),
+                end_time: new Date(d.end_time),
+                courseId: d.course_id,
+                tutor: d.tutor_id,
+                id_visio: -1,
+                moduleId: d.module_id,
+                trainProgId: d.train_prog_id,
+                groupIds: [],
+                suppTutorsIds: [],
+              }
+              d.supp_tutor_ids.forEach((sti: number) => {
+                sc.suppTutorsIds.push(sti)
+              })
+              d.group_ids.forEach((gId: number) => {
+                sc.groupIds.push(gId)
+              })
+              scheduledCourses.push(sc)
+            })
           })
           .catch((error) => console.log('Error : ' + error.message))
       })
@@ -188,9 +249,10 @@ const api: FlopAPI = {
       })
     return scheduledCourses
   },
-  async getGroups(): Promise<Array<GroupAPI>> {
+  async getStructuralGroups(department?: string): Promise<Array<GroupAPI>> {
     let groups: Array<GroupAPI> = []
     let finalUrl: string = API_ENDPOINT + urls.getGroups
+    if (department) finalUrl += '?dept=' + department
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',
@@ -381,7 +443,8 @@ const api: FlopAPI = {
     let room: RoomAPI = {
       id: -1,
       name: '',
-      is_basic: 'true',
+      over_room_ids: [],
+      department_ids: [],
     }
     await fetch(API_ENDPOINT + urls.getRooms + '/?id=' + id, {
       method: 'GET',
@@ -407,9 +470,9 @@ const api: FlopAPI = {
     return room
   },
   //TODO change userName for userId
-  async getPreferencesForWeek(userName: string, week: number, year: number): Promise<Array<AvailabilityBack>> {
+  async getPreferencesForWeek(userId: number, week: number, year: number): Promise<Array<AvailabilityBack>> {
     let preferences: AvailabilityBack[] = []
-    await fetch(API_ENDPOINT + urls.getPrefsByWeek + '/?user=' + userName + '&week_number=' + week + '&year=' + year, {
+    await fetch(API_ENDPOINT + urls.getPrefsByWeek + '/?user=' + userId + '&week_number=' + week + '&year=' + year, {
       method: 'GET',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
@@ -421,7 +484,16 @@ const api: FlopAPI = {
         await response
           .json()
           .then((data) => {
-            preferences = data
+            data.forEach((pref: any) => {
+              preferences.push({
+                id: pref.id,
+                type: 'userAvail',
+                start: new Date(pref.start_time),
+                end: new Date(pref.end_time),
+                dataId: pref.userId,
+                value: pref.value,
+              })
+            })
           })
           .catch((error) => {
             return Promise.reject(error.message)

@@ -2,6 +2,7 @@ import { Department } from '@/ts/type'
 import { Room } from '@/stores/declarations'
 import { useRoomStore } from '@/stores/timetable/room'
 import { api } from '@/utils/api'
+import { Timestamp, getDateTime, parseTimestamp } from '@quasar/quasar-ui-qcalendar'
 
 export function convertDecimalTimeToHuman(time: number): string {
   const hours = Math.trunc(time)
@@ -221,4 +222,21 @@ export function getDayOfWeekString(dayOfWeek: number): string {
     default:
       return ''
   }
+}
+
+export function dateToTimestamp(date: Date): Timestamp {
+  let dateString: string = date.getFullYear() + '-'
+  if (date.getMonth() < 9) dateString += '0'
+  dateString += date.getMonth() + 1 + '-'
+  if (date.getDate() < 10) dateString += '0'
+  dateString += date.getDate() + ' '
+  if (date.getHours() < 10) dateString += '0'
+  dateString += date.getHours() + ':'
+  if (date.getMinutes() < 10) dateString += '0'
+  dateString += date.getMinutes()
+  return parseTimestamp(dateString) as Timestamp
+}
+
+export function timestampToDate(ts: Timestamp): Date {
+  return new Date(getDateTime(ts))
 }
