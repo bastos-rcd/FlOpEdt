@@ -2,12 +2,7 @@ import { AvailabilityBack } from '@/ts/type'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { Availability } from '../declarations'
-import {
-  Timestamp,
-  copyTimestamp,
-  parseTime,
-  updateMinutes,
-} from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
 import { dateToTimestamp, timestampToDate } from '@/helpers'
 

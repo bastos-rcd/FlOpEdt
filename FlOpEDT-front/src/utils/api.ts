@@ -182,8 +182,8 @@ const api: FlopAPI = {
         firstParam = true
       }
       finalUrl += 'from_date=' + from.getFullYear() + '-'
-      if (from.getMonth() < 10) finalUrl += '0' + from.getMonth() + '-'
-      else finalUrl += from.getMonth() + '-'
+      if (from.getMonth() + 1 < 10) finalUrl += '0' + (from.getMonth() + 1) + '-'
+      else finalUrl += from.getMonth() + 1 + '-'
       if (from.getDate() < 10) finalUrl += '0' + from.getDate()
       else finalUrl += from.getDate()
     }
@@ -194,8 +194,8 @@ const api: FlopAPI = {
         firstParam = true
       }
       finalUrl += 'to_date=' + to.getFullYear() + '-'
-      if (to.getMonth() < 10) finalUrl += '0' + to.getMonth() + '-'
-      else finalUrl += to.getMonth() + '-'
+      if (to.getMonth() + 1 < 10) finalUrl += '0' + (to.getMonth() + 1) + '-'
+      else finalUrl += to.getMonth() + 1 + '-'
       if (to.getDate() < 10) finalUrl += '0' + to.getDate()
       else finalUrl += to.getDate()
     }

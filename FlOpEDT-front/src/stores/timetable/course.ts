@@ -3,8 +3,9 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { ScheduledCourse, Department } from '@/ts/type'
 import { Course as CourseFront } from '@/stores/declarations'
-import { Timestamp, makeDate, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { makeDate } from '@quasar/quasar-ui-qcalendar'
 import _ from 'lodash'
+import { dateToTimestamp } from '@/helpers'
 
 /**
  * This store is a work in progress,
@@ -21,20 +22,20 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   async function fetchScheduledCourses(from?: Date, to?: Date, tutor?: number, department?: Department): Promise<void> {
     isLoading.value = true
     try {
-      await api.getScheduledCourses(from, to, department?.abbrev, tutor).then((result) => {
-        result.forEach((r: any) => {
+      await api.getScheduledCourses(from, to, department?.abbrev, tutor).then((result: ScheduledCourse[]) => {
+        result.forEach((r: ScheduledCourse) => {
           scheduledCourses.value.push({
             id: r.id,
-            roomId: r.room_id,
+            roomId: r.roomId,
             start_time: new Date(r.start_time),
             end_time: new Date(r.end_time),
-            courseId: r.course_id,
-            tutor: r.tutor_id,
+            courseId: r.courseId,
+            tutor: r.tutor,
             id_visio: -1,
-            moduleId: r.module_id,
-            trainProgId: r.train_prog_id,
-            groupIds: r.group_ids,
-            suppTutorsIds: r.supp_tutor_ids,
+            moduleId: r.moduleId,
+            trainProgId: r.trainProgId,
+            groupIds: r.groupIds,
+            suppTutorsIds: r.suppTutorsIds,
           })
         })
         isLoading.value = false
@@ -72,28 +73,24 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     let course: CourseFront = {
       id: scheduledCourse.id,
       no: -1,
-      room: scheduledCourse.roomId as number,
-      start: updateWorkWeek(
-        parsed(
-          scheduledCourse.start_time.toString().substring(0, 10) +
-            ' ' +
-            scheduledCourse.start_time.toString().substring(11)
-        ) as Timestamp
-      ),
-      end: updateWorkWeek(
-        parsed(
-          scheduledCourse.end_time.toString().substring(0, 10) + ' ' + scheduledCourse.end_time.toString().substring(11)
-        ) as Timestamp
-      ),
+      room: scheduledCourse.roomId,
+      start: dateToTimestamp(scheduledCourse.start_time),
+      end: dateToTimestamp(scheduledCourse.end_time),
       tutorId: scheduledCourse.tutor,
-      suppTutorIds: scheduledCourse.suppTutorsIds,
+      suppTutorIds: [],
       module: scheduledCourse.moduleId,
-      groupIds: scheduledCourse.groupIds,
+      groupIds: [],
       courseTypeId: -1,
       roomTypeId: -1,
       graded: false,
       workCopy: 0,
     }
+    scheduledCourse.suppTutorsIds?.forEach((sti) => {
+      course.suppTutorIds.push(sti)
+    })
+    scheduledCourse.groupIds?.forEach((gId) => {
+      course.groupIds.push(gId)
+    })
     return course
   }
 

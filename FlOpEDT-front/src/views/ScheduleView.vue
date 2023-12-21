@@ -13,14 +13,6 @@
     @update:week="changeDate"
     :end-of-day-minutes="19"
   />
-  <HierarchicalColumnFilter v-model:active-ids="activeIds" :flatNodes="(flatNodes as LinkIdUp[])">
-    <template #item="{ nodeId, active }">
-      <div :class="['node', active ? 'ac' : 'nac']">
-        {{ find(flatNodes, (n) => n.id === nodeId)?.name }}
-        {{ active }}
-      </div>
-    </template>
-  </HierarchicalColumnFilter>
   <FilterSelector
     :items="roomsFetched"
     filter-selector-undefined-label="Select a room"
@@ -28,12 +20,10 @@
     :multiple="false"
     item-variable-name="name"
   />
-  <!-- <button @click="revertUpdate">Revert</button> -->
 </template>
 
 <script setup lang="ts">
 import { CalendarColumn, InputCalendarEvent } from '@/components/calendar/declaration'
-import HierarchicalColumnFilter from '@/components/hierarchicalFilter/HierarchicalColumnFilter.vue'
 import Calendar from '@/components/calendar/Calendar.vue'
 import { computed, onBeforeMount, ref, watchEffect } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
@@ -44,7 +34,6 @@ import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import {
   Timestamp,
   copyTimestamp,
-  getDate,
   makeDate,
   nextDay,
   parseTime,
@@ -53,13 +42,12 @@ import {
   today,
   updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
-import { filter, find } from 'lodash'
+import { filter } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
 import { Room } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
-import { LinkIdUp } from '@/ts/tree'
 import { matBatteryFull } from '@quasar/extras/material-icons'
 
 /**
@@ -68,18 +56,11 @@ import { matBatteryFull } from '@quasar/extras/material-icons'
 const calendarEvents = ref<InputCalendarEvent[]>([])
 const activeIds = ref<Array<number>>([])
 const availabilityToggle = ref<boolean>(false)
-const flatNodes = computed(() => {
-  return groups.value
-})
 let id = 1
 
 const columnsToDisplay = computed(() => {
-  return filter(columns.value, (c: CalendarColumn) => {
-    return find(activeIds.value, (ai) => {
-      if (availabilityToggle.value) return ai === c.id || c.name === 'Avail'
-      return ai === c.id
-    })
-  }) as CalendarColumn[]
+  if (availabilityToggle.value) return columns.value
+  return filter(columns.value, (c: CalendarColumn) => c.name !== 'Avail')
 })
 
 /**
@@ -92,7 +73,6 @@ const columnStore = useColumnStore()
 const scheduledCourseStore = useScheduledCourseStore()
 const roomStore = useRoomStore()
 const { courses } = storeToRefs(scheduledCourseStore)
-const { groups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const tutorStore = useTutorStore()
@@ -104,9 +84,9 @@ watchEffect(() => {
     .map((c) => {
       const currentEvent: InputCalendarEvent = {
         id: id++,
-        title: c.module.toString(),
+        title: c.module ? c.module.toString() : 'Cours',
         toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
-        bgcolor: 'red',
+        bgcolor: id % 2 === 0 ? 'red' : 'blue',
         columnIds: [],
         data: {
           dataId: c.id,
@@ -115,9 +95,8 @@ watchEffect(() => {
           duration: parseTime(c.end) - parseTime(c.start),
         },
       }
-      currentEvent.data.start.date = getDate(currentEvent.data.start)
       c.groupIds.forEach((courseGroup) => {
-        const currentGroup = groups.value.find((g) => g.id === courseGroup)
+        const currentGroup = groupStore.fetchedGroups.find((g) => g.id === courseGroup)
         if (currentGroup) {
           currentGroup.columnIds.forEach((cI) => {
             currentEvent.columnIds.push(cI)
@@ -139,8 +118,9 @@ function fetchScheduledCurrentWeek(from: Date, to: Date) {
 }
 
 function changeDate(newDate: Timestamp) {
-  newDate = updateFormatted(relativeDays(newDate, prevDay, newDate.weekday - 1 || 6))
-  fetchScheduledCurrentWeek(makeDate(newDate), makeDate(updateFormatted(relativeDays(newDate, nextDay, 6))))
+  const newMonday = updateFormatted(relativeDays(copyTimestamp(newDate), prevDay, newDate.weekday - 1 || 6))
+  const newSunday = updateFormatted(relativeDays(copyTimestamp(newMonday), nextDay, 6))
+  fetchScheduledCurrentWeek(makeDate(newMonday), makeDate(newSunday))
 }
 
 /**
