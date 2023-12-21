@@ -9,7 +9,9 @@ services:
       PGDATA: /var/lib/postgresql/data/flopedt-${BRANCH:-master}
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      - /var/lib/postgresql/:/var/lib/postgresql/data
+      - flop-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   redis:
     image: redis:latest
@@ -34,6 +36,8 @@ services:
       - DJANGO_LOADDATA=off
       - DJANGO_FLUSHDATA=off
       - CONFIG=development
+      - EMAIL_HOST=maildev
+      - EMAIL_PORT=1025
     entrypoint: /code/docker/script/init.sh      
     volumes:
       - .:/code
@@ -50,9 +54,20 @@ services:
       - full
     environment:
       - CONFIG=development
+      - FLOP_BACKEND_URL=http://backend:8000
     volumes:
       - ./FlOpEDT-front:/front
-    network_mode: "host"
     ports:
       - "5173:5173"
-    entrypoint: ["yarn", "dev"]
+    entrypoint: ["yarn", "dev", "--host"]
+
+  maildev:
+    image: maildev/maildev:2.1.0
+    profiles:
+      - full
+    ports:
+      - "1080:1080"
+
+volumes:
+  flop-db-data:
+    driver: local
