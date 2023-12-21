@@ -6,19 +6,19 @@
     style="margin: 5px"
     @click="availabilityToggle = !availabilityToggle"
   />
-  <Calendar
-    v-model:events="calendarEvents"
-    :columns="columnsToDisplay"
-    @dragstart="setCurrentScheduledCourse"
-    @update:week="changeDate"
-    :end-of-day-minutes="19"
-  />
   <FilterSelector
     :items="roomsFetched"
     filter-selector-undefined-label="Select a room"
     v-model:selected-items="selectedRoom"
     :multiple="false"
     item-variable-name="name"
+  />
+  <Calendar
+    v-model:events="calendarEvents"
+    :columns="columnsToDisplay"
+    @dragstart="setCurrentScheduledCourse"
+    @update:week="changeDate"
+    :end-of-day-minutes="19"
   />
 </template>
 
@@ -54,7 +54,6 @@ import { matBatteryFull } from '@quasar/extras/material-icons'
  * Data translated to be passed to components
  */
 const calendarEvents = ref<InputCalendarEvent[]>([])
-const activeIds = ref<Array<number>>([])
 const availabilityToggle = ref<boolean>(false)
 let id = 1
 
@@ -134,6 +133,7 @@ onBeforeMount(async () => {
   )
   roomStore.fetchRooms()
   tutorStore.fetchTutors(deptStore.current)
+  if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
   groupStore.fetchGroups(deptStore.current)
 })
 </script>

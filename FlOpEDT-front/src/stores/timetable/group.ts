@@ -134,8 +134,8 @@ export const useGroupStore = defineStore('group', () => {
   ])
 
   async function fetchGroups(department: Department): Promise<void> {
-    // TODO changer pour avoir le bon département
-    await api.getStructuralGroups('CS').then((result: GroupAPI[]) => {
+    clearGroups()
+    await api.getStructuralGroups(department.abbrev).then((result: GroupAPI[]) => {
       result.forEach((gp: GroupAPI) => {
         let newGp = {
           id: gp.id,
@@ -151,6 +151,10 @@ export const useGroupStore = defineStore('group', () => {
       isAllGroupsFetched.value = true
     })
     fetchedGroups.value = populateGroupsColumnIds(fetchedGroups.value)
+  }
+
+  function clearGroups(): void {
+    fetchedGroups.value = []
   }
 
   function populateGroupsColumnIds(groups: Group[]): Group[] {

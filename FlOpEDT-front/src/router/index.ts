@@ -14,7 +14,7 @@ export const routeNames = {
 
 const routes = [
   {
-    path: '/schedule',
+    path: '/schedule/:dept?',
     name: routeNames.schedule,
     component: () => import('@/views/ScheduleView.vue'),
     meta: {
