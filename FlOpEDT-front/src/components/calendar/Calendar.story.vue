@@ -124,7 +124,7 @@ const useCase2: UseCase = {
     {
       id: 1,
       title: 'TP INFO',
-      toggled: false,
+      toggled: true,
 
       bgcolor: 'red',
       icon: 'fas fa-handshake',
@@ -155,7 +155,7 @@ const useCase2: UseCase = {
     {
       id: 3,
       title: 'Conference TD1',
-      toggled: false,
+      toggled: true,
       bgcolor: 'grey',
       icon: 'fas fa-car',
       columnIds: [0],

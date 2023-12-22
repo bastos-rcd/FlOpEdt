@@ -31,7 +31,7 @@ export interface InputCalendarEvent extends CalendarEventNoCol {
 }
 
 export interface CalendarEvent extends CalendarEventNoCol {
-  span: Array<{ istart: number; weight: number; columnIds: number[] }>
+  spans: Array<{ istart: number; weight: number; columnIds: number[] }>
 }
 
 export interface EventData {
