@@ -68,6 +68,9 @@
       :drag-leave-func="onDragLeave"
       @dragend="onDragStop"
     >
+      <template #head-intervals="{ scope }">
+        <span>{{ selectedDate.substring(5, 7) }}/{{ selectedDate.substring(0, 4) }}</span>
+      </template>
       <template #head-day-event="{ scope: { timestamp } }">
         <div style="display: flex">
           <template v-for="column in props.columns" :key="column.id">
@@ -110,11 +113,11 @@
               @mouseup="onMouseUp()"
             >
               <div
-                v-for="span in event.span"
+                v-for="spans in event.spans"
                 :key="event.id"
                 class="my-event"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
-                :style="badgeStyles(event, span, timeStartPos)"
+                :style="badgeStyles(event, spans, timeStartPos)"
                 @mousedown="onMouseDown($event, event.id)"
               >
                 <slot name="event" :event="event">
@@ -173,7 +176,6 @@ import {
   TimestampOrNull,
   Timestamp,
   parsed,
-  updateWorkWeek,
   QCalendar,
   parseTimestamp,
   prevDay,
@@ -294,9 +296,9 @@ const eventsByDate = computed(() => {
   const map: Record<string, CalendarEvent[]> = {}
   let allEvents: InputCalendarEvent[] = props.events
   // Copy of events
-  let newEvents: CalendarEvent[] = []
+  const newEvents: CalendarEvent[] = []
   // Dict of column ids keys to their index
-  let columnIndexes: Record<number, number> = {}
+  const columnIndexes: Record<number, number> = {}
   _.forEach(props.columns, (c, i) => {
     columnIndexes[c.id] = i
   })
@@ -317,7 +319,7 @@ const eventsByDate = computed(() => {
     // merge columns
     columnIds = _.sortBy(columnIds, (colId) => columnIndexes[colId])
 
-    const span: Array<{ istart: number; weight: number; columnIds: number[] }> = []
+    const spans: Array<{ istart: number; weight: number; columnIds: number[] }> = []
     if (columnIds.length > 0) {
       let currentSlice = {
         istart: columnIndexes[columnIds[0]],
@@ -326,13 +328,13 @@ const eventsByDate = computed(() => {
         columnIds: [] as number[],
       }
       _.forEach(columnIds, (colId, i) => {
-        let colProps = _.find(props.columns, (col) => col.id == colId) as CalendarColumn
-        if (columnIndexes[colId] == currentSlice.iend) {
+        const colProps = _.find(props.columns, (col) => col.id == colId) as CalendarColumn
+        if (columnIndexes[colId] === currentSlice.iend) {
           currentSlice.weight += colProps.weight
           currentSlice.iend = columnIndexes[colId] + 1
           currentSlice.columnIds.push(colId)
         } else {
-          span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
+          spans.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
           currentSlice = {
             istart: columnIndexes[colId],
             weight: colProps.weight,
@@ -341,19 +343,20 @@ const eventsByDate = computed(() => {
           }
         }
       })
-      span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
+      spans.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
     }
 
     // Created as InputCalendarEvent
     const cnewEvent = newEvent as any
     // Changing properties to convert to an CalendarEvent
     delete cnewEvent.columnIds
-    cnewEvent.span = span
+    cnewEvent.spans = spans
 
     newEvents.push(cnewEvent as CalendarEvent)
   })
   // sort by date
-  newEvents.forEach((event) => {
+  const newEventsUpdated: CalendarEvent[] = updateEventsOverlap(newEvents)
+  newEventsUpdated.forEach((event) => {
     if (!map[event.data.start.date]) {
       map[event.data.start.date] = []
     }
@@ -361,6 +364,38 @@ const eventsByDate = computed(() => {
   })
   return map
 })
+
+function columnsInCommon(event1: CalendarEvent, event2: CalendarEvent): boolean {
+  const cols1 = event1.spans.map((span) => span.columnIds).flat()
+  const cols2 = event2.spans.map((span) => span.columnIds).flat()
+  return _.intersection(cols1, cols2).length !== 0
+}
+
+function updateEventsOverlap(events: CalendarEvent[]): CalendarEvent[] {
+  const newEvents: CalendarEvent[] = events
+  for (let i = 0; i < newEvents.length; i++) {
+    if (newEvents[i].toggled) {
+      for (let k = 0; k < newEvents.length; k++) {
+        if (i !== k && (k > i || !newEvents[k].toggled)) {
+          const sameColumns = columnsInCommon(newEvents[i], newEvents[k])
+          if (newEvents[i].data.dataType === newEvents[k].data.dataType && sameColumns) {
+            let diff = Math.ceil(diffTimestamp(newEvents[i].data.start, newEvents[k].data.start) / 1000 / 60)
+            if (diff > 0) {
+              if (newEvents[i].data.duration! > diff) {
+                newEvents[i].toggled = newEvents[k].toggled = false
+              }
+            } else {
+              if (newEvents[k].data.duration! > Math.abs(diff)) {
+                newEvents[i].toggled = newEvents[k].toggled = false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return newEvents
+}
 
 const totalWeight = computed(() => {
   return _.sumBy(props.columns, (c: CalendarColumn) => c.weight)
@@ -408,11 +443,13 @@ function badgeStyles(
   } else {
     s['background-color'] = event.bgcolor
   }
-  if (event.data.dataType === 'avail') {
+  if (event.data.dataType === 'event') {
+    s['border'] = '2px solid #000000'
+  } else if (event.data.dataType === 'avail') {
     s['resize'] = 'vertical'
     s['overflow'] = 'auto'
-  }
-  if (
+    s['border'] = '1px solid #222222'
+  } else if (
     event.data?.dataType === 'dropzone' &&
     event.data.start.time === closestStartTime.value &&
     event.data.start.date === currentTime.value?.date
