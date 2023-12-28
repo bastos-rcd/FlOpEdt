@@ -12,7 +12,8 @@ import { api } from '@/utils/api'
  */
 export const useGroupStore = defineStore('group', () => {
   const isAllGroupsFetched = ref<boolean>(false)
-  const fetchedGroups = ref<Group[]>([])
+  const fetchedTransversalGroups = ref<Group[]>([])
+  const fetchedStructuralGroups = ref<Group[]>([])
   const groups = ref<Group[]>([
     {
       id: 31,
@@ -20,6 +21,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [36, 37, 38, 39, 40, 41, 42, 43],
       parentsId: [],
     },
@@ -29,6 +32,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [36, 37],
       parentsId: [31],
     },
@@ -38,6 +43,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [38, 39],
       parentsId: [31],
     },
@@ -47,6 +54,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [40, 41],
       parentsId: [31],
     },
@@ -56,6 +65,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [42, 43],
       parentsId: [31],
     },
@@ -65,6 +76,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [36],
       parentsId: [32],
     },
@@ -74,6 +87,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [37],
       parentsId: [32],
     },
@@ -83,6 +98,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [38],
       parentsId: [33],
     },
@@ -92,6 +109,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [39],
       parentsId: [33],
     },
@@ -101,6 +120,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [40],
       parentsId: [34],
     },
@@ -110,6 +131,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [41],
       parentsId: [34],
     },
@@ -119,6 +142,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [42],
       parentsId: [35],
     },
@@ -128,6 +153,8 @@ export const useGroupStore = defineStore('group', () => {
       size: 1,
       trainProgId: -1,
       type: 'structural',
+      conflictingGroupIds: [],
+      parallelGroupIds: [],
       columnIds: [43],
       parentsId: [35],
     },
@@ -141,20 +168,40 @@ export const useGroupStore = defineStore('group', () => {
           id: gp.id,
           name: gp.name,
           size: 0,
-          trainProgId: -1,
+          trainProgId: gp.train_prog_id,
           type: 'structural',
           parentsId: gp.parent_ids,
+          conflictingGroupIds: [],
+          parallelGroupIds: [],
           columnIds: [],
         } as Group
-        fetchedGroups.value.push(newGp)
+        fetchedStructuralGroups.value.push(newGp)
+      })
+    })
+    fetchedStructuralGroups.value = populateGroupsColumnIds(fetchedStructuralGroups.value)
+
+    await api.getTransversalGroups(department.abbrev).then((result: GroupAPI[]) => {
+      result.forEach((gp: GroupAPI) => {
+        let newGp = {
+          id: gp.id,
+          name: gp.name,
+          size: 0,
+          trainProgId: gp.train_prog_id,
+          type: 'transversal',
+          columnIds: [],
+          parentsId: [],
+          conflictingGroupIds: gp.conflicting_group_ids,
+          parallelGroupIds: gp.parallel_group_ids,
+        } as Group
+        fetchedTransversalGroups.value.push(newGp)
       })
       isAllGroupsFetched.value = true
     })
-    fetchedGroups.value = populateGroupsColumnIds(fetchedGroups.value)
   }
 
   function clearGroups(): void {
-    fetchedGroups.value = []
+    fetchedStructuralGroups.value = []
+    fetchedTransversalGroups.value = []
   }
 
   function populateGroupsColumnIds(groups: Group[]): Group[] {
@@ -197,7 +244,8 @@ export const useGroupStore = defineStore('group', () => {
 
   return {
     groups,
-    fetchedGroups,
+    fetchedStructuralGroups,
+    fetchedTransversalGroups,
     fetchGroups,
   }
 })

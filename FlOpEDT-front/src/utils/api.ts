@@ -42,7 +42,7 @@ const urls = {
   numericroomattributevalues: 'rooms/numericattributevalues',
   weeks: 'base/weeks',
   getGroups: 'v1/base/groups/structural_groups',
-  getTransversalGroups: 'groups/transversal',
+  getTransversalGroups: 'v1/base/groups/transversal_groups',
   getModules: 'fetch/idmodule',
   getTrainProgs: 'fetch/idtrainprog',
   getPrefsByWeek: 'preferences/user-actual',
@@ -137,6 +137,7 @@ const fetcher2 = (url: string, params?: object, renameList?: Array<[string, stri
 export interface FlopAPI {
   getScheduledCourses(from?: Date, to?: Date, department?: string, tutor?: number): Promise<Array<ScheduledCourse>>
   getStructuralGroups(department?: string): Promise<GroupAPI[]>
+  getTransversalGroups(department?: string): Promise<GroupAPI[]>
   getModules(department?: Department): Promise<ModuleAPI[]>
   getCurrentUser(): Promise<User>
   getAllDepartments(): Promise<Array<Department>>
@@ -252,6 +253,31 @@ const api: FlopAPI = {
   async getStructuralGroups(department?: string): Promise<Array<GroupAPI>> {
     let groups: Array<GroupAPI> = []
     let finalUrl: string = API_ENDPOINT + urls.getGroups
+    if (department) finalUrl += '?dept=' + department
+    await fetch(finalUrl, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw Error('Error : ' + response.status)
+        }
+        await response
+          .json()
+          .then((data: GroupAPI[]) => {
+            groups = data
+          })
+          .catch((error) => console.log('Error : ' + error.message))
+      })
+      .catch((error) => {
+        console.log(error.message)
+      })
+    return groups
+  },
+  async getTransversalGroups(department?: string): Promise<GroupAPI[]> {
+    let groups: Array<GroupAPI> = []
+    let finalUrl: string = API_ENDPOINT + urls.getTransversalGroups
     if (department) finalUrl += '?dept=' + department
     await fetch(finalUrl, {
       method: 'GET',
