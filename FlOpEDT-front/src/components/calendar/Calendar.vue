@@ -254,7 +254,7 @@ const arrayWeekdaysLabel = [
 const dayStart = ref<{ min: number; max: number }>()
 
 watch(dayStart, () => {
-  let newValue: number[] = []
+  const newValue: number[] = []
   if (dayStart.value)
     for (let i = dayStart.value?.min; i <= dayStart.value?.max; i++) {
       if (i === 7) newValue.push(0)
@@ -266,10 +266,9 @@ watch(dayStart, () => {
   } else {
     typeCalendar.value = 'week'
   }
-  let newSelectedDates = []
+  const newSelectedDates = []
   let now_date = parseTimestamp(selectedDate.value)
 
-  let i = 0
   while (now_date!.weekday > 1) {
     now_date = prevDay(now_date as Timestamp)
     now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
@@ -305,7 +304,7 @@ const eventsByDate = computed(() => {
   })
   if (props.dropzones) allEvents = _.concat(allEvents, props.dropzones)
   allEvents.forEach((event) => {
-    let newEvent = _.cloneDeep(event)
+    const newEvent = _.cloneDeep(event)
     let columnIds = newEvent.columnIds
 
     // availability column
@@ -380,7 +379,7 @@ function updateEventsOverlap(events: CalendarEvent[]): CalendarEvent[] {
         if (i !== k && (k > i || !newEvents[k].toggled)) {
           const sameColumns = columnsInCommon(newEvents[i], newEvents[k])
           if (newEvents[i].data.dataType === newEvents[k].data.dataType && sameColumns) {
-            let diff = Math.ceil(diffTimestamp(newEvents[i].data.start, newEvents[k].data.start) / 1000 / 60)
+            const diff = Math.ceil(diffTimestamp(newEvents[i].data.start, newEvents[k].data.start) / 1000 / 60)
             if (diff > 0) {
               if (newEvents[i].data.duration! > diff) {
                 newEvents[i].toggled = newEvents[k].toggled = false
@@ -626,7 +625,7 @@ function updateEventDropped(): void {
     console.log("I don't know what happened: Maybe it was an availability")
     return
   }
-  let newEvent: InputCalendarEvent = _.cloneDeep(
+  const newEvent: InputCalendarEvent = _.cloneDeep(
     props.events.find((e) => eventDragged.value?.id === e.id) as InputCalendarEvent
   )
   if (dropZoneToDisplay.value) {
@@ -638,7 +637,7 @@ function updateEventDropped(): void {
   } else {
     console.log('NO DROPZONE FOR THIS EVENT OU ERREUR DE DROPZONE')
   }
-  let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
+  const newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
   _.remove(newEvents, (e: InputCalendarEvent) => {
     return e.id === newEvent.id
   })
@@ -672,7 +671,7 @@ let currentAvailId: number = -1
 let newAvailDuration: number = 0
 let oldAvailDuration: number = 0
 
-let availResizeObs = new ResizeObserver((entries) => {
+const availResizeObs = new ResizeObserver((entries) => {
   if (calendar.value?.timeDurationHeight) {
     newAvailDuration = entries[0].contentRect.height * minutesToPixelRate
   }
@@ -681,87 +680,113 @@ let availResizeObs = new ResizeObserver((entries) => {
 function onMouseUp(): void {
   if (currentAvailId !== -1) {
     availResizeObs.disconnect()
-    let newEvent: InputCalendarEvent = _.cloneDeep(
+    const newEvent: InputCalendarEvent = _.cloneDeep(
       props.events.find((e) => currentAvailId === e.id) as InputCalendarEvent
     )
     if (newEvent) {
-      oldAvailDuration = newEvent.data.duration as number
-      let newEnd = parseTime(newEvent.data.start) + newAvailDuration
+      const newEvents: InputCalendarEvent[] = updateResizedEvent(newEvent)
       if (
-        newEnd > props.endOfDayMinutes * 60 ||
-        (oldAvailDuration > newAvailDuration &&
-          parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayMinutes * 60)
-      )
-        newEnd = props.endOfDayMinutes * 60
-      newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
-      newAvailDuration = newEvent.data.duration
-      let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
-      _.remove(newEvents, (e: InputCalendarEvent) => {
-        return e.id === newEvent.id
-      })
-      if (newAvailDuration !== 0) newEvents.push(newEvent)
-      let idAvailsToUpdate: number[] = []
-      let oldDurationTotal: number = 0
-      let bigger: boolean = newAvailDuration - oldAvailDuration > 0
+        oldAvailDuration === newAvailDuration &&
+        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDayMinutes * 60
+      ) {
+        eventsModel.value = newEvents
+        currentAvailId = -1
+        return
+      }
+      const bigger: boolean = newAvailDuration - oldAvailDuration > 0
       if (bigger) {
-        newEvents.forEach((currentEvent: InputCalendarEvent) => {
-          if (currentEvent.data.dataType === 'avail' && newEvent.id !== currentEvent.id) {
-            if (newEvent.data.start.date === currentEvent.data.start.date) {
-              let diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
-              if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration!) {
-                idAvailsToUpdate.push(currentEvent.id)
-              }
-            }
-          }
-        })
-        for (let k = 0; k < idAvailsToUpdate.length; k++) {
-          let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === idAvailsToUpdate[k]))
-          if (availToUpdate) {
-            let diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
-            oldDurationTotal += availToUpdate.data.duration!
-            if (diffBetweenStarts + availToUpdate.data.duration! <= newEvent.data.duration) {
-              _.remove(newEvents, (e: InputCalendarEvent) => {
-                return e.id === idAvailsToUpdate[k]
-              })
-            } else {
-              let oldTimeAvail = parseTime(getTime(availToUpdate.data.start))
-              updateMinutes(
-                availToUpdate?.data.start,
-                Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
-              )
-              availToUpdate.data.duration! -= parseTime(getTime(availToUpdate.data.start)) - oldTimeAvail
-              _.remove(newEvents, (e: InputCalendarEvent) => {
-                return e.id === availToUpdate!.id
-              })
-              newEvents.push(availToUpdate!)
-            }
-          }
-        }
+        updateResizedUpEvents(newEvents, newEvent)
       } else {
-        let mins = Math.round(parseTime(newEvent.data.start) + newAvailDuration)
-        let availToUpdate: InputCalendarEvent | undefined
-        let i = 0
-        while (!availToUpdate && i < newEvents.length) {
-          if (
-            newEvents[i].data.dataType === 'avail' &&
-            newEvent.id !== newEvents[i].id &&
-            newEvent.data.start.date === newEvents[i].data.start.date &&
-            parseTime(newEvents[i].data.start) === parseTime(newEvent.data.start) + oldAvailDuration
-          ) {
-            availToUpdate = _.cloneDeep(newEvents[i])
-          }
-          i++
-        }
-        if (availToUpdate) {
-          updateMinutes(availToUpdate.data.start, mins)
-          availToUpdate.data.duration! += oldAvailDuration - newAvailDuration
-          _.remove(newEvents, (e) => e.id === availToUpdate!.id)
-          newEvents.push(availToUpdate)
-        }
+        console.log('Coucou')
+        updateResizedDownEvents(newEvents, newEvent)
       }
       eventsModel.value = newEvents
     }
     currentAvailId = -1
+  }
+}
+
+/**
+ * AVAIL REZISE MANAGEMENT
+ */
+
+function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] {
+  oldAvailDuration = newEvent.data.duration as number
+  let newEnd = parseTime(newEvent.data.start) + newAvailDuration
+  if (
+    newEnd > props.endOfDayMinutes * 60 ||
+    (oldAvailDuration > newAvailDuration &&
+      parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayMinutes * 60)
+  )
+    newEnd = props.endOfDayMinutes * 60
+  newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
+  newAvailDuration = newEvent.data.duration
+  const newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
+  _.remove(newEvents, (e: InputCalendarEvent) => {
+    return e.id === newEvent.id
+  })
+  if (newAvailDuration !== 0) newEvents.push(newEvent)
+  return newEvents
+}
+
+function updateResizedUpEvents(newEvents: InputCalendarEvent[], newEvent: InputCalendarEvent): void {
+  const idAvailsToUpdate: number[] = []
+  let oldDurationTotal: number = 0
+  newEvents.forEach((currentEvent: InputCalendarEvent) => {
+    if (currentEvent.data.dataType === 'avail' && newEvent.id !== currentEvent.id) {
+      if (newEvent.data.start.date === currentEvent.data.start.date) {
+        const diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
+        if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration!) {
+          idAvailsToUpdate.push(currentEvent.id)
+        }
+      }
+    }
+  })
+  for (let k = 0; k < idAvailsToUpdate.length; k++) {
+    const availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === idAvailsToUpdate[k]))
+    if (availToUpdate) {
+      const diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
+      oldDurationTotal += availToUpdate.data.duration!
+      if (diffBetweenStarts + availToUpdate.data.duration! <= newEvent.data.duration!) {
+        _.remove(newEvents, (e: InputCalendarEvent) => {
+          return e.id === idAvailsToUpdate[k]
+        })
+      } else {
+        let oldTimeAvail = parseTime(getTime(availToUpdate.data.start))
+        updateMinutes(
+          availToUpdate?.data.start,
+          Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
+        )
+        availToUpdate.data.duration! -= parseTime(getTime(availToUpdate.data.start)) - oldTimeAvail
+        _.remove(newEvents, (e: InputCalendarEvent) => {
+          return e.id === availToUpdate!.id
+        })
+        newEvents.push(availToUpdate!)
+      }
+    }
+  }
+}
+
+function updateResizedDownEvents(newEvents: InputCalendarEvent[], newEvent: InputCalendarEvent) {
+  const mins = Math.round(parseTime(newEvent.data.start) + newAvailDuration)
+  let availToUpdate: InputCalendarEvent | undefined
+  let i = 0
+  while (!availToUpdate && i < newEvents.length) {
+    if (
+      newEvents[i].data.dataType === 'avail' &&
+      newEvent.id !== newEvents[i].id &&
+      newEvent.data.start.date === newEvents[i].data.start.date &&
+      parseTime(newEvents[i].data.start) === parseTime(newEvent.data.start) + oldAvailDuration
+    ) {
+      availToUpdate = _.cloneDeep(newEvents[i])
+    }
+    i++
+  }
+  if (availToUpdate) {
+    updateMinutes(availToUpdate.data.start, mins)
+    availToUpdate.data.duration! += oldAvailDuration - newAvailDuration
+    _.remove(newEvents, (e) => e.id === availToUpdate!.id)
+    newEvents.push(availToUpdate)
   }
 }
 
@@ -771,7 +796,7 @@ function isItOnStep(nbMinutes: number, step: number = STEP_DEFAULT): boolean {
 
 function closestStep(nbMinutes: number, step: number = STEP_DEFAULT): number {
   if (!isItOnStep(nbMinutes)) {
-    let mod = nbMinutes % step
+    const mod = nbMinutes % step
     if (mod < step / 2) {
       if (nbMinutes - mod === 0) return step
       return nbMinutes - mod
@@ -809,13 +834,13 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
       // DoubleClick management
       clearTimeout(timeoutId)
       timeoutId = null
-      let firstAvail = _.cloneDeep(props.events.find((e) => e.id === eventId))
+      const firstAvail = _.cloneDeep(props.events.find((e) => e.id === eventId))
       if (firstAvail) {
         if (firstAvail.data.duration! > (props.step || STEP_DEFAULT)) {
-          let secondAvail = _.cloneDeep(firstAvail)
-          let allEvents = _.cloneDeep(props.events)
+          const secondAvail = _.cloneDeep(firstAvail)
+          const allEvents = _.cloneDeep(props.events)
           //@ts-expect-error
-          let layerY = mouseEvent.layerY
+          const layerY = mouseEvent.layerY
           firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
           updateMinutes(
             secondAvail.data.start,
@@ -840,11 +865,11 @@ function nextId(): number {
 }
 
 function changeAvail(eventId: number, value?: number): void {
-  let newEvent: InputCalendarEvent | undefined = _.cloneDeep(
+  const newEvent: InputCalendarEvent | undefined = _.cloneDeep(
     eventsModel.value.find((ev: InputCalendarEvent) => ev.id == eventId)
   )
   if (newEvent !== undefined && newEvent.data.dataType === 'avail') {
-    let newEvents: InputCalendarEvent[] = _.cloneDeep(eventsModel.value)
+    const newEvents: InputCalendarEvent[] = _.cloneDeep(eventsModel.value)
     if (value || value === 0) {
       newEvent.data.value = value
     } else {
