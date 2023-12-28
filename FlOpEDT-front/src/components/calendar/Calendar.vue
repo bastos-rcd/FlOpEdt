@@ -62,7 +62,6 @@
       :interval-height="28"
       time-clicks-clamped
       :weekdays="weekdays"
-      @click-time="onClickTime"
       :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
       :drag-leave-func="onDragLeave"
@@ -201,7 +200,10 @@ const props = defineProps<{
   dropzones?: InputCalendarEvent[]
   columns: CalendarColumn[]
   endOfDayMinutes: number
+  step?: number
 }>()
+
+const STEP_DEFAULT: number = 15
 
 const emits = defineEmits<{
   (e: 'dragstart', id: number): void
@@ -221,7 +223,6 @@ const preWeight = computed(() => {
 })
 
 const calendar: Ref<QCalendar | null> = ref(null)
-
 /**
  * QCalendar DATA TO DISPLAY
  * * Format the data from the events to match the calendar display,
@@ -692,13 +693,13 @@ function onMouseUp(): void {
           parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayMinutes * 60)
       )
         newEnd = props.endOfDayMinutes * 60
-      newEvent.data.duration = closestStep(newEnd) - parseTime(newEvent.data.start)
+      newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
       newAvailDuration = newEvent.data.duration
       let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
       _.remove(newEvents, (e: InputCalendarEvent) => {
         return e.id === newEvent.id
       })
-      newEvents.push(newEvent)
+      if (newAvailDuration !== 0) newEvents.push(newEvent)
       let idAvailsToUpdate: number[] = []
       let oldDurationTotal: number = 0
       let bigger: boolean = newAvailDuration - oldAvailDuration > 0
@@ -764,14 +765,15 @@ function onMouseUp(): void {
   }
 }
 
-function isItOnStep(nbMinutes: number, step: number = 15): boolean {
+function isItOnStep(nbMinutes: number, step: number = STEP_DEFAULT): boolean {
   return nbMinutes % step === 0
 }
 
-function closestStep(nbMinutes: number, step: number = 15): number {
+function closestStep(nbMinutes: number, step: number = STEP_DEFAULT): number {
   if (!isItOnStep(nbMinutes)) {
     let mod = nbMinutes % step
     if (mod < step / 2) {
+      if (nbMinutes - mod === 0) return step
       return nbMinutes - mod
     } else {
       return nbMinutes + (step - mod)
@@ -779,20 +781,6 @@ function closestStep(nbMinutes: number, step: number = 15): number {
   } else {
     return nbMinutes
   }
-}
-
-function onClickTime(e: any) {
-  if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
-  console.log('Clicked')
-  console.log('layerY:', e)
-  console.log('minutesToPixelRate:', minutesToPixelRate)
-  console.log(
-    (parseTime(e.scope.timestamp.time) + e.event.layerY * minutesToPixelRate) / 60,
-    'h',
-    (parseTime(e.scope.timestamp.time) + e.event.layerY * minutesToPixelRate) % 60,
-    'min'
-  )
-  console.log(e.event.layerY * minutesToPixelRate, 'min')
 }
 
 function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
@@ -818,24 +806,28 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
         timeoutId = null
       }, 200)
     } else {
+      // DoubleClick management
       clearTimeout(timeoutId)
       timeoutId = null
       let firstAvail = _.cloneDeep(props.events.find((e) => e.id === eventId))
       if (firstAvail) {
-        let secondAvail = _.cloneDeep(firstAvail)
-        let allEvents = _.cloneDeep(props.events)
-        //@ts-expect-error
-        let layerY = mouseEvent.layerY
-        firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY)
-        updateMinutes(
-          secondAvail.data.start,
-          parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY)
-        )
-        secondAvail.id = nextId()
-        secondAvail.data.duration! -= firstAvail.data.duration
-        _.remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
-        allEvents.push(firstAvail, secondAvail)
-        eventsModel.value = allEvents
+        if (firstAvail.data.duration! > (props.step || STEP_DEFAULT)) {
+          let secondAvail = _.cloneDeep(firstAvail)
+          let allEvents = _.cloneDeep(props.events)
+          //@ts-expect-error
+          let layerY = mouseEvent.layerY
+          firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
+          updateMinutes(
+            secondAvail.data.start,
+            parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY, props.step)
+          )
+          secondAvail.id = nextId()
+          secondAvail.data.duration! -= firstAvail.data.duration
+          _.remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
+          allEvents.push(firstAvail, secondAvail)
+          eventsModel.value = allEvents
+        } else {
+        }
       }
     }
   }

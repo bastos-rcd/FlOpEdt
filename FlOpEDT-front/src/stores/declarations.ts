@@ -66,14 +66,6 @@ export interface Room {
 // Association groupe - colonnes ? NON
 // Record<number, number[]>  // groupId -> columnIds
 
-// Course {
-//   id: number
-//   no: number
-//   tutorId: number
-//   suppTutorIds: number[]
-//   moduleId: number
-// }
-
 export interface TrainingProgramme {
   id: number
   name: string
