@@ -45,10 +45,11 @@ import {
 import { filter } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
-import { Room } from '@/stores/declarations'
+import { Module, Room } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
 import { matBatteryFull } from '@quasar/extras/material-icons'
+import { usePermanentStore } from '@/stores/timetable/permanent'
 
 /**
  * Data translated to be passed to components
@@ -71,9 +72,11 @@ const groupStore = useGroupStore()
 const columnStore = useColumnStore()
 const scheduledCourseStore = useScheduledCourseStore()
 const roomStore = useRoomStore()
+const permanentStore = usePermanentStore()
 const { courses } = storeToRefs(scheduledCourseStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
+const { modules } = storeToRefs(permanentStore)
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const selectedRoom = ref<Room>()
@@ -81,9 +84,10 @@ const selectedRoom = ref<Room>()
 watchEffect(() => {
   calendarEvents.value = courses.value
     .map((c) => {
+      const module: Module | undefined = modules.value.find((m) => m.id === c.module)
       const currentEvent: InputCalendarEvent = {
         id: id++,
-        title: c.module ? c.module.toString() : 'Cours',
+        title: module ? module.abbrev : 'Cours',
         toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
         bgcolor: id % 2 === 0 ? 'red' : 'blue',
         columnIds: [],
@@ -117,7 +121,9 @@ function fetchScheduledCurrentWeek(from: Date, to: Date) {
 }
 
 function changeDate(newDate: Timestamp) {
-  const newMonday = updateFormatted(relativeDays(copyTimestamp(newDate), prevDay, newDate.weekday - 1 || 6))
+  let newMonday: Timestamp
+  if (newDate.weekday === 1) newMonday = copyTimestamp(newDate)
+  else newMonday = updateFormatted(relativeDays(copyTimestamp(newDate), prevDay, newDate.weekday - 1 || 6))
   const newSunday = updateFormatted(relativeDays(copyTimestamp(newMonday), nextDay, 6))
   fetchScheduledCurrentWeek(makeDate(newMonday), makeDate(newSunday))
 }
@@ -135,6 +141,7 @@ onBeforeMount(async () => {
   tutorStore.fetchTutors(deptStore.current)
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
   groupStore.fetchGroups(deptStore.current)
+  permanentStore.fetchModules()
 })
 </script>
 
