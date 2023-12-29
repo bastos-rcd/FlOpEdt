@@ -95,7 +95,7 @@ watchEffect(() => {
         },
       }
       c.groupIds.forEach((courseGroup) => {
-        const currentGroup = groupStore.fetchedStructuralGroups.find((g) => g.id === courseGroup)
+        const currentGroup = groupStore.groups.find((g) => g.id === courseGroup)
         if (currentGroup) {
           currentGroup.columnIds.forEach((cI) => {
             currentEvent.columnIds.push(cI)

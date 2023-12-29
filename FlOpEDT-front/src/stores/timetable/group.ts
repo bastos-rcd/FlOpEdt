@@ -1,8 +1,9 @@
 import { Department, GroupAPI } from '@/ts/type'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { Group, User } from '@/stores/declarations'
+import { Group } from '@/stores/declarations'
 import { api } from '@/utils/api'
+import _ from 'lodash'
 
 /**
  * This store is a work in progress,
@@ -14,151 +15,7 @@ export const useGroupStore = defineStore('group', () => {
   const isAllGroupsFetched = ref<boolean>(false)
   const fetchedTransversalGroups = ref<Group[]>([])
   const fetchedStructuralGroups = ref<Group[]>([])
-  const groups = ref<Group[]>([
-    {
-      id: 31,
-      name: 'CE',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [36, 37, 38, 39, 40, 41, 42, 43],
-      parentsId: [],
-    },
-    {
-      id: 32,
-      name: '1',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [36, 37],
-      parentsId: [31],
-    },
-    {
-      id: 33,
-      name: '2',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [38, 39],
-      parentsId: [31],
-    },
-    {
-      id: 34,
-      name: '3',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [40, 41],
-      parentsId: [31],
-    },
-    {
-      id: 35,
-      name: '4',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [42, 43],
-      parentsId: [31],
-    },
-    {
-      id: 36,
-      name: '1A',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [36],
-      parentsId: [32],
-    },
-    {
-      id: 37,
-      name: '1B',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [37],
-      parentsId: [32],
-    },
-    {
-      id: 38,
-      name: '2A',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [38],
-      parentsId: [33],
-    },
-    {
-      id: 39,
-      name: '2B',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [39],
-      parentsId: [33],
-    },
-    {
-      id: 40,
-      name: '3A',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [40],
-      parentsId: [34],
-    },
-    {
-      id: 41,
-      name: '3B',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [41],
-      parentsId: [34],
-    },
-    {
-      id: 42,
-      name: '4A',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [42],
-      parentsId: [35],
-    },
-    {
-      id: 43,
-      name: '4B',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      conflictingGroupIds: [],
-      parallelGroupIds: [],
-      columnIds: [43],
-      parentsId: [35],
-    },
-  ])
+  const groups = ref<Group[]>([])
 
   async function fetchGroups(department: Department): Promise<void> {
     clearGroups()
@@ -195,6 +52,8 @@ export const useGroupStore = defineStore('group', () => {
         } as Group
         fetchedTransversalGroups.value.push(newGp)
       })
+      populateTransversalsColumnIds(fetchedTransversalGroups.value, fetchedStructuralGroups.value)
+      groups.value = _.concat(fetchedStructuralGroups.value, fetchedTransversalGroups.value)
       isAllGroupsFetched.value = true
     })
   }
@@ -202,6 +61,17 @@ export const useGroupStore = defineStore('group', () => {
   function clearGroups(): void {
     fetchedStructuralGroups.value = []
     fetchedTransversalGroups.value = []
+  }
+
+  function populateTransversalsColumnIds(groups: Group[], structurals: Group[]): void {
+    groups.forEach((gp: Group) => {
+      gp.conflictingGroupIds.forEach((cgId: number) => {
+        const conflictingGroup: Group | undefined = structurals.find((gpConf) => gpConf.id === cgId)
+        if (conflictingGroup) {
+          conflictingGroup.columnIds.forEach((id) => gp.columnIds.push(id))
+        }
+      })
+    })
   }
 
   function populateGroupsColumnIds(groups: Group[]): Group[] {
