@@ -177,6 +177,7 @@ export interface TrainingProgrammeAPI {
   id: number
   abbrev: string
   name: string
+  department_id: number
 }
 
 export interface UserAPI {
@@ -233,4 +234,7 @@ export interface ModuleAPI {
   id: number
   abbrev: string
   name: string
+  head_id: number
+  train_prog_id: number
+  description: string
 }

@@ -43,8 +43,8 @@ const urls = {
   weeks: 'base/weeks',
   getGroups: 'v1/base/groups/structural_groups',
   getTransversalGroups: 'v1/base/groups/transversal_groups',
-  getModules: 'fetch/idmodule',
-  getTrainProgs: 'fetch/idtrainprog',
+  getModules: 'v1/base/courses/modules',
+  getTrainProgs: 'v1/base/groups/training_programmes',
   getPrefsByWeek: 'preferences/user-actual',
 }
 
@@ -138,12 +138,12 @@ export interface FlopAPI {
   getScheduledCourses(from?: Date, to?: Date, department?: string, tutor?: number): Promise<Array<ScheduledCourse>>
   getStructuralGroups(department?: string): Promise<GroupAPI[]>
   getTransversalGroups(department?: string): Promise<GroupAPI[]>
-  getModules(department?: Department): Promise<ModuleAPI[]>
+  getModules(): Promise<ModuleAPI[]>
   getCurrentUser(): Promise<User>
   getAllDepartments(): Promise<Array<Department>>
   getTutors(department?: Department): Promise<Array<UserAPI>>
   getTutorById(id: number): Promise<UserAPI>
-  getTrainProgs(): Promise<TrainingProgrammeAPI[]>
+  getTrainProgs(department?: string): Promise<TrainingProgrammeAPI[]>
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
   getRoomById(id: number): Promise<RoomAPI>
   getPreferencesForWeek(userId: number, week: number, year: number): Promise<Array<AvailabilityBack>>
@@ -300,8 +300,10 @@ const api: FlopAPI = {
       })
     return groups
   },
-  async getTrainProgs(): Promise<TrainingProgrammeAPI[]> {
+  async getTrainProgs(department?: string): Promise<TrainingProgrammeAPI[]> {
     let trainProgs: Array<TrainingProgrammeAPI> = []
+    let finalUrl: string = API_ENDPOINT + urls.getTrainProgs
+    if (department) finalUrl += '/?dept=' + department
     await fetch(API_ENDPOINT + urls.getTrainProgs, {
       method: 'GET',
       credentials: 'same-origin',

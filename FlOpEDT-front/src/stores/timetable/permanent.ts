@@ -3,6 +3,7 @@ import { Module, TrainingProgramme } from '@/stores/declarations'
 import { ref } from 'vue'
 import { api } from '@/utils/api'
 import { ModuleAPI, TrainingProgrammeAPI } from '@/ts/type'
+import { useDepartmentStore } from '../department'
 
 export const usePermanentStore = defineStore('permanent', () => {
   const trainProgs = ref<TrainingProgramme[]>([])
@@ -10,16 +11,17 @@ export const usePermanentStore = defineStore('permanent', () => {
   const isTrainProgsFetched = ref<boolean>(false)
   const isModulesFetched = ref<boolean>(false)
   const loadingError = ref<Error | null>(null)
+  const departmentStore = useDepartmentStore()
 
   async function fetchTrainingProgrammes() {
     try {
-      await api.getTrainProgs().then((result: TrainingProgrammeAPI[]) => {
+      await api.getTrainProgs(departmentStore.current.abbrev).then((result: TrainingProgrammeAPI[]) => {
         result.forEach((tp: any) => {
           trainProgs.value.push({
             id: tp.id,
             name: tp.name,
             abbrev: tp.abbrev,
-            departmentId: -1, // Not in API call
+            departmentId: tp.department_id,
           })
         })
       })
@@ -34,13 +36,13 @@ export const usePermanentStore = defineStore('permanent', () => {
       await api.getModules().then((result) => {
         result.forEach((mod: ModuleAPI) => {
           modules.value.push({
-            id: mod.id, // Not in API call
+            id: mod.id,
             name: mod.name,
             abbrev: mod.abbrev,
-            headId: -1, // string in API call
+            headId: mod.head_id,
             url: '',
-            trainProgId: -1, // string in API call
-            description: '', // not in API call
+            trainProgId: mod.train_prog_id,
+            description: mod.description,
           })
         })
       })

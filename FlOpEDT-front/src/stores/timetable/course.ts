@@ -51,18 +51,13 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   async function updateScheduledCourses(course: CourseFront) {
     let scheduledCourse: ScheduledCourse | undefined = scheduledCourses.value.find((sc) => sc.id === course.id)
     if (scheduledCourse) {
-      // graded: TODO
-      // roomTypeId: TODO
       scheduledCourse.roomId = course.room
       scheduledCourse.start_time = makeDate(course.start)
       scheduledCourse.end_time = makeDate(course.end)
       scheduledCourse.tutor = course.tutorId
       scheduledCourse.suppTutorsIds = course.suppTutorIds
       scheduledCourse.groupIds = course.groupIds
-      // scheduledCourse.module TODO
-      // scheduledCourse.courseTypeId TODO
-      // scheduledCourse.roomTypeId TODO
-      // scheduledCourse.workCopy TODO ?
+      scheduledCourse.moduleId = course.module
       _.remove(scheduledCourses.value, (sc) => sc.id === course.id)
       scheduledCourses.value.push(scheduledCourse)
     }
@@ -98,18 +93,12 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     let scheduledCourse: ScheduledCourse | undefined = scheduledCourses.value.find((sc) => sc.id === course.id)
     if (scheduledCourse) {
       scheduledCourse.roomId = course.room
-      scheduledCourse.suppTutorsIds = course.suppTutorIds
       scheduledCourse.moduleId = course.module
-      scheduledCourse.groupIds = course.groupIds
       scheduledCourse.start_time = makeDate(course.start)
       scheduledCourse.end_time = makeDate(course.end)
       scheduledCourse.tutor = course.tutorId
-      // scheduledCourse.suppTutorIds TODO
-      // scheduledCourse.module TODO
-      // scheduledCourse.groupIds TODO with groupstore or APIcall
-      // scheduledCourse.courseTypeId TODO
-      // scheduledCourse.roomTypeId TODO
-      // scheduledCourse.workCopy TODO ?
+      course.suppTutorIds.forEach((id) => scheduledCourse!.suppTutorsIds.push(id))
+      course.groupIds.forEach((id) => scheduledCourse!.groupIds.push(id))
       return scheduledCourse
     } else {
       // TODO Call API to retrieve the scheduledCourse not in store
