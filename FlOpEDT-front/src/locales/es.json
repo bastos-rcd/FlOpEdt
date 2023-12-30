@@ -71,5 +71,9 @@
     "roomcalendar": {
       "room-label": "Sala"
     }
+  },
+  "header": {
+    "logged-in": "Ha iniciado sesión como ",
+    "logged-out": "No ha iniciado sesión"
   }
 }

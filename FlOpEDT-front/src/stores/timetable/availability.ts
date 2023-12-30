@@ -12,10 +12,10 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
 
-  async function fetchUserPreferences(userId: number, week: number, year: number): Promise<void> {
+  async function fetchUserAvailabilitiesBack(userId: number, from: Date, to: Date): Promise<void> {
     isLoading.value = true
     try {
-      await api.getPreferencesForWeek(userId, week, year).then((result) => {
+      await api.getAvailabilities(userId, from, to).then((result) => {
         availabilitiesBack.value = result
         isLoading.value = false
         availabilitiesBack.value.forEach((availabilityBack) => {
@@ -29,12 +29,12 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
-    let start: Timestamp = dateToTimestamp(availabilityBack.start)
+    let start: Timestamp = dateToTimestamp(availabilityBack.start_time)
     let newAvailability: Availability = {
       id: availabilityBack.id,
-      type: availabilityBack.type,
+      type: availabilityBack.av_type,
       //@ts-expect-error
-      duration: (availabilityBack.end - availabilityBack.start) / 1000 / 60,
+      duration: (availabilityBack.end_time - availabilityBack.start_time) / 1000 / 60,
       start: start,
       value: availabilityBack.value,
       dataId: availabilityBack.dataId,
@@ -46,10 +46,10 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     let startCopy = copyTimestamp(availability.start)
     let newAvailabilityBack: AvailabilityBack = {
       id: availability.id,
-      start: timestampToDate(availability.start),
-      end: timestampToDate(updateMinutes(startCopy, availability.duration + parseTime(startCopy))),
+      start_time: timestampToDate(availability.start),
+      end_time: timestampToDate(updateMinutes(startCopy, availability.duration + parseTime(startCopy))),
       value: availability.value,
-      type: availability.type,
+      av_type: availability.type,
       dataId: availability.dataId,
     }
     return newAvailabilityBack
@@ -58,6 +58,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   return {
     availabilityBackToAvailability,
     availabilityToAvailabilityBack,
-    fetchUserPreferences,
+    fetchUserAvailabilitiesBack,
+    availabilities,
   }
 })

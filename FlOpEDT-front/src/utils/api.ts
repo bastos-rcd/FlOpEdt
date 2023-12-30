@@ -45,7 +45,7 @@ const urls = {
   getTransversalGroups: 'v1/base/groups/transversal_groups',
   getModules: 'v1/base/courses/modules',
   getTrainProgs: 'v1/base/groups/training_programmes',
-  getPrefsByWeek: 'preferences/user-actual',
+  getAvailability: 'v1/availability/user-actual',
 }
 
 function getCookie(name: string) {
@@ -146,7 +146,7 @@ export interface FlopAPI {
   getTrainProgs(department?: string): Promise<TrainingProgrammeAPI[]>
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
   getRoomById(id: number): Promise<RoomAPI>
-  getPreferencesForWeek(userId: number, week: number, year: number): Promise<Array<AvailabilityBack>>
+  getAvailabilities(userId: number, from: Date, to: Date): Promise<Array<AvailabilityBack>>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
@@ -160,6 +160,15 @@ export interface FlopAPI {
     reservationPeriodicity(id: number): Promise<unknown>
     roomReservation(id: number): Promise<unknown>
   }
+}
+
+function dateToString(date: Date): string {
+  let dateString: string = date.getFullYear() + '-'
+  if (date.getMonth() + 1 < 10) dateString += '0' + (date.getMonth() + 1) + '-'
+  else dateString += date.getMonth() + 1 + '-'
+  if (date.getDate() < 10) dateString += '0' + date.getDate()
+  else dateString += date.getDate()
+  return dateString
 }
 
 const api: FlopAPI = {
@@ -182,11 +191,7 @@ const api: FlopAPI = {
         finalUrl += '?'
         firstParam = true
       }
-      finalUrl += 'from_date=' + from.getFullYear() + '-'
-      if (from.getMonth() + 1 < 10) finalUrl += '0' + (from.getMonth() + 1) + '-'
-      else finalUrl += from.getMonth() + 1 + '-'
-      if (from.getDate() < 10) finalUrl += '0' + from.getDate()
-      else finalUrl += from.getDate()
+      finalUrl += 'from_date=' + dateToString(from)
     }
     if (to) {
       if (firstParam) finalUrl += '&'
@@ -194,11 +199,7 @@ const api: FlopAPI = {
         finalUrl += '?'
         firstParam = true
       }
-      finalUrl += 'to_date=' + to.getFullYear() + '-'
-      if (to.getMonth() + 1 < 10) finalUrl += '0' + (to.getMonth() + 1) + '-'
-      else finalUrl += to.getMonth() + 1 + '-'
-      if (to.getDate() < 10) finalUrl += '0' + to.getDate()
-      else finalUrl += to.getDate()
+      finalUrl += 'to_date=' + dateToString(to)
     }
     if (tutor && tutor !== -1) {
       if (firstParam) finalUrl += '&'
@@ -498,13 +499,23 @@ const api: FlopAPI = {
     return room
   },
   //TODO change userName for userId
-  async getPreferencesForWeek(userId: number, week: number, year: number): Promise<Array<AvailabilityBack>> {
-    let preferences: AvailabilityBack[] = []
-    await fetch(API_ENDPOINT + urls.getPrefsByWeek + '/?user=' + userId + '&week_number=' + week + '&year=' + year, {
-      method: 'GET',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-    })
+  async getAvailabilities(userId: number, from: Date, to: Date): Promise<Array<AvailabilityBack>> {
+    let availabilities: AvailabilityBack[] = []
+    await fetch(
+      API_ENDPOINT +
+        urls.getAvailability +
+        '/?user_id=' +
+        userId +
+        '&from_date=' +
+        dateToString(from) +
+        '&to_date=' +
+        dateToString(to),
+      {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    )
       .then(async (response) => {
         if (!response.ok) {
           return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
@@ -512,14 +523,14 @@ const api: FlopAPI = {
         await response
           .json()
           .then((data) => {
-            data.forEach((pref: any) => {
-              preferences.push({
-                id: pref.id,
-                type: 'userAvail',
-                start: new Date(pref.start_time),
-                end: new Date(pref.end_time),
-                dataId: pref.userId,
-                value: pref.value,
+            data.forEach((avail: any) => {
+              availabilities.push({
+                id: avail.id,
+                av_type: avail.av_type,
+                start_time: new Date(avail.start_time),
+                end_time: new Date(avail.end_time),
+                dataId: userId,
+                value: avail.value,
               })
             })
           })
@@ -530,7 +541,7 @@ const api: FlopAPI = {
       .catch((error) => {
         console.log(error.message)
       })
-    return preferences
+    return availabilities
   },
   fetch: {
     booleanRoomAttributes() {

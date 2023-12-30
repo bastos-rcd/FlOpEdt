@@ -181,6 +181,7 @@ import {
   nextDay,
   getTime,
   updateFormatted,
+  relativeDays,
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
@@ -228,7 +229,9 @@ const calendar: Ref<QCalendar | null> = ref(null)
  * * Format the data from the events to match the calendar display,
  * * Functions to compute the style to render for each event
  */
-const selectedDate = ref<string>(today())
+const selectedDate = ref<string>(
+  updateFormatted(relativeDays(parseTimestamp(today())!, prevDay, parseTimestamp(today())!.weekday - 1 || 6)).date
+)
 
 watch(selectedDate, () => {
   console.log(updateFormatted(parsed(selectedDate.value) as Timestamp))

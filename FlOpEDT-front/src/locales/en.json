@@ -71,5 +71,9 @@
     "roomcalendar": {
       "room-label": "Room"
     }
+  },
+  "header": {
+    "logged-in": "You're logged in as ",
+    "logged-out": "You're not logged in"
   }
 }

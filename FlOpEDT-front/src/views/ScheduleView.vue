@@ -1,18 +1,22 @@
 <template>
-  <q-btn
-    round
-    color="primary"
-    :icon="matBatteryFull"
-    style="margin: 5px"
-    @click="availabilityToggle = !availabilityToggle"
-  />
-  <FilterSelector
-    :items="roomsFetched"
-    filter-selector-undefined-label="Select a room"
-    v-model:selected-items="selectedRoom"
-    :multiple="false"
-    item-variable-name="name"
-  />
+  <div class="header">
+    <FilterSelector
+      :items="roomsFetched"
+      filter-selector-undefined-label="Room Selection"
+      v-model:selected-items="selectedRoom"
+      :multiple="false"
+      item-variable-name="name"
+      style="flex-grow: 2; max-width: 20%"
+    />
+    <q-btn
+      v-if="authStore.isUserAuthenticated"
+      round
+      color="primary"
+      :icon="matBatteryFull"
+      style="margin: 5px"
+      @click="availabilityToggle = !availabilityToggle"
+    />
+  </div>
   <Calendar
     v-model:events="calendarEvents"
     :columns="columnsToDisplay"
@@ -50,6 +54,8 @@ import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
 import { matBatteryFull } from '@quasar/extras/material-icons'
 import { usePermanentStore } from '@/stores/timetable/permanent'
+import { useAuth } from '@/stores/auth'
+import { useAvailabilityStore } from '@/stores/timetable/availability'
 
 /**
  * Data translated to be passed to components
@@ -72,7 +78,10 @@ const groupStore = useGroupStore()
 const columnStore = useColumnStore()
 const scheduledCourseStore = useScheduledCourseStore()
 const roomStore = useRoomStore()
+const authStore = useAuth()
+const availabilityStore = useAvailabilityStore()
 const permanentStore = usePermanentStore()
+const { availabilities } = storeToRefs(availabilityStore)
 const { courses } = storeToRefs(scheduledCourseStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
@@ -80,16 +89,25 @@ const { modules } = storeToRefs(permanentStore)
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const selectedRoom = ref<Room>()
+const moduleColor: Map<number, string> = new Map<number, string>()
+
+watchEffect(() => {
+  if (modules.value.length > 0) {
+    attributeColorToModule()
+  }
+})
 
 watchEffect(() => {
   calendarEvents.value = courses.value
     .map((c) => {
       const module: Module | undefined = modules.value.find((m) => m.id === c.module)
+      let color: string | undefined
+      if (module) color = moduleColor.get(module.id)
       const currentEvent: InputCalendarEvent = {
         id: id++,
         title: module ? module.abbrev : 'Cours',
         toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
-        bgcolor: id % 2 === 0 ? 'red' : 'blue',
+        bgcolor: color ? color : 'blue',
         columnIds: [],
         data: {
           dataId: c.id,
@@ -120,12 +138,18 @@ function fetchScheduledCurrentWeek(from: Date, to: Date) {
   scheduledCourseStore.fetchScheduledCourses((from = from), (to = to), deptStore.current.id)
 }
 
+function fetchAvailCurrentWeek(from: Date, to: Date) {
+  availabilityStore.fetchUserAvailabilitiesBack(authStore.getUser.id, from, to)
+  console.log('id: ', authStore.getUser.id)
+}
+
 function changeDate(newDate: Timestamp) {
   let newMonday: Timestamp
   if (newDate.weekday === 1) newMonday = copyTimestamp(newDate)
   else newMonday = updateFormatted(relativeDays(copyTimestamp(newDate), prevDay, newDate.weekday - 1 || 6))
   const newSunday = updateFormatted(relativeDays(copyTimestamp(newMonday), nextDay, 6))
   fetchScheduledCurrentWeek(makeDate(newMonday), makeDate(newSunday))
+  fetchAvailCurrentWeek(makeDate(newMonday), makeDate(newSunday))
 }
 
 /**
@@ -137,12 +161,31 @@ onBeforeMount(async () => {
     makeDate(todayDate),
     makeDate(updateFormatted(relativeDays(todayDate, nextDay, todayDate.weekday - 1 || 6)))
   )
+  fetchAvailCurrentWeek(
+    makeDate(todayDate),
+    makeDate(updateFormatted(relativeDays(todayDate, nextDay, todayDate.weekday - 1 || 6)))
+  )
   roomStore.fetchRooms()
   tutorStore.fetchTutors(deptStore.current)
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
   groupStore.fetchGroups(deptStore.current)
   permanentStore.fetchModules()
 })
+
+function attributeColorToModule(): void {
+  moduleColor.clear() // Clear the map to avoid duplicates
+  modules.value.forEach((mod: Module) => {
+    const colorValue =
+      'rgb(' +
+      Math.ceil(Math.random() * 255) +
+      ',' +
+      Math.ceil(Math.random() * 255) +
+      ',' +
+      Math.ceil(Math.random() * 255) +
+      ')'
+    moduleColor.set(mod.id, colorValue)
+  })
+}
 </script>
 
 <style scoped>
@@ -151,5 +194,9 @@ onBeforeMount(async () => {
 }
 .nac {
   background-color: rgb(133, 34, 34);
+}
+.header {
+  display: flex;
+  justify-content: space-between;
 }
 </style>

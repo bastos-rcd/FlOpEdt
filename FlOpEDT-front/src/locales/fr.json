@@ -71,5 +71,9 @@
     "roomcalendar": {
       "room-label": "Salle"
     }
+  },
+  "header": {
+    "logged-in": "Vous êtes connecté en tant que ",
+    "logged-out": "Vous n'êtes pas connecté"
   }
 }
