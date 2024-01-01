@@ -454,7 +454,9 @@ class ConsiderDependencies(TTConstraint):
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem"""
         dependencies = self.considered_dependecies().filter(course1__week=week, course2__week=week)
         jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year} }
-        no_user_pref1 = no_user_pref2 = not ConsiderTutorsUnavailability.objects.filter(Q(weeks=week)|Q(weeks__isnull=True)).exists()
+        no_user_pref1 = no_user_pref2 = not ConsiderTutorsUnavailability.objects.filter(Q(weeks=week)|Q(weeks__isnull=True),
+                                                                                        weight=None, is_active=True,
+                                                                                        department=self.department).exists()
         for dependency in dependencies:
             ok_so_far = True
             # Setting up partitions with data about other constraints for both courses
