@@ -185,7 +185,6 @@ import {
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
-import { Availability } from '@/stores/declarations'
 /**
  * Calendar component handling the display of a week with
  * events data in it.
@@ -203,6 +202,7 @@ const props = defineProps<{
   columns: CalendarColumn[]
   endOfDayMinutes: number
   step?: number
+  availEdition?: boolean
 }>()
 
 const STEP_DEFAULT: number = 15
@@ -687,34 +687,6 @@ const availResizeObs = new ResizeObserver((entries) => {
   }
 })
 
-function onMouseUp(): void {
-  if (currentAvailId !== -1) {
-    availResizeObs.disconnect()
-    const newEvent: InputCalendarEvent = _.cloneDeep(
-      props.events.find((e) => currentAvailId === e.id) as InputCalendarEvent
-    )
-    if (newEvent) {
-      const newEvents: InputCalendarEvent[] = updateResizedEvent(newEvent)
-      if (
-        oldAvailDuration === newAvailDuration &&
-        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDayMinutes * 60
-      ) {
-        eventsModel.value = newEvents
-        currentAvailId = -1
-        return
-      }
-      const bigger: boolean = newAvailDuration - oldAvailDuration > 0
-      if (bigger) {
-        updateResizedUpEvents(newEvents, newEvent)
-      } else {
-        updateResizedDownEvents(newEvents, newEvent)
-      }
-      eventsModel.value = newEvents
-    }
-    currentAvailId = -1
-  }
-}
-
 /**
  * AVAIL REZISE MANAGEMENT
  */
@@ -840,7 +812,7 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
   if (mouseEvent.button === 0) {
     if (!timeoutId) {
       timeoutId = setTimeout(() => {
-        changeAvail(eventId)
+        if (!props.availEdition) changeAvail(eventId)
         clearTimeout(timeoutId)
         timeoutId = null
       }, 200)
@@ -869,6 +841,45 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
         }
       }
     }
+  }
+}
+
+function onMouseUp(): void {
+  if (currentAvailId !== -1) {
+    availResizeObs.disconnect()
+    const newEvent: InputCalendarEvent = _.cloneDeep(
+      props.events.find((e) => currentAvailId === e.id) as InputCalendarEvent
+    )
+    if (newEvent) {
+      const newEvents: InputCalendarEvent[] = updateResizedEvent(newEvent)
+      if (
+        oldAvailDuration === newAvailDuration &&
+        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDayMinutes * 60
+      ) {
+        eventsModel.value = newEvents
+        currentAvailId = -1
+        return
+      }
+      const bigger: boolean = newAvailDuration - oldAvailDuration > 0
+      if (bigger) {
+        updateResizedUpEvents(newEvents, newEvent)
+        const nextAvail: InputCalendarEvent | undefined = newEvents.find((e) => {
+          return (
+            e.data.start.date === newEvent.data.start.date &&
+            parseTime(e.data.start) === parseTime(newEvent.data.start) + newEvent.data.duration &&
+            e.data.dataType === 'avail'
+          )
+        })
+        if (nextAvail && nextAvail.data.value === newEvent.data.value) {
+          newEvent.data.duration! += nextAvail.data.duration!
+          _.remove(newEvents, (e) => e.id === nextAvail.id)
+        }
+      } else {
+        updateResizedDownEvents(newEvents, newEvent)
+      }
+      eventsModel.value = newEvents
+    }
+    currentAvailId = -1
   }
 }
 
