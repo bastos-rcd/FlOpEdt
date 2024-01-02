@@ -17,7 +17,7 @@ describe('Availibility store utils', () => {
       duration: 20,
       start: parseTimestamp('2023-10-14 14:30') as Timestamp,
       value: 3,
-      type: 'userPref',
+      type: 'user',
       dataId: 40,
     }
     const availabilityBack = availabilityStore.availabilityToAvailabilityBack(availability)
@@ -27,7 +27,7 @@ describe('Availibility store utils', () => {
     expect(availabilityBack.start_time.getDate()).toBe(14)
     expect(availabilityBack.start_time.getHours()).toBe(14)
     expect(availabilityBack.start_time.getMinutes()).toBe(30)
-    expect(availabilityBack.av_type).toBe('userPref')
+    expect(availabilityBack.av_type).toBe('user')
     expect(availabilityBack.dataId).toBe(40)
     expect(availabilityBack.end_time.getDay()).toBe(6)
     expect(availabilityBack.end_time.getDate()).toBe(14)
@@ -43,7 +43,7 @@ describe('Availibility store utils', () => {
       start_time: new Date('2017-01-15 14:30'),
       end_time: new Date('2017-01-15 18:00'),
       value: 0,
-      av_type: 'userPref',
+      av_type: 'user',
       dataId: 10,
     }
 
@@ -55,7 +55,7 @@ describe('Availibility store utils', () => {
     expect(availability.id).toBe(1)
     expect(availability.value).toBe(0)
     expect(availability.dataId).toBe(10)
-    expect(availability.type).toBe('userPref')
+    expect(availability.type).toBe('user')
   })
 
   it('Transforms an Availibility in Preference and back', () => {
@@ -66,7 +66,7 @@ describe('Availibility store utils', () => {
       duration: 60,
       start: parseTimestamp('2020-05-01 14:30') as Timestamp,
       value: 3,
-      type: 'userPref',
+      type: 'user',
       dataId: 22,
     }
     const availabilityBack: AvailabilityBack = availabilityStore.availabilityToAvailabilityBack(availability)
@@ -80,7 +80,7 @@ describe('Availibility store utils', () => {
     expect(availabilityBack.start_time.getDate()).toBe(1)
     expect(availabilityBack.start_time.getHours()).toBe(14)
     expect(availabilityBack.start_time.getMinutes()).toBe(30)
-    expect(availabilityBack.av_type).toBe('userPref')
+    expect(availabilityBack.av_type).toBe('user')
     expect(availabilityBack.dataId).toBe(22)
 
     const newAvailability = availabilityStore.availabilityBackToAvailability(availabilityBack)
@@ -91,7 +91,7 @@ describe('Availibility store utils', () => {
     expect(newAvailability.id).toBe(9)
     expect(newAvailability.value).toBe(3)
     expect(newAvailability.dataId).toBe(22)
-    expect(newAvailability.type).toBe('userPref')
+    expect(newAvailability.type).toBe('user')
   })
 
   it('Transforms a Preference in Availability and back', () => {
@@ -102,7 +102,7 @@ describe('Availibility store utils', () => {
       start_time: new Date('2017-01-15 14:30'),
       end_time: new Date('2017-01-15 18:00'),
       value: 0,
-      av_type: 'userPref',
+      av_type: 'user',
       dataId: 10,
     }
 
@@ -114,7 +114,7 @@ describe('Availibility store utils', () => {
     expect(availability.id).toBe(1)
     expect(availability.value).toBe(0)
     expect(availability.dataId).toBe(10)
-    expect(availability.type).toBe('userPref')
+    expect(availability.type).toBe('user')
 
     const newAvailabilityBack = availabilityStore.availabilityToAvailabilityBack(availability)
     expect(newAvailabilityBack.end_time.getDay()).toBe(0)
@@ -127,7 +127,7 @@ describe('Availibility store utils', () => {
     expect(newAvailabilityBack.start_time.getDate()).toBe(15)
     expect(newAvailabilityBack.start_time.getHours()).toBe(14)
     expect(newAvailabilityBack.start_time.getMinutes()).toBe(30)
-    expect(newAvailabilityBack.av_type).toBe('userPref')
+    expect(newAvailabilityBack.av_type).toBe('user')
     expect(newAvailabilityBack.dataId).toBe(10)
   })
 })

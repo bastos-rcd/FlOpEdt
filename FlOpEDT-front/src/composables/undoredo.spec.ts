@@ -39,7 +39,7 @@ describe('undoredo composable', () => {
       duration: 120,
       start: parseTimestamp('2022-01-25 14:10') as Timestamp,
       value: 3,
-      type: 'tutor',
+      type: 'user',
       dataId: 4,
     })
   })
