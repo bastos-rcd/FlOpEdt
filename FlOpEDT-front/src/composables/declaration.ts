@@ -28,7 +28,6 @@ export interface CourseData {
 
 export interface AvailabilityData {
   start: Timestamp
-  end: Timestamp
   value: number
   duration: number
 }
