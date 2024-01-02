@@ -496,7 +496,6 @@ const availabilityColumn = {
 }
 
 function toggleAvailabilities() {
-  console.log('toggle')
   const excluded = _.remove(useCase4.columns.value, (c) => c.id == availabilityColumn.id)
   if (excluded.length == 0) {
     useCase4.columns.value.push(availabilityColumn)

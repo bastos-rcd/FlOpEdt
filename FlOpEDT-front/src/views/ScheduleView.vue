@@ -56,6 +56,7 @@ import { matBatteryFull } from '@quasar/extras/material-icons'
 import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useAuth } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
+import _ from 'lodash'
 
 /**
  * Data translated to be passed to components
@@ -98,35 +99,55 @@ watchEffect(() => {
 })
 
 watchEffect(() => {
-  calendarEvents.value = courses.value
-    .map((c) => {
-      const module: Module | undefined = modules.value.find((m) => m.id === c.module)
-      let color: string | undefined
-      if (module) color = moduleColor.get(module.id)
+  calendarEvents.value = _.union(
+    courses.value
+      .map((c) => {
+        const module: Module | undefined = modules.value.find((m) => m.id === c.module)
+        let color: string | undefined
+        if (module) color = moduleColor.get(module.id)
+        const currentEvent: InputCalendarEvent = {
+          id: id++,
+          title: module ? module.abbrev : 'Cours',
+          toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
+          bgcolor: color ? color : 'blue',
+          columnIds: [],
+          data: {
+            dataId: c.id,
+            dataType: 'event',
+            start: copyTimestamp(c.start),
+            duration: parseTime(c.end) - parseTime(c.start),
+          },
+        }
+        c.groupIds.forEach((courseGroup) => {
+          const currentGroup = groupStore.groups.find((g) => g.id === courseGroup)
+          if (currentGroup) {
+            currentGroup.columnIds.forEach((cI) => {
+              currentEvent.columnIds.push(cI)
+            })
+          }
+        })
+        return currentEvent
+      })
+      .filter((ce) => ce.columnIds.length > 0),
+    availabilities.value.map((av) => {
       const currentEvent: InputCalendarEvent = {
         id: id++,
-        title: module ? module.abbrev : 'Cours',
-        toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
-        bgcolor: color ? color : 'blue',
+        title: '1',
+        toggled: true,
+        bgcolor: '',
         columnIds: [],
         data: {
-          dataId: c.id,
-          dataType: 'event',
-          start: copyTimestamp(c.start),
-          duration: parseTime(c.end) - parseTime(c.start),
+          dataId: av.id,
+          dataType: 'avail',
+          start: copyTimestamp(av.start),
+          duration: av.duration,
         },
       }
-      c.groupIds.forEach((courseGroup) => {
-        const currentGroup = groupStore.groups.find((g) => g.id === courseGroup)
-        if (currentGroup) {
-          currentGroup.columnIds.forEach((cI) => {
-            currentEvent.columnIds.push(cI)
-          })
-        }
-      })
+      const availColumn = columns.value.find((c) => c.name === 'Avail')
+      if (availColumn) currentEvent.columnIds.push(availColumn.id)
       return currentEvent
     })
-    .filter((ce) => ce.columnIds.length > 0)
+  )
 })
 
 const currentScheduledCourseId = ref<number | null>(null)
