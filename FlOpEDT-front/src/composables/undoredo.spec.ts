@@ -4,7 +4,8 @@ import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { storeToRefs } from 'pinia'
 import { setActivePinia, createPinia } from 'pinia'
 import { Timestamp } from '@quasar/quasar-ui-qcalendar/dist/types/types'
-import { getDateTime, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { getDateTime, parseTimestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { Course } from '@/stores/declarations'
 
 vi.mock('../utils/api.ts')
 
@@ -14,22 +15,38 @@ describe('undoredo composable', () => {
     // up by any useStore() call without having to pass it to it:
     // `useStore(pinia)`
     setActivePinia(createPinia())
+    const scheduledCourseStore = useScheduledCourseStore()
+    const { courses } = storeToRefs(scheduledCourseStore)
+    courses.value.push({
+      id: 65692,
+      no: 1,
+      room: 52,
+      start: parseTimestamp('2023-04-25 14:15') as Timestamp,
+      end: parseTimestamp('2023-04-25 15:20') as Timestamp,
+      tutorId: 43,
+      suppTutorIds: [55, 3],
+      module: 7,
+      groupIds: [422, 623, 552],
+      courseTypeId: 10,
+      roomTypeId: 3,
+      graded: false,
+      workCopy: 1,
+    })
   })
 
-  it.skip('historize an update of a course', () => {
+  it('historize an update of a course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
     const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate } = useUndoredo()
-
-    const courseToUpdate = courses.value.find((sc) => sc.id === 65692)
+    const courseToUpdate = courses.value.find((course) => course.id === 65692)
     addUpdate(
       courseToUpdate!.id as number,
       {
         tutorId: courseToUpdate!.tutorId,
-        start: updateWorkWeek(parsed('2022-01-10 08:20') as Timestamp),
+        start: parseTimestamp('2022-01-10 08:20') as Timestamp,
         end: courseToUpdate!.end,
-        roomId: courseToUpdate?.room || -1,
+        roomId: courseToUpdate!.room,
         suppTutorIds: courseToUpdate!.suppTutorIds,
         graded: courseToUpdate!.graded,
         roomTypeId: courseToUpdate!.roomTypeId,
@@ -45,31 +62,32 @@ describe('undoredo composable', () => {
         tutorId: courseToUpdate!.tutorId,
         start: updateWorkWeek(parsed('2025-01-10 08:15') as Timestamp),
         end: courseToUpdate!.end,
-        roomId: courseToUpdate?.room || -1,
-        suppTutorIds: [],
+        roomId: courseToUpdate!.room,
+        suppTutorIds: [55, 3],
         graded: false,
-        roomTypeId: -1,
-        groupIds: [],
+        roomTypeId: 3,
+        groupIds: [422, 623, 552],
       },
       'course'
     )
     expect(getDateTime(courseToUpdate!.start)).toBe('2025-01-10 08:15')
   })
 
-  it.skip('revert an update of a course', () => {
+  it('revert an update of a course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
     const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate, revertUpdate } = useUndoredo()
 
     const courseToUpdate = courses.value.find((course) => course.id === 65692)
+
     addUpdate(
       courseToUpdate!.id as number,
       {
         tutorId: courseToUpdate!.tutorId,
-        start: updateWorkWeek(parsed('2022-01-10 08:20') as Timestamp),
+        start: parseTimestamp('2022-01-10 08:20') as Timestamp,
         end: courseToUpdate!.end,
-        roomId: courseToUpdate?.room || -1,
+        roomId: courseToUpdate!.room,
         suppTutorIds: courseToUpdate!.suppTutorIds,
         graded: courseToUpdate!.graded,
         roomTypeId: courseToUpdate!.roomTypeId,
@@ -85,7 +103,7 @@ describe('undoredo composable', () => {
     expect(getDateTime(courseToUpdate!.start)).toBe('2023-04-25 14:15')
   })
 
-  it.skip('revert several updates of a course', () => {
+  it('revert several updates of a course', () => {
     expect.assertions(4)
     const scheduledCourseStore = useScheduledCourseStore()
     const { courses } = storeToRefs(scheduledCourseStore)
