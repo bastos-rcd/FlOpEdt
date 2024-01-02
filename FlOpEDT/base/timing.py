@@ -158,6 +158,9 @@ def flopday_to_date(day):
     if day.week is None:
         return date.fromordinal(days_index[day.day])
     nb_leap_year = day.week.year // 4 - day.week.year // 100 + day.week.year // 400
+    # FIXME : this is a hack to fix a problem in 2024 ...?
+    if day.week.year == 2024:
+        nb_leap_year -= 1
     return date.fromordinal((day.week.year-1) * 365 + (day.week.nb-1)*7 + days_index[day.day] + 1 + nb_leap_year + first_day_first_week(day))
 
 
