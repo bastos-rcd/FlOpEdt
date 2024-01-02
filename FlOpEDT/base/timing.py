@@ -163,7 +163,7 @@ def flopday_to_date(day):
         if len(four_digit_year) < 4:
             four_digit_year = (4 - len(four_digit_year)) * '0' + four_digit_year
         day_string = f"{four_digit_year}-{day.week.nb}-{us_day_index}"
-    return datetime.strptime(day_string, "%Y-%W-%w")
+    return datetime.strptime(day_string, "%Y-%W-%w").date()
 
 
 # Takes a starting time and returns the time object corresponding
