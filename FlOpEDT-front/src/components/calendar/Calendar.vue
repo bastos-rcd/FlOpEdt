@@ -481,6 +481,7 @@ function badgeStyles(
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
 const eventDragged = ref<CalendarEvent>()
+let minutesToStartEvent: number = 0
 let minutesToPixelRate: number
 
 /**
@@ -562,7 +563,10 @@ function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
     if (!currentTime.value || currentTime.value.date !== dateTime.date)
       currentTime.value = copyTimestamp(dateTime) as TimestampOrNull
     if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
-    updateMinutes(currentTime.value as Timestamp, Math.round(parseTime(dateTime.time) + layerY * minutesToPixelRate))
+    updateMinutes(
+      currentTime.value as Timestamp,
+      Math.round(parseTime(dateTime.time) + layerY * minutesToPixelRate - minutesToStartEvent)
+    )
   }
 }
 
@@ -572,6 +576,8 @@ function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
  * @param event The event we are currently dragging
  */
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
+  //@ts-expect-error
+  minutesToStartEvent = browserEvent.layerY! * minutesToPixelRate
   currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
   eventDragged.value = _.cloneDeep(event)
