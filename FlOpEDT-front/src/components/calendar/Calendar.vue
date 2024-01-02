@@ -185,6 +185,7 @@ import {
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
+import { Availability } from '@/stores/declarations'
 /**
  * Calendar component handling the display of a week with
  * events data in it.
@@ -706,7 +707,6 @@ function onMouseUp(): void {
       if (bigger) {
         updateResizedUpEvents(newEvents, newEvent)
       } else {
-        console.log('Coucou')
         updateResizedDownEvents(newEvents, newEvent)
       }
       eventsModel.value = newEvents
@@ -721,16 +721,21 @@ function onMouseUp(): void {
 
 function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] {
   oldAvailDuration = newEvent.data.duration as number
+  const newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
   let newEnd = parseTime(newEvent.data.start) + newAvailDuration
-  if (
-    newEnd > props.endOfDayMinutes * 60 ||
-    (oldAvailDuration > newAvailDuration &&
-      parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayMinutes * 60)
-  )
-    newEnd = props.endOfDayMinutes * 60
+  if (newEnd > props.endOfDayMinutes * 60) newEnd = props.endOfDayMinutes * 60
+  else if (
+    oldAvailDuration > newAvailDuration &&
+    parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayMinutes * 60
+  ) {
+    const newAvail: InputCalendarEvent = _.cloneDeep(newEvent)
+    updateMinutes(newAvail.data.start, closestStep(newEnd, props.step))
+    newAvail.id = nextId()
+    newAvail.data.duration = props.endOfDayMinutes * 60 - closestStep(newEnd, props.step)
+    newEvents.push(newAvail)
+  }
   newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
   newAvailDuration = newEvent.data.duration
-  const newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
   _.remove(newEvents, (e: InputCalendarEvent) => {
     return e.id === newEvent.id
   })
