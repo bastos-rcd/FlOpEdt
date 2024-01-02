@@ -156,13 +156,13 @@ def flopdate_to_datetime(day: Day, time):
 #and returns the date object corresponding
 def flopday_to_date(day):
     us_day_index = (days_index[day.day] + 1)%7
-    four_digit_year = str(day.week.year)
-    if len(four_digit_year) < 4:
-        four_digit_year = (4 - len(four_digit_year)) * '0' + four_digit_year
     if day.week is None:
-        day_string = f"1-1-{us_day_index}"
+        day_string = f"0001-1-{us_day_index}"
     else:
-        day_string = f"{day.week.year}-{day.week.nb}-{us_day_index}"
+        four_digit_year = str(day.week.year)
+        if len(four_digit_year) < 4:
+            four_digit_year = (4 - len(four_digit_year)) * '0' + four_digit_year
+        day_string = f"{four_digit_year}-{day.week.nb}-{us_day_index}"
     return datetime.strptime(day_string, "%Y-%W-%w")
 
 
