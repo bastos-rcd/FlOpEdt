@@ -463,14 +463,14 @@ const api: FlopAPI = {
         await response
           .json()
           .then((data) => {
-            data.forEach((pref: any) => {
+            data.forEach((avail: any) => {
               preferences.push({
-                id: pref.id,
-                type: 'userAvail',
-                start: new Date(pref.start_time),
-                end: new Date(pref.end_time),
-                dataId: pref.userId,
-                value: pref.value,
+                id: avail.id,
+                av_type: avail.av_type,
+                start_time: new Date(avail.start_time),
+                end_time: new Date(avail.end_time),
+                dataId: userId,
+                value: avail.value,
               })
             })
           })
