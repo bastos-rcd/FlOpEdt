@@ -106,11 +106,7 @@
                 (isDragging && event.data.dataId === eventDragged?.data.dataId))
             "
           >
-            <div
-              :draggable="event.data.dataType !== 'avail'"
-              @dragstart="onDragStart($event, event)"
-              @mouseup="onMouseUp()"
-            >
+            <div :draggable="event.data.dataType !== 'avail'" @dragstart="onDragStart($event, event)">
               <div
                 v-for="spans in event.spans"
                 :key="event.id"
@@ -118,6 +114,8 @@
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
                 :style="badgeStyles(event, spans, timeStartPos)"
                 @mousedown="onMouseDown($event, event.id)"
+                @mouseup="onMouseUp()"
+                @mouseover="onAvailMouseOver($event, event.id)"
               >
                 <slot name="event" :event="event">
                   <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
@@ -680,6 +678,8 @@ let timeoutId: any = null
 let currentAvailId: number = -1
 let newAvailDuration: number = 0
 let oldAvailDuration: number = 0
+const selectedItems: InputCalendarEvent[] = []
+let selectionAvail: Ref<boolean> = ref(false)
 
 const availResizeObs = new ResizeObserver((entries) => {
   if (calendar.value?.timeDurationHeight) {
@@ -813,6 +813,12 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
     if (!timeoutId) {
       timeoutId = setTimeout(() => {
         if (!props.availEdition) changeAvail(eventId)
+        else {
+          const availSelected = props.events.find((e) => e.id === eventId)
+          selectionAvail.value = true
+          selectedItems.push(availSelected!)
+          availSelected!.toggled = false
+        }
         clearTimeout(timeoutId)
         timeoutId = null
       }, 200)
@@ -837,14 +843,19 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
           _.remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
           allEvents.push(firstAvail, secondAvail)
           eventsModel.value = allEvents
-        } else {
         }
       }
     }
   }
 }
 
+function onAvailMouseOver(event: Event, eventId: number): void {
+  //@ts-expect-error
+  if (selectionAvail.value && _.includes(event.target.className, 'avail')) console.log('Hey ', eventId)
+}
+
 function onMouseUp(): void {
+  selectionAvail.value = false
   if (currentAvailId !== -1) {
     availResizeObs.disconnect()
     const newEvent: InputCalendarEvent = _.cloneDeep(

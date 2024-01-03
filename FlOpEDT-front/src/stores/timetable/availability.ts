@@ -13,6 +13,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   const loadingError = ref<Error | null>(null)
 
   async function fetchUserAvailabilitiesBack(userId: number, from: Date, to: Date): Promise<void> {
+    clearAvailabilities()
     isLoading.value = true
     try {
       await api.getAvailabilities(userId, from, to).then((result) => {
@@ -53,6 +54,11 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
       dataId: availability.dataId,
     }
     return newAvailabilityBack
+  }
+
+  function clearAvailabilities() {
+    availabilities.value = []
+    availabilitiesBack.value = []
   }
 
   return {

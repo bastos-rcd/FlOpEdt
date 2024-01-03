@@ -16,6 +16,14 @@
       style="margin: 5px"
       @click="availabilityToggle = !availabilityToggle"
     />
+    <q-btn
+      v-if="authStore.isUserAuthenticated"
+      round
+      :color="availButtonColor"
+      :icon="matSettings"
+      style="margin: 5px"
+      @click="editMode"
+    />
   </div>
   <Calendar
     v-model:events="calendarEvents"
@@ -23,6 +31,7 @@
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
     :end-of-day-minutes="19"
+    :availEdition="availEdition"
   />
 </template>
 
@@ -52,7 +61,7 @@ import { useRoomStore } from '@/stores/timetable/room'
 import { Module, Room } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
-import { matBatteryFull } from '@quasar/extras/material-icons'
+import { matBatteryFull, matSettings } from '@quasar/extras/material-icons'
 import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useAuth } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
@@ -63,12 +72,19 @@ import _ from 'lodash'
  */
 const calendarEvents = ref<InputCalendarEvent[]>([])
 const availabilityToggle = ref<boolean>(false)
+const availEdition = ref<boolean>(false)
+const availButtonColor = ref<string>('red')
 let id = 1
 
 const columnsToDisplay = computed(() => {
   if (availabilityToggle.value) return columns.value
   return filter(columns.value, (c: CalendarColumn) => c.name !== 'Avail')
 })
+
+function editMode() {
+  availEdition.value = !availEdition.value
+  availButtonColor.value = availEdition.value ? 'secondary' : 'red'
+}
 
 /**
  * API data waiting to be translated in Calendar events
