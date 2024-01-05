@@ -8,6 +8,14 @@
       item-variable-name="name"
       style="flex-grow: 2; max-width: 20%"
     />
+    <FilterSelector
+      :items="fetchedTransversalGroups"
+      filter-selector-undefined-label="Group Selection"
+      v-model:selected-items="selectedGroups"
+      :multiple="true"
+      item-variable-name="name"
+      style="flex-grow: 2; max-width: 20%"
+    />
     <q-btn
       v-if="authStore.isUserAuthenticated"
       round
@@ -16,14 +24,6 @@
       style="margin: 5px"
       @click="availabilityToggle = !availabilityToggle"
     />
-    <q-btn
-      v-if="authStore.isUserAuthenticated"
-      round
-      :color="availButtonColor"
-      :icon="matSettings"
-      style="margin: 5px"
-      @click="editMode"
-    />
   </div>
   <Calendar
     v-model:events="calendarEvents"
@@ -31,14 +31,13 @@
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
     :end-of-day-minutes="19"
-    :availEdition="availEdition"
   />
 </template>
 
 <script setup lang="ts">
 import { CalendarColumn, InputCalendarEvent } from '@/components/calendar/declaration'
 import Calendar from '@/components/calendar/Calendar.vue'
-import { computed, onBeforeMount, ref, watchEffect } from 'vue'
+import { computed, onBeforeMount, ref, watch, watchEffect } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
@@ -58,10 +57,10 @@ import {
 import { filter } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
-import { Module, Room } from '@/stores/declarations'
+import { Group, Module, Room } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
-import { matBatteryFull, matSettings } from '@quasar/extras/material-icons'
+import { matBatteryFull } from '@quasar/extras/material-icons'
 import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useAuth } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
@@ -72,19 +71,12 @@ import _ from 'lodash'
  */
 const calendarEvents = ref<InputCalendarEvent[]>([])
 const availabilityToggle = ref<boolean>(false)
-const availEdition = ref<boolean>(false)
-const availButtonColor = ref<string>('red')
 let id = 1
 
 const columnsToDisplay = computed(() => {
   if (availabilityToggle.value) return columns.value
   return filter(columns.value, (c: CalendarColumn) => c.name !== 'Avail')
 })
-
-function editMode() {
-  availEdition.value = !availEdition.value
-  availButtonColor.value = availEdition.value ? 'secondary' : 'red'
-}
 
 /**
  * API data waiting to be translated in Calendar events
@@ -100,13 +92,20 @@ const availabilityStore = useAvailabilityStore()
 const permanentStore = usePermanentStore()
 const { availabilities } = storeToRefs(availabilityStore)
 const { courses } = storeToRefs(scheduledCourseStore)
+const { fetchedTransversalGroups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const { modules } = storeToRefs(permanentStore)
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const selectedRoom = ref<Room>()
+const selectedGroups = ref<Group[]>([])
 const moduleColor: Map<number, string> = new Map<number, string>()
+
+watch(selectedGroups, () => {
+  groupStore.clearSelected()
+  if (selectedGroups.value !== null) selectedGroups.value.forEach((gp) => groupStore.addTransversalGroupToSelection(gp))
+})
 
 watchEffect(() => {
   if (modules.value.length > 0) {

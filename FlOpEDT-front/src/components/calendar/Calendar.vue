@@ -115,7 +115,6 @@
                 :style="badgeStyles(event, spans, timeStartPos)"
                 @mousedown="onMouseDown($event, event.id)"
                 @mouseup="onMouseUp()"
-                @mouseover="onAvailMouseOver($event, event.id)"
               >
                 <slot name="event" :event="event">
                   <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
@@ -200,7 +199,6 @@ const props = defineProps<{
   columns: CalendarColumn[]
   endOfDayMinutes: number
   step?: number
-  availEdition?: boolean
 }>()
 
 const STEP_DEFAULT: number = 15
@@ -678,7 +676,6 @@ let timeoutId: any = null
 let currentAvailId: number = -1
 let newAvailDuration: number = 0
 let oldAvailDuration: number = 0
-const selectedItems: InputCalendarEvent[] = []
 let selectionAvail: Ref<boolean> = ref(false)
 
 const availResizeObs = new ResizeObserver((entries) => {
@@ -812,13 +809,7 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
   if (mouseEvent.button === 0) {
     if (!timeoutId) {
       timeoutId = setTimeout(() => {
-        if (!props.availEdition) changeAvail(eventId)
-        else {
-          const availSelected = props.events.find((e) => e.id === eventId)
-          selectionAvail.value = true
-          selectedItems.push(availSelected!)
-          availSelected!.toggled = false
-        }
+        changeAvail(eventId)
         clearTimeout(timeoutId)
         timeoutId = null
       }, 200)
@@ -847,11 +838,6 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
       }
     }
   }
-}
-
-function onAvailMouseOver(event: Event, eventId: number): void {
-  //@ts-expect-error
-  if (selectionAvail.value && _.includes(event.target.className, 'avail')) console.log('Hey ', eventId)
 }
 
 function onMouseUp(): void {

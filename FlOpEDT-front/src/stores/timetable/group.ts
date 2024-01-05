@@ -1,6 +1,6 @@
 import { Department, GroupAPI } from '@/ts/type'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { Group } from '@/stores/declarations'
 import { api } from '@/utils/api'
 import _ from 'lodash'
@@ -15,7 +15,13 @@ export const useGroupStore = defineStore('group', () => {
   const isAllGroupsFetched = ref<boolean>(false)
   const fetchedTransversalGroups = ref<Group[]>([])
   const fetchedStructuralGroups = ref<Group[]>([])
-  const groups = ref<Group[]>([])
+  const selectedTransversalGroups = ref<Group[]>([])
+  const groups = computed(() => {
+    return _.concat(
+      fetchedStructuralGroups.value,
+      selectedTransversalGroups.value.length === 0 ? fetchedTransversalGroups.value : selectedTransversalGroups.value
+    )
+  })
 
   async function fetchGroups(department: Department): Promise<void> {
     clearGroups()
@@ -53,7 +59,6 @@ export const useGroupStore = defineStore('group', () => {
         fetchedTransversalGroups.value.push(newGp)
       })
       populateTransversalsColumnIds(fetchedTransversalGroups.value, fetchedStructuralGroups.value)
-      groups.value = _.concat(fetchedStructuralGroups.value, fetchedTransversalGroups.value)
       isAllGroupsFetched.value = true
     })
   }
@@ -61,6 +66,11 @@ export const useGroupStore = defineStore('group', () => {
   function clearGroups(): void {
     fetchedStructuralGroups.value = []
     fetchedTransversalGroups.value = []
+    selectedTransversalGroups.value = []
+  }
+
+  function clearSelected(): void {
+    selectedTransversalGroups.value = []
   }
 
   function populateTransversalsColumnIds(groups: Group[], structurals: Group[]): void {
@@ -112,10 +122,23 @@ export const useGroupStore = defineStore('group', () => {
     })
   }
 
+  function addTransversalGroupToSelection(group: Group): void {
+    if (group.type !== 'transversal') return
+    selectedTransversalGroups.value.push(group)
+  }
+
+  function removeTransversalGroupToSelection(group: Group): void {
+    if (group.type !== 'transversal') return
+    _.remove(selectedTransversalGroups.value, (g) => g.id === group.id)
+  }
+
   return {
     groups,
     fetchedStructuralGroups,
     fetchedTransversalGroups,
     fetchGroups,
+    addTransversalGroupToSelection,
+    removeTransversalGroupToSelection,
+    clearSelected,
   }
 })
