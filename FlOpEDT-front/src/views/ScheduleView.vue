@@ -47,11 +47,9 @@ import {
   Timestamp,
   copyTimestamp,
   getEndOfWeek,
+  getStartOfWeek,
   makeDate,
-  nextDay,
   parseTime,
-  prevDay,
-  relativeDays,
   today,
   updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
@@ -181,10 +179,8 @@ function fetchAvailCurrentWeek(from: Date, to: Date) {
 }
 
 function changeDate(newDate: Timestamp) {
-  let newMonday: Timestamp
-  if (newDate.weekday === 1) newMonday = copyTimestamp(newDate)
-  else newMonday = updateFormatted(relativeDays(copyTimestamp(newDate), prevDay, newDate.weekday - 1 || 6))
-  const newSunday = updateFormatted(relativeDays(copyTimestamp(newMonday), nextDay, 6))
+  const newMonday: Timestamp = updateFormatted(getStartOfWeek(newDate, [1, 2, 3, 4, 5, 6, 0]))
+  const newSunday: Timestamp = updateFormatted(getEndOfWeek(newMonday, [1, 2, 3, 4, 5, 6, 0]))
   fetchScheduledCurrentWeek(makeDate(newMonday), makeDate(newSunday))
   fetchAvailCurrentWeek(makeDate(newMonday), makeDate(newSunday))
 }
