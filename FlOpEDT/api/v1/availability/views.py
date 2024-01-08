@@ -70,6 +70,10 @@ class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserAvailabilitySerializer
 
     def get_queryset(self):
+        # avoid warning
+        if getattr(self, "swagger_fake_view", False):
+            return bm.UserPreference.objects.none()
+
         from_date = datetime.fromisoformat(
             self.request.query_params.get("from_date")
         ).date()
