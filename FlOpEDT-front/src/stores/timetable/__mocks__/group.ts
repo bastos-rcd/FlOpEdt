@@ -365,8 +365,6 @@ export const useGroupStore = defineStore('group', () => {
     groups.value = _.concat(fetchedStructuralGroups.value, fetchedTransversalGroups.value)
   }
 
-  function clearGroups(): void {}
-
   function populateTransversalsColumnIds(groups: Group[], structurals: Group[]): void {
     groups.forEach((gp: Group) => {
       gp.conflictingGroupIds.forEach((cgId: number) => {

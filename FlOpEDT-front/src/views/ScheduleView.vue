@@ -49,7 +49,6 @@ import {
   getEndOfWeek,
   getStartOfWeek,
   makeDate,
-  parseTime,
   today,
   updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
@@ -90,16 +89,15 @@ const authStore = useAuth()
 const availabilityStore = useAvailabilityStore()
 const permanentStore = usePermanentStore()
 const { availabilities } = storeToRefs(availabilityStore)
-const { courses } = storeToRefs(scheduledCourseStore)
+const { courseCalendarEvents, courses } = storeToRefs(scheduledCourseStore)
 const { fetchedTransversalGroups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
-const { modules } = storeToRefs(permanentStore)
+const { modules, moduleColor } = storeToRefs(permanentStore)
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const selectedRoom = ref<Room>()
 const selectedGroups = ref<Group[]>([])
-const moduleColor: Map<number, string> = new Map<number, string>()
 
 watch(selectedGroups, () => {
   groupStore.clearSelected()
@@ -107,42 +105,18 @@ watch(selectedGroups, () => {
 })
 
 watchEffect(() => {
-  if (modules.value.length > 0) {
-    attributeColorToModule()
-  }
-})
-
-watchEffect(() => {
   calendarEvents.value = _.union(
-    courses.value
-      .map((c) => {
-        const module: Module | undefined = modules.value.find((m) => m.id === c.module)
+    courseCalendarEvents.value.map((c) => {
+      const course = courses.value.find((crs) => crs.id === c.data.dataId)
+      if (course) {
+        const module: Module | undefined = modules.value.find((m) => m.id === course!.module)
         let color: string | undefined
-        if (module) color = moduleColor.get(module.id)
-        const currentEvent: InputCalendarEvent = {
-          id: id++,
-          title: module ? module.abbrev : 'Cours',
-          toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
-          bgcolor: color ? color : 'blue',
-          columnIds: [],
-          data: {
-            dataId: c.id,
-            dataType: 'event',
-            start: copyTimestamp(c.start),
-            duration: parseTime(c.end) - parseTime(c.start),
-          },
-        }
-        c.groupIds.forEach((courseGroup) => {
-          const currentGroup = groupStore.groups.find((g) => g.id === courseGroup)
-          if (currentGroup) {
-            currentGroup.columnIds.forEach((cI) => {
-              currentEvent.columnIds.push(cI)
-            })
-          }
-        })
-        return currentEvent
-      })
-      .filter((ce) => ce.columnIds.length > 0),
+        if (module) color = moduleColor.value.get(module.id)
+        c.bgcolor = color ? color : c.bgcolor
+      }
+      c.id = id++
+      return c
+    }),
     availabilities.value.map((av) => {
       const currentEvent: InputCalendarEvent = {
         id: id++,
@@ -198,21 +172,6 @@ onBeforeMount(async () => {
   groupStore.fetchGroups(deptStore.current)
   permanentStore.fetchModules()
 })
-
-function attributeColorToModule(): void {
-  moduleColor.clear() // Clear the map to avoid duplicates
-  modules.value.forEach((mod: Module) => {
-    const colorValue =
-      'rgb(' +
-      Math.ceil(Math.random() * 255) +
-      ',' +
-      Math.ceil(Math.random() * 255) +
-      ',' +
-      Math.ceil(Math.random() * 255) +
-      ')'
-    moduleColor.set(mod.id, colorValue)
-  })
-}
 </script>
 
 <style scoped>

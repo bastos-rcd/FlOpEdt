@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { api } from '@/utils/api'
 import { ModuleAPI, TrainingProgrammeAPI } from '@/ts/type'
 import { useDepartmentStore } from '../department'
+import { computed } from 'vue'
 
 export const usePermanentStore = defineStore('permanent', () => {
   const trainProgs = ref<TrainingProgramme[]>([])
@@ -12,6 +13,21 @@ export const usePermanentStore = defineStore('permanent', () => {
   const isModulesFetched = ref<boolean>(false)
   const loadingError = ref<Error | null>(null)
   const departmentStore = useDepartmentStore()
+  const moduleColor = computed(() => {
+    const moduleColors: Map<number, string> = new Map<number, string>()
+    modules.value.forEach((mod: Module) => {
+      const colorValue =
+        'rgb(' +
+        Math.ceil(Math.random() * 255) +
+        ',' +
+        Math.ceil(Math.random() * 255) +
+        ',' +
+        Math.ceil(Math.random() * 255) +
+        ')'
+      moduleColors.set(mod.id, colorValue)
+    })
+    return moduleColors
+  })
 
   async function fetchTrainingProgrammes() {
     try {
@@ -69,5 +85,6 @@ export const usePermanentStore = defineStore('permanent', () => {
     fetchModules,
     clearTrainProgs,
     clearModules,
+    moduleColor,
   }
 })

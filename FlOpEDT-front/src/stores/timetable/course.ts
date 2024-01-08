@@ -1,11 +1,14 @@
 import { api } from '@/utils/api'
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore, storeToRefs } from 'pinia'
+import { computed, ref } from 'vue'
 import { ScheduledCourse, Department } from '@/ts/type'
-import { Course as CourseFront } from '@/stores/declarations'
-import { makeDate } from '@quasar/quasar-ui-qcalendar'
+import { Course as CourseFront, Module } from '@/stores/declarations'
+import { copyTimestamp, makeDate, parseTime } from '@quasar/quasar-ui-qcalendar'
 import _ from 'lodash'
 import { dateToTimestamp } from '@/helpers'
+import { InputCalendarEvent } from '@/components/calendar/declaration'
+import { usePermanentStore } from './permanent'
+import { useGroupStore } from './group'
 
 /**
  * This store is a work in progress,
@@ -14,8 +17,41 @@ import { dateToTimestamp } from '@/helpers'
  * This store is not related to the scheduledCourse
  */
 export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
+  const permanentStore = usePermanentStore()
+  const groupStore = useGroupStore()
+  const { modules } = storeToRefs(permanentStore)
+
   const scheduledCourses = ref<ScheduledCourse[]>([])
   const courses = ref<CourseFront[]>([])
+  const courseCalendarEvents = computed((): InputCalendarEvent[] => {
+    return courses.value
+      .map((c) => {
+        const module: Module | undefined = modules.value.find((m) => m.id === c.module)
+        const currentEvent: InputCalendarEvent = {
+          id: -1,
+          title: module ? module.abbrev : 'Cours',
+          toggled: false,
+          bgcolor: 'blue',
+          columnIds: [],
+          data: {
+            dataId: c.id,
+            dataType: 'event',
+            start: copyTimestamp(c.start),
+            duration: parseTime(c.end) - parseTime(c.start),
+          },
+        }
+        c.groupIds.forEach((courseGroup) => {
+          const currentGroup = groupStore.groups.find((g) => g.id === courseGroup)
+          if (currentGroup) {
+            currentGroup.columnIds.forEach((cI) => {
+              currentEvent.columnIds.push(cI)
+            })
+          }
+        })
+        return currentEvent
+      })
+      .filter((ce) => ce.columnIds.length > 0)
+  })
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
 
@@ -126,5 +162,6 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     updateScheduledCourses,
     scheduledCourseToCourse,
     courseToScheduledCourse,
+    courseCalendarEvents,
   }
 })
