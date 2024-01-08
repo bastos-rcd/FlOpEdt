@@ -89,7 +89,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     return course
   }
 
-  function courseToScheduledCourse(course: CourseFront): ScheduledCourse | undefined {
+  function courseToScheduledCourse(course: CourseFront): ScheduledCourse {
     let scheduledCourse: ScheduledCourse | undefined = scheduledCourses.value.find((sc) => sc.id === course.id)
     if (scheduledCourse) {
       scheduledCourse.roomId = course.room
@@ -99,10 +99,22 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       scheduledCourse.tutor = course.tutorId
       course.suppTutorIds.forEach((id) => scheduledCourse!.suppTutorsIds.push(id))
       course.groupIds.forEach((id) => scheduledCourse!.groupIds.push(id))
-      return scheduledCourse
     } else {
-      // TODO Call API to retrieve the scheduledCourse not in store
+      scheduledCourse = {
+        id: course.id,
+        roomId: course.room,
+        start_time: makeDate(course.start),
+        end_time: makeDate(course.end),
+        courseId: -1,
+        tutor: course.tutorId,
+        id_visio: -1,
+        moduleId: course.module,
+        trainProgId: -1,
+        groupIds: course.groupIds,
+        suppTutorsIds: course.suppTutorIds,
+      }
     }
+    return scheduledCourse
   }
 
   return {
@@ -112,5 +124,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     courses,
     fetchScheduledCourses,
     updateScheduledCourses,
+    scheduledCourseToCourse,
+    courseToScheduledCourse,
   }
 })

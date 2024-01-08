@@ -9,7 +9,7 @@ describe('Availibility store utils', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
-  it('Transforms an Availibility in Preference', () => {
+  it('Transforms an Availibility in back Availability', () => {
     expect.assertions(12)
     const availabilityStore = useAvailabilityStore()
     let availability: Availability = {
@@ -35,10 +35,10 @@ describe('Availibility store utils', () => {
     expect(availabilityBack.end_time.getMinutes()).toBe(50)
   })
 
-  it('Transforms a Preference in Availability', () => {
+  it('Transforms a back Availability in Availability', () => {
     expect.assertions(8)
     const availabilityStore = useAvailabilityStore()
-    let preference: AvailabilityBack = {
+    let availabilityBack: AvailabilityBack = {
       id: 1,
       start_time: new Date('2017-01-15 14:30'),
       end_time: new Date('2017-01-15 18:00'),
@@ -47,7 +47,7 @@ describe('Availibility store utils', () => {
       dataId: 10,
     }
 
-    const availability = availabilityStore.availabilityBackToAvailability(preference)
+    const availability = availabilityStore.availabilityBackToAvailability(availabilityBack)
     expect(availability.start).toStrictEqual(parseTimestamp('2017-01-15 14:30') as Timestamp)
     expect(availability.start.day).toBe(15)
     expect(availability.start.weekday).toBe(0)
@@ -58,7 +58,7 @@ describe('Availibility store utils', () => {
     expect(availability.type).toBe('user')
   })
 
-  it('Transforms an Availibility in Preference and back', () => {
+  it('Transforms an Availibility in back Availability and back', () => {
     expect.assertions(20)
     const availabilityStore = useAvailabilityStore()
     let availability: Availability = {
@@ -94,10 +94,10 @@ describe('Availibility store utils', () => {
     expect(newAvailability.type).toBe('user')
   })
 
-  it('Transforms a Preference in Availability and back', () => {
+  it('Transforms a back Availability in Availability and back', () => {
     expect.assertions(20)
     const availabilityStore = useAvailabilityStore()
-    let preference: AvailabilityBack = {
+    let availabilityBack: AvailabilityBack = {
       id: 1,
       start_time: new Date('2017-01-15 14:30'),
       end_time: new Date('2017-01-15 18:00'),
@@ -106,7 +106,7 @@ describe('Availibility store utils', () => {
       dataId: 10,
     }
 
-    const availability = availabilityStore.availabilityBackToAvailability(preference)
+    const availability = availabilityStore.availabilityBackToAvailability(availabilityBack)
     expect(availability.start).toStrictEqual(parseTimestamp('2017-01-15 14:30') as Timestamp)
     expect(availability.start.day).toBe(15)
     expect(availability.start.weekday).toBe(0)
