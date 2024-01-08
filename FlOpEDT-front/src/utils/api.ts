@@ -178,6 +178,7 @@ const api: FlopAPI = {
     department?: string,
     tutor?: number
   ): Promise<Array<ScheduledCourse>> {
+    console.log('tutor:', tutor)
     let scheduledCourses: Array<ScheduledCourse> = []
     let firstParam: boolean = false
     let finalUrl: string = API_ENDPOINT + urls.getScheduledcourses + '/'
@@ -207,7 +208,7 @@ const api: FlopAPI = {
         finalUrl += '?'
         firstParam = true
       }
-      finalUrl += 'tutor_name' + tutor
+      finalUrl += 'tutor_name=' + tutor
     }
     await fetch(finalUrl, {
       method: 'GET',

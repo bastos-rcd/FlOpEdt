@@ -178,7 +178,7 @@ import {
   nextDay,
   getTime,
   updateFormatted,
-  relativeDays,
+  getStartOfWeek,
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
@@ -227,7 +227,7 @@ const calendar: Ref<QCalendar | null> = ref(null)
  * * Functions to compute the style to render for each event
  */
 const selectedDate = ref<string>(
-  updateFormatted(relativeDays(parseTimestamp(today())!, prevDay, parseTimestamp(today())!.weekday - 1 || 6)).date
+  updateFormatted(updateFormatted(getStartOfWeek(parseTimestamp(today())!, [1, 2, 3, 4, 5, 6, 0]))).date
 )
 
 watch(selectedDate, () => {
@@ -354,8 +354,8 @@ const eventsByDate = computed(() => {
 
     newEvents.push(cnewEvent as CalendarEvent)
   })
-  // sort by date
   const newEventsUpdated: CalendarEvent[] = updateEventsOverlap(newEvents)
+  // sort by date
   newEventsUpdated.forEach((event) => {
     if (!map[event.data.start.date]) {
       map[event.data.start.date] = []

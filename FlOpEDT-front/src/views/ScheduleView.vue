@@ -46,6 +46,7 @@ import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import {
   Timestamp,
   copyTimestamp,
+  getEndOfWeek,
   makeDate,
   nextDay,
   parseTime,
@@ -171,7 +172,7 @@ function setCurrentScheduledCourse(scheduledCourseId: number) {
 }
 
 function fetchScheduledCurrentWeek(from: Date, to: Date) {
-  scheduledCourseStore.fetchScheduledCourses((from = from), (to = to), deptStore.current.id)
+  scheduledCourseStore.fetchScheduledCourses((from = from), (to = to), -1, deptStore.current)
 }
 
 function fetchAvailCurrentWeek(from: Date, to: Date) {
@@ -192,15 +193,9 @@ function changeDate(newDate: Timestamp) {
  * Fetching data required on mount
  */
 onBeforeMount(async () => {
-  let todayDate = updateFormatted(parsed(today()))
-  fetchScheduledCurrentWeek(
-    makeDate(todayDate),
-    makeDate(updateFormatted(relativeDays(todayDate, nextDay, todayDate.weekday - 1 || 6)))
-  )
-  fetchAvailCurrentWeek(
-    makeDate(todayDate),
-    makeDate(updateFormatted(relativeDays(todayDate, nextDay, todayDate.weekday - 1 || 6)))
-  )
+  let todayDate: Timestamp = updateFormatted(parsed(today()))
+  fetchScheduledCurrentWeek(makeDate(todayDate), makeDate(getEndOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0])))
+  fetchAvailCurrentWeek(makeDate(todayDate), makeDate(getEndOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0])))
   roomStore.fetchRooms()
   tutorStore.fetchTutors(deptStore.current)
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()

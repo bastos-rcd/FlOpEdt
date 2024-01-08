@@ -2,7 +2,6 @@ import { ref } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { storeToRefs } from 'pinia'
 import { AvailabilityData, CourseData, UpdateAvailability, UpdateCourse, UpdatesHistory } from './declaration'
-import { Timestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
 
 export function useUndoredo() {
