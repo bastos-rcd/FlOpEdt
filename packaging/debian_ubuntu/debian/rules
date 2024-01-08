@@ -55,7 +55,7 @@ override_dh_virtualenv:
 	dh_virtualenv --python python3
 
 override_dh_strip:
-	dh_strip --exclude=cffi --exclude=_imaging --exclude=scipy --exclude=Pillow --exclude=numpy
+	dh_strip --exclude=cffi --exclude=_imaging --exclude=scipy --exclude=pillow --exclude=numpy --exclude=PIL
 
 override_dh_shlibdeps:
-	dh_shlibdeps -X/x86/ -Xcpython -X/PIL/ -X/psycopg2 -X/_yaml -X/numpy.libs -X/scipy.libs -X/Pillow.libs -X/cbc -X/lxml -X/matplotlib -X/pyclustering -X/cryptography -Xgurobi -Xgrb
+	dh_shlibdeps -X/x86/ -Xcpython -X/PIL/ -X/psycopg2 -X/_yaml -X/numpy.libs -X/scipy.libs -X/pillow.libs -X/cbc -X/lxml -X/matplotlib -X/pyclustering -X/cryptography -Xgurobi -Xgrb
