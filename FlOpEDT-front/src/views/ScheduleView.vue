@@ -164,8 +164,14 @@ function changeDate(newDate: Timestamp) {
  */
 onBeforeMount(async () => {
   let todayDate: Timestamp = updateFormatted(parsed(today()))
-  fetchScheduledCurrentWeek(makeDate(todayDate), makeDate(getEndOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0])))
-  fetchAvailCurrentWeek(makeDate(todayDate), makeDate(getEndOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0])))
+  fetchScheduledCurrentWeek(
+    makeDate(updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))),
+    makeDate(getEndOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
+  )
+  fetchAvailCurrentWeek(
+    makeDate(updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))),
+    makeDate(getEndOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
+  )
   roomStore.fetchRooms()
   tutorStore.fetchTutors(deptStore.current)
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
