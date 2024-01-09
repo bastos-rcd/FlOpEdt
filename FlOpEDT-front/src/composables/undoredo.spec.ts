@@ -17,8 +17,7 @@ describe('undoredo composable', () => {
     setActivePinia(createPinia())
     const scheduledCourseStore = useScheduledCourseStore()
     const availabilityStore = useAvailabilityStore()
-    const { courses } = storeToRefs(scheduledCourseStore)
-    courses.value.push({
+    scheduledCourseStore.addCourseToDate({
       id: 65692,
       no: 1,
       room: 52,
@@ -47,9 +46,8 @@ describe('undoredo composable', () => {
   it('historizes an update of a course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
-    const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate } = useUndoredo()
-    const courseToUpdate = courses.value.find((course) => course.id === 65692)
+    const courseToUpdate = scheduledCourseStore.getCourse(65692, '2023-04-25')
     addUpdate(
       courseToUpdate!.id as number,
       {
@@ -86,10 +84,9 @@ describe('undoredo composable', () => {
   it('reverts an update of a course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
-    const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate, revertUpdate } = useUndoredo()
 
-    const courseToUpdate = courses.value.find((course) => course.id === 65692)
+    const courseToUpdate = scheduledCourseStore.getCourse(65692, '2023-04-25')
 
     addUpdate(
       courseToUpdate!.id as number,
@@ -116,11 +113,9 @@ describe('undoredo composable', () => {
   it('reverts several updates of a course', () => {
     expect.assertions(4)
     const scheduledCourseStore = useScheduledCourseStore()
-    const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate, revertUpdate } = useUndoredo()
 
-    const courseToUpdate = courses.value.find((course) => course.id === 65692)
-
+    const courseToUpdate = scheduledCourseStore.getCourse(65692, '2023-04-25')
     addUpdate(
       courseToUpdate!.id as number,
       {

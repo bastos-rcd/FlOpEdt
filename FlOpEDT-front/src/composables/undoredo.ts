@@ -3,11 +3,12 @@ import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { storeToRefs } from 'pinia'
 import { AvailabilityData, CourseData, UpdateAvailability, UpdateCourse, UpdatesHistory } from './declaration'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
+import { getDateStringFromTimestamp } from '@/helpers'
+import _ from 'lodash'
 
 export function useUndoredo() {
   const scheduledCourseStore = useScheduledCourseStore()
   const availabilityStore = useAvailabilityStore()
-  const { courses } = storeToRefs(scheduledCourseStore)
   const { availabilities } = storeToRefs(availabilityStore)
 
   const updatesHistory = ref<UpdatesHistory[]>([])
@@ -16,7 +17,7 @@ export function useUndoredo() {
     if (objectId === null) return
     if (type === 'course') {
       const courseData = data as CourseData
-      const currentCourse = courses.value.find((course) => course.id === objectId)
+      const currentCourse = scheduledCourseStore.getCourse(objectId, undefined, true)
       if (!currentCourse) return
       updatesHistory.value.push({
         type: type,
@@ -41,6 +42,7 @@ export function useUndoredo() {
       currentCourse.graded = courseData.graded
       currentCourse.roomTypeId = courseData.roomTypeId
       currentCourse.groupIds = courseData.groupIds
+      scheduledCourseStore.addCourseToDate(currentCourse)
     } else if (type === 'availability') {
       const availData = data as AvailabilityData
       const currentAvail = availabilities.value.find((avail) => avail.id === objectId)
@@ -66,8 +68,7 @@ export function useUndoredo() {
     if (lastUpdate !== undefined) {
       if (lastUpdate.type === 'course') {
         const lastCourseUpdate = lastUpdate as UpdateCourse
-        const lastScheduledCourseUpdated = courses.value.find((course) => course.id === lastCourseUpdate?.objectId)
-        lastScheduledCourseUpdated!.tutorId = lastCourseUpdate.from.tutorId
+        const lastScheduledCourseUpdated = scheduledCourseStore.getCourse(lastCourseUpdate.objectId, undefined, true)
         lastScheduledCourseUpdated!.start = lastCourseUpdate.from.start
         lastScheduledCourseUpdated!.end = lastCourseUpdate.from.end
         lastScheduledCourseUpdated!.room = lastCourseUpdate.from.roomId
@@ -75,6 +76,7 @@ export function useUndoredo() {
         lastScheduledCourseUpdated!.graded = lastCourseUpdate.from.graded
         lastScheduledCourseUpdated!.roomTypeId = lastCourseUpdate.from.roomTypeId
         lastScheduledCourseUpdated!.groupIds = lastCourseUpdate.from.groupIds
+        scheduledCourseStore.addCourseToDate(lastScheduledCourseUpdated!)
       } else if (lastUpdate?.type === 'availability') {
         // TODO call to API/store to retrieve the avail
         const lastAvailUpdate = lastUpdate as UpdateAvailability

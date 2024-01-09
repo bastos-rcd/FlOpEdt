@@ -55,7 +55,7 @@ import {
 import { filter } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
-import { Group, Module, Room } from '@/stores/declarations'
+import { Group, Room } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
 import { matBatteryFull } from '@quasar/extras/material-icons'
@@ -67,7 +67,31 @@ import _ from 'lodash'
 /**
  * Data translated to be passed to components
  */
-const calendarEvents = ref<InputCalendarEvent[]>([])
+const calendarEvents = computed(() => {
+  const calendarEventsToReturn: InputCalendarEvent[] = scheduledCourseStore.getCalendarCoursesFromDateToDate(
+    monday.value!,
+    sunday.value!
+  )
+  availabilities.value.forEach((av) => {
+    const currentEvent: InputCalendarEvent = {
+      id: id++,
+      title: '1',
+      toggled: true,
+      bgcolor: '',
+      columnIds: [],
+      data: {
+        dataId: av.id,
+        dataType: 'avail',
+        start: copyTimestamp(av.start),
+        duration: av.duration,
+      },
+    }
+    const availColumn = columns.value.find((c) => c.name === 'Avail')
+    if (availColumn) currentEvent.columnIds.push(availColumn.id)
+    calendarEventsToReturn!.push(currentEvent)
+  })
+  return calendarEventsToReturn
+})
 const availabilityToggle = ref<boolean>(false)
 let id = 1
 
@@ -89,53 +113,19 @@ const authStore = useAuth()
 const availabilityStore = useAvailabilityStore()
 const permanentStore = usePermanentStore()
 const { availabilities } = storeToRefs(availabilityStore)
-const { courseCalendarEvents, courses } = storeToRefs(scheduledCourseStore)
 const { fetchedTransversalGroups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
-const { modules, moduleColor } = storeToRefs(permanentStore)
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const selectedRoom = ref<Room>()
 const selectedGroups = ref<Group[]>([])
+const sunday = ref<Timestamp>()
+const monday = ref<Timestamp>()
 
 watch(selectedGroups, () => {
   groupStore.clearSelected()
   if (selectedGroups.value !== null) selectedGroups.value.forEach((gp) => groupStore.addTransversalGroupToSelection(gp))
-})
-
-watchEffect(() => {
-  calendarEvents.value = _.union(
-    courseCalendarEvents.value.map((c) => {
-      const course = courses.value.find((crs) => crs.id === c.data.dataId)
-      if (course) {
-        const module: Module | undefined = modules.value.find((m) => m.id === course!.module)
-        let color: string | undefined
-        if (module) color = moduleColor.value.get(module.id)
-        c.bgcolor = color ? color : c.bgcolor
-      }
-      c.id = id++
-      return c
-    }),
-    availabilities.value.map((av) => {
-      const currentEvent: InputCalendarEvent = {
-        id: id++,
-        title: '1',
-        toggled: true,
-        bgcolor: '',
-        columnIds: [],
-        data: {
-          dataId: av.id,
-          dataType: 'avail',
-          start: copyTimestamp(av.start),
-          duration: av.duration,
-        },
-      }
-      const availColumn = columns.value.find((c) => c.name === 'Avail')
-      if (availColumn) currentEvent.columnIds.push(availColumn.id)
-      return currentEvent
-    })
-  )
 })
 
 const currentScheduledCourseId = ref<number | null>(null)
@@ -153,10 +143,10 @@ function fetchAvailCurrentWeek(from: Date, to: Date) {
 }
 
 function changeDate(newDate: Timestamp) {
-  const newMonday: Timestamp = updateFormatted(getStartOfWeek(newDate, [1, 2, 3, 4, 5, 6, 0]))
-  const newSunday: Timestamp = updateFormatted(getEndOfWeek(newMonday, [1, 2, 3, 4, 5, 6, 0]))
-  fetchScheduledCurrentWeek(makeDate(newMonday), makeDate(newSunday))
-  fetchAvailCurrentWeek(makeDate(newMonday), makeDate(newSunday))
+  monday.value = updateFormatted(getStartOfWeek(newDate, [1, 2, 3, 4, 5, 6, 0]))
+  sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
+  fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
+  fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
 }
 
 /**
@@ -164,14 +154,10 @@ function changeDate(newDate: Timestamp) {
  */
 onBeforeMount(async () => {
   let todayDate: Timestamp = updateFormatted(parsed(today()))
-  fetchScheduledCurrentWeek(
-    makeDate(updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))),
-    makeDate(getEndOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
-  )
-  fetchAvailCurrentWeek(
-    makeDate(updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))),
-    makeDate(getEndOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
-  )
+  monday.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
+  sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
+  fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
+  fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   roomStore.fetchRooms()
   tutorStore.fetchTutors(deptStore.current)
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
