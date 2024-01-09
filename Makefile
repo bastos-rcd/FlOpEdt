@@ -2,6 +2,10 @@
 GLOBAL_ENV=./docker/env/global.env
 -include $(GLOBAL_ENV)
 
+BOLD := \033[1m
+RESET := \033[0m
+GREEN := \033[1;32m
+
 CONFIG ?= development
 PORT ?= 80
 FLOP_HOST ?= localhost
@@ -30,12 +34,18 @@ BRANCH := $(shell git branch 2>/dev/null | grep '^*' | colrm 1 2)
 COMPOSE_PROJECT_NAME := $(shell echo $(current_project_dir) | tr '[:upper:]' '[:lower:]')_$(shell echo $(CONFIG) | head -c 1)
 export
 
-.PHONY: config install init build start stop start-db stop-db push deploy rm debug
+default: help
 
-#
-#	Create config files
-#
-config:
+.PHONY: config install init build start stop start-db stop-db push deploy rm debug bootstrap
+
+bootstrap: ## Prepare Docker images for the project
+bootstrap: \
+	config \
+	build \
+	start
+
+
+config: ## Create config files
 	printf "PORT=${PORT}\n" > $(GLOBAL_ENV)
 	printf "FLOP_HOST=${FLOP_HOST}\n" >> $(GLOBAL_ENV)
 	printf "DNS1=${DNS1}\n" >> $(GLOBAL_ENV)
@@ -50,13 +60,12 @@ else
 	echo "Install is only used in production mode."
 endif
 
-# Initialize database with basic datas contained
-# in dump.json for tests purposes
-init:
+init: ## Initialize database with basic datas contained in dump.json for tests purposes
 	docker compose -f docker-compose.$(CONFIG).yml \
 		run --rm \
 		-e BRANCH \
 		-e DJANGO_LOADDATA=on \
+		-e DJANGO_MIGRATE=on \
 		-e START_SERVER=off \
 		web
 
@@ -124,3 +133,15 @@ switch-http:
 
 switch-https:
 	make PORT=443 config && cp -v docker/nginx/templates/https docker/nginx/templates/default.conf.template
+
+h: # short default help task
+	@echo "$(BOLD)Marsha Makefile$(RESET)"
+	@echo "Please use 'make $(BOLD)target$(RESET)' where $(BOLD)target$(RESET) is one of:"
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%-50s$(RESET) %s\n", $$1, $$2}'
+.PHONY: h
+
+help:  ## Show a more readable help on multiple lines
+	@echo "$(BOLD)Marsha Makefile$(RESET)"
+	@echo "Please use 'make $(BOLD)target$(RESET)' where $(BOLD)target$(RESET) is one of:"
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%s$(RESET)\n    %s\n\n", $$1, $$2}'
+.PHONY: help
