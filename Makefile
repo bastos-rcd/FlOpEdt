@@ -34,7 +34,7 @@ BRANCH := $(shell git branch 2>/dev/null | grep '^*' | colrm 1 2)
 COMPOSE_PROJECT_NAME := $(shell echo $(current_project_dir) | tr '[:upper:]' '[:lower:]')_$(shell echo $(CONFIG) | head -c 1)
 export
 
-default: help
+default: h
 
 .PHONY: config install init build start stop start-db stop-db push deploy rm debug bootstrap
 
@@ -52,7 +52,7 @@ config: ## Create config files
 	printf "DNS2=${DNS2}\n" >> $(GLOBAL_ENV)
 	printf "USE_GUROBI=${USE_GUROBI}\n" >> $(GLOBAL_ENV)
 
-install:
+install: ## Install the project in production mode
 ifeq ($(CONFIG), production)
 	envsubst < docker/env/web.prod.in  > docker/env/web.prod.env
 	printf "POSTGRES_PASSWORD=$(shell dd if=/dev/urandom bs=1 count=32 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev)" > docker/env/db.prod.env
@@ -69,40 +69,41 @@ init: ## Initialize database with basic datas contained in dump.json for tests p
 		-e START_SERVER=off \
 		web
 
-build-vue:
+build-vue: ## builds edt's vuejs service
 	docker compose -f docker-compose.production.yml --profile vue up
 
 ifeq ($(CONFIG), production)
 build: build-vue
 endif
 
-build:
+build: ## builds edt's docker services
 	docker compose -f docker-compose.$(CONFIG).yml --profile full build
 
-# starts edt's docker services
-start: stop
+
+start: ## starts edt's docker services
+	stop
 	docker compose -f docker-compose.$(CONFIG).yml --profile full up -d
 
-# starts edt's docker services in terminal
-start_verbose: stop
+
+start_verbose: ## starts edt's docker services in terminal
+	stop
 	docker compose -f docker-compose.$(CONFIG).yml --profile full up
 
-# stops edt's docker services
-stop:
+
+stop: ## stops edt's docker services
 	docker compose -f docker-compose.$(CONFIG).yml --profile full --profile vue stop
 
-# starts edt's docker database service
-start-db:
+
+start-db: ## starts edt's docker database service
 	docker compose -f docker-compose.$(CONFIG).yml up -d db
 
-stop-db:
+stop-db: ## sts edt's docker database service
 	docker compose -f docker-compose.$(CONFIG).yml stop db
 
-# creates the SSL certificate
-create-certif:
+create-certif: ## creates the SSL certificate
 	mkdir -p -m a=rwx ./FlOpEDT/acme_challenge/token && docker compose -f docker-compose.production.yml --profile ssl up
 
-renew-certif:
+renew-certif: ## renews the SSL certificate
 	mkdir -p -m a=rwx ./FlOpEDT/acme_challenge/token && CERTIF_RENEW="--renew 90" docker compose -f docker-compose.production.yml --profile ssl up
 
 #
@@ -117,9 +118,7 @@ deploy:
 rm:
 	docker stack rm $(COMPOSE_PROJECT_NAME)	
 
-
-#	Show config infos
-debug:
+debug: ## Show config infos
 	@echo PORT: $(PORT)
 	@echo HOSTS: $(HOSTS)
 	@echo CONFIG: $(CONFIG)
@@ -128,20 +127,20 @@ debug:
 	@echo DNS1: $(DNS1)
 	@echo DNS2: $(DNS2)
 
-switch-http:
+switch-http: ## switch port to 80
 	make PORT=80 config && cp -v docker/nginx/templates/http docker/nginx/templates/default.conf.template
 
-switch-https:
+switch-https: ## switch port to 443
 	make PORT=443 config && cp -v docker/nginx/templates/https docker/nginx/templates/default.conf.template
 
-h: # short default help task
-	@echo "$(BOLD)Marsha Makefile$(RESET)"
+h: ## (default) Short default help task
+	@echo "$(BOLD)flop Makefile$(RESET)"
 	@echo "Please use 'make $(BOLD)target$(RESET)' where $(BOLD)target$(RESET) is one of:"
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%-50s$(RESET) %s\n", $$1, $$2}'
 .PHONY: h
 
 help:  ## Show a more readable help on multiple lines
-	@echo "$(BOLD)Marsha Makefile$(RESET)"
+	@echo "$(BOLD)flop Makefile$(RESET)"
 	@echo "Please use 'make $(BOLD)target$(RESET)' where $(BOLD)target$(RESET) is one of:"
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%s$(RESET)\n    %s\n\n", $$1, $$2}'
 .PHONY: help
