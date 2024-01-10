@@ -13,7 +13,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && python --version \
     && pip install --upgrade pip \
-    && pip install matplotlib \
     && pip install --no-cache-dir -r /requirements.txt \
     && pip install --no-cache-dir -r /requirements.$CONFIG.txt \
     && apt-get purge -y --auto-remove gcc python3-dev apt-utils
