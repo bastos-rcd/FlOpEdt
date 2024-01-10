@@ -10,8 +10,8 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - flop-db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5432:5432"
 
   redis:
     image: redis:latest
@@ -38,6 +38,7 @@ services:
       - CONFIG=development
       - EMAIL_HOST=maildev
       - EMAIL_PORT=1025
+      - POSTGRES_HOST=db
     entrypoint: /code/docker/script/init.sh      
     volumes:
       - .:/code
@@ -48,8 +49,8 @@ services:
       - redis
 
   vue:
-    build:
-      dockerfile: ./Dockerfile-Vue
+    image: node:20
+    working_dir: /front
     profiles:
       - full
     environment:
@@ -59,7 +60,6 @@ services:
       - ./FlOpEDT-front:/front
     ports:
       - "5173:5173"
-    entrypoint: ["yarn", "dev", "--host"]
 
   maildev:
     image: maildev/maildev:2.1.0
