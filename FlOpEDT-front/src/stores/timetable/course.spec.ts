@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
+import { createPinia, setActivePinia, storeToRefs } from 'pinia'
 import { useScheduledCourseStore } from './course'
 import { ScheduledCourse } from '@/ts/type'
 import { Course } from '../declarations'
@@ -136,5 +136,137 @@ describe('Availibility store utils', () => {
     expect(newCourse.roomTypeId).toBe(-1) //not implemented
     expect(newCourse.graded).toBe(false) //not implemented
     expect(newCourse.workCopy).toBe(0) //not implemented
+  })
+
+  it("gets a item from the store if it's presents or returns undefined value", () => {
+    const courseStore = useScheduledCourseStore()
+    const course = courseStore.getCourse(144)
+    const scheduledCourse = courseStore.getScheduldedCourse(23)
+    const notExistentCourse = courseStore.getCourse(1)
+    const notExistentScheduledCourse = courseStore.getScheduldedCourse(1)
+    expect(course).toBeDefined()
+    expect(scheduledCourse).toBeDefined()
+    expect(notExistentCourse).toBeUndefined()
+    expect(notExistentScheduledCourse).toBeUndefined()
+  })
+
+  it('adds courses happening the same day to the same key', () => {
+    const courseStore = useScheduledCourseStore()
+    expect(courseStore.getCoursesFromDateToDate(parseTimestamp('2023-04-24')!).length).toBe(1)
+    expect(courseStore.getCoursesFromDateToDate(parseTimestamp('2023-04-28')!).length).toBe(0)
+    let coursesOnDate = courseStore.addCourseToDate({
+      id: 234,
+      no: 1,
+      room: 123,
+      start: parseTimestamp('2023-04-28 10:00') as Timestamp,
+      end: parseTimestamp('2023-04-28 13:00') as Timestamp,
+      tutorId: 12,
+      suppTutorIds: [4, 53, 122],
+      module: 33,
+      groupIds: [3, 4, 9, 10],
+      courseTypeId: 3,
+      roomTypeId: 4,
+      graded: false,
+      workCopy: 1,
+    })
+    expect(courseStore.getCoursesFromDateToDate(parseTimestamp('2023-04-24')!).length).toBe(1)
+    expect(courseStore.getCoursesFromDateToDate(parseTimestamp('2023-04-28')!).length).toBe(1)
+    expect(courseStore.getCoursesFromDateToDate(parseTimestamp('2023-04-28')!)).toEqual(coursesOnDate)
+    coursesOnDate = courseStore.addCourseToDate({
+      id: 24,
+      no: 1,
+      room: 23,
+      start: parseTimestamp('2023-04-28 15:00') as Timestamp,
+      end: parseTimestamp('2023-04-28 18:00') as Timestamp,
+      tutorId: 12,
+      suppTutorIds: [4, 53, 122],
+      module: 33,
+      groupIds: [3, 4, 9, 10],
+      courseTypeId: 3,
+      roomTypeId: 4,
+      graded: false,
+      workCopy: 1,
+    })
+    expect(courseStore.getCoursesFromDateToDate(parseTimestamp('2023-04-24')!).length).toBe(1)
+    expect(courseStore.getCoursesFromDateToDate(parseTimestamp('2023-04-28')!).length).toBe(2)
+    expect(courseStore.getCoursesFromDateToDate(parseTimestamp('2023-04-28')!)).toEqual(coursesOnDate)
+  })
+
+  it('adds scheduledCourses happening the same day to the same key', () => {
+    const courseStore = useScheduledCourseStore()
+    expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2017-01-15')!).length).toBe(1)
+    expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2018-01-16')!).length).toBe(0)
+    let scheduledCoursesOnDate = courseStore.addScheduledCourseToDate({
+      id: 23,
+      roomId: 123,
+      start_time: new Date('2018-01-16 14:30'),
+      end_time: new Date('2018-01-16 15:50'),
+      courseId: 33,
+      tutor: 12,
+      id_visio: -1,
+      moduleId: 424,
+      trainProgId: 45,
+      groupIds: [23, 24],
+      suppTutorsIds: [303, 194],
+    })
+    expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2017-01-15')!).length).toBe(1)
+    expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2018-01-16')!).length).toBe(1)
+    expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2018-01-16')!)).toEqual(scheduledCoursesOnDate)
+    scheduledCoursesOnDate = courseStore.addScheduledCourseToDate({
+      id: 246,
+      roomId: 13,
+      start_time: new Date('2018-01-16 09:30'),
+      end_time: new Date('2018-01-16 11:50'),
+      courseId: 3,
+      tutor: 1,
+      id_visio: -1,
+      moduleId: 4,
+      trainProgId: 45,
+      groupIds: [24],
+      suppTutorsIds: [],
+    })
+    expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2017-01-15')!).length).toBe(1)
+    expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2018-01-16')!).length).toBe(2)
+    expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2018-01-16')!)).toEqual(scheduledCoursesOnDate)
+  })
+
+  it('contains events for each course', () => {
+    const courseStore = useScheduledCourseStore()
+    const { courseCalendarEvents } = storeToRefs(courseStore)
+    expect(courseCalendarEvents.value.size).toBe(1)
+    let coursesOnDate = courseStore.addCourseToDate({
+      id: 234,
+      no: 1,
+      room: 123,
+      start: parseTimestamp('2023-04-28 10:00') as Timestamp,
+      end: parseTimestamp('2023-04-28 13:00') as Timestamp,
+      tutorId: 12,
+      suppTutorIds: [4, 53, 122],
+      module: 33,
+      groupIds: [3, 4, 9, 10],
+      courseTypeId: 3,
+      roomTypeId: 4,
+      graded: false,
+      workCopy: 1,
+    })
+    expect(coursesOnDate.length).toBe(1)
+    expect(courseCalendarEvents.value.size).toBe(2)
+    coursesOnDate = courseStore.addCourseToDate({
+      id: 24,
+      no: 1,
+      room: 23,
+      start: parseTimestamp('2023-04-28 15:00') as Timestamp,
+      end: parseTimestamp('2023-04-28 18:00') as Timestamp,
+      tutorId: 12,
+      suppTutorIds: [4, 53, 122],
+      module: 33,
+      groupIds: [3, 4, 9, 10],
+      courseTypeId: 3,
+      roomTypeId: 4,
+      graded: false,
+      workCopy: 1,
+    })
+    expect(coursesOnDate.length).toBe(2)
+    expect(courseCalendarEvents.value.size).toBe(2)
   })
 })
