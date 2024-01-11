@@ -3,7 +3,15 @@ import { defineStore, storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { ScheduledCourse, Department } from '@/ts/type'
 import { Course, Module } from '@/stores/declarations'
-import { Timestamp, copyTimestamp, makeDate, nextDay, parseTime, updateFormatted } from '@quasar/quasar-ui-qcalendar'
+import {
+  Timestamp,
+  copyTimestamp,
+  makeDate,
+  nextDay,
+  parseTime,
+  updateFormatted,
+  updateMinutes,
+} from '@quasar/quasar-ui-qcalendar'
 import _, { cloneDeep } from 'lodash'
 import { dateToTimestamp, getDateStringFromTimestamp, getDateTimeStringFromDate, timestampToDate } from '@/helpers'
 import { InputCalendarEvent } from '@/components/calendar/declaration'
@@ -266,14 +274,47 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     return courseCalendarEventsReturn
   }
 
-  // function addCalendarCourseToDate(calendarCourse: InputCalendarEvent): InputCalendarEvent[] {
-  //   const dateString = getDateStringFromTimestamp(calendarCourse.data.start)
-  //   if (!courses.value.has(dateString)) courses.value.set(dateString, [])
-  //   // if (!courseCalendarEvents.value.has(dateString)) courseCalendarEvents.value.set(dateString, [])
-  //   // const courseCalendarEventsOutput = courseCalendarEvents.value.get(dateString)
-  //   // courseCalendarEventsOutput!.push(calendarCourse)
-  //   // return courseCalendarEventsOutput!
-  // }
+  function addCalendarCourseToDate(calendarCourse: InputCalendarEvent): InputCalendarEvent[] {
+    const dateString = getDateStringFromTimestamp(calendarCourse.data.start)
+    if (!courses.value.has(dateString)) courses.value.set(dateString, [])
+    const course: Course = {
+      id: calendarCourse.data.dataId,
+      no: -1,
+      room: -1,
+      start: calendarCourse.data.start,
+      end: updateMinutes(
+        calendarCourse.data.start,
+        parseTime(calendarCourse.data.start.time) + calendarCourse.data.duration!
+      ),
+      tutorId: -1,
+      suppTutorIds: [],
+      module: -1,
+      groupIds: [],
+      courseTypeId: -1,
+      roomTypeId: -1,
+      graded: false,
+      workCopy: -1,
+    }
+    if (!courses.value.has(dateString)) {
+      courses.value.set(dateString, [])
+    }
+    const coursesOnDate = courses.value.get(dateString)
+    const courseInStore = coursesOnDate!.find((c) => c.id === course.id)
+    if (courseInStore) {
+      course.no = courseInStore.no
+      course.room = courseInStore.room
+      course.tutorId = courseInStore.tutorId
+      course.suppTutorIds = courseInStore.suppTutorIds
+      course.module = courseInStore.module
+      course.groupIds = courseInStore.groupIds
+      course.courseTypeId = courseInStore.courseTypeId
+      course.graded = courseInStore.graded
+      course.workCopy = courseInStore.workCopy
+      _.remove(coursesOnDate!, (c) => c.id === course.id)
+    }
+    coursesOnDate!.push(course)
+    return courseCalendarEvents.value.get(dateString)!
+  }
 
   function addScheduledCourseToDate(scheduledCourse: ScheduledCourse): ScheduledCourse[] {
     const dateString = getDateTimeStringFromDate(scheduledCourse.start_time, false)
@@ -304,7 +345,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     getCoursesFromDateToDate,
     getScheduledCoursesFromDateToDate,
     getCalendarCoursesFromDateToDate,
-    // addCalendarCourseToDate,
+    addCalendarCourseToDate,
     addScheduledCourseToDate,
     addCourseToDate,
     courseCalendarEvents,

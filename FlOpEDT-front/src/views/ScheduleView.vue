@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import { CalendarColumn, InputCalendarEvent } from '@/components/calendar/declaration'
 import Calendar from '@/components/calendar/Calendar.vue'
-import { computed, onBeforeMount, ref, watch, watchEffect } from 'vue'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
@@ -67,30 +67,42 @@ import _ from 'lodash'
 /**
  * Data translated to be passed to components
  */
-const calendarEvents = computed(() => {
-  const calendarEventsToReturn: InputCalendarEvent[] = scheduledCourseStore.getCalendarCoursesFromDateToDate(
-    monday.value!,
-    sunday.value!
-  )
-  availabilities.value.forEach((av) => {
-    const currentEvent: InputCalendarEvent = {
-      id: id++,
-      title: '1',
-      toggled: true,
-      bgcolor: '',
-      columnIds: [],
-      data: {
-        dataId: av.id,
-        dataType: 'avail',
-        start: copyTimestamp(av.start),
-        duration: av.duration,
-      },
-    }
-    const availColumn = columns.value.find((c) => c.name === 'Avail')
-    if (availColumn) currentEvent.columnIds.push(availColumn.id)
-    calendarEventsToReturn!.push(currentEvent)
-  })
-  return calendarEventsToReturn
+const calendarEvents = computed({
+  get() {
+    const calendarEventsToReturn: InputCalendarEvent[] = scheduledCourseStore.getCalendarCoursesFromDateToDate(
+      monday.value!,
+      sunday.value!
+    )
+    calendarEventsToReturn.forEach((c) => {
+      if (c.id === -1) c.id = id++
+    })
+    availabilities.value.forEach((av) => {
+      const currentEvent: InputCalendarEvent = {
+        id: av.id === -1 ? id++ : av.id,
+        title: '1',
+        toggled: true,
+        bgcolor: '',
+        columnIds: [],
+        data: {
+          dataId: av.id,
+          dataType: 'avail',
+          start: copyTimestamp(av.start),
+          duration: av.duration,
+        },
+      }
+      const availColumn = columns.value.find((c) => c.name === 'Avail')
+      if (availColumn) currentEvent.columnIds.push(availColumn.id)
+      calendarEventsToReturn!.push(currentEvent)
+    })
+    return calendarEventsToReturn
+  },
+  set(value: InputCalendarEvent[]) {
+    console.log('value:', value)
+    const valueToUpdate: InputCalendarEvent = value.pop()!
+    console.log('Value updated = ', value.pop())
+    if (valueToUpdate.data.dataType === 'event') scheduledCourseStore.addCalendarCourseToDate(valueToUpdate)
+    else if (valueToUpdate.data.dataType === 'avail') availabilityStore.addOrUpdateAvailibility(valueToUpdate)
+  },
 })
 const availabilityToggle = ref<boolean>(false)
 let id = 1

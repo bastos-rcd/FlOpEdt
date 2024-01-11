@@ -5,6 +5,8 @@ import { Availability } from '../declarations'
 import { Timestamp, copyTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
 import { dateToTimestamp, timestampToDate } from '@/helpers'
+import { InputCalendarEvent } from '@/components/calendar/declaration'
+import _ from 'lodash'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
   const availabilitiesBack = ref<AvailabilityBack[]>([])
@@ -56,6 +58,24 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return newAvailabilityBack
   }
 
+  function addOrUpdateAvailibility(availEvent: InputCalendarEvent): void {
+    const availabilityInStore = availabilities.value.find((av) => av.id === availEvent.data.dataId)
+    const newAvail: Availability = {
+      id: availEvent.data.dataId,
+      duration: availEvent.data.duration!,
+      start: copyTimestamp(availEvent.data.start),
+      value: availEvent.data.value!,
+      type: '',
+      dataId: -1,
+    }
+    if (availabilityInStore) {
+      newAvail.type = availabilityInStore.type
+      newAvail.dataId = availabilityInStore.dataId
+    }
+    _.remove(availabilities.value, (av) => av.id === newAvail.id)
+    availabilities.value.push(newAvail)
+  }
+
   function clearAvailabilities() {
     availabilities.value = []
     availabilitiesBack.value = []
@@ -66,5 +86,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     availabilityToAvailabilityBack,
     fetchUserAvailabilitiesBack,
     availabilities,
+    addOrUpdateAvailibility,
   }
 })
