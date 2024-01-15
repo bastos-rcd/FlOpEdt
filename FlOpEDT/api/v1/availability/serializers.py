@@ -50,7 +50,6 @@ class AvailabilitySerializer(serializers.ModelSerializer):
 
 
 class UserAvailabilitySerializer(AvailabilitySerializer):
-    id = serializers.IntegerField(source="user.id")
     av_type = serializers.ReadOnlyField(default="user")
 
     class Meta:
