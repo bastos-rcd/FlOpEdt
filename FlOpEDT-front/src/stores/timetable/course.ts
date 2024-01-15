@@ -283,7 +283,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       room: -1,
       start: calendarCourse.data.start,
       end: updateMinutes(
-        calendarCourse.data.start,
+        copyTimestamp(calendarCourse.data.start),
         parseTime(calendarCourse.data.start.time) + calendarCourse.data.duration!
       ),
       tutorId: -1,
@@ -312,6 +312,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       course.workCopy = courseInStore.workCopy
       _.remove(coursesOnDate!, (c) => c.id === course.id)
     }
+    console.log('courseInStore', courseInStore)
+    console.log('course added', course)
     coursesOnDate!.push(course)
     return courseCalendarEvents.value.get(dateString)!
   }

@@ -30,7 +30,7 @@
     :columns="columnsToDisplay"
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
-    :end-of-day-minutes="19"
+    :end-of-day-minutes="endOfDay"
   />
 </template>
 
@@ -49,6 +49,7 @@ import {
   getEndOfWeek,
   getStartOfWeek,
   makeDate,
+  parseTime,
   today,
   updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
@@ -75,11 +76,12 @@ const calendarEvents = computed({
     )
     calendarEventsToReturn.forEach((c) => {
       if (c.id === -1) c.id = id++
+      calendarEventsPrev.set(c.id, c)
     })
     availabilities.value.forEach((av) => {
       const currentEvent: InputCalendarEvent = {
         id: av.id === -1 ? id++ : av.id,
-        title: '1',
+        title: '',
         toggled: true,
         bgcolor: '',
         columnIds: [],
@@ -88,20 +90,36 @@ const calendarEvents = computed({
           dataType: 'avail',
           start: copyTimestamp(av.start),
           duration: av.duration,
+          value: av.value,
         },
       }
+      currentEvent.title = currentEvent.id.toString()
       const availColumn = columns.value.find((c) => c.name === 'Avail')
       if (availColumn) currentEvent.columnIds.push(availColumn.id)
       calendarEventsToReturn!.push(currentEvent)
+      calendarEventsPrev.set(currentEvent.id, currentEvent)
     })
     return calendarEventsToReturn
   },
   set(value: InputCalendarEvent[]) {
-    console.log('value:', value)
-    const valueToUpdate: InputCalendarEvent = value.pop()!
-    console.log('Value updated = ', value.pop())
-    if (valueToUpdate.data.dataType === 'event') scheduledCourseStore.addCalendarCourseToDate(valueToUpdate)
-    else if (valueToUpdate.data.dataType === 'avail') availabilityStore.addOrUpdateAvailibility(valueToUpdate)
+    value.forEach((v) => {
+      const previousEvent = calendarEventsPrev.get(v.id)
+      if (
+        !previousEvent ||
+        !_.isEqual(v, previousEvent) ||
+        parseTime(v.data.start.time) + v.data.duration! >= endOfDay * 60
+      ) {
+        if (v.data.dataType === 'event') scheduledCourseStore.addCalendarCourseToDate(v)
+        else if (v.data.dataType === 'avail') availabilityStore.addOrUpdateAvailibility(v, authStore.getUser.id)
+      }
+      calendarEventsPrev.delete(v.id)
+    })
+    calendarEventsPrev.forEach((event, id) => {
+      availabilityStore.removeAvailibility(id)
+    })
+    value.forEach((v) => {
+      calendarEventsPrev.set(v.id, v)
+    })
   },
 })
 const availabilityToggle = ref<boolean>(false)
@@ -134,6 +152,8 @@ const selectedRoom = ref<Room>()
 const selectedGroups = ref<Group[]>([])
 const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()
+const calendarEventsPrev: Map<number, InputCalendarEvent> = new Map<number, InputCalendarEvent>()
+const endOfDay = 19
 
 watch(selectedGroups, () => {
   groupStore.clearSelected()

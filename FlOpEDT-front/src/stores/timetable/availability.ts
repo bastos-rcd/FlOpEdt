@@ -18,7 +18,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     clearAvailabilities()
     isLoading.value = true
     try {
-      await api.getAvailabilities(userId, from, to).then((result) => {
+      await api.getAvailabilities(userId, from, to).then((result: AvailabilityBack[]) => {
         availabilitiesBack.value = result
         isLoading.value = false
         availabilitiesBack.value.forEach((availabilityBack) => {
@@ -58,22 +58,26 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return newAvailabilityBack
   }
 
-  function addOrUpdateAvailibility(availEvent: InputCalendarEvent): void {
-    const availabilityInStore = availabilities.value.find((av) => av.id === availEvent.data.dataId)
+  function addOrUpdateAvailibility(availEvent: InputCalendarEvent, dataId?: number): void {
+    const availabilityInStore = availabilities.value.find((av) => av.id === availEvent.id)
     const newAvail: Availability = {
-      id: availEvent.data.dataId,
+      id: availEvent.id,
       duration: availEvent.data.duration!,
       start: copyTimestamp(availEvent.data.start),
       value: availEvent.data.value!,
-      type: '',
-      dataId: -1,
+      type: 'avail',
+      dataId: dataId ? dataId : availEvent.data.dataId,
     }
     if (availabilityInStore) {
       newAvail.type = availabilityInStore.type
       newAvail.dataId = availabilityInStore.dataId
+      _.remove(availabilities.value, (av) => av.id === availabilityInStore.id)
     }
-    _.remove(availabilities.value, (av) => av.id === newAvail.id)
     availabilities.value.push(newAvail)
+  }
+
+  function removeAvailibility(id: number): void {
+    _.remove(availabilities.value, (av) => av.id === id)
   }
 
   function clearAvailabilities() {
@@ -87,5 +91,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     fetchUserAvailabilitiesBack,
     availabilities,
     addOrUpdateAvailibility,
+    removeAvailibility,
   }
 })
