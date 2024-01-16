@@ -80,7 +80,7 @@ export function useUndoredo() {
       } else if (lastUpdate?.type === 'availability') {
         // TODO call to API/store to retrieve the avail
         const lastAvailUpdate = lastUpdate as UpdateAvailability
-        const lastAvailUpdated = availabilities.value.find((avail) => avail.id === lastUpdate.objectId)
+        const lastAvailUpdated = availabilityStore.getAvailability(lastAvailUpdate.objectId, lastAvailUpdate.to.start)
         lastAvailUpdated!.duration = lastAvailUpdate.from.duration
         lastAvailUpdated!.start = lastAvailUpdate.from.start
         lastAvailUpdated!.value = lastAvailUpdate.from.value
