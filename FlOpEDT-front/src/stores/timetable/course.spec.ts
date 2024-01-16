@@ -269,4 +269,45 @@ describe('Availibility store utils', () => {
     expect(coursesOnDate.length).toBe(2)
     expect(courseCalendarEvents.value.size).toBe(2)
   })
+
+  it('adds a courseCalendarEvent and a Course to the corresponding day', () => {
+    const courseStore = useScheduledCourseStore()
+    const { courseCalendarEvents } = storeToRefs(courseStore)
+    expect(courseCalendarEvents.value.size).toBe(1)
+    courseStore.addCalendarCourseToDate({
+      id: 3,
+      title: 'MATH',
+      toggled: true,
+      bgcolor: 'blue',
+      data: {
+        dataId: 123,
+        dataType: 'event',
+        start: parseTimestamp('2024-01-16 14:00')!,
+        duration: 120,
+      },
+      columnIds: [2, 3, 4],
+    })
+    const calendarEventsOnDate = courseStore.getCalendarCoursesFromDateToDate(parseTimestamp('2024-01-16')!)
+    expect(calendarEventsOnDate).toBeDefined()
+    expect(calendarEventsOnDate.length).toBe(1)
+    const coursesOnDate = courseStore.getCoursesFromDateToDate(parseTimestamp('2024-01-16')!)
+    expect(coursesOnDate).toBeDefined()
+    expect(coursesOnDate.length).toBe(1)
+    expect(courseCalendarEvents.value.size).toBe(2)
+    expect(coursesOnDate[0]).toEqual({
+      id: 123,
+      no: -1,
+      room: -1,
+      start: parseTimestamp('2024-01-16 14:00'),
+      end: parseTimestamp('2024-01-16 16:00'),
+      tutorId: -1,
+      suppTutorIds: [],
+      module: -1,
+      groupIds: [],
+      courseTypeId: -1,
+      roomTypeId: -1,
+      graded: false,
+      workCopy: -1,
+    })
+  })
 })

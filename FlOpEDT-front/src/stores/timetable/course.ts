@@ -312,8 +312,6 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       course.workCopy = courseInStore.workCopy
       _.remove(coursesOnDate!, (c) => c.id === course.id)
     }
-    console.log('courseInStore', courseInStore)
-    console.log('course added', course)
     coursesOnDate!.push(course)
     return courseCalendarEvents.value.get(dateString)!
   }
