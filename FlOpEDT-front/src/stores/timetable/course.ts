@@ -295,9 +295,6 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       graded: false,
       workCopy: -1,
     }
-    if (!courses.value.has(dateString)) {
-      courses.value.set(dateString, [])
-    }
     const coursesOnDate = courses.value.get(dateString)
     const courseInStore = coursesOnDate!.find((c) => c.id === course.id)
     if (courseInStore) {
