@@ -78,7 +78,7 @@ const calendarEvents = computed({
       if (c.id === -1) c.id = id++
       calendarEventsPrev.set(c.id, c)
     })
-    availabilities.value.forEach((av) => {
+    availabilityStore.getAvailabilitiesFromDateToDate(monday.value!, sunday.value!).forEach((av) => {
       const currentEvent: InputCalendarEvent = {
         id: av.id === -1 ? id++ : av.id,
         title: '',
@@ -115,7 +115,7 @@ const calendarEvents = computed({
       calendarEventsPrev.delete(v.id)
     })
     calendarEventsPrev.forEach((event, id) => {
-      availabilityStore.removeAvailibility(id)
+      availabilityStore.removeAvailibility(id, event.data.start)
     })
     value.forEach((v) => {
       calendarEventsPrev.set(v.id, v)

@@ -45,7 +45,7 @@ export function useUndoredo() {
       scheduledCourseStore.addCourseToDate(currentCourse)
     } else if (type === 'availability') {
       const availData = data as AvailabilityData
-      const currentAvail = availabilities.value.find((avail) => avail.id === objectId)
+      const currentAvail = availabilityStore.getAvailability(objectId, availData.start)
       if (!currentAvail) return
       updatesHistory.value.push({
         type: type,

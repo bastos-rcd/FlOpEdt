@@ -2,15 +2,22 @@ import { AvailabilityBack } from '@/ts/type'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { Availability } from '../declarations'
-import { Timestamp, copyTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import {
+  Timestamp,
+  copyTimestamp,
+  nextDay,
+  parseTime,
+  updateFormatted,
+  updateMinutes,
+} from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
-import { dateToTimestamp, timestampToDate } from '@/helpers'
+import { dateToTimestamp, getDateStringFromTimestamp, getDateTimeStringFromDate, timestampToDate } from '@/helpers'
 import { InputCalendarEvent } from '@/components/calendar/declaration'
 import _ from 'lodash'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
-  const availabilitiesBack = ref<AvailabilityBack[]>([])
-  const availabilities = ref<Availability[]>([])
+  const availabilitiesBack = ref<Map<string, AvailabilityBack[]>>(new Map<string, AvailabilityBack[]>())
+  const availabilities = ref<Map<string, Availability[]>>(new Map<string, Availability[]>())
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
 
@@ -19,11 +26,18 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     isLoading.value = true
     try {
       await api.getAvailabilities(userId, from, to).then((result: AvailabilityBack[]) => {
-        availabilitiesBack.value = result
-        isLoading.value = false
-        availabilitiesBack.value.forEach((availabilityBack) => {
-          availabilities.value.push(availabilityBackToAvailability(availabilityBack))
+        result.forEach((avb) => {
+          const dateString = getDateTimeStringFromDate(avb.start_time, false)
+          if (!availabilitiesBack.value.has(dateString)) {
+            availabilitiesBack.value.set(dateString, [])
+          }
+          availabilitiesBack.value.get(dateString)!.push(avb)
+          if (!availabilities.value.has(dateString)) {
+            availabilities.value.set(dateString, [])
+          }
+          availabilities.value.get(dateString)!.push(availabilityBackToAvailability(avb))
         })
+        isLoading.value = false
       })
     } catch (e) {
       loadingError.value = e as Error
@@ -58,8 +72,9 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return newAvailabilityBack
   }
 
-  function addOrUpdateAvailibility(availEvent: InputCalendarEvent, dataId?: number): void {
-    const availabilityInStore = availabilities.value.find((av) => av.id === availEvent.id)
+  function addOrUpdateAvailibility(availEvent: InputCalendarEvent, dataId?: number): Availability[] {
+    const dateString = getDateStringFromTimestamp(availEvent.data.start)
+    if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])
     const newAvail: Availability = {
       id: availEvent.id,
       duration: availEvent.data.duration!,
@@ -68,21 +83,69 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
       type: 'avail',
       dataId: dataId ? dataId : availEvent.data.dataId,
     }
+    const availabilitiesOnDate = availabilities.value.get(dateString)
+    const availabilityInStore = availabilitiesOnDate!.find((av) => av.id === availEvent.id)
+
     if (availabilityInStore) {
       newAvail.type = availabilityInStore.type
       newAvail.dataId = availabilityInStore.dataId
-      _.remove(availabilities.value, (av) => av.id === availabilityInStore.id)
+      _.remove(availabilitiesOnDate!, (av) => av.id === availabilityInStore.id)
     }
-    availabilities.value.push(newAvail)
+    availabilitiesOnDate!.push(newAvail)
+    return availabilities.value.get(dateString)!
   }
 
-  function removeAvailibility(id: number): void {
-    _.remove(availabilities.value, (av) => av.id === id)
+  function removeAvailibility(id: number, date?: Timestamp): void {
+    let availabilitiesOnDate: Availability[] | undefined
+    if (date) {
+      availabilitiesOnDate = availabilities.value.get(getDateStringFromTimestamp(date))
+      _.remove(availabilitiesOnDate!, (av) => av.id === id)
+    } else {
+      availabilities.value.forEach((availsD, date) => {
+        _.remove(availsD, (av) => av.id === id)
+      })
+    }
+  }
+
+  function getAvailability(id: number, date?: Timestamp, remove: boolean = false): Availability | undefined {
+    let availabilityReturned: Availability | undefined
+    if (date) {
+      const dateString = getDateStringFromTimestamp(date)
+      availabilityReturned = availabilities.value.get(dateString)?.find((c) => c.id === id)
+      if (availabilityReturned && remove) _.remove(availabilities.value.get(dateString)!, (c) => c.id === id)
+    } else {
+      availabilities.value.forEach((availabilitiesD, date) => {
+        const availability = availabilitiesD.find((c) => c.id === id)
+        if (availability) {
+          availabilityReturned = availability
+          if (remove) _.remove(availabilitiesD, (c) => c.id === id)
+        }
+      })
+    }
+    return availabilityReturned
   }
 
   function clearAvailabilities() {
-    availabilities.value = []
-    availabilitiesBack.value = []
+    availabilities.value = new Map<string, Availability[]>()
+    availabilitiesBack.value = new Map<string, AvailabilityBack[]>()
+  }
+
+  function getAvailabilitiesFromDateToDate(from: Timestamp, to?: Timestamp): Availability[] {
+    let availabilitiesReturned: Availability[] = []
+    if (!to)
+      availabilities.value.get(getDateStringFromTimestamp(from))?.forEach((c) => {
+        availabilitiesReturned.push(c)
+      })
+    else {
+      let currentDate = copyTimestamp(from)
+      while (currentDate.weekday !== to.weekday) {
+        availabilities.value.get(getDateStringFromTimestamp(currentDate))?.forEach((c) => {
+          availabilitiesReturned.push(c)
+        })
+        currentDate = updateFormatted(nextDay(currentDate))
+      }
+    }
+    return availabilitiesReturned
   }
 
   return {
@@ -92,5 +155,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     availabilities,
     addOrUpdateAvailibility,
     removeAvailibility,
+    getAvailability,
+    getAvailabilitiesFromDateToDate,
   }
 })

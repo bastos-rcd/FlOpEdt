@@ -33,7 +33,8 @@ describe('undoredo composable', () => {
       workCopy: 1,
     })
     const { availabilities } = storeToRefs(availabilityStore)
-    availabilities.value.push({
+    availabilities.value.set('2022-01-25 14:10', [])
+    availabilities.value.get('2022-01-25 14:10')?.push({
       id: 23,
       duration: 120,
       start: parseTimestamp('2022-01-25 14:10') as Timestamp,
@@ -161,9 +162,8 @@ describe('undoredo composable', () => {
 
   it('historizes an update of an availability', () => {
     const availabilityStore = useAvailabilityStore()
-    const { availabilities } = storeToRefs(availabilityStore)
     const { addUpdate } = useUndoredo()
-    const availToUpdate = availabilities.value.find((avail) => avail.id === 23)
+    const availToUpdate = availabilityStore.getAvailability(23)
     addUpdate(
       availToUpdate!.id as number,
       {
@@ -193,9 +193,8 @@ describe('undoredo composable', () => {
 
   it('reverts an update of a course', () => {
     const availabilityStore = useAvailabilityStore()
-    const { availabilities } = storeToRefs(availabilityStore)
     const { addUpdate, revertUpdate } = useUndoredo()
-    const availToUpdate = availabilities.value.find((avail) => avail.id === 23)
+    const availToUpdate = availabilityStore.getAvailability(23)
 
     addUpdate(
       availToUpdate!.id as number,
@@ -216,10 +215,10 @@ describe('undoredo composable', () => {
     expect(availToUpdate!.duration).toBe(120)
   })
 
-  it('reverts several updates of an availability', () => {
+  it.todo('reverts several updates of an availability', () => {
     const availabilityStore = useAvailabilityStore()
     const { availabilities } = storeToRefs(availabilityStore)
     const { addUpdate } = useUndoredo()
-    const availToUpdate = availabilities.value.find((avail) => avail.id === 23)
+    const availToUpdate = availabilityStore.getAvailability(23)
   })
 })
