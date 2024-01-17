@@ -72,7 +72,11 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return newAvailabilityBack
   }
 
-  function addOrUpdateAvailibility(availEvent: InputCalendarEvent, dataId?: number): Availability[] {
+  function addOrUpdateAvailibility(
+    availEvent: InputCalendarEvent,
+    dataId?: number,
+    availType?: string
+  ): Availability[] {
     const dateString = getDateStringFromTimestamp(availEvent.data.start)
     if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])
     const newAvail: Availability = {
@@ -80,7 +84,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
       duration: availEvent.data.duration!,
       start: copyTimestamp(availEvent.data.start),
       value: availEvent.data.value!,
-      type: 'avail',
+      type: availType ? availType : 'user',
       dataId: dataId ? dataId : availEvent.data.dataId,
     }
     const availabilitiesOnDate = availabilities.value.get(dateString)

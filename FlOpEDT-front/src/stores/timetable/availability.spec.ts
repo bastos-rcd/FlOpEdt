@@ -8,18 +8,64 @@ import { AvailabilityBack } from '@/ts/type'
 describe('Availibility store utils', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    const availabilityStore = useAvailabilityStore()
+    availabilityStore.addOrUpdateAvailibility(
+      {
+        id: 1,
+        title: '1',
+
+        toggled: true,
+
+        bgcolor: 'blue',
+
+        data: {
+          dataId: 40,
+          dataType: 'avail',
+          start: parseTimestamp('2023-10-14 14:30') as Timestamp,
+          duration: 20,
+          value: 3,
+        },
+        columnIds: [],
+      },
+      40,
+      'user'
+    )
+
+    availabilityStore.addOrUpdateAvailibility(
+      {
+        id: 9,
+        title: '9',
+
+        toggled: true,
+
+        bgcolor: 'blue',
+
+        data: {
+          dataId: 22,
+          dataType: 'avail',
+          start: parseTimestamp('2020-05-01 14:30') as Timestamp,
+          duration: 60,
+          value: 3,
+        },
+        columnIds: [],
+      },
+      22,
+      'user'
+    )
   })
+
+  it("gets an item from the store if it's presents or returns undefined value", () => {
+    const availabilityStore = useAvailabilityStore()
+    const availability = availabilityStore.getAvailability(1)
+    const notExistentAvailability = availabilityStore.getAvailability(12)
+    expect(availability).toBeDefined()
+    expect(notExistentAvailability).toBeUndefined()
+  })
+
   it('Transforms an Availibility in back Availability', () => {
     expect.assertions(12)
     const availabilityStore = useAvailabilityStore()
-    let availability: Availability = {
-      id: 1,
-      duration: 20,
-      start: parseTimestamp('2023-10-14 14:30') as Timestamp,
-      value: 3,
-      type: 'user',
-      dataId: 40,
-    }
+    let availability: Availability = availabilityStore.getAvailability(1)!
     const availabilityBack = availabilityStore.availabilityToAvailabilityBack(availability)
     expect(availabilityBack.id).toBe(1)
     expect(availabilityBack.value).toBe(3)
@@ -61,14 +107,7 @@ describe('Availibility store utils', () => {
   it('Transforms an Availibility in back Availability and back', () => {
     expect.assertions(20)
     const availabilityStore = useAvailabilityStore()
-    let availability: Availability = {
-      id: 9,
-      duration: 60,
-      start: parseTimestamp('2020-05-01 14:30') as Timestamp,
-      value: 3,
-      type: 'user',
-      dataId: 22,
-    }
+    let availability: Availability = availabilityStore.getAvailability(9)!
     const availabilityBack: AvailabilityBack = availabilityStore.availabilityToAvailabilityBack(availability)
     expect(availabilityBack.end_time.getDay()).toBe(5)
     expect(availabilityBack.end_time.getDate()).toBe(1)
@@ -129,5 +168,67 @@ describe('Availibility store utils', () => {
     expect(newAvailabilityBack.start_time.getMinutes()).toBe(30)
     expect(newAvailabilityBack.av_type).toBe('user')
     expect(newAvailabilityBack.dataId).toBe(10)
+  })
+
+  it('adds availabilities concerning the same day to the same key', () => {
+    const availabilityStore = useAvailabilityStore()
+    expect(availabilityStore.getAvailabilitiesFromDateToDate(parseTimestamp('2023-10-14')!).length).toBe(1)
+    expect(availabilityStore.getAvailabilitiesFromDateToDate(parseTimestamp('2020-05-01')!).length).toBe(1)
+    expect(availabilityStore.getAvailabilitiesFromDateToDate(parseTimestamp('2023-05-01')!).length).toBe(0)
+    expect(availabilityStore.availabilities.size).toBe(2)
+    let availabilitiesOnDate = availabilityStore.addOrUpdateAvailibility(
+      {
+        id: 2,
+        title: '2',
+
+        toggled: true,
+
+        bgcolor: 'blue',
+
+        data: {
+          dataId: 30,
+          dataType: 'avail',
+          start: parseTimestamp('2023-10-14 16:30') as Timestamp,
+          duration: 60,
+          value: 1,
+        },
+        columnIds: [],
+      },
+      30,
+      'user'
+    )
+    expect(availabilityStore.getAvailabilitiesFromDateToDate(parseTimestamp('2023-10-14')!).length).toBe(2)
+    expect(availabilityStore.getAvailabilitiesFromDateToDate(parseTimestamp('2023-10-14')!)).toEqual(
+      availabilitiesOnDate
+    )
+    expect(availabilityStore.getAvailabilitiesFromDateToDate(parseTimestamp('2020-05-01')!).length).toBe(1)
+    expect(availabilityStore.availabilities.size).toBe(2)
+    availabilitiesOnDate = availabilityStore.addOrUpdateAvailibility(
+      {
+        id: 7,
+        title: '2',
+
+        toggled: true,
+
+        bgcolor: 'blue',
+
+        data: {
+          dataId: 30,
+          dataType: 'avail',
+          start: parseTimestamp('2020-05-01 16:30') as Timestamp,
+          duration: 60,
+          value: 1,
+        },
+        columnIds: [],
+      },
+      30,
+      'user'
+    )
+    expect(availabilityStore.getAvailabilitiesFromDateToDate(parseTimestamp('2023-10-14')!).length).toBe(2)
+    expect(availabilityStore.getAvailabilitiesFromDateToDate(parseTimestamp('2020-05-01')!)).toEqual(
+      availabilitiesOnDate
+    )
+    expect(availabilityStore.getAvailabilitiesFromDateToDate(parseTimestamp('2020-05-01')!).length).toBe(2)
+    expect(availabilityStore.availabilities.size).toBe(2)
   })
 })
