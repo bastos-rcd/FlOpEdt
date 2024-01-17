@@ -1,15 +1,12 @@
 import { ref } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
-import { storeToRefs } from 'pinia'
 import { AvailabilityData, CourseData, UpdateAvailability, UpdateCourse, UpdatesHistory } from './declaration'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
-import { getDateStringFromTimestamp } from '@/helpers'
 import _ from 'lodash'
 
 export function useUndoredo() {
   const scheduledCourseStore = useScheduledCourseStore()
   const availabilityStore = useAvailabilityStore()
-  const { availabilities } = storeToRefs(availabilityStore)
 
   const updatesHistory = ref<UpdatesHistory[]>([])
 
@@ -45,11 +42,11 @@ export function useUndoredo() {
       scheduledCourseStore.addCourseToDate(currentCourse)
     } else if (type === 'availability') {
       const availData = data as AvailabilityData
-      const currentAvail = availabilityStore.getAvailability(objectId, availData.start)
+      const currentAvail = availabilityStore.getAvailability(objectId)
       if (!currentAvail) return
       updatesHistory.value.push({
         type: type,
-        objectId: currentAvail?.id,
+        objectId: currentAvail.id,
         from: {
           start: currentAvail.start,
           value: currentAvail.value,
@@ -78,9 +75,8 @@ export function useUndoredo() {
         lastScheduledCourseUpdated!.groupIds = lastCourseUpdate.from.groupIds
         scheduledCourseStore.addCourseToDate(lastScheduledCourseUpdated!)
       } else if (lastUpdate?.type === 'availability') {
-        // TODO call to API/store to retrieve the avail
         const lastAvailUpdate = lastUpdate as UpdateAvailability
-        const lastAvailUpdated = availabilityStore.getAvailability(lastAvailUpdate.objectId, lastAvailUpdate.to.start)
+        const lastAvailUpdated = availabilityStore.getAvailability(lastAvailUpdate.objectId)
         lastAvailUpdated!.duration = lastAvailUpdate.from.duration
         lastAvailUpdated!.start = lastAvailUpdate.from.start
         lastAvailUpdated!.value = lastAvailUpdate.from.value

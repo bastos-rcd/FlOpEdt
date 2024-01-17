@@ -6,6 +6,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { Timestamp } from '@quasar/quasar-ui-qcalendar/dist/types/types'
 import { getDateTime, parseTimestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
+import { afterEach } from 'node:test'
 
 vi.mock('../utils/api.ts')
 
@@ -191,7 +192,7 @@ describe('undoredo composable', () => {
     expect(availToUpdate!.duration).toBe(150)
   })
 
-  it('reverts an update of a course', () => {
+  it('reverts an update of an availability', () => {
     const availabilityStore = useAvailabilityStore()
     const { addUpdate, revertUpdate } = useUndoredo()
     const availToUpdate = availabilityStore.getAvailability(23)
@@ -208,7 +209,6 @@ describe('undoredo composable', () => {
     expect(getDateTime(availToUpdate!.start)).toBe('2022-01-25 14:00')
     expect(availToUpdate!.value).toBe(1)
     expect(availToUpdate!.duration).toBe(60)
-
     revertUpdate()
     expect(getDateTime(availToUpdate!.start)).toBe('2022-01-25 14:10')
     expect(availToUpdate!.value).toBe(3)
