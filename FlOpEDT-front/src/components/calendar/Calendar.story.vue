@@ -183,86 +183,6 @@ const useCase2: UseCase = {
   ]),
 }
 
-let dzs: InputCalendarEvent[] = []
-dzs = _.concat(
-  dzs,
-  createDZ((_.maxBy(useCase2.events.value, (event) => event.id)?.id as number) + 1, 6, useCase2.events.value, [
-    { dayShift: 2, hhmm: '14:00' },
-    { dayShift: 2, hhmm: '11:00' },
-    { dayShift: 2, hhmm: '09:50' },
-    { dayShift: 2, hhmm: '09:00' },
-    { dayShift: 2, hhmm: '08:50' },
-    { dayShift: 0, hhmm: '14:00' },
-    { dayShift: 0, hhmm: '11:00' },
-    { dayShift: 0, hhmm: '09:50' },
-    { dayShift: 0, hhmm: '09:00' },
-    { dayShift: 0, hhmm: '08:50' },
-  ])
-)
-
-dzs = _.concat(
-  dzs,
-  createDZ(_.maxBy(dzs, (dz) => dz.id)?.id as number, 4, useCase2.events.value, [
-    { dayShift: 0, hhmm: '11:00' },
-    { dayShift: 0, hhmm: '13:30' },
-    { dayShift: 1, hhmm: '11:00' },
-    { dayShift: 1, hhmm: '13:30' },
-    { dayShift: 2, hhmm: '11:00' },
-    { dayShift: 2, hhmm: '13:30' },
-    { dayShift: 3, hhmm: '11:00' },
-    { dayShift: 3, hhmm: '13:30' },
-    { dayShift: 4, hhmm: '11:00' },
-    { dayShift: 4, hhmm: '13:30' },
-  ])
-)
-
-dzs = _.concat(
-  dzs,
-  createDZ(_.maxBy(dzs, (dz) => dz.id)?.id as number, 3, useCase2.events.value, [
-    { dayShift: 0, hhmm: '08:00' },
-    { dayShift: 0, hhmm: '10:30' },
-    { dayShift: 0, hhmm: '14:00' },
-    { dayShift: 0, hhmm: '16:30' },
-    { dayShift: 1, hhmm: '08:00' },
-    { dayShift: 1, hhmm: '10:50' },
-    { dayShift: 1, hhmm: '13:10' },
-    { dayShift: 1, hhmm: '19:10' },
-    { dayShift: 1, hhmm: '16:30' },
-    { dayShift: 2, hhmm: '08:00' },
-    { dayShift: 2, hhmm: '10:50' },
-    { dayShift: 2, hhmm: '13:10' },
-    { dayShift: 2, hhmm: '19:10' },
-    { dayShift: 2, hhmm: '16:30' },
-    { dayShift: 3, hhmm: '08:00' },
-    { dayShift: 3, hhmm: '10:50' },
-    { dayShift: 3, hhmm: '13:10' },
-    { dayShift: 3, hhmm: '19:10' },
-    { dayShift: 3, hhmm: '16:30' },
-    { dayShift: 4, hhmm: '08:00' },
-    { dayShift: 4, hhmm: '10:50' },
-    { dayShift: 4, hhmm: '13:10' },
-    { dayShift: 4, hhmm: '19:10' },
-  ])
-)
-
-dzs = _.concat(
-  dzs,
-  createDZ(_.maxBy(dzs, (dz) => dz.id)?.id as number, 5, useCase2.events.value, [
-    { dayShift: 1, hhmm: '16:30' },
-    { dayShift: 1, hhmm: '08:00' },
-    { dayShift: 1, hhmm: '10:50' },
-    { dayShift: 1, hhmm: '19:10' },
-    { dayShift: 2, hhmm: '16:30' },
-    { dayShift: 2, hhmm: '08:00' },
-    { dayShift: 2, hhmm: '10:50' },
-    { dayShift: 2, hhmm: '19:10' },
-    { dayShift: 3, hhmm: '16:30' },
-    { dayShift: 3, hhmm: '08:00' },
-    { dayShift: 3, hhmm: '10:50' },
-    { dayShift: 3, hhmm: '19:10' },
-  ])
-)
-
 //useCase2.events.value = _.concat(useCase2.events.value, dzs)
 
 const useCase1: UseCase = {
@@ -672,6 +592,86 @@ useCase4.events.value = _.concat(useCase4.events.value, [
     },
   },
 ])
+
+let dzs: InputCalendarEvent[] = []
+dzs = _.concat(
+  dzs,
+  createDZ((_.maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1, 6, useCase2.events.value, [
+    { dayShift: 2, hhmm: '14:00' },
+    { dayShift: 2, hhmm: '11:00' },
+    { dayShift: 2, hhmm: '09:50' },
+    { dayShift: 2, hhmm: '09:00' },
+    { dayShift: 2, hhmm: '08:50' },
+    { dayShift: 0, hhmm: '14:00' },
+    { dayShift: 0, hhmm: '11:00' },
+    { dayShift: 0, hhmm: '09:50' },
+    { dayShift: 0, hhmm: '09:00' },
+    { dayShift: 0, hhmm: '08:50' },
+  ])
+)
+
+dzs = _.concat(
+  dzs,
+  createDZ(_.maxBy(dzs, (dz) => dz.id)?.id as number, 4, useCase2.events.value, [
+    { dayShift: 0, hhmm: '11:00' },
+    { dayShift: 0, hhmm: '13:30' },
+    { dayShift: 1, hhmm: '11:00' },
+    { dayShift: 1, hhmm: '13:30' },
+    { dayShift: 2, hhmm: '11:00' },
+    { dayShift: 2, hhmm: '13:30' },
+    { dayShift: 3, hhmm: '11:00' },
+    { dayShift: 3, hhmm: '13:30' },
+    { dayShift: 4, hhmm: '11:00' },
+    { dayShift: 4, hhmm: '13:30' },
+  ])
+)
+
+dzs = _.concat(
+  dzs,
+  createDZ(_.maxBy(dzs, (dz) => dz.id)?.id as number, 3, useCase2.events.value, [
+    { dayShift: 0, hhmm: '08:00' },
+    { dayShift: 0, hhmm: '10:30' },
+    { dayShift: 0, hhmm: '14:00' },
+    { dayShift: 0, hhmm: '16:30' },
+    { dayShift: 1, hhmm: '08:00' },
+    { dayShift: 1, hhmm: '10:50' },
+    { dayShift: 1, hhmm: '13:10' },
+    { dayShift: 1, hhmm: '19:10' },
+    { dayShift: 1, hhmm: '16:30' },
+    { dayShift: 2, hhmm: '08:00' },
+    { dayShift: 2, hhmm: '10:50' },
+    { dayShift: 2, hhmm: '13:10' },
+    { dayShift: 2, hhmm: '19:10' },
+    { dayShift: 2, hhmm: '16:30' },
+    { dayShift: 3, hhmm: '08:00' },
+    { dayShift: 3, hhmm: '10:50' },
+    { dayShift: 3, hhmm: '13:10' },
+    { dayShift: 3, hhmm: '19:10' },
+    { dayShift: 3, hhmm: '16:30' },
+    { dayShift: 4, hhmm: '08:00' },
+    { dayShift: 4, hhmm: '10:50' },
+    { dayShift: 4, hhmm: '13:10' },
+    { dayShift: 4, hhmm: '19:10' },
+  ])
+)
+
+dzs = _.concat(
+  dzs,
+  createDZ(_.maxBy(dzs, (dz) => dz.id)?.id as number, 5, useCase2.events.value, [
+    { dayShift: 1, hhmm: '16:30' },
+    { dayShift: 1, hhmm: '08:00' },
+    { dayShift: 1, hhmm: '10:50' },
+    { dayShift: 1, hhmm: '19:10' },
+    { dayShift: 2, hhmm: '16:30' },
+    { dayShift: 2, hhmm: '08:00' },
+    { dayShift: 2, hhmm: '10:50' },
+    { dayShift: 2, hhmm: '19:10' },
+    { dayShift: 3, hhmm: '16:30' },
+    { dayShift: 3, hhmm: '08:00' },
+    { dayShift: 3, hhmm: '10:50' },
+    { dayShift: 3, hhmm: '19:10' },
+  ])
+)
 </script>
 
 <docs lang="md">

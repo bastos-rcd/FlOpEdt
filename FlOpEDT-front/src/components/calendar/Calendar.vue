@@ -97,7 +97,7 @@
 
       <template #day-body="{ scope: { timestamp, timeStartPos } }">
         <!-- events to display -->
-        <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
+        <template v-for="event in eventsByDate.get(timestamp.date)" :key="event.id">
           <template
             v-if="
               event.data.duration !== undefined &&
@@ -293,7 +293,7 @@ function putAZero(i: number): string {
 // Their columnIds are changed to merge the same events
 // occuring on different columns
 const eventsByDate = computed(() => {
-  const map: Record<string, CalendarEvent[]> = {}
+  const map: Map<string, CalendarEvent[]> = new Map<string, CalendarEvent[]>()
   let allEvents: InputCalendarEvent[] = props.events
   // Copy of events
   const newEvents: CalendarEvent[] = []
@@ -357,10 +357,10 @@ const eventsByDate = computed(() => {
   const newEventsUpdated: CalendarEvent[] = updateEventsOverlap(newEvents)
   // sort by date
   newEventsUpdated.forEach((event) => {
-    if (!map[event.data.start.date]) {
-      map[event.data.start.date] = []
+    if (!map.has(event.data.start.date)) {
+      map.set(event.data.start.date, [])
     }
-    map[event.data.start.date].push(event)
+    map.get(event.data.start.date)!.push(event)
   })
   return map
 })
@@ -681,6 +681,7 @@ const availResizeObs = new ResizeObserver((entries) => {
   if (calendar.value?.timeDurationHeight) {
     newAvailDuration = entries[0].contentRect.height * minutesToPixelRate
   }
+  console.log('MOOOOVE')
 })
 
 /**
@@ -700,7 +701,7 @@ function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] 
     updateMinutes(newAvail.data.start, closestStep(newEnd, props.step))
     newAvail.id = nextId()
     newAvail.data.duration = props.endOfDayMinutes * 60 - closestStep(newEnd, props.step)
-    newEvents.push(newAvail)
+    if (newAvail.data.duration > 0) newEvents.push(newAvail)
   }
   newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
   newAvailDuration = newEvent.data.duration
@@ -708,6 +709,7 @@ function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] 
     return e.id === newEvent.id
   })
   if (newAvailDuration !== 0) newEvents.push(newEvent)
+  console.log('newEvs in update:', newEvents)
   return newEvents
 }
 
@@ -803,7 +805,6 @@ function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
       availResizeObs.observe(mouseEvent.target as Element)
       currentAvailId = eventId
     }
-    console.log('Ho')
   }
 }
 
