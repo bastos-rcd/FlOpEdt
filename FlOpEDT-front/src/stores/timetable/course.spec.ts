@@ -138,7 +138,7 @@ describe('Availibility store utils', () => {
     expect(newCourse.workCopy).toBe(0) //not implemented
   })
 
-  it("gets a item from the store if it's presents or returns undefined value", () => {
+  it("gets an item from the store if it's presents or returns undefined value", () => {
     const courseStore = useScheduledCourseStore()
     const course = courseStore.getCourse(144)
     const scheduledCourse = courseStore.getScheduldedCourse(23)
