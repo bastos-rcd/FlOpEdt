@@ -676,7 +676,6 @@ let timeoutId: any = null
 let currentAvailId: number = -1
 let newAvailDuration: number = 0
 let oldAvailDuration: number = 0
-let selectionAvail: Ref<boolean> = ref(false)
 
 const availResizeObs = new ResizeObserver((entries) => {
   if (calendar.value?.timeDurationHeight) {
@@ -794,14 +793,17 @@ function closestStep(nbMinutes: number, step: number = STEP_DEFAULT): number {
 function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
   if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
   //@ts-expect-error
-  if (_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG'))
+  if (_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG')) {
     onAvailClick(mouseEvent, eventId)
+    console.log('Hey')
+  }
   //@ts-expect-error
   else if (!_.includes(mouseEvent.target.className, 'title')) {
     if (mouseEvent.target) {
       availResizeObs.observe(mouseEvent.target as Element)
       currentAvailId = eventId
     }
+    console.log('Ho')
   }
 }
 
@@ -841,7 +843,6 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
 }
 
 function onMouseUp(): void {
-  selectionAvail.value = false
   if (currentAvailId !== -1) {
     availResizeObs.disconnect()
     const newEvent: InputCalendarEvent = _.cloneDeep(
