@@ -103,7 +103,7 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
     Only one course for each considered room on simultaneous slots
     """
     rooms = models.ManyToManyField('base.Room', blank=True)
-    can_combine_two_groups_if_no_tutor = models.BooleanField(default=False)
+    can_combine_two_groups_if_no_tutor = models.BooleanField(default=False, verbose_name=_('Can combine two groups if no tutor'))
 
     class Meta:
         verbose_name = _('Limit simultaneous courses for rooms')
@@ -365,6 +365,8 @@ class LocateAllCourses(RoomConstraint):
     modules = models.ManyToManyField('base.Module', blank=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
     course_types = models.ManyToManyField('base.CourseType', blank=True)
+    room_types = models.ManyToManyField('base.RoomType', blank=True)
+    tutors = models.ManyToManyField('people.Tutor', blank=True)
 
     class Meta:
         verbose_name = _('Assign a room to the courses')
@@ -376,6 +378,13 @@ class LocateAllCourses(RoomConstraint):
             courses_to_consider = set(c for c in courses_to_consider if c.module in self.modules.all())
         if self.course_types.exists():
             courses_to_consider = set(c for c in courses_to_consider if c.type in self.course_types.all())
+        if self.room_types.exists():
+            courses_to_consider = set(c for c in courses_to_consider if c.room_type in self.room_types.all())
+        if self.groups.exists():
+            courses_to_consider = set(c for c in courses_to_consider if all(g in self.groups.all() for g in c.groups.all()))
+        if self.tutors.exists():
+            courses_to_consider = set(c for c in courses_to_consider if c.tutor in self.tutors.all())
+        
         return courses_to_consider
 
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):

@@ -106,6 +106,8 @@ def import_config_file(req, **kwargs):
                         except Exception as e:
                             logger.warning(f'Exception with dept')
                             logger.warning(e)
+                            
+                        dept_name = dept.name
 
                         extract_database_file(department_name=dept_name,
                                               department_abbrev=dept_abbrev, bookname=path)

@@ -280,7 +280,8 @@ def send_notifications():
         department = groups[0].train_prog.department.abbrev
         student_changes = []
         for group in groups:
-            student_changes += student_changes_dict[group.train_prog.department.abbrev][group.train_prog.abbrev][group.name]
+            if group.name in student_changes_dict[group.train_prog.department.abbrev][group.train_prog.abbrev]:
+                student_changes += student_changes_dict[group.train_prog.department.abbrev][group.train_prog.abbrev][group.name]
 
         filtered_changes = [change for change in student_changes
                             if 0 <= days_nb_from_today(change) <= nb_of_notified_days]

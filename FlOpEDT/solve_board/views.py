@@ -168,7 +168,6 @@ def launch_pre_analyse(req, train_prog, year, week, type, **kwargs):
         for constraint in constraints:
             result = constraint.pre_analyse(week=Week.objects.get(nb= week, year =year))
             resultat[type].append(result)
-            
     return JsonResponse(resultat)
 
 
@@ -195,6 +194,7 @@ def main_board(req, **kwargs):
                    'weeks': json.dumps(week_list),
                    'train_progs': json.dumps(all_tps),
                    'solvers': solvers_viewmodel,
+                   'email': req.user.email,
                    }
     
     # Get contextual datas (constraints, work_copies)

@@ -26,3 +26,9 @@ FlOpEDT/static/vue/dist/*.hot-update.js*
 #Catalog
 FlOpEDT/discarded.json
 FlOpEDT/temp/*
+
+# Fichiers de configuration autre que ceux de base
+/config_file
+!/config_file/flopedt.ini
+!/config_file/flopedt-system.ini
+!/config_file/flopedt-docker.ini

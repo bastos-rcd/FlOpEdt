@@ -23,7 +23,7 @@ Si oui, lesquelles ?
 
 ### Licences
 
-Si de nouvelles dépendances ont été ajoutées, leurs licences sont compatibles avec une inclusion dans un logiciel sous AGPL.
+Si de nouvelles dépendances ont été ajoutées, leurs licences sont compatibles avec une inclusion dans un logiciel sous AGPL version 3.0 ou ultérieure.
 
 - [ ] Tout à fait
 - [ ] J'ai regardé, mais j'ai un doute. Franchement, les licences, c'est compliqué.

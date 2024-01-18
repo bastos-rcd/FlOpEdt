@@ -229,17 +229,27 @@ function are_rooms_free(candidates,
       j++;
     }
 
+    // is a room in the roomgroup occupied in another department?
     if (!is_occupied && is_available) {
       // other depts
-      if (!Object.keys(extra_pref.rooms).includes(cur_roomgroup)
-          || !Object.keys(extra_pref.rooms[cur_roomgroup]).includes(slot.day)
-          || get_preference(extra_pref.rooms[cur_roomgroup][slot.day],
-                            slot.start, slot.duration) != 0) {
-        free_rooms.push(candidates[i]);
+      is_occupied_in_other_depts = false;
+      j = 0;
+      while (!is_occupied_in_other_depts 
+             && j < rooms.roomgroups[cur_roomgroup].length) {
+        cur_room = rooms.roomgroups[cur_roomgroup][j];
+        if (Object.keys(extra_pref.rooms).includes(cur_room)
+            && Object.keys(extra_pref.rooms[cur_room]).includes(slot.day)
+            && get_preference(extra_pref.rooms[cur_room][slot.day],
+                              slot.start, slot.duration) == 0) {
+          is_occupied_in_other_depts = true;
+        }
+        j++;
+      }
+      if (!is_occupied_in_other_depts) {
+        free_rooms.push(cur_roomgroup)
       }
     }
   }
-
   return free_rooms ;
 }
 

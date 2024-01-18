@@ -52,6 +52,7 @@ GUROBI = 'GUROBI'
 GUROBI_NAME = 'GUROBI_CMD'
 solution_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/solutions")
 iis_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/iis")
+gurobi_log_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/gurobi")
 
 
 class FlopVar:
@@ -291,7 +292,8 @@ class FlopModel(object):
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
             solver = GUROBI_NAME
             options = [("Presolve", presolve),
-                       ("MIPGapAbs", 0.2)]
+                       ("MIPGapAbs", 0.2),
+                       ('LogFile ',f"{gurobi_log_files_path}/{self.solution_files_prefix()}_gurobi.log")]
             if time_limit is not None:
                 options.append(("TimeLimit", time_limit))
             if threads is not None:

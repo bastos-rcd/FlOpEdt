@@ -142,7 +142,7 @@ class ParallelizeCourses(TTConstraint):
 
     course_types = models.ManyToManyField('base.CourseType', blank=True)
     modules = models.ManyToManyField('base.Module', blank=True)
-    desired_busy_slots_duration = models.PositiveSmallIntegerField(verbose_name="max busy slots duration desired")
+    desired_busy_slots_duration = models.PositiveSmallIntegerField(verbose_name=_("Desired busy slots duration"))
 
 
     class Meta:

@@ -53,8 +53,10 @@ class EventFeed(ICalFeed):
 
     def item_start_datetime(self, scourse):
         course = scourse.course
+        course_week_year = course.week.year if course.week.year >= 1 else 1
+        course_week_nb = course.week.nb if course.week.nb >= 1 else 1
         begin = datetime.combine(
-            Week(course.week.year, course.week.nb)\
+            Week(course_week_year, course_week_nb)\
             .day(self.days.index(scourse.day)),
             datetime.min.time()) \
             + timedelta(minutes=scourse.start_time)

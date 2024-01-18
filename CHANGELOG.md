@@ -12,8 +12,24 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.3] -- 2023-07-18
+## [0.5.4] -- 2024-01-11
 **Note:** `0.5` is the last `0.*` version.
+### Changed
+- Debugs:
+  * Docker deployment using makefile
+  * Student notifications
+  * ics date calculus
+  * user_tests decorators
+  * include transversal groups in NoGroupCourses constraints
+  * various minor bugs in deployment
+  * romm availabilities in js HMI
+  * ConsiderDependencies pre-analyze
+
+### Added
+- Possibility to receive solver log by email after resolution
+- Better fileters in LocateAllCourses constraints
+
+## [0.5.3] -- 2023-07-18
 ### Changed
 - Debugs:
   * Debug rooms post_assignment solution_file storage in FlopModel

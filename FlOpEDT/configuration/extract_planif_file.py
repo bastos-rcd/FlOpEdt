@@ -224,9 +224,11 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                     relevant_groups = set()
                     for g in GROUPS:
                         relevant_groups |= g.ancestor_groups() | {g} | g.descendants_groups()
-                    courses_queryset = Course.objects.filter(type__name=course_type, module=MODULE, week=week,
-                                                             groups__in=relevant_groups).exclude(id=C.id)
-                    after_type_dependencies.append((C.id, courses_queryset, n))
+                    course_type_queryset = Course.objects.filter(type__name=course_type, module=MODULE, week=week).exclude(id=C.id)
+                    for relevant_group in relevant_groups:
+                        courses_queryset = course_type_queryset.filter(groups=relevant_group)
+                        if courses_queryset.exists():
+                            after_type_dependencies.append((C.id, courses_queryset, n, row))
 
                 if 'P' in all_comments:
                     course_additional, created = CourseAdditional.objects.get_or_create(course=C)
@@ -255,7 +257,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
             raise Exception(f"Exception ligne {row}, semaine {week.nb} de {feuille}: {e} \n")
 
     # Add after_type dependecies
-    for id, courses_queryset, n in after_type_dependencies:
+    for id, courses_queryset, n, row in after_type_dependencies:
         course2 = Course.objects.get(id=id)
         for course1 in courses_queryset[:n]:
             P = Dependency.objects.create(course1=course1, course2=course2)        
