@@ -30,6 +30,7 @@
     :columns="columnsToDisplay"
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
+    @event:details="fetchCourseDetails"
     :end-of-day-minutes="endOfDay"
   />
 </template>
@@ -142,7 +143,6 @@ const roomStore = useRoomStore()
 const authStore = useAuth()
 const availabilityStore = useAvailabilityStore()
 const permanentStore = usePermanentStore()
-const { availabilities } = storeToRefs(availabilityStore)
 const { fetchedTransversalGroups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
@@ -181,6 +181,24 @@ function changeDate(newDate: Timestamp) {
   fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
 }
 
+function fetchCourseDetails(courseId: number): void {
+  console.log(`We got the message ${courseId} !`)
+  console.log("Voici l'objet demandé: ", scheduledCourseStore.getCourse(courseId))
+  // Need to fetch room, tutor, module, groups
+  const course = scheduledCourseStore.getCourse(courseId)
+  const courseModule = permanentStore.modules.find((mod) => mod.id === course?.module)
+  const courseRoom = roomStore.roomsFetched.find((room) => room.id === course?.room)
+  const courseTutor = tutorStore.getTutorById(course!.tutorId)
+  const courseGroups = _.concat(
+    groupStore.fetchedStructuralGroups.filter((gp) => _.includes(course?.groupIds, gp.id)),
+    groupStore.fetchedTransversalGroups.filter((gp) => _.includes(course?.groupIds, gp.id))
+  )
+  console.log('Voici son module: ', courseModule)
+  console.log('Voici sa salle: ', courseRoom)
+  console.log('Voici ses groupes: ', courseGroups)
+  console.log("Voici l'enseignant du cours: ", courseTutor)
+}
+
 /**
  * Fetching data required on mount
  */
@@ -191,7 +209,7 @@ onBeforeMount(async () => {
   fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   roomStore.fetchRooms()
-  tutorStore.fetchTutors(deptStore.current)
+  tutorStore.fetchTutors()
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
   groupStore.fetchGroups(deptStore.current)
   permanentStore.fetchModules()
