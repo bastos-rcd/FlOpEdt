@@ -1,7 +1,7 @@
 import { api } from '@/utils/api'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { Department, UserAPI } from '@/ts/type'
+import { UserAPI } from '@/ts/type'
 import { User } from '@/stores/declarations'
 
 export const useTutorStore = defineStore('tutor', () => {
@@ -13,33 +13,22 @@ export const useTutorStore = defineStore('tutor', () => {
     }
   })
 
-  async function fetchTutors(department?: Department): Promise<void> {
-    await api.getTutors(department).then((result: UserAPI[]) => {
+  async function fetchTutors(tutorId?: number): Promise<void> {
+    await api.getTutors(tutorId).then((result: UserAPI[]) => {
       result.forEach((user: UserAPI) => {
-        tutors.value.push({
+        const newTutor = {
           id: user.id,
-          username: user.name,
-          firstname: '',
-          lastname: '',
-          email: '',
+          username: user.username,
+          firstname: user.first_name,
+          lastname: user.last_name,
+          email: user.email,
           type: 'tutor',
-          departments: [],
+          departments: new Map<number, boolean>(),
+        }
+        user.departments.forEach((dep) => {
+          newTutor.departments.set(dep.department_id, dep.is_admin === 'true')
         })
-      })
-      isAllTutorsFetched.value = true
-    })
-  }
-
-  async function fetchTutorById(tutorId: number): Promise<void> {
-    await api.getTutorById(tutorId).then((user: UserAPI) => {
-      tutors.value.push({
-        id: user.id,
-        username: user.name,
-        firstname: '',
-        lastname: '',
-        email: '',
-        type: 'tutor',
-        departments: [],
+        tutors.value.push(newTutor)
       })
       isAllTutorsFetched.value = true
     })
@@ -54,7 +43,6 @@ export const useTutorStore = defineStore('tutor', () => {
     tutors,
     isAllTutorsFetched,
     fetchTutors,
-    fetchTutorById,
     clearTutors,
     getTutorById,
   }

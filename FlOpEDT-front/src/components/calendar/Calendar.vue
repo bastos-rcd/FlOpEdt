@@ -110,14 +110,14 @@
               <div
                 v-for="spans in event.spans"
                 :key="event.id"
-                class="my-event"
+                class="event-span"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
                 :style="badgeStyles(event, spans, timeStartPos)"
                 @mousedown="onMouseDown($event, event.id)"
                 @mouseup="onMouseUp()"
               >
                 <slot name="event" :event="event">
-                  <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
+                  <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis event">
                     {{ event.title }}
                   </span>
                   <div
@@ -133,7 +133,7 @@
                             :style="availMenuStyle(index)"
                             :icon="icon"
                             size="sm"
-                            @click="changeAvail(event.id, parseInt(index))"
+                            @click="changeAvailValue(event.id, parseInt(index))"
                           />
                         </q-btn-group>
                       </q-popup-edit>
@@ -208,6 +208,7 @@ const emits = defineEmits<{
   (e: 'update:events', value: InputCalendarEvent[]): void
   (e: 'update:week', value: Timestamp): void
   (e: 'weekdays', value: number[]): void
+  (e: 'event:details', value: number): void
 }>()
 
 const preWeight = computed(() => {
@@ -681,7 +682,6 @@ const availResizeObs = new ResizeObserver((entries) => {
   if (calendar.value?.timeDurationHeight) {
     newAvailDuration = entries[0].contentRect.height * minutesToPixelRate
   }
-  console.log('MOOOOVE')
 })
 
 /**
@@ -793,18 +793,25 @@ function closestStep(nbMinutes: number, step: number = STEP_DEFAULT): number {
 }
 
 function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
-  if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
-  //@ts-expect-error
-  if (_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG')) {
-    onAvailClick(mouseEvent, eventId)
-    console.log('Hey')
-  }
-  //@ts-expect-error
-  else if (!_.includes(mouseEvent.target.className, 'title')) {
-    if (mouseEvent.target) {
-      availResizeObs.observe(mouseEvent.target as Element)
-      currentAvailId = eventId
+  if (mouseEvent.button === 0) {
+    if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
+    //@ts-expect-error
+    if (_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG')) {
+      onAvailClick(mouseEvent, eventId)
+      console.log('Hey')
     }
+    //@ts-expect-error
+    else if (!_.includes(mouseEvent.target.className, 'title')) {
+      if (mouseEvent.target) {
+        availResizeObs.observe(mouseEvent.target as Element)
+        currentAvailId = eventId
+      }
+    }
+    //@ts-expect-error
+  } else if (_.includes(mouseEvent.target.className, 'event') && mouseEvent.button === 2) {
+    mouseEvent.preventDefault()
+    const dataId = eventsModel.value.find((ev) => ev.id === eventId)?.data.dataId
+    if (dataId) emits('event:details', dataId)
   }
 }
 
@@ -812,7 +819,7 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
   if (mouseEvent.button === 0) {
     if (!timeoutId) {
       timeoutId = setTimeout(() => {
-        changeAvail(eventId)
+        changeAvailValue(eventId)
         clearTimeout(timeoutId)
         timeoutId = null
       }, 200)
@@ -888,7 +895,7 @@ function nextId(): number {
   return idAvail++
 }
 
-function changeAvail(eventId: number, value?: number): void {
+function changeAvailValue(eventId: number, value?: number): void {
   const newEvent: InputCalendarEvent | undefined = _.cloneDeep(
     eventsModel.value.find((ev: InputCalendarEvent) => ev.id == eventId)
   )
@@ -921,7 +928,7 @@ function availMenuStyle(index: string): any {
 </script>
 
 <style lang="sass" scoped>
-.my-event
+.event-span
   position: absolute
   font-size: 12px
   justify-content: center

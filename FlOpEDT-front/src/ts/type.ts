@@ -181,8 +181,13 @@ export interface TrainingProgrammeAPI {
 }
 
 export interface UserAPI {
-  name: string
   id: number
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+  rights: number
+  departments: Array<{ department_id: number; is_admin: string }>
 }
 
 export interface User {

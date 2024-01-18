@@ -80,5 +80,6 @@ export interface User {
   lastname: string
   email: string
   type: string
-  departments: Array<{ departmentId: number; rights: string }>
+  departments: Map<number, boolean>
+  //rights?: Record<string, string>
 }

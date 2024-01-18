@@ -35,7 +35,7 @@ const urls = {
   scheduledcourses: 'v1/base/courses/scheduledcourses',
   coursetypes: 'courses/type',
   users: 'user/users',
-  getTutors: 'fetch/idtutor',
+  getTutors: 'v1/people/tutors',
   booleanroomattributes: 'rooms/booleanattributes',
   numericroomattributes: 'rooms/numericattributes',
   booleanroomattributevalues: 'rooms/booleanattributevalues',
@@ -141,8 +141,7 @@ export interface FlopAPI {
   getModules(): Promise<ModuleAPI[]>
   getCurrentUser(): Promise<User>
   getAllDepartments(): Promise<Array<Department>>
-  getTutors(department?: Department): Promise<Array<UserAPI>>
-  getTutorById(id: number): Promise<UserAPI>
+  getTutors(id?: Number): Promise<Array<UserAPI>>
   getTrainProgs(department?: string): Promise<TrainingProgrammeAPI[]>
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
   getRoomById(id: number): Promise<RoomAPI>
@@ -345,10 +344,10 @@ const api: FlopAPI = {
       })
     return modules
   },
-  async getTutors(department?: Department): Promise<Array<UserAPI>> {
+  async getTutors(id?: number): Promise<Array<UserAPI>> {
     let tutors: Array<UserAPI> = []
     let finalUrl: string = API_ENDPOINT + urls.getTutors
-    if (department) finalUrl += '/?dept=' + department.abbrev
+    if (id) finalUrl += '/' + id
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',
@@ -361,7 +360,10 @@ const api: FlopAPI = {
         await response
           .json()
           .then((data) => {
-            tutors = data
+            if (id) tutors.push(data)
+            else {
+              data.forEach((d: UserAPI) => tutors.push(d))
+            }
           })
           .catch((error) => console.log('Error : ' + error.message))
       })
@@ -369,30 +371,6 @@ const api: FlopAPI = {
         console.log(error.message)
       })
     return tutors
-  },
-  async getTutorById(id: number): Promise<UserAPI> {
-    let tutor: UserAPI = { id: -1, name: '' }
-    let finalUrl: string = API_ENDPOINT + urls.getTutors + '/?id=' + id
-    await fetch(finalUrl, {
-      method: 'GET',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw Error('Error : ' + response.status)
-        }
-        await response
-          .json()
-          .then((data) => {
-            tutor = data
-          })
-          .catch((error) => console.log('Error : ' + error.message))
-      })
-      .catch((error) => {
-        console.log(error.message)
-      })
-    return tutor
   },
   async getCurrentUser(): Promise<User> {
     let user: User = new User()
