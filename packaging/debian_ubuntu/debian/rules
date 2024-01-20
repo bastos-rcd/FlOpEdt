@@ -1,8 +1,5 @@
 #!/usr/bin/make -f
 
-#export PYBUILD_NAME=flopedt
-#export PYBUILD_DISABLE=test
-
 .PHONY: override_dh_strip override_dh_shlibdeps
 	# override_dh_shlibdeps
 %:
@@ -42,20 +39,23 @@ override_dh_auto_install:
 	install -d debian/flopedt/usr/lib/
 	cp -a gurobi1001/linux64/lib/libgurobi.so.10.0.1 debian/flopedt/usr/lib/
 
-	# Install Gurobi binary solver
+	# Install Gurobi binary solver
 	install -d debian/flopedt/usr/bin
 	cp -a gurobi1001/linux64/bin/gurobi_cl debian/flopedt/usr/bin
 	cp -a gurobi1001/linux64/bin/grbgetkey debian/flopedt/usr/bin
 
-	# Deploy default configuration file
+	# Deploy default configuration file
 	mkdir -p debian/flopedt/etc/flopedt
 	cp -a config_file/flopedt-system.ini debian/flopedt/etc/flopedt/flopedt.ini
+
+	# Purge not needed files (Not x86_64 architecture for example)
+	rm -Rf debian/flopedt/opt/venvs/flopedt/lib/*/site-packages/pulp/solverdir/cbc/linux/arm64
 
 override_dh_virtualenv:
 	dh_virtualenv --python python3
 
 override_dh_strip:
-	dh_strip --exclude=cffi --exclude=_imaging --exclude=scipy --exclude=pillow --exclude=numpy --exclude=PIL
+	dh_strip --exclude=_imaging --exclude=scipy --exclude=pillow --exclude=numpy --exclude=PIL
 
 override_dh_shlibdeps:
 	dh_shlibdeps -X/x86/ -Xcpython -X/PIL/ -X/psycopg2 -X/_yaml -X/numpy.libs -X/scipy.libs -X/pillow.libs -X/cbc -X/lxml -X/matplotlib -X/pyclustering -X/cryptography -Xgurobi -Xgrb
