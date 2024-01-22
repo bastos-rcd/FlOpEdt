@@ -144,7 +144,7 @@ export interface FlopAPI {
   getTutors(id?: Number): Promise<Array<UserAPI>>
   getTrainProgs(department?: string): Promise<TrainingProgrammeAPI[]>
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
-  getRoomById(id: number): Promise<RoomAPI>
+  getRoomById(id: number): Promise<RoomAPI | undefined>
   getAvailabilities(userId: number, from: Date, to: Date): Promise<Array<AvailabilityBack>>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
@@ -447,37 +447,33 @@ const api: FlopAPI = {
       })
     return rooms
   },
-  async getRoomById(id: number): Promise<RoomAPI> {
-    let room: RoomAPI = {
-      id: -1,
-      name: '',
-      over_room_ids: [],
-      department_ids: [],
+  async getRoomById(id: number): Promise<RoomAPI | undefined> {
+    let room: RoomAPI | undefined
+    if (id) {
+      await fetch(API_ENDPOINT + urls.getRooms + '/' + id, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+          }
+          await response
+            .json()
+            .then((data) => {
+              room = data
+            })
+            .catch((error) => {
+              return Promise.reject(error.message)
+            })
+        })
+        .catch((error) => {
+          console.log(error.message)
+        })
     }
-    await fetch(API_ENDPOINT + urls.getRooms + '/?id=' + id, {
-      method: 'GET',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
-        }
-        await response
-          .json()
-          .then((data) => {
-            room = data
-          })
-          .catch((error) => {
-            return Promise.reject(error.message)
-          })
-      })
-      .catch((error) => {
-        console.log(error.message)
-      })
     return room
   },
-  //TODO change userName for userId
   async getAvailabilities(userId: number, from: Date, to: Date): Promise<Array<AvailabilityBack>> {
     let availabilities: AvailabilityBack[] = []
     await fetch(

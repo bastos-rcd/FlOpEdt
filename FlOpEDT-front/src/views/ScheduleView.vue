@@ -181,22 +181,28 @@ function changeDate(newDate: Timestamp) {
   fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
 }
 
-function fetchCourseDetails(courseId: number): void {
+async function fetchCourseDetails(courseId: number): Promise<void> {
   console.log(`We got the message ${courseId} !`)
   console.log("Voici l'objet demandé: ", scheduledCourseStore.getCourse(courseId))
   // Need to fetch room, tutor, module, groups
   const course = scheduledCourseStore.getCourse(courseId)
-  const courseModule = permanentStore.modules.find((mod) => mod.id === course?.module)
-  const courseRoom = roomStore.roomsFetched.find((room) => room.id === course?.room)
-  const courseTutor = tutorStore.getTutorById(course!.tutorId)
-  const courseGroups = _.concat(
-    groupStore.fetchedStructuralGroups.filter((gp) => _.includes(course?.groupIds, gp.id)),
-    groupStore.fetchedTransversalGroups.filter((gp) => _.includes(course?.groupIds, gp.id))
-  )
-  console.log('Voici son module: ', courseModule)
-  console.log('Voici sa salle: ', courseRoom)
-  console.log('Voici ses groupes: ', courseGroups)
-  console.log("Voici l'enseignant du cours: ", courseTutor)
+  if (course) {
+    try {
+      const courseModule = await permanentStore.getModule(course.module)
+      const courseRoom = await roomStore.getRoomById(course.room)
+      const courseTutor = await tutorStore.getTutorById(course!.tutorId)
+      const courseGroups = _.concat(
+        groupStore.fetchedStructuralGroups.filter((gp) => _.includes(course.groupIds, gp.id)),
+        groupStore.fetchedTransversalGroups.filter((gp) => _.includes(course.groupIds, gp.id))
+      )
+      console.log('Voici son module: ', courseModule)
+      console.log('Voici ses groupes: ', courseGroups)
+      console.log('Voici sa salle: ', courseRoom)
+      console.log("Voici l'enseignant du cours: ", courseTutor)
+    } catch (error) {
+      console.log('FetchCourseDetail: ', error)
+    }
+  }
 }
 
 /**

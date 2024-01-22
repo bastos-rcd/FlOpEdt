@@ -6,7 +6,6 @@ import { setActivePinia, createPinia } from 'pinia'
 import { Timestamp } from '@quasar/quasar-ui-qcalendar/dist/types/types'
 import { getDateTime, parseTimestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
-import { afterEach } from 'node:test'
 
 vi.mock('../utils/api.ts')
 

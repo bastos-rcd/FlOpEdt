@@ -68,6 +68,38 @@ export const usePermanentStore = defineStore('permanent', () => {
     }
   }
 
+  async function getModule(id: number): Promise<Module | undefined> {
+    let module = modules.value.find((m) => m.id === id)
+    if (id) {
+      if (!module) {
+        try {
+          await fetchModules()
+          module = modules.value.find((m) => m.id === id)
+        } catch (error) {
+          console.log('Get module failed')
+          console.log(error)
+        }
+      }
+    }
+    return module
+  }
+
+  async function getTrainProgs(id: number): Promise<TrainingProgramme | undefined> {
+    let trainProg = trainProgs.value.find((tr) => tr.id === id)
+    if (id) {
+      if (!trainProg) {
+        try {
+          await fetchTrainingProgrammes()
+          trainProg = trainProgs.value.find((tr) => tr.id === id)
+        } catch (error) {
+          console.log(`Get Training Program failed`)
+          console.log(error)
+        }
+      }
+    }
+    return trainProg
+  }
+
   function clearTrainProgs() {
     trainProgs.value = []
     isTrainProgsFetched.value = false
@@ -86,5 +118,7 @@ export const usePermanentStore = defineStore('permanent', () => {
     clearTrainProgs,
     clearModules,
     moduleColor,
+    getModule,
+    getTrainProgs,
   }
 })

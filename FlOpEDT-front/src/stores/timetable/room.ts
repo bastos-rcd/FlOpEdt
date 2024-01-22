@@ -11,20 +11,24 @@ export const useRoomStore = defineStore('room', () => {
   const getRoomById = computed(() => {
     return async (roomId: number) => {
       let room: Room | undefined = roomsFetched.value?.find((r) => r.id == roomId)
-      if (!room) {
-        try {
-          await api.getRoomById(roomId).then((result) => {
-            room = {
-              id: result.id,
-              abbrev: '',
-              name: result.name,
-              subroomIdOf: [],
-              departmentIds: [],
-            }
-            roomsFetched.value.push(room)
-          })
-        } catch (e) {
-          loadingError.value = e as Error
+      if (roomId) {
+        if (!room) {
+          try {
+            await api.getRoomById(roomId).then((result: RoomAPI | undefined) => {
+              if (result) {
+                room = {
+                  id: result.id,
+                  abbrev: '',
+                  name: result.name,
+                  subroomIdOf: [],
+                  departmentIds: [],
+                }
+                roomsFetched.value.push(room)
+              }
+            })
+          } catch (e) {
+            loadingError.value = e as Error
+          }
         }
       }
       return room

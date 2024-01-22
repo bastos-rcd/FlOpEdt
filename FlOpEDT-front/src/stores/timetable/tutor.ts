@@ -8,12 +8,32 @@ export const useTutorStore = defineStore('tutor', () => {
   const tutors = ref<Array<User>>([])
   const isAllTutorsFetched = ref<boolean>(false)
   const getTutorById = computed(() => {
-    return (tutorId: number) => {
-      return tutors.value?.find((tutor) => tutor.id === tutorId)
+    return async (tutorId: number) => {
+      let tutor = tutors.value?.find((tutor) => tutor.id === tutorId)
+      if (!tutor) {
+        await api.getTutors(tutorId).then((result: UserAPI[]) => {
+          if (result.length === 1) {
+            tutor = {
+              id: result[0].id,
+              username: result[0].username,
+              firstname: result[0].first_name,
+              lastname: result[0].last_name,
+              email: result[0].email,
+              type: 'tutor',
+              departments: new Map<number, boolean>(),
+            }
+            result[0].departments.forEach((dep) => {
+              tutor?.departments.set(dep.department_id, dep.is_admin === 'true')
+            })
+          }
+        })
+      }
+      return tutor
     }
   })
 
   async function fetchTutors(tutorId?: number): Promise<void> {
+    isAllTutorsFetched.value = false
     await api.getTutors(tutorId).then((result: UserAPI[]) => {
       result.forEach((user: UserAPI) => {
         const newTutor = {
