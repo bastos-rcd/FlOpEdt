@@ -97,17 +97,13 @@ def import_config_file(req, **kwargs):
                         except:
                             dept_name = None
                         logger.debug(dept_name)
-                        try:
+                        if Department.objects.filter(abbrev=dept_abbrev).exists():
                             dept = Department.objects.get(abbrev=dept_abbrev)
                             if not dept_name == dept.name and dept_name is not None:
                                 response = {'status': 'error',
                                             'data': "Il existe déjà un département utilisant cette abbréviation."}
                                 return HttpResponse(json.dumps(response), content_type='application/json')
-                        except Exception as e:
-                            logger.warning(f'Exception with dept')
-                            logger.warning(e)
-                            
-                        dept_name = dept.name
+                            dept_name = dept.name
 
                         extract_database_file(department_name=dept_name,
                                               department_abbrev=dept_abbrev, bookname=path)
