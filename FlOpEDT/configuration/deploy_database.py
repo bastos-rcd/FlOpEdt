@@ -84,9 +84,9 @@ def extract_database_file(department_name=None, department_abbrev=None, bookname
     settings_extract(department, book['settings'])
     rooms_extract(department, book['room_groups'], book['room_categories'], book['rooms'])
     groups_extract(department, book['promotions'], book['group_types'], book['groups'], book['transversal_groups'])
+    people_extract(department, book['people'], fill_default_preferences)
     modules_extract(department, book['modules'])
     courses_extract(department, book['courses'])
-    people_extract(department, book['people'], fill_default_preferences)
 
 
 def people_extract(department, people, fill_default_preferences):
@@ -343,6 +343,8 @@ def modules_extract(department, modules):
 
             promotion = TrainingProgramme.objects.get(abbrev=module['promotion'],
                                                       department=department)
+            print(module['responsable'])
+            print(Tutor.objects.filter(username=module['responsable']))
             prof = Tutor.objects.get(username=module['responsable'])
             period = Period.objects.get(name=module['period'], department=department)
 
