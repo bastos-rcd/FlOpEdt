@@ -115,6 +115,7 @@
                 :style="badgeStyles(event, spans, timeStartPos)"
                 @mousedown="onMouseDown($event, event.id)"
                 @mouseup="onMouseUp()"
+                @contextmenu.prevent=""
               >
                 <slot name="event" :event="event">
                   <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis event">
@@ -809,7 +810,6 @@ function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
     }
     //@ts-expect-error
   } else if (_.includes(mouseEvent.target.className, 'event') && mouseEvent.button === 2) {
-    mouseEvent.preventDefault()
     const dataId = eventsModel.value.find((ev) => ev.id === eventId)?.data.dataId
     if (dataId) emits('event:details', dataId)
   }
