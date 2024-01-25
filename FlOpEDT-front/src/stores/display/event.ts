@@ -1,6 +1,6 @@
 import { InputCalendarEvent } from '@/components/calendar/declaration'
 import { defineStore, storeToRefs } from 'pinia'
-import { Ref, computed, ref } from 'vue'
+import { Ref, ref, watchEffect } from 'vue'
 import { useScheduledCourseStore } from '../timetable/course'
 import { Timestamp, copyTimestamp, parseTime } from '@quasar/quasar-ui-qcalendar'
 import { useAvailabilityStore } from '../timetable/availability'
@@ -19,7 +19,9 @@ export const useEventStore = defineStore('eventStore', () => {
   const { modules, moduleColor } = storeToRefs(permanentStore)
   const { columns } = storeToRefs(columnStore)
   const daysSelected: Ref<Timestamp[]> = ref<Timestamp[]>([])
-  const calendarEvents = computed((): InputCalendarEvent[] => {
+  const calendarEvents: Ref<InputCalendarEvent[]> = ref([])
+
+  watchEffect(() => {
     const eventsReturned: InputCalendarEvent[] = []
     availabilityStore.getAvailabilityFromDates(daysSelected.value).forEach((av) => {
       const currentEvent: InputCalendarEvent = {
@@ -69,7 +71,7 @@ export const useEventStore = defineStore('eventStore', () => {
       })
       eventsReturned.push(currentEvent)
     })
-    return eventsReturned
+    calendarEvents.value = eventsReturned
   })
 
   return {

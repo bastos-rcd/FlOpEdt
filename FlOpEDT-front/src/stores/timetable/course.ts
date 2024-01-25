@@ -50,15 +50,12 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
           })
         })
         isLoading.value = false
-        console.log('Hey')
-        console.log('Scheduled =', scheduledCourses.value)
         scheduledCourses.value.forEach((scheduledCourses, date) => {
           if (!courses.value.has(date)) courses.value.set(date, [])
           scheduledCourses.forEach((sc) => {
             courses.value.get(date)?.push(scheduledCourseToCourse(sc))
           })
         })
-        console.log('courses: ', courses.value)
       })
     } catch (e) {
       loadingError.value = e as Error

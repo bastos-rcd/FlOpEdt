@@ -137,7 +137,6 @@ function changeDate(newDate: Timestamp) {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
   }
-  console.log('here days: ', daysSelected)
 }
 
 async function fetchCourseDetails(courseId: number): Promise<void> {
