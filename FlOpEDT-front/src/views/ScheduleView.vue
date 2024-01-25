@@ -33,10 +33,11 @@
     @event:details="fetchCourseDetails"
     :end-of-day-minutes="endOfDay"
   />
+  <CourseModForm :module="courseModule" :room="courseRoom" :tutor="courseTutor" />
 </template>
 
 <script setup lang="ts">
-import { CalendarColumn, InputCalendarEvent } from '@/components/calendar/declaration'
+import { CalendarColumn } from '@/components/calendar/declaration'
 import Calendar from '@/components/calendar/Calendar.vue'
 import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
@@ -50,14 +51,14 @@ import {
   getEndOfWeek,
   getStartOfWeek,
   makeDate,
-  parseTime,
+  nextDay,
   today,
   updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
 import { filter } from 'lodash'
 import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
-import { Group, Room } from '@/stores/declarations'
+import { Group, Module, Room, User } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
 import { matBatteryFull } from '@quasar/extras/material-icons'
@@ -65,66 +66,13 @@ import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useAuth } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
 import _ from 'lodash'
+import CourseModForm from '@/components/forms/courseModForm.vue'
+import { useEventStore } from '@/stores/display/event'
 
 /**
  * Data translated to be passed to components
  */
-const calendarEvents = computed({
-  get() {
-    const calendarEventsToReturn: InputCalendarEvent[] = scheduledCourseStore.getCalendarCoursesFromDateToDate(
-      monday.value!,
-      sunday.value!
-    )
-    calendarEventsToReturn.forEach((c) => {
-      if (c.id === -1) c.id = id++
-      calendarEventsPrev.set(c.id, c)
-    })
-    availabilityStore.getAvailabilitiesFromDateToDate(monday.value!, sunday.value!).forEach((av) => {
-      const currentEvent: InputCalendarEvent = {
-        id: av.id === -1 ? id++ : av.id,
-        title: '',
-        toggled: true,
-        bgcolor: '',
-        columnIds: [],
-        data: {
-          dataId: av.id,
-          dataType: 'avail',
-          start: copyTimestamp(av.start),
-          duration: av.duration,
-          value: av.value,
-        },
-      }
-      currentEvent.title = currentEvent.id.toString()
-      const availColumn = columns.value.find((c) => c.name === 'Avail')
-      if (availColumn) currentEvent.columnIds.push(availColumn.id)
-      calendarEventsToReturn!.push(currentEvent)
-      calendarEventsPrev.set(currentEvent.id, currentEvent)
-    })
-    return calendarEventsToReturn
-  },
-  set(value: InputCalendarEvent[]) {
-    value.forEach((v) => {
-      const previousEvent = calendarEventsPrev.get(v.id)
-      if (
-        !previousEvent ||
-        !_.isEqual(v, previousEvent) ||
-        parseTime(v.data.start.time) + v.data.duration! >= endOfDay * 60
-      ) {
-        if (v.data.dataType === 'event') scheduledCourseStore.addCalendarCourseToDate(v)
-        else if (v.data.dataType === 'avail') availabilityStore.addOrUpdateAvailibility(v, authStore.getUser.id)
-      }
-      calendarEventsPrev.delete(v.id)
-    })
-    calendarEventsPrev.forEach((event, id) => {
-      availabilityStore.removeAvailibility(id, event.data.start)
-    })
-    value.forEach((v) => {
-      calendarEventsPrev.set(v.id, v)
-    })
-  },
-})
 const availabilityToggle = ref<boolean>(false)
-let id = 1
 
 const columnsToDisplay = computed(() => {
   if (availabilityToggle.value) return columns.value
@@ -137,6 +85,7 @@ const columnsToDisplay = computed(() => {
  * * The groups and columns helping to put events in schedule
  */
 const groupStore = useGroupStore()
+const eventStore = useEventStore()
 const columnStore = useColumnStore()
 const scheduledCourseStore = useScheduledCourseStore()
 const roomStore = useRoomStore()
@@ -146,14 +95,17 @@ const permanentStore = usePermanentStore()
 const { fetchedTransversalGroups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
 const { roomsFetched } = storeToRefs(roomStore)
+const { daysSelected, calendarEvents } = storeToRefs(eventStore)
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const selectedRoom = ref<Room>()
 const selectedGroups = ref<Group[]>([])
 const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()
-const calendarEventsPrev: Map<number, InputCalendarEvent> = new Map<number, InputCalendarEvent>()
 const endOfDay = 19
+const courseModule = ref<Module>()
+const courseRoom = ref<Room>()
+const courseTutor = ref<User>()
 
 watch(selectedGroups, () => {
   groupStore.clearSelected()
@@ -179,6 +131,13 @@ function changeDate(newDate: Timestamp) {
   sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
   fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
+  let currentDate = copyTimestamp(monday.value!)
+  daysSelected.value = []
+  while (currentDate.weekday !== sunday.value!.weekday) {
+    daysSelected.value.push(copyTimestamp(currentDate))
+    currentDate = updateFormatted(nextDay(currentDate))
+  }
+  console.log('here days: ', daysSelected)
 }
 
 async function fetchCourseDetails(courseId: number): Promise<void> {
@@ -188,9 +147,9 @@ async function fetchCourseDetails(courseId: number): Promise<void> {
   const course = scheduledCourseStore.getCourse(courseId)
   if (course) {
     try {
-      const courseModule = await permanentStore.getModule(course.module)
-      const courseRoom = await roomStore.getRoomById(course.room)
-      const courseTutor = await tutorStore.getTutorById(course!.tutorId)
+      courseModule.value = await permanentStore.getModule(course.module)
+      courseRoom.value = await roomStore.getRoomById(course.room)
+      courseTutor.value = await tutorStore.getTutorById(course!.tutorId)
       const courseGroups = _.concat(
         groupStore.fetchedStructuralGroups.filter((gp) => _.includes(course.groupIds, gp.id)),
         groupStore.fetchedTransversalGroups.filter((gp) => _.includes(course.groupIds, gp.id))
@@ -212,6 +171,12 @@ onBeforeMount(async () => {
   let todayDate: Timestamp = updateFormatted(parsed(today()))
   monday.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
   sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
+  let currentDate = copyTimestamp(monday.value!)
+  daysSelected.value = []
+  while (currentDate.weekday !== sunday.value!.weekday) {
+    daysSelected.value.push(copyTimestamp(currentDate))
+    currentDate = updateFormatted(nextDay(currentDate))
+  }
   fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   roomStore.fetchRooms()

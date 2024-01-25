@@ -1,22 +1,15 @@
 import { api } from '@/utils/api'
 import { defineStore, storeToRefs } from 'pinia'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { ScheduledCourse, Department } from '@/ts/type'
 import { Course, Module } from '@/stores/declarations'
-import {
-  Timestamp,
-  copyTimestamp,
-  makeDate,
-  nextDay,
-  parseTime,
-  updateFormatted,
-  updateMinutes,
-} from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp, makeDate, nextDay, parseTime, updateFormatted } from '@quasar/quasar-ui-qcalendar'
 import _, { cloneDeep } from 'lodash'
 import { dateToTimestamp, getDateStringFromTimestamp, getDateTimeStringFromDate, timestampToDate } from '@/helpers'
 import { InputCalendarEvent } from '@/components/calendar/declaration'
 import { usePermanentStore } from './permanent'
 import { useGroupStore } from './group'
+import { useEventStore } from '../display/event'
 
 /**
  * This store is a work in progress,
@@ -27,45 +20,10 @@ import { useGroupStore } from './group'
 export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   const permanentStore = usePermanentStore()
   const groupStore = useGroupStore()
+  const eventStore = useEventStore()
   const { modules, moduleColor } = storeToRefs(permanentStore)
-
   const scheduledCourses = ref<Map<string, ScheduledCourse[]>>(new Map<string, ScheduledCourse[]>())
   const courses = ref<Map<string, Course[]>>(new Map<string, Course[]>())
-  const courseCalendarEvents = computed((): Map<string, InputCalendarEvent[]> => {
-    const calendarEvents: Map<string, InputCalendarEvent[]> = new Map<string, InputCalendarEvent[]>()
-    courses.value.forEach((coursesOnDate, date) => {
-      if (!calendarEvents.has(date)) calendarEvents.set(date, [])
-      coursesOnDate.forEach((c) => {
-        const module: Module | undefined = modules.value.find((m) => m.id === c.module)
-        const currentEvent: InputCalendarEvent = {
-          id: -1,
-          title: module ? module.abbrev : 'Cours',
-          toggled: true,
-          bgcolor: 'blue',
-          columnIds: [],
-          data: {
-            dataId: c.id,
-            dataType: 'event',
-            start: copyTimestamp(c.start),
-            duration: parseTime(c.end) - parseTime(c.start),
-          },
-        }
-        if (module) {
-          currentEvent.bgcolor = moduleColor.value.get(module.id)!
-        }
-        c.groupIds.forEach((courseGroup) => {
-          const currentGroup = groupStore.groups.find((g) => g.id === courseGroup)
-          if (currentGroup) {
-            currentGroup.columnIds.forEach((cI) => {
-              currentEvent.columnIds.push(cI)
-            })
-          }
-        })
-        calendarEvents.get(date)?.push(currentEvent)
-      })
-    })
-    return calendarEvents
-  })
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
 
@@ -92,12 +50,15 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
           })
         })
         isLoading.value = false
+        console.log('Hey')
+        console.log('Scheduled =', scheduledCourses.value)
         scheduledCourses.value.forEach((scheduledCourses, date) => {
           if (!courses.value.has(date)) courses.value.set(date, [])
           scheduledCourses.forEach((sc) => {
             courses.value.get(date)?.push(scheduledCourseToCourse(sc))
           })
         })
+        console.log('courses: ', courses.value)
       })
     } catch (e) {
       loadingError.value = e as Error
@@ -208,33 +169,14 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     }
   }
 
-  function getCalendarCourseEvent(id: number, date?: string): InputCalendarEvent | undefined {
-    if (date) return courseCalendarEvents.value.get(date)?.find((c) => c.id === id)
-    else {
-      let calendarCourseEvent: InputCalendarEvent | undefined
-      courseCalendarEvents.value.forEach((courseCalendarEventsD, date) => {
-        calendarCourseEvent = courseCalendarEventsD.find((c) => c.id === id)
-        if (calendarCourseEvent) return
-      })
-      return calendarCourseEvent
-    }
-  }
-
-  function getCoursesFromDateToDate(from: Timestamp, to?: Timestamp): Course[] {
-    let coursesReturn: Course[] = []
-    if (!to)
-      courses.value.get(getDateStringFromTimestamp(from))?.forEach((c) => {
+  function getCoursesFromDates(dates: Timestamp[]): Course[] {
+    const coursesReturn: Course[] = []
+    dates.forEach((date) => {
+      const dateString = getDateStringFromTimestamp(date)
+      courses.value.get(dateString)?.forEach((c) => {
         coursesReturn.push(c)
       })
-    else {
-      let currentDate = copyTimestamp(from)
-      while (currentDate.weekday !== to.weekday) {
-        courses.value.get(getDateStringFromTimestamp(currentDate))?.forEach((c) => {
-          coursesReturn.push(c)
-        })
-        currentDate = updateFormatted(nextDay(currentDate))
-      }
-    }
+    })
     return coursesReturn
   }
 
@@ -256,61 +198,78 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     return scheduledCoursesReturn
   }
 
-  function getCalendarCoursesFromDateToDate(from: Timestamp, to?: Timestamp): InputCalendarEvent[] {
-    let courseCalendarEventsReturn: InputCalendarEvent[] = []
+  function getCalendarCoursesEventsFromDateToDate(from: Timestamp, to?: Timestamp): Map<string, InputCalendarEvent[]> {
+    const calendarEvents: Map<string, InputCalendarEvent[]> = new Map<string, InputCalendarEvent[]>()
     if (!to) {
-      courseCalendarEvents.value.get(getDateStringFromTimestamp(from))?.forEach((c) => {
-        courseCalendarEventsReturn.push(c)
+      const dateString: string = getDateStringFromTimestamp(from)
+      if (!calendarEvents.has(dateString)) calendarEvents.set(dateString, [])
+      const eventsOnDate = calendarEvents.get(dateString)
+      courses.value.get(dateString)?.forEach((c) => {
+        const module: Module | undefined = modules.value.find((m) => m.id === c.module)
+        const currentEvent: InputCalendarEvent = {
+          id: -1,
+          title: module ? module.abbrev : 'Cours',
+          toggled: true,
+          bgcolor: 'blue',
+          columnIds: [],
+          data: {
+            dataId: c.id,
+            dataType: 'event',
+            start: copyTimestamp(c.start),
+            duration: parseTime(c.end) - parseTime(c.start),
+          },
+        }
+        if (module) {
+          currentEvent.bgcolor = moduleColor.value.get(module.id)!
+        }
+        c.groupIds.forEach((courseGroup) => {
+          const currentGroup = groupStore.groups.find((g) => g.id === courseGroup)
+          if (currentGroup) {
+            currentGroup.columnIds.forEach((cI) => {
+              currentEvent.columnIds.push(cI)
+            })
+          }
+        })
+        eventsOnDate?.push(currentEvent)
       })
     } else {
       let currentDate = copyTimestamp(from)
       while (currentDate.weekday !== to.weekday) {
-        courseCalendarEvents.value.get(getDateStringFromTimestamp(currentDate))?.forEach((c) => {
-          courseCalendarEventsReturn.push(c)
+        const dateString: string = getDateStringFromTimestamp(currentDate)
+        if (!calendarEvents.has(dateString)) calendarEvents.set(dateString, [])
+        const eventsOnDate = calendarEvents.get(dateString)
+        courses.value.get(dateString)?.forEach((c) => {
+          const module: Module | undefined = modules.value.find((m) => m.id === c.module)
+          const currentEvent: InputCalendarEvent = {
+            id: -1,
+            title: module ? module.abbrev : 'Cours',
+            toggled: true,
+            bgcolor: 'blue',
+            columnIds: [],
+            data: {
+              dataId: c.id,
+              dataType: 'event',
+              start: copyTimestamp(c.start),
+              duration: parseTime(c.end) - parseTime(c.start),
+            },
+          }
+          if (module) {
+            currentEvent.bgcolor = moduleColor.value.get(module.id)!
+          }
+          c.groupIds.forEach((courseGroup) => {
+            const currentGroup = groupStore.groups.find((g) => g.id === courseGroup)
+            if (currentGroup) {
+              currentGroup.columnIds.forEach((cI) => {
+                currentEvent.columnIds.push(cI)
+              })
+            }
+          })
+          eventsOnDate?.push(currentEvent)
         })
         currentDate = updateFormatted(nextDay(currentDate))
       }
     }
-    return courseCalendarEventsReturn
-  }
-
-  function addCalendarCourseToDate(calendarCourse: InputCalendarEvent): InputCalendarEvent[] {
-    const dateString = getDateStringFromTimestamp(calendarCourse.data.start)
-    if (!courses.value.has(dateString)) courses.value.set(dateString, [])
-    const course: Course = {
-      id: calendarCourse.data.dataId,
-      no: -1,
-      room: -1,
-      start: calendarCourse.data.start,
-      end: updateMinutes(
-        copyTimestamp(calendarCourse.data.start),
-        parseTime(calendarCourse.data.start.time) + calendarCourse.data.duration!
-      ),
-      tutorId: -1,
-      suppTutorIds: [],
-      module: -1,
-      groupIds: [],
-      courseTypeId: -1,
-      roomTypeId: -1,
-      graded: false,
-      workCopy: -1,
-    }
-    const coursesOnDate = courses.value.get(dateString)
-    const courseInStore = coursesOnDate!.find((c) => c.id === course.id)
-    if (courseInStore) {
-      course.no = courseInStore.no
-      course.room = courseInStore.room
-      course.tutorId = courseInStore.tutorId
-      course.suppTutorIds = courseInStore.suppTutorIds
-      course.module = courseInStore.module
-      course.groupIds = courseInStore.groupIds
-      course.courseTypeId = courseInStore.courseTypeId
-      course.graded = courseInStore.graded
-      course.workCopy = courseInStore.workCopy
-      _.remove(coursesOnDate!, (c) => c.id === course.id)
-    }
-    coursesOnDate!.push(course)
-    return courseCalendarEvents.value.get(dateString)!
+    return calendarEvents
   }
 
   function addScheduledCourseToDate(scheduledCourse: ScheduledCourse): ScheduledCourse[] {
@@ -338,13 +297,12 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     courseToScheduledCourse,
     getCourse,
     getScheduldedCourse,
-    getCalendarCourseEvent,
-    getCoursesFromDateToDate,
+    getCoursesFromDates,
     getScheduledCoursesFromDateToDate,
-    getCalendarCoursesFromDateToDate,
-    addCalendarCourseToDate,
     addScheduledCourseToDate,
     addCourseToDate,
-    courseCalendarEvents,
+    getCalendarCoursesEventsFromDateToDate,
+    courses,
+    scheduledCourses,
   }
 })

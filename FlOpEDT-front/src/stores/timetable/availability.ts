@@ -2,14 +2,7 @@ import { AvailabilityBack } from '@/ts/type'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { Availability } from '../declarations'
-import {
-  Timestamp,
-  copyTimestamp,
-  nextDay,
-  parseTime,
-  updateFormatted,
-  updateMinutes,
-} from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
 import { dateToTimestamp, getDateStringFromTimestamp, getDateTimeStringFromDate, timestampToDate } from '@/helpers'
 import { InputCalendarEvent } from '@/components/calendar/declaration'
@@ -134,21 +127,14 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     availabilitiesBack.value = new Map<string, AvailabilityBack[]>()
   }
 
-  function getAvailabilitiesFromDateToDate(from: Timestamp, to?: Timestamp): Availability[] {
-    let availabilitiesReturned: Availability[] = []
-    if (!to)
-      availabilities.value.get(getDateStringFromTimestamp(from))?.forEach((c) => {
-        availabilitiesReturned.push(c)
+  function getAvailabilityFromDates(dates: Timestamp[]): Availability[] {
+    const availabilitiesReturned: Availability[] = []
+    dates.forEach((date) => {
+      const dateString = getDateStringFromTimestamp(date)
+      availabilities.value.get(dateString)?.forEach((av) => {
+        availabilitiesReturned.push(av)
       })
-    else {
-      let currentDate = copyTimestamp(from)
-      while (currentDate.weekday !== to.weekday) {
-        availabilities.value.get(getDateStringFromTimestamp(currentDate))?.forEach((c) => {
-          availabilitiesReturned.push(c)
-        })
-        currentDate = updateFormatted(nextDay(currentDate))
-      }
-    }
+    })
     return availabilitiesReturned
   }
 
@@ -160,6 +146,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     addOrUpdateAvailibility,
     removeAvailibility,
     getAvailability,
-    getAvailabilitiesFromDateToDate,
+    getAvailabilityFromDates,
   }
 })
