@@ -39,7 +39,7 @@ export function useUndoredo() {
       currentCourse.graded = courseData.graded
       currentCourse.roomTypeId = courseData.roomTypeId
       currentCourse.groupIds = courseData.groupIds
-      scheduledCourseStore.addCourseToDate(currentCourse)
+      scheduledCourseStore.addOrUpdateCourseToDate(currentCourse)
     } else if (type === 'availability') {
       const availData = data as AvailabilityData
       const currentAvail = availabilityStore.getAvailability(objectId)
@@ -73,7 +73,7 @@ export function useUndoredo() {
         lastScheduledCourseUpdated!.graded = lastCourseUpdate.from.graded
         lastScheduledCourseUpdated!.roomTypeId = lastCourseUpdate.from.roomTypeId
         lastScheduledCourseUpdated!.groupIds = lastCourseUpdate.from.groupIds
-        scheduledCourseStore.addCourseToDate(lastScheduledCourseUpdated!)
+        scheduledCourseStore.addOrUpdateCourseToDate(lastScheduledCourseUpdated!)
       } else if (lastUpdate?.type === 'availability') {
         const lastAvailUpdate = lastUpdate as UpdateAvailability
         const lastAvailUpdated = availabilityStore.getAvailability(lastAvailUpdate.objectId)

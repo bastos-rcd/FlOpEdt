@@ -17,7 +17,7 @@ describe('undoredo composable', () => {
     setActivePinia(createPinia())
     const scheduledCourseStore = useScheduledCourseStore()
     const availabilityStore = useAvailabilityStore()
-    scheduledCourseStore.addCourseToDate({
+    scheduledCourseStore.addOrUpdateCourseToDate({
       id: 65692,
       no: 1,
       room: 52,

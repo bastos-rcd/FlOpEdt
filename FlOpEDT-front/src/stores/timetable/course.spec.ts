@@ -9,7 +9,7 @@ describe('Availibility store utils', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     const courseStore = useScheduledCourseStore()
-    courseStore.addCourseToDate({
+    courseStore.addOrUpdateCourseToDate({
       id: 144,
       no: 3,
       room: 90,
