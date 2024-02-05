@@ -20,12 +20,13 @@ export const useEventStore = defineStore('eventStore', () => {
   const { columns } = storeToRefs(columnStore)
   const daysSelected: Ref<Timestamp[]> = ref<Timestamp[]>([])
   const calendarEvents: Ref<InputCalendarEvent[]> = ref([])
+  let calendarEventIds: number = 0
 
   watchEffect(() => {
     const eventsReturned: InputCalendarEvent[] = []
     availabilityStore.getAvailabilityFromDates(daysSelected.value).forEach((av) => {
       const currentEvent: InputCalendarEvent = {
-        id: av.id,
+        id: ++calendarEventIds,
         title: '',
         toggled: true,
         bgcolor: '',
@@ -46,7 +47,7 @@ export const useEventStore = defineStore('eventStore', () => {
     courseStore.getCoursesFromDates(daysSelected.value).forEach((c: Course) => {
       const module: Module | undefined = modules.value.find((m) => m.id === c.module)
       const currentEvent: InputCalendarEvent = {
-        id: -1,
+        id: ++calendarEventIds,
         title: module ? module.abbrev : 'Cours',
         toggled: true,
         bgcolor: 'blue',
