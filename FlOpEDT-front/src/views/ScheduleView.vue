@@ -33,7 +33,6 @@
     @event:details="fetchCourseDetails"
     :end-of-day-minutes="endOfDay"
   />
-  <CourseModForm :module="courseModule" :room="courseRoom" :tutor="courseTutor" />
 </template>
 
 <script setup lang="ts">
@@ -66,7 +65,6 @@ import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useAuth } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
 import _ from 'lodash'
-import CourseModForm from '@/components/forms/courseModForm.vue'
 import { useEventStore } from '@/stores/display/event'
 
 /**
