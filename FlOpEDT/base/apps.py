@@ -68,7 +68,10 @@ class BaseConfig(AppConfig):
             os.makedirs(ds.STORAGE_DIRECTORY,exist_ok=True)
         
         # Let's create the missing subdirectories
-        directories_to_create= [ os.path.join(ds.TMP_DIRECTORY,"misc/logs/iis"),os.path.join(ds.STORAGE_DIRECTORY,'configuration') ]
+        directories_to_create= [os.path.join(ds.TMP_DIRECTORY,"misc/logs/iis"),
+                                os.path.join(ds.TMP_DIRECTORY,"misc/logs/solutions"),
+                                os.path.join(ds.TMP_DIRECTORY,"misc/logs/gurobi"),
+                                os.path.join(ds.STORAGE_DIRECTORY,'configuration')]
         for cur_directory in directories_to_create:
 
             if not os.path.exists(cur_directory):

@@ -1026,8 +1026,8 @@ class TTModel(FlopModel):
                 cg.save()
 
     # Some extra Utils
-    def solution_files_prefix(self):
-        return f"{solution_files_path}/TTmodel_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
+    def log_files_prefix(self):
+        return f"TTmodel_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
 
     def add_tt_to_db_from_file(self, filename=None, target_work_copy=None):
         if filename is None:
@@ -1134,7 +1134,7 @@ class TTModel(FlopModel):
         message = gettext("This email was automatically sent by the flop!EDT timetable generator\n\n")
         if solved:
             message += gettext("Here is the log of the last run of the generator:\n\n")
-            logs = open("gurobi.log",'r').read().split('logging started')
+            logs = open(self.gurobi_log_file(),'r').read().split('logging started')
             if self.post_assign_rooms:
                 message += logs[-2] + '\n\n'
                 message += logs[-1] + '\n\n'

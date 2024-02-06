@@ -77,8 +77,9 @@ class RoomModel(FlopModel):
             for key, key_warnings in self.warnings.items():
                 print("%s : %s" % (key, ", ".join([str(x) for x in key_warnings])))
 
-    def solution_files_prefix(self):
-        return f"{solution_files_path}/room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
+    # Some extra Utils
+    def log_files_prefix(self):
+        return f"room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
 
     @timer
     def courses_init(self):

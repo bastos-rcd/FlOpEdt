@@ -27,6 +27,7 @@ case "$1" in
 		"/var/flopedt/cache" \
 		"/var/flopedt/tmp/misc/logs/solutions" \
 		"/var/flopedt/tmp/misc/logs/iis" \
+		"/var/flopedt/tmp/misc/logs/gurobi" \
 		"/var/flopedt/static"
 
 	# Delete everything if a purge is requested
