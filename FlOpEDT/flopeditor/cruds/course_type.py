@@ -103,9 +103,15 @@ def read(department):
         list_starts_times = []
         for value_in_minute in starts_times.allowed_start_times:
             list_starts_times.append(min_to_str(value_in_minute))
+        
+        if ctype.graded:
+            graded = "Oui"
+        else:
+            graded = "Non"
 
         values.append((ctype.name, ctype.duration,
-                       ctype_list_group, list_starts_times))
+                       ctype_list_group, list_starts_times,
+                       graded))
 
     return JsonResponse({
         "columns":  [{
@@ -124,13 +130,18 @@ def read(department):
             'name': 'Horaire auxquels ce type de cours peut commencer',
             "type": "select-chips",
             "options": {"values": possible_start_time(department)}
-        }],
+        }, {
+            'name': 'Evalué', 
+            "type": "select",
+            "options": {"values" : ["Non", "Non"]}
+         }
+        ],
         "values": values,
         "options": {
             "examples": [
-                ["Amphi", 90, ["C"], ["08:00", "09:30", "11:00", "14:15", "15:45"]],
-                ["TP120", 120, ["TPA", "TPB"], ["10:00", "14:15", "16:15"]],
-                ["TP240", 240, ["TP"], ["08:00", "14:15"]]
+                ["Amphi", 90, ["C"], ["08:00", "09:30", "11:00", "14:15", "15:45"], "Non"],
+                ["Exam", 120, ["C"], ["08:00", "14:15"], "Oui"],
+                ["TP120", 120, ["TPA", "TPB"], ["10:00", "14:15", "16:15"], "Non"]
             ]
         }
     })
@@ -152,6 +163,11 @@ def create(entries, department):
         new_duration = entries['new_values'][i][1]
         new_types_groups = entries['new_values'][i][2]
         new_starts_ti = entries['new_values'][i][3]
+        is_graded_str = entries['new_values'][i][4]
+        if is_graded_str == "Oui":
+            is_graded = True
+        else:
+            is_graded = False
 
         if not validate_course_values(new_course_type, new_duration, entries):
             return entries
@@ -165,7 +181,8 @@ def create(entries, department):
 
         new_course = CourseType.objects.create(name=new_course_type,
                                                department=department,
-                                               duration=new_duration)
+                                               duration=new_duration,
+                                               graded=is_graded)
         for name in new_types_groups:
             new_course.group_types.add(GroupType.objects.get(
                 name=name, department=department))
@@ -198,6 +215,11 @@ def update(entries, department):
         new_duration = entries['new_values'][i][1]
         new_types_groups = entries['new_values'][i][2]
         new_starts_times = entries['new_values'][i][3]
+        is_graded_str = entries['new_values'][i][4]
+        if is_graded_str == "Oui":
+            new_is_graded = True
+        else:
+            new_is_graded = False
 
         if not validate_course_values(new_course_type, new_duration, entries):
             return entries
@@ -215,6 +237,7 @@ def update(entries, department):
             else:
                 course_type_to_update.name = new_course_type
                 course_type_to_update.duration = new_duration
+                course_type_to_update.graded = new_is_graded
                 course_type_to_update.group_types.remove(
                     *course_type_to_update.group_types.all())
                 for name in new_types_groups:

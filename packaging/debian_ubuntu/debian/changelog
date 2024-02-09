@@ -1,4 +1,27 @@
+flopedt (0.5.5) unstable; urgency=medium
+
+  * Fix many bugs on 0.5.4 version
+  * fix CBC use with time limit on solve_board
+
+ -- Pablo Seban <pablo@univ-tlse2.fr>  Tue, 06 Feb 2024 22:19:13 +0100
+
+flopedt (0.5.4) unstable; urgency=medium
+
+  * Docker deployment using makefile
+  * Student notifications
+  * ics date calculus
+  * user_tests decorators
+  * include transversal groups in NoGroupCourses constraints
+  * various minor bugs in deployment
+  * romm availabilities in js HMI
+  * ConsiderDependencies pre-analyze
+  * Possibility to receive solver log by email after resolution
+  * Better fileters in LocateAllCourses constraints
+
+ -- Pablo Seban <pablo@univ-tlse2.fr>  Thu, 11 Jan 2024 13:12:23 +0200
+
 flopedt (0.5.3) unstable; urgency=medium
+
   * Debug rooms post_assignment solution_file storage in FlopModel
   * Debug after_type comments in planif_file extraction
   * Debug color assignment

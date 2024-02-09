@@ -12,8 +12,14 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.4] -- 2024-01-11
+## [0.5.5] -- 2024-02-06
 **Note:** `0.5` is the last `0.*` version.
+### Changed
+- Debugs:
+  * Fix many bugs on 0.5.4 version
+  * fix CBC use with time limit on solve_board
+
+## [0.5.4] -- 2024-01-11
 ### Changed
 - Debugs:
   * Docker deployment using makefile

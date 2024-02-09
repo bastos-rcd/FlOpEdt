@@ -37,10 +37,10 @@ from base.models import ScheduledCourse, Department, TrainingProgramme, Week, Ro
 from api.permissions import IsTutorOrReadOnly
 from api.shared.params import dept_param
 from api.myflop.serializers import VolumeAgrege, ScheduledCoursePaySerializer, DailyVolumeSerializer, \
-    RoomDailyVolumeSerializer
+    RoomDailyVolumeSerializer, DuplicateSerializer
 
 import datetime
-from base.timing import days_list, flopday_to_date, Day
+from base.timing import days_list, flopday_to_date, Day, french_format
 
 
 @method_decorator(name='list',
@@ -148,7 +148,7 @@ class PayViewSet(viewsets.ViewSet):
             try:
                 train_prog = TrainingProgramme.objects.get(department=dept,
                                                            abbrev=train_prog)
-                supp_filters['train_prog'] = train_prog
+                supp_filters['course__module__train_prog'] = train_prog
             except TrainingProgramme.DoesNotExist:
                 raise APIException(detail='Unknown training programme')
 
@@ -329,6 +329,79 @@ class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
 @method_decorator(name='list',
                   decorator=swagger_auto_schema(
                       manual_parameters=[
+                          dept_param(required=True),
+                          openapi.Parameter('year',
+                                            openapi.IN_QUERY,
+                                            description="year",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=True),
+                          openapi.Parameter('from_month',
+                                            openapi.IN_QUERY,
+                                            description="from_month",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=False),
+                          openapi.Parameter('to_month',
+                                            openapi.IN_QUERY,
+                                            description="to_month",
+                                            type=openapi.TYPE_INTEGER,
+                                            required=False),
+                          openapi.Parameter('tutor',
+                                            openapi.IN_QUERY,
+                                            description="tutor username",
+                                            type=openapi.TYPE_STRING,
+                                            required=False)
+                      ])
+                  )
+class MonthlyByDayDuplicatesViewSet(viewsets.ViewSet):
+    """
+    Duplicates of scheduled courses by day
+    """    
+    permission_classes = [IsTutorOrReadOnly]
+
+    def list(self, request):
+        dept = self.request.query_params.get('dept')
+        try:
+            dept = Department.objects.get(abbrev=dept)
+        except Department.DoesNotExist:
+            raise APIException(detail='Unknown department')
+
+        tutor = self.request.query_params.get('tutor', None)
+        if tutor is not None:
+            try:
+                tutor = Tutor.objects.get(username=tutor)
+            except Tutor.DoesNotExist:
+                raise APIException(detail='Unknown tutor')
+
+        year = int(self.request.query_params.get('year'))
+        from_month = int(self.request.query_params.get('from_month', 1))
+        to_month = int(self.request.query_params.get('to_month', 12))
+
+        duplicates_list = []
+
+        duplicates_sched_courses = duplicates_scheduled_courses_of_the_month(year=year, from_month=from_month,
+                                                                                to_month=to_month,
+                                                                                department=dept, tutor=tutor)
+    
+        for key in duplicates_sched_courses:
+            duplicate_tutor, date, course_type, start_time = key
+            day_duplicates = {
+                "tutor": duplicate_tutor.username,
+                "date": date.isoformat(),
+                "type": course_type,
+                "time": french_format(start_time),
+                'nb': duplicates_sched_courses[key]
+            }
+
+            duplicates_list.append(day_duplicates)
+            duplicates_list.sort(key=lambda x: (x['tutor'], x["date"], x['time']))
+        serializer = DuplicateSerializer(duplicates_list, many=True)
+        return Response(serializer.data)
+
+
+
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      manual_parameters=[
                           dept_param(required=False),
                           openapi.Parameter('from_month',
                                             openapi.IN_QUERY,
@@ -448,3 +521,17 @@ def scheduled_courses_of_the_month(year, from_month=None, to_month=None, departm
         relevant_scheduled_courses.filter(query).exclude(course__week=start_week, day=days_list[start_day-1],
                                                          start_time=0)
     return relevant_scheduled_courses
+
+
+def duplicates_scheduled_courses_of_the_month(year, from_month=None, to_month=None, department=None, tutor=None):
+    result_dict = {}
+    sorted_scheduled_courses = scheduled_courses_of_the_month(year, from_month, to_month, department, tutor)
+    for specimen in sorted_scheduled_courses.distinct("course__week", "day", "start_time", "tutor"):
+        if specimen.tutor is not None:
+            count = sorted_scheduled_courses.filter(course__week=specimen.course.week,
+                                                    day=specimen.day,
+                                                    start_time=specimen.start_time,
+                                                    tutor=specimen.tutor).count() 
+            if count > 1:
+                result_dict[specimen.tutor, flopday_to_date(Day(week=specimen.course.week, day=specimen.day)), specimen.course.type.name, specimen.start_time] = count
+    return result_dict
