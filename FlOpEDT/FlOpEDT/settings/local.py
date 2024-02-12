@@ -35,6 +35,9 @@ DATABASES = {
         'PASSWORD': 'your_password',
         'HOST': '127.0.0.1',
         'PORT': '5432',
+        'TEST': {
+            'NAME': 'flop_pytest'
+        }
     }
 }
 
