@@ -12,8 +12,20 @@ from base.models import (
 )
 from people.models import Tutor, UserDepartmentSettings, FullStaff, SupplyStaff
 
+from api.v1.tests.factories.base import UserFactory, DepartmentFactory
 
-@pytest.fixture(autouse=True)
+
+@pytest.fixture
+def make_users(db):
+    UserFactory.create_batch(size=10)
+
+
+@pytest.fixture
+def make_department(db):
+    DepartmentFactory.create(name="dept info", abbrev="INF")
+
+
+@pytest.fixture
 def department_a(db) -> Department:
     return Department.objects.create(abbrev="test", name="Department test")
 
@@ -70,10 +82,10 @@ def week_2024_2(db) -> Week:
     return Week.objects.create(nb=2, year=2024)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def tutor_fs_a(db, department_a: Department) -> SupplyStaff:
     t = Tutor.objects.create(
-        username="fs_a",
+        username="fs_a_tut",
         first_name="fs_a",
         last_name="fs_a",
         is_tutor=True,
@@ -101,7 +113,7 @@ def tutor_fs_b(db, department_a: Department) -> SupplyStaff:
 @pytest.fixture
 def tutor_admin_a(db, department_a: Department) -> SupplyStaff:
     t = Tutor.objects.create(
-        username="fs_a",
+        username="fs_a_tutadmin",
         first_name="fs_a",
         last_name="fs_a",
         is_tutor=True,
