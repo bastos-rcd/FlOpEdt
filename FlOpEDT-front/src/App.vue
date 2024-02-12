@@ -17,8 +17,6 @@ import ProvideDepartment from '@/components/providers/ProvideDepartment.vue'
 <style>
 * {
   font-family: Arial, sans-serif;
-  alignment-baseline: middle;
-  dominant-baseline: middle;
 }
 h1 {
   font-size: 22px;
