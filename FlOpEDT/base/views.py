@@ -62,10 +62,10 @@ from base.admin import (
     DispoResource,
     VersionResource,
     TutorCoursesResource,
-    CoursePreferenceResource,
+    CourseAvailabilityResource,
     MultiDepartmentTutorResource,
     SharedRoomsResource,
-    RoomPreferenceResource,
+    RoomAvailabilityResource,
     ModuleRessource,
     TutorRessource,
     ModuleDescriptionResource,
@@ -585,7 +585,7 @@ def fetch_course_default_week(req, train_prog, course_type, **kwargs):
             response["more"] = "No such course type"
         return response
 
-    dataset = CoursePreferenceResource().export(
+    dataset = CourseAvailabilityResource().export(
         CourseAvailability.objects.filter(
             week=None,
             course_type=ct,
@@ -621,7 +621,7 @@ def fetch_unavailable_rooms(req, year, week, **kwargs):
     # if cached is not None:
     #     return cached
 
-    dataset = RoomPreferenceResource().export(
+    dataset = RoomAvailabilityResource().export(
         RoomAvailability.objects.prefetch_related("room__departments").filter(
             room__departments=department, week=week, year=year, value=0
         )
@@ -676,7 +676,7 @@ def fetch_room_default_week(req, room, **kwargs):
     except ObjectDoesNotExist:
         return HttpResponse("Problem")
 
-    dataset = RoomPreferenceResource().export(
+    dataset = RoomAvailabilityResource().export(
         RoomAvailability.objects.filter(
             week=None, room=room, day__in=queries.get_working_days(req.department)
         )
@@ -1179,7 +1179,7 @@ def edt_changes(req, **kwargs):
         return JsonResponse(bad_response)
 
 
-class HelperUserPreference:
+class HelperUserAvailability:
     def __init__(self, tutor):
         self.tutor = tutor
 
@@ -1197,7 +1197,7 @@ class HelperUserPreference:
         )
 
 
-class HelperCoursePreference:
+class HelperCourseAvailability:
     def __init__(self, training_programme, course_type):
         self.training_programme = training_programme
         self.course_type = course_type
@@ -1219,7 +1219,7 @@ class HelperCoursePreference:
         )
 
 
-class HelperRoomPreference:
+class HelperRoomAvailability:
     def __init__(self, room):
         self.room = room
 
@@ -1387,7 +1387,7 @@ def user_preferences_changes(req, year, week, username, **kwargs):
         response["more"] = "Non autorisé, réclamez plus de droits."
         return JsonResponse(response)
 
-    return preferences_changes(req, year, week, HelperUserPreference(tutor))
+    return preferences_changes(req, year, week, HelperUserAvailability(tutor))
 
 
 @dept_admin_required
@@ -1415,7 +1415,7 @@ def room_preferences_changes(req, year, week, room, **kwargs):
         return JsonResponse(response)
 
     # print(q)
-    response = preferences_changes(req, year, week, HelperRoomPreference(room))
+    response = preferences_changes(req, year, week, HelperRoomAvailability(room))
 
     return response
 
@@ -1441,7 +1441,7 @@ def course_preferences_changes(req, year, week, train_prog, course_type, **kwarg
             response["more"] = "No such course type"
         return JsonResponse(response)
 
-    return preferences_changes(req, year, week, HelperCoursePreference(tp, ct))
+    return preferences_changes(req, year, week, HelperCourseAvailability(tp, ct))
 
 
 @tutor_required

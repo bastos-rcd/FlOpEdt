@@ -479,7 +479,7 @@ class AvailabilitiesViewSet(viewsets.ReadOnlyModelViewSet):
 )
 class CourseTypeDefaultWeekViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ViewSet to see all the Preferences of a given course type in a training program
+    ViewSet to see the availabily of a given course type in a training program
 
     Result can be filtered as wanted with the training program and the course type
     """
@@ -692,7 +692,7 @@ class UnavailableRoomViewSet(viewsets.ViewSet):
         # if cached is not None:
         #     return cached
 
-        dataset_room_preference = bm.RoomAvailability.objects.filter(
+        dataset_room_availability = bm.RoomAvailability.objects.filter(
             room__departments__abbrev=department,
             week__nb=week,
             week__year=year,
@@ -715,7 +715,7 @@ class UnavailableRoomViewSet(viewsets.ViewSet):
                 "duration": d.duration,
                 "value": d.value,
             }
-            for d in dataset_room_preference
+            for d in dataset_room_availability
         ]
         res_reservations = [
             {

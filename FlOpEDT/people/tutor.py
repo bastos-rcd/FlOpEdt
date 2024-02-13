@@ -84,7 +84,7 @@ class ChangeBIATOSTutor(UpdateView):
         return self.request.user if self.request.user.is_authenticated else None
 
 
-def fill_default_user_preferences(user, dept=None):
+def fill_default_user_availability(user, dept=None):
     """
     Insert default preferences for the default week
     TO BE COMPLETED if several departments

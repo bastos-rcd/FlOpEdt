@@ -27,10 +27,10 @@ from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
 from people.models import User
-from base.availability import split_preferences
+from base.availability import split_availability
 
 
 @receiver(m2m_changed, sender=User.departments.through)
 def user_department_changed(sender, **kwargs):
     if kwargs["action"] == "post_add":
-        split_preferences(kwargs["instance"])
+        split_availability(kwargs["instance"])

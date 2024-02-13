@@ -29,7 +29,7 @@ without disclosing the source code of your own applications.
 
 from django.http import JsonResponse
 from base.models import Department
-from base.availability import split_preferences
+from base.availability import split_availability
 from people.models import Tutor, SupplyStaff, User, FullStaff, BIATOS, TutorPreference
 from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_tutor_values
 from flopeditor.db_requests import (
@@ -321,7 +321,7 @@ def create(request, entries):
 
             if has_rights_to_create_tutor(request.user, tutor, entries):
                 tutor.save()
-                split_preferences(tutor)
+                split_availability(tutor)
                 TutorPreference.objects.create(tutor=tutor)
                 entries["result"].append([OK_RESPONSE])
             else:
@@ -445,7 +445,7 @@ def update(request, entries):
                     new = tutor_to_update
 
                 if old_departments != set(new_departments):
-                    split_preferences(new)
+                    split_availability(new)
                 entries["result"].append([OK_RESPONSE])
             except Tutor.DoesNotExist:
                 entries["result"].append(

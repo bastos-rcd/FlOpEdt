@@ -139,7 +139,7 @@ def tutors_extract(department, book):
                 # for t in Tutor.objects.all():
                 #     for d in [day[0] for day in Day.CHOICES[:5]]:
                 #         for st in user_preference_start_times:
-                #             up = UserPreference(user=t, day=d, start_time=st, duration=90, value=8)
+                #             up = UserAvailability(user=t, day=d, start_time=st, duration=90, value=8)
                 #             up.save()
 
             except IntegrityError as ie:

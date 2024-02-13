@@ -828,7 +828,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
 
     def complete_tutor_partition(self, partition, tutor, week):
         """
-            Complete the partition in parameters with informations given by the UserPreferences of the given tutor for the given week.
+            Complete the partition in parameters with informations given by the UserAvailabilities of the given tutor for the given week.
         This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
         Warning : ConsiderTutorsUnavailability constraint must exist for the given week in the database to consider tutor's preferences.
 
@@ -838,7 +838,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
         :type tutor: Tutor
         :param week: The week we want to make a pre-analysis on (can be None if all).
         :type week: Week
-        :return: A partition with new informations about tutor's preferences.
+        :return: A partition with new informations about tutor's availabilities.
         :rtype: Partition
 
         """

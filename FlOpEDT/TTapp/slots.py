@@ -70,7 +70,7 @@ class Slot:
         else:
             raise TypeError(
                 "A slot can only have "
-                "same day than a ScheduledCourse, UserPreference, CoursePreference or another slot"
+                "same day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
             )
 
     def has_previous_day_than(self, other):
@@ -95,7 +95,7 @@ class Slot:
         else:
             raise TypeError(
                 "A slot can only have "
-                "previous day than a ScheduledCourse, UserPreference, CoursePreference or another slot"
+                "previous day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
             )
 
     def is_simultaneous_to(self, other):

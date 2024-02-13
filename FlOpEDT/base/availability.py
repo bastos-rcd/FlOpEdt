@@ -25,13 +25,13 @@
 
 from base.models import CourseStartTimeConstraint, Course, UserAvailability, Week
 from TTapp.FlopConstraint import max_weight
-from people.tutor import fill_default_user_preferences
+from people.tutor import fill_default_user_availability
 
 
-def split_preferences(tutor, departments=None):
-    user_preferences = UserAvailability.objects.filter(user=tutor.)
+def split_availability(tutor, departments=None):
+    user_preferences = UserAvailability.objects.filter(user=tutor)
     if not user_preferences.exists():
-        fill_default_user_preferences(tutor)
+        fill_default_user_availability(tutor)
     splits = set()
     days = set()
     if departments is None:

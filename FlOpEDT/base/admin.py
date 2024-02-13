@@ -436,7 +436,7 @@ class AllDispoResource(resources.ModelResource):
         fields = ("year", "week", "day", "start_time", "duration", "value", "prof")
 
 
-class CoursePreferenceResource(resources.ModelResource):
+class CourseAvailabilityResource(resources.ModelResource):
     type_name = fields.Field(
         attribute="course_type", widget=ForeignKeyWidget(CourseType, "name")
     )
@@ -455,7 +455,7 @@ class UnavailableRoomsResource(resources.ModelResource):
         fields = ("room", "day", "start_time", "duration")
 
 
-class RoomPreferenceResource(resources.ModelResource):
+class RoomAvailabilityResource(resources.ModelResource):
     room = fields.Field(attribute="room", widget=ForeignKeyWidget(Room, "name"))
 
     class Meta:
@@ -730,7 +730,7 @@ class RoomAdmin(DepartmentModelAdmin):
     list_display = ("name",)
 
 
-class RoomPreferenceAdmin(DepartmentModelAdmin):
+class RoomAvailabilityAdmin(DepartmentModelAdmin):
     list_display = ("room", "week", "day", "start_time", "duration", "value")
     ordering = ("-week", "day", "start_time")
     list_filter = (
@@ -789,7 +789,7 @@ class CoursPlaceAdmin(DepartmentModelAdmin):
     )
 
 
-class CoursePreferenceAdmin(DepartmentModelAdmin):
+class CourseAvailabilityAdmin(DepartmentModelAdmin):
     list_display = (
         "course_type",
         "train_prog",
@@ -908,12 +908,12 @@ admin.site.register(TrainingHalfDay, TrainingHalfDayAdmin)
 admin.site.register(StructuralGroup, StructuralGroupAdmin)
 admin.site.register(TransversalGroup, TransversalGroupAdmin)
 admin.site.register(Room, RoomAdmin)
-admin.site.register(RoomAvailability, RoomPreferenceAdmin)
+admin.site.register(RoomAvailability, RoomAvailabilityAdmin)
 admin.site.register(RoomSort, RoomSortAdmin)
 admin.site.register(Module, ModuleAdmin)
 admin.site.register(Course, CourseAdmin)
 admin.site.register(CourseModification, CourseModificationAdmin)
-admin.site.register(CourseAvailability, CoursePreferenceAdmin)
+admin.site.register(CourseAvailability, CourseAvailabilityAdmin)
 admin.site.register(Dependency, DependencyAdmin)
 admin.site.register(ScheduledCourse, CoursPlaceAdmin)
 admin.site.register(UserAvailability, DispoAdmin)

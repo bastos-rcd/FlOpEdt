@@ -4,7 +4,7 @@ from base.timing import Day
 
 class UserAvailabilityIUT(factory.django.DjangoModelFactory):
     class Meta:
-        model = "base.UserPreference"
+        model = "base.UserAvailability"
         exclude = ("cycle",)
 
     cycle = 30

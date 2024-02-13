@@ -24,21 +24,21 @@ from rest_framework import routers
 
 from api.preferences import views
 
-routerPreferences = routers.SimpleRouter()
+routerAvailability = routers.SimpleRouter()
 
 # routerPreferences.register(r'students', views.StudentPreferencesViewSet, basename="students")
 # routerPreferences.register(r'groups', views.GroupPreferencesViewSet)
-routerPreferences.register(r"course", views.CourseAvailabilityViewSet)
-routerPreferences.register(
+routerAvailability.register(r"course", views.CourseAvailabilityViewSet)
+routerAvailability.register(
     r"room-default", views.RoomAvailabilityDefaultViewSet, basename="room-def"
 )
-routerPreferences.register(r"room-singular", views.RoomAvailabilitySingularViewSet)
-routerPreferences.register(
+routerAvailability.register(r"room-singular", views.RoomAvailabilitySingularViewSet)
+routerAvailability.register(
     r"user-default", views.UserAvailabilityDefaultViewSet, basename="user-def"
 )
-routerPreferences.register(
+routerAvailability.register(
     r"user-singular", views.UserAvailabilitySingularViewSet, basename="user-single"
 )
-routerPreferences.register(
+routerAvailability.register(
     r"user-actual", views.UserAvailabilityActualViewSet, basename="user-actual"
 )

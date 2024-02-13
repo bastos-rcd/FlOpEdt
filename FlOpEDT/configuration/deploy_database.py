@@ -60,7 +60,7 @@ from people.models import (
     UserDepartmentSettings,
     TutorPreference,
 )
-from base.availability import split_preferences
+from base.availability import split_availability
 
 from configuration.database_description_xlsx import database_description_load_xlsx_file
 
@@ -156,7 +156,7 @@ def people_extract(department, people, fill_default_preferences):
 
                 UserDepartmentSettings.objects.create(department=department, user=tutor)
                 if fill_default_preferences:
-                    split_preferences(tutor)
+                    split_availability(tutor)
                 TutorPreference.objects.create(tutor=tutor)
 
             except IntegrityError as ie:

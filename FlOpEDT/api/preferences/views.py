@@ -47,7 +47,7 @@ class CourseAvailabilityViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the course preferences.
 
-    Can be filtered as wanted with every field of a CoursePreference object.
+    Can be filtered as wanted with every field of a CourseAvailability object.
     """
 
     permission_classes = [IsAdminOrReadOnly]
