@@ -23,13 +23,13 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import CourseStartTimeConstraint, Course, UserPreference, Week
+from base.models import CourseStartTimeConstraint, Course, UserAvailability, Week
 from TTapp.FlopConstraint import max_weight
 from people.tutor import fill_default_user_preferences
 
 
 def split_preferences(tutor, departments=None):
-    user_preferences = UserPreference.objects.filter(user=tutor)
+    user_preferences = UserAvailability.objects.filter(user=tutor)
     if not user_preferences.exists():
         fill_default_user_preferences(tutor)
     splits = set()
@@ -37,14 +37,18 @@ def split_preferences(tutor, departments=None):
     if departments is None:
         departments = tutor.departments.all()
 
-
     # compute all possible times of events in the departments
     for dpt in departments:
-        for time_constraints in CourseStartTimeConstraint.objects.filter(course_type__department=dpt):
+        for time_constraints in CourseStartTimeConstraint.objects.filter(
+            course_type__department=dpt
+        ):
             splits |= set(time_constraints.allowed_start_times)
-            splits |= \
-                set([start + time_constraints.course_type.duration
-                     for start in time_constraints.allowed_start_times])
+            splits |= set(
+                [
+                    start + time_constraints.course_type.duration
+                    for start in time_constraints.allowed_start_times
+                ]
+            )
 
         days |= set(dpt.timegeneralsettings.days)
 
@@ -66,7 +70,7 @@ def split_preferences(tutor, departments=None):
         split_pm = [min_pm] + pm + [max_day]
         intervals = [split_am, split_pm]
 
-    weeks = [user_pref.week for user_pref in user_preferences.distinct('week')]
+    weeks = [user_pref.week for user_pref in user_preferences.distinct("week")]
 
     # create typical week if non existing
     if None not in weeks:
@@ -82,7 +86,7 @@ def split_preferences(tutor, departments=None):
                     Week.objects.get_or_create(nb=w_nb, year=year)
         # QuerySet does not support append
         weeks.append(None)
-    
+
     for week in weeks:
         for d in days:
 
@@ -90,8 +94,9 @@ def split_preferences(tutor, departments=None):
             # and delete them from the database
             pref_time = []
             pref_val = []
-            pref_slots = user_preferences.filter(day=d, week=week)\
-                                       .order_by('start_time')
+            pref_slots = user_preferences.filter(day=d, week=week).order_by(
+                "start_time"
+            )
 
             for slot in pref_slots:
                 if len(pref_time) == 0:
@@ -101,11 +106,11 @@ def split_preferences(tutor, departments=None):
                 else:
                     # overlapping preference interval
                     if slot.start_time < pref_time[-1]:
-                        if slot.start_time + slot.duration  > pref_time[-1]:
+                        if slot.start_time + slot.duration > pref_time[-1]:
                             slot.duration -= pref_time[-1] - slot.start_time
                             slot.start_time = pref_time[-1]
-                    
-                    mid = int((pref_time[-1] + slot.start_time)/2)
+
+                    mid = int((pref_time[-1] + slot.start_time) / 2)
                     pref_time[-1] = mid
                     pref_time.append(slot.start_time + slot.duration)
                     pref_val.append(slot.value)
@@ -116,7 +121,7 @@ def split_preferences(tutor, departments=None):
             # and store them in the DB
             j_before = 0
             for inter in intervals:
-                
+
                 # preferences might be empty
                 if len(pref_time) == 0:
                     pref_time.append(inter[0])
@@ -124,30 +129,34 @@ def split_preferences(tutor, departments=None):
                     pref_val.append(max_weight)
 
                 for i in range(len(inter) - 1):
-                    while j_before + 1 < len(pref_time) \
-                          and pref_time[j_before+1] <= inter[i]:
+                    while (
+                        j_before + 1 < len(pref_time)
+                        and pref_time[j_before + 1] <= inter[i]
+                    ):
                         j_before += 1
-                        
+
                     if j_before + 1 == len(pref_time):
                         # out of bounds
                         val = max_weight
                     else:
                         val = pref_val[j_before]
-                    
+
                     j_after = j_before
-                    
-                    while j_after + 1 < len(pref_time) \
-                          and pref_time[j_after+1] < inter[i+1]:
+
+                    while (
+                        j_after + 1 < len(pref_time)
+                        and pref_time[j_after + 1] < inter[i + 1]
+                    ):
                         val = min(val, pref_val[j_after])
                         j_after += 1
-                        
+
                     j_before = j_after
 
-                    UserPreference.objects.create(
+                    UserAvailability.objects.create(
                         user=tutor,
                         day=d,
                         start_time=inter[i],
-                        duration=inter[i+1]-inter[i],
+                        duration=inter[i + 1] - inter[i],
                         value=val,
-                        week=week
+                        week=week,
                     )
