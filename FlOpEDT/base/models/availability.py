@@ -3,18 +3,31 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from base.timing import Day, str_slot, days_index, days_list
 
+from datetime import date, time, timedelta, datetime
+
 
 class Availability(models.Model):
     start_time = models.PositiveSmallIntegerField()
     duration = models.PositiveSmallIntegerField()
     week = models.ForeignKey("Week", on_delete=models.CASCADE, null=True, blank=True)
     day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
+
+    clean_day_time = models.TimeField(default=time(0))
+    clean_day = models.DateField(default=date(1, 1, 1))
+    clean_duration = models.DurationField(default=timedelta(0))
+
     value = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(8)], default=8
     )
 
     class Meta:
         abstract = True
+
+    def __str__(self):
+        end_time = (
+            datetime.combine(self.clean_day, self.clean_day_time) + self.clean_duration
+        ).time()
+        return f" | {self.clean_day}: ({self.clean_day_time}-{end_time}) = {self.value}"
 
     @property
     def end_time(self):
@@ -25,11 +38,7 @@ class UserAvailability(Availability):
     user = models.ForeignKey("people.User", on_delete=models.CASCADE)
 
     def __str__(self):
-        return (
-            f"{self.user.username}-Sem{self.week}: "
-            + f"({str_slot(self.day, self.start_time, self.duration)})"
-            + f"={self.value}"
-        )
+        return self.user.username + super().__str__()
 
     def __lt__(self, other):
         if isinstance(other, UserAvailability):
