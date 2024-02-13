@@ -27,8 +27,9 @@ Rename:
 
 ### UserPreference
 
-- Un `User` en `ForeignKey` plutôt qu'un `Tutor`
-- Création automatique de la semaine type à la création d'un `Tutor` ?
+- [ ] Un `User` en `ForeignKey` plutôt qu'un `Tutor`
+- [ ] Création automatique de la semaine type à la création d'un `Tutor` ?
+- [x] ajout d'un index sur les User/
 
 ## Autre
 

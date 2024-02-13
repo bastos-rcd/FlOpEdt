@@ -29,7 +29,7 @@ from people.tutor import fill_default_user_preferences
 
 
 def split_preferences(tutor, departments=None):
-    user_preferences = UserAvailability.objects.filter(user=tutor)
+    user_preferences = UserAvailability.objects.filter(user=tutor.user_ptr)
     if not user_preferences.exists():
         fill_default_user_preferences(tutor)
     splits = set()
@@ -153,7 +153,7 @@ def split_preferences(tutor, departments=None):
                     j_before = j_after
 
                     UserAvailability.objects.create(
-                        user=tutor,
+                        user=tutor.user_ptr,
                         day=d,
                         start_time=inter[i],
                         duration=inter[i + 1] - inter[i],

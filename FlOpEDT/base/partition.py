@@ -936,11 +936,15 @@ class Partition(object):
             required_supp_1 = set(course.supp_tutor.all())
 
         D1 = UserAvailability.objects.filter(
-            user__in=possible_tutors_1, week=week, value__gte=1
+            user__in=[ptut.user_ptr for ptut in possible_tutors_1],
+            week=week,
+            value__gte=1,
         )
         if not D1:
             D1 = UserAvailability.objects.filter(
-                user__in=possible_tutors_1, week=None, value__gte=1
+                user__in=[ptut.user_ptr for ptut in possible_tutors_1],
+                week=None,
+                value__gte=1,
             )
         if D1:
             # Retrieving constraints for days were tutors shouldn't be working

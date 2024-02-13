@@ -22,7 +22,7 @@ class Availability(models.Model):
 
 
 class UserAvailability(Availability):
-    user = models.ForeignKey("people.Tutor", on_delete=models.CASCADE)
+    user = models.ForeignKey("people.User", on_delete=models.CASCADE)
 
     def __str__(self):
         return (
