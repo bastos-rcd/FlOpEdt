@@ -35,7 +35,7 @@ def csv_reader(path):
                 week = row["week"]
                 user_prefs = list(
                     UserAvailability.objects.filter(
-                        user=prof.user_ptr, year=row["year"], week=row["week"]
+                        user=prof, year=row["year"], week=row["week"]
                     ).order_by("day", "start_time")
                 )
                 print(prof, week, year)
@@ -53,7 +53,7 @@ def csv_reader(path):
                 user_prefs.remove(up)
             else:
                 UserAvailability(
-                    user=prof.user_ptr,
+                    user=prof,
                     year=row["year"],
                     week=row["week"],
                     day=day,

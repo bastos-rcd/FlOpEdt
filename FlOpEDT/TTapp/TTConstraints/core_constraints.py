@@ -844,13 +844,11 @@ class ConsiderTutorsUnavailability(TTConstraint):
         """
         if partition.tutor_supp:
 
-            user_preferences = UserAvailability.objects.filter(
-                user=tutor.user_ptr, week=week
-            )
+            user_preferences = UserAvailability.objects.filter(user=tutor, week=week)
 
             if not user_preferences.exists():
                 user_preferences = UserAvailability.objects.filter(
-                    user=tutor.user_ptr, week=None
+                    user=tutor, week=None
                 )
 
             user_preferences = user_preferences.filter(value=0)
@@ -867,13 +865,11 @@ class ConsiderTutorsUnavailability(TTConstraint):
 
         else:
 
-            user_preferences = UserAvailability.objects.filter(
-                user=tutor.user_ptr, week=week
-            )
+            user_preferences = UserAvailability.objects.filter(user=tutor, week=week)
 
             if not user_preferences.exists():
                 user_preferences = UserAvailability.objects.filter(
-                    user=tutor.user_ptr, week=None
+                    user=tutor, week=None
                 )
 
             user_preferences = user_preferences.filter(value__gte=1)

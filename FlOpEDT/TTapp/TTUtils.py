@@ -412,7 +412,7 @@ def load_dispos(json_filename):
             nb=int_or_none(dispo["week"]), year=int_or_none(dispo["year"])
         )
         U, created = UserAvailability.objects.get_or_create(
-            user=tutor.user_ptr,
+            user=tutor,
             week=week,
             day=dispo["day"],
             start_time=dispo["start_time"],

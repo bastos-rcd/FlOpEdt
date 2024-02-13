@@ -1184,11 +1184,11 @@ class HelperUserPreference:
         self.tutor = tutor
 
     def filter(self):
-        return UserAvailability.objects.filter(user=self.tutor.user_ptr)
+        return UserAvailability.objects.filter(user=self.tutor)
 
     def generate(self, week, day, start_time, duration, value):
         return UserAvailability(
-            user=self.tutor.user_ptr,
+            user=self.tutor,
             week=week,
             day=day,
             start_time=start_time,

@@ -175,11 +175,11 @@ def pref_requirements(department, tutor, year, week_nb):
         )
     )
     week_av = bm.UserAvailability.objects.filter(
-        user=tutor.user_ptr, week=week, day__in=queries.get_working_days(department)
+        user=tutor, week=week, day__in=queries.get_working_days(department)
     )
     if not week_av.exists():
         week_av = bm.UserAvailability.objects.filter(
-            user=tutor.user_ptr, week=None, day__in=queries.get_working_days(department)
+            user=tutor, week=None, day__in=queries.get_working_days(department)
         )
 
     # Exclude Holidays

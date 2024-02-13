@@ -651,11 +651,11 @@ class WeeksDatabase(object):
             availabilities[i] = {}
             for week in self.weeks:
                 availabilities[i][week] = set(
-                    UserAvailability.objects.filter(week=week, user=i.user_ptr)
+                    UserAvailability.objects.filter(week=week, user=i)
                 )
                 if not availabilities[i][week]:
                     availabilities[i][week] = set(
-                        UserAvailability.objects.filter(week=None, user=i.user_ptr)
+                        UserAvailability.objects.filter(week=None, user=i)
                     )
                     for avail in availabilities[i][week]:
                         avail.week = week
