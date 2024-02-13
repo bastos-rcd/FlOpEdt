@@ -60,7 +60,7 @@ from people.models import (
     UserDepartmentSettings,
     TutorPreference,
 )
-from base.preferences import split_preferences
+from base.availability import split_preferences
 
 from configuration.database_description_xlsx import database_description_load_xlsx_file
 
