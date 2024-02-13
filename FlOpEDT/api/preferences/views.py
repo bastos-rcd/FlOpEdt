@@ -259,20 +259,6 @@ class RoomAvailabilityDefaultFilterSet(filters.FilterSet):
         fields = ["dept", "room"]
 
 
-class RoomAvailabilityDefaultViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet to see all the room availabilities
-
-    Can be filtered as wanted with every field of a Room object.
-    """
-
-    permission_classes = [IsAdminOrReadOnly]
-    # permission_classes = [IsTutor]
-    filterset_class = RoomAvailabilityDefaultFilterSet
-    queryset = bm.RoomAvailability.objects.filter(week=None)
-    serializer_class = serializers.RoomAvailabilitySerializer
-
-
 class RoomAvailabilitySingularFilterSet(filters.FilterSet):
     dept = filters.CharFilter(field_name="room__departments__abbrev", required=True)
 

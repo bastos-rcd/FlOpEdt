@@ -19,7 +19,7 @@ Maintenant:
 
 Rename:
 
-- `models/preferences.py`
+- [ ] `models/preferences.py`
   - filename -> `models/availability.py`
   - `userPreference` -> `userAvailability`
 
@@ -27,9 +27,18 @@ Rename:
 
 ### UserPreference
 
-- [ ] Un `User` en `ForeignKey` plutôt qu'un `Tutor`
 - [ ] Création automatique de la semaine type à la création d'un `Tutor` ?
-- [x] ajout d'un index sur les User/
+- [x] Un `User` en `ForeignKey` plutôt qu'un `Tutor`
+- [x] ajout d'un index sur les User/ --> [automatiquement](https://docs.djangoproject.com/en/4.2/ref/models/fields/#foreignkey)
+- [ ] Passer les start_time et duration des Availability en vrai temps
+
+### \*Availability
+
+Après les migrations :
+
+- [ ] \*AvailabilityAdmin: corriger
+- [ ] \*DefaultAvailability à rediriger vers A1-S1
+- [ ] is_same de Availability ? + Si semaine par défaut + terminologie < ? before ? euh toutes les fonctions, en fait
 
 ## Autre
 

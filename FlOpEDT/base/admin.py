@@ -731,11 +731,11 @@ class RoomAdmin(DepartmentModelAdmin):
 
 
 class RoomAvailabilityAdmin(DepartmentModelAdmin):
-    list_display = ("room", "week", "day", "start_time", "duration", "value")
-    ordering = ("-week", "day", "start_time")
+    list_display = ("room", "value")  # "day", "start_time", "duration", "week",
+    ordering = ("room",)  # "day", "start_time", "-week",
     list_filter = (
         ("room", DropdownFilterRel),
-        ("week__nb", DropdownFilterAll),
+        # ("week__nb", DropdownFilterAll),
     )
 
 
@@ -793,15 +793,14 @@ class CourseAvailabilityAdmin(DepartmentModelAdmin):
     list_display = (
         "course_type",
         "train_prog",
-        "day",
-        "start_time",
-        "duration",
+        # "day",
+        # "start_time",
+        # "duration",
         "value",
-        "week",
     )
-    ordering = ("-week",)
+    # ordering = ("-week",)
     list_filter = (
-        ("week__nb", DropdownFilterAll),
+        #  ("week__nb", DropdownFilterAll),
         ("train_prog", DropdownFilterRel),
     )
 
@@ -855,17 +854,17 @@ class CourseModificationAdmin(DepartmentModelAdmin):
 class DispoAdmin(DepartmentModelAdmin):
     list_display = (
         "user",
-        "day",
-        "start_time",
-        "duration",
+        # "day",
+        # "start_time",
+        # "duration",
         "value",
-        "week",
+        # "week",
     )
-    ordering = ("user", "-week", "day", "start_time", "value")
+    ordering = ("user",)  # "day", "start_time", "value")  # "-week",
     list_filter = (
-        ("start_time", DropdownFilterAll),
-        ("week__nb", DropdownFilterAll),
-        ("week__year", DropdownFilterAll),
+        # ("start_time", DropdownFilterAll),
+        # ("week__nb", DropdownFilterAll),
+        # ("week__year", DropdownFilterAll),
         ("user", DropdownFilterRel),
     )
 
