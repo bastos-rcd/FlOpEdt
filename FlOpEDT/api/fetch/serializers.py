@@ -260,8 +260,8 @@ class AvailabilitiesSerializer(serializers.Serializer):
     user = Tutor_Serializer()
 
     class Meta:
-        model = bm.UserPreference
-        fields = ['day', 'start_time', 'duration', 'value', 'user']
+        model = bm.UserAvailability
+        fields = ["day", "start_time", "duration", "value", "user"]
 
 
 #                                  --------------------                                 #
@@ -277,8 +277,8 @@ class DefaultWeekSerializer(serializers.Serializer):
     value = serializers.IntegerField()
 
     class Meta:
-        model = bm.UserPreference
-        fields = ['user', 'day', 'start_time', 'duration', 'value']
+        model = bm.UserAvailability
+        fields = ["user", "day", "start_time", "duration", "value"]
 
 
 #                              ---------------------------                              #
@@ -296,8 +296,8 @@ class CourseTypeDefaultWeekSerializer(serializers.Serializer):
     value = serializers.IntegerField()
 
     class Meta:
-        model = bm.CoursePreference
-        fields = ['course_type', 'train_prog', 'day', 'start_time', 'duration', 'value']
+        model = bm.CourseAvailability
+        fields = ["course_type", "train_prog", "day", "start_time", "duration", "value"]
 
 
 #                                -------------------------                              #

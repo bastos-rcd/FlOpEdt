@@ -30,7 +30,7 @@ from django.contrib.auth import login
 from django.shortcuts import redirect
 from django.views.generic import CreateView, UpdateView
 
-from base.models import TimeGeneralSettings, Department, UserPreference, Day
+from base.models import TimeGeneralSettings, Department, UserAvailability, Day
 
 from .forms import AddFullStaffTutorForm, AddSupplyStaffTutorForm, AddBIATOSTutorForm
 from .forms import ChangeFullStaffTutorForm, ChangeSupplyStaffTutorForm, ChangeBIATOSTutorForm
@@ -108,13 +108,15 @@ def fill_default_user_preferences(user, dept=None):
         while current_time < max_time:
             if current_time + duration > max_time:
                 duration = max_time - current_time
-            pref = UserPreference(user=user,
-                                  week=None,
-                                  day=first_day,
-                                  start_time=current_time,
-                                  duration=duration,
-                                  # hardcoded
-                                  value=8)
+            pref = UserAvailability(
+                user=user,
+                week=None,
+                day=first_day,
+                start_time=current_time,
+                duration=duration,
+                # hardcoded
+                value=8,
+            )
             pref.save()
             current_time += duration
         if max_time == lst:
@@ -123,13 +125,15 @@ def fill_default_user_preferences(user, dept=None):
             
     # copy the pattern for the other days
     for day in days:
-        for pref in UserPreference.objects.filter(user=user,
-                                                  week=None,
-                                                  day=first_day):
-            new_pref = UserPreference(user=user,
-                                      week=None,
-                                      day=day,
-                                      start_time=pref.start_time,
-                                      duration=pref.duration,
-                                      value=pref.value)
+        for pref in UserAvailability.objects.filter(
+            user=user, week=None, day=first_day
+        ):
+            new_pref = UserAvailability(
+                user=user,
+                week=None,
+                day=day,
+                start_time=pref.start_time,
+                duration=pref.duration,
+                value=pref.value,
+            )
             new_pref.save()

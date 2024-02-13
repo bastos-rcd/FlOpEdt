@@ -397,7 +397,7 @@ class AvailabilitiesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         # Getting all the wanted data
-        qs = bm.UserPreference.objects.all()
+        qs = bm.UserAvailability.objects.all()
 
         # Getting all the filters
         week = self.request.query_params.get('week', None)
@@ -440,7 +440,7 @@ class CourseTypeDefaultWeekViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         # Getting the wanted data
-        qs = bm.CoursePreference.objects.filter(week__isnull=True)
+        qs = bm.CourseAvailability.objects.filter(week__isnull=True)
 
         # Getting all the filters
         train_prog = self.request.query_params.get('train_prog', None)
@@ -621,10 +621,12 @@ class UnavailableRoomViewSet(viewsets.ViewSet):
         # if cached is not None:
         #     return cached
 
-        dataset_room_preference = bm.RoomPreference.objects.filter(room__departments__abbrev=department,
-                                                                   week__nb=week,
-                                                                   week__year=year,
-                                                                   value=0)
+        dataset_room_preference = bm.RoomAvailability.objects.filter(
+            room__departments__abbrev=department,
+            week__nb=week,
+            week__year=year,
+            value=0,
+        )
         flop_week = bm.Week.objects.get(nb=week, year=year)
         date_of_the_week = [flopday_to_date(Day(week=flop_week, day=d)) for d in days_list]
         dataset_room_reservations = rrm.RoomReservation.objects.filter(room__departments__abbrev=department,

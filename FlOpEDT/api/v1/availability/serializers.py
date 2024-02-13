@@ -56,7 +56,7 @@ class UserAvailabilitySerializer(AvailabilitySerializer):
     class Meta:
         # TODO V1-DB:
         # model = bm.userAvailability
-        model = bm.UserPreference
+        model = bm.UserAvailability
         fields = ("id", "av_type", "start_time", "end_time", "value")
 
 

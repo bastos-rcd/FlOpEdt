@@ -1,4 +1,4 @@
-from base.models import UserPreference, Day, Slot
+from base.models import UserAvailability, Day, Slot
 from people.models import User, Tutor
 
 from csv import DictReader
@@ -30,8 +30,10 @@ def csv_reader(path):
                 year = row['year']
                 week = row['week']
                 user_prefs = list(
-                    UserPreference.objects.filter(user=prof, year=row['year'], week=row['week'])
-                        .order_by('day', 'start_time'))
+                    UserAvailability.objects.filter(
+                        user=prof, year=row["year"], week=row["week"]
+                    ).order_by("day", "start_time")
+                )
                 print(prof, week, year)
             duration = int(row['duration'])
             day = translate_day_label(row['day'])
@@ -46,9 +48,15 @@ def csv_reader(path):
                     up.save()
                 user_prefs.remove(up)
             else:
-                UserPreference(user=prof, year=row['year'], week=row['week'],
-                               day=day, start_time=start_time, duration=duration,
-                               value=value).save()
+                UserAvailability(
+                    user=prof,
+                    year=row["year"],
+                    week=row["week"],
+                    day=day,
+                    start_time=start_time,
+                    duration=duration,
+                    value=value,
+                ).save()
     f.close()
     end = datetime.now()
     print(end - start)

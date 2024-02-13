@@ -157,20 +157,19 @@ def pref_requirements(department, tutor, year, week_nb):
     to local policy
     """
     week = bm.Week.objects.get(nb=week_nb, year=year)
-    courses_time =sum(c.type.duration for c in
-                      bm.Course.objects.filter(Q(tutor=tutor) | Q(supp_tutor=tutor),
-                                               week=week))
-    week_av = bm.UserPreference \
-        .objects \
-        .filter(user=tutor,
-                week=week,
-                day__in=queries.get_working_days(department))
+    courses_time = sum(
+        c.type.duration
+        for c in bm.Course.objects.filter(
+            Q(tutor=tutor) | Q(supp_tutor=tutor), week=week
+        )
+    )
+    week_av = bm.UserAvailability.objects.filter(
+        user=tutor, week=week, day__in=queries.get_working_days(department)
+    )
     if not week_av.exists():
-        week_av = bm.UserPreference \
-            .objects \
-            .filter(user=tutor,
-                    week=None,
-                    day__in=queries.get_working_days(department))
+        week_av = bm.UserAvailability.objects.filter(
+            user=tutor, week=None, day__in=queries.get_working_days(department)
+        )
 
     # Exclude Holidays
     holidays_query = bm.Holiday.objects.filter(week=week)

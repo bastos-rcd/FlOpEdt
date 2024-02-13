@@ -1,6 +1,6 @@
 import pytest
 from base.models.groups import Department
-from base.models.preferences import UserPreference
+from FlOpEDT.base.models.availability import UserAvailability
 from base.models import Week, Day
 from people.models import Tutor
 from rest_framework.test import APIClient
@@ -34,64 +34,73 @@ flop_time_1PM = time_to_floptime(time_1PM)
 
 
 @pytest.fixture
-def user_preference1(db, tutor_fs_a: Tutor, flop_first_may_2023: Day) -> UserPreference:
-    return UserPreference.objects.create(user=tutor_fs_a,
-                                         value=4,
-                                         start_time=flop_time_8AM,
-                                         duration=60,
-                                         week=flop_first_may_2023.week,
-                                         day=flop_first_may_2023.day,
-                                         # To be changed when floptime is abandonned
-                                         # start_time=first_may_2023_8AM,
-                                         # end_time=first_may_2023_9AM
-                                         )
+def user_preference1(
+    db, tutor_fs_a: Tutor, flop_first_may_2023: Day
+) -> UserAvailability:
+    return UserAvailability.objects.create(
+        user=tutor_fs_a,
+        value=4,
+        start_time=flop_time_8AM,
+        duration=60,
+        week=flop_first_may_2023.week,
+        day=flop_first_may_2023.day,
+        # To be changed when floptime is abandonned
+        # start_time=first_may_2023_8AM,
+        # end_time=first_may_2023_9AM
+    )
 
 
 @pytest.fixture
-def user_preference2(db, tutor_fs_a: Tutor) -> UserPreference:
-    return UserPreference.objects.create(user=tutor_fs_a,
-                                         value=0,
-                                         start_time=flop_time_9AM,
-                                         duration=60,
-                                         week=flop_first_may_2023.week,
-                                         day=flop_first_may_2023.day,
-                                        #  start_time=first_may_2023_9AM,
-                                        #  end_time=first_may_2023_10AM
-                                        )
+def user_preference2(db, tutor_fs_a: Tutor) -> UserAvailability:
+    return UserAvailability.objects.create(
+        user=tutor_fs_a,
+        value=0,
+        start_time=flop_time_9AM,
+        duration=60,
+        week=flop_first_may_2023.week,
+        day=flop_first_may_2023.day,
+        #  start_time=first_may_2023_9AM,
+        #  end_time=first_may_2023_10AM
+    )
 
 
 @pytest.fixture
-def user_preference3(db, tutor_fs_a: Tutor) -> UserPreference:
-    return UserPreference.objects.create(user=tutor_fs_a,
-                                         value=8,
-                                         start_time=flop_time_10AM,
-                                         duration=60,
-                                         week=flop_first_may_2023.week,
-                                         day=flop_first_may_2023.day,
-                                        #  start_time=first_may_2023_10AM,
-                                        #  end_time=first_may_2023_11AM
-                                        )
+def user_preference3(db, tutor_fs_a: Tutor) -> UserAvailability:
+    return UserAvailability.objects.create(
+        user=tutor_fs_a,
+        value=8,
+        start_time=flop_time_10AM,
+        duration=60,
+        week=flop_first_may_2023.week,
+        day=flop_first_may_2023.day,
+        #  start_time=first_may_2023_10AM,
+        #  end_time=first_may_2023_11AM
+    )
 
 
 @pytest.fixture
-def default_user_preference1(db, tutor_fs_a: Tutor) -> UserPreference:
-    return UserPreference.objects.create(user=tutor_fs_a,
-                                         value=8,
-                                         week=None,
-                                         day='m',
-                                         start_time=flop_time_8AM,
-                                         duration=120
-                                         )
+def default_user_preference1(db, tutor_fs_a: Tutor) -> UserAvailability:
+    return UserAvailability.objects.create(
+        user=tutor_fs_a,
+        value=8,
+        week=None,
+        day="m",
+        start_time=flop_time_8AM,
+        duration=120,
+    )
 
 
 @pytest.fixture
-def default_user_preference2(db, tutor_fs_a: Tutor) -> UserPreference:
-    return UserPreference.objects.create(user=tutor_fs_a,
-                                         value=8,
-                                         week=None,
-                                         day='m',
-                                         start_time=flop_time_10AM,
-                                         duration=180)
+def default_user_preference2(db, tutor_fs_a: Tutor) -> UserAvailability:
+    return UserAvailability.objects.create(
+        user=tutor_fs_a,
+        value=8,
+        week=None,
+        day="m",
+        start_time=flop_time_10AM,
+        duration=180,
+    )
+
 
 @pytest.fixture
 def client():
@@ -99,11 +108,13 @@ def client():
 
 
 # Query
-def test_preferences(client,
-                     flop_first_may_2023: Day,
-                     user_preference1: UserPreference,
-                     default_user_preference1: UserPreference,
-                     default_user_preference2: UserPreference):
+def test_preferences(
+    client,
+    flop_first_may_2023: Day,
+    user_preference1: UserAvailability,
+    default_user_preference1: UserAvailability,
+    default_user_preference2: UserAvailability,
+):
     endpoint_default = "/fr/api/preferences/user-default/"
     endpoint_actual = "/fr/api/preferences/user-actual/?week=18&year=2023"
 

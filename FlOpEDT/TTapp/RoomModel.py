@@ -24,7 +24,14 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import RoomPreference, ScheduledCourse, TimeGeneralSettings, RoomSort, Room, Course
+from base.models import (
+    RoomAvailability,
+    ScheduledCourse,
+    TimeGeneralSettings,
+    RoomSort,
+    Room,
+    Course,
+)
 
 from base.timing import Day
 import base.queries as queries
@@ -240,12 +247,14 @@ class RoomModel(FlopModel):
         for room in self.basic_rooms:
             avail_room[room] = {}
             for sl in self.slots:
-                if RoomPreference.objects.filter(
-                        start_time__lt=sl.start_time + sl.duration,
-                        start_time__gt=sl.start_time - F('duration'),
-                        day=sl.day.day,
-                        week=sl.day.week,
-                        room=room, value=0).exists():
+                if RoomAvailability.objects.filter(
+                    start_time__lt=sl.start_time + sl.duration,
+                    start_time__gt=sl.start_time - F("duration"),
+                    day=sl.day.day,
+                    week=sl.day.week,
+                    room=room,
+                    value=0,
+                ).exists():
                     avail_room[room][sl] = 0
                 elif RoomReservation.objects.filter(
                         start_time__lt=floptime_to_time(sl.start_time + sl.duration),

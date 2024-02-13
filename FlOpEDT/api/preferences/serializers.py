@@ -50,8 +50,8 @@ class UserPreferenceSerializer(serializers.Serializer):
             return
 
     class Meta:
-        model = bm.UserPreference
-        fields = ['user']
+        model = bm.UserAvailability
+        fields = ["user"]
 
 
 class CoursePreferencesSerializer(serializers.ModelSerializer):
@@ -71,8 +71,8 @@ class CoursePreferencesSerializer(serializers.ModelSerializer):
             return
             
     class Meta:
-        model = bm.CoursePreference
-        fields = '__all__'
+        model = bm.CourseAvailability
+        fields = "__all__"
 
 
 class RoomPreferencesSerializer(serializers.ModelSerializer):
@@ -93,5 +93,5 @@ class RoomPreferencesSerializer(serializers.ModelSerializer):
             return
 
     class Meta:
-        model = bm.RoomPreference
-        fields = '__all__'
+        model = bm.RoomAvailability
+        fields = "__all__"

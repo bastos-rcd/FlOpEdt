@@ -72,7 +72,7 @@ class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # avoid warning
         if getattr(self, "swagger_fake_view", False):
-            return bm.UserPreference.objects.none()
+            return bm.UserAvailability.objects.none()
 
         from_date = datetime.fromisoformat(
             self.request.query_params.get("from_date")
@@ -90,7 +90,7 @@ class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
 
         # TODO V1-DB
         # ugly but will be removed
-        ret = bm.UserPreference.objects.none()
+        ret = bm.UserAvailability.objects.none()
         py_date = from_date
         cal = py_date.isocalendar()
         y, w, days = cal[0], cal[1], [Day.CHOICES[cal[2] - 1][0]]
@@ -98,14 +98,14 @@ class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
         while py_date <= to_date:
             cal = py_date.isocalendar()
             if cal[1] != w:
-                ret |= bm.UserPreference.objects.filter(
+                ret |= bm.UserAvailability.objects.filter(
                     user__id=user_id, week__year=y, week__nb=w, day__in=days
                 )
                 y, w, days = cal[0], cal[1], [Day.CHOICES[cal[2] - 1][0]]
             else:
                 days.append(Day.CHOICES[cal[2] - 1][0])
             py_date += timedelta(days=1)
-        ret |= bm.UserPreference.objects.filter(
+        ret |= bm.UserAvailability.objects.filter(
             user__id=user_id, week__year=y, week__nb=w, day__in=days
         )
         return ret

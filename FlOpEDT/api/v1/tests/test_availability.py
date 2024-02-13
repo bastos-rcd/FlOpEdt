@@ -3,7 +3,7 @@ from rest_framework.test import APIClient, APITestCase
 from api.v1.tests.utils import retrieve_elements
 
 from base.models.groups import Department
-from base.models.preferences import UserPreference
+from base.models.availability import UserAvailability
 from base.models.timing import Week
 from people.models import Tutor
 

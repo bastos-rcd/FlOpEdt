@@ -1,5 +1,5 @@
 from django.conf import settings
-from base.models import UserPreference, Time, Day, Slot
+from base.models import UserAvailability, Time, Day, Slot
 from people.models import User
 import os
 import csv
@@ -94,23 +94,25 @@ def csvreader(test):
                     slot1 = Slot.objects.create(day=day1, hour=slot, duration="120")
                     print(slot1)
                     slot.append(slot1)
-       print(slot)
+        print(slot)
 
+        for prof in stockage:
+            if User.objects:
+                day = Day.objects.filter(day="Monday")
 
-       for prof in stockage:
-          if User.objects:
-              day = Day.objects.filter(day="Monday")
-
-              indicevalue=0
-              for value in prof:
-                    indicevalue+=1
-                    if indicevalue>2 :
-                            nouvelledispo = UserPreference.objects.create(user=User.objects.filter(first_name=prof[0], last_name=prof[1]),
-                              week=stockage[1][j],
-                              year=stockage[0][indiceannee],
-                              slot=slot1,
-                              value=value)
-                            nouvelledispo.save()
-                    indicecreneau+=2
-       print(stockage[3])
-
+                indicevalue = 0
+                for value in prof:
+                    indicevalue += 1
+                    if indicevalue > 2:
+                        nouvelledispo = UserAvailability.objects.create(
+                            user=User.objects.filter(
+                                first_name=prof[0], last_name=prof[1]
+                            ),
+                            week=stockage[1][j],
+                            year=stockage[0][indiceannee],
+                            slot=slot1,
+                            value=value,
+                        )
+                        nouvelledispo.save()
+                    indicecreneau += 2
+        print(stockage[3])

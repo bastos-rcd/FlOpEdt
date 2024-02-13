@@ -51,7 +51,7 @@ class CoursePreferencesViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = (IsTutor,)
-    queryset = bm.CoursePreference.objects.all()
+    queryset = bm.CourseAvailability.objects.all()
     serializer_class = serializers.CoursePreferencesSerializer
 
     filterset_fields = '__all__'
@@ -112,11 +112,12 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         self.set_common_params()
-        return bm.UserPreference.objects\
-                                .select_related(*self.select)\
-                                .prefetch_related(*self.prefetch)\
-                                .filter(**self.params) \
-                                .order_by('user__username')
+        return (
+            bm.UserAvailability.objects.select_related(*self.select)
+            .prefetch_related(*self.prefetch)
+            .filter(**self.params)
+            .order_by("user__username")
+        )
 
 
 # Custom schema generation: see
@@ -239,8 +240,8 @@ class RoomPreferenceDefaultFilterSet(filters.FilterSet):
     room = filters.CharFilter(field_name='room__name')
 
     class Meta:
-        model = bm.RoomPreference
-        fields = ['dept', 'room']
+        model = bm.RoomAvailability
+        fields = ["dept", "room"]
 
 
 class RoomPreferenceDefaultViewSet(viewsets.ModelViewSet):
@@ -252,7 +253,7 @@ class RoomPreferenceDefaultViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = [IsTutor]
     filterset_class = RoomPreferenceDefaultFilterSet
-    queryset = bm.RoomPreference.objects.filter(week=None)
+    queryset = bm.RoomAvailability.objects.filter(week=None)
     serializer_class = serializers.RoomPreferencesSerializer
 
 
@@ -260,13 +261,13 @@ class RoomPreferenceSingularFilterSet(filters.FilterSet):
     dept = filters.CharFilter(field_name='room__departments__abbrev', required=True)
 
     class Meta:
-        model = bm.RoomPreference
-        fields = ['dept']
+        model = bm.RoomAvailability
+        fields = ["dept"]
 
 
 class RoomPreferenceSingularViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = [IsTutor]
     filterset_class = RoomPreferenceSingularFilterSet
-    queryset = bm.RoomPreference.objects.filter()
+    queryset = bm.RoomAvailability.objects.filter()
     serializer_class = serializers.RoomPreferencesSerializer

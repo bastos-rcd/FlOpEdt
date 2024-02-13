@@ -33,13 +33,35 @@ from pulp import GUROBI_CMD
 
 from django.conf import settings
 
-from base.models import StructuralGroup, TransversalGroup,\
-    Room, RoomSort, RoomType, RoomPreference, \
-    Course, ScheduledCourse, UserPreference, CoursePreference, \
-    Department, Module, TrainingProgramme, CourseType, \
-    Dependency, TutorCost, GroupFreeHalfDay, GroupCost, Holiday, TrainingHalfDay, Pivot, \
-    CourseStartTimeConstraint, TimeGeneralSettings, ModulePossibleTutors, CoursePossibleTutors, CourseAdditional, \
-    RoomPonderation
+from base.models import (
+    StructuralGroup,
+    TransversalGroup,
+    Room,
+    RoomSort,
+    RoomType,
+    RoomAvailability,
+    Course,
+    ScheduledCourse,
+    UserAvailability,
+    CourseAvailability,
+    Department,
+    Module,
+    TrainingProgramme,
+    CourseType,
+    Dependency,
+    TutorCost,
+    GroupFreeHalfDay,
+    GroupCost,
+    Holiday,
+    TrainingHalfDay,
+    Pivot,
+    CourseStartTimeConstraint,
+    TimeGeneralSettings,
+    ModulePossibleTutors,
+    CoursePossibleTutors,
+    CourseAdditional,
+    RoomPonderation,
+)
 
 from base.timing import Time, Day
 
@@ -218,9 +240,10 @@ class WeeksDatabase(object):
             .filter(course__in=other_departments_courses,
                     work_copy=0)
 
-        courses_availabilities = CoursePreference.objects \
-            .filter(Q(week__in=self.weeks) | Q(week=None),
-                    train_prog__department=self.department)
+        courses_availabilities = CourseAvailability.objects.filter(
+            Q(week__in=self.weeks) | Q(week=None),
+            train_prog__department=self.department,
+        )
 
         modules = Module.objects \
             .filter(id__in=courses.values_list('module_id').distinct())
@@ -453,9 +476,13 @@ class WeeksDatabase(object):
         for i in instructors:
             availabilities[i] = {}
             for week in self.weeks:
-                availabilities[i][week] = set(UserPreference.objects.filter(week=week, user=i))
+                availabilities[i][week] = set(
+                    UserAvailability.objects.filter(week=week, user=i)
+                )
                 if not availabilities[i][week]:
-                    availabilities[i][week] = set(UserPreference.objects.filter(week=None, user=i))
+                    availabilities[i][week] = set(
+                        UserAvailability.objects.filter(week=None, user=i)
+                    )
                     for avail in availabilities[i][week]:
                         avail.week=week
 

@@ -26,8 +26,18 @@
 
 from django.core.mail import EmailMessage
 
-from base.models import RoomType, RoomPreference, ScheduledCourse, TrainingProgramme, \
-    TutorCost, GroupFreeHalfDay, GroupCost, TimeGeneralSettings, ModuleTutorRepartition, ScheduledCourseAdditional
+from base.models import (
+    RoomType,
+    RoomAvailability,
+    ScheduledCourse,
+    TrainingProgramme,
+    TutorCost,
+    GroupFreeHalfDay,
+    GroupCost,
+    TimeGeneralSettings,
+    ModuleTutorRepartition,
+    ScheduledCourseAdditional,
+)
 
 from base.timing import Time, flopday_to_date, floptime_to_time
 
@@ -806,12 +816,14 @@ class TTModel(FlopModel):
         for room in self.wdb.basic_rooms:
             avail_room[room] = {}
             for sl in self.wdb.availability_slots:
-                if RoomPreference.objects.filter(
-                        start_time__lt=sl.start_time + sl.duration,
-                        start_time__gt=sl.start_time - F('duration'),
-                        day=sl.day.day,
-                        week=sl.day.week,
-                        room=room, value=0).exists():
+                if RoomAvailability.objects.filter(
+                    start_time__lt=sl.start_time + sl.duration,
+                    start_time__gt=sl.start_time - F("duration"),
+                    day=sl.day.day,
+                    week=sl.day.week,
+                    room=room,
+                    value=0,
+                ).exists():
                     avail_room[room][sl] = 0
                 elif RoomReservation.objects.filter(
                         start_time__lt=floptime_to_time(sl.start_time + sl.duration),

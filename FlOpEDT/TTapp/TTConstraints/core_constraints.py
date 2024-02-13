@@ -41,8 +41,11 @@ from TTapp.ilp_constraints.constraint import Constraint
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext
 from TTapp.slots import slots_filter
-from TTapp.TTConstraints.groups_constraints import considered_basic_groups, pre_analysis_considered_basic_groups
-from base.models import Course, UserPreference, Holiday
+from TTapp.TTConstraints.groups_constraints import (
+    considered_basic_groups,
+    pre_analysis_considered_basic_groups,
+)
+from base.models import Course, UserAvailability, Holiday
 from base.partition import Partition
 import TTapp.GlobalPreAnalysis.partition_with_constraints as partition_bis
 from base.timing import Day, flopdate_to_datetime
@@ -612,10 +615,12 @@ class ConsiderTutorsUnavailability(TTConstraint):
         """
         if partition.tutor_supp:
 
-            user_preferences = UserPreference.objects.filter(user=tutor, week=week)
+            user_preferences = UserAvailability.objects.filter(user=tutor, week=week)
 
             if not user_preferences.exists():
-                user_preferences = UserPreference.objects.filter(user=tutor, week=None)
+                user_preferences = UserAvailability.objects.filter(
+                    user=tutor, week=None
+                )
 
             user_preferences = user_preferences.filter(value=0)
             for up in user_preferences:
@@ -629,10 +634,12 @@ class ConsiderTutorsUnavailability(TTConstraint):
 
         else:
 
-            user_preferences = UserPreference.objects.filter(user=tutor, week=week)
+            user_preferences = UserAvailability.objects.filter(user=tutor, week=week)
 
             if not user_preferences.exists():
-                user_preferences = UserPreference.objects.filter(user=tutor, week=None)
+                user_preferences = UserAvailability.objects.filter(
+                    user=tutor, week=None
+                )
 
             user_preferences = user_preferences.filter(value__gte=1)
 

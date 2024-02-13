@@ -33,11 +33,33 @@ from random import choice
 
 from displayweb.models import TrainingProgrammeDisplay
 
-from base.models import RoomType, Room, TrainingProgramme,\
-    StructuralGroup, TransversalGroup, Module, GroupType, Period, Time, Day, CourseType, \
-    Department, CourseStartTimeConstraint, TimeGeneralSettings, UserPreference, CoursePreference, GenericGroup
+from base.models import (
+    RoomType,
+    Room,
+    TrainingProgramme,
+    StructuralGroup,
+    TransversalGroup,
+    Module,
+    GroupType,
+    Period,
+    Time,
+    Day,
+    CourseType,
+    Department,
+    CourseStartTimeConstraint,
+    TimeGeneralSettings,
+    UserAvailability,
+    CourseAvailability,
+    GenericGroup,
+)
 
-from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings, TutorPreference
+from people.models import (
+    FullStaff,
+    SupplyStaff,
+    Tutor,
+    UserDepartmentSettings,
+    TutorPreference,
+)
 from base.preferences import split_preferences
 
 from configuration.database_description_xlsx import database_description_load_xlsx_file

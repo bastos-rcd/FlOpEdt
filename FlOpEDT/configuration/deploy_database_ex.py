@@ -33,9 +33,23 @@ from random import choice
 
 from displayweb.models import TrainingProgrammeDisplay
 
-from base.models import RoomType, Room, TrainingProgramme,\
-    StructuralGroup, Module, GroupType, Period, Time, Day, CourseType, \
-    Department, CourseStartTimeConstraint, TimeGeneralSettings, UserPreference, CoursePreference
+from base.models import (
+    RoomType,
+    Room,
+    TrainingProgramme,
+    StructuralGroup,
+    Module,
+    GroupType,
+    Period,
+    Time,
+    Day,
+    CourseType,
+    Department,
+    CourseStartTimeConstraint,
+    TimeGeneralSettings,
+    UserAvailability,
+    CourseAvailability,
+)
 
 from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
 

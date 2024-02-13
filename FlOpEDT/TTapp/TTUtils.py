@@ -25,9 +25,23 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import ScheduledCourse, RoomPreference, EdtVersion, Department, CourseStartTimeConstraint,\
-    TimeGeneralSettings, Room, CourseModification, UserPreference, Week, Course, Module, CourseType, TrainingProgramme,\
-    Period
+from base.models import (
+    ScheduledCourse,
+    RoomAvailability,
+    EdtVersion,
+    Department,
+    CourseStartTimeConstraint,
+    TimeGeneralSettings,
+    Room,
+    CourseModification,
+    UserAvailability,
+    Week,
+    Course,
+    Module,
+    CourseType,
+    TrainingProgramme,
+    Period,
+)
 from base.timing import str_slot, days_index
 from django.db.models import Count, Max, Q, F
 from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
@@ -372,8 +386,10 @@ def load_dispos(json_filename):
         except Tutor.DoesNotExist:
             exceptions.add(dispo['prof'])
             continue
-        week = Week.objects.get(nb=int_or_none(dispo["week"]), year=int_or_none(dispo["year"]))
-        U, created = UserPreference.objects.get_or_create(
+        week = Week.objects.get(
+            nb=int_or_none(dispo["week"]), year=int_or_none(dispo["year"])
+        )
+        U, created = UserAvailability.objects.get_or_create(
             user=tutor,
             week=week,
             day=dispo['day'],

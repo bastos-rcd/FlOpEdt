@@ -23,8 +23,19 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import ModulePossibleTutors, ScheduledCourse, TimeGeneralSettings, UserPreference
-from base.timing import TimeInterval, Day, days_index, flopdate_to_datetime, time_to_floptime
+from base.models import (
+    ModulePossibleTutors,
+    ScheduledCourse,
+    TimeGeneralSettings,
+    UserAvailability,
+)
+from base.timing import (
+    TimeInterval,
+    Day,
+    days_index,
+    flopdate_to_datetime,
+    time_to_floptime,
+)
 from datetime import datetime, timedelta
 from django.db.models import Q
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
@@ -749,9 +760,13 @@ class Partition(object):
         if course.supp_tutor is not None:
             required_supp_1 = set(course.supp_tutor.all())
 
-        D1 = UserPreference.objects.filter(user__in=possible_tutors_1, week=week, value__gte=1)
+        D1 = UserAvailability.objects.filter(
+            user__in=possible_tutors_1, week=week, value__gte=1
+        )
         if not D1:
-            D1 = UserPreference.objects.filter(user__in=possible_tutors_1, week=None, value__gte=1)
+            D1 = UserAvailability.objects.filter(
+                user__in=possible_tutors_1, week=None, value__gte=1
+            )
         if D1:
             # Retrieving constraints for days were tutors shouldn't be working
             no_course_tutor1 = (NoTutorCourseOnDay.objects
@@ -790,10 +805,14 @@ class Partition(object):
                         interval[1]["available"] = False
             
             if required_supp_1:
-                #Retrieving and adding user preferences for the required tutors
-                RUS1 = UserPreference.objects.filter(user__in=required_supp_1, week=week, value__gte=1)
+                # Retrieving and adding user preferences for the required tutors
+                RUS1 = UserAvailability.objects.filter(
+                    user__in=required_supp_1, week=week, value__gte=1
+                )
                 if not RUS1:
-                    RUS1 = UserPreference.objects.filter(user__in=required_supp_1, week=None, value__gte=1)
+                    RUS1 = UserAvailability.objects.filter(
+                        user__in=required_supp_1, week=None, value__gte=1
+                    )
 
                 for up in RUS1:
                     up_day = Day(up.day, week)

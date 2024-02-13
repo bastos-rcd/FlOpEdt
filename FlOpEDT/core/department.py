@@ -1,10 +1,29 @@
-from base.models import Department, TrainingProgramme, \
-                        CourseType, CourseModification, CoursePreference, \
-                        Dependency, Module, StructuralGroup, ScheduledCourse, TransversalGroup, GenericGroup
+from base.models import (
+    Department,
+    TrainingProgramme,
+    CourseType,
+    CourseModification,
+    CourseAvailability,
+    Dependency,
+    Module,
+    StructuralGroup,
+    ScheduledCourse,
+    TransversalGroup,
+    GenericGroup,
+)
 
-from base.models import Period, GroupType, \
-                        TutorCost, UserPreference, Course, TrainingHalfDay, \
-                        Room, RoomPreference, RoomType, RoomSort
+from base.models import (
+    Period,
+    GroupType,
+    TutorCost,
+    UserAvailability,
+    Course,
+    TrainingHalfDay,
+    Room,
+    RoomAvailability,
+    RoomType,
+    RoomSort,
+)
 
 from people.models import Tutor
 
@@ -27,21 +46,21 @@ def get_model_department_lookup(model, department, field_name=None):
     if not lookup:
         # Look for a predefined lookup path
         lookups_by_model = {
-            Course:'type__department',
-            CourseModification: 'course__type__department',
-            CoursePreference: 'train_prog__department',
-            ScheduledCourse: 'course__type__department',
-            Dependency: 'course1__type__department',
-            Module: 'train_prog__department',
-            StructuralGroup: 'train_prog__department',
-            TransversalGroup: 'train_prog__department',
-            GenericGroup: 'train_prog__department',
-            Room: 'departments',
-            RoomPreference: 'room__subroom_of__types__department',
-            RoomSort: 'for_type__department',
-            TrainingHalfDay: 'train_prog__department',
-            Tutor: 'departments',
-            UserPreference: 'user__departments',
+            Course: "type__department",
+            CourseModification: "course__type__department",
+            CourseAvailability: "train_prog__department",
+            ScheduledCourse: "course__type__department",
+            Dependency: "course1__type__department",
+            Module: "train_prog__department",
+            StructuralGroup: "train_prog__department",
+            TransversalGroup: "train_prog__department",
+            GenericGroup: "train_prog__department",
+            Room: "departments",
+            RoomAvailability: "room__subroom_of__types__department",
+            RoomSort: "for_type__department",
+            TrainingHalfDay: "train_prog__department",
+            Tutor: "departments",
+            UserAvailability: "user__departments",
         }
         
         lookup = lookups_by_model.get(model, None)

@@ -45,25 +45,57 @@ from django.views.generic import RedirectView
 
 from core.decorators import dept_admin_required, tutor_required
 
-from people.models import Tutor, UserDepartmentSettings, User, \
-    NotificationsPreferences, UserPreferredLinks, TutorPreference, ThemesPreferences
+from people.models import (
+    Tutor,
+    UserDepartmentSettings,
+    User,
+    NotificationsPreferences,
+    UserPreferredLinks,
+    TutorPreference,
+    ThemesPreferences,
+)
 
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
 
-from base.admin import DispoResource, VersionResource, \
-    TutorCoursesResource, \
-    CoursePreferenceResource, MultiDepartmentTutorResource, \
-    SharedRoomsResource, RoomPreferenceResource, ModuleRessource, \
-    TutorRessource, ModuleDescriptionResource, AllDispoResource, \
-    GroupPreferredLinksResource
-from base.forms import ContactForm, ModuleDescriptionForm, \
-    EnrichedLinkForm
-from base.models import Course, UserPreference, ScheduledCourse, EdtVersion, \
-    CourseModification, Room, RoomType, RoomSort, \
-    RoomPreference, Department, CoursePreference, \
-    TrainingProgramme, CourseType, Module, StructuralGroup, EnrichedLink, \
-    ScheduledCourseAdditional, GroupPreferredLinks, Week, Theme, CourseAdditional
+from base.admin import (
+    DispoResource,
+    VersionResource,
+    TutorCoursesResource,
+    CoursePreferenceResource,
+    MultiDepartmentTutorResource,
+    SharedRoomsResource,
+    RoomPreferenceResource,
+    ModuleRessource,
+    TutorRessource,
+    ModuleDescriptionResource,
+    AllDispoResource,
+    GroupPreferredLinksResource,
+)
+from base.forms import ContactForm, ModuleDescriptionForm, EnrichedLinkForm
+from base.models import (
+    Course,
+    UserAvailability,
+    ScheduledCourse,
+    EdtVersion,
+    CourseModification,
+    Room,
+    RoomType,
+    RoomSort,
+    RoomAvailability,
+    Department,
+    CourseAvailability,
+    TrainingProgramme,
+    CourseType,
+    Module,
+    StructuralGroup,
+    EnrichedLink,
+    ScheduledCourseAdditional,
+    GroupPreferredLinks,
+    Week,
+    Theme,
+    CourseAdditional,
+)
 import base.queries as queries
 from base.weeks import *
 
@@ -498,8 +530,8 @@ def fetch_tutor(req, year, week, **kwargs):
 
 @dept_admin_required
 def fetch_all_dispos(req, **kwargs):
-    dataset = AllDispoResource().export(UserPreference.objects.all())
-    return HttpResponse(dataset.json, content_type='application/force-download')
+    dataset = AllDispoResource().export(UserAvailability.objects.all())
+    return HttpResponse(dataset.json, content_type="application/force-download")
 
 
 def fetch_course_default_week(req, train_prog, course_type, **kwargs):
@@ -525,13 +557,14 @@ def fetch_course_default_week(req, train_prog, course_type, **kwargs):
             response['more'] = 'No such course type'
         return response
 
-    dataset = CoursePreferenceResource() \
-        .export(CoursePreference.objects
-                .filter(week=None,
-                        course_type=ct,
-                        train_prog=tp,
-                        day__in=queries.get_working_days(req.department)
-                        ))
+    dataset = CoursePreferenceResource().export(
+        CourseAvailability.objects.filter(
+            week=None,
+            course_type=ct,
+            train_prog=tp,
+            day__in=queries.get_working_days(req.department),
+        )
+    )
 
     response = HttpResponse(dataset.csv,
                             content_type='text/csv')
@@ -561,15 +594,12 @@ def fetch_unavailable_rooms(req, year, week, **kwargs):
     # if cached is not None:
     #     return cached
 
-    dataset = RoomPreferenceResource() \
-        .export(RoomPreference.objects
-                .prefetch_related('room__departments')
-                .filter(room__departments=department,
-                        week=week,
-                        year=year,
-                        value=0))
-    response = HttpResponse(dataset.csv,
-                            content_type='text/csv')
+    dataset = RoomPreferenceResource().export(
+        RoomAvailability.objects.prefetch_related("room__departments").filter(
+            room__departments=department, week=week, year=year, value=0
+        )
+    )
+    response = HttpResponse(dataset.csv, content_type="text/csv")
     # cache.set(cache_key, response)
 
     response['week'] = week
@@ -600,14 +630,14 @@ def fetch_user_default_week(req, username, **kwargs):
     try:
         user = User.objects.get(username=username)
     except ObjectDoesNotExist:
-        return HttpResponse('Problem')
+        return HttpResponse("Problem")
 
-    dataset = DispoResource() \
-        .export(UserPreference.objects
-                .filter(week=None,
-                        user=user,
-                        day__in=queries.get_working_days(req.department)))  # all())#
-    response = HttpResponse(dataset.csv, content_type='text/csv')
+    dataset = DispoResource().export(
+        UserAvailability.objects.filter(
+            week=None, user=user, day__in=queries.get_working_days(req.department)
+        )
+    )  # all())#
+    response = HttpResponse(dataset.csv, content_type="text/csv")
     return response
 
 
@@ -615,14 +645,14 @@ def fetch_room_default_week(req, room, **kwargs):
     try:
         room = Room.objects.get(name=room)
     except ObjectDoesNotExist:
-        return HttpResponse('Problem')
+        return HttpResponse("Problem")
 
-    dataset = RoomPreferenceResource() \
-        .export(RoomPreference.objects
-                .filter(week=None,
-                        room=room,
-                        day__in=queries.get_working_days(req.department)))  # all())#
-    response = HttpResponse(dataset.csv, content_type='text/csv')
+    dataset = RoomPreferenceResource().export(
+        RoomAvailability.objects.filter(
+            week=None, room=room, day__in=queries.get_working_days(req.department)
+        )
+    )  # all())#
+    response = HttpResponse(dataset.csv, content_type="text/csv")
     return response
 
 
@@ -1104,15 +1134,17 @@ class HelperUserPreference():
         self.tutor = tutor
 
     def filter(self):
-        return UserPreference.objects.filter(user=self.tutor)
+        return UserAvailability.objects.filter(user=self.tutor)
 
     def generate(self, week, day, start_time, duration, value):
-        return UserPreference(user=self.tutor,
-                              week=week,
-                              day=day,
-                              start_time=start_time,
-                              duration=duration,
-                              value=value)
+        return UserAvailability(
+            user=self.tutor,
+            week=week,
+            day=day,
+            start_time=start_time,
+            duration=duration,
+            value=value,
+        )
 
 
 class HelperCoursePreference():
@@ -1121,17 +1153,20 @@ class HelperCoursePreference():
         self.course_type = course_type
 
     def filter(self):
-        return CoursePreference.objects.filter(train_prog=self.training_programme,
-                                               course_type=self.course_type)
+        return CourseAvailability.objects.filter(
+            train_prog=self.training_programme, course_type=self.course_type
+        )
 
     def generate(self, week, day, start_time, duration, value):
-        return CoursePreference(train_prog=self.training_programme,
-                                course_type=self.course_type,
-                                week=week,
-                                day=day,
-                                start_time=start_time,
-                                duration=duration,
-                                value=value)
+        return CourseAvailability(
+            train_prog=self.training_programme,
+            course_type=self.course_type,
+            week=week,
+            day=day,
+            start_time=start_time,
+            duration=duration,
+            value=value,
+        )
 
 
 class HelperRoomPreference():
@@ -1139,15 +1174,17 @@ class HelperRoomPreference():
         self.room = room
 
     def filter(self):
-        return RoomPreference.objects.filter(room=self.room)
+        return RoomAvailability.objects.filter(room=self.room)
 
     def generate(self, week, day, start_time, duration, value):
-        return RoomPreference(room=self.room,
-                              week=week,
-                              day=day,
-                              start_time=start_time,
-                              duration=duration,
-                              value=value)
+        return RoomAvailability(
+            room=self.room,
+            week=week,
+            day=day,
+            start_time=start_time,
+            duration=duration,
+            value=value,
+        )
 
 
 @tutor_required

@@ -35,22 +35,43 @@ import django.contrib.auth as auth
 from django.utils.translation import gettext_lazy as _
 
 from people.models import Tutor, User
-from base.models import CourseStartTimeConstraint, StructuralGroup, TransversalGroup, \
-    Room, Module, Course, \
-    UserPreference, ScheduledCourse, EdtVersion, CourseModification, \
-    TrainingProgramme, Regen, Holiday, TrainingHalfDay, \
-    CoursePreference, Dependency, Department, CourseType, \
-    ScheduledCourseAdditional, CourseAdditional, RoomPreference, RoomSort, RoomType, EnrichedLink, GroupPreferredLinks, \
-    Mode, Period
+from base.models import (
+    CourseStartTimeConstraint,
+    StructuralGroup,
+    TransversalGroup,
+    Room,
+    Module,
+    Course,
+    UserAvailability,
+    ScheduledCourse,
+    EdtVersion,
+    CourseModification,
+    TrainingProgramme,
+    Regen,
+    Holiday,
+    TrainingHalfDay,
+    CourseAvailability,
+    Dependency,
+    Department,
+    CourseType,
+    ScheduledCourseAdditional,
+    CourseAdditional,
+    RoomAvailability,
+    RoomSort,
+    RoomType,
+    EnrichedLink,
+    GroupPreferredLinks,
+    Mode,
+    Period,
+)
 from displayweb.models import ModuleDisplay
 from displayweb.models import TutorDisplay
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
-from core.filters import DropdownFilterAll, DropdownFilterRel, \
-    DropdownFilterSimple
+from core.filters import DropdownFilterAll, DropdownFilterRel, DropdownFilterSimple
 
-logger = logging.getLogger('admin')
+logger = logging.getLogger("admin")
 
 
 # from core.models import Book
@@ -292,8 +313,8 @@ class DispoResource(resources.ModelResource):
                         widget=ForeignKeyWidget(User, 'username'))
 
     class Meta:
-        model = UserPreference
-        fields = ('day', 'start_time', 'duration', 'value', 'prof')
+        model = UserAvailability
+        fields = ("day", "start_time", "duration", "value", "prof")
 
 
 class AllDispoResource(resources.ModelResource):
@@ -301,9 +322,8 @@ class AllDispoResource(resources.ModelResource):
                         widget=ForeignKeyWidget(User, 'username'))
 
     class Meta:
-        model = UserPreference
-        fields = ('year', 'week', 'day', 'start_time', 'duration', 'value',
-                  'prof')
+        model = UserAvailability
+        fields = ("year", "week", "day", "start_time", "duration", "value", "prof")
 
 
 class CoursePreferenceResource(resources.ModelResource):
@@ -314,14 +334,13 @@ class CoursePreferenceResource(resources.ModelResource):
                                                       'abbrev'))
 
     class Meta:
-        model = CoursePreference
-        fields = ('type_name', 'train_prog', 'day', 'start_time', 'duration',
-                  'value')
+        model = CourseAvailability
+        fields = ("type_name", "train_prog", "day", "start_time", "duration", "value")
 
 
 class UnavailableRoomsResource(resources.ModelResource):
     class Meta:
-        model = RoomPreference
+        model = RoomAvailability
         fields = ("room", "day", "start_time", "duration")
 
 
@@ -330,7 +349,7 @@ class RoomPreferenceResource(resources.ModelResource):
                         widget=ForeignKeyWidget(Room, 'name'))
 
     class Meta:
-        model = RoomPreference
+        model = RoomAvailability
         fields = ("room", "day", "start_time", "duration", "value")
 
 
@@ -697,15 +716,15 @@ admin.site.register(TrainingHalfDay, TrainingHalfDayAdmin)
 admin.site.register(StructuralGroup, StructuralGroupAdmin)
 admin.site.register(TransversalGroup, TransversalGroupAdmin)
 admin.site.register(Room, RoomAdmin)
-admin.site.register(RoomPreference, RoomPreferenceAdmin)
+admin.site.register(RoomAvailability, RoomPreferenceAdmin)
 admin.site.register(RoomSort, RoomSortAdmin)
 admin.site.register(Module, ModuleAdmin)
 admin.site.register(Course, CourseAdmin)
 admin.site.register(CourseModification, CourseModificationAdmin)
-admin.site.register(CoursePreference, CoursePreferenceAdmin)
+admin.site.register(CourseAvailability, CoursePreferenceAdmin)
 admin.site.register(Dependency, DependencyAdmin)
 admin.site.register(ScheduledCourse, CoursPlaceAdmin)
-admin.site.register(UserPreference, DispoAdmin)
+admin.site.register(UserAvailability, DispoAdmin)
 admin.site.register(Regen, RegenAdmin)
 admin.site.register(EnrichedLink, EnrichedLinkAdmin)
 admin.site.register(GroupPreferredLinks, GroupPreferredLinksAdmin)
