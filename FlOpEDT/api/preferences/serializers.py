@@ -28,6 +28,7 @@ import base.models as bm
 # -- PREFERENCES --
 # -----------------
 
+
 class UserPreferenceSerializer(serializers.Serializer):
     user = serializers.CharField()
     week = serializers.SerializerMethodField()
@@ -38,14 +39,14 @@ class UserPreferenceSerializer(serializers.Serializer):
     value = serializers.IntegerField()
 
     def get_week(self, obj):
-        if(obj.week is not None):
-            return (obj.week.nb)
+        if obj.week is not None:
+            return obj.week.nb
         else:
             return
 
     def get_year(self, obj):
-        if(obj.week is not None):
-            return (obj.week.year)
+        if obj.week is not None:
+            return obj.week.year
         else:
             return
 
@@ -59,17 +60,17 @@ class CoursePreferencesSerializer(serializers.ModelSerializer):
     year = serializers.SerializerMethodField()
 
     def get_week(self, obj):
-        if(obj.week is not None):
-            return (obj.week.nb)
+        if obj.week is not None:
+            return obj.week.nb
         else:
             return
 
     def get_year(self, obj):
-        if(obj.week is not None):
-            return (obj.week.year)
+        if obj.week is not None:
+            return obj.week.year
         else:
             return
-            
+
     class Meta:
         model = bm.CourseAvailability
         fields = "__all__"
@@ -78,17 +79,17 @@ class CoursePreferencesSerializer(serializers.ModelSerializer):
 class RoomPreferencesSerializer(serializers.ModelSerializer):
     week = serializers.SerializerMethodField()
     year = serializers.SerializerMethodField()
-    room = serializers.CharField(source='room.name')
+    room = serializers.CharField(source="room.name")
 
     def get_week(self, obj):
-        if(obj.week is not None):
-            return (obj.week.nb)
+        if obj.week is not None:
+            return obj.week.nb
         else:
             return
 
     def get_year(self, obj):
-        if(obj.week is not None):
-            return (obj.week.year)
+        if obj.week is not None:
+            return obj.week.year
         else:
             return
 

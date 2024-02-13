@@ -27,7 +27,12 @@ import displayweb.models as dwm
 import people.models as pm
 from base.timing import Day, flopdate_to_datetime
 from datetime import timedelta
-from api.base.courses.serializers import CoursesSerializer, Group_SC_Serializer, Module_SC_Serializer, Department_TC_Serializer
+from api.base.courses.serializers import (
+    CoursesSerializer,
+    Group_SC_Serializer,
+    Module_SC_Serializer,
+    Department_TC_Serializer,
+)
 
 #    --------------------------------------------------------------------------------
 #   |                                                                                |
@@ -43,38 +48,35 @@ from api.base.courses.serializers import CoursesSerializer, Group_SC_Serializer,
 #                             ----Scheduled Courses (SC)----                            #
 #                             ------------------------------                            #
 
+
 class RoomType_SC_Serializer(serializers.Serializer):
     name = serializers.CharField()
 
     class Meta:
         model = bm.RoomType
-        fields = ['name']
+        fields = ["name"]
+
 
 class Module_C_Serializer(serializers.Serializer):
     abbrev = serializers.CharField()
 
     class Meta:
         model = bm.Module
-        fields = ['abbrev']
+        fields = ["abbrev"]
+
 
 class Tutor_Serializer(serializers.Serializer):
     username = serializers.CharField()
 
     class Meta:
         model = pm.Tutor
-        fields = ['username']
-
-
-
-
-
-
+        fields = ["username"]
 
 
 class IDRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Room
-        fields = ['id', 'name', 'is_basic']
+        fields = ["id", "name", "is_basic"]
 
 
 class ScheduledCoursesSerializer(serializers.Serializer):
@@ -84,14 +86,23 @@ class ScheduledCoursesSerializer(serializers.Serializer):
     start_time = serializers.IntegerField()
     day = serializers.CharField()
     course = CoursesSerializer()
-    tutor = serializers.CharField(source='tutor.username', allow_null=True)
-    id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
+    tutor = serializers.CharField(source="tutor.username", allow_null=True)
+    id_visio = serializers.IntegerField(source="additional.link.id", allow_null=True)
     number = serializers.IntegerField()
 
     # Mise en forme des données
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['id', 'tutor', 'room', 'start_time', 'day', 'course', 'id_visio', 'number']
+        fields = [
+            "id",
+            "tutor",
+            "room",
+            "start_time",
+            "day",
+            "course",
+            "id_visio",
+            "number",
+        ]
 
 
 class NewApiScheduledCoursesSerializer(serializers.Serializer):
@@ -101,17 +112,30 @@ class NewApiScheduledCoursesSerializer(serializers.Serializer):
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
     course = CoursesSerializer()
-    tutor = serializers.CharField(source='tutor.username', allow_null=True)
-    id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
+    tutor = serializers.CharField(source="tutor.username", allow_null=True)
+    id_visio = serializers.IntegerField(source="additional.link.id", allow_null=True)
     number = serializers.IntegerField()
 
     # Mise en forme des données
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['id', 'tutor', 'room', 'start_time', 'end_time', 'course', 'id_visio', 'number']
+        fields = [
+            "id",
+            "tutor",
+            "room",
+            "start_time",
+            "end_time",
+            "course",
+            "id_visio",
+            "number",
+        ]
 
     def get_start_time(self, obj):
-        flop_week, flop_weekday, flop_start_time = obj.course.week, obj.day, obj.start_time
+        flop_week, flop_weekday, flop_start_time = (
+            obj.course.week,
+            obj.day,
+            obj.start_time,
+        )
         flop_day = Day(flop_weekday, flop_week)
         return flopdate_to_datetime(flop_day, flop_start_time)
 
@@ -127,7 +151,7 @@ class ModuleCosmo_SC_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.Module
-        fields = ['name', 'abbrev']
+        fields = ["name", "abbrev"]
 
 
 class CourseCosmo_SC_Serializer(serializers.Serializer):
@@ -140,20 +164,28 @@ class CourseCosmo_SC_Serializer(serializers.Serializer):
     module = Module_SC_Serializer()
 
     def get_week(self, obj):
-        if (obj.week is not None):
-            return (obj.week.nb)
+        if obj.week is not None:
+            return obj.week.nb
         else:
             return
 
     def get_year(self, obj):
-        if (obj.week is not None):
-            return (obj.week.year)
+        if obj.week is not None:
+            return obj.week.year
         else:
             return
 
     class Meta:
         model = bm.Course
-        fields = ['id', 'type', 'room_type', 'week', 'year', 'module', 'groups', ]
+        fields = [
+            "id",
+            "type",
+            "room_type",
+            "week",
+            "year",
+            "module",
+            "groups",
+        ]
 
 
 class TutorDisplay_SC_Serializer(serializers.Serializer):
@@ -162,7 +194,7 @@ class TutorDisplay_SC_Serializer(serializers.Serializer):
 
     class Meta:
         model = dwm.TutorDisplay
-        fields = ['color_bg', 'color_txt']
+        fields = ["color_bg", "color_txt"]
 
 
 class TutorCosmoSerializer(serializers.Serializer):
@@ -171,7 +203,7 @@ class TutorCosmoSerializer(serializers.Serializer):
 
     class Meta:
         model = pm.Tutor
-        fields = ['username', 'display']
+        fields = ["username", "display"]
 
 
 class ScheduledCoursesCosmoSerializer(serializers.Serializer):
@@ -186,7 +218,7 @@ class ScheduledCoursesCosmoSerializer(serializers.Serializer):
     # Mise en forme des données
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['id', 'tutor', 'room', 'start_time', 'day', 'course']
+        fields = ["id", "tutor", "room", "start_time", "day", "course"]
 
 
 #                             -------------------------------                           #
@@ -200,7 +232,7 @@ class ModuleDisplay_PP_Serializer(serializers.Serializer):
 
     class Meta:
         model = dwm.ModuleDisplay
-        fields = ['color_bg', 'color_txt']
+        fields = ["color_bg", "color_txt"]
 
 
 class Group_PP_Serializer(serializers.Serializer):
@@ -211,7 +243,7 @@ class Group_PP_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.GenericGroup
-        fields = ['id', 'name', 'train_prog', 'is_structural']
+        fields = ["id", "name", "train_prog", "is_structural"]
 
 
 class ModuleCours_PP_Serializer(serializers.Serializer):
@@ -220,7 +252,7 @@ class ModuleCours_PP_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.Module
-        fields = ['abbrev', 'display']
+        fields = ["abbrev", "display"]
 
 
 class CourseType_PP_Serializer(serializers.Serializer):
@@ -229,7 +261,7 @@ class CourseType_PP_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.CourseType
-        fields = ['name', 'duration']
+        fields = ["name", "duration"]
 
 
 class UnscheduledCoursesSerializer(serializers.Serializer):
@@ -244,7 +276,15 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
 
     class Meta:
         model = bm.Course
-        fields = ['id', 'tutor', 'room_type', 'module', 'groups', 'is_graded', 'supp_tutor']
+        fields = [
+            "id",
+            "tutor",
+            "room_type",
+            "module",
+            "groups",
+            "is_graded",
+            "supp_tutor",
+        ]
 
 
 #                                ---------------------------                            #
@@ -309,17 +349,19 @@ class CourseTypeDefaultWeekSerializer(serializers.Serializer):
 #                                 ----All Tutors (AT)----                               #
 #                                 -----------------------                               #
 
+
 class User_AT_Serializer(serializers.Serializer):
     username = serializers.CharField()
 
     class Meta:
         model = pm.User
-        fields = ['username']
+        fields = ["username"]
 
 
 #                                  -------------------                                  #
 #                                  ----Departments----                                  #
 #                                  -------------------                                  #
+
 
 class DepartmentAbbrevSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -327,12 +369,13 @@ class DepartmentAbbrevSerializer(serializers.Serializer):
 
     class Meta:
         model = bm.Department
-        fields = ['id', 'abbrev']
+        fields = ["id", "abbrev"]
 
 
 #                                  --------------------                                 #
 #                                  ----All Versions----                                 #
 #                                  --------------------                                 #
+
 
 class AllVersionsSerializer(serializers.ModelSerializer):
     # Spécification des champs voulus
@@ -342,21 +385,21 @@ class AllVersionsSerializer(serializers.ModelSerializer):
     department = DepartmentAbbrevSerializer()
 
     def get_week(self, obj):
-        if (obj.week is not None):
-            return (obj.week.nb)
+        if obj.week is not None:
+            return obj.week.nb
         else:
             return
 
     def get_year(self, obj):
-        if (obj.week is not None):
-            return (obj.week.year)
+        if obj.week is not None:
+            return obj.week.year
         else:
             return
 
     # Mise en forme des données
     class Meta:
         model = bm.EdtVersion
-        fields = ['year', 'week', 'version', 'department']
+        fields = ["year", "week", "version", "department"]
 
 
 #                               --------------------------                              #
@@ -369,7 +412,7 @@ class CourseType_TC_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.Course
-        fields = ['department']
+        fields = ["department"]
 
 
 class Course_TC_Serializer(serializers.Serializer):
@@ -383,20 +426,29 @@ class Course_TC_Serializer(serializers.Serializer):
     module = Module_SC_Serializer()
 
     def get_week(self, obj):
-        if (obj.week is not None):
-            return (obj.week.nb)
+        if obj.week is not None:
+            return obj.week.nb
         else:
             return
 
     def get_year(self, obj):
-        if (obj.week is not None):
-            return (obj.week.year)
+        if obj.week is not None:
+            return obj.week.year
         else:
             return
 
     class Meta:
         model = bm.Course
-        fields = ['id', 'type', 'tutor', 'room_type', 'week', 'year', 'module', 'groups']
+        fields = [
+            "id",
+            "type",
+            "tutor",
+            "room_type",
+            "week",
+            "year",
+            "module",
+            "groups",
+        ]
 
 
 class TutorCourses_Serializer(serializers.Serializer):
@@ -407,7 +459,7 @@ class TutorCourses_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['room', 'start_time', 'course']
+        fields = ["room", "start_time", "course"]
 
 
 #                           -------------------------------------                       #
@@ -421,18 +473,18 @@ class CourseType_ESC_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.CourseType
-        fields = ['duration', 'department']
+        fields = ["duration", "department"]
 
 
 class ExtraScheduledCoursesSerializer(serializers.Serializer):
     day = serializers.CharField()
     start_time = serializers.IntegerField()
-    tutor = serializers.CharField(source='tutor.username', allow_null=True)
-    duration = serializers.IntegerField(source='course.type.duration')
+    tutor = serializers.CharField(source="tutor.username", allow_null=True)
+    duration = serializers.IntegerField(source="course.type.duration")
 
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['day', 'start_time', 'tutor', 'duration']
+        fields = ["day", "start_time", "tutor", "duration"]
 
 
 #                                  --------------------                                 #
@@ -443,10 +495,20 @@ class ExtraScheduledCoursesSerializer(serializers.Serializer):
 #                                  ----Breaking News----                                #
 #                                  ---------------------                                #
 
+
 class BKNewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = dwm.BreakingNews
-        fields = ['id', 'x_beg', 'x_end', 'y', 'txt', 'fill_color', 'strk_color', 'is_linked']
+        fields = [
+            "id",
+            "x_beg",
+            "x_end",
+            "y",
+            "txt",
+            "fill_color",
+            "strk_color",
+            "is_linked",
+        ]
 
 
 #                                     --------------                                    #
@@ -470,6 +532,7 @@ class BKNewsSerializer(serializers.ModelSerializer):
 #                                   ----Week infos----                                  #
 #                                   ------------------                                  #
 
+
 class IDTutorSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
 
@@ -478,25 +541,25 @@ class IDTutorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = pm.Tutor
-        fields = ['id', 'name']
+        fields = ["id", "name"]
 
 
 class IDTrainProgSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TrainingProgramme
-        fields = ['id', 'abbrev', 'name']
+        fields = ["id", "abbrev", "name"]
 
 
 class IDModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Module
-        fields = ['id', 'abbrev', 'name']
+        fields = ["id", "abbrev", "name"]
 
 
 class IDCourseTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.CourseType
-        fields = ['id', 'name']
+        fields = ["id", "name"]
 
 
 class IDGroupSerializer(serializers.ModelSerializer):
@@ -507,16 +570,16 @@ class IDGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = bm.GenericGroup
-        fields = ['id', 'name', 'train_prog']
+        fields = ["id", "name", "train_prog"]
 
 
 class IDGroupTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.GroupType
-        fields = ['id', 'name']
+        fields = ["id", "name"]
 
 
 class IDRoomTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.RoomType
-        fields = ['id', 'name']
+        fields = ["id", "name"]

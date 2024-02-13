@@ -46,34 +46,66 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from core.decorators import timer
 
 from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints
-from TTapp.RoomConstraints.RoomConstraint import LocateAllCourses, \
-    LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts, LimitSimultaneousRoomCourses
+from TTapp.RoomConstraints.RoomConstraint import (
+    LocateAllCourses,
+    LimitGroupMoves,
+    LimitTutorMoves,
+    ConsiderRoomSorts,
+    LimitSimultaneousRoomCourses,
+)
 from TTapp.FlopConstraint import max_weight
 
-from base.timing import  flopday_to_date, floptime_to_time
+from base.timing import flopday_to_date, floptime_to_time
 
 from roomreservation.models import RoomReservation
 
 
 class RoomModel(FlopModel):
     @timer
-    def __init__(self, department_abbrev, weeks, work_copy=0, keep_many_solution_files=False):
+    def __init__(
+        self, department_abbrev, weeks, work_copy=0, keep_many_solution_files=False
+    ):
         # beg_file = os.path.join('logs',"FlOpTT")
-        super(RoomModel, self).__init__(department_abbrev, weeks, keep_many_solution_files=keep_many_solution_files)
+        super(RoomModel, self).__init__(
+            department_abbrev, weeks, keep_many_solution_files=keep_many_solution_files
+        )
 
         print("\nLet's start rooms affectation for weeks #%s" % self.weeks)
         self.work_copy = work_copy
-        self.scheduled_courses, self.courses, self.corresponding_scheduled_course, \
-            self.courses_for_week = self.courses_init()
+        (
+            self.scheduled_courses,
+            self.courses,
+            self.corresponding_scheduled_course,
+            self.courses_for_week,
+        ) = self.courses_init()
         self.days, self.slots = self.slots_init()
-        self.other_departments_located_scheduled_courses, \
-            self.other_departments_located_scheduled_courses_for_slot = self.other_departments_located_scheduled_courses_init()
-        self.room_types, self.rooms, self.basic_rooms, self.rooms_for_type, \
-            self.room_course_compat, self.course_room_compat, self.other_departments_located_scheduled_courses_for_room, \
-            self.courses_for_room_type = self.rooms_init()
-        self.tutors, self.courses_for_tutor, self.tutor_room_sorts, self.groups, self.basic_groups, \
-            self.all_groups_of, self.basic_groups_of, self.structural_groups, \
-            self.transversal_groups, self.courses_for_group, self.courses_for_basic_group = self.users_init()
+        (
+            self.other_departments_located_scheduled_courses,
+            self.other_departments_located_scheduled_courses_for_slot,
+        ) = self.other_departments_located_scheduled_courses_init()
+        (
+            self.room_types,
+            self.rooms,
+            self.basic_rooms,
+            self.rooms_for_type,
+            self.room_course_compat,
+            self.course_room_compat,
+            self.other_departments_located_scheduled_courses_for_room,
+            self.courses_for_room_type,
+        ) = self.rooms_init()
+        (
+            self.tutors,
+            self.courses_for_tutor,
+            self.tutor_room_sorts,
+            self.groups,
+            self.basic_groups,
+            self.all_groups_of,
+            self.basic_groups_of,
+            self.structural_groups,
+            self.transversal_groups,
+            self.courses_for_group,
+            self.courses_for_basic_group,
+        ) = self.users_init()
         self.cost_I, self.cost_G, self.cost_SL, self.generic_cost = self.costs_init()
         self.TTrooms = self.TTrooms_init()
         self.avail_room = self.compute_avail_room()
@@ -89,53 +121,71 @@ class RoomModel(FlopModel):
 
     @timer
     def courses_init(self):
-        scheduled_courses = ScheduledCourse.objects.filter(course__week__in=self.weeks,
-                                                           work_copy=self.work_copy,
-                                                           course__type__department=self.department)\
-            .select_related('course')
-        courses = Course.objects.filter(scheduledcourse__in=scheduled_courses).select_related('room_type')
+        scheduled_courses = ScheduledCourse.objects.filter(
+            course__week__in=self.weeks,
+            work_copy=self.work_copy,
+            course__type__department=self.department,
+        ).select_related("course")
+        courses = Course.objects.filter(
+            scheduledcourse__in=scheduled_courses
+        ).select_related("room_type")
         corresponding_scheduled_course = {}
         for scheduled_course in scheduled_courses:
             corresponding_scheduled_course[scheduled_course.course] = scheduled_course
-        courses_for_week={}
+        courses_for_week = {}
         for week in self.weeks:
             courses_for_week[week] = set(courses.filter(week=week))
-        return scheduled_courses, courses, corresponding_scheduled_course, courses_for_week
+        return (
+            scheduled_courses,
+            courses,
+            corresponding_scheduled_course,
+            courses_for_week,
+        )
 
     @timer
     def slots_init(self):
-        days = [Day(week=week, day=day)
-                for week in self.weeks
-                for day in TimeGeneralSettings.objects.get(department=self.department).days]
+        days = [
+            Day(week=week, day=day)
+            for week in self.weeks
+            for day in TimeGeneralSettings.objects.get(department=self.department).days
+        ]
 
         slots = []
         for day in days:
-            scheduled_courses_of_the_day = self.scheduled_courses.filter(course__week=day.week, day=day.day)
+            scheduled_courses_of_the_day = self.scheduled_courses.filter(
+                course__week=day.week, day=day.day
+            )
             if not scheduled_courses_of_the_day.exists():
                 continue
-            times_set = set(sc.start_time for sc in scheduled_courses_of_the_day) \
-                        | set(sc.end_time for sc in scheduled_courses_of_the_day)
+            times_set = set(sc.start_time for sc in scheduled_courses_of_the_day) | set(
+                sc.end_time for sc in scheduled_courses_of_the_day
+            )
             times_list = list(times_set)
             times_list.sort()
-            for i in range(len(times_list)-1):
-                slots.append(Slot(day=day,
-                                  start_time=times_list[i],
-                                  end_time=times_list[i+1]))
+            for i in range(len(times_list) - 1):
+                slots.append(
+                    Slot(day=day, start_time=times_list[i], end_time=times_list[i + 1])
+                )
         return days, slots
 
     @timer
     def other_departments_located_scheduled_courses_init(self):
-        other_departments_located_scheduled_courses = \
-            ScheduledCourse.objects.filter(course__week__in=self.weeks,
-                                           work_copy=0)\
-                .exclude(course__type__department=self.department)\
-                .exclude(room=None)
+        other_departments_located_scheduled_courses = (
+            ScheduledCourse.objects.filter(course__week__in=self.weeks, work_copy=0)
+            .exclude(course__type__department=self.department)
+            .exclude(room=None)
+        )
         other_departments_located_scheduled_courses_for_slot = {}
         for sl in self.slots:
-            other_departments_located_scheduled_courses_for_slot[sl] = \
-                set(lc for lc in other_departments_located_scheduled_courses
-                    if sl.is_simultaneous_to(lc))
-        return other_departments_located_scheduled_courses, other_departments_located_scheduled_courses_for_slot
+            other_departments_located_scheduled_courses_for_slot[sl] = set(
+                lc
+                for lc in other_departments_located_scheduled_courses
+                if sl.is_simultaneous_to(lc)
+            )
+        return (
+            other_departments_located_scheduled_courses,
+            other_departments_located_scheduled_courses_for_slot,
+        )
 
     @timer
     def users_init(self):
@@ -146,17 +196,24 @@ class RoomModel(FlopModel):
 
         courses_for_tutor = {}
         for tutor in tutors:
-            courses_for_tutor[tutor] = set(self.courses.filter(Q(tutor=tutor) | Q(supp_tutor=tutor)))
+            courses_for_tutor[tutor] = set(
+                self.courses.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
+            )
 
-        common_room_sorts = RoomSort.objects.filter(for_type__department=self.department,
-                                                    tutor__isnull=True)
+        common_room_sorts = RoomSort.objects.filter(
+            for_type__department=self.department, tutor__isnull=True
+        )
         tutor_room_sorts = {}
         for tutor in tutors:
-            declared_room_sorts = RoomSort.objects.filter(for_type__department=self.department,
-                                                          tutor=tutor)
-            declared_types = set([rs.for_type for rs in declared_room_sorts.distinct('for_type')])
-            tutor_room_sorts[tutor] = set(declared_room_sorts) | \
-                set(common_room_sorts.exclude(for_type__in=declared_types))
+            declared_room_sorts = RoomSort.objects.filter(
+                for_type__department=self.department, tutor=tutor
+            )
+            declared_types = set(
+                [rs.for_type for rs in declared_room_sorts.distinct("for_type")]
+            )
+            tutor_room_sorts[tutor] = set(declared_room_sorts) | set(
+                common_room_sorts.exclude(for_type__in=declared_types)
+            )
 
         groups = set()
         for course in self.courses.distinct("groups"):
@@ -186,15 +243,28 @@ class RoomModel(FlopModel):
 
         courses_for_basic_group = {}
         for bg in basic_groups:
-            courses_for_basic_group[bg] = set(self.courses.filter(groups__in=all_groups_of[bg]))
+            courses_for_basic_group[bg] = set(
+                self.courses.filter(groups__in=all_groups_of[bg])
+            )
 
-        return tutors, courses_for_tutor, tutor_room_sorts, groups, basic_groups, all_groups_of, \
-               basic_groups_of, structural_groups, transversal_groups, courses_for_group, courses_for_basic_group
+        return (
+            tutors,
+            courses_for_tutor,
+            tutor_room_sorts,
+            groups,
+            basic_groups,
+            all_groups_of,
+            basic_groups_of,
+            structural_groups,
+            transversal_groups,
+            courses_for_group,
+            courses_for_basic_group,
+        )
 
     @timer
     def rooms_init(self):
         # ROOMS
-        room_types = set(c.room_type for c in self.courses.distinct('room_type'))
+        room_types = set(c.room_type for c in self.courses.distinct("room_type"))
 
         basic_rooms = queries.get_rooms(self.department.abbrev, basic=True).distinct()
         rooms_for_type = {t: t.members.all() for t in room_types}
@@ -213,7 +283,12 @@ class RoomModel(FlopModel):
             room_course_compat[basic_room] = []
             for room in basic_room.and_overrooms():
                 room_course_compat[basic_room].extend(
-                    [(course, room) for course in self.courses if room in course_room_compat[course]])
+                    [
+                        (course, room)
+                        for course in self.courses
+                        if room in course_room_compat[course]
+                    ]
+                )
 
         if self.department.mode.visio:
             for c in self.courses:
@@ -223,15 +298,24 @@ class RoomModel(FlopModel):
         for basic_room in basic_rooms:
             other_departments_located_scheduled_courses_for_room[basic_room] = set()
             for room in basic_room.and_overrooms():
-                other_departments_located_scheduled_courses_for_room[basic_room] \
-                    |= set(self.other_departments_located_scheduled_courses.filter(room=room))
+                other_departments_located_scheduled_courses_for_room[basic_room] |= set(
+                    self.other_departments_located_scheduled_courses.filter(room=room)
+                )
 
         courses_for_room_type = {}
         for rt in room_types:
             courses_for_room_type[rt] = set(self.courses.filter(room_type=rt))
 
-        return room_types, rooms, basic_rooms, rooms_for_type, room_course_compat, course_room_compat, \
-               other_departments_located_scheduled_courses_for_room, courses_for_room_type
+        return (
+            room_types,
+            rooms,
+            basic_rooms,
+            rooms_for_type,
+            room_course_compat,
+            course_room_compat,
+            other_departments_located_scheduled_courses_for_room,
+            courses_for_room_type,
+        )
 
     @timer
     def TTrooms_init(self):
@@ -257,10 +341,11 @@ class RoomModel(FlopModel):
                 ).exists():
                     avail_room[room][sl] = 0
                 elif RoomReservation.objects.filter(
-                        start_time__lt=floptime_to_time(sl.start_time + sl.duration),
-                        end_time__gt=floptime_to_time(sl.start_time),
-                        date=flopday_to_date(sl.day),
-                        room=room).exists():
+                    start_time__lt=floptime_to_time(sl.start_time + sl.duration),
+                    end_time__gt=floptime_to_time(sl.start_time),
+                    date=flopday_to_date(sl.day),
+                    room=room,
+                ).exists():
                     avail_room[room][sl] = 0
                 else:
                     avail_room[room][sl] = 1
@@ -268,26 +353,43 @@ class RoomModel(FlopModel):
         for sl in self.slots:
             # constraint : other_departments_located_courses rooms are not available
             for basic_room in self.basic_rooms:
-                other_dep_located_scheduled_courses = \
-                    self.other_departments_located_scheduled_courses_for_room[basic_room] \
+                other_dep_located_scheduled_courses = (
+                    self.other_departments_located_scheduled_courses_for_room[
+                        basic_room
+                    ]
                     & self.other_departments_located_scheduled_courses_for_slot[sl]
+                )
                 if other_dep_located_scheduled_courses:
                     avail_room[basic_room][sl] = 0
         return avail_room
 
     @timer
     def costs_init(self):
-        cost_I = dict(list(zip(self.tutors,
-                               [{week: self.lin_expr() for week in self.weeks + [None]} for _ in
-                                self.tutors])))
+        cost_I = dict(
+            list(
+                zip(
+                    self.tutors,
+                    [
+                        {week: self.lin_expr() for week in self.weeks + [None]}
+                        for _ in self.tutors
+                    ],
+                )
+            )
+        )
 
         cost_G = dict(
-            list(zip(self.basic_groups,
-                     [{week: self.lin_expr() for week in self.weeks + [None]} for _ in self.basic_groups])))
+            list(
+                zip(
+                    self.basic_groups,
+                    [
+                        {week: self.lin_expr() for week in self.weeks + [None]}
+                        for _ in self.basic_groups
+                    ],
+                )
+            )
+        )
 
-        cost_SL = dict(
-            list(zip(self.slots,
-                     [self.lin_expr() for _ in self.slots])))
+        cost_SL = dict(list(zip(self.slots, [self.lin_expr() for _ in self.slots])))
 
         generic_cost = {week: self.lin_expr() for week in self.weeks + [None]}
 
@@ -308,7 +410,9 @@ class RoomModel(FlopModel):
     @timer
     def add_core_constraints(self):
         # constraint : each Room is used at most once, if available, on every slot
-        if not LimitSimultaneousRoomCourses.objects.filter(department=self.department).exists():
+        if not LimitSimultaneousRoomCourses.objects.filter(
+            department=self.department
+        ).exists():
             LimitSimultaneousRoomCourses.objects.create(department=self.department)
 
         # each course is located into a room
@@ -317,15 +421,21 @@ class RoomModel(FlopModel):
 
         # limit groups moves
         if not LimitGroupMoves.objects.filter(department=self.department).exists():
-            LimitGroupMoves.objects.create(department=self.department, weight=max_weight)
+            LimitGroupMoves.objects.create(
+                department=self.department, weight=max_weight
+            )
 
         # limit tutors moves
         if not LimitTutorMoves.objects.filter(department=self.department).exists():
-            LimitTutorMoves.objects.create(department=self.department, weight=max_weight)
+            LimitTutorMoves.objects.create(
+                department=self.department, weight=max_weight
+            )
 
         # consider room sort
         if not ConsiderRoomSorts.objects.filter(department=self.department).exists():
-            ConsiderRoomSorts.objects.create(department=self.department, weight=max_weight)
+            ConsiderRoomSorts.objects.create(
+                department=self.department, weight=max_weight
+            )
 
     def add_specific_constraints(self):
         """
@@ -333,10 +443,9 @@ class RoomModel(FlopModel):
         """
         for week in self.weeks:
             for constr in get_room_constraints(
-                    self.department,
-                    week=week,
-                    is_active=True):
-                print(constr.__class__.__name__, constr.id, end=' - ')
+                self.department, week=week, is_active=True
+            ):
+                print(constr.__class__.__name__, constr.id, end=" - ")
                 timer(constr.enrich_room_model)(self, week)
 
     def update_objective(self):
@@ -351,8 +460,14 @@ class RoomModel(FlopModel):
             self.obj += self.cost_SL[sl]
         self.set_objective(self.obj)
 
-
-    def solve(self, time_limit=None, solver=GUROBI_NAME, threads=None, ignore_sigint=False, create_new_work_copy=False):
+    def solve(
+        self,
+        time_limit=None,
+        solver=GUROBI_NAME,
+        threads=None,
+        ignore_sigint=False,
+        create_new_work_copy=False,
+    ):
         """
         Generates a schedule from the TTModel
         The solver stops either when the best schedule is obtained or timeLimit
@@ -373,7 +488,9 @@ class RoomModel(FlopModel):
 
         self.update_objective()
 
-        result = self.optimize(time_limit, solver, threads=threads, ignore_sigint=ignore_sigint)
+        result = self.optimize(
+            time_limit, solver, threads=threads, ignore_sigint=ignore_sigint
+        )
 
         if result is not None:
             result_work_copy = self.add_rooms_in_db(create_new_work_copy)

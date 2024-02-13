@@ -29,3 +29,7 @@ Rename:
 
 - Un `User` en `ForeignKey` plutôt qu'un `Tutor`
 - Création automatique de la semaine type à la création d'un `Tutor` ?
+
+## Autre
+
+- attention people/0037, TTapp/0077, base/0093 viennent de migrations non commitées précédentes

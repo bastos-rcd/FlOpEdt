@@ -18,29 +18,33 @@ def recherche_up(USER_PREFS, day, start_time):
 
 def csv_reader(path):
     start = datetime.now()
-    with open(path, newline='') as f:
+    with open(path, newline="") as f:
         file = DictReader(f)
         prof = User.objects.first()
         year = None
         week = None
         user_prefs = None
         for row in file:
-            if year != row['year'] or week != row['week'] or prof.username != row['prof']:
-                prof = Tutor.objects.get(username=row['prof'])
-                year = row['year']
-                week = row['week']
+            if (
+                year != row["year"]
+                or week != row["week"]
+                or prof.username != row["prof"]
+            ):
+                prof = Tutor.objects.get(username=row["prof"])
+                year = row["year"]
+                week = row["week"]
                 user_prefs = list(
                     UserAvailability.objects.filter(
                         user=prof, year=row["year"], week=row["week"]
                     ).order_by("day", "start_time")
                 )
                 print(prof, week, year)
-            duration = int(row['duration'])
-            day = translate_day_label(row['day'])
-            start_time = int(row['start_time'])
+            duration = int(row["duration"])
+            day = translate_day_label(row["day"])
+            start_time = int(row["start_time"])
 
             up = recherche_up(user_prefs, day, start_time)
-            value = int(float(row['value'])) * 2
+            value = int(float(row["value"])) * 2
             print(f"Valeur = {value}")
             if up:
                 if up.value != value or up.duration != duration:

@@ -13,11 +13,13 @@ first_may_2023_9AM = datetime.datetime(year=2023, month=5, day=1, hour=9)
 first_may_2023_10AM = datetime.datetime(year=2023, month=5, day=1, hour=10)
 first_may_2023_11AM = datetime.datetime(year=2023, month=5, day=1, hour=11)
 
+
 # To be removed when floptime is abandonned
 @pytest.fixture
 def flop_first_may_2023(db):
     w = Week.objects.create(year=2023, nb=18)
-    return Day(week=w, day='m')
+    return Day(week=w, day="m")
+
 
 time_8AM = datetime.time(hour=8)
 time_9AM = datetime.time(hour=9)

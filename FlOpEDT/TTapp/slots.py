@@ -55,8 +55,10 @@ class Slot:
             return Time.AM
 
     def __str__(self):
-        return f"{self.day} de {self.start_time//60}h{self.start_time%60 if self.start_time%60!=0 else ''} " \
-               f"à {self.end_time//60}h{self.end_time%60 if self.end_time%60!=0 else ''} "
+        return (
+            f"{self.day} de {self.start_time//60}h{self.start_time%60 if self.start_time%60!=0 else ''} "
+            f"à {self.end_time//60}h{self.end_time%60 if self.end_time%60!=0 else ''} "
+        )
 
     def has_same_day(self, other):
         if isinstance(other, (Slot, CourseSlot)):
@@ -66,13 +68,18 @@ class Slot:
         elif isinstance(other, (UserAvailability, CourseAvailability)):
             return self.day.week == other.week and self.day.day == other.day
         else:
-            raise TypeError("A slot can only have "
-            "same day than a ScheduledCourse, UserPreference, CoursePreference or another slot")
+            raise TypeError(
+                "A slot can only have "
+                "same day than a ScheduledCourse, UserPreference, CoursePreference or another slot"
+            )
 
     def has_previous_day_than(self, other):
         if isinstance(other, (Slot, CourseSlot)):
-            return self.day.week < other.day.week \
-                or self.day.week == other.day.week and days_index[self.day.day] < days_index[other.day.day]
+            return (
+                self.day.week < other.day.week
+                or self.day.week == other.day.week
+                and days_index[self.day.day] < days_index[other.day.day]
+            )
         elif isinstance(other, ScheduledCourse):
             return (
                 self.day.week < other.course.week
@@ -86,23 +93,36 @@ class Slot:
                 and days_index[self.day.day] < days_index[other.day]
             )
         else:
-            raise TypeError("A slot can only have "
-            "previous day than a ScheduledCourse, UserPreference, CoursePreference or another slot")
+            raise TypeError(
+                "A slot can only have "
+                "previous day than a ScheduledCourse, UserPreference, CoursePreference or another slot"
+            )
 
     def is_simultaneous_to(self, other):
-        if self.has_same_day(other) and self.start_time < other.end_time and other.start_time < self.end_time:
+        if (
+            self.has_same_day(other)
+            and self.start_time < other.end_time
+            and other.start_time < self.end_time
+        ):
             return True
         else:
             return False
 
     def is_after(self, other):
-        if other.has_previous_day_than(self) or self.has_same_day(other) and self.start_time >= other.end_time:
+        if (
+            other.has_previous_day_than(self)
+            or self.has_same_day(other)
+            and self.start_time >= other.end_time
+        ):
             return True
         else:
             return False
 
     def is_successor_of(self, other):
-        return self.has_same_day(other) and other.end_time <= self.start_time <= other.end_time + slot_pause
+        return (
+            self.has_same_day(other)
+            and other.end_time <= self.start_time <= other.end_time + slot_pause
+        )
 
     def __lt__(self, other):
         return other.is_after(self) and not self.is_after(other)
@@ -134,12 +154,15 @@ class CourseSlot(Slot):
             duration = course_type.duration
         else:
             duration = basic_slot_duration
-        Slot.__init__(self, day, start_time, start_time+duration)
+        Slot.__init__(self, day, start_time, start_time + duration)
         self.course_type = course_type
 
     def same_through_weeks(self, other):
-        return self.day.day == other.day.day and self.start_time == other.start_time and self.course_type == other.course_type
-
+        return (
+            self.day.day == other.day.day
+            and self.start_time == other.start_time
+            and self.course_type == other.course_type
+        )
 
     @property
     def duration(self):
@@ -148,11 +171,12 @@ class CourseSlot(Slot):
         else:
             return basic_slot_duration
 
-
     @property
     def apm(self):
         if self.course_type is not None:
-            pm_start = TimeGeneralSettings.objects.get(department=self.course_type.department).lunch_break_finish_time
+            pm_start = TimeGeneralSettings.objects.get(
+                department=self.course_type.department
+            ).lunch_break_finish_time
         else:
             pm_start = midday
         if self.start_time >= pm_start:
@@ -164,14 +188,36 @@ class CourseSlot(Slot):
         hours = self.start_time // 60
         minuts = self.start_time % 60
         if minuts == 0:
-            minuts = ''
-        return str(self.course_type) + '_' + str(self.day) + '_' + str(hours) + 'h' + str(minuts)
+            minuts = ""
+        return (
+            str(self.course_type)
+            + "_"
+            + str(self.day)
+            + "_"
+            + str(hours)
+            + "h"
+            + str(minuts)
+        )
 
 
-
-def slots_filter(slot_set, day=None, apm=None, course_type=None, start_time=None, week_day=None,
-                 simultaneous_to=None, week=None, is_after=None, starts_after=None, starts_before=None,
-                 ends_before=None, ends_after=None, day_in=None, same=None, week_in=None):
+def slots_filter(
+    slot_set,
+    day=None,
+    apm=None,
+    course_type=None,
+    start_time=None,
+    week_day=None,
+    simultaneous_to=None,
+    week=None,
+    is_after=None,
+    starts_after=None,
+    starts_before=None,
+    ends_before=None,
+    ends_after=None,
+    day_in=None,
+    same=None,
+    week_in=None,
+):
     slots = slot_set
     if week is not None:
         slots = set(sl for sl in slots if sl.day.week == week)
@@ -206,7 +252,9 @@ def slots_filter(slot_set, day=None, apm=None, course_type=None, start_time=None
     return slots
 
 
-def days_filter(days_set, index=None, index_in=None, week=None, week_in=None, day=None, day_in=None):
+def days_filter(
+    days_set, index=None, index_in=None, week=None, week_in=None, day=None, day_in=None
+):
     days = days_set
     if week is not None:
         days = set(d for d in days if d.week == week)

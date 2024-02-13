@@ -1,21 +1,21 @@
 # This file is part of the FlOpEDT/FlOpScheduler project.
 # Copyright (c) 2017
 # Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # Affero General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Affero General Public
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
-# 
+#
 # You can be released from the requirements of the license by purchasing
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
@@ -40,6 +40,7 @@ from api.shared.params import week_param, year_param, dept_param
 from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
 
 import TTapp.models as tm
+
 # ----------
 # -- QUOTE -
 # ----------
@@ -51,11 +52,12 @@ class QuoteTypeViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a QuoteType object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = qm.QuoteType.objects.all()
     serializer_class = serializers.QuoteTypeSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class QuoteViewSet(viewsets.ModelViewSet):
@@ -64,26 +66,29 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Quote object.
     """
+
     queryset = qm.Quote.objects.all()
     serializer_class = serializers.QuoteSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class RandomQuoteViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminOrReadOnly]
+
     def list(self, request, format=None):
         """
         Return a random quote
         """
-        ids = qm.Quote.objects.filter(status=qm.Quote.ACCEPTED).values_list('id',
-                                                                            flat=True)
+        ids = qm.Quote.objects.filter(status=qm.Quote.ACCEPTED).values_list(
+            "id", flat=True
+        )
         nb_quotes = len(ids)
         if nb_quotes > 0:
             chosen_id = ids[randint(0, nb_quotes - 1)] if nb_quotes > 0 else -1
             return Response(str(qm.Quote.objects.get(id=chosen_id)))
-        return Response('')
+        return Response("")
 
         permission_classes = [IsAdminOrReadOnly]
 
@@ -92,18 +97,20 @@ class RandomQuoteViewSet(viewsets.ViewSet):
 # -- DISPLAYWEB -
 # ---------------
 
+
 class BreakingNewsViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the breaking news.
 
     Can be filtered as wanted with every field of a BreakingNews object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = dwm.BreakingNews.objects.all()
     serializer_class = serializers.BreakingNewsSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class ModuleDisplaysViewSet(viewsets.ModelViewSet):
@@ -112,12 +119,13 @@ class ModuleDisplaysViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a ModuleDisplay object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = dwm.ModuleDisplay.objects.all()
     serializer_class = serializers.ModuleDisplaysSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class TrainingProgrammeDisplaysViewSet(viewsets.ModelViewSet):
@@ -126,11 +134,12 @@ class TrainingProgrammeDisplaysViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a TrainingProgrammeDisplay object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = dwm.TrainingProgrammeDisplay.objects.all()
     serializer_class = serializers.TrainingProgrammeDisplaysSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class GroupDisplaysViewSet(viewsets.ModelViewSet):
@@ -139,16 +148,18 @@ class GroupDisplaysViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a GroupDisplay object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = dwm.GroupDisplay.objects.all()
     serializer_class = serializers.GroupDisplaysSerializer
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 # --------------------
 # --- WEEK-INFOS  ----
 # --------------------
+
 
 def pref_requirements(department, tutor, year, week_nb):
     """
@@ -177,24 +188,31 @@ def pref_requirements(department, tutor, year, week_nb):
         holidays = [h.day for h in holidays_query]
         week_av = week_av.exclude(day__in=holidays)
 
-    filled = sum(a.duration for a in
-                 week_av.filter(value__gte=1,
-                                day__in=queries.get_working_days(department))
-                 )
+    filled = sum(
+        a.duration
+        for a in week_av.filter(
+            value__gte=1, day__in=queries.get_working_days(department)
+        )
+    )
 
     # Exclude lunch break TODO
-    tutor_lunch_break_query = tm.TutorsLunchBreak.objects.filter(Q(tutors=tutor) | Q(tutors__isnull=True),
-                                                                 Q(weeks=week) | Q(weeks__isnull=True))
+    tutor_lunch_break_query = tm.TutorsLunchBreak.objects.filter(
+        Q(tutors=tutor) | Q(tutors__isnull=True), Q(weeks=week) | Q(weeks__isnull=True)
+    )
 
     return filled, courses_time
 
 
-@method_decorator(name='list',
-                  decorator=swagger_auto_schema(
-                      manual_parameters=[week_param(required=True),
-                                         year_param(required=True),
-                                         dept_param(required=True)])
-                  )
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            week_param(required=True),
+            year_param(required=True),
+            dept_param(required=True),
+        ]
+    ),
+)
 class WeekInfoViewSet(viewsets.ViewSet):
     """
     Aggregated infos of a given week
@@ -203,15 +221,16 @@ class WeekInfoViewSet(viewsets.ViewSet):
     proposed number of available slots
     (not cached)
     """
+
     permission_classes = [IsAdminOrReadOnly]
 
     def list(self, request, format=None):
-        week_nb = int(request.query_params.get('week'))
-        year = int(request.query_params.get('year'))
+        week_nb = int(request.query_params.get("week"))
+        year = int(request.query_params.get("year"))
 
         try:
             department = bm.Department.objects.get(
-                abbrev=request.query_params.get('dept')
+                abbrev=request.query_params.get("dept")
             )
         except bm.Department.DoesNotExist:
             raise DepartmentUnknown
@@ -220,19 +239,29 @@ class WeekInfoViewSet(viewsets.ViewSet):
         for dept in bm.Department.objects.all():
             version += queries.get_edt_version(dept, week_nb, year, create=True)
 
-        proposed_pref, required_pref = \
-            pref_requirements(department, request.user, year, week_nb) if request.user.is_authenticated \
-                else (-1, -1)
+        proposed_pref, required_pref = (
+            pref_requirements(department, request.user, year, week_nb)
+            if request.user.is_authenticated
+            else (-1, -1)
+        )
 
         try:
-            regen = str(bm.Regen.objects.get(department=department, week__nb=week_nb, week__year=year))
+            regen = str(
+                bm.Regen.objects.get(
+                    department=department, week__nb=week_nb, week__year=year
+                )
+            )
         except bm.Regen.DoesNotExist:
-            regen = 'I'
+            regen = "I"
 
-        return Response({'version': version,
-                         'proposed_pref': proposed_pref,
-                         'required_pref': required_pref,
-                         'regen': regen})
+        return Response(
+            {
+                "version": version,
+                "proposed_pref": proposed_pref,
+                "required_pref": required_pref,
+                "regen": regen,
+            }
+        )
 
 
 # -------------------
@@ -242,5 +271,5 @@ class WeekInfoViewSet(viewsets.ViewSet):
 
 class DepartmentUnknown(APIException):
     status_code = 400
-    default_detail = 'There is no department with this abbreviated name.'
-    default_code = 'department_unknown'
+    default_detail = "There is no department with this abbreviated name."
+    default_code = "department_unknown"
