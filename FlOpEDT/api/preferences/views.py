@@ -43,7 +43,7 @@ from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly, IsTutor
 # -----------------
 
 
-class CoursePreferencesViewSet(viewsets.ModelViewSet):
+class CourseAvailabilityViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the course preferences.
 
@@ -53,7 +53,7 @@ class CoursePreferencesViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = (IsTutor,)
     queryset = bm.CourseAvailability.objects.all()
-    serializer_class = serializers.CoursePreferencesSerializer
+    serializer_class = serializers.CourseAvailabilitySerializer
 
     filterset_fields = "__all__"
 
@@ -66,9 +66,9 @@ class CoursePreferencesViewSet(viewsets.ModelViewSet):
 # TODO check how to generate custom schema with this
 
 
-class UserPreferenceViewSet(viewsets.ModelViewSet):
+class UserAvailabilityViewSet(viewsets.ModelViewSet):
     """
-    Helper for user preferences:
+    Helper for user availabilities:
     - read parameters
     - build queryset
     """
@@ -81,7 +81,7 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
         self.select = []
         self.prefetch = []
 
-    serializer_class = serializers.UserPreferenceSerializer
+    serializer_class = serializers.UserAvailabilitySerializer
 
     def set_common_params(self):
         # Getting the filters
@@ -127,10 +127,10 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
     name="list",
     decorator=swagger_auto_schema(
         manual_parameters=[user_param(), dept_param()],
-        operation_description="Default user preferences",
+        operation_description="Default user availabilities",
     ),
 )
-class UserPreferenceDefaultViewSet(UserPreferenceViewSet):
+class UserAvailabilityDefaultViewSet(UserAvailabilityViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     # permission_classes = [IsTutor]
@@ -148,10 +148,10 @@ class UserPreferenceDefaultViewSet(UserPreferenceViewSet):
             user_param(),
             dept_param(),
         ],
-        operation_description="User preferences in (week,year)",
+        operation_description="User availabilities in (week,year)",
     ),
 )
-class UserPreferenceSingularViewSet(UserPreferenceViewSet):
+class UserAvailabilitySingularViewSet(UserAvailabilityViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     # permission_classes = [IsTutor]
@@ -175,13 +175,12 @@ class UserPreferenceSingularViewSet(UserPreferenceViewSet):
                 type=openapi.TYPE_BOOLEAN,
             ),
         ],
-        # operation_description=
-        # "User preferences in (week,year) if exist otherwise in default week",
+        operation_description="User availabilities in (week,year) if exist otherwise in default week",
     ),
 )
-class UserPreferenceActualViewSet(UserPreferenceViewSet):
+class UserAvailabilityActualViewSet(UserAvailabilityViewSet):
     """
-    User preference in (week, year) if exist. Otherwise, default week.
+    User availabilities in (week, year) if exist. Otherwise, default week.
 
     Also can be filtered with dept and user
     """
@@ -251,7 +250,7 @@ class UserPreferenceActualViewSet(UserPreferenceViewSet):
         return qs
 
 
-class RoomPreferenceDefaultFilterSet(filters.FilterSet):
+class RoomAvailabilityDefaultFilterSet(filters.FilterSet):
     dept = filters.CharFilter(field_name="room__departments__abbrev")
     room = filters.CharFilter(field_name="room__name")
 
@@ -260,21 +259,21 @@ class RoomPreferenceDefaultFilterSet(filters.FilterSet):
         fields = ["dept", "room"]
 
 
-class RoomPreferenceDefaultViewSet(viewsets.ModelViewSet):
+class RoomAvailabilityDefaultViewSet(viewsets.ModelViewSet):
     """
-    ViewSet to see all the room preferences
+    ViewSet to see all the room availabilities
 
     Can be filtered as wanted with every field of a Room object.
     """
 
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = [IsTutor]
-    filterset_class = RoomPreferenceDefaultFilterSet
+    filterset_class = RoomAvailabilityDefaultFilterSet
     queryset = bm.RoomAvailability.objects.filter(week=None)
-    serializer_class = serializers.RoomPreferencesSerializer
+    serializer_class = serializers.RoomAvailabilitySerializer
 
 
-class RoomPreferenceSingularFilterSet(filters.FilterSet):
+class RoomAvailabilitySingularFilterSet(filters.FilterSet):
     dept = filters.CharFilter(field_name="room__departments__abbrev", required=True)
 
     class Meta:
@@ -282,9 +281,9 @@ class RoomPreferenceSingularFilterSet(filters.FilterSet):
         fields = ["dept"]
 
 
-class RoomPreferenceSingularViewSet(viewsets.ModelViewSet):
+class RoomAvailabilitySingularViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     # permission_classes = [IsTutor]
-    filterset_class = RoomPreferenceSingularFilterSet
+    filterset_class = RoomAvailabilitySingularFilterSet
     queryset = bm.RoomAvailability.objects.filter()
-    serializer_class = serializers.RoomPreferencesSerializer
+    serializer_class = serializers.RoomAvailabilitySerializer

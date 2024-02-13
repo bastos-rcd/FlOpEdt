@@ -104,7 +104,7 @@ def split_preferences(tutor, departments=None):
                     pref_time.append(slot.start_time + slot.duration)
                     pref_val.append(slot.value)
                 else:
-                    # overlapping preference interval
+                    # overlapping availability interval
                     if slot.start_time < pref_time[-1]:
                         if slot.start_time + slot.duration > pref_time[-1]:
                             slot.duration -= pref_time[-1] - slot.start_time
