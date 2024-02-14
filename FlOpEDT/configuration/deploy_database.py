@@ -60,7 +60,6 @@ from people.models import (
     UserDepartmentSettings,
     TutorPreference,
 )
-from base.availability import split_availability
 
 from configuration.database_description_xlsx import database_description_load_xlsx_file
 
@@ -80,7 +79,6 @@ def extract_database_file(
     department_abbrev=None,
     bookname=None,
     book=None,
-    fill_default_preferences=True,
 ):
 
     # Test department existence
@@ -113,7 +111,7 @@ def extract_database_file(
         raise Exception("\n".join(check))
 
     settings_extract(department, book["settings"])
-    people_extract(department, book["people"], fill_default_preferences)
+    people_extract(department, book["people"])
     rooms_extract(
         department, book["room_groups"], book["room_categories"], book["rooms"]
     )
@@ -128,7 +126,7 @@ def extract_database_file(
     courses_extract(department, book["courses"])
 
 
-def people_extract(department, people, fill_default_preferences):
+def people_extract(department, people):
 
     logger.info("People extraction : start")
     for id_, person in people.items():
@@ -155,8 +153,6 @@ def people_extract(department, people, fill_default_preferences):
                 tutor.save()
 
                 UserDepartmentSettings.objects.create(department=department, user=tutor)
-                if fill_default_preferences:
-                    split_availability(tutor)
                 TutorPreference.objects.create(tutor=tutor)
 
             except IntegrityError as ie:

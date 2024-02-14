@@ -23,14 +23,22 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.db.models.signals import m2m_changed
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from people.models import User
-from base.availability import split_availability
+from people.models import Tutor
+from base.models import UserAvailability
+
+from datetime import date, time, timedelta
 
 
-@receiver(m2m_changed, sender=User.departments.through)
-def user_department_changed(sender, **kwargs):
-    if kwargs["action"] == "post_add":
-        split_availability(kwargs["instance"])
+@receiver(post_save, sender=Tutor)
+def create_tutor_default_availability(sender, instance, created, **kwargs):
+    if created:
+        for d in range(1, 8):
+            UserAvailability.objects.create(
+                user=instance,
+                in_day_start_time=time(0),
+                date=date(1, 1, d),
+                duration=timedelta(hours=24),
+            )

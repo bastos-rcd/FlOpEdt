@@ -45,7 +45,6 @@ from base.models import (
     Week,
 )
 from people.models import Tutor, UserDepartmentSettings
-from people.tutor import fill_default_user_availability
 from misc.assign_colors import assign_module_color
 from TTapp.models import StabilizationThroughWeeks
 
