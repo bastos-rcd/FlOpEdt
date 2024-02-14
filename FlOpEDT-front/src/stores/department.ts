@@ -7,13 +7,14 @@ import { useRoute } from 'vue-router'
 export const useDepartmentStore = defineStore('dept', () => {
   const all = ref<Array<Department>>([])
   const current = ref(new Department())
-
+  const isAllDepartmentsFetched = ref<boolean>(false)
   const isCurrentDepartmentSelected = computed(() => current.value.id !== -1)
 
   async function fetchAllDepartments(): Promise<void> {
     await api?.getAllDepartments().then((json: any) => {
       all.value = json
     })
+    isAllDepartmentsFetched.value = true
   }
 
   function cleanCurrentDepartment(): void {
@@ -29,8 +30,8 @@ export const useDepartmentStore = defineStore('dept', () => {
       path = route.path.split('/')
     }
     all.value.forEach((dept) => {
-      path.forEach((arg) => {
-        if (arg.includes(dept.abbrev)) {
+      path.forEach((pathOpt) => {
+        if (pathOpt.includes(dept.abbrev)) {
           current.value = dept
         }
       })
@@ -42,6 +43,7 @@ export const useDepartmentStore = defineStore('dept', () => {
     fetchAllDepartments,
     all,
     isCurrentDepartmentSelected,
+    isAllDepartmentsFetched,
     cleanCurrentDepartment,
     getDepartmentFromURL,
   }

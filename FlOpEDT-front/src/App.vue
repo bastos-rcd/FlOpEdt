@@ -1,12 +1,10 @@
 <template>
-  <ProvideDepartment>
-    <header>
-      <Header></Header>
-    </header>
-    <main>
-      <router-view></router-view>
-    </main>
-  </ProvideDepartment>
+  <header>
+    <Header></Header>
+  </header>
+  <main>
+    <router-view></router-view>
+  </main>
 </template>
 
 <script setup lang="ts">
