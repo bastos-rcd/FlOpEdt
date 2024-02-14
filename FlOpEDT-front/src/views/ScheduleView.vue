@@ -1,30 +1,4 @@
 <template>
-  <div class="header">
-    <FilterSelector
-      :items="roomsFetched"
-      filter-selector-undefined-label="Room Selection"
-      v-model:selected-items="selectedRoom"
-      :multiple="false"
-      item-variable-name="name"
-      style="flex-grow: 2; max-width: 20%"
-    />
-    <FilterSelector
-      :items="fetchedTransversalGroups"
-      filter-selector-undefined-label="Group Selection"
-      v-model:selected-items="selectedGroups"
-      :multiple="true"
-      item-variable-name="name"
-      style="flex-grow: 2; max-width: 20%"
-    />
-    <q-btn
-      v-if="authStore.isUserAuthenticated"
-      round
-      color="primary"
-      :icon="matBatteryFull"
-      style="margin: 5px"
-      @click="availabilityToggle = !availabilityToggle"
-    />
-  </div>
   <Calendar
     v-model:events="calendarEvents"
     :columns="columnsToDisplay"
@@ -33,6 +7,23 @@
     @event:details="fetchCourseDetails"
     :end-of-day-minutes="endOfDay"
   />
+  <TooltipProvider>
+    <TooltipRoot>
+      <TooltipTrigger>
+        <button @click="availabilityToggle=!availabilityToggle" style="background-color:black; color: white;">Availabilities</button>
+      </TooltipTrigger>
+      <TooltipPortal>
+        <TooltipContent
+          as-child
+          class="TooltipContent"
+          :side-offset="5"
+        >
+          Showing your availabilities
+          <TooltipArrow class="TooltipArrow" size="8" />
+        </TooltipContent>
+      </TooltipPortal>
+    </TooltipRoot>
+  </TooltipProvider>
 </template>
 
 <script setup lang="ts">
@@ -60,12 +51,12 @@ import { useRoomStore } from '@/stores/timetable/room'
 import { Group, Module, Room, User } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
-import { matBatteryFull } from '@quasar/extras/material-icons'
 import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useAuth } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
 import _ from 'lodash'
 import { useEventStore } from '@/stores/display/event'
+import { TooltipArrow, TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from 'radix-vue'
 
 /**
  * Data translated to be passed to components

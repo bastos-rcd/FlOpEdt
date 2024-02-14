@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import { ScheduledCourse, Department } from '@/ts/type'
 import { Course } from '@/stores/declarations'
 import { Timestamp, copyTimestamp, makeDate, nextDay, parseTime, updateFormatted } from '@quasar/quasar-ui-qcalendar'
-import _, { cloneDeep } from 'lodash'
+import _ from 'lodash'
 import { dateToTimestamp, getDateStringFromTimestamp, getDateTimeStringFromDate, timestampToDate } from '@/helpers'
 
 /**
@@ -85,9 +85,9 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       start: dateToTimestamp(scheduledCourse.start_time),
       end: dateToTimestamp(scheduledCourse.end_time),
       tutorId: scheduledCourse.tutor,
-      suppTutorIds: cloneDeep(scheduledCourse.suppTutorsIds),
+      suppTutorIds: _.cloneDeep(scheduledCourse.suppTutorsIds),
       module: scheduledCourse.moduleId,
-      groupIds: cloneDeep(scheduledCourse.groupIds),
+      groupIds: _.cloneDeep(scheduledCourse.groupIds),
       courseTypeId: -1,
       roomTypeId: -1,
       graded: false,
@@ -107,8 +107,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       scheduledCourse.start_time = timestampToDate(course.start)
       scheduledCourse.end_time = timestampToDate(course.end)
       scheduledCourse.tutor = course.tutorId
-      scheduledCourse.suppTutorsIds = cloneDeep(course.suppTutorIds)
-      scheduledCourse.groupIds = cloneDeep(course.groupIds)
+      scheduledCourse.suppTutorsIds = _.cloneDeep(course.suppTutorIds)
+      scheduledCourse.groupIds = _.cloneDeep(course.groupIds)
     } else {
       scheduledCourse = {
         id: course.id,
@@ -120,8 +120,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
         id_visio: -1,
         moduleId: course.module,
         trainProgId: -1,
-        groupIds: cloneDeep(course.groupIds),
-        suppTutorsIds: cloneDeep(course.suppTutorIds),
+        groupIds: _.cloneDeep(course.groupIds),
+        suppTutorsIds: _.cloneDeep(course.suppTutorIds),
       }
     }
     return scheduledCourse

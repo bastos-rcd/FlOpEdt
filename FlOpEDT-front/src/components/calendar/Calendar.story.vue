@@ -27,9 +27,9 @@
       />
     </Variant>
     <Variant title="Availabilities">
-      <q-btn color="orange" no-caps class="glossy" style="margin: 2px" @click="toggleAvailabilities()">
+      <button color="orange" style="margin: 2px" @click="toggleAvailabilities()">
         Show Availabilities
-      </q-btn>
+      </button>
       <Calendar
         :columns="useCase4.columns.value"
         v-model:events="useCase4.events.value"
