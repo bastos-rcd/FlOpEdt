@@ -240,8 +240,9 @@ class NoSimultaneousGroupCourses(TTConstraint):
                     ttmodel.add_to_group_cost(bg, self.local_weight() * ponderation * two_courses, week)
 
             for tg in ttmodel.wdb.transversal_groups:
-                not_parallel_nb = len(ttmodel.wdb.not_parallel_transversal_groups[tg])
-                relevant_sum_for_tg = not_parallel_nb * ttmodel.sum(ttmodel.TT[(sl2, c2)]
+                # The "+1" is for the case where all transversal groups are parallel
+                not_parallel_nb_bound = len(ttmodel.wdb.not_parallel_transversal_groups[tg]) + 1
+                relevant_sum_for_tg = not_parallel_nb_bound * ttmodel.sum(ttmodel.TT[(sl2, c2)]
                                                                     for sl2 in slots_filter(ttmodel.wdb.courses_slots,
                                                                                             simultaneous_to=sl)
                                                                     for c2 in ttmodel.wdb.courses_for_group[tg]
@@ -254,7 +255,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                                                     & ttmodel.wdb.compatible_courses[sl2])
                 if self.weight is None:
                     ttmodel.add_constraint(relevant_sum_for_tg,
-                                           '<=', not_parallel_nb, SimulSlotGroupConstraint(sl, tg))
+                                           '<=', not_parallel_nb_bound, SimulSlotGroupConstraint(sl, tg))
                 else:
                     two_courses = ttmodel.add_floor(relevant_sum_for_tg, 2, len(relevant_slots))
                     ttmodel.add_to_global_cost(self.local_weight() * ponderation * two_courses, week)
