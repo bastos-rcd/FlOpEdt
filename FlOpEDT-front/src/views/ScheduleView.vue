@@ -5,19 +5,17 @@
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
     @event:details="fetchCourseDetails"
-    :end-of-day-minutes="endOfDay"
+    :end-of-day-hours="endOfDay"
   />
   <TooltipProvider>
     <TooltipRoot>
       <TooltipTrigger>
-        <button @click="availabilityToggle=!availabilityToggle" style="background-color:black; color: white;">Availabilities</button>
+        <button @click="availabilityToggle = !availabilityToggle" style="background-color: black; color: white">
+          Availabilities
+        </button>
       </TooltipTrigger>
       <TooltipPortal>
-        <TooltipContent
-          as-child
-          class="TooltipContent"
-          :side-offset="5"
-        >
+        <TooltipContent as-child class="TooltipContent" :side-offset="5">
           Showing your availabilities
           <TooltipArrow class="TooltipArrow" size="8" />
         </TooltipContent>
@@ -46,7 +44,6 @@ import {
   updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
 import { filter } from 'lodash'
-import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
 import { Group, Module, Room, User } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
