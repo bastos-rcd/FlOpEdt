@@ -150,10 +150,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
-USE_TZ = True
+USE_TZ = False
 CSRF_USE_SESSION = True
 AUTH_USER_MODEL = 'people.User'
 
@@ -260,6 +259,9 @@ TEMPLATE_DIRS = (
 )
 
 SHELL_PLUS_MODEL_IMPORTS_RESOLVER = 'django_extensions.collision_resolvers.AppLabelSuffixCR'
+SHELL_PLUS_IMPORTS = (
+    'import datetime',
+)
 
 CORS_ALLOW_ALL_ORIGINS = True
 
