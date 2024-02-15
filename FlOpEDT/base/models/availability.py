@@ -7,7 +7,7 @@ from datetime import date, time, timedelta, datetime
 
 
 class Availability(models.Model):
-    in_day_start_time = models.TimeField(default=time(0))
+    start_time = models.DateTimeField(default=datetime(1871, 3, 18))
     date = models.DateField(default=date(1, 1, 1))
     duration = models.DurationField(default=timedelta(0))
 
@@ -18,9 +18,15 @@ class Availability(models.Model):
     class Meta:
         abstract = True
 
+    def save(self, *args, **kwargs):
+        force_date = kwargs.pop("force_date") if "force_date" in kwargs else False
+        if force_date is False:
+            self.date = self.start_time.date()
+        super(Availability, self).save(*args, **kwargs)
+
     @property
-    def start_time(self):
-        return datetime.combine(self.date, self.in_day_start_time)
+    def in_day_start_time(self):
+        return self.start_time.time()
 
     @property
     def end_time(self):
