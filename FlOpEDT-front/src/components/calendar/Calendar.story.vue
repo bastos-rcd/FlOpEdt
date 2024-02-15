@@ -5,7 +5,7 @@
         :columns="useCase1.columns.value"
         v-model:events="useCase2.events.value"
         @dragstart="onDragStart"
-        :end-of-day-minutes="19"
+        :end-of-day-hours="19"
       />
     </Variant>
     <Variant title="Use case 2">
@@ -15,7 +15,7 @@
         :dropzones="dzs"
         @dragstart="onDragStart"
         @weekdays="(wd: number[]) => (weekdays = wd)"
-        :end-of-day-minutes="19"
+        :end-of-day-hours="19"
       />
     </Variant>
     <Variant title="Use case 3">
@@ -23,19 +23,17 @@
         :columns="useCase3.columns.value"
         v-model:events="useCase3.events.value"
         @dragstart="onDragStart"
-        :end-of-day-minutes="19"
+        :end-of-day-hours="19"
       />
     </Variant>
     <Variant title="Availabilities">
-      <button color="orange" style="margin: 2px" @click="toggleAvailabilities()">
-        Show Availabilities
-      </button>
+      <button color="orange" style="margin: 2px" @click="toggleAvailabilities()">Show Availabilities</button>
       <Calendar
         :columns="useCase4.columns.value"
         v-model:events="useCase4.events.value"
         :dropzones="dzs"
         @dragstart="onDragStart"
-        :end-of-day-minutes="19"
+        :end-of-day-hours="19"
       />
     </Variant>
   </Story>
