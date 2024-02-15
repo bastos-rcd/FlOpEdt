@@ -20,7 +20,10 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   const loadingError = ref<Error | null>(null)
 
   async function fetchScheduledCourses(from?: Date, to?: Date, tutor?: number, department?: Department): Promise<void> {
-    isLoading.value = true
+    //gérer les cours déjà fetched précédemment pour ne pas avoir à tout récupérer à nouveau
+    scheduledCourses.value = new Map<string, ScheduledCourse[]>()
+    courses.value = new Map<string, Course[]>()
+    if (scheduledCourses.value.has(getDateTimeStringFromDate(from!))) isLoading.value = true
     try {
       await api.getScheduledCourses(from, to, department?.abbrev, tutor).then((result: ScheduledCourse[]) => {
         result.forEach((r: ScheduledCourse) => {
