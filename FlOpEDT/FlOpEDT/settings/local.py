@@ -102,3 +102,9 @@ DEBUG_TOOLBAR_CONFIG = {
 }
 
 INTERNAL_IPS = ['127.0.0.1']
+
+# Specific cronjob
+CRONJOBS = [
+    ('0 4 * * *', 'notifications.cron.backup_and_notify'),
+    ('30 23 * * *', 'MyFlOp.ade_reservations.import_reservations_from_ade_ics_url')
+]
