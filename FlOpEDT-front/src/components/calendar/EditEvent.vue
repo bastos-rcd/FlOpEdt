@@ -11,15 +11,20 @@
       ><slot name="content">
         <PopoverArrow class="PopoverArrow" />
         <div class="content-div">
-          <p>
-            <span>Tutor: {{ courseTutor?.username }}</span
-            ><br />
-            <span>Room: {{ courseRoom?.name }}</span
-            ><br />
-            <span>graded: {{ course?.graded }}</span
-            ><br />
-            <span></span>
-          </p>
+          <div class="popover-title">{{ courseModule?.name }}</div>
+          <div class="popover-section">
+            <div class="popover-title">Tutor</div>
+            <span>{{ courseTutor?.firstname }} {{ courseTutor?.lastname }} </span><br />
+            <span>{{ courseTutor?.email }}</span>
+          </div>
+          <div class="popover-section">
+            <div class="popover-title">Room</div>
+            <span>{{ courseRoom?.name }}</span> <br />
+          </div>
+          <div class="popover-section">
+            <div class="popover-title">graded</div>
+            <span>{{ course?.graded ? 'yes' : 'no' }}</span> <br />
+          </div>
         </div>
       </slot>
     </PopoverContent>
@@ -29,20 +34,17 @@
 <script setup lang="ts">
 import { PopoverRoot, PopoverTrigger, PopoverContent, PopoverClose, PopoverArrow } from 'radix-vue'
 import { Icon } from '@iconify/vue'
-import { ref, watch } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { Course, Module, Room, User } from '@/stores/declarations'
 import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useRoomStore } from '@/stores/timetable/room'
 import { useTutorStore } from '@/stores/timetable/tutor'
-import { useGroupStore } from '@/stores/timetable/group'
-import { concat, includes } from 'lodash'
 
 const courseStore = useScheduledCourseStore()
 const permanentStore = usePermanentStore()
 const roomStore = useRoomStore()
 const tutorStore = useTutorStore()
-const groupStore = useGroupStore()
 const props = defineProps<{
   eventObjectId: number
 }>()
@@ -50,27 +52,15 @@ const courseModule = ref<Module>()
 const courseRoom = ref<Room>()
 const courseTutor = ref<User>()
 const course = ref<Course>()
-
-watch(
-  () => props.eventObjectId,
-  async () => {
-    // Need to fetch room, tutor, module, groups
-    course.value = courseStore.getCourse(props.eventObjectId)
-    if (course) {
-      try {
-        courseModule.value = await permanentStore.getModule(course.value!.module)
-        courseRoom.value = await roomStore.getRoomById(course.value!.room)
-        courseTutor.value = await tutorStore.getTutorById(course.value!.tutorId)
-        const courseGroups = concat(
-          groupStore.fetchedStructuralGroups.filter((gp) => includes(course.value!.groupIds, gp.id)),
-          groupStore.fetchedTransversalGroups.filter((gp) => includes(course.value!.groupIds, gp.id))
-        )
-      } catch (error) {
-        console.log('FetchCourseDetail: ', error)
-      }
-    }
+onBeforeMount(async () => {
+  // Need to fetch room, tutor, module, groups
+  course.value = courseStore.getCourse(props.eventObjectId)
+  if (course) {
+    courseModule.value = await permanentStore.getModule(course.value!.module)
+    courseRoom.value = await roomStore.getRoomById(course.value!.room)
+    courseTutor.value = await tutorStore.getTutorById(course.value!.tutorId)
   }
-)
+})
 </script>
 
 <style>
@@ -115,5 +105,22 @@ watch(
 }
 .content-div {
   color: black;
+}
+.popover-title {
+  font-weight: bold;
+  font-size: medium;
+  margin: 0px 3px 0px 6px;
+}
+.popover-section {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(240, 240, 240);
+  margin: 2px;
+  padding: 5px;
+  align-items: flex-start;
+  justify-content: space-around;
+}
+.popover-section span {
+  width: 100%;
 }
 </style>

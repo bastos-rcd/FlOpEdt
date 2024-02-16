@@ -4,7 +4,6 @@
     :columns="columnsToDisplay"
     @dragstart="setCurrentScheduledCourse"
     @update:week="changeDate"
-    @event:details="fetchCourseDetails"
     :end-of-day-hours="endOfDay"
   />
   <TooltipProvider>
@@ -45,7 +44,7 @@ import {
 } from '@quasar/quasar-ui-qcalendar'
 import { filter } from 'lodash'
 import { useRoomStore } from '@/stores/timetable/room'
-import { Group, Module, Room, User } from '@/stores/declarations'
+import { Group } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
 import { usePermanentStore } from '@/stores/timetable/permanent'
@@ -54,7 +53,6 @@ import { useAvailabilityStore } from '@/stores/timetable/availability'
 import _ from 'lodash'
 import { useEventStore } from '@/stores/display/event'
 import { TooltipArrow, TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from 'radix-vue'
-
 /**
  * Data translated to be passed to components
  */
@@ -78,20 +76,14 @@ const roomStore = useRoomStore()
 const authStore = useAuth()
 const availabilityStore = useAvailabilityStore()
 const permanentStore = usePermanentStore()
-const { fetchedTransversalGroups } = storeToRefs(groupStore)
 const { columns } = storeToRefs(columnStore)
-const { roomsFetched } = storeToRefs(roomStore)
 const { daysSelected, calendarEvents } = storeToRefs(eventStore)
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
-const selectedRoom = ref<Room>()
 const selectedGroups = ref<Group[]>([])
 const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()
 const endOfDay = 19
-const courseModule = ref<Module>()
-const courseRoom = ref<Room>()
-const courseTutor = ref<User>()
 
 watch(selectedGroups, () => {
   groupStore.clearSelected()
@@ -109,7 +101,6 @@ function fetchScheduledCurrentWeek(from: Date, to: Date) {
 
 function fetchAvailCurrentWeek(from: Date, to: Date) {
   availabilityStore.fetchUserAvailabilitiesBack(authStore.getUser.id, from, to)
-  console.log('id: ', authStore.getUser.id)
 }
 
 function changeDate(newDate: Timestamp) {
@@ -122,30 +113,6 @@ function changeDate(newDate: Timestamp) {
   while (currentDate.weekday !== sunday.value!.weekday) {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
-  }
-}
-
-async function fetchCourseDetails(courseId: number): Promise<void> {
-  console.log(`We got the message ${courseId} !`)
-  console.log("Voici l'objet demandé: ", scheduledCourseStore.getCourse(courseId))
-  // Need to fetch room, tutor, module, groups
-  const course = scheduledCourseStore.getCourse(courseId)
-  if (course) {
-    try {
-      courseModule.value = await permanentStore.getModule(course.module)
-      courseRoom.value = await roomStore.getRoomById(course.room)
-      courseTutor.value = await tutorStore.getTutorById(course!.tutorId)
-      const courseGroups = _.concat(
-        groupStore.fetchedStructuralGroups.filter((gp) => _.includes(course.groupIds, gp.id)),
-        groupStore.fetchedTransversalGroups.filter((gp) => _.includes(course.groupIds, gp.id))
-      )
-      console.log('Voici son module: ', courseModule)
-      console.log('Voici ses groupes: ', courseGroups)
-      console.log('Voici sa salle: ', courseRoom)
-      console.log("Voici l'enseignant du cours: ", courseTutor)
-    } catch (error) {
-      console.log('FetchCourseDetail: ', error)
-    }
   }
 }
 
