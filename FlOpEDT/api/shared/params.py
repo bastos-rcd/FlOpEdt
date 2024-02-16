@@ -49,7 +49,7 @@ def from_date_param(**kwargs):
     return openapi.Parameter(
         "from_date",
         openapi.IN_QUERY,
-        description="from date",
+        description="from date (included)",
         type=openapi.TYPE_STRING,
         format=openapi.FORMAT_DATE,
         **kwargs
@@ -60,7 +60,7 @@ def to_date_param(**kwargs):
     return openapi.Parameter(
         "to_date",
         openapi.IN_QUERY,
-        description="to date",
+        description="to date (excluded)",
         type=openapi.TYPE_STRING,
         format=openapi.FORMAT_DATE,
         **kwargs
