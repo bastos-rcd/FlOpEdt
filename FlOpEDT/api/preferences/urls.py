@@ -28,14 +28,16 @@ routerAvailability = routers.SimpleRouter()
 
 # routerPreferences.register(r'students', views.StudentPreferencesViewSet, basename="students")
 # routerPreferences.register(r'groups', views.GroupPreferencesViewSet)
-routerAvailability.register(r"course", views.CourseAvailabilityViewSet)
-routerAvailability.register(r"room-singular", views.RoomAvailabilitySingularViewSet)
-routerAvailability.register(
-    r"user-default", views.UserAvailabilityDefaultViewSet, basename="user-def"
-)
-routerAvailability.register(
-    r"user-singular", views.UserAvailabilitySingularViewSet, basename="user-single"
-)
-routerAvailability.register(
-    r"user-actual", views.UserAvailabilityActualViewSet, basename="user-actual"
-)
+
+
+# routerAvailability.register(r"course", views.CourseAvailabilityViewSet)
+# routerAvailability.register(r"room-singular", views.RoomAvailabilitySingularViewSet)
+# routerAvailability.register(
+#     r"user-default", views.UserAvailabilityDefaultViewSet, basename="user-def"
+# )
+# routerAvailability.register(
+#     r"user-singular", views.UserAvailabilitySingularViewSet, basename="user-single"
+# )
+# routerAvailability.register(
+#     r"user-actual", views.UserAvailabilityActualViewSet, basename="user-actual"
+# )

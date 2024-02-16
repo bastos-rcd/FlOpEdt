@@ -29,7 +29,7 @@ import base.models as bm
 # -----------------
 
 
-class UserAvailabilitySerializer(serializers.Serializer):
+class UserAvailabilitySerializerV0(serializers.Serializer):
     user = serializers.CharField()
     week = serializers.SerializerMethodField()
     year = serializers.SerializerMethodField()
@@ -55,7 +55,7 @@ class UserAvailabilitySerializer(serializers.Serializer):
         fields = ["user"]
 
 
-class CourseAvailabilitySerializer(serializers.ModelSerializer):
+class CourseAvailabilitySerializerV0(serializers.ModelSerializer):
     week = serializers.SerializerMethodField()
     year = serializers.SerializerMethodField()
 
@@ -76,7 +76,7 @@ class CourseAvailabilitySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class RoomAvailabilitySerializer(serializers.ModelSerializer):
+class RoomAvailabilitySerializerV0(serializers.ModelSerializer):
     week = serializers.SerializerMethodField()
     year = serializers.SerializerMethodField()
     room = serializers.CharField(source="room.name")
