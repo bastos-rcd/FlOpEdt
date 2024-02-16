@@ -26,7 +26,6 @@ from django.urls import path, re_path, include
 from django.views.generic import TemplateView
 from drf_yasg import openapi
 
-# from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
 from drf_yasg.views import get_schema_view
 from rest_framework import routers, permissions
 from rest_framework.authtoken.views import obtain_auth_token

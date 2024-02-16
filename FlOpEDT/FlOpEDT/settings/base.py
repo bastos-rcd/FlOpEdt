@@ -74,7 +74,6 @@ INSTALLED_APPS = [
     'api',
     'rest_framework.authtoken',
     'dj_rest_auth',
-    'rest_framework_swagger',
     'drf_yasg',
     'corsheaders',
     'cstmanager',
