@@ -21,43 +21,112 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from rest_framework import serializers
+from rest_framework import serializers, exceptions, status
 import base.models as bm
+from people.models import User
 from base.timing import Day, flopdate_to_datetime
-from datetime import timedelta
+import datetime as dt
 
 
 # -----------------
 # -- PREFERENCES --
 # -----------------
 class AvailabilitySerializer(serializers.ModelSerializer):
-    # TODO V1-DB: change into DatetimeFields
-    # start_time = serializers.DateTimeField()
-    # end_time = serializers.DateTimeField()
-    start_time = serializers.SerializerMethodField()
-    end_time = serializers.SerializerMethodField()
+    start_time = serializers.DateTimeField()
+    duration = serializers.DurationField()
     value = serializers.IntegerField()
 
-    def get_start_time(self, obj):
-        flop_week, flop_weekday, flop_start_time = obj.week, obj.day, obj.start_time
-        flop_day = Day(flop_weekday, flop_week)
-        return flopdate_to_datetime(flop_day, flop_start_time)
-
-    def get_end_time(self, obj):
-        start_time = self.get_start_time(obj)
-        duration = obj.duration
-        return start_time + timedelta(seconds=duration * 60)
+    class Meta:
+        model = bm.UserAvailability
+        fields = ("start_time", "duration", "value")
 
 
 class UserAvailabilitySerializer(AvailabilitySerializer):
-    id = serializers.IntegerField(source="user.id")
-    av_type = serializers.ReadOnlyField(default="user")
+    subject_id = serializers.IntegerField(source="user.id")
+    subject_type = serializers.ReadOnlyField(default="user")
 
     class Meta:
-        # TODO V1-DB:
-        # model = bm.userAvailability
         model = bm.UserAvailability
-        fields = ("id", "av_type", "start_time", "end_time", "value")
+        fields = ("subject_id", "subject_type", "start_time", "duration", "value")
+
+
+class UserAvailabilityDayModel:
+    subject_type = "user"
+
+    def __init__(self, date, subject_id, intervals):
+        self.date = date
+        self.subject_id = subject_id
+        self.intervals = intervals
+
+
+class UserAvailabilityDaySerializer(serializers.Serializer):
+    date = serializers.DateField()
+    subject_id = serializers.IntegerField()
+    intervals = AvailabilitySerializer(many=True)
+
+    def check_intervals(self, availability, av_date):
+        epsilon = dt.timedelta(seconds=60)
+        if len(availability) == 0:
+            raise exceptions.APIException(
+                detail="Empty request", code=status.HTTP_400_BAD_REQUEST
+            )
+        if availability[0].start_time.date() != av_date:
+            raise exceptions.APIException(
+                detail="Date and intervals do not match",
+                code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        target_begin_time = dt.combine(av_date, dt.time(0))
+        if abs(availability[0].start_time - target_begin_time) > epsilon:
+            raise exceptions.APIException(
+                detail="Should start at 00:00",
+                code=status.HTTP_400_BAD_REQUEST,
+            )
+        availability[0].start_time = target_begin_time
+
+        target_last_duration = (
+            target_begin_time + dt.timedelta(hours=24) - availability[-1].start_time
+        )
+        if abs(availability[-1].duration - target_last_duration) > epsilon:
+            raise exceptions.APIException(
+                detail="Should cover the whole day",
+                code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        for prev, cons in zip(availability[:-1], availability[1:]):
+            if abs(prev.start_time + prev.duration - cons.start_time) > epsilon:
+                raise exceptions.APIException(
+                    detail="Should be a partition of the say",
+                    code=status.HTTP_400_BAD_REQUEST,
+                )
+
+    def create(self, validated_data):
+        try:
+            user = User.objects.get(id=validated_data["subject_id"])
+        except User.DoesNotExist:
+            raise exceptions.APIException(
+                detail="Unknown user", code=status.HTTP_400_BAD_REQUEST
+            )
+        availability = sorted(
+            [
+                bm.UserAvailability(
+                    user=user,
+                    start_time=interval["start_time"],
+                    duration=interval["end_time"] - interval["start_time"],
+                    value=interval["value"],
+                )
+                for interval in validated_data["intervals"]
+            ],
+            key=lambda ua: ua.start_time,
+        )
+        self.check_intervals(availability, validated_data)
+        for obj in availability:
+            obj.save()
+        return UserAvailabilityDayModel(
+            validated_data["date"],
+            validated_data["subject_id"],
+            availability,
+        )
 
 
 # class CoursePreferencesSerializer(PreferenceSerializer):
