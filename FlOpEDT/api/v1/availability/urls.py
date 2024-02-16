@@ -30,3 +30,6 @@ routerAvailability = routers.SimpleRouter()
 routerAvailability.register(
     r"user-actual", views.UserDatedAvailabilityViewSet, basename="user-actual"
 )
+routerAvailability.register(
+    r"room-actual", views.RoomDatedAvailabilityViewSet, basename="room-actual"
+)

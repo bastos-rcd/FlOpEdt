@@ -50,19 +50,38 @@ class UserAvailabilitySerializer(AvailabilitySerializer):
         fields = ("subject_id", "subject_type", "start_time", "duration", "value")
 
 
-class UserAvailabilityDayModel:
-    subject_type = "user"
-
+class AvailabilityFullDayModel:
     def __init__(self, date, subject_id, intervals):
         self.date = date
         self.subject_id = subject_id
         self.intervals = intervals
 
 
-class UserAvailabilityDaySerializer(serializers.Serializer):
+class UserAvailabilityFullDayModel(AvailabilityFullDayModel):
+    subject_type = "user"
+    SubjectModel = User
+    AvailabilityModel = bm.UserAvailability
+
+
+class RoomAvailabilityFullDayModel(AvailabilityFullDayModel):
+    subject_type = "room"
+    SubjectModel = bm.Room
+    AvailabilityModel = bm.RoomAvailability
+
+
+# class AvailabilityFullDaySerializer(serializers.Serializer):
+#     date = serializers.DateField()
+#     subject_id = serializers.IntegerField()
+#     intervals = AvailabilitySerializer(many=True)
+
+
+class AvailabilityFullDaySerializer(serializers.Serializer):
     date = serializers.DateField()
     subject_id = serializers.IntegerField()
     intervals = AvailabilitySerializer(many=True)
+
+    class Meta:
+        abstract = True
 
     def check_intervals(self, availability, av_date):
         epsilon = dt.timedelta(seconds=60)
@@ -72,14 +91,19 @@ class UserAvailabilityDaySerializer(serializers.Serializer):
             )
         if availability[0].start_time.date() != av_date:
             raise exceptions.APIException(
-                detail="Date and intervals do not match",
+                detail=(
+                    f"Date and intervals do not match: "
+                    f"expected {av_date} but got "
+                    f"{availability[0].start_time.date()} as "
+                    f"date of the starting time of the first interval"
+                ),
                 code=status.HTTP_400_BAD_REQUEST,
             )
 
-        target_begin_time = dt.combine(av_date, dt.time(0))
+        target_begin_time = dt.datetime.combine(av_date, dt.time(0))
         if abs(availability[0].start_time - target_begin_time) > epsilon:
             raise exceptions.APIException(
-                detail="Should start at 00:00",
+                detail=f"Should start at 00:00, got {availability[0].start_time}",
                 code=status.HTTP_400_BAD_REQUEST,
             )
         availability[0].start_time = target_begin_time
@@ -89,55 +113,61 @@ class UserAvailabilityDaySerializer(serializers.Serializer):
         )
         if abs(availability[-1].duration - target_last_duration) > epsilon:
             raise exceptions.APIException(
-                detail="Should cover the whole day",
+                detail=(
+                    f"Should cover the whole day but finishes at "
+                    f"{availability[-1].start_time + availability[-1].duration}"
+                ),
                 code=status.HTTP_400_BAD_REQUEST,
             )
 
-        for prev, cons in zip(availability[:-1], availability[1:]):
+        for i, (prev, cons) in enumerate(zip(availability[:-1], availability[1:])):
             if abs(prev.start_time + prev.duration - cons.start_time) > epsilon:
                 raise exceptions.APIException(
-                    detail="Should be a partition of the say",
+                    detail=(
+                        f"Should be a partition of the day "
+                        f"but interval#{i} finishes at {prev.start_time + prev.duration} "
+                        f"while interval#{i+1} starts at {cons.start_time}"
+                    ),
                     code=status.HTTP_400_BAD_REQUEST,
                 )
 
     def create(self, validated_data):
+
         try:
-            user = User.objects.get(id=validated_data["subject_id"])
-        except User.DoesNotExist:
+            subject_dict = {
+                self.model.subject_type: self.model.SubjectModel.objects.get(
+                    id=validated_data["subject_id"]
+                )
+            }
+        except self.model.SubjectModel.DoesNotExist:
             raise exceptions.APIException(
                 detail="Unknown user", code=status.HTTP_400_BAD_REQUEST
             )
         availability = sorted(
             [
-                bm.UserAvailability(
-                    user=user,
+                self.model.AvailabilityModel(
                     start_time=interval["start_time"],
-                    duration=interval["end_time"] - interval["start_time"],
+                    duration=interval["duration"],
                     value=interval["value"],
+                    **subject_dict,
                 )
                 for interval in validated_data["intervals"]
             ],
             key=lambda ua: ua.start_time,
         )
-        self.check_intervals(availability, validated_data)
+        self.check_intervals(availability, validated_data["date"])
         for obj in availability:
             obj.save()
-        return UserAvailabilityDayModel(
+        return self.model(
             validated_data["date"],
             validated_data["subject_id"],
             availability,
         )
 
 
-# class CoursePreferencesSerializer(PreferenceSerializer):
-#     class Meta:
-#         model = bm.CoursePreference
-#         fields = "__all__"
+class UserAvailabilityFullDaySerializer(AvailabilityFullDaySerializer):
+    model = UserAvailabilityFullDayModel
 
 
-# class RoomPreferencesSerializer(PreferenceSerializer):
-#     room = serializers.CharField(source="room.name")
-
-#     class Meta:
-#         model = bm.RoomPreference
-#         fields = "__all__"
+class RoomAvailabilityFullDaySerializer(AvailabilityFullDaySerializer):
+    model = RoomAvailabilityFullDayModel

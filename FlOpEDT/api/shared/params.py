@@ -101,7 +101,17 @@ def user_id_param(**kwargs):
     return openapi.Parameter(
         "user_id",
         openapi.IN_QUERY,
-        description="username id",
+        description="user id",
+        type=openapi.TYPE_INTEGER,
+        **kwargs
+    )
+
+
+def room_id_param(**kwargs):
+    return openapi.Parameter(
+        "room_id",
+        openapi.IN_QUERY,
+        description="room id",
         type=openapi.TYPE_INTEGER,
         **kwargs
     )

@@ -43,29 +43,15 @@ import people.models as pm
 from api.v1.availability import serializers
 from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly, IsTutor
 from api.shared.params import (
-    week_param,
-    year_param,
     user_id_param,
+    room_id_param,
     dept_param,
     from_date_param,
     to_date_param,
-    date_param,
-    weekday_param,
 )
 
 
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        manual_parameters=[
-            from_date_param(required=True),
-            to_date_param(required=True),
-            user_id_param(),
-            dept_param(),
-        ],
-    ),
-)
-class UserDatedAvailabilityViewSet(
+class DatedAvailabilityViewSet(
     mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     """
@@ -74,16 +60,13 @@ class UserDatedAvailabilityViewSet(
 
     permission_classes = [IsAdminOrReadOnly]
 
-    def get_serializer_class(self):
-        if self.action == "list":
-            return serializers.UserAvailabilitySerializer
-        else:
-            return serializers.UserAvailabilityDaySerializer
+    class Meta:
+        abstract = True
 
     def get_queryset(self):
         # avoid warning
         if getattr(self, "swagger_fake_view", False):
-            return bm.UserAvailability.objects.none()
+            return bm.RoomAvailability.objects.none()
 
         from_date = datetime.fromisoformat(
             self.request.query_params.get("from_date")
@@ -97,13 +80,81 @@ class UserDatedAvailabilityViewSet(
                 '"from_date" parameter is later than "to_date" parameter'
             )
 
+        return self.AvailabilityModel.filter(date__gte=from_date, date__lt=to_date)
+
+
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            from_date_param(required=True),
+            to_date_param(required=True),
+            room_id_param(),
+            dept_param(),
+        ],
+    ),
+)
+class RoomDatedAvailabilityViewSet(DatedAvailabilityViewSet):
+    """
+    Availability. Either a user or a department must be entered.
+    """
+
+    AvailabilityModel = bm.RoomAvailability
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return serializers.RoomAvailabilitySerializer
+        else:
+            return serializers.RoomAvailabilityFullDaySerializer
+
+    def get_queryset(self):
+
+        ret = super(RoomDatedAvailabilityViewSet, self).get_queryset(self)
+
+        room_id = self.request.query_params.get("room_id", None)
+        dept_abbrev = self.request.query_params.get("dept", None)
+
+        if room_id is None and dept_abbrev is None:
+            raise exceptions.NotAcceptable("A room or a department must be entered.")
+
+        if room_id is not None:
+            ret = ret.filter(room__id=int(room_id))
+        if dept_abbrev is not None:
+            ret = ret.filter(room__departments__abbrev=dept_abbrev)
+        return ret
+
+
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            from_date_param(required=True),
+            to_date_param(required=True),
+            user_id_param(),
+            dept_param(),
+        ],
+    ),
+)
+class UserDatedAvailabilityViewSet(DatedAvailabilityViewSet):
+    """
+    Availability. Either a user or a department must be entered.
+    """
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return serializers.UserAvailabilitySerializer
+        else:
+            return serializers.UserAvailabilityFullDaySerializer
+
+    def get_queryset(self):
+        ret = super(UserDatedAvailabilityViewSet, self).get_queryset(self)
+
         user_id = self.request.query_params.get("user_id", None)
         dept_abbrev = self.request.query_params.get("dept", None)
 
         if user_id is None and dept_abbrev is None:
             raise exceptions.NotAcceptable("A user or a department must be entered.")
 
-        ret = bm.UserAvailability.objects.filter(date__gte=from_date, date__lt=to_date)
         if user_id is not None:
             ret = ret.filter(user__id=int(user_id))
         if dept_abbrev is not None:
