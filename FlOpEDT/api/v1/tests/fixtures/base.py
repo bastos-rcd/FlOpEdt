@@ -12,12 +12,8 @@ from base.models import (
 )
 from people.models import Tutor, UserDepartmentSettings, FullStaff, SupplyStaff
 
-from api.v1.tests.factories.base import UserFactory, DepartmentFactory
-
-
-@pytest.fixture
-def make_users(db):
-    UserFactory.create_batch(size=10)
+from api.v1.tests.factories.base import DepartmentFactory
+from api.v1.tests.factories.people import UserFactory
 
 
 @pytest.fixture
