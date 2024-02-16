@@ -25,9 +25,9 @@ from datetime import datetime, timedelta
 
 from distutils.util import strtobool
 
-from rest_framework import viewsets
+from rest_framework import viewsets, exceptions, mixins, parsers
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import exceptions
+from rest_framework.decorators import action
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -61,13 +61,24 @@ from api.shared.params import (
             from_date_param(required=True),
             to_date_param(required=True),
             user_id_param(),
+            dept_param(),
         ],
     ),
 )
-class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
+class UserDatedAvailabilityViewSet(
+    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Availability. Either a user or a department must be entered.
+    """
+
     permission_classes = [IsAdminOrReadOnly]
 
-    serializer_class = serializers.UserAvailabilitySerializer
+    def get_serializer_class(self):
+        if self.action == "list":
+            return serializers.UserAvailabilitySerializer
+        else:
+            return serializers.UserAvailabilityDaySerializer
 
     def get_queryset(self):
         # avoid warning
@@ -86,26 +97,15 @@ class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
                 '"from_date" parameter is later than "to_date" parameter'
             )
 
-        user_id = int(self.request.query_params.get("user_id"))
+        user_id = self.request.query_params.get("user_id", None)
+        dept_abbrev = self.request.query_params.get("dept", None)
 
-        # TODO V1-DB
-        # ugly but will be removed
-        ret = bm.UserAvailability.objects.none()
-        py_date = from_date
-        cal = py_date.isocalendar()
-        y, w, days = cal[0], cal[1], [Day.CHOICES[cal[2] - 1][0]]
-        py_date += timedelta(days=1)
-        while py_date <= to_date:
-            cal = py_date.isocalendar()
-            if cal[1] != w:
-                ret |= bm.UserAvailability.objects.filter(
-                    user__id=user_id, week__year=y, week__nb=w, day__in=days
-                )
-                y, w, days = cal[0], cal[1], [Day.CHOICES[cal[2] - 1][0]]
-            else:
-                days.append(Day.CHOICES[cal[2] - 1][0])
-            py_date += timedelta(days=1)
-        ret |= bm.UserAvailability.objects.filter(
-            user__id=user_id, week__year=y, week__nb=w, day__in=days
-        )
+        if user_id is None and dept_abbrev is None:
+            raise exceptions.NotAcceptable("A user or a department must be entered.")
+
+        ret = bm.UserAvailability.objects.filter(date__gte=from_date, date__lt=to_date)
+        if user_id is not None:
+            ret = ret.filter(user__id=int(user_id))
+        if dept_abbrev is not None:
+            ret = ret.filter(user__departments__abbrev=dept_abbrev)
         return ret
