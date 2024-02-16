@@ -59,7 +59,6 @@ from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
 
 from base.admin import (
-    DispoResource,
     VersionResource,
     TutorCoursesResource,
     CourseAvailabilityResource,
@@ -69,7 +68,6 @@ from base.admin import (
     ModuleRessource,
     TutorRessource,
     ModuleDescriptionResource,
-    AllDispoResource,
     GroupPreferredLinksResource,
 )
 from base.forms import ContactForm, ModuleDescriptionForm, EnrichedLinkForm
@@ -558,12 +556,6 @@ def fetch_tutor(req, year, week, **kwargs):
     return response
 
 
-@dept_admin_required
-def fetch_all_dispos(req, **kwargs):
-    dataset = AllDispoResource().export(UserAvailability.objects.all())
-    return HttpResponse(dataset.json, content_type="application/force-download")
-
-
 def fetch_course_default_week(req, train_prog, course_type, **kwargs):
     """
     Export course preferences of department req.department
@@ -652,21 +644,6 @@ def fetch_all_tutors(req, **kwargs):
     ]
     response = JsonResponse(tutor_list, safe=False)
     cache.set(cache_key, response)
-    return response
-
-
-def fetch_user_default_week(req, username, **kwargs):
-    try:
-        user = User.objects.get(username=username)
-    except ObjectDoesNotExist:
-        return HttpResponse("Problem")
-
-    dataset = DispoResource().export(
-        UserAvailability.objects.filter(
-            week=None, user=user, day__in=queries.get_working_days(req.department)
-        )
-    )  # all())#
-    response = HttpResponse(dataset.csv, content_type="text/csv")
     return response
 
 

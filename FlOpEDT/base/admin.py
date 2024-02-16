@@ -420,22 +420,6 @@ class SemaineAnResource(resources.ModelResource):
         fields = ("week", "year")
 
 
-class DispoResource(resources.ModelResource):
-    prof = fields.Field(attribute="user", widget=ForeignKeyWidget(User, "username"))
-
-    class Meta:
-        model = UserAvailability
-        fields = ("day", "start_time", "duration", "value", "prof")
-
-
-class AllDispoResource(resources.ModelResource):
-    prof = fields.Field(attribute="user", widget=ForeignKeyWidget(User, "username"))
-
-    class Meta:
-        model = UserAvailability
-        fields = ("year", "week", "day", "start_time", "duration", "value", "prof")
-
-
 class CourseAvailabilityResource(resources.ModelResource):
     type_name = fields.Field(
         attribute="course_type", widget=ForeignKeyWidget(CourseType, "name")

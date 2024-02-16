@@ -65,8 +65,6 @@ urlpatterns = [
     # ---------------------------------
 
     # from db to screen
-    path('fetch_user_default_week/<str:username>/',
-         views.fetch_user_default_week, name="fetch_user_dweek"),
     path('fetch_course_default_week/<str:train_prog>/<str:course_type>/',
          views.fetch_course_default_week, name="fetch_course_dweek"),
     path('fetch_room_default_week/<str:room>/',
@@ -94,7 +92,6 @@ urlpatterns = [
          name="fetch_user_notifications_pref"),
     path('fetch_all_modules_with_desc/',
          views.fetch_all_modules_with_desc, name="fetch_all_modules_with_desc"),
-    path('fetch_all_dispos/', views.fetch_all_dispos, name="fetch_all_dispos"),
     path('fetch_group_preferred_links/',
          views.fetch_group_preferred_links,
          name='fetch_group_preferred_links'),
