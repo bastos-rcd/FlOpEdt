@@ -70,15 +70,14 @@ export const usePermanentStore = defineStore('permanent', () => {
 
   async function getModule(id: number): Promise<Module | undefined> {
     let module = modules.value.find((m) => m.id === id)
-    if (id) {
-      if (!module) {
-        try {
-          await fetchModules()
-          module = modules.value.find((m) => m.id === id)
-        } catch (error) {
-          console.log('Get module failed')
-          console.log(error)
-        }
+    if (!module && !isModulesFetched) {
+      try {
+        console.log('We FetchAgain')
+        await fetchModules()
+        module = modules.value.find((m) => m.id === id)
+      } catch (error) {
+        console.log('Get module failed')
+        console.log(error)
       }
     }
     return module
