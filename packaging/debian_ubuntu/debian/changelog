@@ -1,3 +1,13 @@
+flopedt (0.5.6) unstable; urgency=medium
+
+  * ics with location
+  * margin between AM and PM when no breaking new declared
+  * debug solver for transversal groups
+  * debug limit_time constraints visualization
+  * add graded in flop!Editor
+
+ -- Pablo Seban <pablo@univ-tlse2.fr>  Sat, 17 Feb 2024 16:25:22 +0100
+
 flopedt (0.5.5) unstable; urgency=medium
 
   * Fix many bugs on 0.5.4 version
