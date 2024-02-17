@@ -12,8 +12,16 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.5] -- 2024-02-06
+## [0.5.6] -- 2024-??
 **Note:** `0.5` is the last `0.*` version.
+### Changed
+- ics with location
+- margin between AM and PM when no breaking new declared
+- debug solver for transversal groups
+- debug limit_time constraints visualization
+- add graded in flop!Editor
+
+## [0.5.5] -- 2024-02-06
 ### Changed
 - Debugs:
   * Fix many bugs on 0.5.4 version
