@@ -40,6 +40,7 @@ class ScheduledCoursesSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     course_id = serializers.IntegerField(source='course.id')
     module_id = serializers.IntegerField(source='course.module.id')
+    course_type_id = serializers.IntegerField(source='course.type.id')
     tutor_id = serializers.IntegerField(source='tutor.id', allow_null=True)
     supp_tutor_ids = serializers.SerializerMethodField()
     room_id = serializers.IntegerField(source='room.id', allow_null=True)
@@ -55,8 +56,7 @@ class ScheduledCoursesSerializer(serializers.Serializer):
     # Sructuration of the data
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['id', 'course_id', 'module_id', 'tutor_id', 'supp_tutor_ids', 'room_id', 'start_time', 'end_time', 'train_prog_id', 'group_ids',
-                  'number']
+        fields = ['id', 'course_id', 'module_id', 'course_type_id','tutor_id', 'supp_tutor_ids', 'room_id', 'start_time', 'end_time', 'train_prog_id', 'group_ids', 'number']
         ref_name = "New api scheduled course serializer"
 
     def get_start_time(self, obj):
