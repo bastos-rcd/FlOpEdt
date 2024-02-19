@@ -140,6 +140,8 @@ class UserDatedAvailabilityViewSet(DatedAvailabilityViewSet):
     Availability. Either a user or a department must be entered.
     """
 
+    AvailabilityModel = bm.UserAvailability
+
     def get_serializer_class(self):
         if self.action == "list":
             return serializers.UserAvailabilitySerializer
@@ -147,7 +149,7 @@ class UserDatedAvailabilityViewSet(DatedAvailabilityViewSet):
             return serializers.UserAvailabilityFullDaySerializer
 
     def get_queryset(self):
-        ret = super(UserDatedAvailabilityViewSet, self).get_queryset(self)
+        ret = super(UserDatedAvailabilityViewSet, self).get_queryset()
 
         user_id = self.request.query_params.get("user_id", None)
         dept_abbrev = self.request.query_params.get("dept", None)
