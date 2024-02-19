@@ -21,7 +21,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from datetime import datetime, timedelta
+import datetime as dt
 
 from distutils.util import strtobool
 
@@ -166,3 +166,21 @@ class UserDatedAvailabilityViewSet(DatedAvailabilityViewSet):
         if dept_abbrev is not None:
             ret = ret.filter(user__departments__abbrev=dept_abbrev)
         return ret
+
+
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            user_id_param(),
+            dept_param(),
+        ],
+    ),
+)
+class UserDefaultAvailabilityViewSet(UserDatedAvailabilityViewSet):
+    def list(self, request, *args, **kwargs):
+        self.from_date = dt.datetime(1, 1, 1)
+        self.to_date = dt.datetime(1, 1, 8)
+        return super(UserDefaultAvailabilityViewSet, self).list(
+            request, *args, **kwargs
+        )
