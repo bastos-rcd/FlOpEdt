@@ -156,6 +156,9 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
             key=lambda ua: ua.start_time,
         )
         self.check_intervals(availability, validated_data["date"])
+        self.model.AvailabilityModel.objects.filter(
+            date=validated_data["date"], **subject_dict
+        ).delete()
         for obj in availability:
             obj.save()
         return self.model(
