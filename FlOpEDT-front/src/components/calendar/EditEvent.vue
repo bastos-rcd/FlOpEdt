@@ -11,7 +11,13 @@
       ><slot name="content">
         <PopoverArrow class="PopoverArrow" />
         <div class="content-div">
-          <div class="popover-title">{{ courseModule?.name }}</div>
+          <div class="popover-section">
+            <div class="popover-title">{{ courseModule?.name }}</div>
+            <div class="course-section">
+              <span>{{ course?.courseTypeId === -1 ? 'TP' : course?.courseTypeId }}</span>
+              <span>n°{{ course?.no }}</span>
+            </div>
+          </div>
           <div class="popover-section">
             <div class="popover-title">Tutor</div>
             <span>{{ courseTutor?.firstname }} {{ courseTutor?.lastname }} </span><br />
@@ -110,6 +116,7 @@ onBeforeMount(async () => {
   font-weight: bold;
   font-size: medium;
   margin: 0px 3px 0px 6px;
+  width: 100%;
 }
 .popover-section {
   display: flex;
@@ -122,5 +129,10 @@ onBeforeMount(async () => {
 }
 .popover-section span {
   width: 100%;
+}
+.course-section {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
 }
 </style>

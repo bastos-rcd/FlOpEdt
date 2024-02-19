@@ -68,11 +68,11 @@
           >
             <div :draggable="event.data.dataType !== 'avail'" @dragstart="onDragStart($event, event)">
               <div
-                v-for="spans in event.spans"
-                :key="event.id"
+                v-for="span in event.spans"
+                :key="generateSpanId(event.id, span)"
                 class="event-span"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
-                :style="badgeStyles(event, spans, timeStartPos)"
+                :style="badgeStyles(event, span, timeStartPos)"
                 @mousedown="onMouseDown($event, event.id)"
                 @mouseup="onMouseUp()"
               >
@@ -122,7 +122,7 @@ import {
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
-import _ from 'lodash'
+import { forEach, includes, concat, cloneDeep, remove, sortBy, find, intersection, sumBy, filter } from 'lodash'
 
 import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 
@@ -174,7 +174,7 @@ const emits = defineEmits<{
 const preWeight = computed(() => {
   const map: Record<number, number> = {}
   let preceeding = 0
-  _.forEach(props.columns, (col: CalendarColumn) => {
+  forEach(props.columns, (col: CalendarColumn) => {
     map[col.id] = preceeding
     preceeding += col.weight
   })
@@ -226,7 +226,7 @@ watch(dayStart, () => {
     now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
   }
   while (newSelectedDates.length < weekdays.value.length) {
-    if (_.includes(weekdays.value, now_date?.weekday)) {
+    if (includes(weekdays.value, now_date?.weekday)) {
       newSelectedDates.push(now_date?.date)
     }
     now_date = nextDay(now_date as Timestamp)
@@ -251,12 +251,12 @@ const eventsByDate = computed(() => {
   const newEvents: CalendarEvent[] = []
   // Dict of column ids keys to their index
   const columnIndexes: Record<number, number> = {}
-  _.forEach(props.columns, (c, i) => {
+  forEach(props.columns, (c, i) => {
     columnIndexes[c.id] = i
   })
-  if (props.dropzones) allEvents = _.concat(allEvents, props.dropzones)
+  if (props.dropzones) allEvents = concat(allEvents, props.dropzones)
   allEvents.forEach((event) => {
-    const newEvent = _.cloneDeep(event)
+    const newEvent = cloneDeep(event)
     let columnIds = newEvent.columnIds
 
     // availability column
@@ -266,10 +266,10 @@ const eventsByDate = computed(() => {
     }
 
     // filter out absent columns
-    _.remove(columnIds, (colId) => !(colId in columnIndexes))
+    remove(columnIds, (colId) => !(colId in columnIndexes))
 
     // merge columns
-    columnIds = _.sortBy(columnIds, (colId) => columnIndexes[colId])
+    columnIds = sortBy(columnIds, (colId) => columnIndexes[colId])
 
     const spans: Array<{ istart: number; weight: number; columnIds: number[] }> = []
     if (columnIds.length > 0) {
@@ -279,8 +279,8 @@ const eventsByDate = computed(() => {
         iend: columnIndexes[columnIds[0]],
         columnIds: [] as number[],
       }
-      _.forEach(columnIds, (colId, i) => {
-        const colProps = _.find(props.columns, (col) => col.id == colId) as CalendarColumn
+      forEach(columnIds, (colId, i) => {
+        const colProps = find(props.columns, (col) => col.id == colId) as CalendarColumn
         if (columnIndexes[colId] === currentSlice.iend) {
           currentSlice.weight += colProps.weight
           currentSlice.iend = columnIndexes[colId] + 1
@@ -320,7 +320,7 @@ const eventsByDate = computed(() => {
 function columnsInCommon(event1: CalendarEvent, event2: CalendarEvent): boolean {
   const cols1 = event1.spans.map((span) => span.columnIds).flat()
   const cols2 = event2.spans.map((span) => span.columnIds).flat()
-  return _.intersection(cols1, cols2).length !== 0
+  return intersection(cols1, cols2).length !== 0
 }
 
 function updateEventsOverlap(events: CalendarEvent[]): CalendarEvent[] {
@@ -350,7 +350,7 @@ function updateEventsOverlap(events: CalendarEvent[]): CalendarEvent[] {
 }
 
 const totalWeight = computed(() => {
-  return _.sumBy(props.columns, (c: CalendarColumn) => c.weight)
+  return sumBy(props.columns, (c: CalendarColumn) => c.weight)
 })
 
 function badgeClasses(type: 'event' | 'dropzone' | 'header' | 'avail', bgcolor?: string, toggled?: boolean) {
@@ -381,14 +381,13 @@ function badgeStyles(
     top: '',
     height: '',
   }
-  if (!event.toggled) {
-    s['opacity'] = '0.5'
-  }
   if (timeStartPos) {
     s.top = timeStartPos(event.data?.start) + 'px'
     s.left = Math.round((preceedingWeight / totalWeight.value) * 100) + '%'
     s.width = Math.round((100 * span.weight) / totalWeight.value) + '%'
-    s.height = calendar.value!.timeDurationHeight(event.data?.duration) + 'px'
+    if (typeof calendar.value?.timeDurationHeight(event.data?.duration) === 'number') {
+      s.height = calendar.value!.timeDurationHeight(event.data?.duration) + 'px'
+    }
   }
   if (event.data.dataType === 'dropzone') {
     s['background-color'] = 'transparent'
@@ -410,6 +409,9 @@ function badgeStyles(
     s['border-width'] = '3px'
   }
   s['align-items'] = 'flex-start'
+  if (!event.toggled && event.data.dataType === 'event') {
+    s['background-color'] = 'rgba(255,120,0,0.5)'
+  }
   return s
 }
 
@@ -449,7 +451,7 @@ const eventsModel = computed({
  * Only returns the dropZone with the same ID as the event dragged
  */
 const dropZoneToDisplay = computed((): InputCalendarEvent[] | undefined => {
-  return _.filter(
+  return filter(
     props.dropzones,
     (e) =>
       e.data.dataType === 'dropzone' &&
@@ -529,7 +531,7 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   minutesToStartEvent = browserEvent.layerY! * minutesToPixelRate
   currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
-  eventDragged.value = _.cloneDeep(event)
+  eventDragged.value = cloneDeep(event)
   emits('dragstart', event.data.dataId)
   if (!browserEvent.dataTransfer) return
   browserEvent.dataTransfer.dropEffect = 'copy'
@@ -583,8 +585,8 @@ function updateEventDropped(): void {
     console.log("I don't know what happened: Maybe it was an availability")
     return
   }
-  const newEvent: InputCalendarEvent = _.cloneDeep(
-    props.events.find((e) => eventDragged.value?.id === e.id) as InputCalendarEvent
+  const newEvent: InputCalendarEvent = cloneDeep(
+    eventsModel.value.find((e) => eventDragged.value?.id === e.id) as InputCalendarEvent
   )
   if (dropZoneToDisplay.value) {
     dropZoneToDisplay.value.forEach((cdze) => {
@@ -595,8 +597,8 @@ function updateEventDropped(): void {
   } else {
     console.log('NO DROPZONE FOR THIS EVENT OU ERREUR DE DROPZONE')
   }
-  const newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
-  _.remove(newEvents, (e: InputCalendarEvent) => {
+  const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
+  remove(newEvents, (e: InputCalendarEvent) => {
     return e.id === newEvent.id
   })
   newEvents.push(newEvent)
@@ -639,14 +641,14 @@ const availResizeObs = new ResizeObserver((entries) => {
 
 function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] {
   oldAvailDuration = newEvent.data.duration as number
-  const newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
+  const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
   let newEnd = parseTime(newEvent.data.start) + newAvailDuration
   if (newEnd > props.endOfDayHours * 60) newEnd = props.endOfDayHours * 60
   else if (
     oldAvailDuration > newAvailDuration &&
     parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayHours * 60
   ) {
-    const newAvail: InputCalendarEvent = _.cloneDeep(newEvent)
+    const newAvail: InputCalendarEvent = cloneDeep(newEvent)
     updateMinutes(newAvail.data.start, closestStep(newEnd, props.step))
     newAvail.id = nextId()
     newAvail.data.duration = props.endOfDayHours * 60 - closestStep(newEnd, props.step)
@@ -654,7 +656,7 @@ function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] 
   }
   newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
   newAvailDuration = newEvent.data.duration
-  _.remove(newEvents, (e: InputCalendarEvent) => {
+  remove(newEvents, (e: InputCalendarEvent) => {
     return e.id === newEvent.id
   })
   if (newAvailDuration !== 0) newEvents.push(newEvent)
@@ -675,12 +677,12 @@ function updateResizedUpEvents(newEvents: InputCalendarEvent[], newEvent: InputC
     }
   })
   for (let k = 0; k < idAvailsToUpdate.length; k++) {
-    const availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === idAvailsToUpdate[k]))
+    const availToUpdate = cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === idAvailsToUpdate[k]))
     if (availToUpdate) {
       const diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
       oldDurationTotal += availToUpdate.data.duration!
       if (diffBetweenStarts + availToUpdate.data.duration! <= newEvent.data.duration!) {
-        _.remove(newEvents, (e: InputCalendarEvent) => {
+        remove(newEvents, (e: InputCalendarEvent) => {
           return e.id === idAvailsToUpdate[k]
         })
       } else {
@@ -690,7 +692,7 @@ function updateResizedUpEvents(newEvents: InputCalendarEvent[], newEvent: InputC
           Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
         )
         availToUpdate.data.duration! -= parseTime(getTime(availToUpdate.data.start)) - oldTimeAvail
-        _.remove(newEvents, (e: InputCalendarEvent) => {
+        remove(newEvents, (e: InputCalendarEvent) => {
           return e.id === availToUpdate!.id
         })
         newEvents.push(availToUpdate!)
@@ -710,14 +712,14 @@ function updateResizedDownEvents(newEvents: InputCalendarEvent[], newEvent: Inpu
       newEvent.data.start.date === newEvents[i].data.start.date &&
       parseTime(newEvents[i].data.start) === parseTime(newEvent.data.start) + oldAvailDuration
     ) {
-      availToUpdate = _.cloneDeep(newEvents[i])
+      availToUpdate = cloneDeep(newEvents[i])
     }
     i++
   }
   if (availToUpdate) {
     updateMinutes(availToUpdate.data.start, mins)
     availToUpdate.data.duration! += oldAvailDuration - newAvailDuration
-    _.remove(newEvents, (e) => e.id === availToUpdate!.id)
+    remove(newEvents, (e) => e.id === availToUpdate!.id)
     newEvents.push(availToUpdate)
   }
 }
@@ -752,8 +754,8 @@ function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
         const dataId = eventsModel.value.find((ev) => ev.id === eventId)?.data.dataId
         if (dataId) emits('event:details', dataId)
       } else if (target.classList.contains('event-span') && targetChild?.classList.contains('avail')) {
-        availResizeObs.observe(mouseEvent.target as Element)
         currentAvailId = eventId
+        availResizeObs.observe(target as Element)
       }
     }
   }
@@ -771,11 +773,11 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
       // DoubleClick management
       clearTimeout(timeoutId)
       timeoutId = null
-      const firstAvail = _.cloneDeep(props.events.find((e) => e.id === eventId))
+      const firstAvail = cloneDeep(eventsModel.value.find((e) => e.id === eventId))
       if (firstAvail) {
         if (firstAvail.data.duration! > (props.step || STEP_DEFAULT)) {
-          const secondAvail = _.cloneDeep(firstAvail)
-          const allEvents = _.cloneDeep(props.events)
+          const secondAvail = cloneDeep(firstAvail)
+          const allEvents = cloneDeep(eventsModel.value)
           //@ts-expect-error
           const layerY = mouseEvent.layerY
           firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
@@ -785,7 +787,7 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
           )
           secondAvail.id = nextId()
           secondAvail.data.duration! -= firstAvail.data.duration
-          _.remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
+          remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
           allEvents.push(firstAvail, secondAvail)
           eventsModel.value = allEvents
         }
@@ -795,10 +797,10 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
 }
 
 function onMouseUp(): void {
+  availResizeObs.disconnect()
   if (currentAvailId !== -1) {
-    availResizeObs.disconnect()
-    const newEvent: InputCalendarEvent = _.cloneDeep(
-      props.events.find((e) => currentAvailId === e.id) as InputCalendarEvent
+    const newEvent: InputCalendarEvent = cloneDeep(
+      eventsModel.value.find((e) => currentAvailId === e.id) as InputCalendarEvent
     )
     if (newEvent) {
       const newEvents: InputCalendarEvent[] = updateResizedEvent(newEvent)
@@ -823,7 +825,7 @@ function onMouseUp(): void {
           })
           if (nextAvail && nextAvail.data.value === newEvent.data.value) {
             newEvent.data.duration! += nextAvail.data.duration!
-            _.remove(newEvents, (e) => e.id === nextAvail.id)
+            remove(newEvents, (e) => e.id === nextAvail.id)
           }
         } else {
           updateResizedDownEvents(newEvents, newEvent)
@@ -842,11 +844,11 @@ function nextId(): number {
 }
 
 function changeAvailValue(eventId: number, value?: number): void {
-  const newEvent: InputCalendarEvent | undefined = _.cloneDeep(
+  const newEvent: InputCalendarEvent | undefined = cloneDeep(
     eventsModel.value.find((ev: InputCalendarEvent) => ev.id == eventId)
   )
   if (newEvent !== undefined && newEvent.data.dataType === 'avail') {
-    const newEvents: InputCalendarEvent[] = _.cloneDeep(eventsModel.value)
+    const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
     if (value || value === 0) {
       newEvent.data.value = value
     } else {
@@ -860,12 +862,20 @@ function changeAvailValue(eventId: number, value?: number): void {
         newEvent.data.value = 0
       }
     }
-    _.remove(newEvents, (e: InputCalendarEvent) => {
+    remove(newEvents, (e: InputCalendarEvent) => {
       return e.id === newEvent!.id
     })
     newEvents.push(newEvent)
     eventsModel.value = newEvents
   }
+}
+
+function generateSpanId(eventId: number, spans: any): string {
+  let colIds = ''
+  spans.columnIds.forEach((cl: number) => {
+    colIds += cl.toString()
+  })
+  return `${eventId}-${colIds}-${spans.istart}`
 }
 </script>
 
