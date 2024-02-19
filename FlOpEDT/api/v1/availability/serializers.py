@@ -50,6 +50,15 @@ class UserAvailabilitySerializer(AvailabilitySerializer):
         fields = ("subject_id", "subject_type", "start_time", "duration", "value")
 
 
+class RoomAvailabilitySerializer(AvailabilitySerializer):
+    subject_id = serializers.IntegerField(source="room.id")
+    subject_type = serializers.ReadOnlyField(default="room")
+
+    class Meta:
+        model = bm.RoomAvailability
+        fields = ("subject_id", "subject_type", "start_time", "duration", "value")
+
+
 class AvailabilityFullDayModel:
     def __init__(self, date, subject_id, intervals):
         self.date = date
