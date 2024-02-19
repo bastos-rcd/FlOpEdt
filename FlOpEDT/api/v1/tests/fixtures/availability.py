@@ -1,7 +1,10 @@
 import pytest
 
 from api.v1.tests.factories.people import UserFactory
-from api.v1.tests.factories.availability import UserAvailabilityFactory
+from api.v1.tests.factories.availability import (
+    UserAvailabilityFactory,
+    UserHourlyAvailabilityFactory,
+)
 
 import datetime as dt
 
@@ -16,3 +19,12 @@ def make_default_week_user(db):
             duration=dt.timedelta(hours=24),
             value=8,
         )
+
+
+@pytest.fixture
+def make_user_hourly_commune(db):
+    user = UserFactory.create(username="u_h_pc")
+    user.set_password("secret")
+    UserHourlyAvailabilityFactory.create_batch(
+        UserHourlyAvailabilityFactory.cycle, user=user
+    )

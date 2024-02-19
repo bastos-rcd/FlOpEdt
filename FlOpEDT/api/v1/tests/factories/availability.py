@@ -1,3 +1,5 @@
+import datetime as dt
+
 import factory
 from base.timing import Day
 
@@ -26,3 +28,15 @@ class UserIUTMorningFactory(UserAvailabilityIUT):
 class UserAvailabilityFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "base.UserAvailability"
+
+
+class UserHourlyAvailabilityFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "base.UserAvailability"
+        exclude = ("cycle",)
+
+    cycle = 24 * 7
+    start_time = factory.Sequence(
+        lambda n: dt.datetime(1871, 3, 18) + dt.timedelta(hours=n)
+    )
+    value = factory.Iterator(list(range(8)) * 3 * 7)

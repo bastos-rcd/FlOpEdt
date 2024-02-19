@@ -14,7 +14,6 @@ from base.models.timing import Week
 from people.models import Tutor, User
 
 
-from .factories.base import TutorFactory
 from .factories.availability import UserIUTEveningFactory, UserIUTMorningFactory
 
 
@@ -42,7 +41,7 @@ def make_availabilities_IUT(db: None):
 
 
 class TestUserAvailabilityActual:
-    endpoint = f"/fr/api/v1/availability/user-actual/"
+    endpoint = f"/fr/api/v1/availability/user/"
 
     def test_user_or_dept_required(self, client: APIClient):
         with pytest.raises(AssertionError) as e_info:
@@ -81,3 +80,44 @@ class TestUserAvailabilityActual:
                 "duration": duration_string(dt.timedelta(hours=24)),
             },
         ]
+
+    @pytest.mark.skip(reason="rights have to be implemented")
+    def test_update(self, client, make_user_hourly_commune):
+        user = User.objects.first()
+        client.force_authenticate(user=user)
+        date = "1871-03-20"
+        wanted = {
+            "date": date,
+            "subject_id": user.id,
+            "intervals": [
+                {
+                    "start_time": f"{date}T00:00:00",
+                    "duration": "12:00:00",
+                    "value": 3,
+                },
+                {
+                    "start_time": f"{date}T12:00:00",
+                    "duration": "12:00:00",
+                    "value": 2,
+                },
+            ],
+        }
+        response = retrieve_elements(client.post(self.endpoint, wanted), 1)
+        assert response == wanted
+
+    def test_rights(self):
+        pass
+
+
+class TestUserAvailabilityDefault:
+    endpoint = f"/fr/api/v1/availability/user-default-week/"
+
+    def test_tutor_creation(self):
+        pass
+
+    def test_update(self):
+        pass
+
+
+class TestRoomAvailabilityActual:
+    endpoint = f"/fr/api/v1/availability/room/"
