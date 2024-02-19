@@ -68,19 +68,23 @@ class DatedAvailabilityViewSet(
         if getattr(self, "swagger_fake_view", False):
             return bm.RoomAvailability.objects.none()
 
-        from_date = datetime.fromisoformat(
-            self.request.query_params.get("from_date")
-        ).date()
-        to_date = datetime.fromisoformat(
-            self.request.query_params.get("to_date")
-        ).date()
+        if "from_date" in self.request.query_params:
+            self.from_date = dt.datetime.fromisoformat(
+                self.request.query_params.get("from_date")
+            ).date()
+        if "to_date" in self.request.query_params:
+            self.to_date = dt.datetime.fromisoformat(
+                self.request.query_params.get("to_date")
+            ).date()
 
-        if from_date > to_date:
+        if self.from_date > self.to_date:
             raise exceptions.NotAcceptable(
                 '"from_date" parameter is later than "to_date" parameter'
             )
 
-        return self.AvailabilityModel.filter(date__gte=from_date, date__lt=to_date)
+        return self.AvailabilityModel.objects.filter(
+            date__gte=self.from_date, date__lt=self.to_date
+        )
 
 
 @method_decorator(
