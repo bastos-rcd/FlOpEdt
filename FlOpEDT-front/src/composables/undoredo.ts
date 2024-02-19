@@ -2,7 +2,6 @@ import { ref } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { AvailabilityData, CourseData, UpdateAvailability, UpdateCourse, UpdatesHistory } from './declaration'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
-import _ from 'lodash'
 
 export function useUndoredo() {
   const scheduledCourseStore = useScheduledCourseStore()

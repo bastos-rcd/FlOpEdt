@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { Group } from '@/stores/declarations'
 import { api } from '@/utils/api'
-import _ from 'lodash'
+import { concat, remove } from 'lodash'
 
 /**
  * This store is a work in progress,
@@ -17,7 +17,7 @@ export const useGroupStore = defineStore('group', () => {
   const fetchedStructuralGroups = ref<Group[]>([])
   const selectedTransversalGroups = ref<Group[]>([])
   const groups = computed(() => {
-    return _.concat(
+    return concat(
       fetchedStructuralGroups.value,
       selectedTransversalGroups.value.length === 0 ? fetchedTransversalGroups.value : selectedTransversalGroups.value
     )
@@ -129,7 +129,7 @@ export const useGroupStore = defineStore('group', () => {
 
   function removeTransversalGroupToSelection(group: Group): void {
     if (group.type !== 'transversal') return
-    _.remove(selectedTransversalGroups.value, (g) => g.id === group.id)
+    remove(selectedTransversalGroups.value, (g) => g.id === group.id)
   }
 
   return {

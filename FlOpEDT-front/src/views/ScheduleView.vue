@@ -50,7 +50,6 @@ import { useDepartmentStore } from '@/stores/department'
 import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useAuth } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
-import _ from 'lodash'
 import { useEventStore } from '@/stores/display/event'
 import { TooltipArrow, TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from 'radix-vue'
 /**

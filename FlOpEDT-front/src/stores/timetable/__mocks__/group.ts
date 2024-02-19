@@ -2,7 +2,7 @@ import { Department } from '@/ts/type'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { Group } from '@/stores/declarations'
-import _ from 'lodash'
+import { concat } from 'lodash'
 
 /**
  * This store is a work in progress,
@@ -362,7 +362,7 @@ export const useGroupStore = defineStore('group', () => {
   async function fetchGroups(department: Department): Promise<void> {
     fetchedStructuralGroups.value = populateGroupsColumnIds(fetchedStructuralGroups.value)
     populateTransversalsColumnIds(fetchedTransversalGroups.value, fetchedStructuralGroups.value)
-    groups.value = _.concat(fetchedStructuralGroups.value, fetchedTransversalGroups.value)
+    groups.value = concat(fetchedStructuralGroups.value, fetchedTransversalGroups.value)
   }
 
   function populateTransversalsColumnIds(groups: Group[], structurals: Group[]): void {

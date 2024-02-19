@@ -6,7 +6,7 @@ import { Timestamp, copyTimestamp, parseTime, updateMinutes } from '@quasar/quas
 import { api } from '@/utils/api'
 import { dateToTimestamp, getDateStringFromTimestamp, getDateTimeStringFromDate, timestampToDate } from '@/helpers'
 import { InputCalendarEvent } from '@/components/calendar/declaration'
-import _ from 'lodash'
+import { remove } from 'lodash'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
   const availabilitiesBack = ref<Map<string, AvailabilityBack[]>>(new Map<string, AvailabilityBack[]>())
@@ -43,8 +43,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     let newAvailability: Availability = {
       id: availabilityBack.id,
       type: availabilityBack.av_type,
-      //@ts-expect-error
-      duration: (availabilityBack.end_time - availabilityBack.start_time) / 1000 / 60,
+      duration: (availabilityBack.end_time.getTime() - availabilityBack.start_time.getTime()) / 1000 / 60,
       start: start,
       value: availabilityBack.value,
       dataId: availabilityBack.dataId,
@@ -86,7 +85,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     if (availabilityInStore) {
       newAvail.type = availabilityInStore.type
       newAvail.dataId = availabilityInStore.dataId
-      _.remove(availabilitiesOnDate!, (av) => av.id === availabilityInStore.id)
+      remove(availabilitiesOnDate!, (av) => av.id === availabilityInStore.id)
     }
     availabilitiesOnDate!.push(newAvail)
     return availabilities.value.get(dateString)!
@@ -96,26 +95,26 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     let availabilitiesOnDate: Availability[] | undefined
     if (date) {
       availabilitiesOnDate = availabilities.value.get(getDateStringFromTimestamp(date))
-      _.remove(availabilitiesOnDate!, (av) => av.id === id)
+      remove(availabilitiesOnDate!, (av) => av.id === id)
     } else {
       availabilities.value.forEach((availsD, date) => {
-        _.remove(availsD, (av) => av.id === id)
+        remove(availsD, (av) => av.id === id)
       })
     }
   }
 
-  function getAvailability(id: number, date?: Timestamp, remove: boolean = false): Availability | undefined {
+  function getAvailability(id: number, date?: Timestamp, removed: boolean = false): Availability | undefined {
     let availabilityReturned: Availability | undefined
     if (date) {
       const dateString = getDateStringFromTimestamp(date)
       availabilityReturned = availabilities.value.get(dateString)?.find((c) => c.id === id)
-      if (availabilityReturned && remove) _.remove(availabilities.value.get(dateString)!, (c) => c.id === id)
+      if (availabilityReturned && removed) remove(availabilities.value.get(dateString)!, (c: any) => c.id === id)
     } else {
       availabilities.value.forEach((availabilitiesD, date) => {
         const availability = availabilitiesD.find((c) => c.id === id)
         if (availability) {
           availabilityReturned = availability
-          if (remove) _.remove(availabilitiesD, (c) => c.id === id)
+          if (removed) remove(availabilitiesD, (c: any) => c.id === id)
         }
       })
     }

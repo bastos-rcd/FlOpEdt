@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import type { CalendarColumn, InputCalendarEvent } from './declaration'
-import _ from 'lodash'
+import { concat, find, map, maxBy, remove } from 'lodash'
 import { Timestamp, parseDate, parseTime, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
 import { ref, Ref } from 'vue'
 
@@ -65,13 +65,13 @@ function createDZ(
   eventCollection: InputCalendarEvent[],
   starts: Array<{ dayShift: number; hhmm: string }>
 ): Array<InputCalendarEvent> {
-  const relatedEvent = _.find(eventCollection, (event) => event.data.dataId === dataId) as InputCalendarEvent
+  const relatedEvent = find(eventCollection, (event) => event.data.dataId === dataId) as InputCalendarEvent
   if (relatedEvent === undefined) {
     console.log('Issue with the event')
     console.log('Could not find the data with id', dataId)
     return []
   }
-  const dropzones: InputCalendarEvent[] = _.map(starts, (start) => {
+  const dropzones: InputCalendarEvent[] = map(starts, (start) => {
     const dropzone = {
       id: eventIdStart++,
       title: '',
@@ -181,7 +181,7 @@ const useCase2: UseCase = {
   ]),
 }
 
-//useCase2.events.value = _.concat(useCase2.events.value, dzs)
+//useCase2.events.value = concat(useCase2.events.value, dzs)
 
 const useCase1: UseCase = {
   columns: ref([
@@ -337,9 +337,9 @@ const useCase1: UseCase = {
 }
 
 // dzs = []
-// dzs = _.concat(
+// dzs = concat(
 //   dzs,
-//   createDZ((_.maxBy(useCase1.events.value, (event) => event.id)?.id as number) + 1, 6, useCase1.events.value, [
+//   createDZ((maxBy(useCase1.events.value, (event) => event.id)?.id as number) + 1, 6, useCase1.events.value, [
 //     { dayShift: 2, hhmm: '14:00' },
 //     { dayShift: 2, hhmm: '11:00' },
 //     { dayShift: 2, hhmm: '09:50' },
@@ -403,9 +403,9 @@ const useCase4: UseCase = {
   columns: ref(useCase2.columns.value),
   events: ref(useCase2.events.value),
 }
-// _.cloneDeep(useCase2)
+// cloneDeep(useCase2)
 
-let nextEventId = (_.maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1
+let nextEventId = (maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1
 
 const availabilityColumn = {
   id: 4,
@@ -414,13 +414,13 @@ const availabilityColumn = {
 }
 
 function toggleAvailabilities() {
-  const excluded = _.remove(useCase4.columns.value, (c) => c.id == availabilityColumn.id)
+  const excluded = remove(useCase4.columns.value, (c) => c.id == availabilityColumn.id)
   if (excluded.length == 0) {
     useCase4.columns.value.push(availabilityColumn)
   }
 }
 
-useCase4.events.value = _.concat(useCase4.events.value, [
+useCase4.events.value = concat(useCase4.events.value, [
   {
     id: nextEventId++,
     title: '1',
@@ -592,9 +592,9 @@ useCase4.events.value = _.concat(useCase4.events.value, [
 ])
 
 let dzs: InputCalendarEvent[] = []
-dzs = _.concat(
+dzs = concat(
   dzs,
-  createDZ((_.maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1, 6, useCase2.events.value, [
+  createDZ((maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1, 6, useCase2.events.value, [
     { dayShift: 2, hhmm: '14:00' },
     { dayShift: 2, hhmm: '11:00' },
     { dayShift: 2, hhmm: '09:50' },
@@ -608,9 +608,9 @@ dzs = _.concat(
   ])
 )
 
-dzs = _.concat(
+dzs = concat(
   dzs,
-  createDZ(_.maxBy(dzs, (dz) => dz.id)?.id as number, 4, useCase2.events.value, [
+  createDZ(maxBy(dzs, (dz) => dz.id)?.id as number, 4, useCase2.events.value, [
     { dayShift: 0, hhmm: '11:00' },
     { dayShift: 0, hhmm: '13:30' },
     { dayShift: 1, hhmm: '11:00' },
@@ -624,9 +624,9 @@ dzs = _.concat(
   ])
 )
 
-dzs = _.concat(
+dzs = concat(
   dzs,
-  createDZ(_.maxBy(dzs, (dz) => dz.id)?.id as number, 3, useCase2.events.value, [
+  createDZ(maxBy(dzs, (dz) => dz.id)?.id as number, 3, useCase2.events.value, [
     { dayShift: 0, hhmm: '08:00' },
     { dayShift: 0, hhmm: '10:30' },
     { dayShift: 0, hhmm: '14:00' },
@@ -653,9 +653,9 @@ dzs = _.concat(
   ])
 )
 
-dzs = _.concat(
+dzs = concat(
   dzs,
-  createDZ(_.maxBy(dzs, (dz) => dz.id)?.id as number, 5, useCase2.events.value, [
+  createDZ(maxBy(dzs, (dz) => dz.id)?.id as number, 5, useCase2.events.value, [
     { dayShift: 1, hhmm: '16:30' },
     { dayShift: 1, hhmm: '08:00' },
     { dayShift: 1, hhmm: '10:50' },
