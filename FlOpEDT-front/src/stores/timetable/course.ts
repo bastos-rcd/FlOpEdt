@@ -130,17 +130,17 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     return scheduledCourse
   }
 
-  function getCourse(id: number, date?: string, remove?: boolean): Course | undefined {
+  function getCourse(id: number, date?: string, removed?: boolean): Course | undefined {
     let courseReturned: Course | undefined
     if (date) {
       courseReturned = courses.value.get(date)?.find((c) => c.id === id)
-      if (courseReturned && remove) remove(courses.value.get(date)!, (c) => c.id === id)
+      if (courseReturned && removed) remove(courses.value.get(date)!, (c) => c.id === id)
     } else {
       courses.value.forEach((coursesD, date) => {
         const course = coursesD.find((c) => c.id === id)
         if (course) {
           courseReturned = course
-          if (remove) remove(coursesD, (c) => c.id === id)
+          if (removed) remove(coursesD, (c) => c.id === id)
         }
       })
     }
