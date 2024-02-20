@@ -25,6 +25,9 @@ import datetime as dt
 
 from distutils.util import strtobool
 
+from rules.contrib.rest_framework import AutoPermissionViewSetMixin
+from rules.contrib.views import PermissionRequiredMixin
+
 from rest_framework import viewsets, exceptions, mixins, parsers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -51,14 +54,15 @@ from api.shared.params import (
 )
 
 
-class DatedAvailabilityViewSet(
-    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+class DatedAvailabilityListViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
 ):
     """
     Availability. Either a user or a department must be entered.
     """
 
-    permission_classes = [IsAdminOrReadOnly]
+    # permission_classes = [IsAdminOrReadOnly]
 
     class Meta:
         abstract = True
@@ -96,7 +100,9 @@ class DatedAvailabilityViewSet(
         ],
     ),
 )
-class RoomDatedAvailabilityViewSet(DatedAvailabilityViewSet):
+class RoomDatedAvailabilityListViewSet(
+    AutoPermissionViewSetMixin, DatedAvailabilityListViewSet
+):
     """
     Availability. Either a room or a department must be entered.
     """
@@ -143,7 +149,9 @@ class RoomDatedAvailabilityUpdateViewSet(
         ],
     ),
 )
-class UserDatedAvailabilityViewSet(DatedAvailabilityViewSet):
+class UserDatedAvailabilityListViewSet(
+    AutoPermissionViewSetMixin, DatedAvailabilityListViewSet
+):
     """
     Availability. Either a user or a department must be entered.
     """
@@ -165,6 +173,18 @@ class UserDatedAvailabilityViewSet(DatedAvailabilityViewSet):
         if dept_abbrev is not None:
             ret = ret.filter(user__departments__abbrev=dept_abbrev)
         return ret
+
+
+class UserDatedAvailabilityUpdateViewSet(
+    AutoPermissionViewSetMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Availability. Either a room or a department must be entered.
+    """
+
+    AvailabilityModel = bm.UserAvailability
+    serializer_class = serializers.UserAvailabilityFullDaySerializer
+    queryset = bm.UserAvailability.objects.all()
 
 
 @method_decorator(
