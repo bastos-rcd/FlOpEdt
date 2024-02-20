@@ -65,11 +65,14 @@ def parse_integer(sheet, row, column):
 
 def parse_time(sheet, row, column):
     "Helper function to get a time out of a cell"
-    "as a number of minutes since midnight"
+    "as a datetime.time object"
     "(will return None if anything goes wrong)"
     try:
         val = sheet.cell(row=row, column=column).value
-        return 60 * val.hour + val.minute
+        if type(val) is str:
+            return dt.datetime.strptime(val, '%H:%M').time()
+        elif type(val) is dt.time:
+            return val
     except:
         return None
 
@@ -262,10 +265,11 @@ def parse_courses(sheet):
         if id_ in result:
             id_ = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row, col))
         try:
-            duree = int(parse_string(sheet, row, col + 1))
+            duration_in_minutes = int(parse_string(sheet, row, col + 1))
+            duration = dt.timedelta(minutes=duration_in_minutes)
         except:
-            duree = -1
-        result[id_] = {'duration': duree,
+            duration = None
+        result[id_] = {'duration': duration,
                        'group_types': set(parse_string_set_in_line(sheet, row, col + 2)),
                        'start_times': set(parse_time_list_in_line(sheet, row + 1, col + 2))}
         row = row + 2 # sic
@@ -276,39 +280,30 @@ def parse_settings(sheet):
     row, col = find_marker_cell(sheet, 'Jalon')
     if row == None:
         logger.warning(f"The 'Jalon' cell in sheet {settings_sheet} is missing")
-        result['day_start_time'] = -1
-        result['day_end_time'] = -1
-        result['morning_end_time'] = -1
-        result['afternoon_start_time'] = -1
+        result['day_start_time'] = None
+        result['day_end_time'] = None
+        result['morning_end_time'] = None
+        result['afternoon_start_time'] = None
     else:
         val = parse_time(sheet, row + 1, col + 1)
-        if val == None:
-            val = -1
         result['day_start_time'] = val
         val = parse_time(sheet, row + 2, col + 1)
-        if val == None:
-            val = -1
-        if val <= result['day_start_time']:
-            val += 24 * 60
         result['day_end_time'] = val
         val = parse_time(sheet, row + 3, col + 1)
-        if val == None:
-            val = -1
         result['morning_end_time'] = val
         val = parse_time(sheet, row + 4, col + 1)
-        if val == None:
-            val = -1
         result['afternoon_start_time'] = val
 
     row, col = find_marker_cell(sheet, 'Granularité')
     if row == None:
         logger.warning(f"The 'Granularité' cell in sheet {settings_sheet} is missing")
-        duration = -1
+        duration = None
     else:
         try:
-            duration = int(parse_string(sheet, row, col + 1))
+            duration_in_minutes = parse_integer(sheet, row, col + 1)
+            duration = dt.timedelta(minutes=duration_in_minutes)
         except:
-            duration = -1
+            duration = None
     result['default_availability_duration'] = duration
 
     days = []

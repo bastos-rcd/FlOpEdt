@@ -108,6 +108,7 @@
 # - <helpers and checkers of higher levels>
 # - main checker
 
+import datetime as dt
 import operator
 
 people_sheet = 'Intervenants'
@@ -250,7 +251,7 @@ def check_cours(cours):
             result.append(f"D: group types of cours '{id_}' isn't a set")
         if isinstance(elem['start_times'], set):
             for time in elem['start_times']:
-                result.extend(check_type(time, int, f"one of the start times of cours '{id_}'"))
+                result.extend(check_type(time, dt.time, f"one of the start times of cours '{id_}'"))
         else:
             result.append(f"D: start times of cours '{id_}' isn't a 'set'")
     return result
@@ -266,12 +267,12 @@ def check_settings(settings):
                             'default_availability_duration', 'days', 'periods'}:
         result.append(f"D: settings doesn't have the expected keys")
         return result
-
-    result.extend(check_type(settings['day_start_time'], int, "Day start time in settings"))
-    result.extend(check_type(settings['day_end_time'], int, "Day end time in settings"))
-    result.extend(check_type(settings['morning_end_time'], int, "Morning end time time in settings"))
-    result.extend(check_type(settings['afternoon_start_time'], int, "Afternoon start time in settings"))
-    result.extend(check_type(settings['default_availability_duration'], int, "Default availability duration in settings"))
+    print([(value, type(value)) for value in settings.values()])
+    result.extend(check_type(settings['day_start_time'], dt.time, "Day start time in settings"))
+    result.extend(check_type(settings['day_end_time'], dt.time, "Day end time in settings"))
+    result.extend(check_type(settings['morning_end_time'], dt.time, "Morning end time time in settings"))
+    result.extend(check_type(settings['afternoon_start_time'], dt.time, "Afternoon start time in settings"))
+    result.extend(check_type(settings['default_availability_duration'], dt.timedelta, "Default availability duration in settings"))
     if isinstance(settings['days'], list):
         if not set(settings['days']).issubset({'m', 'tu', 'w', 'th', 'f', 'sa', 'su'}):
             result.append("D: the days in settings contain invalid values")
@@ -397,13 +398,13 @@ def check_settings_sheet(database):
     morning_end_time = database['settings']['morning_end_time']
     afternoon_start_time = database['settings']['afternoon_start_time']
 
-    if day_start_time < 0:
+    if day_start_time is None:
         result.append(f"L'heure de début de journée dans '{settings_sheet}' est invalide")
-    elif day_end_time < 0:
+    elif day_end_time is None:
         result.append(f"L'heure de fin de journée dans '{settings_sheet}' est invalide")
-    elif morning_end_time < 0:
+    elif morning_end_time is None:
         result.append(f"L'heure de début de pause méridienne dans '{settings_sheet}' est invalide")
-    elif database['settings']['afternoon_start_time'] < 0:
+    elif database['settings']['afternoon_start_time'] is None:
         result.append(f"L'heure de fin de pause méridienne '{settings_sheet}' est invalide")
     else:
         sane = True
@@ -424,7 +425,7 @@ def check_settings_sheet(database):
     #
     # check default duration
     #
-    if database['settings']['default_availability_duration'] < 0:
+    if database['settings']['default_availability_duration'] is None:
         result.append(f"La granularité des séances dans '{settings_sheet}' est invalide")
 
     #
@@ -612,8 +613,9 @@ def check_courses_sheet(database):
         flag_start_in_lunch_break = False
         flag_finish_not_in_day = False
         flag_finish_in_lunch_break = False
+        print(settings)
         for start_time in course['start_times']:
-            if start_time < 0 and not flag_invalid:
+            if start_time ==-1 and not flag_invalid:
                 flag_invalid = True
                 continue
             if not (start_time >= day_start_time and start_time < day_end_time) and not flag_start_not_in_day:
@@ -624,7 +626,7 @@ def check_courses_sheet(database):
                 continue
             if course['duration'] <= 0:
                 continue
-            end_time = start_time + course['duration']
+            end_time = (dt.datetime.combine(dt.date(1,1,1), start_time) + dt.timedelta(minutes=course['duration'])).time()
             if not (end_time > day_start_time and end_time <= day_end_time) and not flag_finish_not_in_day:
                 flag_finish_not_in_day = True
                 continue

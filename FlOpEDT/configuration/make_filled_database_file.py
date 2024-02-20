@@ -116,7 +116,7 @@ def make_filled_database_file(department, filename=None):
     sheet.cell(row=row+4, column=col+1, value=strftime_from_time(department.timegeneralsettings.afternoon_start_time))
 
     row, col = find_marker_cell(sheet, 'Granularité')
-    sheet.cell(row=row, column=col+1, value=department.timegeneralsettings.default_availability_duration)
+    sheet.cell(row=row, column=col+1, value=department.timegeneralsettings.default_availability_duration.seconds//60)
 
     row, col = find_marker_cell(sheet, 'Modes')
     mode = department.mode
@@ -281,6 +281,6 @@ def make_filled_database_file(department, filename=None):
         allowed_start_times.sort()
         for start_time in allowed_start_times:
             col = col + 1
-            sheet.cell(row=row, column=col, value=strftime_from_time(start_time))
+            sheet.cell(row=row, column=col, value=time_from_integer(start_time))
 
     wb.save(filename)
