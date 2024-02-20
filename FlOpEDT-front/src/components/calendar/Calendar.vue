@@ -1,13 +1,14 @@
 <template>
   <div class="header">
-    <button @click="onToday">Today</button>
     <button @click="onPrev">&lt; Prev</button>
+    <button @click="onToday">Today</button>
     <button @click="onNext">Next &gt;</button>
   </div>
   <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
     <q-calendar-day
       ref="calendar"
       v-model="selectedDate"
+      :locale="locale"
       :selected-dates="selectedDates"
       :view="typeCalendar"
       bordered
@@ -72,7 +73,7 @@
                 :key="generateSpanId(event.id, span)"
                 class="event-span"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
-                :style="badgeStyles(event, span, timeStartPos)"
+                :style="badgeStyles(event, span, timeStartPos, preWeight, totalWeight, props.columns, calendar!.timeDurationHeight, closestStartTime, currentTime)"
                 @mousedown="onMouseDown($event, event.id)"
                 @mouseup="onMouseUp()"
               >
@@ -141,7 +142,19 @@ import {
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
-import EditEvent from './EditEvent.vue'
+import EditEvent from '../EditEvent.vue'
+import { useI18n } from 'vue-i18n'
+import {
+  STEP_DEFAULT,
+  badgeClasses,
+  closestStep,
+  nextId,
+  generateSpanId,
+  badgeStyles,
+  updateEventsOverlap,
+} from './utilitary'
+
+const { locale } = useI18n({ useScope: 'global' })
 /**
  * Calendar component handling the display of a week with
  * events data in it.
@@ -160,8 +173,6 @@ const props = defineProps<{
   endOfDayHours: number
   step?: number
 }>()
-
-const STEP_DEFAULT: number = 15
 
 const emits = defineEmits<{
   (e: 'dragstart', id: number): void
@@ -317,103 +328,9 @@ const eventsByDate = computed(() => {
   return map
 })
 
-function columnsInCommon(event1: CalendarEvent, event2: CalendarEvent): boolean {
-  const cols1 = event1.spans.map((span) => span.columnIds).flat()
-  const cols2 = event2.spans.map((span) => span.columnIds).flat()
-  return intersection(cols1, cols2).length !== 0
-}
-
-function updateEventsOverlap(events: CalendarEvent[]): CalendarEvent[] {
-  const newEvents: CalendarEvent[] = events
-  for (let i = 0; i < newEvents.length; i++) {
-    if (newEvents[i].toggled) {
-      for (let k = 0; k < newEvents.length; k++) {
-        if (i !== k && (k > i || !newEvents[k].toggled)) {
-          const sameColumns = columnsInCommon(newEvents[i], newEvents[k])
-          if (newEvents[i].data.dataType === newEvents[k].data.dataType && sameColumns) {
-            const diff = Math.ceil(diffTimestamp(newEvents[i].data.start, newEvents[k].data.start) / 1000 / 60)
-            if (diff > 0) {
-              if (newEvents[i].data.duration! > diff) {
-                newEvents[i].toggled = newEvents[k].toggled = false
-              }
-            } else {
-              if (newEvents[k].data.duration! > Math.abs(diff)) {
-                newEvents[i].toggled = newEvents[k].toggled = false
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  return newEvents
-}
-
 const totalWeight = computed(() => {
   return sumBy(props.columns, (c: CalendarColumn) => c.weight)
 })
-
-function badgeClasses(type: 'event' | 'dropzone' | 'header' | 'avail', bgcolor?: string, toggled?: boolean) {
-  switch (type) {
-    case 'event':
-      return {
-        [`text-white bg-${bgcolor}`]: true,
-        'rounded-border': true,
-      }
-    case 'dropzone':
-      return 'my-dropzone border-dashed'
-    case 'header':
-      return {}
-    case 'avail':
-      return { 'rounded-border': true }
-  }
-}
-function badgeStyles(
-  event: CalendarEvent,
-  span: { istart: number; weight: number; columnIds: number[] },
-  timeStartPos: any = undefined
-) {
-  // const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
-  // if (!currentColumn) return undefined
-  const preceedingWeight = preWeight.value[props.columns[span.istart].id]
-
-  const s: Record<string, string> = {
-    top: '',
-    height: '',
-  }
-  if (timeStartPos) {
-    s.top = timeStartPos(event.data?.start) + 'px'
-    s.left = Math.round((preceedingWeight / totalWeight.value) * 100) + '%'
-    s.width = Math.round((100 * span.weight) / totalWeight.value) + '%'
-    if (typeof calendar.value?.timeDurationHeight(event.data?.duration) === 'number') {
-      s.height = calendar.value!.timeDurationHeight(event.data?.duration) + 'px'
-    }
-  }
-  if (event.data.dataType === 'dropzone') {
-    s['background-color'] = 'transparent'
-  } else {
-    s['background-color'] = event.bgcolor
-  }
-  if (event.data.dataType === 'event') {
-    s['border'] = '2px solid #000000'
-  } else if (event.data.dataType === 'avail') {
-    s['resize'] = 'vertical'
-    s['overflow'] = 'auto'
-    s['border'] = '1px solid #222222'
-  } else if (
-    event.data?.dataType === 'dropzone' &&
-    event.data.start.time === closestStartTime.value &&
-    event.data.start.date === currentTime.value?.date
-  ) {
-    s['border-color'] = 'green'
-    s['border-width'] = '3px'
-  }
-  s['align-items'] = 'flex-start'
-  if (!event.toggled && event.data.dataType === 'event') {
-    s['background-color'] = 'rgba(255,120,0,0.5)'
-  }
-  return s
-}
 
 /**
  *
@@ -629,15 +546,136 @@ let currentAvailId: number = -1
 let newAvailDuration: number = 0
 let oldAvailDuration: number = 0
 
+function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
+  if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
+  const target = mouseEvent.target
+  if (target instanceof HTMLElement) {
+    const targetChild = target.firstElementChild
+    if (mouseEvent.button === 0) {
+      if (target.classList.contains('avail')) {
+        onAvailClick(mouseEvent, eventId)
+      } else if (target.classList.contains('event') || targetChild?.classList.contains('event')) {
+        const dataId = eventsModel.value.find((ev) => ev.id === eventId)?.data.dataId
+        if (dataId) emits('event:details', dataId)
+      } else if (target.classList.contains('event-span') && targetChild?.classList.contains('avail')) {
+        currentAvailId = eventId
+        availResizeObs.observe(target as Element)
+      }
+    }
+  }
+}
+
+function onMouseUp(): void {
+  availResizeObs.disconnect()
+  if (currentAvailId !== -1) {
+    const newEvent: InputCalendarEvent = cloneDeep(
+      eventsModel.value.find((e) => currentAvailId === e.id) as InputCalendarEvent
+    )
+    if (newEvent) {
+      const newEvents: InputCalendarEvent[] = updateResizedEvent(newEvent)
+      if (
+        oldAvailDuration === newAvailDuration &&
+        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDayHours * 60
+      ) {
+        eventsModel.value = newEvents
+        currentAvailId = -1
+        return
+      }
+      if (oldAvailDuration !== newAvailDuration) {
+        const bigger: boolean = newAvailDuration - oldAvailDuration > 0
+        if (bigger) {
+          updateResizedUpEvents(newEvents, newEvent)
+          const nextAvail: InputCalendarEvent | undefined = newEvents.find((e) => {
+            return (
+              e.data.start.date === newEvent.data.start.date &&
+              parseTime(e.data.start) === parseTime(newEvent.data.start) + newEvent.data.duration &&
+              e.data.dataType === 'avail'
+            )
+          })
+          if (nextAvail && nextAvail.data.value === newEvent.data.value) {
+            newEvent.data.duration! += nextAvail.data.duration!
+            remove(newEvents, (e) => e.id === nextAvail.id)
+          }
+        } else {
+          updateResizedDownEvents(newEvents, newEvent)
+        }
+        eventsModel.value = newEvents
+      }
+    }
+    currentAvailId = -1
+  }
+}
+
+function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
+  if (mouseEvent.button === 0) {
+    if (!timeoutId) {
+      timeoutId = setTimeout(() => {
+        changeAvailValue(eventId)
+        clearTimeout(timeoutId)
+        timeoutId = null
+      }, 200)
+    } else {
+      // DoubleClick management
+      clearTimeout(timeoutId)
+      timeoutId = null
+      const firstAvail = cloneDeep(eventsModel.value.find((e) => e.id === eventId))
+      if (firstAvail) {
+        if (firstAvail.data.duration! > (props.step || STEP_DEFAULT)) {
+          const secondAvail = cloneDeep(firstAvail)
+          const allEvents = cloneDeep(eventsModel.value)
+          //@ts-expect-error
+          const layerY = mouseEvent.layerY
+          firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
+          updateMinutes(
+            secondAvail.data.start,
+            parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY, props.step)
+          )
+          secondAvail.id = nextId()
+          secondAvail.data.duration! -= firstAvail.data.duration
+          remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
+          allEvents.push(firstAvail, secondAvail)
+          eventsModel.value = allEvents
+        }
+      }
+    }
+  }
+}
+
+function changeAvailValue(eventId: number, value?: number): void {
+  const newEvent: InputCalendarEvent | undefined = cloneDeep(
+    eventsModel.value.find((ev: InputCalendarEvent) => ev.id == eventId)
+  )
+  if (newEvent !== undefined && newEvent.data.dataType === 'avail') {
+    const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
+    if (value || value === 0) {
+      newEvent.data.value = value
+    } else {
+      if (newEvent.data.value! < 3) {
+        newEvent.data.value = 3
+      } else if (newEvent.data.value! >= 3 && newEvent.data.value! < 6) {
+        newEvent.data.value = 6
+      } else if (newEvent.data.value! >= 6 && newEvent.data.value! < 8) {
+        newEvent.data.value = 8
+      } else {
+        newEvent.data.value = 0
+      }
+    }
+    remove(newEvents, (e: InputCalendarEvent) => {
+      return e.id === newEvent!.id
+    })
+    newEvents.push(newEvent)
+    eventsModel.value = newEvents
+  }
+}
+
+/**
+ * AVAIL REZISE MANAGEMENT
+ */
 const availResizeObs = new ResizeObserver((entries) => {
   if (calendar.value?.timeDurationHeight) {
     newAvailDuration = entries[0].contentRect.height * minutesToPixelRate
   }
 })
-
-/**
- * AVAIL REZISE MANAGEMENT
- */
 
 function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] {
   oldAvailDuration = newEvent.data.duration as number
@@ -723,160 +761,6 @@ function updateResizedDownEvents(newEvents: InputCalendarEvent[], newEvent: Inpu
     newEvents.push(availToUpdate)
   }
 }
-
-function isItOnStep(nbMinutes: number, step: number = STEP_DEFAULT): boolean {
-  return nbMinutes % step === 0
-}
-
-function closestStep(nbMinutes: number, step: number = STEP_DEFAULT): number {
-  if (!isItOnStep(nbMinutes)) {
-    const mod = nbMinutes % step
-    if (mod < step / 2) {
-      if (nbMinutes - mod === 0) return step
-      return nbMinutes - mod
-    } else {
-      return nbMinutes + (step - mod)
-    }
-  } else {
-    return nbMinutes
-  }
-}
-
-function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
-  if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
-  const target = mouseEvent.target
-  if (target instanceof HTMLElement) {
-    const targetChild = target.firstElementChild
-    if (mouseEvent.button === 0) {
-      if (target.classList.contains('avail')) {
-        onAvailClick(mouseEvent, eventId)
-      } else if (target.classList.contains('event') || targetChild?.classList.contains('event')) {
-        const dataId = eventsModel.value.find((ev) => ev.id === eventId)?.data.dataId
-        if (dataId) emits('event:details', dataId)
-      } else if (target.classList.contains('event-span') && targetChild?.classList.contains('avail')) {
-        currentAvailId = eventId
-        availResizeObs.observe(target as Element)
-      }
-    }
-  }
-}
-
-function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
-  if (mouseEvent.button === 0) {
-    if (!timeoutId) {
-      timeoutId = setTimeout(() => {
-        changeAvailValue(eventId)
-        clearTimeout(timeoutId)
-        timeoutId = null
-      }, 200)
-    } else {
-      // DoubleClick management
-      clearTimeout(timeoutId)
-      timeoutId = null
-      const firstAvail = cloneDeep(eventsModel.value.find((e) => e.id === eventId))
-      if (firstAvail) {
-        if (firstAvail.data.duration! > (props.step || STEP_DEFAULT)) {
-          const secondAvail = cloneDeep(firstAvail)
-          const allEvents = cloneDeep(eventsModel.value)
-          //@ts-expect-error
-          const layerY = mouseEvent.layerY
-          firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
-          updateMinutes(
-            secondAvail.data.start,
-            parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY, props.step)
-          )
-          secondAvail.id = nextId()
-          secondAvail.data.duration! -= firstAvail.data.duration
-          remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
-          allEvents.push(firstAvail, secondAvail)
-          eventsModel.value = allEvents
-        }
-      }
-    }
-  }
-}
-
-function onMouseUp(): void {
-  availResizeObs.disconnect()
-  if (currentAvailId !== -1) {
-    const newEvent: InputCalendarEvent = cloneDeep(
-      eventsModel.value.find((e) => currentAvailId === e.id) as InputCalendarEvent
-    )
-    if (newEvent) {
-      const newEvents: InputCalendarEvent[] = updateResizedEvent(newEvent)
-      if (
-        oldAvailDuration === newAvailDuration &&
-        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDayHours * 60
-      ) {
-        eventsModel.value = newEvents
-        currentAvailId = -1
-        return
-      }
-      if (oldAvailDuration !== newAvailDuration) {
-        const bigger: boolean = newAvailDuration - oldAvailDuration > 0
-        if (bigger) {
-          updateResizedUpEvents(newEvents, newEvent)
-          const nextAvail: InputCalendarEvent | undefined = newEvents.find((e) => {
-            return (
-              e.data.start.date === newEvent.data.start.date &&
-              parseTime(e.data.start) === parseTime(newEvent.data.start) + newEvent.data.duration &&
-              e.data.dataType === 'avail'
-            )
-          })
-          if (nextAvail && nextAvail.data.value === newEvent.data.value) {
-            newEvent.data.duration! += nextAvail.data.duration!
-            remove(newEvents, (e) => e.id === nextAvail.id)
-          }
-        } else {
-          updateResizedDownEvents(newEvents, newEvent)
-        }
-        eventsModel.value = newEvents
-      }
-    }
-    currentAvailId = -1
-  }
-}
-
-let idAvail = 900
-
-function nextId(): number {
-  return idAvail++
-}
-
-function changeAvailValue(eventId: number, value?: number): void {
-  const newEvent: InputCalendarEvent | undefined = cloneDeep(
-    eventsModel.value.find((ev: InputCalendarEvent) => ev.id == eventId)
-  )
-  if (newEvent !== undefined && newEvent.data.dataType === 'avail') {
-    const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
-    if (value || value === 0) {
-      newEvent.data.value = value
-    } else {
-      if (newEvent.data.value! < 3) {
-        newEvent.data.value = 3
-      } else if (newEvent.data.value! >= 3 && newEvent.data.value! < 6) {
-        newEvent.data.value = 6
-      } else if (newEvent.data.value! >= 6 && newEvent.data.value! < 8) {
-        newEvent.data.value = 8
-      } else {
-        newEvent.data.value = 0
-      }
-    }
-    remove(newEvents, (e: InputCalendarEvent) => {
-      return e.id === newEvent!.id
-    })
-    newEvents.push(newEvent)
-    eventsModel.value = newEvents
-  }
-}
-
-function generateSpanId(eventId: number, spans: any): string {
-  let colIds = ''
-  spans.columnIds.forEach((cl: number) => {
-    colIds += cl.toString()
-  })
-  return `${eventId}-${colIds}-${spans.istart}`
-}
 </script>
 
 <style lang="sass" scoped>
@@ -898,4 +782,7 @@ function generateSpanId(eventId: number, spans: any): string {
   border: 1px dashed grey
 .my-dropzone
   pointer-events: none
+.header, button
+  padding: 1px
+  margin: 3px
 </style>
