@@ -68,14 +68,12 @@ class DatedAvailabilityViewSet(
         if getattr(self, "swagger_fake_view", False):
             return bm.RoomAvailability.objects.none()
 
-        if "from_date" in self.request.query_params:
-            self.from_date = dt.datetime.fromisoformat(
-                self.request.query_params.get("from_date")
-            ).date()
-        if "to_date" in self.request.query_params:
-            self.to_date = dt.datetime.fromisoformat(
-                self.request.query_params.get("to_date")
-            ).date()
+        self.from_date = dt.datetime.fromisoformat(
+            self.request.query_params.get("from_date")
+        ).date()
+        self.to_date = dt.datetime.fromisoformat(
+            self.request.query_params.get("to_date")
+        ).date()
 
         if self.from_date > self.to_date:
             raise exceptions.NotAcceptable(
@@ -100,20 +98,15 @@ class DatedAvailabilityViewSet(
 )
 class RoomDatedAvailabilityViewSet(DatedAvailabilityViewSet):
     """
-    Availability. Either a user or a department must be entered.
+    Availability. Either a room or a department must be entered.
     """
 
     AvailabilityModel = bm.RoomAvailability
-
-    def get_serializer_class(self):
-        if self.action == "list":
-            return serializers.RoomAvailabilitySerializer
-        else:
-            return serializers.RoomAvailabilityFullDaySerializer
+    serializer_class = serializers.RoomAvailabilitySerializer
 
     def get_queryset(self):
 
-        ret = super(RoomDatedAvailabilityViewSet, self).get_queryset(self)
+        ret = super(RoomDatedAvailabilityListViewSet, self).get_queryset()
 
         room_id = self.request.query_params.get("room_id", None)
         dept_abbrev = self.request.query_params.get("dept", None)
@@ -126,6 +119,17 @@ class RoomDatedAvailabilityViewSet(DatedAvailabilityViewSet):
         if dept_abbrev is not None:
             ret = ret.filter(room__departments__abbrev=dept_abbrev)
         return ret
+
+
+class RoomDatedAvailabilityUpdateViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Availability. Either a room or a department must be entered.
+    """
+
+    AvailabilityModel = bm.RoomAvailability
+    serializer_class = serializers.RoomAvailabilityFullDaySerializer
 
 
 @method_decorator(
@@ -145,15 +149,10 @@ class UserDatedAvailabilityViewSet(DatedAvailabilityViewSet):
     """
 
     AvailabilityModel = bm.UserAvailability
-
-    def get_serializer_class(self):
-        if self.action == "list":
-            return serializers.UserAvailabilitySerializer
-        else:
-            return serializers.UserAvailabilityFullDaySerializer
+    serializer_class = serializers.UserAvailabilitySerializer
 
     def get_queryset(self):
-        ret = super(UserDatedAvailabilityViewSet, self).get_queryset()
+        ret = super(UserDatedAvailabilityListViewSet, self).get_queryset()
 
         user_id = self.request.query_params.get("user_id", None)
         dept_abbrev = self.request.query_params.get("dept", None)
@@ -177,7 +176,7 @@ class UserDatedAvailabilityViewSet(DatedAvailabilityViewSet):
         ],
     ),
 )
-class UserDefaultAvailabilityViewSet(UserDatedAvailabilityViewSet):
+class UserDefaultAvailabilityViewSet(UserDatedAvailabilityListViewSet):
     def list(self, request, *args, **kwargs):
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)

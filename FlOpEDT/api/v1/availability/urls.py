@@ -28,7 +28,10 @@ from api.v1.availability import views
 routerAvailability = routers.SimpleRouter()
 
 routerAvailability.register(
-    r"user", views.UserDatedAvailabilityViewSet, basename="user"
+    r"user", views.UserDatedAvailabilityListViewSet, basename="user"
+)
+routerAvailability.register(
+    r"update_user", views.UserDatedAvailabilityUpdateViewSet, basename="user-update"
 )
 routerAvailability.register(
     r"user-default-week",
@@ -36,8 +39,12 @@ routerAvailability.register(
     basename="user-default-week",
 )
 routerAvailability.register(
-    r"room", views.RoomDatedAvailabilityViewSet, basename="room"
+    r"room", views.RoomDatedAvailabilityListViewSet, basename="room"
 )
+routerAvailability.register(
+    r"update_room", views.RoomDatedAvailabilityUpdateViewSet, basename="room-update"
+)
+
 routerAvailability.register(
     r"room-default-week",
     views.UserDefaultAvailabilityViewSet,
