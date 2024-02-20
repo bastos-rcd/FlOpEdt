@@ -28,9 +28,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from rest_framework.permissions import DjangoObjectPermissions, DjangoModelPermissions
+
+from rules.contrib.rest_framework import AutoPermissionViewSetMixin
+
 import people.models as pm
 import base.models as bm
-from api.v1.people.serializers import UserSerializer, StudentSerializer
+from api.v1.people.serializers import (
+    UserSerializer,
+    StudentSerializer,
+    ThemePreferencesSerializer,
+)
 
 from api.permissions import IsAdminOrReadOnly
 
@@ -41,6 +49,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a User object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = pm.User.objects.all()
     serializer_class = UserSerializer
@@ -48,8 +57,8 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 class getCurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
-    
-    def get(self,request):
+
+    def get(self, request):
         return Response(UserSerializer(request.user).data)
 
 
@@ -59,6 +68,7 @@ class TutorsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a User object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = pm.Tutor.objects.all()
     serializer_class = UserSerializer
@@ -70,6 +80,13 @@ class StudentsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with eveUserSerializerry field of a User object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = pm.Student.objects.all()
     serializer_class = StudentSerializer
+
+
+class ThemePreferenceViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
+    queryset = pm.ThemesPreferences.objects.all()
+    serializer_class = ThemePreferencesSerializer
+    # permission_classes = [DjangoModelPermissions]
