@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'django_crontab',
     'roomreservation',
     'acme_challenge',
+    'rules.apps.AutodiscoverRulesConfig',
 ]
 
 MIDDLEWARE = [
@@ -265,3 +266,8 @@ SHELL_PLUS_IMPORTS = (
 CORS_ALLOW_ALL_ORIGINS = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+AUTHENTICATION_BACKENDS = (
+    'rules.permissions.ObjectPermissionBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
