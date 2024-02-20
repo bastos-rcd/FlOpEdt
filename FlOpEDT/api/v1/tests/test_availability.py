@@ -3,7 +3,11 @@ import datetime as dt
 import pytest
 
 from rest_framework.test import APIClient, APITestCase
-from rest_framework.status import HTTP_406_NOT_ACCEPTABLE
+from rest_framework.status import (
+    HTTP_406_NOT_ACCEPTABLE,
+    HTTP_403_FORBIDDEN,
+    is_success,
+)
 from api.v1.tests.utils import retrieve_elements
 
 from django.utils.duration import duration_string
@@ -81,7 +85,11 @@ class TestUserAvailabilityActual:
             },
         ]
 
-    @pytest.mark.skip(reason="rights have to be implemented")
+
+class TestUserAvailabilityActual:
+    endpoint = f"/fr/api/v1/availability/update_user/"
+
+    # @pytest.mark.skip(reason="rights have to be implemented")
     def test_update(self, client, make_user_hourly_commune):
         user = User.objects.first()
         client.force_authenticate(user=user)
@@ -102,8 +110,38 @@ class TestUserAvailabilityActual:
                 },
             ],
         }
-        response = retrieve_elements(client.post(self.endpoint, wanted), 1)
+        response = retrieve_elements(client.post(self.endpoint, wanted), 3)
         assert response == wanted
+
+    def test_update_rights(self, client, make_users, make_default_week_user):
+        user = User.objects.first()
+        client.force_authenticate(user=user)
+        date = "1871-03-20"
+        wanted = {
+            "date": date,
+            "subject_id": user.id,
+            "intervals": [
+                {
+                    "start_time": f"{date}T00:00:00",
+                    "duration": "12:00:00",
+                    "value": 3,
+                },
+                {
+                    "start_time": f"{date}T12:00:00",
+                    "duration": "12:00:00",
+                    "value": 2,
+                },
+            ],
+        }
+        response = client.post(self.endpoint, wanted)
+        assert is_success(response.status_code), response.content
+        wanted["subject_id"] = User.objects.all()[1].id
+        assert user.id != wanted["subject_id"]
+        response = client.post(self.endpoint, wanted)
+        print(dir(response))
+        print(response.content)
+        print(response.data)
+        assert response.status_code == HTTP_403_FORBIDDEN, (response.content, user.id)
 
     def test_rights(self):
         pass
