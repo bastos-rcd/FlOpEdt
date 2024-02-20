@@ -74,13 +74,17 @@ class Week(models.Model):
 
     def __lt__(self, other):
         if isinstance(other, Week):
-            return self.year < other.year or (self.year == other.year and self.nb < other.nb)
+            return self.year < other.year or (
+                self.year == other.year and self.nb < other.nb
+            )
         else:
             return False
 
     def __gt__(self, other):
         if isinstance(other, Week):
-            return self.year > other.year or (self.year == other.year and self.nb > other.nb)
+            return self.year > other.year or (
+                self.year == other.year and self.nb > other.nb
+            )
         else:
             return False
 
@@ -123,15 +127,18 @@ class Mode(models.Model):
      - 1 for employee cooperatives in which columns are workplaces
      - 2 for employee cooperatives in which columns are employees
     """
+
     EDUCATIVE = 0
     COOPERATIVE_BY_WORKPLACE = 1
     COOPERATIVE_BY_WORKER = 2
 
-    cosmo_choices = ((EDUCATIVE, _("Educative")),
-                     (COOPERATIVE_BY_WORKPLACE, _("Coop. (workplace)")),
-                     (COOPERATIVE_BY_WORKER, _("Coop. (worker)")))
+    cosmo_choices = (
+        (EDUCATIVE, _("Educative")),
+        (COOPERATIVE_BY_WORKPLACE, _("Coop. (workplace)")),
+        (COOPERATIVE_BY_WORKER, _("Coop. (worker)")),
+    )
 
-    department = models.OneToOneField('base.Department', on_delete=models.CASCADE)
+    department = models.OneToOneField("base.Department", on_delete=models.CASCADE)
     cosmo = models.PositiveSmallIntegerField(default=0, choices=cosmo_choices)
     visio = models.BooleanField(default=False)
 
@@ -149,7 +156,7 @@ class Mode(models.Model):
         return text
 
 
-@receiver(post_save, sender='base.Department')
+@receiver(post_save, sender="base.Department")
 def create_department_related(sender, instance, created, raw, **kwargs):
     if not created or raw:
         return
@@ -161,5 +168,5 @@ def create_department_related(sender, instance, created, raw, **kwargs):
         day_finish_time=20 * 60,
         lunch_break_start_time=13 * 60,
         lunch_break_finish_time=13 * 60,
-        days=days_list
+        days=days_list,
     )
