@@ -123,7 +123,7 @@ import {
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
-import { forEach, includes, concat, cloneDeep, remove, sortBy, find, intersection, sumBy, filter } from 'lodash'
+import { forEach, includes, concat, cloneDeep, remove, sortBy, find, sumBy, filter } from 'lodash'
 
 import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 

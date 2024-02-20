@@ -42,6 +42,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
             trainProgId: r.trainProgId,
             groupIds: r.groupIds,
             suppTutorsIds: r.suppTutorsIds,
+            no: -1,
+            courseTypeId: -1,
           })
         })
         isLoading.value = false
@@ -125,6 +127,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
         trainProgId: -1,
         groupIds: cloneDeep(course.groupIds),
         suppTutorsIds: cloneDeep(course.suppTutorIds),
+        no: -1,
+        courseTypeId: -1,
       }
     }
     return scheduledCourse

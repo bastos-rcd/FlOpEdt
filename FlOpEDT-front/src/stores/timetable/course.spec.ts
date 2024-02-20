@@ -36,6 +36,8 @@ describe('Availibility store utils', () => {
       trainProgId: 45,
       groupIds: [23, 24],
       suppTutorsIds: [303, 194],
+      no: -1,
+      courseTypeId: -1,
     })
   })
 
@@ -166,6 +168,8 @@ describe('Availibility store utils', () => {
       trainProgId: 45,
       groupIds: [23, 24],
       suppTutorsIds: [303, 194],
+      no: -1,
+      courseTypeId: -1,
     })
     expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2017-01-15')!).length).toBe(1)
     expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2018-01-16')!).length).toBe(1)
@@ -182,6 +186,8 @@ describe('Availibility store utils', () => {
       trainProgId: 45,
       groupIds: [24],
       suppTutorsIds: [],
+      no: -1,
+      courseTypeId: -1,
     })
     expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2017-01-15')!).length).toBe(1)
     expect(courseStore.getScheduledCoursesFromDateToDate(parseTimestamp('2018-01-16')!).length).toBe(2)

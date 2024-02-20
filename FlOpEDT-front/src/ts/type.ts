@@ -134,6 +134,8 @@ export class ScheduledCourse {
   trainProgId: number
   groupIds: number[]
   suppTutorsIds: number[]
+  courseTypeId: number
+  no: number
 
   constructor(
     id = -1,
@@ -146,7 +148,9 @@ export class ScheduledCourse {
     moduleId = -1,
     trainProgId = -1,
     groupIds = [],
-    suppTutorsIds = []
+    suppTutorsIds = [],
+    courseTypeId = -1,
+    no = -1
   ) {
     this.id = id
     this.roomId = room
@@ -159,6 +163,8 @@ export class ScheduledCourse {
     this.trainProgId = trainProgId
     this.groupIds = groupIds
     this.suppTutorsIds = suppTutorsIds
+    this.courseTypeId = courseTypeId
+    this.no = no
   }
 }
 
