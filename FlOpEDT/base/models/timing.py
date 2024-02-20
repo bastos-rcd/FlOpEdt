@@ -1,3 +1,5 @@
+import datetime as dt
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -96,20 +98,20 @@ class Week(models.Model):
 
 class TimeGeneralSettings(models.Model):
     department = models.OneToOneField('base.Department', on_delete=models.CASCADE)
-    day_start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
-    day_finish_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
-    lunch_break_start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
-    lunch_break_finish_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    day_start_time = models.TimeField(default=dt.time(hour=8))
+    morning_end_time = models.TimeField(default=dt.time(12, 30, 0))
+    afternoon_start_time = models.TimeField(default=dt.time(14, 15, 0))
+    day_end_time = models.TimeField(default=dt.time(hour=19))
     days = ArrayField(models.CharField(max_length=2,
                                        choices=DAY_CHOICES))
-    default_preference_duration = models.PositiveSmallIntegerField(default=90)  # FIXME : time with TimeField or DurationField
+    default_preference_duration = models.DurationField(default=dt.timedelta(minutes=90))
 
     def __str__(self):
         return (
             f"Dept {self.department.abbrev}: "
-            + f"{min_to_str(self.day_start_time)} - {min_to_str(self.lunch_break_start_time)}"
-            + f" | {min_to_str(self.lunch_break_finish_time)} - "
-            + f"{min_to_str(self.day_finish_time)};"
+            + f"{self.day_start_time} - {self.morning_end_time}"
+            + f" | {self.afternoon_start_time} - "
+            + f"{self.day_end_time};"
             + f" Days: {self.days}"
         )
 

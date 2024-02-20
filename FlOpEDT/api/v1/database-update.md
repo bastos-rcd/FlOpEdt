@@ -31,6 +31,7 @@ Rename:
 - [x] Un `User` en `ForeignKey` plutôt qu'un `Tutor`
 - [x] ajout d'un index sur les User/ --> [automatiquement créé](https://docs.djangoproject.com/en/4.2/ref/models/fields/#foreignkey)
 - [x] Passer les start_time et duration des Availability en vrai temps
+- [x] RoomAvailability
 - [ ] tests
   - [ ] création dispos par défaut
   - [ ] si appel API en post avec des timezones -> ignorer ou bad request?
@@ -39,14 +40,17 @@ Rename:
   - [x] décider -> tout en naive
   - [ ] vérifier les conséquences sur les ical
   - [ ] vérifier les conséquences sur le qcalendar
+- [ ] Finir changement de temps sauf dans TTapp
 
 ### \*Availability
 
 Après les migrations :
 
-- [ ] \*AvailabilityAdmin: corriger
+- [x] \*AvailabilityAdmin: corriger
 - [ ] \*DefaultAvailability à rediriger vers A1-S1
-- [ ] is_same de Availability ? + Si semaine par défaut + terminologie < ? before ? euh toutes les fonctions, en fait
+  - [x] get
+  - [ ] create/update
+- [x] ASK PABLO is_same de Availability ? + Si semaine par défaut + terminologie < ? before ? toutes les fonctions, en fait
 
 ## Rights/belts
 
@@ -57,6 +61,11 @@ Après les migrations :
 ## Améliorations
 
 - [ ] mettre plutôt les validations du serializer du post de UserAvailability dans le `is_valid`
+
+## Reste du temps
+
+- [ ] TimeGeneralSettings: \*
+- [ ]
 
 ## Des trucs à savoir
 
