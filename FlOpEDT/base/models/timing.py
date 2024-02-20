@@ -144,6 +144,9 @@ class TimeGeneralSettings(models.Model):
     default_availability_duration = models.DurationField(
         default=dt.timedelta(minutes=90)
     )
+    scheduling_period_mode = models.CharField(
+        max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
+    )
 
     def __str__(self):
         return (
