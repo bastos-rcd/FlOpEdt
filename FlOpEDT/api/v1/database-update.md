@@ -65,6 +65,11 @@ Après les migrations :
 ## Reste du temps
 
 - [ ] TimeGeneralSettings: \*
+  - [ ] Faire une entrée d'api pour remplacer get_department_settings(dept) (appelé dans base/views) (NB : les formats des start_time ont changé)
+  - [ ] Modifier database_description_checker | database_description_xlsx | make_filled_database_file
+  - [ ] modifier tous les flopdate_to_datetime et réciproquement
+  - [ ] Modifier hyperplanning.py (Pas sûr)
+
 - [ ]
 
 ## Des trucs à savoir

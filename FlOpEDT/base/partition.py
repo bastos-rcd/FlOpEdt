@@ -36,7 +36,7 @@ from base.timing import (
     flopdate_to_datetime,
     time_to_floptime,
 )
-from datetime import datetime, timedelta
+import datetime as dt
 from django.db.models import Q
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
 import copy
@@ -138,34 +138,34 @@ class Partition(object):
         """Add forbidden lunch time to each day of the partition
 
         Parameters:
-            start_time (int): the starting time in minutes from midnight of the lunch_break
-            end_time (int): the ending time in minutes from midnight of the lunch_break
+            start_time (time): the starting time of the lunch_break
+            end_time (time): the ending time from midnight of the lunch_break
         """
         day = self.intervals[0][0].start
-        end_hours = end_time // 60
-        end_minutes = end_time % 60
-        start_hours = start_time // 60
-        start_minutes = start_time % 60
+        end_hours = end_time.hour
+        end_minutes = end_time.minute
+        start_hours = start_time.hour
+        start_minutes = start_time.minute
 
         while day < self.intervals[len(self.intervals) - 1][0].end:
             self.add_slot(
                 TimeInterval(
-                    datetime(
+                    dt.datetime(
                         day.year, day.month, day.day, start_hours, start_minutes, 0
                     ),
-                    datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
+                    dt.datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
                 ),
                 "lunch_break",
                 {"forbidden": True, "lunch_break": True},
             )
-            day = day + timedelta(days=1)
+            day = day + dt.timedelta(days=1)
         if self.intervals[0][0].start > self.intervals[len(self.intervals) - 1][0].end:
             self.add_slot(
                 TimeInterval(
-                    datetime(
+                    dt.datetime(
                         day.year, day.month, day.day, start_hours, start_minutes, 0
                     ),
-                    datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
+                    dt.datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
                 ),
                 "lunch_break",
                 {"forbidden": True, "lunch_break": True},
@@ -216,11 +216,11 @@ class Partition(object):
             if day.weekday() == weekend_indexes[0]:
                 self.add_slot(
                     TimeInterval(
-                        datetime(day.year, day.month, day.day, 0, 0, 0),
-                        datetime(
-                            (day + timedelta(days=number_of_day_week_end + 1)).year,
-                            (day + timedelta(days=number_of_day_week_end + 1)).month,
-                            (day + timedelta(days=number_of_day_week_end + 1)).day,
+                        dt.datetime(day.year, day.month, day.day, 0, 0, 0),
+                        dt.datetime(
+                            (day + dt.timedelta(days=number_of_day_week_end + 1)).year,
+                            (day + dt.timedelta(days=number_of_day_week_end + 1)).month,
+                            (day + dt.timedelta(days=number_of_day_week_end + 1)).day,
                             0,
                             0,
                             0,
@@ -229,9 +229,9 @@ class Partition(object):
                     "week_end",
                     {"forbidden": True, "week_end": True},
                 )
-                day = day + timedelta(days=number_of_day_week_end)
+                day = day + dt.timedelta(days=number_of_day_week_end)
             else:
-                day = day + timedelta(days=1)
+                day = day + dt.timedelta(days=1)
         return True
 
     def add_night_time(self, day_start_time=None, day_end_time=None):
@@ -265,8 +265,8 @@ class Partition(object):
         ):
             self.add_slot(
                 TimeInterval(
-                    datetime(day.year, day.month, day.day, 0, 0, 0),
-                    datetime(day.year, day.month, day.day, start_hours, start_minutes),
+                    dt.datetime(day.year, day.month, day.day, 0, 0, 0),
+                    dt.datetime(day.year, day.month, day.day, start_hours, start_minutes),
                 ),
                 "night_time",
                 {"forbidden": True, "night_time": True},
@@ -274,11 +274,11 @@ class Partition(object):
         while day < self.intervals[len(self.intervals) - 1][0].end:
             self.add_slot(
                 TimeInterval(
-                    datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
-                    datetime(
-                        (day + timedelta(days=1)).year,
-                        (day + timedelta(days=1)).month,
-                        (day + timedelta(days=1)).day,
+                    dt.datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
+                    dt.datetime(
+                        (day + dt.timedelta(days=1)).year,
+                        (day + dt.timedelta(days=1)).month,
+                        (day + dt.timedelta(days=1)).day,
                         start_hours,
                         start_minutes,
                         0,
@@ -287,7 +287,7 @@ class Partition(object):
                 "night_time",
                 {"forbidden": True, "night_time": True},
             )
-            day = day + timedelta(days=1)
+            day = day + dt.timedelta(days=1)
 
     def nb_slots_available_of_duration(self, duration):
         """Calculates the number of available time in the partition of minimum consecutive duration
@@ -507,7 +507,7 @@ class Partition(object):
                 while i < len(self.intervals) and key in self.intervals[i][1]:
                     i += 1
                 if (
-                    start + timedelta(hours=duration // 60, minutes=duration % 60)
+                    start + dt.timedelta(hours=duration // 60, minutes=duration % 60)
                     <= self.intervals[i][0].start
                 ):
                     intervalle = TimeInterval(start, self.intervals[i][0].start)
@@ -574,7 +574,7 @@ class Partition(object):
                         and time_to_floptime(self.intervals[i][0].end.time()) > st
                     ):
                         dif = st - time_to_floptime(self.intervals[i][0].start.time())
-                        datetime_start = self.intervals[i][0].start + timedelta(
+                        datetime_start = self.intervals[i][0].start + dt.timedelta(
                             hours=dif / 60
                         )
                         start = st
@@ -626,7 +626,7 @@ class Partition(object):
                         and time_to_floptime(self.intervals[i][0].end.time()) > st
                     ):
                         dif = st - time_to_floptime(self.intervals[i][0].start.time())
-                        datetime_start = self.intervals[i][0].start + timedelta(
+                        datetime_start = self.intervals[i][0].start + dt.timedelta(
                             hours=dif / 60
                         )
                         start = st
@@ -836,8 +836,8 @@ class Partition(object):
         )
         if with_day_time:
             considered_week_partition.add_lunch_break(
-                time_settings.lunch_break_start_time,
-                time_settings.lunch_break_finish_time,
+                time_settings.morning_end_time,
+                time_settings.afternoon_start_time,
             )
             considered_week_partition.add_night_time(
                 time_settings.day_start_time, time_settings.day_finish_time

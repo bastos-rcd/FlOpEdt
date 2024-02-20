@@ -154,23 +154,23 @@ def validate_department_update(old_dept_name, new_dept_name,
 
 
 def validate_parameters_edit(days, day_start_time,
-                             day_finish_time, lunch_break_start_time,
-                             lunch_break_finish_time,
-                             default_preference_duration):
+                             day_end_time, morning_end_time,
+                             afternoon_start_time,
+                             default_availability_duration):
     """Validate parameters for department creation
 
     :param days: List of checked working days
     :type days: List
     :param day_start_time: Day start time hh:mm
     :type day_start_time: String
-    :param day_finish_time: Day finish time hh:mm
-    :type day_finish_time: String
-    :param lunch_break_start_time: Lunch start time hh:mm
-    :type lunch_break_start_time: String
-    :param lunch_break_finish_time: Lunch finish time hh:mm
-    :type lunch_break_finish_time: String
-    :param default_preference_duration: Class default duration hh:mm
-    :type default_preference_duration: String
+    :param day_end_time: Day end time hh:mm
+    :type day_end_time: String
+    :param morning_end_time: Lunch start time hh:mm
+    :type morning_end_time: String
+    :param afternoon_start_time: Lunch finish time hh:mm
+    :type afternoon_start_time: String
+    :param default_availability_duration: Class default duration hh:mm
+    :type default_availability_duration: String
 
     :return: (boolean,json) (are the paramaters valid , status and errors)
     """
@@ -186,45 +186,45 @@ def validate_parameters_edit(days, day_start_time,
             'status': ERROR_RESPONSE,
             'message': "L'heure de début des cours est incorrecte."
         }
-    elif not time_re.match(day_finish_time):
+    elif not time_re.match(day_end_time):
         response = {
             'status': ERROR_RESPONSE,
             'message': "L'heure de fin des cours est incorrecte."
         }
-    elif not time_re.match(lunch_break_start_time):
+    elif not time_re.match(morning_end_time):
         response = {
             'status': ERROR_RESPONSE,
-            'message': "L'heure de début du déjeuner est incorrecte."
+            'message': "L'heure de fin de matinée est incorrecte."
         }
-    elif not time_re.match(lunch_break_finish_time):
+    elif not time_re.match(afternoon_start_time):
         response = {
             'status': ERROR_RESPONSE,
-            'message': "L'heure de fin du déjeuner est incorrecte."
+            'message': "L'heure de début d'après midi est incorrecte."
         }
-    elif not time_re.match(default_preference_duration):
+    elif not time_re.match(default_availability_duration):
         response = {
             'status': ERROR_RESPONSE,
             'message': "La durée par défaut d'un cours est incorrecte."
         }
-    elif day_start_time > day_finish_time:
+    elif day_start_time > day_end_time:
         response = {
             'status': ERROR_RESPONSE,
             'message': "L'heure de début des cours doit précéder l'heure de fin des cours."
         }
-    elif lunch_break_start_time > lunch_break_finish_time:
+    elif morning_end_time > afternoon_start_time:
         response = {
             'status': ERROR_RESPONSE,
-            'message': "L'heure de début du déjeuner doit précéder l'heure de fin du déjeuner."
+            'message': "L'heure de fin de matinée doit précéder l'heure de début d'après-midi."
         }
-    elif day_start_time > lunch_break_start_time or lunch_break_finish_time > day_finish_time:
+    elif day_start_time > morning_end_time or afternoon_start_time > day_end_time:
         response = {
             'status': ERROR_RESPONSE,
             'message': "La période du déjeuner doit être pendant la période des cours."
         }
-    elif default_preference_duration == "00:00":
+    elif default_availability_duration == "00:00":
         response = {
             'status': ERROR_RESPONSE,
-            'message': "La durée par défaut d'un cours ne peut pas être nulle."
+            'message': "La durée par défaut des préférences ne peut pas être nulle."
         }
     else:
         response = {'status': OK_RESPONSE, 'message': ''}

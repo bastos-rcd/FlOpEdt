@@ -33,7 +33,7 @@ to manage a department statistics for FlOpEDT.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseForbidden
 from base.models import Department, TimeGeneralSettings, Day, Mode
-from base.timing import min_to_str, str_to_min
+from base.timing import str_to_min, min_to_str, str_to_time, time_to_str
 from core.decorators import superuser_required, \
     tutor_or_superuser_required, tutor_required
 
@@ -149,13 +149,13 @@ def department_parameters(request, department_abbrev):
     return render(request, "flopeditor/parameters.html", {
         'title': 'Paramètres',
         'department': department,
-        'day_start_time': min_to_str(parameters.day_start_time),
-        'day_finish_time': min_to_str(parameters.day_finish_time),
-        'lunch_break_start_time': min_to_str(parameters.lunch_break_start_time),
-        'lunch_break_finish_time': min_to_str(parameters.lunch_break_finish_time),
+        'day_start_time': time_to_str(parameters.day_start_time),
+        'day_end_time': time_to_str(parameters.day_end_time),
+        'morning_end_time': time_to_str(parameters.morning_end_time),
+        'afternoon_start_time': time_to_str(parameters.afternoon_start_time),
         'days': parameters.days,
         'day_choices': Day.CHOICES,
-        'default_preference_duration': min_to_str(parameters.default_preference_duration),
+        'default_availability_duration': min_to_str(parameters.default_availability_duration),
         'list_departments': departments,
         'has_department_perm': request.user.has_department_perm(department=department, admin=True),
         'status':status,
@@ -188,13 +188,13 @@ def department_parameters_edit(request, department_abbrev):
         'title': 'Paramètres',
         'department': department,
         'list_departments': departments,
-        'day_start_time': min_to_str(parameters.day_start_time),
-        'day_finish_time': min_to_str(parameters.day_finish_time),
-        'lunch_break_start_time': min_to_str(parameters.lunch_break_start_time),
-        'lunch_break_finish_time': min_to_str(parameters.lunch_break_finish_time),
+        'day_start_time': time_to_str(parameters.day_start_time),
+        'day_end_time': time_to_str(parameters.day_end_time),
+        'morning_end_time': time_to_str(parameters.morning_end_time),
+        'afternoon_start_time': time_to_str(parameters.afternoon_start_time),
         'days': parameters.days,
         'day_choices': Day.CHOICES,
-        'default_preference_duration': min_to_str(parameters.default_preference_duration),
+        'default_availability_duration': min_to_str(parameters.default_availability_duration),
         'has_department_perm': request.user.has_department_perm(department=department, admin=True),
         'status':status,
         'status_vacataire':position,
@@ -286,10 +286,10 @@ def ajax_edit_parameters(request, department_abbrev):
         return HttpResponseForbidden()
     days = request.POST.getlist('days')
     day_start_time = request.POST['day_start_time']
-    day_finish_time = request.POST['day_finish_time']
-    lunch_break_start_time = request.POST['lunch_break_start_time']
-    lunch_break_finish_time = request.POST['lunch_break_finish_time']
-    default_preference_duration = request.POST['default_preference_duration']
+    day_end_time = request.POST['day_end_time']
+    morning_end_time = request.POST['morning_end_time']
+    afternoon_start_time = request.POST['afternoon_start_time']
+    default_availability_duration = request.POST['default_availability_duration']
     visio_mode = request.POST['visio_mode']
     if visio_mode == "True":
         visio_mode = True
@@ -299,21 +299,19 @@ def ajax_edit_parameters(request, department_abbrev):
     response = validate_parameters_edit(
         days,
         day_start_time,
-        day_finish_time,
-        lunch_break_start_time,
-        lunch_break_finish_time,
-        default_preference_duration)
+        day_end_time,
+        morning_end_time,
+        afternoon_start_time,
+        default_availability_duration)
     if response['status'] == OK_RESPONSE:
         parameters = get_object_or_404(
             TimeGeneralSettings, department=department)
         parameters.days = days
-        parameters.day_start_time = str_to_min(day_start_time)
-        parameters.day_finish_time = str_to_min(day_finish_time)
-        parameters.lunch_break_start_time = str_to_min(lunch_break_start_time)
-        parameters.lunch_break_finish_time = str_to_min(
-            lunch_break_finish_time)
-        parameters.default_preference_duration = str_to_min(
-            default_preference_duration)
+        parameters.day_start_time = str_to_time(day_start_time)
+        parameters.day_end_time = str_to_time(day_end_time)
+        parameters.morning_end_time = str_to_time(morning_end_time)
+        parameters.afternoon_start_time = str_to_time(afternoon_start_time)
+        parameters.default_availability_duration = str_to_min(default_availability_duration)
         parameters.save()
         mode, created = Mode.objects.get_or_create(department=department)
         mode.cosmo = cosmo_mode
