@@ -96,7 +96,7 @@ class DatedAvailabilityViewSet(
         ],
     ),
 )
-class RoomDatedAvailabilityViewSet(DatedAvailabilityViewSet):
+class RoomDatedAvailabilityListViewSet(DatedAvailabilityViewSet):
     """
     Availability. Either a room or a department must be entered.
     """
@@ -143,7 +143,7 @@ class RoomDatedAvailabilityUpdateViewSet(
         ],
     ),
 )
-class UserDatedAvailabilityViewSet(DatedAvailabilityViewSet):
+class UserDatedAvailabilityListViewSet(DatedAvailabilityViewSet):
     """
     Availability. Either a user or a department must be entered.
     """
