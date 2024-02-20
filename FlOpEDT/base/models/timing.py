@@ -11,62 +11,97 @@ from django.db.models.signals import post_save
 from base.timing import Day, Time, min_to_str, days_list
 
 
-MONDAY = "m"
-TUESDAY = "tu"
-WEDNESDAY = "w"
-THURSDAY = "th"
-FRIDAY = "f"
-SATURDAY = "sa"
-SUNDAY = "su"
-
-DAY_CHOICES = [
-    (MONDAY, _("Monday")),
-    (TUESDAY, _("Tuesday")),
-    (WEDNESDAY, _("Wednesday")),
-    (THURSDAY, _("Thursday")),
-    (FRIDAY, _("Friday")),
-    (SATURDAY, _("Saturday")),
-    (SUNDAY, _("Sunday"))
-]
-
-
 class Holiday(models.Model):
-    day = models.CharField(max_length=2, choices=DAY_CHOICES, default=Day.MONDAY)
-    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
+    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
+    week = models.ForeignKey("Week", on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         verbose_name = _("holiday")
         verbose_name_plural = _("holidays")
-    
+
 
 class TrainingHalfDay(models.Model):
-    apm = models.CharField(max_length=2, choices=Time.HALF_DAY_CHOICES,
-                           verbose_name=_("Half day"), null=True, default=None, blank=True)
-    day = models.CharField(
-        max_length=2, choices=DAY_CHOICES, default=Day.MONDAY)
-    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
+    apm = models.CharField(
+        max_length=2,
+        choices=Time.HALF_DAY_CHOICES,
+        verbose_name=_("Half day"),
+        null=True,
+        default=None,
+        blank=True,
+    )
+    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
+    week = models.ForeignKey("Week", on_delete=models.CASCADE, null=True, blank=True)
     train_prog = models.ForeignKey(
-        'TrainingProgramme', null=True, default=None, blank=True, on_delete=models.CASCADE)
+        "TrainingProgramme",
+        null=True,
+        default=None,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
 
 
 class Period(models.Model):
     name = models.CharField(max_length=20)
-    department = models.ForeignKey('base.Department', on_delete=models.CASCADE, null=True)
-    starting_week = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(53)])
-    ending_week = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(53)])
+    department = models.ForeignKey(
+        "base.Department", on_delete=models.CASCADE, null=True
+    )
+    starting_week = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(53)]
+    )
+    ending_week = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(53)]
+    )
 
     class Meta:
         verbose_name = _("period")
         verbose_name_plural = _("periods")
 
-
     def __str__(self):
         return f"Period {self.name}: {self.department}, {self.starting_week} -> {self.ending_week}"
 
 
+class PeriodEnum:
+    DAY = "d"
+    WEEK = "w"
+    MONTH = "m"
+    YEAR = "y"
+    CUSTOM = "c"
+
+    CHOICES = [
+        (DAY, _("day")),
+        (WEEK, _("week")),
+        (MONTH, _("month")),
+        (YEAR, _("year")),
+        (CUSTOM, _("custom")),
+    ]
+
+
+class SchedulingPeriod(models.Model):
+    """
+    start_date and end_date included
+    """
+
+    start_date = models.DateField()
+    end_date = models.DateField()
+    mode = models.CharField(
+        max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
+    )
+    department = models.ForeignKey(
+        "base.department", null=True, blank=True, on_delete=models.CASCADE, default=None
+    )
+
+    def __str__(self):
+        ret = f"{self.start_date} - {self.end_date} ({self.mode}"
+        if self.department is not None:
+            ret += f", {self.department.abbrev}"
+        return ret + ")"
+
+
 class Week(models.Model):
-    nb = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(53)],
-        verbose_name=_('Week number'))
+    nb = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(53)],
+        verbose_name=_("Week number"),
+    )
     year = models.PositiveSmallIntegerField()
 
     def __str__(self):
@@ -108,6 +143,9 @@ class TimeGeneralSettings(models.Model):
     days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES))
     default_availability_duration = models.DurationField(
         default=dt.timedelta(minutes=90)
+    )
+    scheduling_period_mode = models.CharField(
+        max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
     )
 
     def __str__(self):
