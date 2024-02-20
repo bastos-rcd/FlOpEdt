@@ -95,16 +95,16 @@ class Week(models.Model):
         verbose_name_plural = _("weeks")
 
 
-
 class TimeGeneralSettings(models.Model):
-    department = models.OneToOneField('base.Department', on_delete=models.CASCADE)
+    department = models.OneToOneField("base.Department", on_delete=models.CASCADE)
     day_start_time = models.TimeField(default=dt.time(hour=8))
     morning_end_time = models.TimeField(default=dt.time(12, 30, 0))
     afternoon_start_time = models.TimeField(default=dt.time(14, 15, 0))
     day_end_time = models.TimeField(default=dt.time(hour=19))
-    days = ArrayField(models.CharField(max_length=2,
-                                       choices=DAY_CHOICES))
-    default_preference_duration = models.DurationField(default=dt.timedelta(minutes=90))
+    days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES))
+    default_availability_duration = models.DurationField(
+        default=dt.timedelta(minutes=90)
+    )
 
     def __str__(self):
         return (
