@@ -260,18 +260,18 @@ class WeeksDatabase(object):
                 dayly_availability_slots |= set(
                     st + cst.course_type.duration for st in cst.allowed_start_times
                 )
-        dayly_availability_slots.add(tgs.day_finish_time)
+        dayly_availability_slots.add(tgs.day_end_time)
         dayly_availability_slots = list(dayly_availability_slots)
         dayly_availability_slots.sort()
         start_times = dayly_availability_slots[:-1]
         end_times = dayly_availability_slots[1:]
         if (
-            tgs.lunch_break_start_time < tgs.lunch_break_finish_time
-            and tgs.lunch_break_start_time in start_times
-            and tgs.lunch_break_finish_time in end_times
+            tgs.morning_end_time < tgs.afternoon_start_time
+            and tgs.morning_end_time in start_times
+            and tgs.afternoon_start_time in end_times
         ):
-            start_times.remove(tgs.lunch_break_start_time)
-            end_times.remove(tgs.lunch_break_finish_time)
+            start_times.remove(tgs.morning_end_time)
+            end_times.remove(tgs.afternoon_start_time)
 
         availability_slots = {
             Slot(day=day, start_time=start_times[i], end_time=end_times[i])

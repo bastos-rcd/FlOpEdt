@@ -64,9 +64,9 @@ def create_departments_in_database(dept_name, dept_abbrev, tutors_id):
     TimeGeneralSettings(
         department=dept,
         day_start_time=8*60,
-        day_finish_time=18*60+45,
-        lunch_break_start_time=12*60+30,
-        lunch_break_finish_time=14*60,
+        day_end_time=18*60+45,
+        morning_end_time=12*60+30,
+        afternoon_start_time=14*60,
         days=[
             Day.MONDAY,
             Day.TUESDAY,

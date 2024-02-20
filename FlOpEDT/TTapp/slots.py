@@ -176,7 +176,7 @@ class CourseSlot(Slot):
         if self.course_type is not None:
             pm_start = TimeGeneralSettings.objects.get(
                 department=self.course_type.department
-            ).lunch_break_finish_time
+            ).afternoon_start_time
         else:
             pm_start = midday
         if self.start_time >= pm_start:

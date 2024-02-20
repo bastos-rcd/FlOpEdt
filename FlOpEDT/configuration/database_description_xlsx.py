@@ -33,6 +33,7 @@
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
+import datetime as dt
 import logging
 logger = logging.getLogger(__name__)
 
@@ -152,10 +153,15 @@ def find_marker_cell(sheet, marker, row = 1, col = 1):
         col = 1
     return None, None
 
-def time_from_integer(time):
+def time_from_integer(time:int):
     hours = time // 60
     minutes = time % 60
     return f'{hours:02d}:{minutes:02d}'
+
+
+def strftime_from_time(time:dt.time):
+    return time.strftime('%H:%M')
+
 
 #################################################
 #                                               #
@@ -271,9 +277,9 @@ def parse_settings(sheet):
     if row == None:
         logger.warning(f"The 'Jalon' cell in sheet {settings_sheet} is missing")
         result['day_start_time'] = -1
-        result['day_finish_time'] = -1
-        result['lunch_break_start_time'] = -1
-        result['lunch_break_finish_time'] = -1
+        result['day_end_time'] = -1
+        result['morning_end_time'] = -1
+        result['afternoon_start_time'] = -1
     else:
         val = parse_time(sheet, row + 1, col + 1)
         if val == None:
@@ -284,15 +290,15 @@ def parse_settings(sheet):
             val = -1
         if val <= result['day_start_time']:
             val += 24 * 60
-        result['day_finish_time'] = val
+        result['day_end_time'] = val
         val = parse_time(sheet, row + 3, col + 1)
         if val == None:
             val = -1
-        result['lunch_break_start_time'] = val
+        result['morning_end_time'] = val
         val = parse_time(sheet, row + 4, col + 1)
         if val == None:
             val = -1
-        result['lunch_break_finish_time'] = val
+        result['afternoon_start_time'] = val
 
     row, col = find_marker_cell(sheet, 'Granularité')
     if row == None:
@@ -303,7 +309,7 @@ def parse_settings(sheet):
             duration = int(parse_string(sheet, row, col + 1))
         except:
             duration = -1
-    result['default_preference_duration'] = duration
+    result['default_availability_duration'] = duration
 
     days = []
     row, col = find_marker_cell(sheet, 'Jours ouvrables')
@@ -496,13 +502,13 @@ def database_description_save_xlsx_file(filename, database):
 
     sheet = wb[settings_sheet]
     row, col = find_marker_cell(sheet, 'Jalon')
-    sheet.cell(row=row+1, column=col+1, value=time_from_integer(database['settings']['day_start_time']))
-    sheet.cell(row=row+2, column=col+1, value=time_from_integer(database['settings']['day_finish_time']))
-    sheet.cell(row=row+3, column=col+1, value=time_from_integer(database['settings']['lunch_break_start_time']))
-    sheet.cell(row=row+4, column=col+1, value=time_from_integer(database['settings']['lunch_break_finish_time']))
+    sheet.cell(row=row+1, column=col+1, value=strftime_from_time(database['settings']['day_start_time']))
+    sheet.cell(row=row+2, column=col+1, value=strftime_from_time(database['settings']['day_end_time']))
+    sheet.cell(row=row+3, column=col+1, value=strftime_from_time(database['settings']['morning_end_time']))
+    sheet.cell(row=row+4, column=col+1, value=strftime_from_time(database['settings']['afternoon_start_time']))
 
     row, col = find_marker_cell(sheet, 'Granularité')
-    sheet.cell(row=row, column=col+1, value=database['settings']['default_preference_duration'])
+    sheet.cell(row=row, column=col+1, value=database['settings']['default_availability_duration'])
 
     row, col = find_marker_cell(sheet, 'Jours ouvrables')
     days = database['settings']['days']
@@ -611,6 +617,6 @@ def database_description_save_xlsx_file(filename, database):
         start_times.sort()
         for start_time in start_times:
             col = col + 1
-            sheet.cell(row=row, column=col, value=time_from_integer(start_time))
+            sheet.cell(row=row, column=col, value=strftime_from_time(start_time))
 
     wb.save(filename)

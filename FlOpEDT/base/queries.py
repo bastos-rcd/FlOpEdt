@@ -299,10 +299,10 @@ def get_department_settings(dept):
     department_settings = \
         {'time':
              {'day_start_time': ts.day_start_time,
-              'day_finish_time': ts.day_finish_time,
-              'lunch_break_start_time': ts.lunch_break_start_time,
-              'lunch_break_finish_time': ts.lunch_break_finish_time,
-              'def_pref_duration': ts.default_preference_duration},
+              'day_end_time': ts.day_end_time,
+              'morning_end_time': ts.morning_end_time,
+              'afternoon_start_time': ts.afternoon_start_time,
+              'default_availability_duration': ts.default_availability_duration},
          'days': ts.days,
          'mode':
              {'cosmo': mode.cosmo,

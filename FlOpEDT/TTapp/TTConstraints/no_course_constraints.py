@@ -119,17 +119,17 @@ class NoGroupCourseOnDay(NoCourseOnDay):
             if self.fampm_period == self.FULL_DAY:
                 data["no_course_tutor"]["period"] = {self.FULL_DAY}
                 return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                    flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                                    flopdate_to_datetime(day_break, time_settings.day_end_time)),
                         data)
             elif self.fampm_period == self.AM:
                 data["no_course_tutor"]["period"] = {self.AM}
                 return (TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                        flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                                        flopdate_to_datetime(day_break, time_settings.morning_end_time)),
                         data)
             elif self.fampm_period == self.PM:
                 data["no_course_tutor"]["period"] = {self.PM}
-                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
-                                        flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                return (TimeInterval(flopdate_to_datetime(day_break, time_settings.afternoon_start_time),
+                                        flopdate_to_datetime(day_break, time_settings.day_end_time)),
                         data)
         return None
 
@@ -158,22 +158,22 @@ class NoGroupCourseOnDay(NoCourseOnDay):
             if self.fampm_period == self.FULL_DAY:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                 flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                                 flopdate_to_datetime(day_break, time_settings.day_end_time)),
                     "forbidden",
                     {"value": 0, "forbidden": True, "group": group.name}
                 )
             elif self.fampm_period == self.AM:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                 flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                                 flopdate_to_datetime(day_break, time_settings.morning_end_time)),
                     "forbidden",
                     {"value": 0, "forbidden": True, "group": group.name}
                 )
 
             elif self.fampm_period == self.PM:
                 partition.add_slot(
-                    TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
-                                        flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.afternoon_start_time),
+                                        flopdate_to_datetime(day_break, time_settings.day_end_time)),
                     "forbidden",
                     {"value": 0, "forbidden": True, "group": group.name}
                 )
@@ -309,22 +309,22 @@ class NoTutorCourseOnDay(NoCourseOnDay):
             if self.fampm_period == self.FULL_DAY:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                 flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                                 flopdate_to_datetime(day_break, time_settings.day_end_time)),
                     "forbidden",
                     {"value": 0, "forbidden": True, "tutor": tutor.username}
                 )
             elif self.fampm_period == self.AM:
                 partition.add_slot(
                     TimeInterval(flopdate_to_datetime(day_break, time_settings.day_start_time),
-                                 flopdate_to_datetime(day_break, time_settings.lunch_break_start_time)),
+                                 flopdate_to_datetime(day_break, time_settings.morning_end_time)),
                     "forbidden",
                     {"value": 0, "forbidden": True, "tutor": tutor.username}
                 )
 
             elif self.fampm_period == self.PM:
                 partition.add_slot(
-                    TimeInterval(flopdate_to_datetime(day_break, time_settings.lunch_break_finish_time),
-                                        flopdate_to_datetime(day_break, time_settings.day_finish_time)),
+                    TimeInterval(flopdate_to_datetime(day_break, time_settings.afternoon_start_time),
+                                        flopdate_to_datetime(day_break, time_settings.day_end_time)),
                     "forbidden",
                     {"value": 0, "forbidden": True, "tutor": tutor.username}
                 )

@@ -58,7 +58,7 @@ class MinHalfDaysHelperBase():
         en 2 demies-journées... impossible !
         """
         t = TimeGeneralSettings.objects.get(department=self.ttmodel.department)
-        half_days_min_time = min(t.lunch_break_start_time-t.day_start_time, t.day_finish_time-t.lunch_break_finish_time)
+        half_days_min_time = min(t.morning_end_time-t.day_start_time, t.day_end_time-t.afternoon_start_time)
         considered_courses = list(courses)
         considered_courses.sort(key=lambda x: x.type.duration)
         limit = 0

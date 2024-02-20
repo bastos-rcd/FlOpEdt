@@ -38,7 +38,7 @@ import logging
 logger = logging.getLogger(__name__)
 from configuration.database_description_xlsx import \
     people_sheet, rooms_sheet, groups_sheet, modules_sheet, courses_sheet, settings_sheet, REASONABLE, \
-    find_marker_cell, time_from_integer
+    find_marker_cell, time_from_integer, strftime_from_time
 
 
 from base.models import Room, RoomType, Period, TransversalGroup, StructuralGroup, TrainingProgramme, GroupType, \
@@ -98,9 +98,9 @@ def dict_from_dept_database(department):
     database_dict['settings'] = {}
     settings = department.timegeneralsettings
     database_dict['settings']['day_start_time'] = settings.day_start_time
-    database_dict['settings']['day_finish_time'] = settings.day_finish_time
-    database_dict['settings']['lunch_break_start_time'] = settings.lunch_break_start_time
-    database_dict['settings']['lunch_break_finish_time'] = settings.lunch_break_finish_time
+    database_dict['settings']['day_end_time'] = settings.day_end_time
+    database_dict['settings']['morning_end_time'] = settings.morning_end_time
+    database_dict['settings']['afternoon_start_time'] = settings.afternoon_start_time
 
 
 def make_filled_database_file(department, filename=None):
@@ -110,13 +110,13 @@ def make_filled_database_file(department, filename=None):
 
     sheet = wb[settings_sheet]
     row, col = find_marker_cell(sheet, 'Jalon')
-    sheet.cell(row=row+1, column=col+1, value=time_from_integer(department.timegeneralsettings.day_start_time))
-    sheet.cell(row=row+2, column=col+1, value=time_from_integer(department.timegeneralsettings.day_finish_time))
-    sheet.cell(row=row+3, column=col+1, value=time_from_integer(department.timegeneralsettings.lunch_break_start_time))
-    sheet.cell(row=row+4, column=col+1, value=time_from_integer(department.timegeneralsettings.lunch_break_finish_time))
+    sheet.cell(row=row+1, column=col+1, value=strftime_from_time(department.timegeneralsettings.day_start_time))
+    sheet.cell(row=row+2, column=col+1, value=strftime_from_time(department.timegeneralsettings.day_end_time))
+    sheet.cell(row=row+3, column=col+1, value=strftime_from_time(department.timegeneralsettings.morning_end_time))
+    sheet.cell(row=row+4, column=col+1, value=strftime_from_time(department.timegeneralsettings.afternoon_start_time))
 
     row, col = find_marker_cell(sheet, 'Granularité')
-    sheet.cell(row=row, column=col+1, value=department.timegeneralsettings.default_preference_duration)
+    sheet.cell(row=row, column=col+1, value=department.timegeneralsettings.default_availability_duration)
 
     row, col = find_marker_cell(sheet, 'Modes')
     mode = department.mode
@@ -281,6 +281,6 @@ def make_filled_database_file(department, filename=None):
         allowed_start_times.sort()
         for start_time in allowed_start_times:
             col = col + 1
-            sheet.cell(row=row, column=col, value=time_from_integer(start_time))
+            sheet.cell(row=row, column=col, value=strftime_from_time(start_time))
 
     wb.save(filename)

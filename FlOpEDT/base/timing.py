@@ -25,6 +25,7 @@
  helpers for time management
  ---------------------------
 """
+import datetime as dt
 from datetime import date, time, datetime
 import base.models as bm
 from enum import Enum
@@ -128,6 +129,28 @@ def str_to_min(time_string, sep=":"):
     """
     hours_minutes = time_string.split(sep)
     return int(hours_minutes[0]) * 60 + int(hours_minutes[1])
+
+
+def str_to_time(time_string, sep=":"):
+    """Convert input time format into time object
+
+    :param time_string string in hour:minute format
+    :return: datetime.time object
+
+    """
+    hour, minute = time_string.split(sep)
+    return dt.time(hour, minute)
+
+
+def time_to_str(t, sep=":"):
+    """Convert datetime.time object into input time format
+
+    :param minutes: datetime.time object
+    :return: string in hour:minute format
+
+    """
+    h, m = t.hour, t.minute
+    return f"{h:02d}{sep}{m:02d}"
 
 
 ################################################################

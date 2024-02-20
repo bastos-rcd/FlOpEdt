@@ -75,10 +75,10 @@
 #
 # 'settings': a dictionary with keys:
 #
-#   - 'day_start_time', 'day_finish_time', 'lunch_break_start_time' and
-#     'lunch_break_finish_time' : integers with explicit meaning
+#   - 'day_start_time', 'day_end_time', 'morning_start_time' and
+#     'afternoon_start_time' : integers with explicit meaning
 #
-#   - 'default_preference_duration': integer with explicit meaning
+#   - 'default_availability_duration': datetime.timedelta with explicit meaning
 #
 #   - 'days': a list of strings among 'm', 'tu', 'w', 'th', 'f', 'sa'
 #     and 'su' (fixme)
@@ -261,17 +261,17 @@ def check_settings(settings):
     if not isinstance(settings, dict):
         result.append("D: the settings chunk should be a 'dict'")
         return result
-    if settings.keys() != { 'day_start_time', 'day_finish_time',
-                            'lunch_break_start_time', 'lunch_break_finish_time',
-                            'default_preference_duration', 'days', 'periods'}:
+    if settings.keys() != { 'day_start_time', 'day_end_time',
+                            'morning_end_time', 'afternoon_start_time',
+                            'default_availability_duration', 'days', 'periods'}:
         result.append(f"D: settings doesn't have the expected keys")
         return result
 
     result.extend(check_type(settings['day_start_time'], int, "Day start time in settings"))
-    result.extend(check_type(settings['day_finish_time'], int, "Day finish time in settings"))
-    result.extend(check_type(settings['lunch_break_start_time'], int, "Lunch break start time in settings"))
-    result.extend(check_type(settings['lunch_break_finish_time'], int, "Lunch break finish time in settings"))
-    result.extend(check_type(settings['default_preference_duration'], int, "Default preference duration in settings"))
+    result.extend(check_type(settings['day_end_time'], int, "Day end time in settings"))
+    result.extend(check_type(settings['morning_end_time'], int, "Morning end time time in settings"))
+    result.extend(check_type(settings['afternoon_start_time'], int, "Afternoon start time in settings"))
+    result.extend(check_type(settings['default_availability_duration'], int, "Default availability duration in settings"))
     if isinstance(settings['days'], list):
         if not set(settings['days']).issubset({'m', 'tu', 'w', 'th', 'f', 'sa', 'su'}):
             result.append("D: the days in settings contain invalid values")
@@ -393,38 +393,38 @@ def check_settings_sheet(database):
     # check the time settings
     #
     day_start_time = database['settings']['day_start_time']
-    day_finish_time = database['settings']['day_finish_time']
-    lunch_break_start_time = database['settings']['lunch_break_start_time']
-    lunch_break_finish_time = database['settings']['lunch_break_finish_time']
+    day_end_time = database['settings']['day_end_time']
+    morning_end_time = database['settings']['morning_end_time']
+    afternoon_start_time = database['settings']['afternoon_start_time']
 
     if day_start_time < 0:
         result.append(f"L'heure de début de journée dans '{settings_sheet}' est invalide")
-    elif day_finish_time < 0:
+    elif day_end_time < 0:
         result.append(f"L'heure de fin de journée dans '{settings_sheet}' est invalide")
-    elif lunch_break_start_time < 0:
+    elif morning_end_time < 0:
         result.append(f"L'heure de début de pause méridienne dans '{settings_sheet}' est invalide")
-    elif database['settings']['lunch_break_finish_time'] < 0:
+    elif database['settings']['afternoon_start_time'] < 0:
         result.append(f"L'heure de fin de pause méridienne '{settings_sheet}' est invalide")
     else:
         sane = True
-        if not day_start_time < day_finish_time:
+        if not day_start_time < day_end_time:
 
             result.append(f"Les horaires de début et de fin de journée dans '{settings_sheet}' sont incohérents")
             sane = False
-        if not lunch_break_start_time <= lunch_break_finish_time:
+        if not morning_end_time <= afternoon_start_time:
             result.append(f"Les horaires de début et de fin de pause méridienne dans '{settings_sheet}' sont incohérents")
             sane = False
-        if sane and not (day_start_time <= lunch_break_start_time
-                       and lunch_break_start_time < day_finish_time):
+        if sane and not (day_start_time <= morning_end_time
+                       and morning_end_time < day_end_time):
             result.append(f"La pause méridienne dans '{settings_sheet}' ne commence pas pendant la journée")
-        if sane and not (day_start_time < lunch_break_finish_time
-                       and lunch_break_finish_time <= day_finish_time):
+        if sane and not (day_start_time < afternoon_start_time
+                       and afternoon_start_time <= day_end_time):
             result.append(f"La pause méridienne dans '{settings_sheet}' ne termine pas pendant la journée")
 
     #
     # check default duration
     #
-    if database['settings']['default_preference_duration'] < 0:
+    if database['settings']['default_availability_duration'] < 0:
         result.append(f"La granularité des séances dans '{settings_sheet}' est invalide")
 
     #
@@ -604,9 +604,9 @@ def check_courses_sheet(database):
     
         settings = database['settings']
         day_start_time = settings['day_start_time']
-        day_finish_time = settings['day_finish_time']
-        lunch_break_start_time = settings['lunch_break_start_time']
-        lunch_break_finish_time = settings['lunch_break_finish_time']
+        day_end_time = settings['day_end_time']
+        morning_end_time = settings['morning_end_time']
+        afternoon_start_time = settings['afternoon_start_time']
         flag_invalid = False
         flag_start_not_in_day = False
         flag_start_in_lunch_break = False
@@ -616,19 +616,19 @@ def check_courses_sheet(database):
             if start_time < 0 and not flag_invalid:
                 flag_invalid = True
                 continue
-            if not (start_time >= day_start_time and start_time < day_finish_time) and not flag_start_not_in_day:
+            if not (start_time >= day_start_time and start_time < day_end_time) and not flag_start_not_in_day:
                 flag_start_not_in_day = True
                 continue
-            if start_time >= lunch_break_start_time and start_time < lunch_break_finish_time and not flag_start_in_lunch_break:
+            if start_time >= morning_end_time and start_time < afternoon_start_time and not flag_start_in_lunch_break:
                 flag_start_in_lunch_break = True
                 continue
             if course['duration'] <= 0:
                 continue
             end_time = start_time + course['duration']
-            if not (end_time > day_start_time and end_time <= day_finish_time) and not flag_finish_not_in_day:
+            if not (end_time > day_start_time and end_time <= day_end_time) and not flag_finish_not_in_day:
                 flag_finish_not_in_day = True
                 continue
-            if end_time > lunch_break_start_time and end_time <= lunch_break_finish_time and not flag_finish_in_lunch_break:
+            if end_time > morning_end_time and end_time <= afternoon_start_time and not flag_finish_in_lunch_break:
                 flag_finish_in_lunch_break = True
                 continue
         if flag_invalid:
