@@ -65,7 +65,12 @@ LOGGING = {
             'level': 'INFO',
             'handlers': ['console'],
             'propagate': False,
-        }
+        },
+        'rules': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
     }
 }
 

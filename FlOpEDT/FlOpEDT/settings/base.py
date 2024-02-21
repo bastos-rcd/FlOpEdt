@@ -269,5 +269,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 AUTHENTICATION_BACKENDS = (
     'rules.permissions.ObjectPermissionBackend',
-    'django.contrib.auth.backends.ModelBackend',
+#    'django.contrib.auth.backends.ModelBackend',
+#    'FlOpEDT.backend.DjangoRulesBackend',
 )
+
+# from rules.permissions import ObjectPermissionBackend
+# from rules.contrib.rest_framework import AutoPermissionViewSetMixin
