@@ -268,10 +268,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 AUTHENTICATION_BACKENDS = (
-    'rules.permissions.ObjectPermissionBackend',
-#    'django.contrib.auth.backends.ModelBackend',
+#    'rules.permissions.ObjectPermissionBackend',
+    'django.contrib.auth.backends.ModelBackend',
 #    'FlOpEDT.backend.DjangoRulesBackend',
 )
 
 # from rules.permissions import ObjectPermissionBackend
 # from rules.contrib.rest_framework import AutoPermissionViewSetMixin
+# from django.contrib.auth.backends import ModelBackend
