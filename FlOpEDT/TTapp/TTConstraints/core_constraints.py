@@ -141,7 +141,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
             # Mimimum time needed in any cases
             min_course_time_needed = (
-                sum(c.type.duration for c in considered_courses)
+                sum(c.duration for c in considered_courses)
                 + max_courses_time_transversal
             )
 
@@ -173,7 +173,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                     )
 
                 # If we are below that amount of time we probably cannot do it.
-                course_time_needed = sum(c.type.duration for c in considered_courses)
+                course_time_needed = sum(c.duration for c in considered_courses)
 
                 if course_time_needed > group_partition.not_forbidden_duration:
                     jsondict["status"] = _("KO")
@@ -201,24 +201,24 @@ class NoSimultaneousGroupCourses(TTConstraint):
                     course_dict = dict()
                     for c in considered_courses:
 
-                        if c.type in course_dict:
-                            course_dict[c.type] += 1
+                        if c.duration in course_dict:
+                            course_dict[c.duration] += 1
                         else:
-                            course_dict[c.type] = 1
+                            course_dict[c.duration] = 1
 
                     all_start_times = []
                     all_nb_courses = 0
                     min_duration = 1440
 
-                    for course_type, nb_courses in course_dict.items():
+                    for course_duration, nb_courses in course_dict.items():
 
                         # We compute the total number of courses, all the different start times and the minimum duration of course
                         all_nb_courses += nb_courses
                         start_times = CourseStartTimeConstraint.objects.get(
-                            course_type=course_type
+                            duration=duration, department=self.department
                         ).allowed_start_times
-                        if course_type.duration < min_duration:
-                            min_duration = course_type.duration
+                        if course_duration < min_duration:
+                            min_duration = course_duration
 
                         for st in start_times:
                             if st not in all_start_times:
@@ -227,7 +227,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                         # We look if there is enough slot for each course_type
 
                         allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(
-                            course_type.duration, start_times
+                            course_duration, start_times
                         )
 
                         if allowed_slots_nb < nb_courses:
@@ -240,7 +240,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                                     % {
                                         "group_name": bg.name,
                                         "allowed_slots_nb": allowed_slots_nb,
-                                        "duration": course_type.duration,
+                                        "duration": course_duration,
                                         "nb_courses": nb_courses,
                                     },
                                     "group": bg.id,
@@ -610,7 +610,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
             )
 
             if tutor_partition.available_duration < sum(
-                c.type.duration for c in courses
+                c.duration for c in courses
             ):
                 message = gettext(
                     "Tutor %(tutor)s has %(available_duration)s minutes of available time."
@@ -623,7 +623,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     "minutes of courses."
                 ) % {
                     "classes_nb": len(courses),
-                    "duration": sum(c.type.duration for c in courses),
+                    "duration": sum(c.duration for c in courses),
                 }
                 jsondict["messages"].append(
                     {
@@ -673,7 +673,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     holiday_text = holiday_text[:-2]
 
                 if tutor_partition.available_duration < sum(
-                    c.type.duration for c in courses
+                    c.duration for c in courses
                 ):
                     message = gettext(
                         "Tutor %(tutor)s has %(available_duration)s minutes of available time"
@@ -700,7 +700,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                         "minutes of courses."
                     ) % {
                         "classes_nb": len(courses),
-                        "duration": sum(c.type.duration for c in courses),
+                        "duration": sum(c.duration for c in courses),
                     }
                     jsondict["messages"].append(
                         {
@@ -712,25 +712,25 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     jsondict["status"] = _("KO")
 
                 elif courses.exists():
-                    # We build a dictionary with the courses' type as keys and list of courses of those types as values
-                    courses_type = dict()
+                    # We build a dictionary with the courses' duration as keys and list of courses of those duration as values
+                    courses_duration = dict()
                     for course in courses:
-                        if not course.type in courses_type:
-                            courses_type[course.type] = [course]
+                        if not course.duration in courses_duration:
+                            courses_duration[course.duration] = [course]
                         else:
-                            courses_type[course.type].append(course)
+                            courses_duration[course.duration].append(course)
 
                     # For each course type we build a partition with the approriate time settings, the scheduled courses of other departments
                     # and the availabilities of the tutor and we check if the tutor has enough available time and slots.
-                    for course_type, course_list in courses_type.items():
+                    for course_duration, course_list in courses_duration.items():
                         start_times = CourseStartTimeConstraint.objects.get(
-                            course_type=course_type
+                            duration=course_duration, department=self.department
                         ).allowed_start_times
                         course_partition = Partition.get_partition_of_week(
-                            week, course_type.department, True
+                            week, self.department, True
                         )
                         course_partition.add_scheduled_courses_to_partition(
-                            week, course_type.department, tutor, True
+                            week, self.department, tutor, True
                         )
                         course_partition.add_partition_data_type(
                             tutor_partition, "user_preference"
@@ -738,8 +738,8 @@ class ConsiderTutorsUnavailability(TTConstraint):
 
                         if course_partition.available_duration < len(
                             course_list
-                        ) * course_type.duration or course_partition.nb_slots_available_of_duration_beginning_at(
-                            course_type.duration, start_times
+                        ) * course_duration or course_partition.nb_slots_available_of_duration_beginning_at(
+                            course_duration, start_times
                         ) < len(
                             course_list
                         ):
@@ -748,9 +748,9 @@ class ConsiderTutorsUnavailability(TTConstraint):
                             ) % {
                                 "tutor": tutor,
                                 "slots_nb": course_partition.nb_slots_available_of_duration_beginning_at(
-                                    course_type.duration, start_times
+                                    course_duration, start_times
                                 ),
-                                "duration": course_type.duration,
+                                "duration": course_duration,
                             }
                             message += gettext(
                                 "and %s courses that long to attend."

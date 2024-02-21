@@ -152,7 +152,7 @@ class MinimizeBusyDays(TTConstraint):
         for tutor in tutors:
             slot_by_day_cost = ttmodel.lin_expr()
             # need to be sorted
-            courses_hours = sum(c.type.duration
+            courses_hours = sum(c.duration
                                 for c in (ttmodel.wdb.courses_for_tutor[tutor]
                                           | ttmodel.wdb.courses_for_supp_tutor[tutor])
                                 & ttmodel.wdb.courses_by_week[week]) / 60
@@ -214,7 +214,7 @@ class RespectMaxHoursPerDay(TTConstraint):
 
         for tutor in tutors:
             for d in days_filter(ttmodel.wdb.days, week=week):
-                other_departments_hours_nb = sum(sc.course.type.duration
+                other_departments_hours_nb = sum(sc.course.duration
                                                  for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
                                                  if sc.course.week == week and sc.day == d.day) / 60
                 max_hours_nb = max(tutor.preferences.max_hours_per_day - other_departments_hours_nb, 0)
@@ -267,7 +267,7 @@ class RespectTutorsMinHoursPerDay(TTConstraint):
 
         for tutor in tutors:
             for d in days_filter(ttmodel.wdb.days, week=week):
-                other_departments_hours_nb = sum(sc.course.type.duration
+                other_departments_hours_nb = sum(sc.course.duration
                                                  for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
                                                  if sc.course.week == week and sc.day == d.day) / 60
                 min_hours_nb = max(tutor.preferences.min_hours_per_day - other_departments_hours_nb, 0)
@@ -320,7 +320,7 @@ class LowerBoundBusyDays(TTConstraint):
     def enrich_ttmodel(self, ttmodel, week, ponderation=1):
         relevant_courses = self.get_courses_queryset_by_attributes(ttmodel, week)
 
-        if sum(c.type.duration for c in relevant_courses) > self.lower_bound_hours:
+        if sum(c.duration for c in relevant_courses) > self.lower_bound_hours:
             ttmodel.add_constraint(ttmodel.IBD_GTE[self.min_days_nb][self.tutor], '==', 1,
                                    Constraint(constraint_type=ConstraintType.LowerBoundBusyDays, instructors=self.tutor))
 

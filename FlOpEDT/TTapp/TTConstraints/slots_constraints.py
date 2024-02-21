@@ -109,7 +109,7 @@ class SimultaneousCourses(TTConstraint):
         max_duration = 0
         # Here we find the maximal duration of the simultaneous courses
         for course in considered_courses :
-            max_duration = max(max_duration,course.type.duration)
+            max_duration = max(max_duration, course.duration)
 
 
         # Here we search for an available slot in the week
@@ -475,19 +475,19 @@ class ConsiderDependencies(TTConstraint):
                 course1_start_times = CourseStartTimeConstraint.objects.get(course_type=dependency.course1.type).allowed_start_times
                 course2_start_times = CourseStartTimeConstraint.objects.get(course_type=dependency.course2.type).allowed_start_times
                 # Retrieving only TimeInterval for each course
-                course1_slots = week_partition_course1.find_all_available_timeinterval_starting_at(course1_start_times, dependency.course1.type.duration)
-                course2_slots = week_partition_course2.find_all_available_timeinterval_starting_at(course2_start_times, dependency.course2.type.duration)
+                course1_slots = week_partition_course1.find_all_available_timeinterval_starting_at(course1_start_times, dependency.course1.duration)
+                course2_slots = week_partition_course2.find_all_available_timeinterval_starting_at(course2_start_times, dependency.course2.duration)
                 if course1_slots and course2_slots:
-                    while course2_slots[0].end < course1_slots[0].start + timedelta(hours = dependency.course1.type.duration/60+dependency.course2.type.duration/60):
+                    while course2_slots[0].end < course1_slots[0].start + dependency.course1.duration+ dependency.course2.duration:
                         course2_slots.pop(0)
                         if not course2_slots:
                             break
                     if course2_slots:
-                        if course1_slots[0].start + timedelta(hours = dependency.course1.type.duration/60) > course2_slots[0].start:
-                            course2_slots[0].start = course1_slots[0].start + timedelta(hours = dependency.course1.type.duration/60)
+                        if course1_slots[0].start + dependency.course1.duration > course2_slots[0].start:
+                            course2_slots[0].start = course1_slots[0].start + dependency.course1.duration
                         # Here we check if the first course_slot that we might just shrank is still long enough and if it is the only
                         # one left.
-                        if len(course2_slots) <= 1 and course2_slots[0].duration < dependency.course2.type.duration:
+                        if len(course2_slots) <= 1 and course2_slots[0].duration < dependency.course2.duration:
                             jsondict["status"] = _("KO")
                             ok_so_far = False
                             jsondict["messages"].append({ "str" : gettext('There is no available slots for the second course after the first one : %s') % dependency,
@@ -514,8 +514,8 @@ class ConsiderDependencies(TTConstraint):
                         if not find_successive_slots(
                             course1_slots,
                             course2_slots,
-                            timedelta(hours = dependency.course1.type.duration/60),
-                            timedelta(hours = dependency.course2.type.duration/60)):
+                            dependency.course1.duration,
+                            dependency.course2.duration):
                             jsondict['status'] = _("KO")
                             ok_so_far = False
                             jsondict["messages"].append({ "str": gettext(f'There is no available successive slots for those courses: %s') % dependency,

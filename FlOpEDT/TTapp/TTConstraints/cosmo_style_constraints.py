@@ -212,7 +212,7 @@ class LimitTutorTimePerWeeks(TTConstraint):
                                                for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
                                                                       week_in = considered_weeks)
                                                ) \
-                                  + sum(sc.course.type.duration
+                                  + sum(sc.course.duration
                                         for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
                                         if sc.course.week in considered_weeks)
                 if self.max_time_per_period is not None:
