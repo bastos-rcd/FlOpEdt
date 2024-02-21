@@ -40,7 +40,7 @@ class TrainingHalfDay(models.Model):
     )
 
 
-class Period(models.Model):
+class TrainingPeriod(models.Model):
     name = models.CharField(max_length=20)
     department = models.ForeignKey(
         "base.Department", on_delete=models.CASCADE, null=True
@@ -53,8 +53,8 @@ class Period(models.Model):
     )
 
     class Meta:
-        verbose_name = _("period")
-        verbose_name_plural = _("periods")
+        verbose_name = _("training period")
+        verbose_name_plural = _("training periods")
 
     def __str__(self):
         return f"Period {self.name}: {self.department}, {self.starting_week} -> {self.ending_week}"

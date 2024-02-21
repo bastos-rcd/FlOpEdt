@@ -40,7 +40,7 @@ from base.models import (
     Module,
     CourseType,
     TrainingProgramme,
-    Period,
+    TrainingPeriod,
 )
 from base.timing import str_slot, days_index
 from django.db.models import Count, Max, Q, F
@@ -504,7 +504,7 @@ def number_courses(
         TrainingProgramme.objects.filter(department=department), train_progs
     )
     considered_periods = intersect_with_declared_objects(
-        Period.objects.filter(department=department), periods
+        TrainingPeriod.objects.filter(department=department), periods
     )
     considered_modules = intersect_with_declared_objects(
         Module.objects.filter(

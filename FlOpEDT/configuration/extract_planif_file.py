@@ -37,7 +37,7 @@ from base.models import (
     RoomType,
     TrainingProgramme,
     Dependency,
-    Period,
+    TrainingPeriod,
     Department,
     CoursePossibleTutors,
     ModuleTutorRepartition,
@@ -95,7 +95,7 @@ def do_assign(module, course_type, week, book):
 @transaction.atomic
 def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
     sheet = book[feuille]
-    period = Period.objects.get(name=feuille, department=department)
+    period = TrainingPeriod.objects.get(name=feuille, department=department)
     Course.objects.filter(
         type__department=department, week=week, module__period=period
     ).delete()
@@ -429,7 +429,7 @@ def extract_planif_weeks(week_year_list, department, bookname=None, periods=None
 
 def define_periods(department, book, periods):
     if periods is None:
-        periods = Period.objects.filter(department=department)
+        periods = TrainingPeriod.objects.filter(department=department)
     ok_periods = []
     for period in periods:
         if period.name in book:

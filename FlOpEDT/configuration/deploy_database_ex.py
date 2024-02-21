@@ -40,7 +40,7 @@ from base.models import (
     StructuralGroup,
     Module,
     GroupType,
-    Period,
+    TrainingPeriod,
     Time,
     Day,
     CourseType,
@@ -501,7 +501,7 @@ def groups_extract(department, book):
 
     while id_per is not None:
 
-        verif = Period.objects.filter(department=department, name=id_per)
+        verif = TrainingPeriod.objects.filter(department=department, name=id_per)
         s_week = int(sheet.cell(row=PERIOD_ROW, column=id_per_col + 1).value)
         e_week = int(sheet.cell(row=PERIOD_ROW, column=id_per_col + 2).value)
 
@@ -517,7 +517,7 @@ def groups_extract(department, book):
 
             try:
 
-                Period.objects.create(
+                TrainingPeriod.objects.create(
                     name=id_per,
                     department=department,
                     starting_week=s_week,
@@ -584,7 +584,7 @@ def modules_extract(department, book):
                 profesMod = Tutor.objects.get(username=profMod)
             except:
                 logger.warning(f"unable to find tutor '{profMod}'")
-            periodMod = Period.objects.get(name=period, department=department)
+            periodMod = TrainingPeriod.objects.get(name=period, department=department)
 
             try:
 

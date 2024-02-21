@@ -30,11 +30,24 @@ from django.db import transaction
 from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
 
-from base.models import StructuralGroup, RoomType, Room, \
-    ScheduledCourse, EdtVersion, Department, Regen, \
-    Period, TutorCost, CourseStartTimeConstraint, \
-    TimeGeneralSettings, GroupType, CourseType, \
-    TrainingProgramme, Course, Week
+from base.models import (
+    StructuralGroup,
+    RoomType,
+    Room,
+    ScheduledCourse,
+    EdtVersion,
+    Department,
+    Regen,
+    TrainingPeriod,
+    TutorCost,
+    CourseStartTimeConstraint,
+    TimeGeneralSettings,
+    GroupType,
+    CourseType,
+    TrainingProgramme,
+    Course,
+    Week,
+)
 
 from displayweb.models import GroupDisplay, TrainingProgrammeDisplay, BreakingNews
 
@@ -55,9 +68,16 @@ def create_first_department():
 
     # Update all existing department related models
     models = [
-        TrainingProgramme, EdtVersion, Regen, \
-        RoomType, Period, CourseType, BreakingNews, \
-        TutorCost, GroupType]
+        TrainingProgramme,
+        EdtVersion,
+        Regen,
+        RoomType,
+        TrainingPeriod,
+        CourseType,
+        BreakingNews,
+        TutorCost,
+        GroupType,
+    ]
 
     for model in models:
         model.objects.all().update(department=department)

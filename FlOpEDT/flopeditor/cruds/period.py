@@ -27,12 +27,8 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
-from base.models import Period
+from base.models import TrainingPeriod
 from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_period_values
-
-
-
-
 
 
 def read(department):
@@ -44,7 +40,7 @@ def read(department):
 
     """
 
-    periods = Period.objects.filter(department=department)
+    periods = TrainingPeriod.objects.filter(department=department)
 
     values = []
     for period in periods:
@@ -88,17 +84,21 @@ def create(entries, department):
         new_ending_week = entries['new_values'][i][2]
         if not validate_period_values(new_name, new_starting_week, new_ending_week, entries):
             pass
-        elif Period.objects.filter(name=new_name, department=department):
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Le semestre à ajouter est déjà présent dans la base de données."
-            ])
+        elif TrainingPeriod.objects.filter(name=new_name, department=department):
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Le semestre à ajouter est déjà présent dans la base de données.",
+                ]
+            )
         else:
-            Period.objects.create(name=new_name,
-                                  department=department,
-                                  starting_week=new_starting_week,
-                                  ending_week=new_ending_week)
-            entries['result'].append([OK_RESPONSE])
+            TrainingPeriod.objects.create(
+                name=new_name,
+                department=department,
+                starting_week=new_starting_week,
+                ending_week=new_ending_week,
+            )
+            entries["result"].append([OK_RESPONSE])
     return entries
 
 
@@ -129,30 +129,38 @@ def update(entries, department):
 
         else:
             try:
-                period_to_update = Period.objects.get(name=old_name,
-                                                      department=department)
-                if old_name != new_name and \
-                            Period.objects.filter(name=new_name,
-                                                  department=department):
-                    entries['result'].append(
-                        [ERROR_RESPONSE,
-                         "Le nom du semestre est déjà utilisé."])
+                period_to_update = TrainingPeriod.objects.get(
+                    name=old_name, department=department
+                )
+                if old_name != new_name and TrainingPeriod.objects.filter(
+                    name=new_name, department=department
+                ):
+                    entries["result"].append(
+                        [ERROR_RESPONSE, "Le nom du semestre est déjà utilisé."]
+                    )
                 else:
                     period_to_update.name = new_name
                     period_to_update.starting_week = new_starting_week
                     period_to_update.ending_week = new_ending_week
                     period_to_update.save()
-                    entries['result'].append([OK_RESPONSE])
-            except Period.DoesNotExist:
-                entries['result'].append(
-                    [ERROR_RESPONSE,
-                     "Un semestre à modifier n'a pas été trouvé dans la base de données."])
-            except Period.MultipleObjectsReturned:
-                entries['result'].append(
-                    [ERROR_RESPONSE,
-                     "Plusieurs semestres du même nom existent en base de données."])
+                    entries["result"].append([OK_RESPONSE])
+            except TrainingPeriod.DoesNotExist:
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "Un semestre à modifier n'a pas été trouvé dans la base de données.",
+                    ]
+                )
+            except TrainingPeriod.MultipleObjectsReturned:
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "Plusieurs semestres du même nom existent en base de données.",
+                    ]
+                )
 
     return entries
+
 
 def delete(entries, department):
     """Delete values for period
@@ -163,15 +171,17 @@ def delete(entries, department):
     :return: Server response for the request.
     :rtype:  django.http.JsonResponse
     """
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
         try:
-            Period.objects.get(name=old_name,
-                               department=department).delete()
-            entries['result'].append([OK_RESPONSE])
-        except Period.DoesNotExist:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Un semestre à supprimer n'a pas été trouvé dans la base de données."])
+            TrainingPeriod.objects.get(name=old_name, department=department).delete()
+            entries["result"].append([OK_RESPONSE])
+        except TrainingPeriod.DoesNotExist:
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Un semestre à supprimer n'a pas été trouvé dans la base de données.",
+                ]
+            )
     return entries

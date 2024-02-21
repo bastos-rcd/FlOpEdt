@@ -13,7 +13,6 @@ from base.models import (
 )
 
 from base.models import (
-    Period,
     GroupType,
     TutorCost,
     UserAvailability,

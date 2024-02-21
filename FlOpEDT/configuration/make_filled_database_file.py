@@ -41,8 +41,17 @@ from configuration.database_description_xlsx import \
     find_marker_cell, time_from_integer, strftime_from_time
 
 
-from base.models import Room, RoomType, Period, TransversalGroup, StructuralGroup, TrainingProgramme, GroupType, \
-    Module, CourseType
+from base.models import (
+    Room,
+    RoomType,
+    TrainingPeriod,
+    TransversalGroup,
+    StructuralGroup,
+    TrainingProgramme,
+    GroupType,
+    Module,
+    CourseType,
+)
 from people.models import Tutor
 #################################################
 #                                               #
@@ -149,7 +158,7 @@ def make_filled_database_file(department, filename=None):
 
     row, col = find_marker_cell(sheet, 'Périodes')
     row = row + 1
-    for period in Period.objects.filter(department=department):
+    for period in TrainingPeriod.objects.filter(department=department):
         row = row + 1
         sheet.cell(row=row, column=col, value=period.name)
         sheet.cell(row=row, column=col+1, value=period.starting_week)

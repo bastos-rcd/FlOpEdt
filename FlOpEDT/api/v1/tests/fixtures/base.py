@@ -7,7 +7,7 @@ from base.models import (
     Module,
     StructuralGroup,
     TrainingProgramme,
-    Period,
+    TrainingPeriod,
     CourseType,
 )
 from people.models import Tutor, UserDepartmentSettings, FullStaff, SupplyStaff
@@ -27,8 +27,8 @@ def department_a(db) -> Department:
 
 
 @pytest.fixture
-def period_a(db, department_a: Department) -> Period:
-    return Period.objects.create(
+def period_a(db, department_a: Department) -> TrainingPeriod:
+    return TrainingPeriod.objects.create(
         name="Period test", starting_week=1, ending_week=20, department=department_a
     )
 
@@ -41,7 +41,7 @@ def train_prog_a(db, department_a: Department) -> TrainingProgramme:
 
 
 @pytest.fixture
-def module_a(db, train_prog_a: TrainingProgramme, period_a: Period) -> Module:
+def module_a(db, train_prog_a: TrainingProgramme, period_a: TrainingPeriod) -> Module:
     return Module.objects.create(
         abbrev="Module test",
         name="Module test",

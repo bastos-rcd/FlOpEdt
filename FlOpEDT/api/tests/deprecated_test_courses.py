@@ -7,7 +7,6 @@ from base.models import (
     Module,
     StructuralGroup,
     TrainingProgramme,
-    Period,
     CourseType,
 )
 from rest_framework.test import APIClient

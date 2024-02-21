@@ -41,7 +41,7 @@ from base.models import (
     TransversalGroup,
     Module,
     GroupType,
-    Period,
+    TrainingPeriod,
     Time,
     Day,
     CourseType,
@@ -429,7 +429,9 @@ def modules_extract(department, modules):
                 abbrev=module["promotion"], department=department
             )
             prof = Tutor.objects.get(username=module["responsable"])
-            period = Period.objects.get(name=module["period"], department=department)
+            period = TrainingPeriod.objects.get(
+                name=module["period"], department=department
+            )
 
             try:
 
@@ -501,7 +503,7 @@ def settings_extract(department, settings):
     logger.info("Settings extraction : start")
     for id_, (s_week, e_week) in settings["periods"].items():
 
-        verif = Period.objects.filter(department=department, name=id_)
+        verif = TrainingPeriod.objects.filter(department=department, name=id_)
 
         if verif.exists():
             period = verif[0]
@@ -512,7 +514,7 @@ def settings_extract(department, settings):
                 logger.info(f" Period {id_}' extreme weeks have been updated")
         else:
             try:
-                Period.objects.create(
+                TrainingPeriod.objects.create(
                     name=id_,
                     department=department,
                     starting_week=s_week,

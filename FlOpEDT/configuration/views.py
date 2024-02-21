@@ -35,7 +35,7 @@ from django.conf import settings
 
 from core.decorators import dept_admin_required
 
-from base.models import Department, Period, Week
+from base.models import Department, TrainingPeriod, Week
 
 from configuration.make_planif_file import make_planif_file
 from configuration.make_filled_database_file import make_filled_database_file
@@ -59,12 +59,17 @@ def configuration(req, **kwargs):
     arg_req['form_config'] = ImportConfig()
     arg_req['form_planif'] = ImportPlanif()
 
-    arg_req['departements'] = [{'name': depart.name, 'abbrev': depart.abbrev}
-                               for depart in Department.objects.all() if not depart.abbrev == 'default']
-    arg_req['periods'] = [{'name': period.name, 'department': period.department.abbrev}
-                          for period in Period.objects.all()]
-    arg_req['current_year'] = current_year
-    return render(req, 'configuration/configuration.html', arg_req)
+    arg_req["departements"] = [
+        {"name": depart.name, "abbrev": depart.abbrev}
+        for depart in Department.objects.all()
+        if not depart.abbrev == "default"
+    ]
+    arg_req["periods"] = [
+        {"name": period.name, "department": period.department.abbrev}
+        for period in TrainingPeriod.objects.all()
+    ]
+    arg_req["current_year"] = current_year
+    return render(req, "configuration/configuration.html", arg_req)
 
 
 @dept_admin_required
@@ -285,7 +290,9 @@ def import_planif_file(req, **kwargs):
                         until_week = None
 
                     if choose_periods:
-                        periods = Period.objects.filter(department=dept, name__in=req.POST.getlist('periods'))
+                        periods = TrainingPeriod.objects.filter(
+                            department=dept, name__in=req.POST.getlist("periods")
+                        )
                         print(periods)
                     else:
                         periods = None

@@ -30,7 +30,15 @@ from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from base.models import StructuralGroup, Module, Period, CourseType, RoomType, Course, TransversalGroup
+from base.models import (
+    StructuralGroup,
+    Module,
+    TrainingPeriod,
+    CourseType,
+    RoomType,
+    Course,
+    TransversalGroup,
+)
 from people.models import Tutor
 
 from copy import copy
@@ -144,7 +152,7 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
     first_column_letter = {}
     CT = order_CT(department)
     # We go through each period and create a sheet for each period
-    for p in Period.objects.filter(department=department):
+    for p in TrainingPeriod.objects.filter(department=department):
         logger.info(p)
         new_book.create_sheet(p.name)
         sheet = new_book[p.name]
@@ -368,10 +376,10 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
     sheet = new_book['Recap']
     rank = 1
     recap_col_nb = 48
-    nb_per = Period.objects.filter(department=department).count()
+    nb_per = TrainingPeriod.objects.filter(department=department).count()
     append_row(sheet, recap_rows, 1, rank, recap_col_nb)
     rank += 1
-    for p in Period.objects.filter(department=department):
+    for p in TrainingPeriod.objects.filter(department=department):
         append_row(sheet, recap_rows, 2, rank, recap_col_nb)
         sheet.cell(row=rank, column=1).value = p.name
         sheet.cell(row=rank, column=2).value = '=SUM($C%d:AV%d)' % (rank, rank)

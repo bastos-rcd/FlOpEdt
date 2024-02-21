@@ -90,10 +90,11 @@ class PeriodsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Period object.
     """
-    queryset = bm.Period.objects.all()
-    serializer_class = serializers.PeriodsSerializer
 
-    filterset_fields = '__all__'
+    queryset = bm.TrainingPeriod.objects.all()
+    serializer_class = serializers.TrainingPeriodSerializer
+
+    filterset_fields = "__all__"
 
 
 class TimeGeneralFilter(filters.FilterSet):

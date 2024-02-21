@@ -48,10 +48,10 @@ class TrainingHalfDaysSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class PeriodsSerializer(serializers.ModelSerializer):
+class TrainingPeriodSerializer(serializers.ModelSerializer):
     class Meta:
-        model = bm.Period
-        fields = '__all__'
+        model = bm.TrainingPeriod
+        fields = "__all__"
 
 
 class TimeGeneralSettingsSerializer(serializers.ModelSerializer):

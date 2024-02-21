@@ -7,7 +7,7 @@ import os
 
 from core.decorators import superuser_required
 
-from base.models import Period, Department
+from base.models import TrainingPeriod, Department
 
 from configuration.forms import ImportFile
 from configuration.file_manipulation import check_ext_file, upload_file
@@ -23,7 +23,7 @@ def importation_dispo(req, **kwargs):
         department = Department.objects.get(abbrev=kwargs['department'])
     except:
         return "Erreur departement"
-    periods = [p.name for p in Period.objects.filter(department=department)]
+    periods = [p.name for p in TrainingPeriod.objects.filter(department=department)]
     form = ImportFile()
     if req.method == 'POST':
         form = ImportFile(req.POST, req.FILES)
@@ -55,8 +55,8 @@ def importation_dispo(req, **kwargs):
 def get_dispo_file(req, period, **kwargs):
     print(period)
     try:
-        department = Department.objects.get(abbrev=kwargs['department'])
-        period = Period.objects.get(name=period, department=department)
+        department = Department.objects.get(abbrev=kwargs["department"])
+        period = TrainingPeriod.objects.get(name=period, department=department)
     except:
         return "Erreur nom du departement ou periode"
     path = f"{settings.MEDIA_ROOT}/importation/periods_dispo/dispo_file_{period.name}.xlsx"

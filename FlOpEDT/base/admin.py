@@ -62,7 +62,7 @@ from base.models import (
     EnrichedLink,
     GroupPreferredLinks,
     Mode,
-    Period,
+    TrainingPeriod,
 )
 from displayweb.models import ModuleDisplay
 from displayweb.models import TutorDisplay
@@ -906,4 +906,4 @@ admin.site.register(GroupPreferredLinks, GroupPreferredLinksAdmin)
 admin.site.register(CourseStartTimeConstraint, CourseStartTimeConstraintAdmin)
 admin.site.register(Mode, DepartmentModelAdmin)
 admin.site.register(CourseType, DepartmentModelAdmin)
-admin.site.register(Period, DepartmentModelAdmin)
+admin.site.register(TrainingPeriod, DepartmentModelAdmin)
