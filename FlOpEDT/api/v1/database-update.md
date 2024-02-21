@@ -70,9 +70,16 @@ Après les migrations :
   - [ ] modifier tous les flopdate_to_datetime et réciproquement
   - [ ] Modifier hyperplanning.py (Pas sûr)
 - [x] Period -> TrainingPeriod
-- [ ] SchedulingPeriod
+  - [x] models and migrations
+  - [x] refactor
+- [-] SchedulingPeriod
+  - [x] models et migrations
   - [ ] remplacer (presque) partout où apparaît une semaine
   - [ ] supprimer `Week` des models
+- [-] Duration Course-CourseType
+  - [x] models and migrations
+  - [ ] remplacer où apparaissait coursetype.duration et .pay_duration dans django
+  - [ ] dans le solveur
 
 ## Des trucs à savoir
 
