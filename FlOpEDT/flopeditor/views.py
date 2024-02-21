@@ -155,7 +155,6 @@ def department_parameters(request, department_abbrev):
         'afternoon_start_time': time_to_str(parameters.afternoon_start_time),
         'days': parameters.days,
         'day_choices': Day.CHOICES,
-        'default_availability_duration': min_to_str(parameters.default_availability_duration),
         'list_departments': departments,
         'has_department_perm': request.user.has_department_perm(department=department, admin=True),
         'status':status,
@@ -194,7 +193,6 @@ def department_parameters_edit(request, department_abbrev):
         'afternoon_start_time': time_to_str(parameters.afternoon_start_time),
         'days': parameters.days,
         'day_choices': Day.CHOICES,
-        'default_availability_duration': min_to_str(parameters.default_availability_duration),
         'has_department_perm': request.user.has_department_perm(department=department, admin=True),
         'status':status,
         'status_vacataire':position,
@@ -289,7 +287,6 @@ def ajax_edit_parameters(request, department_abbrev):
     day_end_time = request.POST['day_end_time']
     morning_end_time = request.POST['morning_end_time']
     afternoon_start_time = request.POST['afternoon_start_time']
-    default_availability_duration = request.POST['default_availability_duration']
     visio_mode = request.POST['visio_mode']
     if visio_mode == "True":
         visio_mode = True
@@ -301,8 +298,7 @@ def ajax_edit_parameters(request, department_abbrev):
         day_start_time,
         day_end_time,
         morning_end_time,
-        afternoon_start_time,
-        default_availability_duration)
+        afternoon_start_time)
     if response['status'] == OK_RESPONSE:
         parameters = get_object_or_404(
             TimeGeneralSettings, department=department)
@@ -311,7 +307,6 @@ def ajax_edit_parameters(request, department_abbrev):
         parameters.day_end_time = str_to_time(day_end_time)
         parameters.morning_end_time = str_to_time(morning_end_time)
         parameters.afternoon_start_time = str_to_time(afternoon_start_time)
-        parameters.default_availability_duration = str_to_min(default_availability_duration)
         parameters.save()
         mode, created = Mode.objects.get_or_create(department=department)
         mode.cosmo = cosmo_mode
@@ -492,6 +487,20 @@ def department_course_types(request, department_abbrev):
 
     """
     return crud_view(request, department_abbrev, "flopeditor/course_types.html", "Types de cours")
+
+@tutor_or_superuser_required
+def department_course_start_times_constraints(request, department_abbrev):
+    """courses start time constraints view of flop!EDITOR.
+
+    :param request:           Client request.
+    :param department_abbrev: Department abbreviation.
+    :type request:            django.http.HttpRequest
+    :type department_abbrev:  str
+    :return: Page rendered from the template of flop!EDITOR.
+    :rtype:  django.http.HttpResponse
+
+    """
+    return crud_view(request, department_abbrev, "flopeditor/course_start_times_constraints.html", "Heures de début")
 
 
 @tutor_or_superuser_required

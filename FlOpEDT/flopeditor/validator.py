@@ -155,8 +155,7 @@ def validate_department_update(old_dept_name, new_dept_name,
 
 def validate_parameters_edit(days, day_start_time,
                              day_end_time, morning_end_time,
-                             afternoon_start_time,
-                             default_availability_duration):
+                             afternoon_start_time):
     """Validate parameters for department creation
 
     :param days: List of checked working days
@@ -169,8 +168,6 @@ def validate_parameters_edit(days, day_start_time,
     :type morning_end_time: String
     :param afternoon_start_time: Lunch finish time hh:mm
     :type afternoon_start_time: String
-    :param default_availability_duration: Class default duration hh:mm
-    :type default_availability_duration: String
 
     :return: (boolean,json) (are the paramaters valid , status and errors)
     """
@@ -201,11 +198,6 @@ def validate_parameters_edit(days, day_start_time,
             'status': ERROR_RESPONSE,
             'message': "L'heure de début d'après midi est incorrecte."
         }
-    elif not time_re.match(default_availability_duration):
-        response = {
-            'status': ERROR_RESPONSE,
-            'message': "La durée par défaut d'un cours est incorrecte."
-        }
     elif day_start_time > day_end_time:
         response = {
             'status': ERROR_RESPONSE,
@@ -220,11 +212,6 @@ def validate_parameters_edit(days, day_start_time,
         response = {
             'status': ERROR_RESPONSE,
             'message': "La période du déjeuner doit être pendant la période des cours."
-        }
-    elif default_availability_duration == "00:00":
-        response = {
-            'status': ERROR_RESPONSE,
-            'message': "La durée par défaut des préférences ne peut pas être nulle."
         }
     else:
         response = {'status': OK_RESPONSE, 'message': ''}
@@ -261,25 +248,18 @@ def validate_training_programme_values(abbrev, name, entries):
     return False
 
 
-def validate_course_values(name, duree, entries):
+def validate_course_values(name, entries):
     """Validate parameters for course type
 
     :param name: course name to test
     :type abbrev: text
-    :param duree: value of duration of course
-    :type abbrev: int
     :param entries: list that is returned to CrudJS
-    :type abbrev: list
+    :type entries: list
 
     :return: (boolean,json) (are the paramaters valid , status and errors)
     """
-    if duree is None:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "La durée est invalide"])
-    elif duree < 0:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "La durée ne peut pas être négative"])
-    elif not name:
+
+    if not name:
         entries['result'].append([ERROR_RESPONSE,
                                   "Le nom du type de cours ne peut pas être vide."])
     elif len(name) > 50:
