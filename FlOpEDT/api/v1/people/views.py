@@ -86,7 +86,10 @@ class StudentsViewSet(viewsets.ModelViewSet):
     serializer_class = StudentSerializer
 
 
-class ThemePreferenceViewSet(viewsets.ModelViewSet):  # AutoPermissionViewSetMixin,
+class ThemePreferenceViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = pm.ThemesPreferences.objects.all()
     serializer_class = ThemePreferencesSerializer
     # permission_classes = [DjangoObjectPermissions]
+
+
+# from rules.contrib.rest_framework import AutoPermissionViewSetMixin
