@@ -19,7 +19,7 @@ Maintenant:
 
 Rename:
 
-- [ ] `models/preferences.py`
+- [x] `models/preferences.py`
   - filename -> `models/availability.py`
   - `userPreference` -> `userAvailability`
 
@@ -69,8 +69,10 @@ Après les migrations :
   - [ ] Modifier database_description_checker | database_description_xlsx | make_filled_database_file
   - [ ] modifier tous les flopdate_to_datetime et réciproquement
   - [ ] Modifier hyperplanning.py (Pas sûr)
-
-- [ ]
+- [x] Period -> TrainingPeriod
+- [ ] SchedulingPeriod
+  - [ ] remplacer (presque) partout où apparaît une semaine
+  - [ ] supprimer `Week` des models
 
 ## Des trucs à savoir
 
