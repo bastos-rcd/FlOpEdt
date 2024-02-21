@@ -32,7 +32,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from rules.contrib.models import RulesModel
 
-from people.rules import is_theme_ok, is_user_ok
+from people.rules import is_theme_ok
 from rules import always_true, always_false, is_staff
 
 # Create your models here.
@@ -328,7 +328,8 @@ class ThemesPreferences(RulesModel):
     class Meta:
         rules_permissions = {
             "add": always_true,
-            "read": always_false,
+            "change": is_theme_ok,
+            "delete": is_theme_ok,
             "view": is_theme_ok,
         }
 
