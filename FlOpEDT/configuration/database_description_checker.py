@@ -615,7 +615,7 @@ def check_courses_sheet(database):
         flag_finish_in_lunch_break = False
         print(settings)
         for start_time in course['start_times']:
-            if start_time ==-1 and not flag_invalid:
+            if start_time is None and not flag_invalid:
                 flag_invalid = True
                 continue
             if not (start_time >= day_start_time and start_time < day_end_time) and not flag_start_not_in_day:
@@ -624,10 +624,10 @@ def check_courses_sheet(database):
             if start_time >= morning_end_time and start_time < afternoon_start_time and not flag_start_in_lunch_break:
                 flag_start_in_lunch_break = True
                 continue
-            if course['duration'] <= 0:
+            if course['duration'] is None:
                 continue
             end_time = (dt.datetime.combine(dt.date(1,1,1), start_time) + dt.timedelta(minutes=course['duration'])).time()
-            if not (end_time > day_start_time and end_time <= day_end_time) and not flag_finish_not_in_day:
+            if not (day_start_time < end_time and end_time <= day_end_time) and not flag_finish_not_in_day:
                 flag_finish_not_in_day = True
                 continue
             if end_time > morning_end_time and end_time <= afternoon_start_time and not flag_finish_in_lunch_break:
