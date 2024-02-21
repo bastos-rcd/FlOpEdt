@@ -66,7 +66,7 @@ Après les migrations :
 
 - [ ] TimeGeneralSettings: \*
   - [ ] Faire une entrée d'api pour remplacer get_department_settings(dept) (appelé dans base/views) (NB : les formats des start_time ont changé)
-  - [ ] Modifier database_description_checker | database_description_xlsx | make_filled_database_file
+  - [x] Modifier database_description_checker | database_description_xlsx | make_filled_database_file
   - [ ] modifier tous les flopdate_to_datetime et réciproquement
   - [ ] Modifier hyperplanning.py (Pas sûr)
 - [x] Period -> TrainingPeriod
@@ -76,10 +76,16 @@ Après les migrations :
   - [x] models et migrations
   - [ ] remplacer (presque) partout où apparaît une semaine
   - [ ] supprimer `Week` des models
+  - [ ] comment combiner TrainingPeriod et SchedulingPeriod?
 - [-] Duration Course-CourseType
   - [x] models and migrations
-  - [ ] remplacer où apparaissait coursetype.duration et .pay_duration dans django
-  - [ ] dans le solveur
+  - [x] remplacer où apparaissait coursetype.duration et .pay_duration dans django
+  - [x] dans le solveur
+    - [ ] checker le type datetime.time / timedelta dans les TTConstraints
+  - [x] dans flopEditor
+  - [ ] dans l'import-export excel
+  - [ ] modifier courseStartTimeConstraints en incluant une duration au lieu d'un course_type
+
 
 ## Des trucs à savoir
 

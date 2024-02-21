@@ -169,7 +169,7 @@ def pref_requirements(department, tutor, year, week_nb):
     """
     week = bm.Week.objects.get(nb=week_nb, year=year)
     courses_time = sum(
-        c.type.duration
+        c.duration
         for c in bm.Course.objects.filter(
             Q(tutor=tutor) | Q(supp_tutor=tutor), week=week
         )

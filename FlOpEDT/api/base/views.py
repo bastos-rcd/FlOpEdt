@@ -235,7 +235,7 @@ class CoureStartTimeFilter(filters.FilterSet):
 
     class Meta:
         model = bm.CourseStartTimeConstraint
-        fields = ('course_type', 'allowed_start_times')
+        fields = ('department', 'allowed_start_times')
 
 
 class CourseStartTimeConstraintsViewSet(viewsets.ModelViewSet):
