@@ -57,6 +57,7 @@ Après les migrations :
 ## Améliorations
 
 - [ ] mettre plutôt les validations du serializer du post de UserAvailability dans le `is_valid`
+- [ ] permission plus fine sur ajout de dispo : ne pas utiliser tout le monde à pousser une dispo de n'importe qui d'autre -> dans le serializer
 
 ## Des trucs à savoir
 

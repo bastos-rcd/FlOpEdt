@@ -4,6 +4,8 @@ import logging
 
 logger = logging.getLogger("rules")
 
+from rules import is_authenticated
+
 
 @rules.predicate
 def is_theme_ok(user, theme) -> bool:
@@ -14,5 +16,5 @@ def is_theme_ok(user, theme) -> bool:
 
 
 @rules.predicate
-def is_user_ok(user, theme) -> bool:
-    return True
+def is_authenticated_tutor(user) -> bool:
+    return user.is_authenticated and user.is_tutor

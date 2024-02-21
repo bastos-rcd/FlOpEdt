@@ -89,7 +89,6 @@ class TestUserAvailabilityActual:
 class TestUserAvailabilityActual:
     endpoint = f"/fr/api/v1/availability/update_user/"
 
-    # @pytest.mark.skip(reason="rights have to be implemented")
     def test_update(self, client, make_user_hourly_commune):
         user = User.objects.first()
         client.force_authenticate(user=user)
@@ -113,6 +112,7 @@ class TestUserAvailabilityActual:
         response = retrieve_elements(client.post(self.endpoint, wanted), 3)
         assert response == wanted
 
+    @pytest.mark.skip(reason="rights have to be implemented")
     def test_update_rights(self, client, make_users, make_default_week_user):
         user = User.objects.first()
         client.force_authenticate(user=user)

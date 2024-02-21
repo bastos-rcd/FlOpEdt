@@ -55,6 +55,7 @@ from api.shared.params import (
 
 
 class DatedAvailabilityListViewSet(
+    AutoPermissionViewSetMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
@@ -100,9 +101,7 @@ class DatedAvailabilityListViewSet(
         ],
     ),
 )
-class RoomDatedAvailabilityListViewSet(
-    AutoPermissionViewSetMixin, DatedAvailabilityListViewSet
-):
+class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     """
     Availability. Either a room or a department must be entered.
     """
@@ -149,9 +148,7 @@ class RoomDatedAvailabilityUpdateViewSet(
         ],
     ),
 )
-class UserDatedAvailabilityListViewSet(
-    AutoPermissionViewSetMixin, DatedAvailabilityListViewSet
-):
+class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     """
     Availability. Either a user or a department must be entered.
     """
