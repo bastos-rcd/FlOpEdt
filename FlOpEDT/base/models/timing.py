@@ -141,9 +141,6 @@ class TimeGeneralSettings(models.Model):
     afternoon_start_time = models.TimeField(default=dt.time(14, 15, 0))
     day_end_time = models.TimeField(default=dt.time(hour=19))
     days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES))
-    default_availability_duration = models.DurationField(
-        default=dt.timedelta(minutes=90)
-    )
     scheduling_period_mode = models.CharField(
         max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
     )
@@ -179,13 +176,16 @@ class Mode(models.Model):
     department = models.OneToOneField("base.Department", on_delete=models.CASCADE)
     cosmo = models.PositiveSmallIntegerField(default=0, choices=cosmo_choices)
     visio = models.BooleanField(default=False)
+    scheduling_mode =  models.CharField(
+        max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
+    )
 
     def __str__(self):
         text = f"Dept {self.department.abbrev}: "
         if not self.cosmo:
             text += "educational mode "
         else:
-            text += f"cosmo{self.cosmo} mode "
+            text += f"cosmo {self.cosmo} mode "
         if self.visio:
             text += "with "
         else:

@@ -139,12 +139,12 @@ class ScheduledCourse(models.Model):
                 f"{self.day}-t{self.start_time}-{self.room}")
 
     def unique_name(self):
-        return (f"{self.course.type}_{self.room}_{self.tutor.username}"
+        return (f"{self.course.type}_{self.duration}_{self.room}_{self.tutor}"
                 f"_{self.day}_{self.start_time}_{self.end_time}")
 
     @property
     def end_time(self):
-        return self.start_time + self.course.type.duration
+        return self.start_time + self.course.duration
 
     def has_same_day(self, other):
         return self.course.week == other.course.week and self.day == other.day
@@ -157,13 +157,13 @@ class ScheduledCourse(models.Model):
 
     @property
     def duration(self):
-        return self.course.type.duration
+        return self.course.duration
 
-    @property
-    def pay_duration(self):
-        if self.course.type.pay_duration is not None:
-            return self.course.type.pay_duration
-        return self.duration
+    # @property
+    # def pay_duration(self):
+    #     if self.course.type.pay_duration is not None:
+    #         return self.course.type.pay_duration
+    #     return self.duration
 
 
 class ScheduledCourseAdditional(models.Model):

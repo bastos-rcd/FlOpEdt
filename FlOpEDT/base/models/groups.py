@@ -157,5 +157,5 @@ class TransversalGroup(GenericGroup):
     def time_of_courses(self, week):
         t = 0
         for c in Course.objects.filter(week=week, groups=self):
-            t += c.type.duration
+            t += c.duration
         return t

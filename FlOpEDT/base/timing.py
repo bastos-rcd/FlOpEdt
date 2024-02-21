@@ -260,7 +260,7 @@ class TimeInterval(object):
     @property
     def duration(self):
       #datetime1 - datetime2 = timedelta
-      return abs(self.start - self.end).total_seconds()//60
+      return abs(self.start - self.end)
     
     #Build a TimeInterval from a Flop-based day date type
     @staticmethod

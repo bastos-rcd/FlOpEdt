@@ -297,16 +297,10 @@ def get_coursetype_constraints(department_abbrev):
     and list of allowed start times)
     """
     dic = {}
-    for ct in CourseType.objects.filter(department__abbrev=department_abbrev):
-        dic[ct.name] = {'duration': ct.duration,
-                        'allowed_st': []}
-        for ct_constraint in \
-                CourseStartTimeConstraint.objects.filter(course_type=ct):
-            dic[ct.name]['allowed_st'] += ct_constraint.allowed_start_times
-        dic[ct.name]['allowed_st'].sort()
-        if len(dic[ct.name]['allowed_st']) == 0:
-            dic[ct.name]['allowed_st'] += \
-                CourseStartTimeConstraint.objects.get(course_type=None).allowed_start_times
+    
+    for ct_constraint in CourseStartTimeConstraint.objects.filter(department__abbrev=department_abbrev):
+        dic[ct_constraint.id] = {'duration': ct_constraint.duration,
+                                 'allowed_st': ct_constraint.allowed_start_times}
     return dic
 
 
@@ -321,8 +315,7 @@ def get_department_settings(dept):
              {'day_start_time': ts.day_start_time,
               'day_end_time': ts.day_end_time,
               'morning_end_time': ts.morning_end_time,
-              'afternoon_start_time': ts.afternoon_start_time,
-              'default_availability_duration': ts.default_availability_duration},
+              'afternoon_start_time': ts.afternoon_start_time},
          'days': ts.days,
          'mode':
              {'cosmo': mode.cosmo,
