@@ -4,12 +4,24 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def populate_scheduling_periods(apps, schema_editor):
+    TrainingPeriod = apps.get_model("base", "TrainingPeriod")
+    Module = apps.get_model("base", "Module")
+    if TrainingPeriod.objects.count() == 0:
+        TrainingPeriod.objects.create(name="fake", starting_week=1, ending_week=52)
+    tp = TrainingPeriod.objects.first()
+    for m in Module.objects.filter(period=None):
+        m.period = tp
+        m.save()
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("base", "0107_module_period"),
     ]
 
     operations = [
+        migrations.RunPython(populate_scheduling_periods),
         migrations.AlterField(
             model_name="module",
             name="period",
