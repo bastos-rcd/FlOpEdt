@@ -1,3 +1,5 @@
+import datetime as dt
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -42,8 +44,6 @@ class ModuleTutorRepartition(models.Model):
 class CourseType(models.Model):
     name = models.CharField(max_length=50)
     department = models.ForeignKey('base.Department', on_delete=models.CASCADE, null=True)
-    duration = models.PositiveSmallIntegerField(default=90) # FIXME : time with TimeField or DurationField
-    pay_duration = models.PositiveSmallIntegerField(null=True, blank=True) # FIXME : time with TimeField or DurationField
     group_types = models.ManyToManyField('base.GroupType', blank=True, related_name="compatible_course_types")
     graded = models.BooleanField(verbose_name=_('graded?'), default=False)
 
@@ -57,6 +57,7 @@ class CourseType(models.Model):
 
 class Course(models.Model):
     type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
+    duration = models.DurationField()
     room_type = models.ForeignKey('RoomType', null=True, on_delete=models.CASCADE)
     tutor = models.ForeignKey('people.Tutor', related_name='taught_courses', null=True, blank=True,
                               default=None, on_delete=models.CASCADE)
@@ -74,19 +75,19 @@ class Course(models.Model):
         verbose_name_plural = _("courses")
     
     def __str__(self):
-        username_mod = self.tutor.username if self.tutor is not None else '-no_tut-'
-        return f"{self.type}-{self.module}-{username_mod}-{'|'.join([g.name for g in self.groups.all()])}" \
-               + (" (%s)" % self.id if self.show_id else "")
-
-
+        ret = self.full_name()
+        if self.show_id:
+            ret += f" ({self.id})"
+        return ret
 
     def full_name(self):
         username_mod = self.tutor.username if self.tutor is not None else '-no_tut-'
-        return f"{self.type}-{self.module}-{username_mod}-{'|'.join([g.name for g in self.groups.all()])}"
+        return f"{self.type}-{self.duration}-{self.module}-{username_mod}-{'|'.join([g.name for g in self.groups.all()])}"
 
     def equals(self, other):
         return self.__class__ == other.__class__ \
                and self.type == other.type \
+               and self.duration == other.duration \
                and self.tutor == other.tutor \
                and self.room_type == other.room_type \
                and list(self.groups.all()) == list(other.groups.all()) \
