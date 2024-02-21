@@ -62,7 +62,7 @@ class EventFeed(ICalFeed):
 
     def item_end_datetime(self, scourse):
         end = self.item_start_datetime(scourse) \
-            + timedelta(minutes=scourse.course.type.duration)
+            + timedelta(minutes=scourse.course.duration)
         return end
 
     def item_link(self, s):
