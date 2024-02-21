@@ -55,10 +55,7 @@ class Slot:
             return Time.AM
 
     def __str__(self):
-        return (
-            f"{self.day} de {self.start_time//60}h{self.start_time%60 if self.start_time%60!=0 else ''} "
-            f"à {self.end_time//60}h{self.end_time%60 if self.end_time%60!=0 else ''} "
-        )
+        return (f"{self.day} de {self.start_time} à {self.end_time}")
 
     def has_same_day(self, other):
         if isinstance(other, (Slot, CourseSlot)):
@@ -149,34 +146,16 @@ class Slot:
 
 
 class CourseSlot(Slot):
-    def __init__(self, day, start_time, course_type=None):
-        if course_type is not None:
-            duration = course_type.duration
-        else:
-            duration = basic_slot_duration
+    def __init__(self, day, start_time, duration, department=None):
         Slot.__init__(self, day, start_time, start_time + duration)
-        self.course_type = course_type
+        self.department=department
 
-    def same_through_weeks(self, other):
-        return (
-            self.day.day == other.day.day
-            and self.start_time == other.start_time
-            and self.course_type == other.course_type
-        )
-
-    @property
-    def duration(self):
-        if self.course_type is not None:
-            return self.course_type.duration
-        else:
-            return basic_slot_duration
 
     @property
     def apm(self):
-        if self.course_type is not None:
-            pm_start = TimeGeneralSettings.objects.get(
-                department=self.course_type.department
-            ).afternoon_start_time
+        if self.department is not None:
+            time = TimeGeneralSettings.objects.get(department=self.department)
+            pm_start = time.afternoon_start_time
         else:
             pm_start = midday
         if self.start_time >= pm_start:
@@ -184,13 +163,20 @@ class CourseSlot(Slot):
         else:
             return Time.AM
 
+    def same_through_weeks(self, other):
+        return (
+            self.day.day == other.day.day
+            and self.start_time == other.start_time
+        )
+
+
     def __str__(self):
         hours = self.start_time // 60
         minuts = self.start_time % 60
         if minuts == 0:
             minuts = ""
         return (
-            str(self.course_type)
+            str(self.department)
             + "_"
             + str(self.day)
             + "_"
@@ -204,7 +190,7 @@ def slots_filter(
     slot_set,
     day=None,
     apm=None,
-    course_type=None,
+    duration=None,
     start_time=None,
     week_day=None,
     simultaneous_to=None,
@@ -217,6 +203,7 @@ def slots_filter(
     day_in=None,
     same=None,
     week_in=None,
+    department=None
 ):
     slots = slot_set
     if week is not None:
@@ -229,8 +216,8 @@ def slots_filter(
         slots = set(sl for sl in slots if sl.day in day_in)
     if week_day is not None:
         slots = set(sl for sl in slots if sl.day.day == week_day)
-    if course_type is not None:
-        slots = set(sl for sl in slots if sl.course_type == course_type)
+    if duration is not None:
+        slots = set(sl for sl in slots if sl.duration == duration)
     if apm is not None:
         slots = set(sl for sl in slots if sl.apm == apm)
     if simultaneous_to is not None:
@@ -249,6 +236,8 @@ def slots_filter(
         slots = set(sl for sl in slots if sl.start_time == start_time)
     if same is not None:
         slots = set(sl for sl in slots if sl.same_through_weeks(same))
+    if department is not None:
+        slots = set(sl for sl in slots if sl.department == department)
     return slots
 
 
@@ -274,5 +263,6 @@ def days_filter(
 def corresponding_slot(scheduled_course):
     day = Day(week=scheduled_course.course.week, day=scheduled_course.day)
     start_time = scheduled_course.start_time
-    course_type = scheduled_course.course.type
-    return CourseSlot(day, start_time, course_type)
+    duration = scheduled_course.duration
+    department = scheduled_course.course.type.department
+    return CourseSlot(day, start_time, duration, department)

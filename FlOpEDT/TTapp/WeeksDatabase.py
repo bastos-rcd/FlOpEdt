@@ -228,25 +228,27 @@ class WeeksDatabase(object):
         print("Slot tools definition", end=", ")
         tgs = TimeGeneralSettings.objects.get(department=self.department)
         courses_slots = set()
-        filtered_cstc = CourseStartTimeConstraint.objects.filter(
-            Q(course_type__in=self.course_types) | Q(course_type=None)
-        )
+        filtered_cstc = CourseStartTimeConstraint.objects.filter(department=self.department)
         # Courses slots
         for cc in filtered_cstc:
             start_times = cc.allowed_start_times
             if self.slots_step is None:
                 courses_slots |= set(
-                    CourseSlot(d, start_time, cc.course_type)
+                    CourseSlot(d, start_time, cc.duration, self.department)
                     for d in self.days
                     for start_time in start_times
                 )
             else:
                 courses_slots |= set(
-                    CourseSlot(d, start_time, cc.course_type)
+                    CourseSlot(d, start_time, cc.duration, self.department)
                     for d in self.days
                     for start_time in cc.allowed_start_times
                     if start_time % self.slots_step == 0
                 )
+        # We remove the course slots that are inside the lunch break
+        for course_slot in courses_slots:
+            if course_slot.start_time < tgs.afternoon_start_time and course_slot.end_time > tgs.morning_end_time: 
+                courses_slots.pop(course_slot)
 
         for slot in courses_slots:
             self.possible_apms.add(slot.apm)
@@ -258,7 +260,7 @@ class WeeksDatabase(object):
             dayly_availability_slots |= set(cst.allowed_start_times)
             if cst.course_type is not None:
                 dayly_availability_slots |= set(
-                    st + cst.course_type.duration for st in cst.allowed_start_times
+                    st + cst.duration for st in cst.allowed_start_times
                 )
         dayly_availability_slots.add(tgs.day_end_time)
         dayly_availability_slots = list(dayly_availability_slots)
@@ -272,6 +274,11 @@ class WeeksDatabase(object):
         ):
             start_times.remove(tgs.morning_end_time)
             end_times.remove(tgs.afternoon_start_time)
+            # We remove the slots that are inside the lunch break
+            for st in dayly_availability_slots:
+                if tgs.morning_end_time < st < tgs.afternoon_start_time:
+                    start_times.remove(st)
+                    end_times.remove(st)
 
         availability_slots = {
             Slot(day=day, start_time=start_times[i], end_time=end_times[i])
@@ -467,29 +474,17 @@ class WeeksDatabase(object):
                     slot
                     for slot in self.courses_slots
                     if slot.day.week == c.week
-                    and (
-                        slot.course_type == c.type
-                        or (
-                            slot.course_type is None
-                            and c.type.duration == slot.duration
-                        )
-                    )
+                    and slot.duration == c.duration
+                    and slot.department == c.type.department
                 )
 
             compatible_courses = {}
             for sl in self.courses_slots:
-                if sl.course_type is None:
-                    compatible_courses[sl] = set(
-                        course
-                        for course in self.courses
-                        if course.type.duration == sl.duration
-                        and sl.day.week == course.week
-                    )
-                else:
-                    compatible_courses[sl] = set(
-                        course
-                        for course in self.courses
-                        if course.type == sl.course_type and sl.day.week == course.week
+                compatible_courses[sl] = set(
+                    course for course in self.courses
+                    if course.duration == sl.duration
+                    and sl.day.week == course.week
+                    and sl.department == course.type.department
                     )
         else:
             compatible_courses = {sl: set() for sl in self.courses_slots}
@@ -504,7 +499,8 @@ class WeeksDatabase(object):
                             self.courses_slots,
                             week=c.week,
                             start_time=sc.start_time,
-                            course_type=c.type,
+                            duration=c.duration,
+                            department=c.type.department,
                         )
                         if slot.day.day == sc.day
                     }
@@ -521,7 +517,8 @@ class WeeksDatabase(object):
                         [
                             slot
                             for slot in slots_filter(
-                                self.courses_slots, week=c.week, course_type=c.type
+                                self.courses_slots, week=c.week, duration=c.duration,
+                                department=c.type.department
                             )
                         ]
                     )

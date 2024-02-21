@@ -946,12 +946,12 @@ class TTModel(FlopModel):
                     self.wdb.availability_slots, week=week
                 )
                 teaching_duration = sum(
-                    c.type.duration
+                    c.duration
                     for c in self.wdb.courses_for_tutor[i]
                     if c.week == week
                 )
                 total_teaching_duration = teaching_duration + sum(
-                    c.type.duration
+                    c.duration
                     for c in self.wdb.other_departments_courses_for_tutor[i]
                     if c.week == week
                 )
