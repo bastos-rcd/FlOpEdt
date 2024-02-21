@@ -214,7 +214,6 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                 sheet.cell(row=rank, column=1).value = mod.abbrev
                 sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
                 sheet.cell(row=rank, column=3).value = ct.name
-                sheet.cell(row=rank, column=4).value = ct.duration
                 sheet.cell(row=rank, column=5).value = 'Prof'
                 sheet.cell(row=rank, column=6).value = 'Type de Salle'
                 sheet.cell(row=rank, column=7).value = 'Groupes'
@@ -259,7 +258,6 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                                 sheet.cell(row=rank, column=1).value = mod.abbrev
                                 sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
                                 sheet.cell(row=rank, column=3).value = ct.name
-                                sheet.cell(row=rank, column=4).value = ct.duration
                                 sheet.cell(row=rank, column=5).value = username
                                 room_type_validator.add(sheet.cell(row=rank, column=6))
                                 sheet.cell(row=rank, column=7).value = groups_name
@@ -281,7 +279,6 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                             sheet.cell(row=rank, column=1).value = mod.abbrev
                             sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
                             sheet.cell(row=rank, column=3).value = ct.name
-                            sheet.cell(row=rank, column=4).value = ct.duration
                             tutor_validator.add(sheet.cell(row=rank, column=5))
                             room_type_validator.add(sheet.cell(row=rank, column=6))
                             sheet.cell(row=rank, column=7).value = g.name
@@ -306,7 +303,6 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                     sheet.cell(row=rank, column=1).value = mod.abbrev
                     sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
                     sheet.cell(row=rank, column=3).value = ct.name
-                    sheet.cell(row=rank, column=4).value = ct.duration
                     tutor_validator.add(sheet.cell(row=rank, column=5))
                     room_type_validator.add(sheet.cell(row=rank, column=6))
                     rank += 1

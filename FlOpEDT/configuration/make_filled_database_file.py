@@ -41,17 +41,7 @@ from configuration.database_description_xlsx import \
     find_marker_cell, time_from_integer, strftime_from_time
 
 
-from base.models import (
-    Room,
-    RoomType,
-    TrainingPeriod,
-    TransversalGroup,
-    StructuralGroup,
-    TrainingProgramme,
-    GroupType,
-    Module,
-    CourseType,
-)
+from base.models import Room, RoomType, TrainingPeriod, TransversalGroup, StructuralGroup, TrainingProgramme, GroupType, Module, CourseType, CourseStartTimeConstraint
 from people.models import Tutor
 #################################################
 #                                               #
@@ -124,9 +114,6 @@ def make_filled_database_file(department, filename=None):
     sheet.cell(row=row+3, column=col+1, value=strftime_from_time(department.timegeneralsettings.morning_end_time))
     sheet.cell(row=row+4, column=col+1, value=strftime_from_time(department.timegeneralsettings.afternoon_start_time))
 
-    row, col = find_marker_cell(sheet, 'Granularité')
-    sheet.cell(row=row, column=col+1, value=department.timegeneralsettings.default_availability_duration.seconds//60)
-
     row, col = find_marker_cell(sheet, 'Modes')
     mode = department.mode
     if mode.visio:
@@ -139,7 +126,16 @@ def make_filled_database_file(department, filename=None):
         sheet.cell(row=row + 2, column=col, value="Coop.(Poste)")
     else:
         sheet.cell(row=row + 2, column=col, value="Coop. (Salarié)")
-
+    if mode.scheduling_mode == 'w':
+        sheet.cell(row=row + 3, column=col, value="Par semaine")
+    elif mode.scheduling_mode == 'd':
+        sheet.cell(row=row + 3, column=col, value="Par jour")
+    elif mode.scheduling_mode == 'm':
+        sheet.cell(row=row + 3, column=col, value="Par mois")
+    elif mode.scheduling_mode == 'y':
+        sheet.cell(row=row + 3, column=col, value="Par an")
+    else:
+        sheet.cell(row=row + 3, column=col, value="Custom")
 
     row, col = find_marker_cell(sheet, 'Jours ouvrables')
     days = department.timegeneralsettings.days
@@ -156,7 +152,7 @@ def make_filled_database_file(department, filename=None):
         else:
             sheet.cell(row=row+2, column=col+delta, value=None)
 
-    row, col = find_marker_cell(sheet, 'Périodes')
+    row, col = find_marker_cell(sheet, 'Périodes de cours')
     row = row + 1
     for period in TrainingPeriod.objects.filter(department=department):
         row = row + 1
@@ -272,24 +268,33 @@ def make_filled_database_file(department, filename=None):
 
 
     sheet = wb[courses_sheet]
-    row, col_start = find_marker_cell(sheet, 'Type')
+    row, col_start = find_marker_cell(sheet, 'Type de cours')
     course_types = CourseType.objects.filter(department=department)
-    insert_missing_rows(sheet, row, list(course_types)+list(course_types), 12)
+    insert_missing_rows(sheet, row, list(course_types), 10)
     for course_type in course_types:
         row = row + 1
         col = col_start
         sheet.cell(row=row, column=col, value=course_type.name)
-        sheet.cell(row=row, column=col+1, value=course_type.duration)
+        if course_type.graded:
+            sheet.cell(row=row, column=col+1, value="Oui")
+        else:
+            sheet.cell(row=row, column=col+1, value="Non")
         col = col_start + 1
         for group_type in course_type.group_types.all():
             col = col + 1
             sheet.cell(row=row, column=col, value=group_type.name)
+        
+    row, col_start = find_marker_cell(sheet, 'Durée de cours')
+    course_start_time_constraints = CourseStartTimeConstraint.objects.filter(department=department)
+    insert_missing_rows(sheet, row, list(course_start_time_constraints), 12)
+    for course_start_time_constraint in course_start_time_constraints:
         row = row + 1
-        col = col_start + 1
-        allowed_start_times = course_type.coursestarttimeconstraint_set.first().allowed_start_times
+        col = col_start
+        sheet.cell(row=row, column=col, value=course_start_time_constraint.duration.seconds//60)
+        allowed_start_times = course_start_time_constraint.allowed_start_times
         allowed_start_times.sort()
         for start_time in allowed_start_times:
             col = col + 1
-            sheet.cell(row=row, column=col, value=time_from_integer(start_time))
+            sheet.cell(row=row, column=col, value=start_time)
 
     wb.save(filename)

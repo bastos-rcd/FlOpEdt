@@ -69,6 +69,8 @@ from misc.assign_colors import assign_module_color
 
 from configuration.database_description_checker import database_description_check
 
+import datetime as dt
+
 media_dir = "media/configuration"
 logger = logging.getLogger("base")
 
@@ -123,7 +125,8 @@ def extract_database_file(
         book["transversal_groups"],
     )
     modules_extract(department, book["modules"])
-    courses_extract(department, book["courses"])
+    course_types_extract(department, book["course_types"])
+    course_start_time_constraints_extract(department, book["course_start_time_constraints"])
 
 
 def people_extract(department, people):
@@ -198,7 +201,6 @@ def rooms_extract(department, room_groups, room_categories, rooms):
 
         try:
             room, _ = Room.objects.get_or_create(name=id_)
-
             room.types.add(temporary_room_type)
             room.departments.add(department)
 
@@ -212,6 +214,7 @@ def rooms_extract(department, room_groups, room_categories, rooms):
         try:
             room_group, _ = Room.objects.get_or_create(name=group_id)
             room_group.types.add(temporary_room_type)
+            room_group.departments.add(department)
 
         except IntegrityError as ie:
             logger.warning(
@@ -220,15 +223,14 @@ def rooms_extract(department, room_groups, room_categories, rooms):
             pass  # FIXME: continue?
 
         for room_id in members:
-
             try:
                 room, _ = Room.objects.get_or_create(name=room_id)
+                room.departments.add(department)
                 if room_group in room.subroom_of.all():
                     continue
                 else:
                     logger.info(f"Add room '{room_id}' to group '{group_id}'")
                     room.subroom_of.add(room_group)
-                    room.save()
 
             except Room.DoesNotExist:
                 logger.warning(f"Unable to find room '{room_id}'")
@@ -240,6 +242,7 @@ def rooms_extract(department, room_groups, room_categories, rooms):
             try:
                 room = Room.objects.get(name=member)
                 room.types.add(room_type)
+                room.departments.add(department)
                 room.save()
             except Room.DoesNotExist:
                 logger.warning(f"Unable to find room '{member}'")
@@ -454,26 +457,22 @@ def modules_extract(department, modules):
     logger.info("Modules extraction : finish")
 
 
-def courses_extract(department, cours_):
+def course_types_extract(department, course_types):
     logger.info("Courses extraction : start")
-    for id_, cours in cours_.items():
-
+    for id_, cours in course_types.items():
         verif = CourseType.objects.filter(
-            name=id_, department=department, duration=cours["duration"]
+            name=id_, department=department
         )
 
         if not verif.exists():
             try:
+                graded = False
+                if cours["graded"] == "Oui":
+                    graded = True
                 course_type = CourseType(
-                    name=id_, department=department, duration=cours["duration"]
+                    name=id_, department=department, graded=graded
                 )
                 course_type.save()
-
-                time_constraint = CourseStartTimeConstraint(
-                    course_type=course_type,
-                    allowed_start_times=list(cours["start_times"]),
-                )
-                time_constraint.save()
 
                 for id_group in cours["group_types"]:
                     group = GroupType.objects.get(name=id_group, department=department)
@@ -485,10 +484,32 @@ def courses_extract(department, cours_):
                 logger.warning(
                     f"A constraint has not been respected creating the course type {id_} : {ie}"
                 )
-                pass  # FIXME: continue?
+    logger.info("Course types extraction : finish")
+
+
+def course_start_time_constraints_extract(department, course_start_time_constraints):
+    logger.info("Course start time constraints extraction : start")
+    for duration_str, cstc in course_start_time_constraints.items():
+        duration = dt.timedelta(minutes=int(duration_str))
+
+        verif = CourseStartTimeConstraint.objects.filter(
+            duration=duration, department=department
+        )
+
+        if not verif.exists():
+            try:
+                time_constraint = CourseStartTimeConstraint(
+                    allowed_start_times=list(cstc['start_times']),department=department, duration=duration
+                )
+                time_constraint.save()
+
+            except IntegrityError as ie:
+
+                logger.warning(
+                    f"A constraint has not been respected creating the constraint of duration {duration_str} : {ie}"
+                )
     logger.info("Courses extraction : finish")
-
-
+    
 def convert_time(value):
     """
     Return an integer value from a time (hh:mm:ss) formated value

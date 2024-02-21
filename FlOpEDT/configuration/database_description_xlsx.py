@@ -188,7 +188,7 @@ def parse_rooms(sheet):
     # parse the categories
     #
     categories = parse_string_set_dictionary(sheet, row_cats + 1, col_cats)
-
+    
     #
     # Build the set of rooms
     #
@@ -250,30 +250,42 @@ def parse_modules(sheet):
     return result
 
 def parse_courses(sheet):
-    row, col = find_marker_cell(sheet, 'Type')
-    if row == None:
-        logger.warning(f"The marker cell in sheet {courses_sheet} is missing")
-        return dict()
+    row_type, col_type = find_marker_cell(sheet, 'Type de cours')
+    if row_type is None:
+        logger.warning(f"The marker cell 'Type' in sheet {courses_sheet} is missing")
+        return dict(), dict()
 
-    row = row + 1
-    result = dict()
-    while row < REASONABLE:
-        id_ = parse_string(sheet, row, col)
+    row_constraint, col_constraint = find_marker_cell(sheet, 'Durée de cours')
+    if row_constraint is None:
+        logger.warning(f"The marker 'Duration' cell in sheet {courses_sheet} is missing")
+        return dict()
+    
+    row_type += 1
+    course_types = dict()
+    while row_type < row_constraint:
+        id_ = parse_string(sheet, row_type, col_type)
         if id_ == '':
-            row = row + 1
+            row_type = row_type + 1
             continue
-        if id_ in result:
-            id_ = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row, col))
-        try:
-            duration_in_minutes = int(parse_string(sheet, row, col + 1))
-            duration = dt.timedelta(minutes=duration_in_minutes)
-        except:
-            duration = None
-        result[id_] = {'duration': duration,
-                       'group_types': set(parse_string_set_in_line(sheet, row, col + 2)),
-                       'start_times': set(parse_time_list_in_line(sheet, row + 1, col + 2))}
-        row = row + 2 # sic
-    return result
+        if id_ in course_types:
+            id_ = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row_type, col_type))
+        course_types[id_] = {'graded':parse_string(sheet, row_type, col_type + 1),
+                             'group_types': set(parse_string_set_in_line(sheet, row_type, col_type + 2))}
+        row_type += 1
+
+    row_constraint += 1
+    course_start_time_constraints = dict()
+    while row_constraint < REASONABLE:
+        duration_str = parse_string(sheet, row_constraint, col_constraint)
+        if duration_str == '':
+            row_constraint = row_constraint + 1
+            continue
+        if duration_str in course_start_time_constraints:
+            duration_str = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row_constraint, col_constraint))
+        course_start_time_constraints[duration_str] = {'start_times': set(parse_time_list_in_line(sheet, row_constraint , col_constraint + 1))}
+        row_constraint += 1
+
+    return course_types, course_start_time_constraints
 
 def parse_settings(sheet):
     result = dict()
@@ -294,18 +306,6 @@ def parse_settings(sheet):
         val = parse_time(sheet, row + 4, col + 1)
         result['afternoon_start_time'] = val
 
-    row, col = find_marker_cell(sheet, 'Granularité')
-    if row == None:
-        logger.warning(f"The 'Granularité' cell in sheet {settings_sheet} is missing")
-        duration = None
-    else:
-        try:
-            duration_in_minutes = parse_integer(sheet, row, col + 1)
-            duration = dt.timedelta(minutes=duration_in_minutes)
-        except:
-            duration = None
-    result['default_availability_duration'] = duration
-
     days = []
     row, col = find_marker_cell(sheet, 'Jours ouvrables')
     if row != None:
@@ -316,7 +316,7 @@ def parse_settings(sheet):
     result['days'] = days
 
     periods = dict()
-    row, col = find_marker_cell(sheet, 'Périodes')
+    row, col = find_marker_cell(sheet, 'Périodes de cours')
     if row != None:
         row = row + 2
         while row < REASONABLE:
@@ -460,7 +460,7 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
             logger.warning(f"Sheet {courses_sheet} doesn't exist")
             return None
 
-        courses = parse_courses(sheet)
+        course_types, course_start_time_constraints = parse_courses(sheet)
 
         sheet = wb[settings_sheet]
         if not sheet:
@@ -481,7 +481,8 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
                 'room_categories' : room_categories,
                 'people' : people,
                 'modules' : modules,
-                'courses' : courses,
+                'course_types' : course_types,
+                'course_start_time_constraints' : course_start_time_constraints,
                 'settings' : settings,
                 'promotions': promotions,
                 'group_types' : group_types,
@@ -490,128 +491,3 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
     except FileNotFoundError as ex:
         logger.warning("Database file couldn't be opened: ", ex)
         return None
-
-
-def database_description_save_xlsx_file(filename, database):
-    wb = load_workbook('/home/jpuydt/Logiciel/FlOpEDT/FlOpEDT/media/configuration/empty_database_file.xlsx') # FIXME HELP!
-
-    sheet = wb[settings_sheet]
-    row, col = find_marker_cell(sheet, 'Jalon')
-    sheet.cell(row=row+1, column=col+1, value=strftime_from_time(database['settings']['day_start_time']))
-    sheet.cell(row=row+2, column=col+1, value=strftime_from_time(database['settings']['day_end_time']))
-    sheet.cell(row=row+3, column=col+1, value=strftime_from_time(database['settings']['morning_end_time']))
-    sheet.cell(row=row+4, column=col+1, value=strftime_from_time(database['settings']['afternoon_start_time']))
-
-    row, col = find_marker_cell(sheet, 'Granularité')
-    sheet.cell(row=row, column=col+1, value=database['settings']['default_availability_duration'])
-
-    row, col = find_marker_cell(sheet, 'Jours ouvrables')
-    days = database['settings']['days']
-    cols = {'m': 0,
-            'tu': 1,
-            'w': 2,
-            'th': 3,
-            'f': 4,
-            'sa': 5,
-            'su': 6}
-    for day, delta in cols.items():
-        if day in days:
-            sheet.cell(row=row+2, column=col+delta, value='X')
-        else:
-            sheet.cell(row=row+2, column=col+delta, value=None)
-
-    row, col = find_marker_cell(sheet, 'Périodes')
-    row = row + 1
-    for id_, (start, finish) in database['settings']['periods'].items():
-        row = row + 1
-        sheet.cell(row=row, column=col, value=id_)
-        sheet.cell(row=row, column=col+1, value=start)
-        sheet.cell(row=row, column=col+2, value=finish)
-
-    sheet = wb[people_sheet]
-    row, col = find_marker_cell(sheet, 'Identifiant')
-    for id_, data in database['people'].items():
-        row = row + 1
-        sheet.cell(row=row, column=col, value=id_)
-        sheet.cell(row=row, column=col+1, value=data['last_name'])
-        sheet.cell(row=row, column=col+2, value=data['first_name'])
-        sheet.cell(row=row, column=col+3, value=data['email'])
-        sheet.cell(row=row, column=col+4, value=data['status'])
-        sheet.cell(row=row, column=col+5, value=data['employer'])
-
-    sheet = wb[rooms_sheet]
-    
-    row, col_start = find_marker_cell(sheet, 'Groupes')
-    for id_, rooms in database['room_groups'].items():
-        row = row + 1
-        col = col_start
-        sheet.cell(row=row, column=col, value=id_)
-        for room in rooms:
-            col = col + 1
-            sheet.cell(row=row, column=col, value=room)
-
-    row, col_start = find_marker_cell(sheet, 'Catégories')
-    for id_, rooms in database['room_categories'].items():
-        row = row + 1
-        col = col_start
-        sheet.cell(row=row, column=col, value=id_)
-        for room in rooms:
-            col = col + 1
-            sheet.cell(row=row, column=col, value=room)
-
-    sheet = wb[groups_sheet]
-
-    # FIXME: if we have too many promotions, we destroy the marker below!
-    row, col = find_marker_cell(sheet, 'Identifiant')
-    for id_, name in database['promotions'].items():
-        row = row + 1
-        sheet.cell(row=row, column=col, value=id_)
-        sheet.cell(row=row, column=col+1, value=name)
-
-    # FIXME: if we have too many group types, we destroy the marker below!
-    row, col = find_marker_cell(sheet, 'Identifiant', row)
-    for id_ in database['group_types']:
-        row = row + 1
-        sheet.cell(row=row, column=col, value=id_)
-
-    row, col = find_marker_cell(sheet, 'Identifiant', row)
-    for id_, data in database['groups'].items():
-        row = row + 1
-        sheet.cell(row=row, column=col, value=id_)
-        sheet.cell(row=row, column=col+1, value=data['promotion'])
-        sheet.cell(row=row, column=col+2, value=data['group_type'])
-        for parent in data['parent']:
-            sheet.cell(row=row, column=col+3, value=parent)
-
-    sheet = wb[modules_sheet]
-    row, col = find_marker_cell(sheet, 'Identifiant')
-    for id_, data in database['modules'].items():
-        row = row + 1
-        sheet.cell(row=row, column=col, value=id_)
-        sheet.cell(row=row, column=col+1, value=data['short'])
-        sheet.cell(row=row, column=col+2, value=data['PPN'])
-        sheet.cell(row=row, column=col+3, value=data['name'])
-        sheet.cell(row=row, column=col+4, value=data['promotion'])
-        sheet.cell(row=row, column=col+5, value=data['period'])
-        sheet.cell(row=row, column=col+6, value=data['responsable'])
-
-    sheet = wb[courses_sheet]
-    row, col_start = find_marker_cell(sheet, 'Type')
-    for id_, data in database['courses'].items():
-        row = row + 1
-        col = col_start
-        sheet.cell(row=row, column=col, value=id_)
-        sheet.cell(row=row, column=col+1, value=data['duration'])
-        col = col_start + 1
-        for group_type in data['group_types']:
-            col = col + 1
-            sheet.cell(row=row, column=col, value=group_type)
-        row = row + 1
-        col = col_start + 1
-        start_times = list(data['start_times'])
-        start_times.sort()
-        for start_time in start_times:
-            col = col + 1
-            sheet.cell(row=row, column=col, value=strftime_from_time(start_time))
-
-    wb.save(filename)
