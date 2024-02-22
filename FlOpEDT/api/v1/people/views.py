@@ -81,7 +81,7 @@ class StudentsViewSet(viewsets.ModelViewSet):
     Can be filtered as wanted with eveUserSerializerry field of a User object.
     """
 
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [DjangoModelPermissions]  # [IsAdminOrReadOnly]
     queryset = pm.Student.objects.all()
     serializer_class = StudentSerializer
 

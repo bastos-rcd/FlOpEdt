@@ -9,7 +9,7 @@ from rest_framework.status import (
 
 from api.v1.tests.factories.people import UserFactory
 
-from people.models import ThemesPreferences, User
+from people.models import ThemesPreferences, User, Student
 
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -111,3 +111,36 @@ class TestDjangoRules:
             f"/fr/api/v1/people/themes/", data={"user": user.id, "theme": "azeaze"}
         )
         assert is_success(response.status_code), response.content
+
+
+class TestDRFModelPermission:
+    root_endpoint = "/fr/api/v1/people/students/"
+
+    def test_put_allowed(self, db, client):
+        u = Student.objects.create(username="stu", first_name="Georges")
+        p, _ = Permission.objects.get_or_create(
+            content_type=ContentType.objects.get(app_label="people", model="student"),
+            codename="change_student",
+        )
+        u.user_permissions.add(p)
+        assert (
+            "people.change_student" in u.get_all_permissions()
+        ), u.user_permissions.all()
+        client.force_authenticate(user=u)
+        response = client.patch(
+            f"{self.root_endpoint}{u.id}/", data={"first_name": "Georg"}
+        )
+        assert is_success(response.status_code), response.content
+        u.refresh_from_db()
+        assert u.first_name == "Georg", u.first_name
+
+    def test_put_forbidden(self, db, client):
+        u = Student.objects.create(username="stu", first_name="Georges")
+        assert (
+            "people.change_student" not in u.get_all_permissions()
+        ), u.user_permissions.all()
+        client.force_authenticate(user=u)
+        response = client.patch(
+            f"{self.root_endpoint}{u.id}/", data={"first_name": "Georg"}
+        )
+        assert response.status_code == HTTP_403_FORBIDDEN, response.content
