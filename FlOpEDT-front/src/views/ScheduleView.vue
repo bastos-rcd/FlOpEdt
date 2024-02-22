@@ -1,26 +1,14 @@
 <template>
-  <Calendar
-    v-model:events="calendarEvents"
-    :columns="columnsToDisplay"
-    @dragstart="setCurrentScheduledCourse"
-    @update:week="changeDate"
-    :end-of-day-hours="endOfDay"
-  />
-  <TooltipProvider>
-    <TooltipRoot>
-      <TooltipTrigger>
-        <button @click="availabilityToggle = !availabilityToggle" style="background-color: black; color: white">
-          Availabilities
-        </button>
-      </TooltipTrigger>
-      <TooltipPortal>
-        <TooltipContent as-child class="TooltipContent" :side-offset="5">
-          Showing your availabilities
-          <TooltipArrow class="TooltipArrow" size="8" />
-        </TooltipContent>
-      </TooltipPortal>
-    </TooltipRoot>
-  </TooltipProvider>
+  <div class="content">
+    <SidePanel v-if="authStore.sidePanelToggle" @update:checkbox="(v) => (availabilityToggle = v)" />
+    <Calendar
+      v-model:events="calendarEvents"
+      :columns="columnsToDisplay"
+      @dragstart="setCurrentScheduledCourse"
+      @update:week="changeDate"
+      :end-of-day-hours="endOfDay"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -51,7 +39,7 @@ import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useAuth } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
 import { useEventStore } from '@/stores/display/event'
-import { TooltipArrow, TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from 'radix-vue'
+import SidePanel from '@/components/SidePanel.vue'
 /**
  * Data translated to be passed to components
  */
@@ -145,8 +133,7 @@ onBeforeMount(async () => {
 .nac {
   background-color: rgb(133, 34, 34);
 }
-.header {
+.content {
   display: flex;
-  justify-content: space-between;
 }
 </style>

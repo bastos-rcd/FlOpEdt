@@ -6,6 +6,7 @@ import { api } from '@/utils/api'
 export const useAuth = defineStore('auth', () => {
   const user = ref(new User())
   const fetchTried = ref(false)
+  const sidePanelToggle = ref(false)
 
   const isUserAuthenticated = computed(() => user.value.id !== -1)
 
@@ -24,5 +25,17 @@ export const useAuth = defineStore('auth', () => {
     window.location.href = '/fr/accounts/login/'
   }
 
-  return { isUserAuthenticated, fetchAuthUser, getUser, redirectLogin, isUserFetchTried }
+  function toggleSidePanel(): void {
+    sidePanelToggle.value = !sidePanelToggle.value
+  }
+
+  return {
+    isUserAuthenticated,
+    fetchAuthUser,
+    getUser,
+    redirectLogin,
+    isUserFetchTried,
+    sidePanelToggle,
+    toggleSidePanel,
+  }
 })

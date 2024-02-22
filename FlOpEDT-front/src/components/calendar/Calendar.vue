@@ -1,10 +1,10 @@
 <template>
-  <div class="header">
-    <button @click="onPrev">&lt; Prev</button>
-    <button @click="onToday">Today</button>
-    <button @click="onNext">Next &gt;</button>
-  </div>
-  <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
+  <div class="calendar-div">
+    <div class="header">
+      <button @click="onPrev">&lt; Prev</button>
+      <button @click="onToday">Today</button>
+      <button @click="onNext">Next &gt;</button>
+    </div>
     <q-calendar-day
       ref="calendar"
       v-model="selectedDate"
@@ -773,6 +773,8 @@ function updateResizedDownEvents(newEvents: InputCalendarEvent[], newEvent: Inpu
 </script>
 
 <style lang="sass" scoped>
+.calendar-div
+  width: 100%
 .event-span
   position: absolute
   font-size: 12px
