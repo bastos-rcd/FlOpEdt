@@ -215,7 +215,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                         # We compute the total number of courses, all the different start times and the minimum duration of course
                         all_nb_courses += nb_courses
                         start_times = CourseStartTimeConstraint.objects.get(
-                            duration=duration, department=self.department
+                            duration=course_duration, department=self.department
                         ).allowed_start_times
                         if course_duration < min_duration:
                             min_duration = course_duration
