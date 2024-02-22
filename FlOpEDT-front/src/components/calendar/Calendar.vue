@@ -98,7 +98,13 @@
                     "
                     class="avail"
                   >
-                    <span class="avail">{{ event.data.value }}</span>
+                    <AvailibityMenu :event="event" @update:event="changeAvailValue">
+                      <template v-slot:trigger>
+                        <span class="avail">
+                          {{ event.data.value }}
+                        </span>
+                      </template>
+                    </AvailibityMenu>
                   </div>
                 </slot>
               </div>
@@ -153,6 +159,7 @@ import {
   badgeStyles,
   updateEventsOverlap,
 } from './utilitary'
+import AvailibityMenu from '../AvailibityMenu.vue'
 
 const { locale } = useI18n({ useScope: 'global' })
 /**
@@ -560,6 +567,8 @@ function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
       } else if (target.classList.contains('event-span') && targetChild?.classList.contains('avail')) {
         currentAvailId = eventId
         availResizeObs.observe(target as Element)
+      } else if (targetChild?.classList.contains('avail')) {
+        onAvailClick(mouseEvent, eventId)
       }
     }
   }
