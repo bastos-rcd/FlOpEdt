@@ -84,3 +84,42 @@ class RoomAvailability(Availability):
 
     def __str__(self):
         return str(self.room) + super().__str__()
+
+
+def dated_availabilities(user, date, avail_only=False):
+    user_availabilities = UserAvailability.objects.filter(user=user, date=date)
+    if avail_only:
+        user_availabilities = user_availabilities.filter(value__gt=0)
+    return set(user_availabilities)
+
+
+def default_availabilities(user, date:dt.date, avail_only=False):
+    default_date = dt.date.fromisocalendar(1, 1, date.weekday)
+    user_availabilities = UserAvailability.objects.filter(user=user, date=default_date)
+    if avail_only:
+        user_availabilities = user_availabilities.filter(value__gt=0)
+    return set(user_availabilities)
+
+
+def actual_availabilities(user, date:dt.date, avail_only=False):
+    if dated_availabilities(user, date).exists():
+        return dated_availabilities(user, date, avail_only)
+    else:
+        return default_availabilities(user, date, avail_only)
+
+
+def period_actual_availabilities(users, periods, avail_only=False):
+    result = set()
+    try:
+        iter(users)
+    except:
+        users = [users]
+    try:
+        iter(periods)
+    except:
+        periods = [periods]
+    for user in users:
+        for period in periods:
+            for date in period.dates():
+                result |= actual_availabilities(user, date, avail_only)
+    return result
