@@ -29,7 +29,7 @@ from django.contrib.auth.models import AbstractUser
 from base.models import Department
 from base.timing import Day
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+import datetime as dt
 
 # Create your models here.
 
@@ -328,8 +328,7 @@ class UserPreferredLinks(models.Model):
 
 class PhysicalPresence(models.Model):
     user = models.ForeignKey('people.User', on_delete=models.CASCADE, related_name='physical_presences')
-    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.ForeignKey('base.Week', on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField(default=dt.date(1789,7,14))
 
     def __str__(self):
-        return f"{self.user.username} is present {self.day} of week {self.week}"
+        return f"{self.user.username} is present {self.date}"

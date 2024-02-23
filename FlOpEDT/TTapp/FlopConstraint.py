@@ -50,7 +50,7 @@ class FlopConstraint(models.Model):
         is_active : usefull to de-activate a Constraint just before the generation
     """
     department = models.ForeignKey('base.Department', null=True, on_delete=models.CASCADE)
-    weeks = models.ManyToManyField('base.Week', blank=True)
+    periods = models.ManyToManyField('base.SchedulingPeriod', blank=True)
     weight = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
         null=True, default=None, blank=True)

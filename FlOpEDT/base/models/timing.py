@@ -12,8 +12,7 @@ from base.timing import Day, Time, min_to_str, days_list
 
 
 class Holiday(models.Model):
-    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.ForeignKey("Week", on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField(default = dt.date(1890, 5, 1))
 
     class Meta:
         verbose_name = _("holiday")
@@ -29,8 +28,7 @@ class TrainingHalfDay(models.Model):
         default=None,
         blank=True,
     )
-    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.ForeignKey("Week", on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField(default=dt.date(1890, 5, 1))
     train_prog = models.ForeignKey(
         "TrainingProgramme",
         null=True,
@@ -45,19 +43,14 @@ class TrainingPeriod(models.Model):
     department = models.ForeignKey(
         "base.Department", on_delete=models.CASCADE, null=True
     )
-    starting_week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)]
-    )
-    ending_week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)]
-    )
+    periods = models.ManyToManyField("SchedulingPeriod")
 
     class Meta:
         verbose_name = _("training period")
         verbose_name_plural = _("training periods")
 
     def __str__(self):
-        return f"Period {self.name}: {self.department}, {self.starting_week} -> {self.ending_week}"
+        return f"Period {self.name}: {self.department}, {min(sp.start_date for sp in self.periods)} -> {max(sp.end_date for sp in self.periods)}"
 
 
 class PeriodEnum:
@@ -80,7 +73,8 @@ class SchedulingPeriod(models.Model):
     """
     start_date and end_date included
     """
-
+    
+    #name = models.CharField(max_length=20, null=True, blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
     mode = models.CharField(
@@ -95,43 +89,6 @@ class SchedulingPeriod(models.Model):
         if self.department is not None:
             ret += f", {self.department.abbrev}"
         return ret + ")"
-
-
-class Week(models.Model):
-    nb = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)],
-        verbose_name=_("Week number"),
-    )
-    year = models.PositiveSmallIntegerField()
-
-    def __str__(self):
-        return f"{self.nb}-{self.year}"
-
-    def __lt__(self, other):
-        if isinstance(other, Week):
-            return self.year < other.year or (
-                self.year == other.year and self.nb < other.nb
-            )
-        else:
-            return False
-
-    def __gt__(self, other):
-        if isinstance(other, Week):
-            return self.year > other.year or (
-                self.year == other.year and self.nb > other.nb
-            )
-        else:
-            return False
-
-    def __le__(self, other):
-        return self == other or self < other
-
-    def __ge__(self, other):
-        return self == other or self > other
-
-    class Meta:
-        verbose_name = _("week")
-        verbose_name_plural = _("weeks")
 
 
 class TimeGeneralSettings(models.Model):

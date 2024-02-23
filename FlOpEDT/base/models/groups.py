@@ -151,11 +151,11 @@ class TransversalGroup(GenericGroup):
         verbose_name = _("transversal group")
         verbose_name_plural = _("transversal groups")
 
-    def nb_of_courses(self, week):
-        return len(Course.objects.filter(week=week, groups=self))
+    def nb_of_courses(self, period):
+        return len(Course.objects.filter(period=period, groups=self))
 
-    def time_of_courses(self, week):
+    def time_of_courses(self, period):
         t = 0
-        for c in Course.objects.filter(week=week, groups=self):
+        for c in Course.objects.filter(period=period, groups=self):
             t += c.duration
         return t

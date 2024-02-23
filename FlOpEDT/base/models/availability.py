@@ -62,35 +62,6 @@ class UserAvailability(Availability):
     def __str__(self):
         return self.user.username + super().__str__()
 
-    # def is_same(self, other):
-    #     if isinstance(other, UserAvailability):
-    #         return (
-    #             (
-    #                 ((self.week and other.week) and self.week == other.week)
-    #                 or not self.week
-    #                 or not other.week
-    #             )
-    #             and days_index[self.day] == days_index[other.day]
-    #             and self.start_time == other.start_time
-    #         )
-    #     else:
-    #         raise NotImplementedError
-
-    # def same_day(self, other):
-    #     if isinstance(other, UserAvailability):
-    #         return days_index[self.day] == days_index[other.day]
-    #     else:
-    #         raise ValueError
-
-    # def is_successor_of(self, other):
-    #     if isinstance(other, UserAvailability):
-    #         return (
-    #             self.same_day(other)
-    #             and other.end_time <= self.start_time <= other.end_time + 30
-    #         )  # slot_pause
-    #     else:
-    #         raise ValueError
-
 
 class CourseAvailability(Availability):
     course_type = models.ForeignKey("CourseType", on_delete=models.CASCADE)
