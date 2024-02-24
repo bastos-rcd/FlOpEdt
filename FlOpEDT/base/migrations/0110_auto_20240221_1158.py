@@ -12,6 +12,7 @@ def fill_duration_department_and_new_times(apps, schema_editor):
             csc.delete()
             continue
         duration = dt.time(hour=csc.course_type.duration//60, minute=csc.course_type.duration%60)
+        csc.department = csc.course_type.department
         if CourseStartTimeConstraint.objects.filter(duration = duration).exists():
             csc.delete()
             continue

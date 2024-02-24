@@ -19,6 +19,20 @@ def convert_week_to_scheduling_period(apps, schema_editor, model_name, app_name=
         obj.period = scheduling_period
         obj.save()
 
+def add_name_to_scheduling_period(apps, schema_editor):
+    SchedulingPeriod = apps.get_model('base', 'SchedulingPeriod')
+    for sp in SchedulingPeriod.objects.all():
+        if sp.mode == 'd':
+            sp.name = sp.start_date
+        elif sp.mode == 'w':
+            iso_calendar = sp.start_date.isocalendar()
+            sp.name = f"W{iso_calendar.week} - {iso_calendar.year}"
+        elif sp.mode == 'm':
+            sp.name = sp.start_date.strftime("%B %Y")
+        elif sp.mode == 'y':
+            sp.name = sp.start_date.year
+        sp.save()
+
 def convert_week_to_scheduling_period_edtversion(apps, schema_editor):
     convert_week_to_scheduling_period(apps, schema_editor, 'EdtVersion')
 
@@ -109,6 +123,7 @@ class Migration(migrations.Migration):
             name='name',
             field=models.CharField(blank=True, max_length=20, null=True),
         ),
+        migrations.RunPython(add_name_to_scheduling_period),
         migrations.AddField(
             model_name='traininghalfday',
             name='date',
