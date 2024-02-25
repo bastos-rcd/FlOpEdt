@@ -35,7 +35,7 @@ from django.template.response import TemplateResponse
 
 from core.decorators import dept_admin_required
 
-from base.models import TrainingProgramme, ScheduledCourse, Week
+from base.models import TrainingProgramme, ScheduledCourse, SchedulingPeriod
 from base.core.period_weeks import PeriodWeeks
 from TTapp.TTModel import get_ttconstraints
 
