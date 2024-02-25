@@ -31,17 +31,18 @@ from base.models import ScheduledCourse
 
 import datetime as dt
 
-slot_pause = 30
+slot_pause = dt.timedelta(minutes=30)
 
-midday = 12 * 60
+midday = dt.time(12, 0, 0)
 
-basic_slot_duration = 90
+basic_slot_duration = dt.timedelta(hours=1, minutes=30)
 
 
 class Slot:
-    def __init__(self, start_time: dt.datetime, end_time: dt.datetime):
+    def __init__(self, start_time: dt.datetime, end_time: dt.datetime, department=None):
         self.start_time = start_time
         self.end_time = end_time
+        self.department=department
 
     @property
     def date(self):
@@ -54,11 +55,15 @@ class Slot:
     @property
     def duration(self):
         return self.end_time - self.start_time
+    
+    @property
+    def minutes(self):
+        return self.duration.seconds // 60
 
     @property
     def apm(self):
         pm_start = midday
-        if self.start_time >= pm_start:
+        if self.start_time.time() >= pm_start:
             return Time.PM
         else:
             return Time.AM
@@ -101,13 +106,23 @@ class Slot:
         return str(self)
 
     def get_day(self):
-        return self.day
+        return self.date
+    
+    def same_through_periods(self, other):
+        if isinstance(other, (Slot, ScheduledCourse)):
+            return self.date.weekday == other.date.weekday and self.start_time.time() == other.start_time.time() and self.duration == other.duration
+        else:
+            raise TypeError(
+                "A slot can only be compared to another slot or a ScheduledCourse"
+            )
+    
+    def get_periods(self):
+        raise NotImplementedError
 
 
 class CourseSlot(Slot):
     def __init__(self, start_time: dt.datetime, duration:dt.timedelta, department=None):
-        Slot.__init__(self, start_time, start_time + duration)
-        self.department=department
+        Slot.__init__(self, start_time, start_time + duration, department)
 
 
     @property
@@ -133,6 +148,9 @@ class CourseSlot(Slot):
             + "_"
             + str(self.start_time)
         )
+    
+    def get_periods(self):
+        return self.department.periods()
 
 
 def slots_filter(
@@ -141,7 +159,7 @@ def slots_filter(
     apm=None,
     duration=None,
     start_time=None,
-    week_day=None,
+    weekday=None,
     simultaneous_to=None,
     period=None,
     is_after=None,
@@ -169,8 +187,8 @@ def slots_filter(
         slots = set(sl for sl in slots if sl.date == date)
     if date_in is not None:
         slots = set(sl for sl in slots if sl.date in date_in)
-    if week_day is not None:
-        slots = set(sl for sl in slots if sl.day.day == week_day)
+    if weekday is not None:
+        slots = set(sl for sl in slots if sl.day.day == weekday)
     if duration is not None:
         slots = set(sl for sl in slots if sl.duration == duration)
     if apm is not None:
@@ -190,7 +208,7 @@ def slots_filter(
     if start_time is not None:
         slots = set(sl for sl in slots if sl.start_time == start_time)
     if same is not None:
-        slots = set(sl for sl in slots if sl.same_through_weeks(same))
+        slots = set(sl for sl in slots if sl.same_through_periods(same))
     if department is not None:
         slots = set(sl for sl in slots if sl.department == department)
     return slots
@@ -203,15 +221,15 @@ def days_filter(
     if period is not None:
         days = set(d for d in days if period.start_date <= d <= period.end_date)
     if period_in is not None:
-        days = set(d for d in days if any(period.start_date <= d <= period.end_date for period in period__in))
+        days = set(d for d in days if any(period.start_date <= d <= period.end_date for period in period_in))
     if index is not None:
-        days = set(d for d in days if d.week_day() == index)
+        days = set(d for d in days if d.weekday() == index)
     if index_in is not None:
-        days = set(d for d in days if d.week_day() in index_in)
+        days = set(d for d in days if d.weekday() in index_in)
     if weekday is not None:
-        days = set(d for d in days if days_list[d.week_day()] == weekday)
+        days = set(d for d in days if days_list[d.weekday()] == weekday)
     if weekday_in is not None:
-        days = set(d for d in days if days_list[d.week_day()] in weekday_in)
+        days = set(d for d in days if days_list[d.weekday()] in weekday_in)
     return days
 
 
