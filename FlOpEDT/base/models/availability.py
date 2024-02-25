@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from base.timing import Day, str_slot, days_index, days_list
+from base.timing import days_list, get_default_date
 
 import datetime as dt 
 
@@ -56,11 +56,11 @@ class Availability(models.Model):
         else:
             raise NotImplementedError
     
-    def weekday_is(self, week_day):
-        return days_list[self.date.weekday()] == week_day
+    def weekday_is(self, weekday):
+        return days_list[self.date.weekday()] == weekday
     
-    def weekday__in(self, week_days):
-        return days_list[self.date.weekday()] in week_days
+    def weekday__in(self, weekdays):
+        return days_list[self.date.weekday()] in weekdays
     
 
 
@@ -85,30 +85,37 @@ class RoomAvailability(Availability):
     def __str__(self):
         return str(self.room) + super().__str__()
 
-
-def dated_availabilities(user, date, avail_only=False):
+def dated_availabilities(user, date, avail_only=False, unavail_only=False):
+    if unavail_only and avail_only:
+        raise ValueError("avail_only and unavail_only cannot be both True")
     user_availabilities = UserAvailability.objects.filter(user=user, date=date)
     if avail_only:
         user_availabilities = user_availabilities.filter(value__gt=0)
+    if unavail_only:
+        user_availabilities = user_availabilities.filter(value=0)
     return set(user_availabilities)
 
 
-def default_availabilities(user, date:dt.date, avail_only=False):
-    default_date = dt.date.fromisocalendar(1, 1, date.weekday)
+def default_availabilities(user, date:dt.date, avail_only=False, unavail_only=False):
+    if unavail_only and avail_only:
+        raise ValueError("avail_only and unavail_only cannot be both True")
+    default_date = get_default_date(date)
     user_availabilities = UserAvailability.objects.filter(user=user, date=default_date)
     if avail_only:
         user_availabilities = user_availabilities.filter(value__gt=0)
+    if unavail_only:
+        user_availabilities = user_availabilities.filter(value=0)
     return set(user_availabilities)
 
 
-def actual_availabilities(user, date:dt.date, avail_only=False):
-    if dated_availabilities(user, date).exists():
-        return dated_availabilities(user, date, avail_only)
+def actual_availabilities(user, date:dt.date, avail_only=False, unavail_only=False):
+    if dated_availabilities(user, date):
+        return dated_availabilities(user, date, avail_only, unavail_only)
     else:
-        return default_availabilities(user, date, avail_only)
+        return default_availabilities(user, date, avail_only, unavail_only)
 
 
-def period_actual_availabilities(users, periods, avail_only=False):
+def period_actual_availabilities(users, periods, avail_only=False, unavail_only=False):
     result = set()
     try:
         iter(users)
@@ -121,5 +128,5 @@ def period_actual_availabilities(users, periods, avail_only=False):
     for user in users:
         for period in periods:
             for date in period.dates():
-                result |= actual_availabilities(user, date, avail_only)
+                result |= actual_availabilities(user, date, avail_only, unavail_only)
     return result

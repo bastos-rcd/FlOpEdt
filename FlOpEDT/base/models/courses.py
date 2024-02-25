@@ -37,7 +37,7 @@ class ModuleTutorRepartition(models.Model):
     module = models.ForeignKey('Module', on_delete=models.CASCADE)
     course_type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     tutor = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
-    scheduling_period = models.ForeignKey('SchedulingPeriod', on_delete=models.CASCADE, null=True, blank=True)
+    period = models.ForeignKey('SchedulingPeriod', on_delete=models.CASCADE, null=True, blank=True)
     courses_nb = models.PositiveSmallIntegerField(default=1)
 
 
@@ -134,11 +134,11 @@ class ScheduledCourse(models.Model):
 
     def __str__(self):
         return (f"{self.course}{self.number}:"
-                f"{self.day}-t{self.start_time}-{self.room}")
+                f"{self.day}-{self.start_time.time()}/{self.end_time.time()}-{self.room}")
 
     def unique_name(self):
         return (f"{self.course.type}_{self.duration}_{self.room}_{self.tutor}"
-                f"_{self.day}_{self.start_time}_{self.end_time}")
+                f"_{self.start_time}_{self.end_time}")
 
     @property
     def end_time(self):

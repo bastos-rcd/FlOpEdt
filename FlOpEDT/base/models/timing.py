@@ -68,13 +68,12 @@ class PeriodEnum:
         (CUSTOM, _("custom")),
     ]
 
-
 class SchedulingPeriod(models.Model):
     """
     start_date and end_date included
     """
     
-    #name = models.CharField(max_length=20, null=True, blank=True)
+    name = models.CharField(max_length=20, null=True, blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
     mode = models.CharField(
@@ -85,10 +84,37 @@ class SchedulingPeriod(models.Model):
     )
 
     def __str__(self):
-        ret = f"{self.start_date} - {self.end_date} ({self.mode}"
-        if self.department is not None:
-            ret += f", {self.department.abbrev}"
-        return ret + ")"
+        return self.name
+    
+    def __lte__(self, other):
+        if type(other) is SchedulingPeriod:
+            return self.start_date <= other.start_date
+        elif type(other) is dt.date:
+            return self.start_date <= other
+
+    def __lt__(self, other):
+        if type(other) is SchedulingPeriod:
+            return self.end_date < other.start_date
+        elif type(other) is dt.date:
+            return self.end_date < other
+        
+    def __gt__(self, other):
+        if type(other) is SchedulingPeriod:
+            return self.start_date > other.end_date
+        elif type(other) is dt.date:
+            return self.start_date > other
+        
+    def __gte__(self, other):
+        if type(other) is SchedulingPeriod:
+            return self.end_date >= other.end_date
+        elif type(other) is dt.date:
+            return self.end_date >= other
+    
+    def dates(self):
+        return [self.start_date + dt.timedelta(days=i) for i in range((self.end_date - self.start_date).days + 1)]
+    
+    def index(self, date):
+        return self.dates().index(date)
 
 
 class TimeGeneralSettings(models.Model):
