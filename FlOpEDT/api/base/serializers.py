@@ -60,9 +60,9 @@ class TimeGeneralSettingsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class WeeksSerializer(serializers.ModelSerializer):
+class SchedulingPeriodsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = bm.Week
+        model = bm.SchedulingPeriod
         fields = '__all__'
 
 # -----------------

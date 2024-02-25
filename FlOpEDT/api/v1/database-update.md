@@ -85,7 +85,9 @@ Après les migrations :
   - [x] dans flopEditor
   - [ ] dans l'import-export excel
   - [ ] modifier courseStartTimeConstraints en incluant une duration au lieu d'un course_type
-
+  - [x] corriger la migration base/111 pour qu'elle transfère le département et la durée des types
+- [ ] Les TTConstraints
+  - [ ] StartTimeConstraints : clarifier le rôle des possible_start_times (Datetime? Time?) et des possible week_days
 
 ## Des trucs à savoir
 

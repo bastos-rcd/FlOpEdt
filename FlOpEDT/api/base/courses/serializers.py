@@ -153,8 +153,7 @@ class CoursesSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     type = CourseTypeSimpleSerializer()
     room_type = RoomType_SC_Serializer()
-    week = serializers.SerializerMethodField()
-    year = serializers.SerializerMethodField()
+    period_id = serializers.IntegerField(source='period.id')
     groups = Group_SC_Serializer(many=True)
     tutor = serializers.CharField()
     supp_tutor = serializers.CharField()
@@ -163,21 +162,9 @@ class CoursesSerializer(serializers.Serializer):
     pay_module = Module_C_Serializer()
     is_graded = serializers.BooleanField()
 
-    def get_week(self, obj):
-        if(obj.week is not None):
-            return (obj.week.nb)
-        else:
-            return
-
-    def get_year(self, obj):
-        if(obj.week is not None):
-            return (obj.week.year)
-        else:
-            return
-            
     class Meta:
         model = bm.Course
-        fields = ['id', 'week', 'year', 'department', 'type',
+        fields = ['id', 'period_id', 'department', 'type',
                   'room_type', 'tutor', 'supp_tutor', 'groups', 'module', 'modulesupp', 'pay_module']
 
 

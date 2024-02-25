@@ -32,7 +32,7 @@ from django.utils.decorators import method_decorator
 from django.db.models import Count, F, Sum, Q, Case, When
 
 from people.models import Tutor
-from base.models import ScheduledCourse, Department, TrainingProgramme, Week, Room
+from base.models import ScheduledCourse, Department, TrainingProgramme, SchedulingPeriod, Room
 
 from api.permissions import IsTutorOrReadOnly
 from api.shared.params import dept_param
@@ -298,10 +298,10 @@ class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
 
         sched_courses = scheduled_courses_of_the_month(year=year, from_month=from_month, to_month=to_month,
                                                        department=dept, tutor=tutor)
-        for dayschedcourse in sched_courses.distinct("course__week", "day"):
-            week = dayschedcourse.course.week
-            week_day = dayschedcourse.day
-            day_scheduled_courses = sched_courses.filter(course__week=week, day=week_day)
+        for dayschedcourse in sched_courses.distinct("start_time__date"):
+            sched_course_date = dayschedcourse.date
+            weekday = sched_course_date.weekday
+            day_scheduled_courses = sched_courses.filter(date = sched_course_date)
             tds = day_scheduled_courses.filter(course__type__name='TD')
             tps = day_scheduled_courses.filter(course__type__name='TP')
             other = day_scheduled_courses.exclude(course__type__name__in=['TD', "TP"])
@@ -310,11 +310,9 @@ class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
             td = sum(sc.pay_duration for sc in tds)/60
             tp = sum(sc.pay_duration for sc in tps)/60
 
-            date = flopday_to_date(Day(week=week, day=week_day))
-
             day_volume = {
-                "month": date.month,
-                "date": date.isoformat(),
+                "month": sched_course_date.month,
+                "date": sched_course_date.isoformat(),
                 "other": other,
                 "td": td,
                 "tp": tp
@@ -393,11 +391,11 @@ class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
                                                        department=dept, room=room)
         for dayschedcourse in sched_courses.distinct("course__week", "day"):
             week = dayschedcourse.course.week
-            week_day = dayschedcourse.day
-            day_scheduled_courses = sched_courses.filter(course__week=week, day=week_day)
+            weekday = dayschedcourse.day
+            day_scheduled_courses = sched_courses.filter(course__week=week, day=weekday)
             volume = sum(sc.pay_duration for sc in day_scheduled_courses)/60
 
-            date = flopday_to_date(Day(week=week, day=week_day))
+            date = flopday_to_date(Day(week=week, day=weekday))
 
             day_volume = {
                 "date": date.isoformat(),
@@ -413,26 +411,17 @@ class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
 
 def scheduled_courses_of_the_month(year, from_month=None, to_month=None, department=None, tutor=None, room=None):
     if from_month is None:
-        start_month = datetime.datetime(year, 1, 1)
+        start_datetime = datetime.datetime(year, 1, 1)
     else:
-        start_month = datetime.datetime(year, from_month, 1)
-    start_year, start_week_nb, start_day = start_month.isocalendar()
+        start_datetime = datetime.datetime(year, from_month, 1)
 
     if to_month is None:
-        end_month = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(1)
+        end_datetime = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(1)
     elif to_month == 12:
-        end_month = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(1)
+        end_datetime = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(1)
     else:
-        end_month = datetime.datetime(year, to_month+1, 1) - datetime.timedelta(1)
-    end_year, end_week_nb, end_day = end_month.isocalendar()
+        end_datetime = datetime.datetime(year, to_month+1, 1) - datetime.timedelta(1)
 
-    start_week = Week.objects.get(nb=start_week_nb, year=start_year)
-    end_week = Week.objects.get(nb=end_week_nb, year=end_year)
-    if start_year == end_year:
-        intermediate_weeks = Week.objects.filter(year=start_year, nb__gt=start_week_nb, nb__lt=end_week_nb)
-    else:
-        intermediate_weeks = Week.objects.filter(Q(year=start_year, nb__gt=start_week_nb)
-                                                 | Q(year=end_year, nb__lt=end_week_nb))
     relevant_scheduled_courses = ScheduledCourse.objects.filter(work_copy=0)
     if department is not None:
         relevant_scheduled_courses = relevant_scheduled_courses.filter(course__type__department=department)
@@ -440,11 +429,5 @@ def scheduled_courses_of_the_month(year, from_month=None, to_month=None, departm
         relevant_scheduled_courses = relevant_scheduled_courses.filter(tutor=tutor)
     if room is not None:
         relevant_scheduled_courses = relevant_scheduled_courses.filter(room__in=room.and_overrooms())
-    query = Q(course__week__in=intermediate_weeks) | \
-            Q(course__week=start_week, day__in=days_list[start_day-1:]) | \
-            Q(course__week=end_week, day__in=days_list[:end_day])
-
-    relevant_scheduled_courses = \
-        relevant_scheduled_courses.filter(query).exclude(course__week=start_week, day=days_list[start_day-1],
-                                                         start_time=0)
+    relevant_scheduled_courses = relevant_scheduled_courses.filter(start_time__gte=start_datetime, start_time__lt=end_datetime)
     return relevant_scheduled_courses
