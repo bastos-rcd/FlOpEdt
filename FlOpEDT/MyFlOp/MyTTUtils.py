@@ -28,8 +28,8 @@ import functools
 
 from TTapp.TTUtils import basic_reassign_rooms, basic_swap_version, \
     basic_delete_work_copy, basic_duplicate_work_copy, basic_delete_all_unused_work_copies, \
-    duplicate_what_can_be_in_other_weeks, number_courses
-from base.models import ScheduledCourse, Department, Week
+    duplicate_what_can_be_in_other_periods, number_courses
+from base.models import ScheduledCourse, Department, SchedulingPeriod
 from people.models import Tutor
 
 
@@ -48,13 +48,13 @@ def resolve_department(func):
 
     return _wraper_function
 
-def print_differences(department, weeks, old_copy, new_copy, tutors=Tutor.objects.all()):
-    for week in weeks:
-        print("For", week)
+def print_differences(department, periods, old_copy, new_copy, tutors=Tutor.objects.all()):
+    for period in periods:
+        print("For", period)
         for tutor in tutors:
-            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=old_copy, course__week=week,
+            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=old_copy, course__period=period,
                                                  course__type__department=department)
-            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=new_copy, course__week=week,
+            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=new_copy, course__period=period,
                                                  course__type__department=department)
             slots_a = set([(x.day, x.start_time//60) for x in SCa])
             slots_b = set([(x.day, x.start_time//60) for x in SCb])
@@ -69,47 +69,47 @@ def print_differences(department, weeks, old_copy, new_copy, tutors=Tutor.object
 
 
 @resolve_department
-def reassign_rooms(department, week_nb, year, work_copy, create_new_work_copy=True):
-    week = Week.objects.get(nb=week_nb, year=year)
-    result = basic_reassign_rooms(department, week, work_copy, create_new_work_copy=create_new_work_copy)
+def reassign_rooms(department, period_id, work_copy, create_new_work_copy=True):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    result = basic_reassign_rooms(department, period, work_copy, create_new_work_copy=create_new_work_copy)
     return result
 
 
 @resolve_department
-def swap_version(department, week_nb, year, copy_a, copy_b=0):
+def swap_version(department, period_id, copy_a, copy_b=0):
     result = {'status':'OK', 'more':''}
-    week = Week.objects.get(nb=week_nb, year=year)
-    basic_swap_version(department, week, copy_a, copy_b)
+    period = SchedulingPeriod.objects.get(id=period_id)
+    basic_swap_version(department, period, copy_a, copy_b)
     return result
 
 
 @resolve_department
-def delete_work_copy(department, week_nb, year, work_copy):
-    week = Week.objects.get(nb=week_nb, year=year)
-    return basic_delete_work_copy(department, week, work_copy)
+def delete_work_copy(department, period_id, work_copy):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    return basic_delete_work_copy(department, period, work_copy)
 
 
 @resolve_department
-def delete_all_unused_work_copies(department, week_nb, year):
-    week = Week.objects.get(nb=week_nb, year=year)
-    return basic_delete_all_unused_work_copies(department, week)
+def delete_all_unused_work_copies(department, period_id):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    return basic_delete_all_unused_work_copies(department, period)
 
 
 @resolve_department
-def duplicate_work_copy(department, week_nb, year, work_copy):
-    week = Week.objects.get(nb=week_nb, year=year)
-    return basic_duplicate_work_copy(department, week, work_copy)
+def duplicate_work_copy(department, period_id, work_copy):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    return basic_duplicate_work_copy(department, period, work_copy)
 
 
 @resolve_department
-def duplicate_in_other_weeks(department, week_nb, year, work_copy):
-    week = Week.objects.get(nb=week_nb, year=year)
-    return duplicate_what_can_be_in_other_weeks(department, week, work_copy)
+def duplicate_in_other_periods(department, period_id, work_copy):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    return duplicate_what_can_be_in_other_periods(department, period, work_copy)
 
 
 @resolve_department
-def number_courses_from_this_week(department, week_nb, year, work_copy):
+def number_courses_from_this_period(department, period_id, work_copy):
     if work_copy != 0:
         return
-    week = Week.objects.get(nb=week_nb, year=year)
-    return number_courses(department, from_week=week)
+    period = SchedulingPeriod.objects.get(id=period_id)
+    return number_courses(department, from_period=period)
