@@ -66,10 +66,10 @@ class FlopVar:
 
 
 class FlopModel(object):
-    def __init__(self, department_abbrev, weeks, keep_many_solution_files=False, use_flop_vars=False):
+    def __init__(self, department_abbrev, periods, keep_many_solution_files=False, use_flop_vars=False):
         self.use_flop_vars = use_flop_vars
         self.department = Department.objects.get(abbrev=department_abbrev)
-        self.weeks = weeks
+        self.periods = periods
         self.model = LpProblem(self.solution_files_prefix(), LpMinimize)
         self.keep_many_solution_files = keep_many_solution_files
         self.var_nb = 0
@@ -240,7 +240,7 @@ class FlopModel(object):
         local_max_wc = ScheduledCourse \
             .objects \
             .filter(course__module__train_prog__department=self.department,
-                    course__week__in=self.weeks) \
+                    course__period__in=self.periods) \
             .aggregate(Max('work_copy'))['work_copy__max']
 
         if local_max_wc is None:
@@ -249,7 +249,7 @@ class FlopModel(object):
         return local_max_wc + 1
 
     def iis_filename_suffixe(self):
-        return "_%s_%s" % (self.department.abbrev, self.weeks)
+        return "_%s_%s" % (self.department.abbrev, self.periods)
 
     def iis_filename(self):
         return "%s/IIS%s.ilp" % (iis_files_path, self.iis_filename_suffixe())
@@ -325,7 +325,7 @@ class FlopModel(object):
             return None
 
 
-def get_ttconstraints(department, week=None, train_prog=None, is_active=None):
+def get_ttconstraints(department, period=None, train_prog=None, is_active=None):
     #
     #  Return constraints corresponding to the specific filters
     #
@@ -336,12 +336,12 @@ def get_ttconstraints(department, week=None, train_prog=None, is_active=None):
 
     if train_prog:
         query &= \
-            Q(train_progs__abbrev=train_prog) & Q(weeks__isnull=True) | \
-            Q(train_progs__abbrev=train_prog) & Q(weeks=week) | \
-            Q(train_progs__isnull=True) & Q(weeks=week) | \
-            Q(train_progs__isnull=True) & Q(weeks__isnull=True)
+            Q(train_progs__abbrev=train_prog) & Q(periods__isnull=True) | \
+            Q(train_progs__abbrev=train_prog) & Q(periods=period) | \
+            Q(train_progs__isnull=True) & Q(periods=period) | \
+            Q(train_progs__isnull=True) & Q(periods__isnull=True)
     else:
-        query &= Q(weeks=week) | Q(weeks__isnull=True)
+        query &= Q(periods=period) | Q(periods__isnull=True)
 
     # Look up the TTConstraint subclasses records to update
     types = all_subclasses(TTConstraint)
@@ -357,7 +357,7 @@ def get_ttconstraints(department, week=None, train_prog=None, is_active=None):
             yield constraint
 
 
-def get_room_constraints(department, week=None, is_active=None):
+def get_room_constraints(department, period=None, is_active=None):
     #
     #  Return constraints corresponding to the specific filters
     #
@@ -366,7 +366,7 @@ def get_room_constraints(department, week=None, is_active=None):
     if is_active:
         query &= Q(is_active=is_active)
 
-    query &= Q(weeks=week) | Q(weeks__isnull=True)
+    query &= Q(periods=period) | Q(periods__isnull=True)
 
     # Look up the TTConstraint subclasses records to update
     types = all_subclasses(RoomConstraint)

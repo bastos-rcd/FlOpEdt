@@ -40,11 +40,11 @@ from TTapp.models import \
     LimitedRoomChoices, LimitStartTimeChoices, LimitCourseTypeTimePerPeriod, \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
-    NoTutorCourseOnDay, NoGroupCourseOnDay, \
+    NoTutorCourseOnWeekDay, NoGroupCourseOnWeekDay, \
     ConsiderDependencies, Curfew, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
-    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber, \
+    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerPeriod, LimitSimultaneousCoursesNumber, \
     LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts, AvoidBothTimesSameDay, AvoidStartTimes, \
     NotAloneForTheseCouseTypes, LimitSimultaneousRoomCourses, ParallelizeCourses
 
@@ -360,8 +360,8 @@ admin.site.register(LowerBoundBusyDays, LowerBoundBusyDaysAdmin)
 admin.site.register(GroupsLunchBreak, GroupsLunchBreakAdmin)
 admin.site.register(TutorsLunchBreak, BasicTutorsConstraintAdmin)
 admin.site.register(BreakAroundCourseType, GroupsConstraintAdmin)
-admin.site.register(NoGroupCourseOnDay, NoCourseOnDayAdmin)
-admin.site.register(NoTutorCourseOnDay, NoCourseOnDayAdmin)
+admin.site.register(NoGroupCourseOnWeekDay, NoCourseOnDayAdmin)
+admin.site.register(NoTutorCourseOnWeekDay, NoCourseOnDayAdmin)
 admin.site.register(Curfew, BasicConstraintAdmin)
 admin.site.register(NoVisio, GroupsConstraintAdmin)
 admin.site.register(VisioOnly, GroupsConstraintAdmin)
@@ -374,7 +374,7 @@ admin.site.register(ConsiderTutorsUnavailability, BasicConstraintAdmin)
 admin.site.register(LimitHoles, BasicConstraintAdmin)
 admin.site.register(LimitTutorTimePerWeeks, BasicConstraintAdmin)
 admin.site.register(ModulesByBloc, BasicConstraintAdmin)
-admin.site.register(LimitUndesiredSlotsPerWeek, BasicConstraintAdmin)
+admin.site.register(LimitUndesiredSlotsPerPeriod, BasicConstraintAdmin)
 admin.site.register(LimitSimultaneousCoursesNumber, BasicConstraintAdmin)
 admin.site.register(NotAloneForTheseCouseTypes, BasicConstraintAdmin)
 admin.site.register(ConsiderRoomSorts, BasicConstraintAdmin)
