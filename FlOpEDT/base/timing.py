@@ -28,10 +28,7 @@
 import datetime as dt
 from datetime import date, time, datetime
 import base.models as bm
-from enum import Enum
 from django.utils.translation import gettext_lazy as _
-
-
 
 class Day(object):
   MONDAY = "m"
@@ -281,3 +278,20 @@ def all_possible_start_times(department):
     apst_list = list(apst_set)
     apst_list.sort()
     return apst_list
+
+def get_default_date(date):
+    return dt.date.fromisocalendar(1, 1, date.weekday()+1)
+
+
+def add_duration_to_time(time:dt.time, duration:dt.timedelta):
+    return (dt.datetime.combine(dt.date.today(), time) + duration).time()
+
+
+def get_all_scheduling_periods(department):
+    if department is None:
+        return bm.SchedulingPeriod.objects.all()
+    elif department.timegeneralsettings.scheduling_period_mode == bm.PeriodEnum.CUSTOM:
+        return department.schedulingperiod_set.all()
+    else:
+        return bm.SchedulingPeriod.objects.filter(mode=department.timegeneralsettings.scheduling_period_mode)
+    
