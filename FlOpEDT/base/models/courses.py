@@ -102,6 +102,10 @@ class Course(models.Model):
             return self.additional.graded
         else:
             return self.type.graded
+    
+    @property
+    def minutes(self):
+        return self.duration.seconds // 60
 
 
 class CourseAdditional(models.Model):

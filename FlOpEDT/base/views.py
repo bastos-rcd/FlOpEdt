@@ -58,18 +58,6 @@ from people.models import (
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
 
-from base.admin import (
-    VersionResource,
-    TutorCoursesResource,
-    CourseAvailabilityResource,
-    MultiDepartmentTutorResource,
-    SharedRoomsResource,
-    RoomAvailabilityResource,
-    ModuleRessource,
-    TutorRessource,
-    ModuleDescriptionResource,
-    GroupPreferredLinksResource,
-)
 from base.forms import ContactForm, ModuleDescriptionForm, EnrichedLinkForm
 from base.models import (
     Course,
@@ -90,7 +78,7 @@ from base.models import (
     EnrichedLink,
     ScheduledCourseAdditional,
     GroupPreferredLinks,
-    Week,
+    SchedulingPeriod,
     Theme,
     CourseAdditional,
 )
