@@ -55,11 +55,11 @@ def sum_of_busy_slots_just_after(ttmodel, prof, day, end_time):
 
 class LimitHoles(TTConstraint):
     """
-    Limit the total number of holes in each day, and every week
+    Limit the total number of holes in each day, and every period
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
     max_holes_per_day = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
-    max_holes_per_week = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
+    max_holes_per_period = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
 
     class Meta:
         verbose_name = _('Limit holes')
@@ -78,10 +78,10 @@ class LimitHoles(TTConstraint):
         text = "Limite le nombre de trous "
         if self.max_holes_per_day is not None:
             text += f"à {self.max_holes_per_day} par jour "
-            if self.max_holes_per_week is not None:
+            if self.max_holes_per_period is not None:
                 text += f"et "
-        if self.max_holes_per_week is not None:
-            text += f"à {self.max_holes_per_week} par semaine "
+        if self.max_holes_per_period is not None:
+            text += f"à {self.max_holes_per_period} par semaine "
         if self.tutors.exists():
             text += ' pour : ' + ', '.join([tutor.username for tutor in self.tutors.all()])
         else:
@@ -90,7 +90,7 @@ class LimitHoles(TTConstraint):
             text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
         return text
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         end_of_block = {}
         holes_nb = {}
         considered_tutors = set(ttmodel.wdb.instructors)
@@ -141,17 +141,17 @@ class LimitHoles(TTConstraint):
                                                           instructors=i, days=d,
                                                           name="%g trous max %s %s" % (self.max_holes_per_day, i.username, d))
                                                )
-                        #ttmodel.add_to_inst_cost(i, 10 * holes_nb[i, d], week)
+                        #ttmodel.add_to_inst_cost(i, 10 * holes_nb[i, d], period)
                     else:
-                        ttmodel.add_to_inst_cost(i, holes_nb[i, d] * self.local_weight(), week)
-            if self.max_holes_per_week:
+                        ttmodel.add_to_inst_cost(i, holes_nb[i, d] * self.local_weight(), period)
+            if self.max_holes_per_period:
                 total_holes = ttmodel.sum(holes_nb[i, d] for d in ttmodel.wdb.days)
                 if self.weight is None:
-                    ttmodel.add_constraint(total_holes, '<=', self.max_holes_per_week,
+                    ttmodel.add_constraint(total_holes, '<=', self.max_holes_per_period,
                                            Constraint(constraint_type=ConstraintType.MAX_HOLES))
                 else:
-                    unwanted = ttmodel.add_floor(total_holes, self.max_holes_per_week + 1, 10000)
-                    ttmodel.add_to_inst_cost(i, unwanted * ponderation * self.local_weight(), week)
+                    unwanted = ttmodel.add_floor(total_holes, self.max_holes_per_period + 1, 10000)
+                    ttmodel.add_to_inst_cost(i, unwanted * ponderation * self.local_weight(), period)
 
 
 class LimitTutorTimePerWeeks(TTConstraint):
@@ -192,9 +192,9 @@ class LimitTutorTimePerWeeks(TTConstraint):
             text += f" (avec une marge tolérée de {self.tolerated_margin}%)."
         return text
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         # Do nothing if the number of weeks is less than excpected
-        if len(ttmodel.weeks) < self.number_of_weeks:
+        if len(ttmodel.periods) < self.number_of_weeks:
             return
         if self.tutors.exists():
             tutors = set(t for t in ttmodel.wdb.instructors if t in self.tutors.all())
@@ -203,16 +203,16 @@ class LimitTutorTimePerWeeks(TTConstraint):
         local_weight = 1
         if self.weight is not None:
             local_weight = self.local_weight()
-        # enrich model for each period of the desired length inside ttmodel.weeks
-        for i in range(len(ttmodel.weeks) - self.number_of_weeks + 1):
-            considered_weeks = ttmodel.weeks[i:i+self.number_of_weeks]
+        # enrich model for each period of the desired length inside ttmodel.periods
+        for i, in range(len(ttmodel.periods) - self.number_of_weeks + 1):
+            considered_weeks = ttmodel.periods[i:i+self.number_of_weeks]
             for tutor in tutors:
-                total_tutor_time = ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.duration
+                total_tutor_time = ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.minutes
                                                for c in ttmodel.wdb.possible_courses[tutor]
                                                for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
                                                                       week_in = considered_weeks)
                                                ) \
-                                  + sum(sc.course.duration
+                                  + sum(sc.course.minutes
                                         for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
                                         if sc.course.week in considered_weeks)
                 if self.max_time_per_period is not None:
@@ -229,11 +229,11 @@ class LimitTutorTimePerWeeks(TTConstraint):
                         ttmodel.add_constraint(untolerable_max,
                                                '==',
                                                0,
-                                               Constraint(constraint_type=ConstraintType.max_time_per_week,
+                                               Constraint(constraint_type=ConstraintType.max_time_per_period,
                                                           instructors=tutor))
                     else:
-                        ttmodel.add_to_inst_cost(tutor, untolerable_max * local_weight * ponderation, week)
-                    ttmodel.add_to_inst_cost(tutor, undesirable_max * local_weight * ponderation, week)
+                        ttmodel.add_to_inst_cost(tutor, untolerable_max * local_weight * ponderation, period)
+                    ttmodel.add_to_inst_cost(tutor, undesirable_max * local_weight * ponderation, period)
                 if self.min_time_per_period is not None:
                     undesirable_min = ttmodel.one_var - ttmodel.add_floor(total_tutor_time, self.min_time_per_period,
                                                                           24 * 60 * 7 * self.number_of_weeks)
@@ -248,11 +248,11 @@ class LimitTutorTimePerWeeks(TTConstraint):
                         ttmodel.add_constraint(untolerable_min,
                                                '==',
                                                0,
-                                               Constraint(constraint_type=ConstraintType.min_time_per_week,
+                                               Constraint(constraint_type=ConstraintType.min_time_per_period,
                                                           instructors=tutor))
                     else:
-                        ttmodel.add_to_inst_cost(tutor, untolerable_min * local_weight * ponderation, week)
-                    ttmodel.add_to_inst_cost(tutor, undesirable_min * local_weight * ponderation, week)
+                        ttmodel.add_to_inst_cost(tutor, untolerable_min * local_weight * ponderation, period)
+                    ttmodel.add_to_inst_cost(tutor, undesirable_min * local_weight * ponderation, period)
 
 
 class ModulesByBloc(TTConstraint):
@@ -282,7 +282,7 @@ class ModulesByBloc(TTConstraint):
         text += "are affected by bloc."
         return text
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         if self.weight is not None:
             print("ModulesByBloc is available only for constraint, not preference...")
             return
@@ -299,9 +299,9 @@ class ModulesByBloc(TTConstraint):
         possible_start_times = list(possible_start_times)
         possible_start_times.sort()
 
-        for d in days_filter(ttmodel.wdb.days, week=week):
+        for d in days_filter(ttmodel.wdb.days, period=period):
             day_slots = slots_filter(ttmodel.wdb.courses_slots, day=d)
-            day_sched_courses = ttmodel.wdb.sched_courses.filter(day=d.day, course__week=week, course__suspens=False)
+            day_sched_courses = ttmodel.wdb.sched_courses.filter(day=d.day, course__period=period, course__suspens=False)
             for m in considered_modules:
                 module_day_sched_courses = day_sched_courses.filter(course__module=m)
                 if not module_day_sched_courses.exists():

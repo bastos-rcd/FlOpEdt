@@ -2,14 +2,14 @@ from TTapp.GlobalPreAnalysis.tools_centralized_preanalysis import getFlopConstra
 from base.partition import Partition
 from base.models import ModulePossibleTutors
 
-def create_tutor_partition_from_constraints(week, department, tutor, available = False):
+def create_tutor_partition_from_constraints(period, department, tutor, available = False):
     """
         Create a partition and add information in some slots about all constraints implementing complete_tutor_partition.
-    Those constraints are retrieved in the database and taken in account if they are applied on the week and
+    Those constraints are retrieved in the database and taken in account if they are applied on the period and
     the department given in parameters and that concern the given tutor.
     Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
 
-    :param week: The Week we want to consider in a pre-analysis.
+    :param period: The SchedulingPeriod we want to consider in a pre-analysis.
     :param department: The Department on which constraints in a pre-analysis are applied.
     :param tutor: The Tutor used to create his partition.
     :return: A tutor's partition with more details about this tutor's availabilities or forbidden slots depending
@@ -18,30 +18,30 @@ def create_tutor_partition_from_constraints(week, department, tutor, available =
     """
     
     # Init partition
-    partition = Partition.get_partition_of_week(week, department, True, available=available)
+    partition = Partition.get_partition_of_period(period, department, True, available=available)
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
-    # week and department
-    constraints_list = getFlopConstraintsInDB(week, department)
+    # period and department
+    constraints_list = getFlopConstraintsInDB(period, department)
 
     for constraint in constraints_list:
         try:
-            partition = constraint.complete_tutor_partition(partition, tutor, week)
+            partition = constraint.complete_tutor_partition(partition, tutor, period)
         except AttributeError:
             pass
 
     return partition
 
 
-def complete_tutor_partition_from_constraints(partition, week, department, tutor):
+def complete_tutor_partition_from_constraints(partition, period, department, tutor):
     """
         Complete a partition and add information in some slots about all constraints implementing complete_tutor_partition.
-    Those constraints are retrieved in the database and taken in account if they are applied on the week and
+    Those constraints are retrieved in the database and taken in account if they are applied on the period and
     the department given in parameters and that concern the given tutor.
     Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
 
     :param partition: The partition we want to add information to.
-    :param week: The Week we want to consider in a pre-analysis.
+    :param period: The SchedulingPeriod we want to consider in a pre-analysis.
     :param department: The Department on which constraints in a pre-analysis are applied.
     :param tutor: The Tutor used to create his partition.
     :return: A tutor's partition with more details about this tutor's availabilities or forbidden slots depending
@@ -50,26 +50,26 @@ def complete_tutor_partition_from_constraints(partition, week, department, tutor
     """
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
-    # week and department
-    constraints_list = getFlopConstraintsInDB(week, department)
+    # period and department
+    constraints_list = getFlopConstraintsInDB(period, department)
 
     for constraint in constraints_list:
         try:
-            partition = constraint.complete_tutor_partition(partition, tutor, week)
+            partition = constraint.complete_tutor_partition(partition, tutor, period)
         except AttributeError:
             pass
 
     return partition
 
 
-def create_group_partition_from_constraints(week, department, group, available = False):
+def create_group_partition_from_constraints(period, department, group, available = False):
     """
         Create a partition and add information in some slots about all constraints implementing complete_group_partition.
-    Those constraints are retrieved in the database and taken in account if they are applied on the week and
+    Those constraints are retrieved in the database and taken in account if they are applied on the period and
     the department given in parameters and that concern the given group.
     Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
 
-    :param week: The Week we want to consider in a pre-analysis.
+    :param period: The SchedulingPeriod we want to consider in a pre-analysis.
     :param department: The Department on which constraints in a pre-analysis are applied.
     :param group: The group used to create its partition.
     :return: A partition for a group with more details about this group's availabilities or forbidden slots depending
@@ -77,31 +77,31 @@ def create_group_partition_from_constraints(week, department, group, available =
 
     """
     # Init partition
-    partition = Partition.get_partition_of_week(week=week, department=department, with_day_time=True, available = available)
+    partition = Partition.get_partition_of_period(period=period, department=department, with_day_time=True, available = available)
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
-    # week and department
-    constraints_list = getFlopConstraintsInDB(week, department)
-    # For each constraint (week and department considered) in the database, try to find the complete_group_partition
+    # period and department
+    constraints_list = getFlopConstraintsInDB(period, department)
+    # For each constraint (period and department considered) in the database, try to find the complete_group_partition
     # method and add information in the partition if found
     for constraint in constraints_list:
         try:
-            partition = constraint.complete_group_partition(partition, group, week)
+            partition = constraint.complete_group_partition(partition, group, period)
         except AttributeError:
             pass
 
     return partition
 
 
-def complete_group_partition_from_constraints(partition, week, department, group):
+def complete_group_partition_from_constraints(partition, period, department, group):
     """
         Complete a partition and add information in some slots about all constraints implementing complete_group_partition.
-    Those constraints are retrieved in the database and taken in account if they are applied on the week and
+    Those constraints are retrieved in the database and taken in account if they are applied on the period and
     the department given in parameters and that concern the given group.
     Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
 
     :param partition: The partition we want to add information to.
-    :param week: The Week we want to consider in a pre-analysis.
+    :param period: The SchedulingPeriod we want to consider in a pre-analysis.
     :param department: The Department on which constraints in a pre-analysis are applied.
     :param group: The group used to create its partition.
     :return: A partition for a group with more details about this group's availabilities or forbidden slots depending
@@ -110,33 +110,33 @@ def complete_group_partition_from_constraints(partition, week, department, group
     """
 
     # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
-    # week and department
-    constraints_list = getFlopConstraintsInDB(week, department)
+    # period and department
+    constraints_list = getFlopConstraintsInDB(period, department)
 
     for constraint in constraints_list:
         try:
-            partition = constraint.complete_group_partition(partition, group, week)
+            partition = constraint.complete_group_partition(partition, group, period)
         except AttributeError:
             pass
 
     return partition
 
 
-def create_course_partition_from_constraints(course, week, department, available = False):
+def create_course_partition_from_constraints(course, period, department, available = False):
     """
         Create a partition with information about the tutors' and supp tutors' availabilities and the group's
     availabilities concerned by the course given in parameters. Those availabilities are given by existing constraints
-    in the database for the given week and department.
+    in the database for the given period and department.
 
     :param course: A course we want data about.
-    :param week: The Week we want to consider in a pre-analysis.
+    :param period: The SchedulingPeriod we want to consider in a pre-analysis.
     :param department: The Department on which constraints in a pre-analysis are applied.
     :return: A partition with more information about the course's possible slots.
 
     """
 
     # Init
-    week_partition = Partition.get_partition_of_week(week, department, True, available = available)
+    period_partition = Partition.get_partition_of_period(period, department, True, available = available)
     possible_tutors_1 = set()
     required_supp_1 = set()
 
@@ -153,15 +153,15 @@ def create_course_partition_from_constraints(course, week, department, available
         required_supp_1 = set(course.supp_tutor.all())
 
     for tutor in possible_tutors_1:
-        week_partition = complete_tutor_partition_from_constraints(week_partition, week, department, tutor)
+        period_partition = complete_tutor_partition_from_constraints(period_partition, period, department, tutor)
     
     for tutor in required_supp_1:
-        week_partition.tutor_supp = True
-        week_partition = complete_tutor_partition_from_constraints(week_partition, week, department, tutor)
+        period_partition.tutor_supp = True
+        period_partition = complete_tutor_partition_from_constraints(period_partition, period, department, tutor)
 
     # Groups
     groups = course.groups.all()
     for group in groups:
-        week_partition = complete_group_partition_from_constraints(week_partition, week, department, group)
+        period_partition = complete_group_partition_from_constraints(period_partition, period, department, group)
     
-    return week_partition
+    return period_partition

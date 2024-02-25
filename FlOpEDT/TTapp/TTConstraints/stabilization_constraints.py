@@ -62,12 +62,12 @@ class StabilizeTutorsCourses(TTConstraint):
         attributes.extend(['tutors'])
         return attributes
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=5):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=5):
         tutors_to_be_considered = considered_tutors(self, ttmodel)
         ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
-        sched_courses = ttmodel.wdb.sched_courses.filter(course__week=week)
+        sched_courses = ttmodel.wdb.sched_courses.filter(course__period=period)
 
-        for sl in slots_filter(ttmodel.wdb.courses_slots, week=week):
+        for sl in slots_filter(ttmodel.wdb.courses_slots, period=period):
             for i in tutors_to_be_considered:
                 if not sched_courses.filter(start_time__lt=sl.end_time,
                                             start_time__gt=sl.start_time - F('course__type__duration'),
@@ -82,15 +82,15 @@ class StabilizeTutorsCourses(TTConstraint):
                                                Constraint(constraint_type=ConstraintType.STABILIZE_ENRICH_MODEL,
                                                           instructors=i))
                     else:
-                        ttmodel.add_to_inst_cost(i, self.local_weight() * relevant_sum, week=week)
+                        ttmodel.add_to_inst_cost(i, self.local_weight() * relevant_sum, period=period)
                         if not sched_courses.filter(tutor=i,
                                                     day=sl.day.day):
-                            ttmodel.add_to_inst_cost(i, self.local_weight() * ponderation * relevant_sum, week=week)
+                            ttmodel.add_to_inst_cost(i, self.local_weight() * ponderation * relevant_sum, period=period)
 
         if self.fixed_days:
             pass
             # Attention, les fixed_days doivent être des couples jour-semaine!!!!
-            # for day in days_filter(self.fixed_days.all(), week=week):
+            # for day in days_filter(self.fixed_days.all(), period=period):
             #     for sc in sched_courses.filter(slot__jour=day):
             #         ttmodel.add_constraint(ttmodel.TT[(sc.slot, sc.course)], '==', 1)
             #     for sc in sched_courses.exclude(slot__day=day):
@@ -129,13 +129,13 @@ class StabilizeGroupsCourses(TTConstraint):
         attributes.extend(['groups'])
         return attributes
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=5):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=5):
         basic_groups_to_be_considered = considered_basic_groups(self, ttmodel)
         ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
-        sched_courses = ttmodel.wdb.sched_courses.filter(course__week=week)
+        sched_courses = ttmodel.wdb.sched_courses.filter(course__period=period)
 
         for bg in basic_groups_to_be_considered:
-            for sl in slots_filter(ttmodel.wdb.courses_slots, week=week):
+            for sl in slots_filter(ttmodel.wdb.courses_slots, period=period):
                 if not sched_courses.filter(course__groups__in=bg.and_ancestors(),
                                             day=sl.day):
                     considered_courses = ttmodel.wdb.courses_for_basic_group[bg] & ttmodel.wdb.compatible_courses[sl]
@@ -145,12 +145,12 @@ class StabilizeGroupsCourses(TTConstraint):
                                                Constraint(constraint_type=ConstraintType.STABILIZE_ENRICH_MODEL,
                                                           groups=bg))
                     else:
-                        ttmodel.add_to_group_cost(bg, self.local_weight() * ponderation * relevant_sum, week=week)
+                        ttmodel.add_to_group_cost(bg, self.local_weight() * ponderation * relevant_sum, period=period)
 
         if self.fixed_days:
             pass
             # Attention, les fixed_days doivent être des couples jour-semaine!!!!
-            # for day in days_filter(self.fixed_days.all(), week=week):
+            # for day in days_filter(self.fixed_days.all(), period=period):
             #     for sc in sched_courses.filter(slot__jour=day):
             #         ttmodel.add_constraint(ttmodel.TT[(sc.slot, sc.course)], '==', 1)
             #     for sc in sched_courses.exclude(slot__day=day):
@@ -167,30 +167,30 @@ class StabilizeGroupsCourses(TTConstraint):
         return text
 
 
-class StabilizationThroughWeeks(TTConstraint):
+class StabilizationThroughPeriods(TTConstraint):
     courses = models.ManyToManyField('base.Course')
 
     class Meta:
-        verbose_name = _('Stabilization through weeks')
+        verbose_name = _('Stabilization through periods')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
-        if week != ttmodel.weeks[0]:
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
+        if period != ttmodel.periods[0]:
             return
         ttmodel_courses_id = [c.id for c in ttmodel.wdb.courses]
         courses = self.courses.filter(id__in=ttmodel_courses_id)
-        weeks = [c.week for c in courses.distinct('week')]
-        courses_data = [{'week': w, 'courses': courses.filter(week=w)} for w in weeks]
+        periods = [c.period for c in courses.distinct('period')]
+        courses_data = [{'period': p, 'courses': courses.filter(period=p)} for p in periods]
         courses_data = [c for c in courses_data if len(c['courses']) != 0]
         courses_data.sort(key=lambda c: len(c['courses']))
         for i in range(len(courses_data)-1):
             for sl0 in ttmodel.wdb.compatible_slots[courses_data[i]['courses'][0]]:
-                sl1 = ttmodel.find_same_course_slot_in_other_week(sl0, courses_data[i+1]['week'])
+                sl1 = ttmodel.find_same_course_slot_in_other_period(sl0, period, other_period=courses_data[i+1]['period'])
                 ttmodel.add_constraint(
                     2 * ttmodel.sum(ttmodel.TT[sl0, c0] for c0 in courses_data[i]['courses'])
                     - ttmodel.sum(ttmodel.TT[sl1, c1] for c1 in courses_data[i+1]['courses']),
                     '<=',
-                    1, Constraint(constraint_type=ConstraintType.STABILIZE_THROUGH_WEEKS))
+                    1, Constraint(constraint_type=ConstraintType.STABILIZE_THROUGH_PERIODS))
 
     def one_line_description(self):
-        return "Stabilization through weeks"
+        return "Stabilization through periods"

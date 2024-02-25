@@ -29,18 +29,19 @@ from base.models import Time, TimeGeneralSettings
 from people.models import GroupPreferences
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
-from TTapp.slots import slots_filter
+from TTapp.slots import slots_filter, days_filter
+import datetime as dt
 
 logger = logging.Logger(__name__)
 
 
 class MinHalfDaysHelperBase():
 
-    def __init__(self, ttmodel, constraint, week, ponderation):
+    def __init__(self, ttmodel, constraint, period, ponderation):
         self.ttmodel = ttmodel
         self.constraint = constraint
         self.ponderation = ponderation
-        self.week = week
+        self.period = period
 
     def build_variables(self):
         return None, None
@@ -58,7 +59,9 @@ class MinHalfDaysHelperBase():
         en 2 demies-journées... impossible !
         """
         t = TimeGeneralSettings.objects.get(department=self.ttmodel.department)
-        half_days_min_time = min(t.morning_end_time-t.day_start_time, t.day_end_time-t.afternoon_start_time)
+        today = dt.date.today()
+        half_days_min_time = min(dt.datetime.combine(today, t.morning_end_time)-dt.datetime.combine(today, t.day_start_time),
+                                 dt.datetime.combine(today, t.day_end_time)-dt.datetime.combine(today, t.afternoon_start_time))
         considered_courses = list(courses)
         considered_courses.sort(key=lambda x: x.duration)
         limit = 0
@@ -93,7 +96,7 @@ class MinHalfDaysHelperBase():
 class MinHalfDaysHelperModule(MinHalfDaysHelperBase):
 
     def build_variables(self):
-        days = set(day for day in self.ttmodel.wdb.days if day.week == self.week)
+        days = days_filter(self.ttmodel.wdb.days, period=self.period)
         mod_b_h_d = {}
         for d in days:
             mod_b_h_d[(self.module, d, Time.AM)] \
@@ -118,8 +121,7 @@ class MinHalfDaysHelperModule(MinHalfDaysHelperBase):
                 self.ttmodel.add_constraint(expr, '<=', card - 1,
                                             Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_INF))
 
-        # no year?
-        courses = self.ttmodel.wdb.courses.filter(module=self.module, week=self.week)
+        courses = self.ttmodel.wdb.courses.filter(module=self.module, period=self.period)
         expression = self.ttmodel.sum(
             mod_b_h_d[(self.module, d, apm)]
             for d in days
@@ -142,10 +144,10 @@ class MinHalfDaysHelperGroup(MinHalfDaysHelperBase):
 
     def build_variables(self):
         courses = set(c for c in self.ttmodel.wdb.all_courses_for_basic_group[self.group]
-                      if c.week == self.week)
+                      if c.period == self.period)
 
         expression = self.ttmodel.sum(self.ttmodel.GBHD[self.group, d, apm] for apm in self.ttmodel.possible_apms
-             for d in self.ttmodel.wdb.days if d.week == self.week)
+             for d in self.ttmodel.wdb.days if d in self.period.dates())
 
         return expression, courses
 
@@ -153,7 +155,7 @@ class MinHalfDaysHelperGroup(MinHalfDaysHelperBase):
         g_pref, created = GroupPreferences.objects.get_or_create(group = self.group)
         g_pref.calculate_fields()
         free_half_day_weight = g_pref.get_free_half_day_weight()
-        self.ttmodel.add_to_group_cost(self.group, free_half_day_weight * cost, self.week)
+        self.ttmodel.add_to_group_cost(self.group, free_half_day_weight * cost, self.period)
 
     def enrich_model(self, group=None):
         if group:
@@ -166,8 +168,8 @@ class MinHalfDaysHelperGroup(MinHalfDaysHelperBase):
 class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
 
     def build_variables(self):
-        courses = set(c for c in self.ttmodel.wdb.possible_courses[self.tutor] if c.week == self.week)
-        days = set(day for day in self.ttmodel.wdb.days if day.week == self.week)
+        courses = set(c for c in self.ttmodel.wdb.possible_courses[self.tutor] if c.period == self.period)
+        days = days_filter(self.ttmodel.wdb.days, period=self.period)
         expression = self.ttmodel.sum(
             self.ttmodel.IBHD[(self.tutor, d, apm)]
             for d in days
@@ -176,11 +178,11 @@ class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
         return expression, courses
 
     def add_cost(self, cost):
-        self.ttmodel.add_to_inst_cost(self.tutor, cost, self.week)
+        self.ttmodel.add_to_inst_cost(self.tutor, cost, self.period)
 
     def add_constraint(self, expression, courses):
         super().add_constraint(expression, courses)
-        days = set(day for day in self.ttmodel.wdb.days if day.week == self.week)
+        days = days_filter(self.ttmodel.wdb.days, period=self.period)
         # Try to joincourses
         if self.constraint.join2courses and len(courses) in [2, 4]:
             for d in days:
@@ -200,7 +202,7 @@ class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
                             self.ttmodel.add_to_inst_cost(self.tutor,
                                                           self.constraint.local_weight() * self.ponderation *
                                                           (conj_var_AM + conj_var_PM)/2,
-                                                          week=self.week)
+                                                          period=self.period)
                         else:
                             self.ttmodel.add_constraint(
                                 self.ttmodel.TT[(sl8h, c)] + self.ttmodel.TT[(sl11h, c2)],

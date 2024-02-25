@@ -989,7 +989,7 @@ class TTModel(FlopModel):
                         self.add_warning(
                             i,
                             "%g available hours < %g courses hours period %s"
-                            % (avail_time.seconds / 3600, teaching_duration.seconds / 36000, period.name),
+                            % (avail_time.seconds / 3600, teaching_duration.seconds / 3600, period.name),
                         )
                         # We used to forget tutor availabilities in this case...
                         # for availability_slot in period_availability_slots:

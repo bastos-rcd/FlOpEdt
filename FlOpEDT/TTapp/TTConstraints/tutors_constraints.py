@@ -56,9 +56,9 @@ class MinTutorsHalfDays(TTConstraint):
         verbose_name = _('Minimize busy half days for tutors')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=5):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=5):
 
-        helper = MinHalfDaysHelperTutor(ttmodel, self, week, ponderation)
+        helper = MinHalfDaysHelperTutor(ttmodel, self, period, ponderation)
         for tutor in considered_tutors(self, ttmodel):
             helper.enrich_model(tutor=tutor)
 
@@ -102,13 +102,13 @@ class MinNonPreferedTutorsSlot(TTConstraint):
         attributes.extend(['tutors'])
         return attributes
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=None):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=None):
         if ponderation is None:
             ponderation = ttmodel.min_ups_i
         tutors = considered_tutors(self, ttmodel)
         for sl in ttmodel.wdb.availability_slots:
             for tutor in tutors:
-                filtered_courses = set(c for c in ttmodel.wdb.possible_courses[tutor] if c.week == week)
+                filtered_courses = set(c for c in ttmodel.wdb.possible_courses[tutor] if c.period == period)
                 for c in filtered_courses:
                     slot_vars_sum = ttmodel.sum(ttmodel.TTinstructors[(sl2, c, tutor)]
                                                 for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
@@ -116,7 +116,7 @@ class MinNonPreferedTutorsSlot(TTConstraint):
                     cost = self.local_weight() \
                         * ponderation * slot_vars_sum \
                         * ttmodel.unp_slot_cost[tutor][sl]
-                    ttmodel.add_to_inst_cost(tutor, cost, week=week)
+                    ttmodel.add_to_inst_cost(tutor, cost, period=period)
 
     def one_line_description(self):
         text = "Respecte les préférences"
@@ -139,7 +139,7 @@ class MinimizeBusyDays(TTConstraint):
         verbose_name = _('Minimize tutors busy days')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=None):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=None):
         """
         Minimize the number of busy days for tutor with cost
         (if it does not overcome the bound expressed in pref_hours_per_day)
@@ -152,11 +152,11 @@ class MinimizeBusyDays(TTConstraint):
         for tutor in tutors:
             slot_by_day_cost = ttmodel.lin_expr()
             # need to be sorted
-            courses_hours = sum(c.duration
+            courses_hours = sum(c.minutes
                                 for c in (ttmodel.wdb.courses_for_tutor[tutor]
                                           | ttmodel.wdb.courses_for_supp_tutor[tutor])
-                                & ttmodel.wdb.courses_by_week[week]) / 60
-            nb_days = len(days_filter(ttmodel.wdb.days, week=week))
+                                & ttmodel.wdb.courses_by_period[period]) / 60
+            nb_days = len(days_filter(ttmodel.wdb.days, period=period))
             minimal_number_of_days = nb_days
             # for any number of days inferior to nb_days
             for d in range(nb_days, 0, -1):
@@ -165,17 +165,17 @@ class MinimizeBusyDays(TTConstraint):
                     # multiply the previous cost by 2
                     slot_by_day_cost *= 2
                     # add a cost for having d busy days
-                    slot_by_day_cost += ttmodel.IBD_GTE[week][d][tutor]
+                    slot_by_day_cost += ttmodel.IBD_GTE[period][d][tutor]
                 else:
                     minimal_number_of_days = d
                     break
             if self.weight is None:
                 if minimal_number_of_days < nb_days:
-                    ttmodel.add_constraint(ttmodel.IBD_GTE[week][minimal_number_of_days + 1][tutor], '==', 0,
+                    ttmodel.add_constraint(ttmodel.IBD_GTE[period][minimal_number_of_days + 1][tutor], '==', 0,
                                            Constraint(constraint_type=ConstraintType.MinimizeBusyDays,
-                                                      instructors=tutor, weeks=week))
+                                                      instructors=tutor, periods=period))
             else:
-                ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * slot_by_day_cost, week=week)
+                ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * slot_by_day_cost, period=period)
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
@@ -205,7 +205,7 @@ class RespectMaxHoursPerDay(TTConstraint):
         verbose_name = _('Respect max hours per days bounds')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         """
         Minimize the number of busy days for tutor with cost
         (if it does not overcome the bound expressed in pref_hours_per_day)
@@ -213,10 +213,10 @@ class RespectMaxHoursPerDay(TTConstraint):
         tutors = considered_tutors(self, ttmodel)
 
         for tutor in tutors:
-            for d in days_filter(ttmodel.wdb.days, week=week):
+            for d in days_filter(ttmodel.wdb.days, period=period):
                 other_departments_hours_nb = sum(sc.course.duration
                                                  for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
-                                                 if sc.course.week == week and sc.day == d.day) / 60
+                                                 if sc.course.period == period and sc.date == d) / 60
                 max_hours_nb = max(tutor.preferences.max_hours_per_day - other_departments_hours_nb, 0)
                 if self.weight is None:
                     ttmodel.add_constraint(tutor_teaching_time_by_day_expression(ttmodel, tutor, d),
@@ -230,7 +230,7 @@ class RespectMaxHoursPerDay(TTConstraint):
                                                             max_hours_nb,
                                                             100000)
                     ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * undesired_situation,
-                                             week=week)
+                                             period=period)
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
@@ -259,17 +259,17 @@ class RespectTutorsMinHoursPerDay(TTConstraint):
         verbose_name = _('Respect tutors min hours per day bounds')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         """
         avoid situations in which a teaching day has less hours than min declared
         """
         tutors = considered_tutors(self, ttmodel)
 
         for tutor in tutors:
-            for d in days_filter(ttmodel.wdb.days, week=week):
+            for d in days_filter(ttmodel.wdb.days, period=period):
                 other_departments_hours_nb = sum(sc.course.duration
                                                  for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
-                                                 if sc.course.week == week and sc.day == d.day) / 60
+                                                 if sc.course.period == period and sc.date == d) / 60
                 min_hours_nb = max(tutor.preferences.min_hours_per_day - other_departments_hours_nb, 0)
                 if min_hours_nb == 0:
                     continue
@@ -286,7 +286,7 @@ class RespectTutorsMinHoursPerDay(TTConstraint):
                                                       days=d))
                 else:
                     ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * undesired_situation,
-                                             week=week)
+                                             period=period)
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
@@ -317,8 +317,8 @@ class LowerBoundBusyDays(TTConstraint):
         verbose_name = _('Lower bound tutor busy days')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
-        relevant_courses = self.get_courses_queryset_by_attributes(ttmodel, week)
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
+        relevant_courses = self.get_courses_queryset_by_attributes(ttmodel, period)
 
         if sum(c.duration for c in relevant_courses) > self.lower_bound_hours:
             ttmodel.add_constraint(ttmodel.IBD_GTE[self.min_days_nb][self.tutor], '==', 1,
@@ -338,9 +338,9 @@ class LowerBoundBusyDays(TTConstraint):
 
 
 def tutor_teaching_time_by_day_expression(ttmodel, tutor, day):
-    return ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.duration / 60
+    return ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.minutes / 60
                        for c in ttmodel.wdb.possible_courses[tutor]
                        for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day)) \
-           + ttmodel.sum(ttmodel.TT[sl, c] * sl.duration / 60
+           + ttmodel.sum(ttmodel.TT[sl, c] * sl.minutes / 60
                          for c in ttmodel.wdb.courses_for_supp_tutor[tutor]
                          for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day))

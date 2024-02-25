@@ -37,7 +37,7 @@ class TTConstraint(FlopConstraint):
     Attributes:
         department : the department concerned by the constraint. Has to be filled.
         train_progs : the training programs concerned by the constraint. All of self.department if None
-        weeks : the weeks for which the constraint should be applied. All if None.
+        periods : the periods for which the constraint should be applied. All if None.
         weight : from 1 to max_weight if the constraint is optional, depending on its importance
                  None if the constraint is necessary
         is_active : usefull to de-activate a Constraint just before the generation
@@ -49,7 +49,7 @@ class TTConstraint(FlopConstraint):
         abstract = True
 
     @timer
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         raise NotImplementedError
 
     def get_viewmodel(self):
@@ -70,7 +70,7 @@ class TTConstraint(FlopConstraint):
     def get_viewmodel_prefetch_attributes(cls):
         return ['train_progs', 'department',]
 
-    def get_courses_queryset_by_parameters(self, ttmodel, week,
+    def get_courses_queryset_by_parameters(self, ttmodel, period,
                                            train_progs=None,
                                            train_prog=None,
                                            module=None,
@@ -78,7 +78,7 @@ class TTConstraint(FlopConstraint):
                                            course_type=None,
                                            room_type=None,
                                            tutor=None):
-        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(self, ttmodel, week,
+        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(self, ttmodel, period,
                                                                        train_progs=train_progs,
                                                                        train_prog=train_prog,
                                                                        module=module,
@@ -94,10 +94,10 @@ class TTConstraint(FlopConstraint):
                 return courses_qs.filter(id__in = [])
         return courses_qs
 
-    def get_courses_queryset_by_attributes(self, ttmodel, week, **kwargs):
+    def get_courses_queryset_by_attributes(self, ttmodel, period, **kwargs):
         """
         Filter courses depending constraint attributes
         """
         if self.train_progs.exists() and 'train_progs' not in kwargs:
             kwargs['train_progs'] = self.train_progs.all()
-        return FlopConstraint.get_courses_queryset_by_attributes(self, ttmodel, week, **kwargs)
+        return FlopConstraint.get_courses_queryset_by_attributes(self, ttmodel, period, **kwargs)
