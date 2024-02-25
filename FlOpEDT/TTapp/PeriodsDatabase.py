@@ -23,7 +23,10 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
+from base.timing import get_default_date
+from base.models.availability import period_actual_availabilities
 from django.core.mail import EmailMessage
+import datetime as dt
 from pulp import (
     LpVariable,
     LpConstraint,
@@ -75,7 +78,7 @@ from base.models import (
     RoomPonderation,
 )
 
-from base.timing import Time, Day
+from base.timing import add_duration_to_time
 
 import base.queries as queries
 
@@ -99,11 +102,11 @@ GUROBI = "GUROBI"
 GUROBI_NAME = "GUROBI_CMD"
 
 
-class WeeksDatabase(object):
-    def __init__(self, department, weeks, train_prog, slots_step=None):
+class PeriodsDatabase(object):
+    def __init__(self, department, periods, train_prog, slots_step=None):
         self.train_prog = train_prog
         self.department = department
-        self.weeks = weeks
+        self.periods = periods
         self.slots_step = slots_step
         self.possible_apms = set()
         (
@@ -113,10 +116,11 @@ class WeeksDatabase(object):
             self.training_half_days,
             self.day_before,
         ) = self.days_init()
+        self.dates = self.days
         (
             self.course_types,
             self.courses,
-            self.courses_by_week,
+            self.courses_by_period,
             self.sched_courses,
             self.fixed_courses,
             self.other_departments_courses,
@@ -186,24 +190,23 @@ class WeeksDatabase(object):
 
     def days_init(self):
 
+        all_days = set()
+        for period in self.periods:
+            all_days |= set(period.dates())
+        days = list(days_filter(all_days,weekday_in=TimeGeneralSettings.objects.get(department=self.department).days))
+        days.sort()
+
+
         training_half_days = TrainingHalfDay.objects.filter(
-            week__in=self.weeks, train_prog__in=self.train_prog
+            date__in=days, train_prog__in=self.train_prog
         )
 
-        days = [
-            Day(week=week, day=day)
-            for week in self.weeks
-            for day in TimeGeneralSettings.objects.get(department=self.department).days
-        ]
-
-        database_holidays = Holiday.objects.filter(week__in=self.weeks)
-        holidays = set(
-            d for d in days if database_holidays.filter(day=d.day, week=d.week).exists()
-        )
+        database_holidays = Holiday.objects.filter(date__in=days)
+        holidays = set(d.date for d in database_holidays)
 
         if self.department.mode.cosmo != 1:
             for hd in holidays:
-                days.remove(hd)
+                days.remove(hd.date)
 
         day_after = {}
         for i, day in enumerate(days):
@@ -234,21 +237,23 @@ class WeeksDatabase(object):
             start_times = cc.allowed_start_times
             if self.slots_step is None:
                 courses_slots |= set(
-                    CourseSlot(d, start_time, cc.duration, self.department)
+                    CourseSlot(dt.datetime.combine(d,start_time), cc.duration, self.department)
                     for d in self.days
                     for start_time in start_times
                 )
             else:
                 courses_slots |= set(
-                    CourseSlot(d, start_time, cc.duration, self.department)
+                    CourseSlot(dt.datetime.combine(d,start_time), cc.duration, self.department)
                     for d in self.days
                     for start_time in cc.allowed_start_times
                     if start_time % self.slots_step == 0
                 )
         # We remove the course slots that are inside the lunch break
+        courses_slots_to_remove = set()
         for course_slot in courses_slots:
-            if course_slot.start_time < tgs.afternoon_start_time and course_slot.end_time > tgs.morning_end_time: 
-                courses_slots.pop(course_slot)
+            if course_slot.start_time.time() < tgs.afternoon_start_time and course_slot.end_time.time() > tgs.morning_end_time: 
+                courses_slots_to_remove.add(course_slot)
+        courses_slots -= courses_slots_to_remove
 
         for slot in courses_slots:
             self.possible_apms.add(slot.apm)
@@ -258,10 +263,8 @@ class WeeksDatabase(object):
         dayly_availability_slots = set()
         for cst in filtered_cstc:
             dayly_availability_slots |= set(cst.allowed_start_times)
-            if cst.course_type is not None:
-                dayly_availability_slots |= set(
-                    st + cst.duration for st in cst.allowed_start_times
-                )
+
+            dayly_availability_slots |= set(add_duration_to_time(st, cst.duration) for st in cst.allowed_start_times)
         dayly_availability_slots.add(tgs.day_end_time)
         dayly_availability_slots = list(dayly_availability_slots)
         dayly_availability_slots.sort()
@@ -281,7 +284,7 @@ class WeeksDatabase(object):
                     end_times.remove(st)
 
         availability_slots = {
-            Slot(day=day, start_time=start_times[i], end_time=end_times[i])
+            Slot(start_time=dt.datetime.combine(day, start_times[i]), end_time=dt.datetime.combine(day, end_times[i]))
             for day in self.days
             for i in range(len(start_times))
         }
@@ -291,11 +294,11 @@ class WeeksDatabase(object):
         )
 
         first_hour_slots = {
-            slot for slot in availability_slots if slot.start_time < start_times[0] + 60
+            slot for slot in availability_slots if slot.start_time.time() < add_duration_to_time(start_times[0], dt.timedelta(minutes=60))
         }
 
         last_hour_slots = {
-            slot for slot in availability_slots if slot.end_time > end_times[-1] - 60
+            slot for slot in availability_slots if slot.end_time.time()  > add_duration_to_time(end_times[-1], dt.timedelta(minutes=60))
         }
 
         return courses_slots, availability_slots, first_hour_slots, last_hour_slots
@@ -303,12 +306,12 @@ class WeeksDatabase(object):
     def courses_init(self):
         # COURSES
         courses = Course.objects.filter(
-            week__in=self.weeks, module__train_prog__in=self.train_prog
+            period__in=self.periods, module__train_prog__in=self.train_prog
         ).select_related("module", "room_type")
 
         course_types = set(c.type for c in courses)
 
-        courses_by_week = {week: set(courses.filter(week=week)) for week in self.weeks}
+        courses_by_period = {period: set(courses.filter(period=period)) for period in self.periods}
 
         sched_courses = ScheduledCourse.objects.filter(course__in=courses)
 
@@ -317,11 +320,11 @@ class WeeksDatabase(object):
 
         fixed_courses = ScheduledCourse.objects.filter(
             course__module__train_prog__department=self.department,
-            course__week__in=self.weeks,
+            course__period__in=self.periods,
             work_copy=0,
         ).exclude(course__module__train_prog__in=self.train_prog)
 
-        other_departments_courses = Course.objects.filter(week__in=self.weeks).exclude(
+        other_departments_courses = Course.objects.filter(period__in=self.periods).exclude(
             type__department=self.department
         )
 
@@ -329,31 +332,35 @@ class WeeksDatabase(object):
             course__in=other_departments_courses, work_copy=0
         )
 
-        courses_availabilities = CourseAvailability.objects.filter(
-            Q(week__in=self.weeks) | Q(week=None),
-            train_prog__department=self.department,
-        )
+        courses_availabilities = set()
+        for date in self.days:
+            dated_availabilities = CourseAvailability.objects.filter(date=date, train_prog__department=self.department)
+            if dated_availabilities.exists():
+                courses_availabilities |= set(dated_availabilities)
+            else:
+                default_date = get_default_date(date)
+                courses_availabilities |= set(CourseAvailability.objects.filter(date=default_date, train_prog__department=self.department))
 
         modules = Module.objects.filter(
             id__in=courses.values_list("module_id").distinct()
         )
 
         dependencies = Dependency.objects.filter(
-            course1__week__in=self.weeks,
-            course2__week__in=self.weeks,
+            course1__period__in=self.periods,
+            course2__period__in=self.periods,
             course1__module__train_prog__in=self.train_prog,
         )
 
         pivots = Pivot.objects.filter(
-            pivot_course__week__in=self.weeks,
-            other_courses__week__in=self.weeks,
+            pivot_course__period__in=self.periods,
+            other_courses__period__in=self.periods,
             pivot_course__module__train_prog__in=self.train_prog,
         )
 
         return (
             course_types,
             courses,
-            courses_by_week,
+            courses_by_period,
             sched_courses,
             fixed_courses,
             other_departments_courses,
@@ -378,8 +385,6 @@ class WeeksDatabase(object):
                 for fc in self.other_departments_sched_courses
                 if fc.start_time < sl.end_time
                 and sl.start_time < fc.end_time
-                and fc.day == sl.day.day
-                and fc.course.week == sl.day.week
             )
 
         return (
@@ -470,20 +475,18 @@ class WeeksDatabase(object):
         if not self.department.mode.cosmo:
             compatible_slots = {}
             for c in self.courses:
-                compatible_slots[c] = set(
-                    slot
-                    for slot in self.courses_slots
-                    if slot.day.week == c.week
-                    and slot.duration == c.duration
-                    and slot.department == c.type.department
-                )
+                compatible_slots[c] = slots_filter(self.courses_slots,
+                                                   period=c.period,
+                                                   duration=c.duration,
+                                                   department=c.type.department
+                                                   )
 
             compatible_courses = {}
             for sl in self.courses_slots:
                 compatible_courses[sl] = set(
                     course for course in self.courses
                     if course.duration == sl.duration
-                    and sl.day.week == course.week
+                    and sl.date in course.period.dates()
                     and sl.department == course.type.department
                     )
         else:
@@ -497,12 +500,10 @@ class WeeksDatabase(object):
                         slot
                         for slot in slots_filter(
                             self.courses_slots,
-                            week=c.week,
                             start_time=sc.start_time,
                             duration=c.duration,
                             department=c.type.department,
                         )
-                        if slot.day.day == sc.day
                     }
                     if len(slots) == 1:
                         sl = slots.pop()
@@ -517,7 +518,7 @@ class WeeksDatabase(object):
                         [
                             slot
                             for slot in slots_filter(
-                                self.courses_slots, week=c.week, duration=c.duration,
+                                self.courses_slots, period=c.period, duration=c.duration,
                                 department=c.type.department
                             )
                         ]
@@ -625,7 +626,7 @@ class WeeksDatabase(object):
             for tutor in cpt.possible_tutors.all():
                 instructors.add(tutor)
         for mtr in ModuleTutorRepartition.objects.filter(
-            module__in=self.modules, week__in=self.weeks
+            module__in=self.modules, period__in=self.periods
         ):
             instructors.add(mtr.tutor)
         try:
@@ -646,16 +647,8 @@ class WeeksDatabase(object):
         availabilities = {}
         for i in instructors:
             availabilities[i] = {}
-            for week in self.weeks:
-                availabilities[i][week] = set(
-                    UserAvailability.objects.filter(week=week, user=i)
-                )
-                if not availabilities[i][week]:
-                    availabilities[i][week] = set(
-                        UserAvailability.objects.filter(week=None, user=i)
-                    )
-                    for avail in availabilities[i][week]:
-                        avail.week = week
+            for period in self.periods:
+                availabilities[i][period] = period_actual_availabilities(i, period)
 
         fixed_courses_for_tutor = {}
         for i in instructors:
@@ -684,11 +677,9 @@ class WeeksDatabase(object):
         physical_presence_days_for_tutor = {}
         for i in instructors:
             physical_presence_days_for_tutor[i] = {}
-            for w in self.weeks:
-                physical_presence_days_for_tutor[i][w] = []
-                if PhysicalPresence.objects.filter(user=i, week=w).exists():
-                    for pp in i.physical_presences.filter(week=w):
-                        physical_presence_days_for_tutor[i][w].append(pp.day)
+            for date in self.dates:
+                if PhysicalPresence.objects.filter(user=i, date=date).exists():
+                    physical_presence_days_for_tutor[i](date)
 
         return (
             instructors,
@@ -732,12 +723,12 @@ class WeeksDatabase(object):
                         CoursePossibleTutors.objects.get(course=c).possible_tutors.all()
                     )
                 elif ModuleTutorRepartition.objects.filter(
-                    course_type=c.type, module=c.module, week=c.week
+                    course_type=c.type, module=c.module, period=c.period
                 ).exists():
                     possible_tutors[c] = set(
                         mtr.tutor
                         for mtr in ModuleTutorRepartition.objects.filter(
-                            course_type=c.type, module=c.module, week=c.week
+                            course_type=c.type, module=c.module, period=c.period
                         )
                     )
                 else:

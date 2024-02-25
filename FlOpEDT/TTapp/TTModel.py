@@ -37,6 +37,7 @@ from base.models import (
     TimeGeneralSettings,
     ModuleTutorRepartition,
     ScheduledCourseAdditional,
+    period_actual_availabilities
 )
 
 from base.timing import Time, flopday_to_date, floptime_to_time
@@ -71,7 +72,7 @@ from TTapp.FlopConstraint import max_weight
 
 from TTapp.slots import slots_filter, days_filter
 
-from TTapp.WeeksDatabase import WeeksDatabase
+from TTapp.PeriodsDatabase import PeriodsDatabase
 
 
 from django.db import close_old_connections
@@ -97,13 +98,15 @@ from TTapp.RoomModel import RoomModel
 
 from django.utils.translation import gettext_lazy as _
 
+import datetime as dt
+
 
 class TTModel(FlopModel):
     @timer
     def __init__(
         self,
         department_abbrev,
-        weeks,
+        periods,
         train_prog=None,
         stabilize_work_copy=None,
         min_nps_i=1.0,
@@ -123,7 +126,7 @@ class TTModel(FlopModel):
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
         super(TTModel, self).__init__(
-            department_abbrev, weeks, keep_many_solution_files=keep_many_solution_files
+            department_abbrev, periods, keep_many_solution_files=keep_many_solution_files
         )
         # Create the PuLP model, giving the name of the lp file
         self.min_ups_i = min_nps_i
@@ -139,7 +142,7 @@ class TTModel(FlopModel):
         self.min_visio = min_visio
         self.pre_assign_rooms = pre_assign_rooms
         self.post_assign_rooms = post_assign_rooms
-        print(_(f"\nLet's start weeks #{self.weeks}"))
+        print(_(f"\nLet's start periods #{[period.name for period in self.periods]}"))
         assignment_text = ""
         if self.pre_assign_rooms:
             assignment_text += "pre"
@@ -214,8 +217,8 @@ class TTModel(FlopModel):
 
     @timer
     def wdb_init(self):
-        wdb = WeeksDatabase(
-            self.department, self.weeks, self.train_prog, self.slots_step
+        wdb = PeriodsDatabase(
+            self.department, self.periods, self.train_prog, self.slots_step
         )
         return wdb
 
@@ -226,7 +229,7 @@ class TTModel(FlopModel):
                 zip(
                     self.wdb.instructors,
                     [
-                        {week: self.lin_expr() for week in self.weeks + [None]}
+                        {period: self.lin_expr() for period in self.periods + [None]}
                         for _ in self.wdb.instructors
                     ],
                 )
@@ -239,7 +242,7 @@ class TTModel(FlopModel):
                     zip(
                         self.wdb.basic_groups,
                         [
-                            {week: self.lin_expr() for week in self.weeks}
+                            {period: self.lin_expr() for period in self.periods}
                             for _ in self.wdb.basic_groups
                         ],
                     )
@@ -251,7 +254,7 @@ class TTModel(FlopModel):
                 zip(
                     self.wdb.basic_groups,
                     [
-                        {week: self.lin_expr() for week in self.weeks + [None]}
+                        {period: self.lin_expr() for period in self.periods + [None]}
                         for _ in self.wdb.basic_groups
                     ],
                 )
@@ -267,7 +270,7 @@ class TTModel(FlopModel):
             )
         )
 
-        generic_cost = {week: self.lin_expr() for week in self.weeks + [None]}
+        generic_cost = {period: self.lin_expr() for period in self.periods + [None]}
 
         return cost_I, FHD_G, cost_G, cost_SL, generic_cost
 
@@ -407,12 +410,11 @@ class TTModel(FlopModel):
         for i in self.wdb.instructors:
             for d in self.wdb.days:
                 forced_IBD[(i, d)] = 0
-                if d.day in self.wdb.physical_presence_days_for_tutor[i][d.week]:
+                if d in self.wdb.physical_presence_days_for_tutor[i]:
                     forced_IBD[(i, d)] = 1
                 if self.department.mode.cosmo == 1:
                     if self.wdb.sched_courses.filter(
-                        day=d.day,
-                        course__week=d.week,
+                        start_time__date=d,
                         course__suspens=False,
                         course__tutor=i,
                     ).exists():
@@ -426,17 +428,17 @@ class TTModel(FlopModel):
                     ),
                 )
 
-        IBD_GTE = {week: [] for week in self.weeks}
+        IBD_GTE = {period: [] for period in self.periods}
         max_days = len(TimeGeneralSettings.objects.get(department=self.department).days)
-        for week in self.weeks:
+        for period in self.periods:
             for j in range(max_days + 1):
-                IBD_GTE[week].append({})
+                IBD_GTE[period].append({})
 
             for i in self.wdb.instructors:
                 for j in range(1, max_days + 1):
-                    IBD_GTE[week][j][i] = self.add_floor(
+                    IBD_GTE[period][j][i] = self.add_floor(
                         self.sum(
-                            IBD[(i, d)] for d in days_filter(self.wdb.days, week=week)
+                            IBD[(i, d)] for d in days_filter(self.wdb.days, period=period)
                         ),
                         j,
                         max_days,
@@ -588,14 +590,14 @@ class TTModel(FlopModel):
     def add_to_slot_cost(self, slot, cost):
         self.cost_SL[slot] += cost
 
-    def add_to_inst_cost(self, instructor, cost, week=None):
-        self.cost_I[instructor][week] += cost
+    def add_to_inst_cost(self, instructor, cost, period=None):
+        self.cost_I[instructor][period] += cost
 
-    def add_to_group_cost(self, group, cost, week=None):
-        self.cost_G[group][week] += cost
+    def add_to_group_cost(self, group, cost, period=None):
+        self.cost_G[group][period] += cost
 
-    def add_to_generic_cost(self, cost, week=None):
-        self.generic_cost[week] += cost
+    def add_to_generic_cost(self, cost, period=None):
+        self.generic_cost[period] += cost
 
     @timer
     def add_stabilization_constraints(self):
@@ -611,9 +613,9 @@ class TTModel(FlopModel):
                 work_copy=self.stabilize_work_copy,
                 weight=max_weight,
             )
-            for week in self.weeks:
-                st.enrich_ttmodel(self, week, self.max_stab)
-                sg.enrich_ttmodel(self, week, self.max_stab)
+            for period in self.periods:
+                st.enrich_ttmodel(self, period, self.max_stab)
+                sg.enrich_ttmodel(self, period, self.max_stab)
             print("Will stabilize from remote work copy #", self.stabilize_work_copy)
             st.delete()
             sg.delete()
@@ -726,7 +728,7 @@ class TTModel(FlopModel):
                         )
 
         for mtr in ModuleTutorRepartition.objects.filter(
-            module__in=self.wdb.modules, week__in=self.weeks
+            module__in=self.wdb.modules, period__in=self.periods
         ):
             self.add_constraint(
                 self.sum(
@@ -738,7 +740,7 @@ class TTModel(FlopModel):
                         and c.type == mtr.course_type
                         and c.tutor is None
                     )
-                    for sl in slots_filter(self.wdb.compatible_slots[c], week=mtr.week)
+                    for sl in slots_filter(self.wdb.compatible_slots[c], period=mtr.period)
                 ),
                 "==",
                 mtr.courses_nb,
@@ -878,16 +880,16 @@ class TTModel(FlopModel):
             )
 
     def send_unitary_lack_of_availability_mail(
-        self, tutor, week, available_hours, teaching_hours, prefix="[flop!EDT] "
+        self, tutor, period, available_hours, teaching_hours, prefix="[flop!EDT] "
     ):
-        subject = f"Manque de dispos semaine {week}"
+        subject = f"Manque de dispos période {period.name}"
         message = (
             "(Cet e-mail vous a été envoyé automatiquement par le générateur "
             "d'emplois du temps du logiciel flop!EDT)\n\n"
         )
         message += (
             f"Bonjour {tutor.first_name}\n"
-            f"Semaine {week} vous ne donnez que {available_hours} heures de disponibilités, "
+            f"Semaine {period.name} vous ne donnez que {available_hours} heures de disponibilités, "
             f"alors que vous êtes censé⋅e assurer {teaching_hours} heures de cours...\n"
         )
         if self.wdb.holidays:
@@ -941,54 +943,56 @@ class TTModel(FlopModel):
             avail_instr[i] = {}
             avail_at_school_instr[i] = {}
             unp_slot_cost[i] = {}
-            for week in self.weeks:
-                week_availability_slots = slots_filter(
-                    self.wdb.availability_slots, week=week
+            for period in self.periods:
+                period_availability_slots = slots_filter(
+                    self.wdb.availability_slots, period=period
                 )
                 teaching_duration = sum(
-                    c.duration
+                    [c.duration
                     for c in self.wdb.courses_for_tutor[i]
-                    if c.week == week
+                    if c.period == period
+                    ], dt.timedelta()
                 )
                 total_teaching_duration = teaching_duration + sum(
-                    c.duration
+                    [c.duration
                     for c in self.wdb.other_departments_courses_for_tutor[i]
-                    if c.week == week
+                    if c.period == period
+                    ], dt.timedelta()
                 )
-                week_holidays = [
-                    d.day for d in days_filter(self.wdb.holidays, week=week)
-                ]
-                if self.department.mode.cosmo != 1 and week_holidays:
-                    week_tutor_availabilities = set(
+                period_holidays = days_filter(self.wdb.holidays, period=period)
+
+                if self.department.mode.cosmo != 1 and period_holidays:
+                    period_tutor_availabilities = set(
                         a
-                        for a in self.wdb.availabilities[i][week]
-                        if a.day not in week_holidays
+                        for a in self.wdb.availabilities[i][period]
+                        if a.date not in period_holidays
                     )
                 else:
-                    week_tutor_availabilities = self.wdb.availabilities[i][week]
+                    period_tutor_availabilities = self.wdb.availabilities[i][period]
 
-                if not week_tutor_availabilities:
+                if not period_tutor_availabilities:
                     self.add_warning(
-                        i, "no availability information given week %s" % week
+                        i, "no availability information given period %s" % period.name
                     )
-                    for availability_slot in week_availability_slots:
+                    for availability_slot in period_availability_slots:
                         unp_slot_cost[i][availability_slot] = 0
                         avail_at_school_instr[i][availability_slot] = 1
                         avail_instr[i][availability_slot] = 1
 
                 else:
                     avail_time = sum(
-                        a.duration for a in week_tutor_availabilities if a.value >= 1
+                        [a.duration for a in period_tutor_availabilities if a.value >= 1
+                        ], dt.timedelta()
                     )
 
                     if avail_time < teaching_duration:
                         self.add_warning(
                             i,
-                            "%g available hours < %g courses hours week %s"
-                            % (avail_time / 60, teaching_duration / 60, week),
+                            "%g available hours < %g courses hours period %s"
+                            % (avail_time.seconds / 3600, teaching_duration.seconds / 36000, period.name),
                         )
                         # We used to forget tutor availabilities in this case...
-                        # for availability_slot in week_availability_slots:
+                        # for availability_slot in period_availability_slots:
                         #     unp_slot_cost[i][availability_slot] = 0
                         #     avail_at_school_instr[i][availability_slot] = 1
                         #     avail_instr[i][availability_slot] = 1
@@ -996,11 +1000,11 @@ class TTModel(FlopModel):
                     elif avail_time < total_teaching_duration:
                         self.add_warning(
                             i,
-                            "%g available hours < %g courses hours including other deps week %s"
-                            % (avail_time / 60, total_teaching_duration / 60, week),
+                            "%g available hours < %g courses hours including other deps period %s"
+                            % (avail_time.seconds / 3600, total_teaching_duration.seconds / 3600, period.name),
                         )
                         # We used to forget tutor availabilities in this case...
-                        # for availability_slot in week_availability_slots:
+                        # for availability_slot in period_availability_slots:
                         #     unp_slot_cost[i][availability_slot] = 0
                         #     avail_at_school_instr[i][availability_slot] = 1
                         #     avail_instr[i][availability_slot] = 1
@@ -1011,38 +1015,40 @@ class TTModel(FlopModel):
                     ):
                         self.add_warning(
                             i,
-                            "only %g available hours for %g courses hours week %s"
-                            % (avail_time / 60, teaching_duration / 60, week),
+                            "only %g available hours for %g courses hours period %s"
+                            % (avail_time.seconds / 3600, teaching_duration.seconds / 3600, period.name),
                         )
-                    maximum = max([a.value for a in week_tutor_availabilities])
+                    maximum = max([a.value for a in period_tutor_availabilities])
                     if maximum == 0:
-                        for availability_slot in week_availability_slots:
+                        for availability_slot in period_availability_slots:
                             unp_slot_cost[i][availability_slot] = 0
                             avail_at_school_instr[i][availability_slot] = 0
                             avail_instr[i][availability_slot] = 0
                         continue
 
-                    non_prefered_duration = max(
-                        1,
+                    non_prefered_duration_minutes = max(
+                        dt.timedelta(minutes=1),
                         sum(
-                            a.duration
-                            for a in week_tutor_availabilities
+                            [a.duration
+                            for a in period_tutor_availabilities
                             if 1 <= a.value <= maximum - 1
+                            ], dt.timedelta()
                         ),
-                    )
+                    ).seconds // 60
                     average_value = (
                         sum(
-                            a.duration * a.value
-                            for a in week_tutor_availabilities
+                            [a.duration * a.value
+                            for a in period_tutor_availabilities
                             if 1 <= a.value <= maximum - 1
+                            ], dt.timedelta()
                         )
-                        / non_prefered_duration
+                        / non_prefered_duration_minutes
                     )
 
-                    for availability_slot in week_availability_slots:
+                    for availability_slot in period_availability_slots:
                         avail = set(
                             a
-                            for a in week_tutor_availabilities
+                            for a in period_tutor_availabilities
                             if availability_slot.is_simultaneous_to(a)
                         )
                         if not avail:
@@ -1102,32 +1108,17 @@ class TTModel(FlopModel):
             for promo in self.train_prog:
                 avail_course[(course_type, promo)] = {}
                 non_preferred_cost_course[(course_type, promo)] = {}
-                for week in self.weeks:
-                    week_availability_slots = slots_filter(
-                        self.wdb.availability_slots, week=week
-                    )
-                    courses_avail = set(
-                        self.wdb.courses_availabilities.filter(
-                            course_type=course_type, train_prog=promo, week=week
-                        )
-                    )
+                for period in self.periods:
+                    period_availability_slots = slots_filter(self.wdb.availability_slots, period=period)
+                    courses_avail = set(c_avail for c_avail in 
+                        self.wdb.courses_availabilities if c_avail.course_type==course_type and c_avail.train_prog==promo and c_avail.date in period.dates())
                     if not courses_avail:
-                        courses_avail = set(
-                            self.wdb.courses_availabilities.filter(
-                                course_type=course_type, train_prog=promo, week=None
-                            )
-                        )
-                        for cv in courses_avail:
-                            cv.week = week
-                    if not courses_avail:
-                        for availability_slot in week_availability_slots:
+                        for availability_slot in period_availability_slots:
                             avail_course[(course_type, promo)][availability_slot] = 1
-                            non_preferred_cost_course[(course_type, promo)][
-                                availability_slot
-                            ] = 0
+                            non_preferred_cost_course[(course_type, promo)][availability_slot] = 0
 
                     else:
-                        for availability_slot in week_availability_slots:
+                        for availability_slot in period_availability_slots:
                             avail = set(
                                 a
                                 for a in courses_avail
@@ -1170,16 +1161,13 @@ class TTModel(FlopModel):
                 if RoomAvailability.objects.filter(
                     start_time__lt=sl.start_time + sl.duration,
                     start_time__gt=sl.start_time - F("duration"),
-                    day=sl.day.day,
-                    week=sl.day.week,
                     room=room,
                     value=0,
                 ).exists():
                     avail_room[room][sl] = 0
                 elif RoomReservation.objects.filter(
-                    start_time__lt=floptime_to_time(sl.start_time + sl.duration),
-                    end_time__gt=floptime_to_time(sl.start_time),
-                    date=flopday_to_date(sl.day),
+                    start_time__lt=sl.start_time + sl.duration,
+                    end_time__gt=sl.start_time,
                     room=room,
                 ).exists():
                     avail_room[room][sl] = 0
@@ -1244,10 +1232,10 @@ class TTModel(FlopModel):
         Add the active specific constraints stored in the database.
         """
 
-        for week in self.weeks:
+        for period in self.periods:
             for constr in get_ttconstraints(
                 self.department,
-                week=week,
+                period=period,
                 # train_prog=promo,
                 is_active=True,
             ):
@@ -1257,26 +1245,26 @@ class TTModel(FlopModel):
                     NoSimultaneousGroupCourses,
                 ]:
                     print(constr.__class__.__name__, constr.id, end=" - ")
-                    timer(constr.enrich_ttmodel)(self, week)
+                    timer(constr.enrich_ttmodel)(self, period)
 
         if self.pre_assign_rooms and not self.core_only:
-            for week in self.weeks:
+            for period in self.periods:
                 # Consider RoomConstraints that have enrich_ttmodel method
                 for constr in get_room_constraints(
-                    self.department, week=week, is_active=True
+                    self.department, period=period, is_active=True
                 ):
                     if hasattr(constr, "enrich_ttmodel"):
                         print(constr.__class__.__name__, constr.id, end=" - ")
-                        timer(constr.enrich_ttmodel)(self, week)
+                        timer(constr.enrich_ttmodel)(self, period)
 
     def update_objective(self):
         self.obj = self.lin_expr()
-        for week in self.weeks + [None]:
+        for period in self.periods + [None]:
             for i in self.wdb.instructors:
-                self.obj += self.cost_I[i][week]
+                self.obj += self.cost_I[i][period]
             for g in self.wdb.basic_groups:
-                self.obj += self.cost_G[g][week]
-            self.obj += self.generic_cost[week]
+                self.obj += self.cost_G[g][period]
+            self.obj += self.generic_cost[period]
         for sl in self.wdb.courses_slots:
             self.obj += self.cost_SL[sl]
         self.set_objective(self.obj)
@@ -1311,7 +1299,7 @@ class TTModel(FlopModel):
         # remove target working copy
         ScheduledCourse.objects.filter(
             course__module__train_prog__department=self.department,
-            course__week__in=self.weeks,
+            course__period__in=self.periods,
             work_copy=target_work_copy,
         ).delete()
 
@@ -1366,27 +1354,27 @@ class TTModel(FlopModel):
         # # On enregistre les coûts dans la BDD
         TutorCost.objects.filter(
             department=self.department,
-            week__in=self.wdb.weeks,
+            period__in=self.wdb.periods,
             work_copy=target_work_copy,
         ).delete()
         GroupFreeHalfDay.objects.filter(
             group__train_prog__department=self.department,
-            week__in=self.wdb.weeks,
+            period__in=self.wdb.periods,
             work_copy=target_work_copy,
         ).delete()
         GroupCost.objects.filter(
             group__train_prog__department=self.department,
-            week__in=self.wdb.weeks,
+            period__in=self.wdb.periods,
             work_copy=target_work_copy,
         ).delete()
 
-        for week in self.weeks:
+        for period in self.periods:
             for i in self.wdb.instructors:
                 tc = TutorCost(
                     department=self.department,
                     tutor=i,
-                    week=week,
-                    value=self.get_expr_value(self.cost_I[i][week]),
+                    period=period,
+                    value=self.get_expr_value(self.cost_I[i][period]),
                     work_copy=target_work_copy,
                 )
                 tc.save()
@@ -1394,26 +1382,26 @@ class TTModel(FlopModel):
             for g in self.wdb.basic_groups:
                 DJL = 0
                 if Time.PM in self.possible_apms:
-                    DJL += self.get_expr_value(self.FHD_G[Time.PM][g][week])
+                    DJL += self.get_expr_value(self.FHD_G[Time.PM][g][period])
                 if Time.AM in self.possible_apms:
-                    DJL += 0.01 * self.get_expr_value(self.FHD_G[Time.AM][g][week])
+                    DJL += 0.01 * self.get_expr_value(self.FHD_G[Time.AM][g][period])
 
                 djlg = GroupFreeHalfDay(
-                    group=g, week=week, work_copy=target_work_copy, DJL=DJL
+                    group=g, period=period, work_copy=target_work_copy, DJL=DJL
                 )
                 djlg.save()
                 cg = GroupCost(
                     group=g,
-                    week=week,
+                    period=period,
                     work_copy=target_work_copy,
-                    value=self.get_expr_value(self.cost_G[g][week]),
+                    value=self.get_expr_value(self.cost_G[g][period]),
                 )
                 cg.save()
 
     # Some extra Utils
     def solution_files_prefix(self):
         return (
-            f"flopmodel_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
+            f"flopmodel_{self.department.abbrev}_{'_'.join(p.name for p in self.periods)}"
         )
 
     def add_tt_to_db_from_file(self, filename=None, target_work_copy=None):
@@ -1425,7 +1413,7 @@ class TTModel(FlopModel):
         # remove target working copy
         ScheduledCourse.objects.filter(
             course__module__train_prog__department=self.department,
-            course__week__in=self.weeks,
+            course__period__in=self.periods,
             work_copy=target_work_copy,
         ).delete()
 
@@ -1488,10 +1476,10 @@ class TTModel(FlopModel):
         work copy number.
         If target_work_copy is not given, stores under the lowest working copy
         number that is greater than the maximum work copy numbers for the
-        considered week.
+        considered period.
         Returns the number of the work copy
         """
-        print("\nLet's solve weeks #%s" % self.weeks)
+        print("\nLet's solve periods %s" % [p.name for p in self.periods])
 
         self.update_objective()
 
@@ -1510,14 +1498,14 @@ class TTModel(FlopModel):
             self.add_tt_to_db(target_work_copy)
             print("Added work copy N°%g" % target_work_copy)
             if self.post_assign_rooms:
-                RoomModel(self.department.abbrev, self.weeks, target_work_copy).solve()
+                RoomModel(self.department.abbrev, self.periods, target_work_copy).solve()
                 print("Rooms assigned")
             return target_work_copy
 
-    def find_same_course_slot_in_other_week(self, slot, week):
-        other_slots = slots_filter(self.wdb.courses_slots, week=week, same=slot)
+    def find_same_course_slot_in_other_period(self, slot, other_period):
+        other_slots = slots_filter(self.wdb.courses_slots, period=other_period, same=slot)
         if len(other_slots) != 1:
             raise Exception(
-                f"Wrong slots among weeks {week}, {slot.day.week} \n {slot} vs {other_slots}"
+                f"Wrong slots among periods {other_period} \n {slot} vs {other_slots}"
             )
         return other_slots.pop()
