@@ -40,7 +40,7 @@ from base.timing import (
 )
 import datetime as dt
 from django.db.models import Q
-from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
+from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 import copy
 
 
@@ -934,7 +934,7 @@ class Partition(object):
 
         if D1:
             # Retrieving constraints for days were tutors shouldn't be working
-            no_course_tutor1 = NoTutorCourseOnDay.objects.filter(
+            no_course_tutor1 = NoTutorCourseOnWeekDay.objects.filter(
                 Q(tutors__in=required_supp_1.union(possible_tutors_1))
                 | Q(
                     tutor_status=[
@@ -944,7 +944,7 @@ class Partition(object):
                 periods=period,
             )
             if not no_course_tutor1:
-                no_course_tutor1 = NoTutorCourseOnDay.objects.filter(
+                no_course_tutor1 = NoTutorCourseOnWeekDay.objects.filter(
                     Q(tutors__in=required_supp_1.union(possible_tutors_1))
                     | Q(
                         tutor_status=[
@@ -970,7 +970,7 @@ class Partition(object):
                     period_partition.add_slot(slot[0], "no_course_tutor", slot[1])
 
             for interval in period_partition.intervals:
-                if not NoTutorCourseOnDay.tutor_and_supp(
+                if not NoTutorCourseOnWeekDay.tutor_and_supp(
                     interval, required_supp_1, possible_tutors_1
                 ):
                     interval[1]["available"] = False
@@ -987,7 +987,7 @@ class Partition(object):
                     )
 
                 for interval in period_partition.intervals:
-                    if not NoTutorCourseOnDay.tutor_and_supp(
+                    if not NoTutorCourseOnWeekDay.tutor_and_supp(
                         interval, required_supp_1, possible_tutors_1
                     ):
                         interval[1]["available"] = False

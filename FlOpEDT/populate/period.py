@@ -1,7 +1,6 @@
 import datetime as dt
 from calendar import monthrange, isleap
-from base.models.timing import PeriodEnum, SchedulingPeriod
-from base.timing import days_index
+from base.models.timing import PeriodEnum
 
 
 def generate_scheduling_periods(

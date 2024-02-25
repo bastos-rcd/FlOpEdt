@@ -3,7 +3,7 @@ from django.test import TestCase
 from unittest.mock import patch
 from unittest import skip
 
-from TTapp.TTModel import WeeksDatabase, TTModel
+from TTapp.TTModel import PeriodsDatabase, TTModel
 import base.models as models
 
 def mock_optimize(self, time_limit=300, solver='CBC', presolve=2):
