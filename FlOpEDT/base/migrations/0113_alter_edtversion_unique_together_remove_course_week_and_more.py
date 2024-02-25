@@ -26,11 +26,11 @@ def add_name_to_scheduling_period(apps, schema_editor):
             sp.name = sp.start_date
         elif sp.mode == 'w':
             iso_calendar = sp.start_date.isocalendar()
-            sp.name = f"W{iso_calendar.week} - {iso_calendar.year}"
+            sp.name = f"W{iso_calendar.week}-{iso_calendar.year}"
         elif sp.mode == 'm':
-            sp.name = sp.start_date.strftime("%B %Y")
+            sp.name = sp.start_date.strftime("%B_%Y")
         elif sp.mode == 'y':
-            sp.name = sp.start_date.year
+            sp.name = f"Y{sp.start_date.year"
         sp.save()
 
 def convert_week_to_scheduling_period_edtversion(apps, schema_editor):
