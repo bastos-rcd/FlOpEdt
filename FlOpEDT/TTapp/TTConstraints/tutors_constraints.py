@@ -153,10 +153,12 @@ class MinimizeTutorsBusyDays(TTConstraint):
         for tutor in tutors:
             slot_by_day_cost = ttmodel.lin_expr()
             # need to be sorted
-            teaching_time = sum(c.duration
+            teaching_time = sum([c.duration
                                 for c in (ttmodel.wdb.courses_for_tutor[tutor]
                                           | ttmodel.wdb.courses_for_supp_tutor[tutor])
-                                & ttmodel.wdb.courses_by_period[period])
+                                & ttmodel.wdb.courses_by_period[period]
+                                ], dt.timedelta()
+                            )
             nb_days = len(days_filter(ttmodel.wdb.days, period=period))
             minimal_number_of_days = nb_days
             # for any number of days inferior to nb_days

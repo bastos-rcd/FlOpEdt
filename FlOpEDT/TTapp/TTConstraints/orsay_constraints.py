@@ -225,9 +225,8 @@ class TutorsLunchBreak(TTConstraint):
                     else:
                         other_dep_undesired_scheduled_courses = \
                             set(sc for sc in other_dep_scheduled_courses
-                                if (sc.day == day
-                                    and sc.start_time.time() < local_slot.end_time
-                                    and local_slot.start_time < sc.end_time.time()))
+                                if (sc.start_time < local_slot.end_time
+                                    and local_slot.start_time < sc.end_time))
                         other_dep_undesired_sc_nb = len(other_dep_undesired_scheduled_courses)
                         if other_dep_undesired_sc_nb:
                             other_deps_unavailable_slots_number += 1

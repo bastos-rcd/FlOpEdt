@@ -509,7 +509,7 @@ def number_courses(
     )
     considered_modules = intersect_with_declared_objects(
         Module.objects.filter(
-            train_prog__in=considered_train_progs, period__in=considered_periods
+            train_prog__in=considered_train_progs, training_period__in=considered_periods
         ),
         modules,
     )

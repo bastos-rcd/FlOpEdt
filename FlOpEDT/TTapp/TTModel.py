@@ -52,13 +52,13 @@ from TTapp.models import (
     ScheduleAllCourses,
     AssignAllCourses,
     ConsiderTutorsUnavailability,
-    MinimizeBusyDays,
+    MinimizeTutorsBusyDays,
     MinGroupsHalfDays,
-    RespectMaxHoursPerDay,
+    RespectTutorsMaxTimePerDay,
     ConsiderDependencies,
     ConsiderPivots,
     StabilizeGroupsCourses,
-    RespectTutorsMinHoursPerDay,
+    RespectTutorsMinTimePerDay,
 )
 
 from roomreservation.models import RoomReservation
@@ -587,7 +587,7 @@ class TTModel(FlopModel):
 
         return physical_presence, has_visio
 
-    def add_to_slot_cost(self, slot, cost):
+    def add_to_slot_cost(self, slot, cost, period=None):
         self.cost_SL[slot] += cost
 
     def add_to_inst_cost(self, instructor, cost, period=None):
@@ -653,20 +653,20 @@ class TTModel(FlopModel):
             ScheduleAllCourses.objects.create(department=self.department)
 
         # Check if RespectBound constraint is in database, and add it if not
-        if not RespectMaxHoursPerDay.objects.filter(
+        if not RespectTutorsMaxTimePerDay.objects.filter(
             department=self.department
         ).exists():
-            RespectMaxHoursPerDay.objects.create(department=self.department)
+            RespectTutorsMaxTimePerDay.objects.create(department=self.department)
 
         # Check if RespectMinHours constraint is in database, and add it if not
-        if not RespectTutorsMinHoursPerDay.objects.filter(
+        if not RespectTutorsMinTimePerDay.objects.filter(
             department=self.department
         ).exists():
-            RespectTutorsMinHoursPerDay.objects.create(department=self.department)
+            RespectTutorsMinTimePerDay.objects.create(department=self.department)
 
         # Check if MinimizeBusyDays constraint is in database, and add it if not
-        if not MinimizeBusyDays.objects.filter(department=self.department).exists():
-            MinimizeBusyDays.objects.create(
+        if not MinimizeTutorsBusyDays.objects.filter(department=self.department).exists():
+            MinimizeTutorsBusyDays.objects.create(
                 department=self.department, weight=max_weight
             )
 

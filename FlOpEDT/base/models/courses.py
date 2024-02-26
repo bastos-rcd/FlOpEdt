@@ -168,6 +168,10 @@ class ScheduledCourse(models.Model):
     def duration(self):
         return self.course.duration
 
+    @property
+    def minutes(self):
+        return self.course.minutes
+
     # @property
     # def pay_duration(self):
     #     if self.course.type.pay_duration is not None:
