@@ -312,7 +312,7 @@ class BreakAroundCourseType(TTConstraint):
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='amphi_break_constraint')
     course_type = models.ForeignKey('base.CourseType', related_name='amphi_break_constraint', on_delete=models.CASCADE)
-    min_break_length = models.PositiveSmallIntegerField(default=15)  # FIXME : time with TimeField or DurationField
+    min_break_length = models.DurationField(default=dt.timedelta(minutes=15))
 
     class Meta:
         verbose_name = _('A break around some type courses')
@@ -324,7 +324,7 @@ class BreakAroundCourseType(TTConstraint):
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         for group in considered_groups:
-            amphis = set(self.get_courses_queryset_by_parameters(ttmodel, period, group=group, course_type=self.course_type))
+            specific_courses = set(self.get_courses_queryset_by_parameters(ttmodel, period, group=group, course_type=self.course_type))
             other_courses = set(self.get_courses_queryset_by_parameters(ttmodel, period, group=group).exclude(type=self.course_type))
             broken_breaks = ttmodel.lin_expr()
             for day in days:
@@ -334,14 +334,14 @@ class BreakAroundCourseType(TTConstraint):
                                            if slot1.end_time <= sl.start_time < slot1.end_time + self.min_break_length)
                     if not successive_slots:
                         continue
-                    amphi_slot1 = ttmodel.sum(ttmodel.TT[slot1, c] for c in amphis & ttmodel.wdb.compatible_courses[slot1])
+                    amphi_slot1 = ttmodel.sum(ttmodel.TT[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
                     other_slot1 = ttmodel.sum(ttmodel.TT[slot1, c] for c in other_courses & ttmodel.wdb.compatible_courses[slot1])
                     other_slot2 = ttmodel.sum(ttmodel.TT[slot2, c]
                                               for slot2 in successive_slots
                                               for c in other_courses & ttmodel.wdb.compatible_courses[slot2])
                     amphi_slot2 = ttmodel.sum(ttmodel.TT[slot2, c]
                                               for slot2 in successive_slots
-                                              for c in amphis & ttmodel.wdb.compatible_courses[slot2])
+                                              for c in specific_courses & ttmodel.wdb.compatible_courses[slot2])
                     a1o2 = ttmodel.add_floor(expr=amphi_slot1+other_slot2, floor=2, bound=2)
                     o1a2 = ttmodel.add_floor(expr=amphi_slot2+other_slot1, floor=2, bound=2)
                     broken_breaks += a1o2 + o1a2
