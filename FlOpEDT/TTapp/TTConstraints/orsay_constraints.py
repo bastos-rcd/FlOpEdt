@@ -77,7 +77,7 @@ class GroupsLunchBreak(TTConstraint):
             slot_start_time = day_lunch_start_time
             slot_end_time = slot_start_time + self.lunch_length 
             while slot_end_time <= dt.datetime.combine(day, self.end_lunch_time):
-                local_slots.append(Slot(start_time=slot_start_time, end_time= slot_end_time))
+                local_slots.append(Slot(slot_start_time, slot_end_time))
                 slot_start_time += dt.timedelta(minutes=15)
                 slot_end_time += dt.timedelta(minutes=15)
             slots_nb = len(local_slots)
@@ -194,7 +194,7 @@ class TutorsLunchBreak(TTConstraint):
             slot_start_time = day_lunch_start_time
             slot_end_time = slot_start_time + self.lunch_length 
             while slot_end_time <= dt.datetime.combine(day, self.end_lunch_time):
-                local_slots.append(Slot(start_time=slot_start_time, end_time= slot_end_time))
+                local_slots.append(Slot(slot_start_time, slot_end_time))
                 slot_start_time += dt.timedelta(minutes=15)
                 slot_end_time += dt.timedelta(minutes=15)
             slots_nb = len(local_slots)
