@@ -31,7 +31,7 @@ from people.models import Tutor, NotificationsPreferences
 import django
 import os
 import json
-from datetime import date, datetime
+import datetime as dt
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext
 
@@ -50,11 +50,8 @@ def backup():
     print("Old backup conversion done")
     print("New backup started")
     #Get week number by using isocalendar
-    today = date.today()
-    week_number = date(today.year, today.month, today.day).isocalendar()[1]
-    week = Week.objects.get(nb=week_number, year=today.year)
-
-    courses = Course.objects.filter(week__gte=week)
+    today = dt.date.today()
+    courses = Course.objects.filter(period__start_date__gte=today)
     scheduled_courses = ScheduledCourse.objects.filter(work_copy=0,
                                                        course__in=courses)
 
@@ -64,9 +61,6 @@ def backup():
         scheduled_course=scheduled_courses.filter(course=course)
         if scheduled_course.exists():
             scheduled_course = scheduled_course[0]
-            week = course.week.nb
-            year = course.week.year
-            day = scheduled_course.day
             module = course.module.abbrev
             course_type = course.type
             #Can have no tutor
@@ -84,9 +78,6 @@ def backup():
                 #Create a new BackUpModif object which represent the table used for backup, fill it and then save it
                 line = BackUpModif()
                 line.new = True
-                line.week = week
-                line.year = year
-                line.day = day
                 line.module_abbrev = module
                 line.tutor_username = tutor
                 line.supp_tutor_usernames = supp_tutors
@@ -135,9 +126,6 @@ def check_changes(save_json_files=False):
         course_type = change.course_type_name
         room = change.room_name
         start_time = change.start_time
-        week = Week.objects.get(year=change.year, nb=change.week)
-        day = Day(week=week, day=change.day)
-        change_datetime = flopdate_to_datetime(day, change.start_time)
 
         # Store all changes for users
         if train_prog not in student_changes_dict[department]:
@@ -145,8 +133,8 @@ def check_changes(save_json_files=False):
         if group not in student_changes_dict[department][train_prog]:
             student_changes_dict[department][train_prog][group] = []
         student_object = {gettext('Mode'): mode,
-                          gettext('Date'): change_datetime.date().strftime('%d/%m/%Y'),
-                          gettext('Start time'): french_format(start_time),
+                          gettext('Date'): start_time.date().strftime('%d/%m/%Y'),
+                          gettext('Start time'): start_time.time().strftime('%H:%M'),
                           gettext('Course Type'): course_type,
                           gettext('Module'): module,
                           gettext('Tutor'): tutor_username,
@@ -159,8 +147,8 @@ def check_changes(save_json_files=False):
         if department not in tutor_changes_dict[tutor_username]:
             tutor_changes_dict[tutor_username][department] = []
         tutor_object = {gettext('Mode'): mode,
-                        gettext('Date'): change_datetime.date().strftime('%d/%m/%Y'),
-                        gettext('Start time'): french_format(start_time),
+                        gettext('Date'): start_time.date().strftime('%d/%m/%Y'),
+                        gettext('Start time'): start_time.time().strftime('%H:%M'),
                         gettext('Course Type'): course_type,
                         gettext('Module'): module,
                         gettext('Train_prog'): train_prog,
@@ -182,8 +170,8 @@ def check_changes(save_json_files=False):
 
 def days_nb_from_today(change):
     string_date = change[gettext('Date')]
-    datetime_date = datetime.strptime(string_date, "%d/%m/%Y").date()
-    return (datetime_date - date.today()).days
+    datetime_date = dt.datetime.strptime(string_date, "%d/%m/%Y").date()
+    return (datetime_date - dt.date.today()).days
 
 
 def send_notifications():
