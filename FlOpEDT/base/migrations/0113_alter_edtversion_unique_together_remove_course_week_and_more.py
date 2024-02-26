@@ -30,7 +30,7 @@ def add_name_to_scheduling_period(apps, schema_editor):
         elif sp.mode == 'm':
             sp.name = sp.start_date.strftime("%B_%Y")
         elif sp.mode == 'y':
-            sp.name = f"Y{sp.start_date.year"
+            sp.name = f"Y{sp.start_date.year}"
         sp.save()
 
 def convert_week_to_scheduling_period_edtversion(apps, schema_editor):
