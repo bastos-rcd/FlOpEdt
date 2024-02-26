@@ -1,13 +1,17 @@
 <template>
   <div class="content">
-    <SidePanel v-if="authStore.sidePanelToggle" @update:checkbox="(v) => (availabilityToggle = v)" />
-    <Calendar
-      v-model:events="calendarEvents"
-      :columns="columnsToDisplay"
-      @dragstart="setCurrentScheduledCourse"
-      @update:week="changeDate"
-      :end-of-day-hours="endOfDay"
-    />
+    <div class="side-panel" :class="{ open: authStore.sidePanelToggle }" v-if="authStore.sidePanelToggle">
+      <SidePanel v-if="authStore.sidePanelToggle" @update:checkbox="(v) => (availabilityToggle = v)" />
+    </div>
+    <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
+      <Calendar
+        v-model:events="calendarEvents"
+        :columns="columnsToDisplay"
+        @dragstart="setCurrentScheduledCourse"
+        @update:week="changeDate"
+        :end-of-day-hours="endOfDay"
+      />
+    </div>
   </div>
 </template>
 
@@ -132,6 +136,23 @@ onBeforeMount(async () => {
 }
 .nac {
   background-color: rgb(133, 34, 34);
+}
+.side-panel {
+  left: -300px; /* Initially hidden outside the viewport */
+  position: relative;
+  margin-right: 0.2%;
+}
+.main-content {
+  width: 100%;
+  flex: 1;
+  position: relative;
+}
+.main-content.open {
+  width: 84.8%;
+  left: 0;
+}
+.side-panel.open {
+  left: 0;
 }
 .content {
   display: flex;

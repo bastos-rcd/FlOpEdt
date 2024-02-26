@@ -75,5 +75,15 @@
   "header": {
     "logged-in": "Vous êtes connecté en tant que ",
     "logged-out": "Vous n'êtes pas connecté"
+  },
+  "availabilityMenu": {
+    "trigger": "Click Droit!"
+  },
+  "side": {
+    "availabilityTitle": "Disponibilités",
+    "availabilityLabel": "Afficher les disponibilités ?",
+    "workcopyTitle": "Versions d'EDT",
+    "workcopyPlaceholder": "Sélectionnez un numéro de version",
+    "workcopyNumber": "Version n°"
   }
 }

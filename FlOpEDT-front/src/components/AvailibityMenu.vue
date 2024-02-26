@@ -2,7 +2,7 @@
   <ContextMenuRoot :modal="false">
     <ContextMenuTrigger class="ContextMenuTrigger" as="div">
       <slot name="trigger">
-        <span>Right-Click Here !</span>
+        <span>{{ $t('availabilityMenu.trigger') }}Right-Click Here !</span>
       </slot>
     </ContextMenuTrigger>
     <ContextMenuPortal>
@@ -33,12 +33,14 @@ import {
   ContextMenuTrigger,
 } from 'radix-vue'
 import { CalendarEvent } from './calendar/declaration'
+import { useI18n } from 'vue-i18n'
 const props = defineProps<{
   event: CalendarEvent
 }>()
 const emits = defineEmits<{
   (e: 'update:event', id: number, value: number): void
 }>()
+const { t } = useI18n()
 
 function handleSelection(n: number) {
   emits('update:event', props.event.id, n)
