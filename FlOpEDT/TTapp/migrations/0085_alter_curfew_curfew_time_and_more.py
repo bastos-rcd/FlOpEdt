@@ -25,16 +25,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='curfew',
             name='curfew_time',
-            field=models.TimeField(dt.time(19)),
+            field=models.TimeField(),
         ),
         migrations.AddField(
             model_name='limitundesiredslotsperperiod',
             name='slot_end_time',
-            field=models.TimeField(dt.time(9)),
+            field=models.TimeField(),
         ),
         migrations.AddField(
             model_name='limitundesiredslotsperperiod',
             name='slot_start_time',
-            field=models.TimeField(dt.time(7)),
+            field=models.TimeField(),
         )
     ]
