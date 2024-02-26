@@ -262,13 +262,13 @@ def stype(req, *args, **kwargs):
     if req.method == "GET":
         t = req.user.tutor
         if TutorPreference.objects.filter(tutor=t).exists():
-            usr_pref_hours = req.user.tutor.preferences.pref_hours_per_day
-            usr_max_hours = req.user.tutor.preferences.max_hours_per_day
-            usr_min_hours = req.user.tutor.preferences.min_hours_per_day
+            usr_pref_time = req.user.tutor.preferences.pref_time_per_day
+            usr_max_time = req.user.tutor.preferences.max_time_per_day
+            usr_min_time = req.user.tutor.preferences.min_time_per_day
         else:
-            usr_pref_hours = 6
-            usr_max_hours = 9
-            usr_min_hours = 0
+            usr_pref_time = 6
+            usr_max_time = 9
+            usr_min_time = 0
         return TemplateResponse(
             req,
             "base/show-stype.html",
@@ -276,9 +276,9 @@ def stype(req, *args, **kwargs):
                 "date_deb": current_week(),
                 "date_fin": current_week(),
                 "name_usr": req.user.username,
-                "usr_pref_hours": usr_pref_hours,
-                "usr_max_hours": usr_max_hours,
-                "usr_min_hours": usr_min_hours,
+                "usr_pref_time": usr_pref_time,
+                "usr_max_time": usr_max_time,
+                "usr_min_time": usr_min_time,
                 "user_notifications_pref": user_notifications_pref,
                 "themes": themes,
                 "theme": queries.get_theme_preference(req.user),
@@ -316,9 +316,9 @@ def stype(req, *args, **kwargs):
                 "date_deb": date_deb,
                 "date_fin": date_fin,
                 "name_usr": req.user.username,
-                "usr_pref_hours": req.user.tutor.pref_hours_per_day,
-                "usr_max_hours": req.user.tutor.max_hours_per_day,
-                "usr_min_hours": req.user.tutor.preferences.min_hours_per_day,
+                "usr_pref_time": req.user.tutor.pref_time_per_day,
+                "usr_max_time": req.user.tutor.max_time_per_day,
+                "usr_min_time": req.user.tutor.preferences.min_time_per_day,
                 "user_notifications_pref": user_notifications_pref,
                 "user_themes_pref": queries.get_theme_preference(req.user),
                 "err": err,
@@ -410,12 +410,12 @@ def user_perfect_day_changes(req, username=None, *args, **kwargs):
         t = Tutor.objects.get(username=username)
         preferences, created = TutorPreference.objects.get_or_create(tutor=t)
         data = req.POST
-        user_pref_hours = int(data["user_pref_hours"][0])
-        user_max_hours = int(data["user_max_hours"][0])
-        preferences.pref_hours_per_day = user_pref_hours
-        preferences.max_hours_per_day = user_max_hours
-        user_min_hours = int(data["user_min_hours"][0])
-        preferences.min_hours_per_day = user_min_hours
+        user_pref_time = int(data["user_pref_time"][0])
+        user_max_time = int(data["user_max_time"][0])
+        preferences.pref_time_per_day = user_pref_time
+        preferences.max_time_per_day = user_max_time
+        user_min_time = int(data["user_min_time"][0])
+        preferences.min_time_per_day = user_min_time
         preferences.save()
     return redirect("base:preferences", req.department)
 
@@ -426,9 +426,9 @@ def fetch_perfect_day(req, username=None, *args, **kwargs):
     if username is not None:
         t = Tutor.objects.get(username=username)
         preferences, created = TutorPreference.objects.get_or_create(tutor=t)
-        perfect_day["pref"] = preferences.pref_hours_per_day
-        perfect_day["max"] = preferences.max_hours_per_day
-        perfect_day["min"] = preferences.min_hours_per_day
+        perfect_day["pref"] = preferences.pref_time_per_day
+        perfect_day["max"] = preferences.max_time_per_day
+        perfect_day["min"] = preferences.min_time_per_day
     return JsonResponse(perfect_day, safe=False)
 
 

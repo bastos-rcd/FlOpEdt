@@ -408,7 +408,7 @@ def basic_cosmo_constraints(ttmodel):
             if i.username not in salaries:
                 continue
             username = i.username
-            heures_max['jour'][username] = i.max_hours_per_day
+            heures_max['jour'][username] = i.max_time_per_day
             heures_min['jour'][username] = 0
             if week in salaries[username]:
                 heures_hebdo = salaries[username][week]
@@ -757,14 +757,14 @@ def basic_cosmo_constraints(ttmodel):
                 ttmodel.obj += les_deux_patrons_travaillent[d] * cout_si_les_deux_patrons_travaillent
 
     ttmodel.add_warning(None, "Minimiser le nombre de jours de travail pour chaque salarié⋅e")
-    # (Si ça ne dépasse pas la borne posée dans pref_hours_per_day)
+    # (Si ça ne dépasse pas la borne posée dans pref_time_per_day)
     for salarie in ttmodel.wdb.instructors:
         if salarie.username not in salaries:
             continue
         for semaine in ttmodel.wdb.weeks:
             cout_jours_de_trop = 0
             # need to be sorted
-            frontier_pref_busy_days = [salarie.pref_hours_per_day * d for d in range(6, 0, -1)]
+            frontier_pref_busy_days = [salarie.pref_time_per_day * d for d in range(6, 0, -1)]
             if semaine in salaries[salarie.username]:
                 nb_heures_a_faire = salaries[salarie.username][semaine]
             else:

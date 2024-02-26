@@ -33,6 +33,7 @@ from TTapp.slots import days_filter, slots_filter
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.FlopConstraint import max_weight
 from django.utils.translation import gettext_lazy as _
+import datetime as dt
 
 
 def considered_tutors(tutors_ttconstraint, ttmodel):
@@ -142,7 +143,7 @@ class MinimizeBusyDays(TTConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=None):
         """
         Minimize the number of busy days for tutor with cost
-        (if it does not overcome the bound expressed in pref_hours_per_day)
+        (if it does not overcome the bound expressed in pref_time_per_day)
         """
         if ponderation is None:
             ponderation = ttmodel.min_bd_i
@@ -161,7 +162,7 @@ class MinimizeBusyDays(TTConstraint):
             # for any number of days inferior to nb_days
             for d in range(nb_days, 0, -1):
                 # if courses fit in d-1 days
-                if courses_hours <= tutor.preferences.pref_hours_per_day * (d-1):
+                if courses_hours <= tutor.preferences.pref_time_per_day * (d-1):
                     # multiply the previous cost by 2
                     slot_by_day_cost *= 2
                     # add a cost for having d busy days
@@ -197,7 +198,7 @@ class MinimizeBusyDays(TTConstraint):
 
 class RespectMaxHoursPerDay(TTConstraint):
     """
-    Respect the max_hours_per_day declared
+    Respect the max_time_per_day declared
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
 
@@ -208,26 +209,25 @@ class RespectMaxHoursPerDay(TTConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         """
         Minimize the number of busy days for tutor with cost
-        (if it does not overcome the bound expressed in pref_hours_per_day)
+        (if it does not overcome the bound expressed in pref_time_per_day)
         """
         tutors = considered_tutors(self, ttmodel)
 
         for tutor in tutors:
             for d in days_filter(ttmodel.wdb.days, period=period):
-                other_departments_hours_nb = sum(sc.course.duration
-                                                 for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
-                                                 if sc.course.period == period and sc.date == d) / 60
-                max_hours_nb = max(tutor.preferences.max_hours_per_day - other_departments_hours_nb, 0)
+                other_departments_teaching_minutes = sum(sc.course.minues
+                                                 for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor] if sc.date == d)
+                max_teaching_minutes = max(tutor.preferences.max_time_per_day.seconds//60 - other_departments_teaching_minutes, 0)
                 if self.weight is None:
-                    ttmodel.add_constraint(tutor_teaching_time_by_day_expression(ttmodel, tutor, d),
+                    ttmodel.add_constraint(tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
                                            '<=',
-                                           max_hours_nb,
+                                           max_teaching_minutes,
                                            Constraint(constraint_type=ConstraintType.MAX_HOURS_PER_DAY,
                                                       instructors=tutor,
                                                       days=d))
                 else:
-                    undesired_situation = ttmodel.add_floor(tutor_teaching_time_by_day_expression(ttmodel, tutor, d),
-                                                            max_hours_nb,
+                    undesired_situation = ttmodel.add_floor(tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
+                                                            max_teaching_minutes,
                                                             100000)
                     ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * undesired_situation,
                                              period=period)
@@ -251,7 +251,7 @@ class RespectMaxHoursPerDay(TTConstraint):
 
 class RespectTutorsMinHoursPerDay(TTConstraint):
     """
-    Respect the min_hours_per_day declared
+    Respect the min_time_per_day declared
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
 
@@ -267,14 +267,13 @@ class RespectTutorsMinHoursPerDay(TTConstraint):
 
         for tutor in tutors:
             for d in days_filter(ttmodel.wdb.days, period=period):
-                other_departments_hours_nb = sum(sc.course.duration
-                                                 for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
-                                                 if sc.course.period == period and sc.date == d) / 60
-                min_hours_nb = max(tutor.preferences.min_hours_per_day - other_departments_hours_nb, 0)
-                if min_hours_nb == 0:
+                other_departments_teaching_minutes = sum(sc.course.minutes
+                                                 for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor] if sc.date == d)
+                min_teaching_minutes = max(tutor.preferences.min_time_per_day.seconds//60 - other_departments_teaching_minutes, 0)
+                if min_teaching_minutes == 0:
                     continue
-                has_enough_time = ttmodel.add_floor(tutor_teaching_time_by_day_expression(ttmodel, tutor, d),
-                                                    min_hours_nb,
+                has_enough_time = ttmodel.add_floor(tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
+                                                    min_teaching_minutes,
                                                     100000)
                 undesired_situation = ttmodel.IBD[(tutor, d)] - has_enough_time
                 if self.weight is None:
@@ -337,7 +336,7 @@ class LowerBoundBusyDays(TTConstraint):
         return view_model
 
 
-def tutor_teaching_time_by_day_expression(ttmodel, tutor, day):
+def tutor_teaching_minutes_by_day_expression(ttmodel, tutor, day):
     return ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.minutes / 60
                        for c in ttmodel.wdb.possible_courses[tutor]
                        for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day)) \

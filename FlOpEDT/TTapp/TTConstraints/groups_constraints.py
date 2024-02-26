@@ -38,6 +38,8 @@ from TTapp.ilp_constraints.constraint import Constraint
 
 from django.utils.translation import gettext_lazy as _
 
+import datetime as dt
+
 def pre_analysis_considered_basic_groups(group_ttconstraint):
     
     """
@@ -218,24 +220,24 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
 
 class GroupsMinHoursPerDay(TTConstraint):
     """
-    Respect the min_hours_per_day declared
+    Respect the min_time_per_day declared
     """
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    min_hours = models.PositiveSmallIntegerField()
+    min_time = models.DurationField(default=dt.timedelta(hours=3))
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
 
     class Meta:
-        verbose_name = _('Respect groups min hours per day bounds')
+        verbose_name = _('Respect groups min time per day bounds')
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         """
-        avoid situations in which a teaching day has less hours than min_hours
+        avoid situations in which a teaching day has less hours than time
         """
         considered_groups = considered_basic_groups(self, ttmodel)
 
-        min_hours_nb = self.min_hours
-        if min_hours_nb == 0:
+        min_time = self.min_time
+        if not min_time:
             return
 
         days = days_filter(ttmodel.wdb.days, period=period)
@@ -243,11 +245,11 @@ class GroupsMinHoursPerDay(TTConstraint):
             days = days_filter(days, day_in=self.weekdays)
         for basic_group in considered_groups:
             for day in days:
-                group_day_time = ttmodel.sum(ttmodel.TT[sl, c] * sl.minutes / 60
+                group_day_scheduled_minutes = ttmodel.sum(ttmodel.TT[sl, c] * sl.minutes
                                              for c in ttmodel.wdb.courses_for_basic_group[basic_group]
                                              for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day))
-                has_enough_time = ttmodel.add_floor(group_day_time,
-                                                    min_hours_nb,
+                has_enough_time = ttmodel.add_floor(group_day_scheduled_minutes,
+                                                    min_time.seconds//60,
                                                     100000)
                 undesired_situation = ttmodel.GBD[(basic_group, day)] - has_enough_time
                 if self.weight is None:
