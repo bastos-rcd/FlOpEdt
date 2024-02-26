@@ -84,11 +84,15 @@ Après les migrations :
     - [ ] checker le type datetime.time / timedelta dans les TTConstraints
   - [x] dans flopEditor
   - [ ] dans l'import-export excel
+    - [x] export_planif_file
+    - [ ] revoir la view pour qu'elle permette de sélectionner les périodes du département
   - [ ] modifier courseStartTimeConstraints en incluant une duration au lieu d'un course_type
   - [x] corriger la migration base/111 pour qu'elle transfère le département et la durée des types
 - [ ] Les TTConstraints
+  - [ ] Transformer toutes les minutes en TimeField ou DurationField
   - [ ] StartTimeConstraints : clarifier le rôle des possible_start_times (Datetime? Time?) et des possible week_days
-
+- [ ] RoomReservation
+  - [ ] Passer de TimeField et DateField en DateTimeField + api
 ## Des trucs à savoir
 
 - attention people/0037, TTapp/0077, base/0093 viennent de migrations non commitées précédentes

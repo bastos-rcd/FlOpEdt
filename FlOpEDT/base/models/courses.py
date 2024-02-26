@@ -13,7 +13,7 @@ class Module(models.Model):
         on_delete=models.CASCADE, verbose_name=_('head (resp)'))
     ppn = models.CharField(max_length=30, default='M')
     train_prog = models.ForeignKey('TrainingProgramme', on_delete=models.CASCADE, verbose_name=_('training programme'))
-    period = models.ForeignKey('TrainingPeriod', on_delete=models.CASCADE, verbose_name=_('training period'))
+    training_period = models.ForeignKey('TrainingPeriod', on_delete=models.CASCADE, verbose_name=_('training period'))
     url = models.URLField(null=True, blank=True, default=None)
     description = models.TextField(null=True, blank=True, default=None)
 
