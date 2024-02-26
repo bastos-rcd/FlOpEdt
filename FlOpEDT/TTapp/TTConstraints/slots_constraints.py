@@ -26,7 +26,7 @@
 
 from core.decorators import timer
 import TTapp.GlobalPreAnalysis.partition_with_constraints as partition_bis
-from datetime import timedelta
+import datetime as dt
 
 from django.http.response import JsonResponse
 from base.models import CourseStartTimeConstraint, Dependency
@@ -390,8 +390,8 @@ def find_successive_slots(course_slot1, course_slot2, course1_duration, course2_
     Parameters:
         course_slot1 (list(TimeInterval)): A list of time interval representing when the first course can be placed
         course_slot2 (list(TimeInterval)): A list of time interval representing when the second course can be placed
-        course1_duration (timedelta): The duration of the first course
-        course2_duration (timedelta): The duration of the second course
+        course1_duration (dt.timedelta): The duration of the first course
+        course2_duration (dt.timedelta): The duration of the second course
 
     Returns:
         (boolean): If we found at least one eligible slot'''
@@ -419,7 +419,7 @@ def find_day_gap_slots(course_slots1, course_slots2, day_gap):
 
     Returns:
         (boolean) : whether there is available time for the second course after the day gap or not"""
-    day_slot = course_slots1[0].start + timedelta(days=day_gap) - timedelta(hours=course_slots1[0].start.hour, minutes=course_slots1[0].start.minute)
+    day_slot = course_slots1[0].start + dt.timedelta(days=day_gap) - dt.timedelta(hours=course_slots1[0].start.hour, minutes=course_slots1[0].start.minute)
     for cs2 in course_slots2:
         if cs2.start > day_slot:
             return True
@@ -738,8 +738,8 @@ class LimitUndesiredSlotsPerPeriod(TTConstraint):
     """
 
     tutors = models.ManyToManyField('people.Tutor', blank=True, verbose_name=_('Tutors'))
-    slot_start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
-    slot_end_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    slot_start_time = models.TimeField()
+    slot_end_time = models.TimeField()
     max_number = models.PositiveSmallIntegerField(validators=[MaxValueValidator(7)])
 
     class Meta:
@@ -749,7 +749,7 @@ class LimitUndesiredSlotsPerPeriod(TTConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         tutor_to_be_considered = considered_tutors(self, ttmodel)
         days = days_filter(ttmodel.wdb.days, period=period)
-        undesired_slots = [Slot(day=day, start_time=self.slot_start_time, end_time=self.slot_end_time)
+        undesired_slots = [Slot(dt.datetime.combine(day, self.slot_start_time), dt.datetime.combine(day, self.slot_end_time))
                              for day in days]
         for tutor in tutor_to_be_considered:
             considered_courses = self.get_courses_queryset_by_parameters(ttmodel, period, tutor=tutor)
@@ -781,7 +781,7 @@ class LimitUndesiredSlotsPerPeriod(TTConstraint):
         else:
             text += "Les profs"
         text += f" n'ont pas cours plus de {self.max_number} jours par semaine " \
-               f"entre {french_format(self.slot_start_time)} et {french_format(self.slot_end_time)}"
+               f"entre {self.slot_start_time} et {self.slot_end_time}"
         return text
 
 
