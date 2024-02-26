@@ -128,7 +128,7 @@ class MinNonPreferedTutorsSlot(TTConstraint):
         return text
 
 
-class MinimizeBusyDays(TTConstraint):
+class MinimizeTutorsBusyDays(TTConstraint):
     """
     This class is a template for writing your own custom contraint.
 
@@ -153,16 +153,16 @@ class MinimizeBusyDays(TTConstraint):
         for tutor in tutors:
             slot_by_day_cost = ttmodel.lin_expr()
             # need to be sorted
-            courses_hours = sum(c.minutes
+            teaching_time = sum(c.duration
                                 for c in (ttmodel.wdb.courses_for_tutor[tutor]
                                           | ttmodel.wdb.courses_for_supp_tutor[tutor])
-                                & ttmodel.wdb.courses_by_period[period]) / 60
+                                & ttmodel.wdb.courses_by_period[period])
             nb_days = len(days_filter(ttmodel.wdb.days, period=period))
             minimal_number_of_days = nb_days
             # for any number of days inferior to nb_days
             for d in range(nb_days, 0, -1):
                 # if courses fit in d-1 days
-                if courses_hours <= tutor.preferences.pref_time_per_day * (d-1):
+                if teaching_time <= tutor.preferences.pref_time_per_day * (d-1):
                     # multiply the previous cost by 2
                     slot_by_day_cost *= 2
                     # add a cost for having d busy days
@@ -193,17 +193,17 @@ class MinimizeBusyDays(TTConstraint):
         """
         You can give a contextual explanation about what this constraint doesnt
         """
-        return "MinimizeBusyDays online description"
+        return "MinimizeTutorsBusyDays online description"
 
 
-class RespectMaxHoursPerDay(TTConstraint):
+class RespectTutorsMaxTimePerDay(TTConstraint):
     """
     Respect the max_time_per_day declared
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
 
     class Meta:
-        verbose_name = _('Respect max hours per days bounds')
+        verbose_name = _('Respect max time per days bounds')
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
@@ -215,7 +215,7 @@ class RespectMaxHoursPerDay(TTConstraint):
 
         for tutor in tutors:
             for d in days_filter(ttmodel.wdb.days, period=period):
-                other_departments_teaching_minutes = sum(sc.course.minues
+                other_departments_teaching_minutes = sum(sc.minutes
                                                  for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor] if sc.date == d)
                 max_teaching_minutes = max(tutor.preferences.max_time_per_day.seconds//60 - other_departments_teaching_minutes, 0)
                 if self.weight is None:
@@ -246,22 +246,22 @@ class RespectMaxHoursPerDay(TTConstraint):
         """
         You can give a contextual explanation about what this constraint doesnt
         """
-        return "Respect max hours per day"
+        return "Respect max time per day"
 
 
-class RespectTutorsMinHoursPerDay(TTConstraint):
+class RespectTutorsMinTimePerDay(TTConstraint):
     """
     Respect the min_time_per_day declared
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True)
 
     class Meta:
-        verbose_name = _('Respect tutors min hours per day bounds')
+        verbose_name = _('Respect tutors min time per day bounds')
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         """
-        avoid situations in which a teaching day has less hours than min declared
+        avoid situations in which a teaching day has less time than min declared
         """
         tutors = considered_tutors(self, ttmodel)
 
@@ -301,7 +301,7 @@ class RespectTutorsMinHoursPerDay(TTConstraint):
         """
         You can give a contextual explanation about what this constraint doesnt
         """
-        return "Respect tutors min hours per day"
+        return "Respect tutors min time per day"
 
 
 class LowerBoundBusyDays(TTConstraint):
