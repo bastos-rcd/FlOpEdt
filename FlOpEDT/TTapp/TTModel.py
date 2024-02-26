@@ -1027,23 +1027,17 @@ class TTModel(FlopModel):
                         continue
 
                     non_prefered_duration_minutes = max(
-                        dt.timedelta(minutes=1),
-                        sum(
-                            [a.duration
+                        1,
+                        sum(a.minutes
                             for a in period_tutor_availabilities
                             if 1 <= a.value <= maximum - 1
-                            ], dt.timedelta()
                         ),
-                    ).seconds // 60
-                    average_value = (
-                        sum(
-                            [a.duration * a.value
+                    )
+                    average_value = sum(a.minutes * a.value
                             for a in period_tutor_availabilities
                             if 1 <= a.value <= maximum - 1
-                            ], dt.timedelta()
-                        )
-                        / non_prefered_duration_minutes
-                    )
+                        ) / non_prefered_duration_minutes
+                    
 
                     for availability_slot in period_availability_slots:
                         avail = set(
@@ -1316,7 +1310,6 @@ class TTModel(FlopModel):
                     cp = ScheduledCourse(
                         course=c,
                         start_time=sl.start_time,
-                        day=sl.day.day,
                         work_copy=target_work_copy,
                     )
                     for i in self.wdb.possible_tutors[c]:
