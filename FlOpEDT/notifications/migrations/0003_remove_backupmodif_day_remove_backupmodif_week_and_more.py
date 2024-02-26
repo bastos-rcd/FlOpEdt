@@ -29,6 +29,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='backupmodif',
             name='start_time',
-            field=models.DateTimeField(),
+            field=models.DateTimeField(default='2024-02-26 09:18'),
+            preserve_default=False,
         ),
     ]
