@@ -30,6 +30,8 @@ from datetime import date, time, datetime
 import base.models as bm
 from django.utils.translation import gettext_lazy as _
 
+slot_pause = dt.timedelta(minutes=30)
+
 class Day(object):
   MONDAY = "m"
   TUESDAY = "tu"

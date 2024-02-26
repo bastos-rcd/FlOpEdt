@@ -36,6 +36,10 @@ class Availability(models.Model):
     @property
     def in_day_end_time(self):
         return self.end_time.time()
+    
+    @property
+    def minutes(self):
+        return self.duration.seconds // 60
 
     def __str__(self):
         return (
@@ -112,7 +116,12 @@ def actual_availabilities(user, date:dt.date, avail_only=False, unavail_only=Fal
     if dated_availabilities(user, date):
         return dated_availabilities(user, date, avail_only, unavail_only)
     else:
-        return default_availabilities(user, date, avail_only, unavail_only)
+        result = set()
+        for defaut_availability in default_availabilities(user, date, avail_only, unavail_only):
+            defaut_availability.start_time = dt.datetime.combine(date, defaut_availability.in_day_start_time)
+            defaut_availability.date = date
+            result.add(defaut_availability)
+        return result
 
 
 def period_actual_availabilities(users, periods, avail_only=False, unavail_only=False):

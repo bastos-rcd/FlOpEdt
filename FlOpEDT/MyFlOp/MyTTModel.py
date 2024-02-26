@@ -96,7 +96,7 @@ class MyTTModel(TTModel):
             print_differences(self.department, self.periods,
                               self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
         if with_numerotation:
-            number_courses(self.department, from_period=self.periods[0], until_period=self.periods[-1],
+            number_courses(self.department, periods=self.periods,
                            work_copy=result_work_copy)
         return result_work_copy
 

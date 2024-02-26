@@ -4,8 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 from base.timing import Day
-
-slot_pause = 30
+from base.timing import slot_pause
 
 class Module(models.Model):
     name = models.CharField(max_length=200, null=True, verbose_name=_('name'))

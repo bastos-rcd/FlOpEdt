@@ -31,7 +31,7 @@ from base.models import ScheduledCourse
 
 import datetime as dt
 
-slot_pause = dt.timedelta(minutes=30)
+from base.timing import slot_pause
 
 midday = dt.time(12, 0, 0)
 
@@ -160,6 +160,7 @@ def slots_filter(
     duration=None,
     start_time=None,
     weekday=None,
+    weekday_in=None,
     simultaneous_to=None,
     period=None,
     is_after=None,
@@ -188,7 +189,9 @@ def slots_filter(
     if date_in is not None:
         slots = set(sl for sl in slots if sl.date in date_in)
     if weekday is not None:
-        slots = set(sl for sl in slots if sl.day.day == weekday)
+        slots = set(sl for sl in slots if days_list[sl.date.weekday()] == weekday)
+    if weekday_in is not None:
+        slots = set(sl for sl in slots if days_list[sl.date.weekday()] in weekday_in)
     if duration is not None:
         slots = set(sl for sl in slots if sl.duration == duration)
     if apm is not None:

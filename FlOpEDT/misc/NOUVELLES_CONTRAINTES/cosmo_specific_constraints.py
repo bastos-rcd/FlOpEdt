@@ -208,13 +208,13 @@ def salaries_prioritaires_sur_le_poste(ttmodel, salaries_prioritaires, poste, co
 def bosse_en_soiree_jourA_ou_jourB(ttmodel, salarie, jourA, semaineA, jourB=None, semaineB=None):
     name = f"{salarie.username} bosse en soirée le {jourA} semaine {semaineA}"
     expr = ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
-                       for sl in slots_filter(ttmodel.wdb.slots, week_day=jourA, week=semaineA,
+                       for sl in slots_filter(ttmodel.wdb.slots, weekday=jourA, week=semaineA,
                                               starts_after=20*60)
                        for c in ttmodel.wdb.possible_courses[salarie] & ttmodel.wdb.compatible_courses[sl])
     if jourB is not None:
         name += f"(ou le {jourB} semaine {semaineB})"
         expr += ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
-                            for sl in slots_filter(ttmodel.wdb.slots, week_day=jourB, week=semaineB,
+                            for sl in slots_filter(ttmodel.wdb.slots, weekday=jourB, week=semaineB,
                                                    starts_after=20*60)
                             for c in ttmodel.wdb.possible_courses[salarie] & ttmodel.wdb.compatible_courses[sl])
     ttmodel.add_constraint(expr, '>=', 1, name)
@@ -223,7 +223,7 @@ def bosse_en_soiree_jourA_ou_jourB(ttmodel, salarie, jourA, semaineA, jourB=None
 def au_moins_une_fois_sur_le_poste(ttmodel, salaries, poste, jour, apm):
     for salarie in salaries:
         ttmodel.add_constraint(ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
-                                           for sl in slots_filter(ttmodel.wdb.slots, week_day=jour, apm=apm)
+                                           for sl in slots_filter(ttmodel.wdb.slots, weekday=jour, apm=apm)
                                            for c in ttmodel.wdb.possible_courses[salarie]
                                            & ttmodel.wdb.compatible_courses[sl]
                                            if c.module == poste),
@@ -235,7 +235,7 @@ def au_moins_une_fois_sur_le_poste(ttmodel, salaries, poste, jour, apm):
 def pas_de_cours_sur_le_poste(ttmodel, salaries_interdits, poste, jour, apm):
     ttmodel.add_constraint(ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
                                        for salarie in salaries_interdits
-                                       for sl in slots_filter(ttmodel.wdb.slots, week_day=jour, apm=apm)
+                                       for sl in slots_filter(ttmodel.wdb.slots, weekday=jour, apm=apm)
                                        for c in ttmodel.wdb.possible_courses[salarie]
                                        & ttmodel.wdb.compatible_courses[sl]
                                        if c.module == poste),

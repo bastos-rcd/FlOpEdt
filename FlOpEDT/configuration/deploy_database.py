@@ -147,7 +147,6 @@ def people_extract(department, people):
                     tutor = FullStaff(username=id_, **person)
                     tutor.status = Tutor.FULL_STAFF
                 else:
-                    # FIXME: can 'position' be anything else?!
                     tutor = SupplyStaff(username=id_, position="Salarié", **person)
                     tutor.status = Tutor.SUPP_STAFF
 
@@ -220,7 +219,6 @@ def rooms_extract(department, room_groups, room_categories, rooms):
             logger.warning(
                 f"A constraint has not been respected creating the room group '{group_id}' : {ie}"
             )
-            pass  # FIXME: continue?
 
         for room_id in members:
             try:
