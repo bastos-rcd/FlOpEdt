@@ -26,25 +26,7 @@ def client():
     return APIClient()
 
 
-@pytest.fixture
-def make_availabilities_IUT(db: None):
-    TutorFactory.create_batch(size=2)
-    tutor = Tutor.objects.first()
-    week = Week.objects.get(nb=4, year=2030)
-    UserIUTEveningFactory.create_batch(
-        size=UserIUTEveningFactory.cycle, user=tutor, week=week
-    )
-    week = Week.objects.get(nb=5, year=2030)
-    UserIUTMorningFactory.create_batch(
-        size=UserIUTMorningFactory.cycle, user=tutor, week=week
-    )
-    tutor = Tutor.objects.all()[1]
-    UserIUTEveningFactory.create_batch(
-        size=UserIUTEveningFactory.cycle, user=tutor, week=week
-    )
-
-
-class TestUserAvailabilityActual:
+class TestUpdateUserAvailability:
     endpoint = f"/fr/api/v1/availability/user/"
 
     def test_user_or_dept_required(self, client: APIClient):

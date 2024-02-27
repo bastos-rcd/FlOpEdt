@@ -35,7 +35,7 @@ routerAvailability.register(
 )
 routerAvailability.register(
     r"user-default-week",
-    views.UserDefaultAvailabilityViewSet,
+    views.UserDefaultAvailabilityListViewSet,
     basename="user-default-week",
 )
 routerAvailability.register(
@@ -47,6 +47,6 @@ routerAvailability.register(
 
 routerAvailability.register(
     r"room-default-week",
-    views.UserDefaultAvailabilityViewSet,
+    views.UserDefaultAvailabilityListViewSet,
     basename="user-default-week",
 )

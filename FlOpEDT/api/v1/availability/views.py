@@ -193,10 +193,10 @@ class UserDatedAvailabilityUpdateViewSet(
         ],
     ),
 )
-class UserDefaultAvailabilityViewSet(UserDatedAvailabilityListViewSet):
+class UserDefaultAvailabilityListViewSet(UserDatedAvailabilityListViewSet):
     def list(self, request, *args, **kwargs):
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
-        return super(UserDefaultAvailabilityViewSet, self).list(
+        return super(UserDefaultAvailabilityListViewSet, self).list(
             request, *args, **kwargs
         )
