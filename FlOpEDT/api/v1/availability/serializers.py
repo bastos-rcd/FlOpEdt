@@ -27,6 +27,8 @@ from people.models import User
 from base.timing import Day, flopdate_to_datetime
 import datetime as dt
 
+from base.rules import is_my_availability
+
 
 # -----------------
 # -- PREFERENCES --
@@ -164,7 +166,16 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
             ],
             key=lambda ua: ua.start_time,
         )
+
+        for a in availability:
+            if not is_my_availability(self.context["request"].user, a):
+                raise exceptions.PermissionDenied(
+                    detail={"subject_id": f"Not your availability"},
+                    code=status.HTTP_403_FORBIDDEN,
+                )
+
         self.check_intervals(availability, validated_data["date"])
+
         self.model.AvailabilityModel.objects.filter(
             date=validated_data["date"], **subject_dict
         ).delete()

@@ -86,61 +86,54 @@ class TestUserAvailabilityActual:
         ]
 
 
-class TestUserAvailabilityActual:
+class TestUpdateUserAvailability:
     endpoint = f"/fr/api/v1/availability/update_user/"
+    date = "1871-03-20"
+    wanted = {
+        "date": date,
+        "intervals": [
+            {
+                "start_time": f"{date}T00:00:00",
+                "duration": "12:00:00",
+                "value": 3,
+            },
+            {
+                "start_time": f"{date}T12:00:00",
+                "duration": "12:00:00",
+                "value": 2,
+            },
+        ],
+    }
 
     def test_update(self, client, make_user_hourly_commune):
         user = User.objects.first()
         client.force_authenticate(user=user)
-        date = "1871-03-20"
-        wanted = {
-            "date": date,
-            "subject_id": user.id,
-            "intervals": [
-                {
-                    "start_time": f"{date}T00:00:00",
-                    "duration": "12:00:00",
-                    "value": 3,
-                },
-                {
-                    "start_time": f"{date}T12:00:00",
-                    "duration": "12:00:00",
-                    "value": 2,
-                },
-            ],
-        }
-        response = retrieve_elements(client.post(self.endpoint, wanted), 3)
-        assert response == wanted
+        push = self.wanted | {"subject_id": user.id}
+        response = retrieve_elements(client.post(self.endpoint, push), 3)
+        assert response == push
 
-    @pytest.mark.skip(reason="rights have to be implemented")
+        from_database = UserAvailability.objects.filter(
+            user=user, date=self.date
+        ).values()
+        assert (
+            [
+                {k: v for k, v in item.items() if k in push["intervals"][0]}
+                for item in from_database
+            ]
+            == push["intervals"],
+            from_database,
+        )
+
     def test_update_rights(self, client, make_users, make_default_week_user):
         user = User.objects.first()
         client.force_authenticate(user=user)
-        date = "1871-03-20"
-        wanted = {
-            "date": date,
-            "subject_id": user.id,
-            "intervals": [
-                {
-                    "start_time": f"{date}T00:00:00",
-                    "duration": "12:00:00",
-                    "value": 3,
-                },
-                {
-                    "start_time": f"{date}T12:00:00",
-                    "duration": "12:00:00",
-                    "value": 2,
-                },
-            ],
-        }
-        response = client.post(self.endpoint, wanted)
+        push = self.wanted | {"subject_id": user.id}
+        response = client.post(self.endpoint, push)
         assert is_success(response.status_code), response.content
-        wanted["subject_id"] = User.objects.all()[1].id
-        assert user.id != wanted["subject_id"]
-        response = client.post(self.endpoint, wanted)
-        print(dir(response))
-        print(response.content)
-        print(response.data)
+
+        push["subject_id"] = User.objects.all()[1].id
+        assert user.id != push["subject_id"]
+        response = client.post(self.endpoint, push)
         assert response.status_code == HTTP_403_FORBIDDEN, (response.content, user.id)
 
     def test_rights(self):
