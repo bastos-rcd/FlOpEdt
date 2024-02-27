@@ -6,8 +6,9 @@
     {% load i18n %}
     <link rel="stylesheet" href="{% static 'configuration/style.css' %}"/>
     <script>
-        let departements = {{ departements|safe }};
-        let periods = {{ periods|safe }};
+        let departments = {{ departments|safe }};
+        let training_periods = {{ training_periods|safe }};
+        let scheduling_periods = {{ scheduling_periods|safe }};
         let current_year = {{ current_year }};
         let next_year = {{current_year|add:"1"}};
     </script>
@@ -24,8 +25,8 @@
         {% trans "Click to make and download a new fullfilled database file" %}
         {% trans " (it may last several minuts)." %}
         <form action="{% url 'configuration:mk_and_dl_fullfilled_database_file' %}">
-        <select name="departement"  id="dropdown_dpt_1">
-            {% for depart in departements %}
+        <select name="department"  id="dropdown_dpt_1">
+            {% for depart in departments %}
                 <option value={{ depart.abbrev }} >{{ depart.name }}</option>
             {% endfor %}
         </select>
@@ -65,8 +66,8 @@
     <h3>{% trans "Template for the planning file from the configuration file" %}</h3>
         {% trans "Click to download the current planning file outline" %}
         <form action="{% url 'configuration:dl_planif' %}">
-        <select name="departement"  id="dropdown_dpt_1">
-            {% for depart in departements %}
+        <select name="departments"  id="dropdown_dpt_2">
+            {% for depart in departments %}
                 <option value={{ depart.abbrev }} >{{ depart.name }}</option>
             {% endfor %}
         </select>
@@ -76,8 +77,8 @@
         {% trans "Click to make and download a new blank planning file outline" %}
         {% trans " (it may last several minuts)." %}
         <form action="{% url 'configuration:mk_and_dl_blank_planif' %}">
-        <select name="departement"  id="dropdown_dpt_1">
-            {% for depart in departements %}
+        <select name="departments"  id="dropdown_dpt_3">
+            {% for depart in departments %}
                 <option value={{ depart.abbrev }} >{{ depart.name }}</option>
             {% endfor %}
         </select>
@@ -87,8 +88,8 @@
         {% trans "Click to make and download a new fullfilled planning file outline" %}
         {% trans " (it may last several minuts)." %}
         <form action="{% url 'configuration:mk_and_dl_fullfilled_planif' %}">
-        <select name="departement"  id="dropdown_dpt_1">
-            {% for depart in departements %}
+        <select name="departments"  id="dropdown_dpt_4">
+            {% for depart in departments %}
                 <option value={{ depart.abbrev }} >{{ depart.name }}</option>
             {% endfor %}
         </select>
@@ -107,36 +108,30 @@
                   enctype="multipart/form-data"
                   id="planif">
                 {% csrf_token %}
-                <select name="departement" id="dropdown_dpt_2">
-                    {% for depart in departements %}
+                <select name="departments" id="dropdown_dpt_5">
+                    {% for depart in departments %}
                         <option value={{ depart.abbrev }} >{{ depart.name }}</option>
                     {% endfor %}
                 </select>
                 </br></br>
                 {{ form_planif }}
-                </br></br>
-                <div id="choose_weeks">
-                    <input type="checkbox" id="choose_weeks" name="choose_weeks"/>
-                    <label for="choose_weeks">
-                        {% trans "From week" %}
-                        <input type="number" name="week_nb" style="width: 40px" min="1" max="53" id="1">
-                        {% trans "year" %}
-                        <input type="number" name="year" style="width: 60px" value="{{current_year}}" min="{{current_year}}" max="{{current_year|add:"1"}}" id="3">
-                        </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        {% trans "until week" %}
-                        <input type="number" name="week_nb_end" style="width: 40px" min="1" max="53" id="5">
-                        {% trans "year" %}
-                    </label>
-                    <input type="number" name="year_end" style="width: 60px" value="{{current_year|add:"1"}}" min="{{current_year}}" max="{{current_year|add:"1"}}" id="7">
+                </br>
+                </br>
+                    <div id="choose_training_periods">
+                        <input type="checkbox" id="choose_training_periods" name="choose_training_periods"/>
+                            <label for="choose_training_periods">{% trans "Only for training periods " %}
+                                <select multiple name="training_periods" id="dropdown_training_periods"> </select>
+                            </label>
+                    </div>
+                </br>
+                </br>
+                <div id="choose_scheduling_periods">
+                    <input type="checkbox" id="choose_scheduling_periods" name="choose_scheduling_periods"/>
+                        <label for="choose_scheduling_periods">{% trans "Only for scheduling periods " %}
+                            <select multiple name="scheduling_periods" id="dropdown_scheduling_periods"> </select>
+                        </label>
                 </div>
                 </br>
-                <div id="choose_periods">
-                <input type="checkbox" id="choose_periods" name="choose_periods"/>
-                    <label for="choose_periods">{% trans "Only for periods " %}
-                        <select multiple name="periods" id="dropdown_periods"> </select>
-                    </label>
-                </div>
-                </br></br>
                 <input type="checkbox" id="stabilize" name="stabilize"/>
                 <label for="stabilize">{% trans "Stabilization ?" %}</label>
                 </br></br>
@@ -148,7 +143,7 @@
                        onclick="return confirm(
                            confirm_text.intro + '\n\n' +
                            translated_department + confirm_text.department + '\n' +
-                           translated_periods + confirm_text.periods + '\n' +
+                           translated_training_periods + confirm_text.training_periods + '\n' +
                            translated_weeks + confirm_text.weeks)"
                        value={% trans "Import" %}>
             </form>

@@ -28,7 +28,6 @@ import os
 import sys
 from openpyxl import *
 
-from base.weeks import actual_year
 from base.models import (
     GenericGroup,
     Module,
@@ -42,19 +41,19 @@ from base.models import (
     CoursePossibleTutors,
     ModuleTutorRepartition,
     CourseAdditional,
-    Week,
+    SchedulingPeriod,
 )
 from people.models import Tutor, UserDepartmentSettings
 from misc.assign_colors import assign_module_color
-from TTapp.models import StabilizationThroughWeeks
+from TTapp.models import StabilizationThroughPeriods
 
 from django.db import transaction
 from django.db.models import Q
 
 
-def do_assign(module, course_type, week, book):
+def do_assign(module, course_type, period, book):
     already_done = ModuleTutorRepartition.objects.filter(
-        module=module, course_type=course_type, week=week
+        module=module, course_type=course_type, period=period
     ).exists()
     if already_done:
         return
@@ -78,7 +77,7 @@ def do_assign(module, course_type, week, book):
     while tutor_username is not None:
         tutor = Tutor.objects.get(username=tutor_username)
         mtr = ModuleTutorRepartition(
-            module=module, course_type=course_type, week=week, tutor=tutor
+            module=module, course_type=course_type, period=period, tutor=tutor
         )
         nb = assignation_sheet.cell(row=assignation_row + 1, column=column).value
         if nb is not None:
@@ -93,27 +92,27 @@ def do_assign(module, course_type, week, book):
 
 
 @transaction.atomic
-def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
+def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeriod, courses_to_stabilize=None):
     sheet = book[feuille]
-    period = TrainingPeriod.objects.get(name=feuille, department=department)
+    training_period = TrainingPeriod.objects.get(name=feuille, department=department)
     Course.objects.filter(
-        type__department=department, week=week, module__period=period
+        type__department=department, period=period, module__period=training_period
     ).delete()
-    # lookup week column
+    # lookup period column
     wc = 1
     for wr in [1]:
         while wc < 50:
             wc += 1
-            sem = sheet.cell(row=wr, column=wc).value
-            if sem == float(week.nb):
-                WEEK_COL = wc
+            period_name = sheet.cell(row=wr, column=wc).value
+            if period_name == float(period.name):
+                PERIOD_COL = wc
                 break
     try:
-        WEEK_COL += 0
+        PERIOD_COL += 0
     except UnboundLocalError:
-        print("Pas de semaine %s en %s" % (week.nb, feuille))
+        print("Pas de période %s en %s" % (period.name, feuille))
         return
-    print("Semaine %s de %s : colonne %g" % (week.nb, feuille, WEEK_COL))
+    print("Période %s de %s : colonne %g" % (period.name, feuille, PERIOD_COL))
 
     row = 4
     module_COL = 1
@@ -130,10 +129,10 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                 courses_to_stabilize[row] = []
         is_total = sheet.cell(row=row, column=group_COL).value
         if is_total == "TOTAL":
-            # print "Sem %g de %s - TOTAL: %g"%(week.nb, feuille,sumtotal)
+            # print "Period %g de %s - TOTAL: %g"%(period, feuille,sumtotal)
             break
 
-        Cell = sheet.cell(row=row, column=WEEK_COL)
+        Cell = sheet.cell(row=row, column=PERIOD_COL)
         N = Cell.value
         if N is None:
             continue
@@ -148,8 +147,8 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                 nominal = int(N)
                 if N != nominal:
                     print(
-                        "Valeur decimale ligne %g de %s, semaine %g : on la met a 1 !"
-                        % (row, feuille, week.nb)
+                        "Valeur decimale ligne %g de %s, période %g : on la met a 1 !"
+                        % (row, feuille, period.name)
                     )
                     nominal = 1
                     # le nominal est le nombre de cours par groupe (de TP ou TD)
@@ -172,7 +171,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                 comments = []
 
             # handle light green lines - Vert clair
-            MODULE = Module.objects.get(abbrev=module, period=period)
+            MODULE = Module.objects.get(abbrev=module, training_period=training_period)
             PROMO = MODULE.train_prog
             nature = sheet.cell(row=row, column=nature_COL).value
             prof = sheet.cell(row=row, column=prof_COL).value
@@ -185,7 +184,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                 TUTOR = None
             elif prof == "*":
                 TUTOR = None
-                do_assign(MODULE, COURSE_TYPE, week, book)
+                do_assign(MODULE, COURSE_TYPE, period, book)
             else:
                 assert isinstance(prof, str)
                 prof = prof.replace("\xa0", "").replace(" ", "")
@@ -229,7 +228,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
             )
             if not GROUPS:
                 raise Exception(
-                    f"Group(s) do(es) not exist {row}, week {week.nb} of {feuille}\n"
+                    f"Group(s) do(es) not exist {row}, period {period.name} of {feuille}\n"
                 )
 
             N = int(N)
@@ -239,7 +238,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                     tutor=TUTOR,
                     type=COURSE_TYPE,
                     module=MODULE,
-                    week=week,
+                    period=period,
                     room_type=ROOMTYPE,
                 )
                 C.save()
@@ -277,7 +276,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                     courses = Course.objects.filter(
                         type__name=course_type,
                         module=MODULE,
-                        week=week,
+                        period=period,
                         groups__in=relevant_groups,
                     )
                     for course in courses[:n]:
@@ -304,7 +303,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                     course_additional.save()
             if "D" in comments or "D" in local_comments and N >= 2:
                 relevant_courses = Course.objects.filter(
-                    type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, week=week
+                    type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, period=period
                 )
                 for i in range(N // 2):
                     P = Dependency(
@@ -315,7 +314,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                     P.save()
             if "ND" in comments or "ND" in local_comments and N >= 2:
                 relevant_courses = Course.objects.filter(
-                    type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, week=week
+                    type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, period=period
                 )
                 for i in range(N - 1):
                     P = Dependency(
@@ -326,58 +325,37 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                     P.save()
         except Exception as e:
             raise Exception(
-                f"Exception ligne {row}, semaine {week.nb} de {feuille}: {e} \n"
+                f"Exception ligne {row}, période {period.name} de {feuille}: {e} \n"
             )
 
 
 @transaction.atomic
-def extract_period(
+def extract_training_period(
     department,
     book,
-    period,
+    training_period: TrainingPeriod,
     stabilize_courses=False,
-    year=actual_year,
-    from_week=None,
-    until_week=None,
+    periods = []
 ):
 
     if stabilize_courses:
         courses_to_stabilize = {}
-        print("Courses will be stabilized through weeks for period", period)
+        print("Courses will be stabilized through scheduling periods for training period", training_period)
     else:
         courses_to_stabilize = None
-    considered_weeks = set(Week.objects.all())
-    if from_week is None and until_week is None:
-        Course.objects.filter(module__period=period, week=None).delete()
-    if until_week is not None:
-        considered_weeks = set(w for w in considered_weeks if w <= until_week)
-    if from_week is not None:
-        considered_weeks = set(w for w in considered_weeks if w >= from_week)
-    if period.starting_week < period.ending_week:
-        period_weeks = Week.objects.filter(
-            nb__gte=period.starting_week, nb__lte=period.ending_week
-        )
-        if period.ending_week > 30:
-            period_weeks = period_weeks.filter(year=year)
-        else:
-            period_weeks = period_weeks.filter(year=year + 1)
-    else:
-        period_weeks = Week.objects.filter(
-            Q(nb__gte=period.starting_week, year=year)
-            | Q(nb__lte=period.ending_week, year=year + 1)
-        )
-
-    considered_weeks &= set(period_weeks)
-    considered_weeks = list(considered_weeks)
-    considered_weeks.sort()
-    for week in considered_weeks:
-        ReadPlanifWeek(department, book, period.name, week, courses_to_stabilize)
+    considered_periods = set(training_period.periods.all())
+    if periods is not None:
+        considered_periods &= set(periods)
+    considered_periods = list(considered_periods)
+    considered_periods.sort()
+    for period in considered_periods:
+        ReadPlanifSchedulingPeriod(department, book, training_period.name, period, courses_to_stabilize)
 
     if stabilize_courses:
         for courses_list in courses_to_stabilize.values():
             if len(courses_list) < 2:
                 continue
-            stw = StabilizationThroughWeeks.objects.create(department=department)
+            stw = StabilizationThroughPeriods.objects.create(department=department)
             for c in courses_list:
                 stw.courses.add(c)
 
@@ -387,10 +365,8 @@ def extract_planif(
     department,
     bookname=None,
     stabilize_courses=False,
-    year=actual_year,
-    from_week=None,
-    until_week=None,
-    periods=None,
+    scheduling_periods=None,
+    training_periods=None,
     assign_colors=True,
 ):
     """
@@ -399,39 +375,35 @@ def extract_planif(
     if bookname is None:
         bookname = "media/configuration/planif_file_" + department.abbrev + ".xlsx"
     book = load_workbook(filename=bookname, data_only=True)
-    periods = define_periods(department, book, periods)
-    for period in periods:
-        extract_period(
+    training_periods = define_training_periods(department, book, training_periods)
+    for training_period in training_periods:
+        extract_training_period(
             department,
             book,
-            period,
+            training_period,
             stabilize_courses,
-            year=year,
-            from_week=from_week,
-            until_week=until_week,
+            periods=scheduling_periods,
         )
     if assign_colors:
         assign_module_color(department, overwrite=True)
 
 
 @transaction.atomic
-def extract_planif_weeks(week_year_list, department, bookname=None, periods=None):
+def extract_planif_scheduling_periods(scheduling_periods, department, bookname=None, training_periods=None):
     if bookname is None:
         bookname = "media/configuration/planif_file_" + department.abbrev + ".xlsx"
     book = load_workbook(filename=bookname, data_only=True)
-    periods = define_periods(department, book, periods)
-    for period in periods:
-        for s in week_year_list:
-            w = s["week"]
-            y = s["year"]
-            ReadPlanifWeek(department, book, period.name, w, y)
+    training_periods = define_training_periods(department, book, training_periods)
+    for training_period in training_periods:
+        for scheduling_period in scheduling_periods:
+            ReadPlanifSchedulingPeriod(department, book, training_period.name, scheduling_period)
 
 
-def define_periods(department, book, periods):
-    if periods is None:
-        periods = TrainingPeriod.objects.filter(department=department)
-    ok_periods = []
-    for period in periods:
-        if period.name in book:
-            ok_periods.append(period)
-    return ok_periods
+def define_training_periods(department, book, training_periods):
+    if training_periods is None:
+        training_periods = TrainingPeriod.objects.filter(department=department)
+    ok_training_periods = []
+    for training_period in training_periods:
+        if training_period.name in book:
+            ok_training_periods.append(training_period)
+    return ok_training_periods

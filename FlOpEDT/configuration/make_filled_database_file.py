@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -262,7 +263,7 @@ def make_filled_database_file(department, filename=None):
         sheet.cell(row=row, column=col+2, value=module.ppn)
         sheet.cell(row=row, column=col+3, value=module.name)
         sheet.cell(row=row, column=col+4, value=module.train_prog.abbrev)
-        sheet.cell(row=row, column=col+5, value=module.period.name)
+        sheet.cell(row=row, column=col+5, value=module.training_period.name)
         if module.head is not None:
             sheet.cell(row=row, column=col+6, value=module.head.username)
 

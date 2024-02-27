@@ -35,7 +35,7 @@ function send_form(form) {
                 var option = {value:data.dept_abbrev, text:data.dept_fullname} ;
                 if (form == 'config') {
                     $('#dropdown_dpt_1').append($('<option>', option));
-                    $('#dropdown_dpt_2').append($('<option>', option));
+                    $('#dropdown_dpt_5').append($('<option>', option));
                 }
                 show_loader(false);
             },
@@ -70,16 +70,26 @@ function handleRadioChanges(value) {
 
 
 function handlePlanifDeptChanges() {
-    var selectPlanifDept = document.getElementById("dropdown_dpt_2");
+    var selectPlanifDept = document.getElementById("dropdown_dpt_5");
     let selectedDepartmentAbbrev = selectPlanifDept.options[selectPlanifDept.selectedIndex].value;
-    let selectPeriods = document.getElementById("dropdown_periods");
-    selectPeriods.innerHTML = '';
-    for (let period of periods) {
-        if (period.department === selectedDepartmentAbbrev) {
+    let selectTrainingPeriods = document.getElementById("dropdown_training_periods");
+    selectTrainingPeriods.innerHTML = '';
+    for (let training_period of training_periods) {
+        if (training_period.department === selectedDepartmentAbbrev) {
             let opt = document.createElement('option');
-            opt.value = period.name;
-            opt.innerHTML = period.name;
-            selectPeriods.appendChild(opt);
+            opt.value = training_period.name;
+            opt.innerHTML = training_period.name;
+            selectTrainingPeriods.appendChild(opt);
+        }
+    }
+    let selectSchedulingPeriods = document.getElementById("dropdown_scheduling_periods");
+    selectSchedulingPeriods.innerHTML = '';
+    for (let scheduling_period of scheduling_periods) {
+        if (scheduling_period.department === selectedDepartmentAbbrev) {
+            let opt = document.createElement('option');
+            opt.value = scheduling_period.name;
+            opt.innerHTML = scheduling_period.name;
+            selectSchedulingPeriods.appendChild(opt);
         }
     }
     confirm_text.department = selectedDepartmentAbbrev;
@@ -102,45 +112,45 @@ document.querySelectorAll("#config input[type=radio]").forEach((i) => {
 
 
 // Weeks div gesture
-let weeksDiv = document.getElementById("choose_weeks");
-let weeksCheckbox = weeksDiv.querySelector("input[type=checkbox]");
-let weeksInput = weeksDiv.querySelectorAll("input[type=number]");
-weeksInput.forEach( (c) => {
+let schedulingPeriodsDiv = document.getElementById("choose_scheduling_periods");
+let schedulingPeriodsCheckbox = schedulingPeriodsDiv.querySelector("input[type=checkbox]");
+let schedulingPeriodsInput = schedulingPeriodsDiv.querySelectorAll("input[type=number]");
+schedulingPeriodsInput.forEach( (c) => {
         c.addEventListener('change', (event) => {
-            weeksCheckbox.checked = true;
-            weeks_text_pattern[c.id] = c.value;
-            confirm_text.weeks = weeks_text_pattern.join(' ');
+            schedulingPeriodsCheckbox.checked = true;
+            scheduling_periods_text_pattern[c.id] = c.value;
+            confirm_text.scheduling_periods = scheduling_periods_text_pattern.join(' ');
         })
 })
-weeksCheckbox.addEventListener('change', (event) => {
-            if (weeksCheckbox.checked === true){
-                confirm_text.weeks = weeks_text_pattern.join(' ');
+schedulingPeriodsCheckbox.addEventListener('change', (event) => {
+            if (schedulingPeriodsCheckbox.checked === true){
+                confirm_text.scheduling_periods = scheduling_periods_text_pattern.join(' ');
             }
             else {
-                confirm_text.weeks = translated_all;
+                confirm_text.scheduling_periods = translated_all;
             }
 })
 
 // Period div gesture
-let periodsDiv = document.getElementById("choose_periods");
-let periodsCheckbox = periodsDiv.querySelector("input[type=checkbox]");
-let periodsInput = periodsDiv.querySelectorAll("select");
-periodsInput.forEach( (c) => {
+let trainingPeriodsDiv = document.getElementById("choose_training_periods");
+let trainingPeriodsCheckbox = trainingPeriodsDiv.querySelector("input[type=checkbox]");
+let trainingPeriodsInput = trainingPeriodsDiv.querySelectorAll("select");
+trainingPeriodsInput.forEach( (c) => {
         c.addEventListener('change', (event) => {
-            periodsCheckbox.checked = true;
-            confirm_text.periods = Array.from(c.selectedOptions).map(el => el.value);
+            trainingPeriodsCheckbox.checked = true;
+            confirm_text.training_periods = Array.from(c.selectedOptions).map(el => el.value);
         })
 })
-periodsCheckbox.addEventListener('change', (event) => {
-            if (periodsCheckbox.checked === true){
-                confirm_text.periods = Array.from(c.selectedOptions).map(el => el.value);
+trainingPeriodsCheckbox.addEventListener('change', (event) => {
+            if (trainingPeriodsCheckbox.checked === true){
+                confirm_text.training_periods = Array.from(c.selectedOptions).map(el => el.value);
             }
             else {
-                confirm_text.periods = translated_all;
+                confirm_text.training_periods = translated_all;
             }
 })
 
-let selectPlanifDepartment = document.getElementById("dropdown_dpt_2");
+let selectPlanifDepartment = document.getElementById("dropdown_dpt_5");
 selectPlanifDepartment.addEventListener('change', () => {
 		handlePlanifDeptChanges();
 		}

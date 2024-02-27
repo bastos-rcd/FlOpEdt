@@ -35,7 +35,7 @@ from django.conf import settings
 
 from core.decorators import dept_admin_required
 
-from base.models import Department, TrainingPeriod, Week
+from base.models import Department, TrainingPeriod, SchedulingPeriod
 
 from configuration.make_planif_file import make_planif_file
 from configuration.make_filled_database_file import make_filled_database_file
@@ -59,14 +59,14 @@ def configuration(req, **kwargs):
     arg_req['form_config'] = ImportConfig()
     arg_req['form_planif'] = ImportPlanif()
 
-    arg_req["departements"] = [
+    arg_req["departments"] = [
         {"name": depart.name, "abbrev": depart.abbrev}
         for depart in Department.objects.all()
         if not depart.abbrev == "default"
     ]
-    arg_req["periods"] = [
-        {"name": period.name, "department": period.department.abbrev}
-        for period in TrainingPeriod.objects.all()
+    arg_req["training_periods"] = [
+        {"name": training_period.name, "department": training_period.department.abbrev}
+        for training_period in TrainingPeriod.objects.all()
     ]
     arg_req["current_year"] = current_year
     return render(req, "configuration/configuration.html", arg_req)
@@ -265,10 +265,9 @@ def import_planif_file(req, **kwargs):
                         return HttpResponse(json.dumps(response), content_type='application/json')
                     stabilize_courses = "stabilize" in req.POST
                     assign_colors = "assign_colors" in req.POST
-                    print("AAAAA", assign_colors)
-                    choose_weeks = "choose_weeks" in req.POST
-                    choose_periods = "choose_periods" in req.POST
-                    if choose_weeks:
+                    choose_scheduling_weeks = "choose_weeks" in req.POST
+                    choose_training_periods = "choose_periods" in req.POST
+                    if choose_scheduling_periods:
                         week_nb = req.POST["week_nb"]
                         year = req.POST["year"]
                         if not week_nb and not year:
@@ -289,15 +288,15 @@ def import_planif_file(req, **kwargs):
                         from_week = None
                         until_week = None
 
-                    if choose_periods:
-                        periods = TrainingPeriod.objects.filter(
-                            department=dept, name__in=req.POST.getlist("periods")
+                    if choose_training_periods:
+                        training_periods = TrainingPeriod.objects.filter(
+                            department=dept, name__in=req.POST.getlist("training_periods")
                         )
-                        print(periods)
+                        print(training_periods)
                     else:
-                        periods = None
+                        training_periods = None
 
-                    extract_planif(dept, bookname=path, from_week=from_week, until_week=until_week, periods=periods,
+                    extract_planif(dept, bookname=path, scheduling_periods=scheduling_periods, training_periods=training_periods,
                                    stabilize_courses=stabilize_courses, assign_colors=assign_colors)
                     logger.info("Extract file OK")
                     rep = "OK !"
