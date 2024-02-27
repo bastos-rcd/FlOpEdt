@@ -1,4 +1,5 @@
 import datetime as dt
+import copy
 
 import pytest
 
@@ -70,41 +71,52 @@ class TestUpdateUserAvailability:
 
 class TestUpdateUserAvailability:
     endpoint = f"/fr/api/v1/availability/update_user/"
-    date = "1871-03-20"
+    from_date = "1871-03-20"
+    to_date = "1871-03-20"
     wanted = {
-        "date": date,
+        "from_date": from_date,
+        "to_date": to_date,
         "intervals": [
             {
-                "start_time": f"{date}T00:00:00",
+                "start_time": f"{from_date}T00:00:00",
                 "duration": "12:00:00",
                 "value": 3,
             },
             {
-                "start_time": f"{date}T12:00:00",
+                "start_time": f"{to_date}T12:00:00",
                 "duration": "12:00:00",
                 "value": 2,
             },
         ],
     }
 
-    def test_update(self, client, make_user_hourly_commune):
+    def test_update_single_day(self, client, make_user_hourly_commune):
         user = User.objects.first()
         client.force_authenticate(user=user)
         push = self.wanted | {"subject_id": user.id}
-        response = retrieve_elements(client.post(self.endpoint, push), 3)
+        response = retrieve_elements(client.post(self.endpoint, push), 4)
         assert response == push
 
-        from_database = UserAvailability.objects.filter(
-            user=user, date=self.date
-        ).values()
-        assert (
-            [
-                {k: v for k, v in item.items() if k in push["intervals"][0]}
-                for item in from_database
-            ]
-            == push["intervals"],
-            from_database,
-        )
+    def test_update_two_days(self, client, make_user_hourly_commune):
+        user = User.objects.first()
+        client.force_authenticate(user=user)
+        push = copy.deepcopy(self.wanted) | {"subject_id": user.id}
+        push["to_date"] = "1871-03-21"
+        push["intervals"] += [
+            {
+                "start_time": f"{push['to_date']}T00:00:00",
+                "duration": "10:00:00",
+                "value": 4,
+            },
+            {
+                "start_time": f"{push['to_date']}T10:00:00",
+                "duration": "14:00:00",
+                "value": 5,
+            },
+        ]
+        print(push)
+        response = retrieve_elements(client.post(self.endpoint, push), 4)
+        assert response == push
 
     def test_update_rights(self, client, make_users, make_default_week_user):
         user = User.objects.first()
