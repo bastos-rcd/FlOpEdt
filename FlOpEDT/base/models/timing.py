@@ -41,7 +41,7 @@ class TrainingHalfDay(models.Model):
 class TrainingPeriod(models.Model):
     name = models.CharField(max_length=20)
     department = models.ForeignKey(
-        "base.Department", on_delete=models.CASCADE, null=True
+        "base.Department", on_delete=models.CASCADE, null=True, related_name="training_periods"
     )
     periods = models.ManyToManyField("SchedulingPeriod")
 
@@ -80,7 +80,7 @@ class SchedulingPeriod(models.Model):
         max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
     )
     department = models.ForeignKey(
-        "base.department", null=True, blank=True, on_delete=models.CASCADE, default=None
+        "base.department", null=True, blank=True, on_delete=models.CASCADE, default=None, related_name="scheduling_periods"
     )
 
     def __str__(self):

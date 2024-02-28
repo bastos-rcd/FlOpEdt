@@ -12,9 +12,9 @@ from base.rules import is_my_availability
 
 
 class Availability(RulesModel):
-    start_time = models.DateTimeField(default=dt.dt.datetime(1871, 3, 18))
+    start_time = models.DateTimeField(default=dt.datetime(1871, 3, 18))
     date = models.DateField(default=dt.date(1, 1, 1))
-    duration = models.DurationField(default=dt.dt.timedelta(0))
+    duration = models.DurationField(default=dt.timedelta(0))
     value = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(8)], default=8
     )
