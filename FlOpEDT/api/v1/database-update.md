@@ -86,6 +86,11 @@ Après les migrations :
   - [ ] dans l'import-export excel
   - [ ] modifier courseStartTimeConstraints en incluant une duration au lieu d'un course_type
 
+## Rien à voir
+
+- [ ] interdire caractères spéciaux dans abbrev de Dept (et dans tout ce qui peut apparaître dans une url)
+- [ ] setup.cfg pour les tests vs migrations
+- [ ] discarded.json
 
 ## Des trucs à savoir
 
