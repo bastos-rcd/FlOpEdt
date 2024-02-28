@@ -14,7 +14,6 @@ export const useColumnStore = defineStore('column', () => {
   const { fetchedStructuralGroups } = storeToRefs(groupStore)
 
   const columns = computed(() => {
-    //const totalWeight = groups.value.filter(g => g.columnIds.length === 1).length
     let columns: CalendarColumn[] = []
     let max: number = 0
     fetchedStructuralGroups.value.forEach((g) => {

@@ -72,7 +72,6 @@ export const usePermanentStore = defineStore('permanent', () => {
     let module = modules.value.find((m) => m.id === id)
     if (!module && !isModulesFetched) {
       try {
-        console.log('We FetchAgain')
         await fetchModules()
         module = modules.value.find((m) => m.id === id)
       } catch (error) {
