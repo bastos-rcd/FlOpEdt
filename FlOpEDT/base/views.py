@@ -58,18 +58,6 @@ from people.models import (
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
 
-from base.admin import (
-    VersionResource,
-    TutorCoursesResource,
-    CourseAvailabilityResource,
-    MultiDepartmentTutorResource,
-    SharedRoomsResource,
-    RoomAvailabilityResource,
-    ModuleRessource,
-    TutorRessource,
-    ModuleDescriptionResource,
-    GroupPreferredLinksResource,
-)
 from base.forms import ContactForm, ModuleDescriptionForm, EnrichedLinkForm
 from base.models import (
     Course,
@@ -90,7 +78,7 @@ from base.models import (
     EnrichedLink,
     ScheduledCourseAdditional,
     GroupPreferredLinks,
-    Week,
+    SchedulingPeriod,
     Theme,
     CourseAdditional,
 )
@@ -274,13 +262,13 @@ def stype(req, *args, **kwargs):
     if req.method == "GET":
         t = req.user.tutor
         if TutorPreference.objects.filter(tutor=t).exists():
-            usr_pref_hours = req.user.tutor.preferences.pref_hours_per_day
-            usr_max_hours = req.user.tutor.preferences.max_hours_per_day
-            usr_min_hours = req.user.tutor.preferences.min_hours_per_day
+            usr_pref_time = req.user.tutor.preferences.pref_time_per_day
+            usr_max_time = req.user.tutor.preferences.max_time_per_day
+            usr_min_time = req.user.tutor.preferences.min_time_per_day
         else:
-            usr_pref_hours = 6
-            usr_max_hours = 9
-            usr_min_hours = 0
+            usr_pref_time = 6
+            usr_max_time = 9
+            usr_min_time = 0
         return TemplateResponse(
             req,
             "base/show-stype.html",
@@ -288,9 +276,9 @@ def stype(req, *args, **kwargs):
                 "date_deb": current_week(),
                 "date_fin": current_week(),
                 "name_usr": req.user.username,
-                "usr_pref_hours": usr_pref_hours,
-                "usr_max_hours": usr_max_hours,
-                "usr_min_hours": usr_min_hours,
+                "usr_pref_time": usr_pref_time,
+                "usr_max_time": usr_max_time,
+                "usr_min_time": usr_min_time,
                 "user_notifications_pref": user_notifications_pref,
                 "themes": themes,
                 "theme": queries.get_theme_preference(req.user),
@@ -328,9 +316,9 @@ def stype(req, *args, **kwargs):
                 "date_deb": date_deb,
                 "date_fin": date_fin,
                 "name_usr": req.user.username,
-                "usr_pref_hours": req.user.tutor.pref_hours_per_day,
-                "usr_max_hours": req.user.tutor.max_hours_per_day,
-                "usr_min_hours": req.user.tutor.preferences.min_hours_per_day,
+                "usr_pref_time": req.user.tutor.pref_time_per_day,
+                "usr_max_time": req.user.tutor.max_time_per_day,
+                "usr_min_time": req.user.tutor.preferences.min_time_per_day,
                 "user_notifications_pref": user_notifications_pref,
                 "user_themes_pref": queries.get_theme_preference(req.user),
                 "err": err,
@@ -357,7 +345,7 @@ def room_preference(req, department, tutor=None):
         pass
 
     base_pref = {}
-    for rs in RoomSort.objects.filter(tutor=tutor):
+    for rs in RoomSort.objects.filter(tutor=tutor, for_type__department=req.department):
         if rs.for_type not in base_pref:
             base_pref[rs.for_type] = []
         base_pref[rs.for_type].append({"better": rs.prefer, "worse": rs.unprefer})
@@ -422,12 +410,12 @@ def user_perfect_day_changes(req, username=None, *args, **kwargs):
         t = Tutor.objects.get(username=username)
         preferences, created = TutorPreference.objects.get_or_create(tutor=t)
         data = req.POST
-        user_pref_hours = int(data["user_pref_hours"][0])
-        user_max_hours = int(data["user_max_hours"][0])
-        preferences.pref_hours_per_day = user_pref_hours
-        preferences.max_hours_per_day = user_max_hours
-        user_min_hours = int(data["user_min_hours"][0])
-        preferences.min_hours_per_day = user_min_hours
+        user_pref_time = int(data["user_pref_time"][0])
+        user_max_time = int(data["user_max_time"][0])
+        preferences.pref_time_per_day = user_pref_time
+        preferences.max_time_per_day = user_max_time
+        user_min_time = int(data["user_min_time"][0])
+        preferences.min_time_per_day = user_min_time
         preferences.save()
     return redirect("base:preferences", req.department)
 
@@ -438,9 +426,9 @@ def fetch_perfect_day(req, username=None, *args, **kwargs):
     if username is not None:
         t = Tutor.objects.get(username=username)
         preferences, created = TutorPreference.objects.get_or_create(tutor=t)
-        perfect_day["pref"] = preferences.pref_hours_per_day
-        perfect_day["max"] = preferences.max_hours_per_day
-        perfect_day["min"] = preferences.min_hours_per_day
+        perfect_day["pref"] = preferences.pref_time_per_day
+        perfect_day["max"] = preferences.max_time_per_day
+        perfect_day["min"] = preferences.min_time_per_day
     return JsonResponse(perfect_day, safe=False)
 
 
@@ -902,27 +890,20 @@ def fetch_extra_sched(req, year, week, **kwargs):
 
 def fetch_shared_rooms(req, year, week, **kwargs):
     # which room groups are shared among departments
-    shared_rooms = []
-    for rg in Room.objects.all().prefetch_related("types__department"):
-        depts = set()
-        for rt in rg.types.all():
-            depts.add(rt.department)
-            if len(depts) > 1:
-                shared_rooms.append(rg)
+    shared_rooms = [
+        room for room in Room.objects.all().prefetch_related('departments') if room.departments.count() > 1
+    ]
 
     # courses in any shared room
-    courses = (
-        ScheduledCourse.objects.filter(
+    courses = ScheduledCourse.objects.filter(
             course__week__nb=week,
             course__week__year=year,
             work_copy=0,
             room__in=shared_rooms,
-        )
-        .select_related(
-            "course__room_type__department", "room", "course__type__department"
-        )
-        .exclude(course__room_type__department=req.department)
-    )
+        ) \
+        .select_related('room',
+                        'course__type__department', 'course__week')\
+        .exclude(course__type__department=req.department)
     dataset = SharedRoomsResource().export(courses)
     return HttpResponse(dataset.csv, content_type="text/csv")
 

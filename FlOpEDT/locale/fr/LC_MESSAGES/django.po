@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-18 13:58+0000\n"
+"POT-Creation-Date: 2023-12-08 15:59+0000\n"
 "PO-Revision-Date: 2021-03-14 13:02+0000\n"
 "Last-Translator: b'prenom_de_QTF nom_de_QTF <QTF@mail.com>'\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -102,6 +102,10 @@ msgstr "Schtroumpf"
 msgid "Is active?"
 msgstr "est active"
 
+#: TTapp/RoomConstraints/RoomConstraint.py:106
+msgid "Can combine two groups if no tutor"
+msgstr ""
+
 #: TTapp/RoomConstraints/RoomConstraint.py:109
 msgid "Limit simultaneous courses for rooms"
 msgstr "Limiter les cours simultanés (salles)"
@@ -114,15 +118,15 @@ msgstr "Choix de salles limité"
 msgid "Consider tutors rooms sorts"
 msgstr "Prendre en compte les préférences de salles"
 
-#: TTapp/RoomConstraints/RoomConstraint.py:367
+#: TTapp/RoomConstraints/RoomConstraint.py:372
 msgid "Assign a room to the courses"
 msgstr "Affecter une salle aux cours "
 
-#: TTapp/RoomConstraints/RoomConstraint.py:443
+#: TTapp/RoomConstraints/RoomConstraint.py:467
 msgid "Limit room moves for groups"
 msgstr "Limiter les changements de salle des groupes"
 
-#: TTapp/RoomConstraints/RoomConstraint.py:463
+#: TTapp/RoomConstraints/RoomConstraint.py:496
 msgid "Limit room moves for tutors"
 msgstr "Limiter les changements de salle des profs"
 
@@ -149,12 +153,12 @@ msgstr "OK"
 #: TTapp/TTConstraints/slots_constraints.py:123
 #: TTapp/TTConstraints/slots_constraints.py:146
 #: TTapp/TTConstraints/slots_constraints.py:156
-#: TTapp/TTConstraints/slots_constraints.py:486
-#: TTapp/TTConstraints/slots_constraints.py:493
-#: TTapp/TTConstraints/slots_constraints.py:500
-#: TTapp/TTConstraints/slots_constraints.py:514
-#: TTapp/TTConstraints/slots_constraints.py:522
-#: TTapp/TTConstraints/slots_constraints.py:531
+#: TTapp/TTConstraints/slots_constraints.py:491
+#: TTapp/TTConstraints/slots_constraints.py:498
+#: TTapp/TTConstraints/slots_constraints.py:505
+#: TTapp/TTConstraints/slots_constraints.py:519
+#: TTapp/TTConstraints/slots_constraints.py:527
+#: TTapp/TTConstraints/slots_constraints.py:536
 msgid "KO"
 msgstr "KO"
 
@@ -164,8 +168,8 @@ msgid ""
 "Group %(group_name)s has %(not_forbidden_duration)s available time but "
 "requires minimum %(min_course_time_needed)s."
 msgstr ""
-"Le groupe %(group_name)s a %(not_forbidden_duration)s minutes de "
-"temps disponible mais a besoin de %(min_course_time_needed)s minimum."
+"Le groupe %(group_name)s a %(not_forbidden_duration)s minutes de temps "
+"disponible mais a besoin de %(min_course_time_needed)s minimum."
 
 #: TTapp/TTConstraints/core_constraints.py:145
 #, python-format
@@ -173,8 +177,8 @@ msgid ""
 "Group %(group_name)s has %(not_forbidden_duration)s available time but "
 "probably requires minimum %(min_course_time_needed)s."
 msgstr ""
-"Le groupe %(group_name)s a %(not_forbidden_duration)s minutes de "
-"temps disponible mais a probablement besoin d'un minimum de "
+"Le groupe %(group_name)s a %(not_forbidden_duration)s minutes de temps "
+"disponible mais a probablement besoin d'un minimum de "
 "%(min_course_time_needed)s minutes."
 
 #: TTapp/TTConstraints/core_constraints.py:189
@@ -209,7 +213,9 @@ msgid "Schedule once every considered course"
 msgstr "Planifie une fois chaque cours considéré"
 
 #: TTapp/TTConstraints/core_constraints.py:339
-msgid "Pre-assigned courses only"
+#, fuzzy
+#| msgid "Pre-assigned courses only"
+msgid "pre_assigned_only"
 msgstr "Cours pré-assignés seulement"
 
 #: TTapp/TTConstraints/core_constraints.py:342
@@ -305,6 +311,10 @@ msgstr "Minimiser le nombre de créneaux non désirés"
 msgid "Minimize groups non-preferred slots"
 msgstr "Mininimise les créneaux non-désirés des groupes"
 
+#: TTapp/TTConstraints/groups_constraints.py:224
+msgid "min_hours"
+msgstr ""
+
 #: TTapp/TTConstraints/groups_constraints.py:228
 msgid "Respect groups min hours per day bounds"
 msgstr "Respecter le nb min d'heures par jour (groupes)"
@@ -337,11 +347,11 @@ msgstr "Minimise les demies-journées des modules"
 msgid "Full day"
 msgstr "journée entière"
 
-#: TTapp/TTConstraints/no_course_constraints.py:45 base/timing.py:145
+#: TTapp/TTConstraints/no_course_constraints.py:45 base/timing.py:148
 msgid "AM"
 msgstr "matin"
 
-#: TTapp/TTConstraints/no_course_constraints.py:45 base/timing.py:145
+#: TTapp/TTConstraints/no_course_constraints.py:45 base/timing.py:148
 msgid "PM"
 msgstr "après-midi"
 
@@ -349,11 +359,15 @@ msgstr "après-midi"
 msgid "fampm_period"
 msgstr "Période"
 
-#: TTapp/TTConstraints/no_course_constraints.py:73
+#: TTapp/TTConstraints/no_course_constraints.py:71
+msgid "transveral_groups_included"
+msgstr "Y compris les groupes transversaux"
+
+#: TTapp/TTConstraints/no_course_constraints.py:74
 msgid "No courses on declared days for groups"
 msgstr "Pas de cours pour les groupes certains jours"
 
-#: TTapp/TTConstraints/no_course_constraints.py:189
+#: TTapp/TTConstraints/no_course_constraints.py:194
 msgid "No courses on declared days for tutors"
 msgstr "Pas de cours pour les profs certains jours"
 
@@ -361,16 +375,36 @@ msgstr "Pas de cours pour les profs certains jours"
 msgid "Lunch break for groups"
 msgstr "Pause du midi pour les groupes"
 
-#: TTapp/TTConstraints/orsay_constraints.py:173
+#: TTapp/TTConstraints/orsay_constraints.py:166
+msgid "start lunch time"
+msgstr "Heure de début"
+
+#: TTapp/TTConstraints/orsay_constraints.py:167
+msgid "end lunch time"
+msgstr "Heure de fin"
+
+#: TTapp/TTConstraints/orsay_constraints.py:169
+msgid "considered week days"
+msgstr "Jours de la semaine considérés"
+
+#: TTapp/TTConstraints/orsay_constraints.py:170
+msgid "minimal lunch length (in min)"
+msgstr "Durée minimale (en min)"
+
+#: TTapp/TTConstraints/orsay_constraints.py:172
+msgid "considered tutors"
+msgstr "Profs considéré·e·s"
+
+#: TTapp/TTConstraints/orsay_constraints.py:175
 msgid "Lunch break for tutors"
 msgstr "Pause du midi pour les profs"
 
-#: TTapp/TTConstraints/orsay_constraints.py:230
+#: TTapp/TTConstraints/orsay_constraints.py:232
 #, python-brace-format
 msgid "Not able to eat in other departments on {day}-{week}"
 msgstr "Ne pourra pas manger dans un autre département {day}-{week}"
 
-#: TTapp/TTConstraints/orsay_constraints.py:305
+#: TTapp/TTConstraints/orsay_constraints.py:307
 msgid "A break around some type courses"
 msgstr "Une pause autour de ce type de cours"
 
@@ -386,6 +420,10 @@ msgstr "accompagnatrice·eur"
 #: TTapp/TTConstraints/simultaneity_constraints.py:52
 msgid "Not alone for these course types"
 msgstr "Pas seul·e pour ces types de cours"
+
+#: TTapp/TTConstraints/simultaneity_constraints.py:145
+msgid "Desired busy slots duration"
+msgstr ""
 
 #: TTapp/TTConstraints/simultaneity_constraints.py:149
 msgid "Parallelize courses"
@@ -427,8 +465,8 @@ msgstr "Eviter les heures de début considérées"
 msgid "Consider dependecies"
 msgstr "Prendre en compte les précédences en base"
 
-#: TTapp/TTConstraints/slots_constraints.py:488
-#: TTapp/TTConstraints/slots_constraints.py:495
+#: TTapp/TTConstraints/slots_constraints.py:493
+#: TTapp/TTConstraints/slots_constraints.py:500
 #, python-format
 msgid ""
 "There is no available slots for the second course after the first one : %s"
@@ -436,48 +474,49 @@ msgstr ""
 "Il n'y a pas de créneaux disponibles pour le deuxième cours après le "
 "premier : %s"
 
-#: TTapp/TTConstraints/slots_constraints.py:502
+#: TTapp/TTConstraints/slots_constraints.py:507
 #, python-format
 msgid "There is no available slots for the first or the second course : %s"
 msgstr ""
 "Il n'y a pas de créneaux disponibles pour le premier ou le deuxième cours : "
 "%s"
 
-#: TTapp/TTConstraints/slots_constraints.py:516
+#: TTapp/TTConstraints/slots_constraints.py:521
 #, python-format
 msgid "There is no available successive slots for those courses: %s"
 msgstr "Il n'y a pas de créneaux successifs disponibles pour ces cours : %s"
 
-#: TTapp/TTConstraints/slots_constraints.py:524
+#: TTapp/TTConstraints/slots_constraints.py:529
 #, python-format
 msgid ""
 "There is no available slots for the second course after a %(day_gap)s day "
 "gap: %(dependency)s"
 msgstr ""
-"Il n'y a pas de créneaux disponibles pour le second cours %(day_gap)s jours après le premier: %(dependency)s"
+"Il n'y a pas de créneaux disponibles pour le second cours %(day_gap)s jours "
+"après le premier: %(dependency)s"
 
-#: TTapp/TTConstraints/slots_constraints.py:533
+#: TTapp/TTConstraints/slots_constraints.py:538
 #, python-format
 msgid "One of the courses has no eligible tutor to lecture it: %s"
 msgstr "Un des cours n'a pas de professeur qui puisse être attribué : %s"
 
-#: TTapp/TTConstraints/slots_constraints.py:603
+#: TTapp/TTConstraints/slots_constraints.py:608
 msgid "Consider pivots"
 msgstr "Prendre en compte les pivots"
 
-#: TTapp/TTConstraints/slots_constraints.py:677
+#: TTapp/TTConstraints/slots_constraints.py:682
 msgid "Avoid using both times on same day"
 msgstr "Eviter d'utiliser les deux créneaux le même jour"
 
-#: TTapp/TTConstraints/slots_constraints.py:735 ics/templates/ics/index.html:66
+#: TTapp/TTConstraints/slots_constraints.py:740 ics/templates/ics/index.html:66
 msgid "Tutors"
 msgstr "Enseignant⋅e⋅s"
 
-#: TTapp/TTConstraints/slots_constraints.py:741
+#: TTapp/TTConstraints/slots_constraints.py:746
 msgid "Limit undesired slots per week"
 msgstr "Limiter le nombre de slots non désirés par semaine"
 
-#: TTapp/TTConstraints/slots_constraints.py:795
+#: TTapp/TTConstraints/slots_constraints.py:800
 msgid "Limit simultaneous courses number"
 msgstr "Limiter le nombre de cours simultanés"
 
@@ -492,6 +531,10 @@ msgstr "Stabiliser les cours des groupes"
 #: TTapp/TTConstraints/stabilization_constraints.py:174
 msgid "Stabilization through weeks"
 msgstr "Stabilisation ?"
+
+#: TTapp/TTConstraints/tutors_constraints.py:52
+msgid "If a tutor has 2 or 4 courses only, join it?"
+msgstr "Si un prof a 2 ou 4 cours, les grouper?"
 
 #: TTapp/TTConstraints/tutors_constraints.py:56
 msgid "Minimize busy half days for tutors"
@@ -537,7 +580,7 @@ msgstr "Borner les demies-journées de présence"
 msgid "Curfew"
 msgstr "Couvre-feu"
 
-#: TTapp/TTModel.py:104
+#: TTapp/TTModel.py:105
 #, python-brace-format
 msgid ""
 "\n"
@@ -546,18 +589,28 @@ msgstr ""
 "\n"
 "C'est parti pour les semaines suivantes: {self.weeks}"
 
-#: TTapp/TTModel.py:114
+#: TTapp/TTModel.py:115
 msgid "Rooms assignment :"
 msgstr "Assignation des salles :"
 
-#: TTapp/TTModel.py:125
+#: TTapp/TTModel.py:126
 #, python-brace-format
 msgid "Will modify only courses of training programme(s) {train_prog}"
 msgstr "Ne modifie que les cours des promos {train_prog}"
 
-#: TTapp/TTModel.py:156
+#: TTapp/TTModel.py:157
 msgid "Relevant warnings :"
 msgstr "Avertissements importants :"
+
+#: TTapp/TTModel.py:1141
+msgid ""
+"This email was automatically sent by the flop!EDT timetable generator\n\n"
+msgstr "Ce mail a été envoyé automatiquement par flop!EDT\n\n"
+
+#: TTapp/TTModel.py:1142
+msgid ""
+"Here is the log of the last run of the generator:\n\n"
+msgstr "Voici le log de la dernière génération du solveur\n\n"
 
 #: TTapp/TTUtils.py:45
 msgid "Reload..."
@@ -572,7 +625,7 @@ msgstr "Copié dans la copie {result_work_copy}"
 msgid "Impossible to assign rooms"
 msgstr "Réassignation impossible"
 
-#: TTapp/TTUtils.py:415
+#: TTapp/TTUtils.py:419
 #, python-format
 msgid "%s, "
 msgstr ""
@@ -597,7 +650,7 @@ msgstr ""
 "Les méthodes POST, PUT, PATCH and DELETE sont réservées aux "
 "administrateurices"
 
-#: base/admin.py:608 base/admin.py:634 base/admin.py:647
+#: base/admin.py:609 base/admin.py:635 base/admin.py:648
 msgid "Week"
 msgstr "Semaine"
 
@@ -801,7 +854,7 @@ msgstr ""
 "aucune disponibilité n'est renseignée pour cette semaine, la semaine type "
 "définit les disponibilités."
 
-#: base/templates/base/help.html:59
+#: base/templates/base/help.html:60
 msgid "Some Tutorial Videos"
 msgstr "Quelques Tutos Vidéos"
 
@@ -869,31 +922,31 @@ msgstr "Propositions"
 msgid " How ?"
 msgstr "Comment ?"
 
-#: base/templates/base/show-edt.html:49
+#: base/templates/base/show-edt.html:50
 msgid "Check election"
 msgstr "Vérifier élection"
 
-#: base/templates/base/show-edt.html:53
+#: base/templates/base/show-edt.html:54
 msgid "Elect this copy"
 msgstr "Elire cette copie"
 
-#: base/templates/base/show-edt.html:57
+#: base/templates/base/show-edt.html:58
 msgid "Duplicate this copy"
 msgstr "Dupliquer cette copie"
 
-#: base/templates/base/show-edt.html:61
+#: base/templates/base/show-edt.html:62
 msgid "Delete this copy"
 msgstr "Supprimer cette copie"
 
-#: base/templates/base/show-edt.html:65
+#: base/templates/base/show-edt.html:66
 msgid "Delete all copies except the 0"
 msgstr "Supprimer toutes les copies sauf la 0"
 
-#: base/templates/base/show-edt.html:69
+#: base/templates/base/show-edt.html:70
 msgid "Reassign rooms"
 msgstr "Réassigner les salles"
 
-#: base/templates/base/show-edt.html:73
+#: base/templates/base/show-edt.html:74
 msgid "Duplicate (what can be) in other weeks"
 msgstr "Dupliquer (ce qui peut l'être) ailleurs"
 
@@ -979,21 +1032,21 @@ msgstr "Mes préférences de salles"
 msgid "Select my favorite rooms"
 msgstr "Choisir mes salles préférées"
 
-#: base/templates/base/show-stype.html:171
+#: base/templates/base/show-stype.html:172
 msgid "Teachers"
 msgstr "Enseignant·e⋅s"
 
-#: base/templates/base/show-stype.html:172
-#: base/templates/base/show-stype.html:192
+#: base/templates/base/show-stype.html:173
+#: base/templates/base/show-stype.html:193
 msgid "Transformation in : "
 msgstr "Tranformation en : "
 
-#: base/templates/base/show-stype.html:178
-#: base/templates/base/show-stype.html:184
+#: base/templates/base/show-stype.html:179
+#: base/templates/base/show-stype.html:185
 msgid "Types of classes"
 msgstr "Type de cours"
 
-#: base/templates/base/show-stype.html:191 ics/templates/ics/index.html:82
+#: base/templates/base/show-stype.html:192 ics/templates/ics/index.html:82
 msgid "Rooms"
 msgstr "Salles"
 
@@ -1013,51 +1066,51 @@ msgstr "Votre thème est"
 msgid "Create or modify a link"
 msgstr "Créer ou modifier un lien"
 
-#: base/timing.py:211
+#: base/timing.py:214
 msgid "monday"
 msgstr "lundi"
 
-#: base/timing.py:211
+#: base/timing.py:214
 msgid "tuesday"
 msgstr "mardi"
 
-#: base/timing.py:212
+#: base/timing.py:215
 msgid "wednesday"
 msgstr "mercredi"
 
-#: base/timing.py:212
+#: base/timing.py:215
 msgid "thursday"
 msgstr "jeudi"
 
-#: base/timing.py:213
+#: base/timing.py:216
 msgid "friday"
 msgstr "vendredi"
 
-#: base/timing.py:213
+#: base/timing.py:216
 msgid "saturday"
 msgstr "samedi"
 
-#: base/timing.py:214
+#: base/timing.py:217
 msgid "sunday"
 msgstr "dimanche"
 
-#: base/views.py:1592
+#: base/views.py:1658
 msgid "Not authorized. New link then."
 msgstr "Non autorisé. Création d'un nouveau lien."
 
-#: base/views.py:1595
+#: base/views.py:1661
 msgid "Unknown link. New link then."
 msgstr "Lien inconnu. Création d'un nouveau lien."
 
-#: base/views.py:1607 notifications/notifications.py:129
+#: base/views.py:1672 notifications/notifications.py:129
 msgid "Created"
 msgstr "Créé"
 
-#: base/views.py:1607
+#: base/views.py:1672
 msgid "Modified"
 msgstr "Modifié"
 
-#: base/views.py:1610
+#: base/views.py:1675
 msgid "Tutor does not exist"
 msgstr "L'utilisateur n'existe pas."
 
@@ -1162,7 +1215,7 @@ msgstr "Modifier"
 
 #: configuration/templates/configuration/configuration.html:48
 #: configuration/templates/configuration/configuration.html:153
-#: templates/base.html:117
+#: templates/base.html:122
 msgid "Import"
 msgstr "Importer"
 
@@ -1250,103 +1303,103 @@ msgstr "(Ré)assigner les couleurs ?"
 msgid "Constraints manager"
 msgstr "Gérer les contraintes"
 
-#: cstmanager/templates/cstmanager/index.html:34
+#: cstmanager/templates/cstmanager/index.html:38
 msgid "New Constraint"
 msgstr "Nouvelle contrainte"
 
-#: cstmanager/templates/cstmanager/index.html:39
+#: cstmanager/templates/cstmanager/index.html:43
 msgid "Discard Changes"
 msgstr "Annuler tout"
 
-#: cstmanager/templates/cstmanager/index.html:44
+#: cstmanager/templates/cstmanager/index.html:48
 msgid "Commit Changes"
 msgstr "Enregistrer en base"
 
-#: cstmanager/templates/cstmanager/index.html:49
+#: cstmanager/templates/cstmanager/index.html:53
 msgid "Reload Constraints"
 msgstr "Recharger"
 
-#: cstmanager/templates/cstmanager/index.html:53
+#: cstmanager/templates/cstmanager/index.html:57
 msgid "Search"
 msgstr "Rechercher"
 
-#: cstmanager/templates/cstmanager/index.html:69
+#: cstmanager/templates/cstmanager/index.html:73
 msgid "See all weeks"
 msgstr "Voir toutes les semaines"
 
-#: cstmanager/templates/cstmanager/index.html:76
+#: cstmanager/templates/cstmanager/index.html:80
 msgid "Show Disabled"
 msgstr "Montrer les contraintes inactives"
 
-#: cstmanager/templates/cstmanager/index.html:81
+#: cstmanager/templates/cstmanager/index.html:85
 msgid "Clear Filters"
 msgstr "Filtres à zéro"
 
-#: cstmanager/templates/cstmanager/index.html:86
+#: cstmanager/templates/cstmanager/index.html:90
 msgid "Gathering :"
 msgstr "Regroupement :"
 
-#: cstmanager/templates/cstmanager/index.html:88
+#: cstmanager/templates/cstmanager/index.html:92
 msgid "by status"
 msgstr "par statut"
 
-#: cstmanager/templates/cstmanager/index.html:89
+#: cstmanager/templates/cstmanager/index.html:93
 msgid "by class"
 msgstr "par type"
 
-#: cstmanager/templates/cstmanager/index.html:90
+#: cstmanager/templates/cstmanager/index.html:94
 msgid "None"
 msgstr "Aucun"
 
-#: cstmanager/templates/cstmanager/index.html:102
+#: cstmanager/templates/cstmanager/index.html:106
 msgid "Edit constraint"
 msgstr "Modifier"
 
-#: cstmanager/templates/cstmanager/index.html:110
+#: cstmanager/templates/cstmanager/index.html:114
 msgid "Select type..."
 msgstr "Choisir le type..."
 
-#: cstmanager/templates/cstmanager/index.html:116
+#: cstmanager/templates/cstmanager/index.html:120
 msgid "Title"
 msgstr "Titre"
 
-#: cstmanager/templates/cstmanager/index.html:121
+#: cstmanager/templates/cstmanager/index.html:125
 msgid "Comment"
 msgstr "Commentaire"
 
-#: cstmanager/templates/cstmanager/index.html:132
+#: cstmanager/templates/cstmanager/index.html:136
 msgid "Activated?"
 msgstr "Activée ?"
 
-#: cstmanager/templates/cstmanager/index.html:146
+#: cstmanager/templates/cstmanager/index.html:150
 msgid "Cancel"
 msgstr "Annuler"
 
-#: cstmanager/templates/cstmanager/index.html:149
+#: cstmanager/templates/cstmanager/index.html:153
 msgid "Save changes"
 msgstr "Enregistrer"
 
-#: cstmanager/templates/cstmanager/index.html:157
+#: cstmanager/templates/cstmanager/index.html:161
 msgid "Preanalyse"
 msgstr "Pré-analyse"
 
-#: cstmanager/templates/cstmanager/index.html:177
+#: cstmanager/templates/cstmanager/index.html:181
 msgid "Select all"
 msgstr "Sélectionner tout"
 
-#: cstmanager/templates/cstmanager/index.html:182
+#: cstmanager/templates/cstmanager/index.html:186
 msgid "Selected constraints :"
 msgstr "Contraintes sélectionnées :"
 
-#: cstmanager/templates/cstmanager/index.html:190
+#: cstmanager/templates/cstmanager/index.html:194
 msgid "Weight"
 msgstr "Poids"
 
-#: cstmanager/templates/cstmanager/index.html:205
+#: cstmanager/templates/cstmanager/index.html:209
 msgid "Set weight"
 msgstr "Affecter le poids"
 
-#: cstmanager/templates/cstmanager/index.html:208
+#: cstmanager/templates/cstmanager/index.html:212
 msgid "Delete"
 msgstr "Supprimer"
 
@@ -1413,40 +1466,48 @@ msgstr "Nom"
 msgid "Planned generations"
 msgstr "Générations prévues"
 
-#: notifications/notifications.py:125
-msgid "Deleted"
-msgstr "Supprimé"
+#: notifications/discord/discord_notifications.py:127
+#: notifications/notifications.py:151 notifications/notifications.py:165
+msgid "Module"
+msgstr "Module"
 
-#: notifications/notifications.py:147 notifications/notifications.py:161
-msgid "Mode"
-msgstr "Mode"
+#: notifications/discord/discord_notifications.py:127
+#: notifications/notifications.py:152
+msgid "Tutor"
+msgstr "Prof"
 
+#: notifications/discord/discord_notifications.py:128
+#: notifications/discord/discord_notifications.py:164
 #: notifications/notifications.py:148 notifications/notifications.py:162
 #: notifications/notifications.py:184 notifications/notifications.py:232
 #: notifications/notifications.py:267
 msgid "Date"
 msgstr "Date "
 
+#: notifications/discord/discord_notifications.py:128
+#: notifications/discord/discord_notifications.py:164
 #: notifications/notifications.py:149 notifications/notifications.py:163
 #: notifications/notifications.py:232 notifications/notifications.py:267
 msgid "Start time"
 msgstr "Heure"
 
-#: notifications/notifications.py:150 notifications/notifications.py:164
-msgid "Course Type"
-msgstr "Type"
+#: notifications/discord/discord_notifications.py:130
+#: notifications/notifications.py:147 notifications/notifications.py:161
+msgid "Mode"
+msgstr "Mode"
 
-#: notifications/notifications.py:151 notifications/notifications.py:165
-msgid "Module"
-msgstr "Module"
-
-#: notifications/notifications.py:152
-msgid "Tutor"
-msgstr "Prof"
-
+#: notifications/discord/discord_notifications.py:133
 #: notifications/notifications.py:153 notifications/notifications.py:168
 msgid "Room"
 msgstr "Salle"
+
+#: notifications/notifications.py:125
+msgid "Deleted"
+msgstr "Supprimé"
+
+#: notifications/notifications.py:150 notifications/notifications.py:164
+msgid "Course Type"
+msgstr "Type"
 
 #: notifications/notifications.py:166
 msgid "Train_prog"
@@ -1491,7 +1552,7 @@ msgstr "Concernant le département %s :"
 msgid "Forgot password?"
 msgstr "Mot de passe perdu ?"
 
-#: people/templates/people/login.html:55 templates/base.html:131
+#: people/templates/people/login.html:55 templates/base.html:136
 msgid "Sign in"
 msgstr "Se connecter"
 
@@ -1519,11 +1580,11 @@ msgstr "Les trous"
 msgid "Eat early or late?"
 msgstr "Manger tôt ou tard ?"
 
-#: people/views.py:223
+#: people/views.py:257
 msgid "Not allowed"
 msgstr "Non autorisé"
 
-#: people/views.py:229
+#: people/views.py:263
 #, python-brace-format
 msgid "No such user as {user}"
 msgstr "Aucun utilisateur {user}"
@@ -1604,11 +1665,11 @@ msgstr "Réservation de salles"
 msgid "Schedule Generation"
 msgstr "Génération d'EDT"
 
-#: solve_board/templates/solve_board/main-board.html:66 templates/base.html:113
+#: solve_board/templates/solve_board/main-board.html:67 templates/base.html:118
 msgid "Constraints"
 msgstr "Contraintes"
 
-#: solve_board/templates/solve_board/main-board.html:67
+#: solve_board/templates/solve_board/main-board.html:68
 msgid ""
 "All constraints appearing in bolded - with no weight - will be considered "
 "mandatory, the other ones will considered as preferences."
@@ -1617,45 +1678,49 @@ msgstr ""
 "prises en compte de manière obligatoire, les autres seront utilisées dans la "
 "résolution comme des préférences."
 
-#: solve_board/templates/solve_board/main-board.html:72
+#: solve_board/templates/solve_board/main-board.html:73
 msgid "Configuration"
 msgstr "Configuration"
 
-#: solve_board/templates/solve_board/main-board.html:77
+#: solve_board/templates/solve_board/main-board.html:78
 msgid "Week⋅s"
 msgstr "Semaine(s)"
 
-#: solve_board/templates/solve_board/main-board.html:82
+#: solve_board/templates/solve_board/main-board.html:83
 msgid "All weeks together ?"
 msgstr "Toutes en une seule fois ?"
 
-#: solve_board/templates/solve_board/main-board.html:86
+#: solve_board/templates/solve_board/main-board.html:87
 msgid "Training Program"
 msgstr "Promotion"
 
-#: solve_board/templates/solve_board/main-board.html:90
+#: solve_board/templates/solve_board/main-board.html:91
 msgid "Stabilization"
 msgstr "Stabilisation"
 
-#: solve_board/templates/solve_board/main-board.html:95
+#: solve_board/templates/solve_board/main-board.html:96
 msgid "Solver"
 msgstr "Solveur"
 
-#: solve_board/templates/solve_board/main-board.html:107
+#: solve_board/templates/solve_board/main-board.html:108
 msgid "Pre-assign rooms"
 msgstr "Pré-assigner les salles"
 
-#: solve_board/templates/solve_board/main-board.html:109
+#: solve_board/templates/solve_board/main-board.html:110
 msgid "Post-assign rooms"
 msgstr "Post-assigner les salles"
 
-#: solve_board/templates/solve_board/main-board.html:112
+#: solve_board/templates/solve_board/main-board.html:113
 msgid "Time limit (minuts)"
 msgstr "Durée limite (min)"
 
-#: solve_board/templates/solve_board/main-board.html:118
+#: solve_board/templates/solve_board/main-board.html:119
 msgid "Unlimited"
 msgstr "Illimité"
+
+#: solve_board/templates/solve_board/main-board.html:125
+msgid "Send log email"
+msgstr "Envoyer le log par mail"
 
 #: templates/base.html:53
 msgid "Schedule_title"
@@ -1665,55 +1730,55 @@ msgstr "Emplois du temps"
 msgid "<span id=flopGreen >flop</span>!<span id=EDTRed >Scheduler</span>"
 msgstr "<span id=flopGreen >flop</span>!<span id=EDTRed >EDT</span>"
 
-#: templates/base.html:102
+#: templates/base.html:107
 msgid "Schedule_banner"
 msgstr "Consulter"
 
-#: templates/base.html:104
+#: templates/base.html:109
 msgid "Move/Cancel"
 msgstr "Décaler/Annuler"
 
-#: templates/base.html:106
+#: templates/base.html:111
 msgid "Preferences"
 msgstr "Préférences"
 
-#: templates/base.html:107
+#: templates/base.html:112
 msgid "iCal"
 msgstr "iCal"
 
-#: templates/base.html:108
+#: templates/base.html:113
 msgid "Help"
 msgstr "Aide"
 
-#: templates/base.html:109
+#: templates/base.html:114
 msgid "Messages"
 msgstr "Contact"
 
-#: templates/base.html:110
+#: templates/base.html:115
 msgid "Modules"
 msgstr "Modules"
 
-#: templates/base.html:111
+#: templates/base.html:116
 msgid "Reservations"
 msgstr "Réservations"
 
-#: templates/base.html:114
+#: templates/base.html:119
 msgid "Generate"
 msgstr "Générer"
 
-#: templates/base.html:115
+#: templates/base.html:120
 msgid "flop!EDITOR"
 msgstr "flop!EDITOR"
 
-#: templates/base.html:118
+#: templates/base.html:123
 msgid "Admin"
 msgstr "Admin"
 
-#: templates/base.html:124 templates/base.html:126 templates/base.html:128
+#: templates/base.html:129 templates/base.html:131 templates/base.html:133
 msgid "Sign out"
 msgstr "Déconnexion"
 
-#: templates/base.html:135
+#: templates/base.html:140
 msgid "Signed in as "
 msgstr "Connecté·e sous "
 

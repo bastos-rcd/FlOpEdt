@@ -41,7 +41,7 @@ from people.models import Tutor, GroupPreferences, StudentPreferences, Student, 
     UserPreferredLinks, PhysicalPresence, User
 from people.admin import TutorResource, GroupPreferencesResource, \
     StudentPreferencesResource, UserPreferredLinksResource, PhysicalPresenceResource
-from base.models import Department, Week, Theme
+from base.models import Department, SchedulingPeriod, Theme
 
 logger = logging.getLogger(__name__)
 

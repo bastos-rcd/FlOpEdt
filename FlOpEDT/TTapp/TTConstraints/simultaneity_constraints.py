@@ -87,7 +87,7 @@ class NotAloneForTheseCouseTypes(TTConstraint):
 
         return text
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=10):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=10):
         considered_course_types = ttmodel.wdb.course_types
         if self.course_types.exists():
             considered_course_types &= set(self.course_types.all())
@@ -103,11 +103,11 @@ class NotAloneForTheseCouseTypes(TTConstraint):
             possible_tutor_guides = guides_to_consider - {tutor}
             for ct in considered_course_types:
                 for m in considered_modules:
-                    courses = set(ttmodel.wdb.courses.filter(module=m, type=ct, week=week))
+                    courses = set(ttmodel.wdb.courses.filter(module=m, type=ct, period=period))
                     tutor_courses = courses & ttmodel.wdb.possible_courses[tutor]
                     if not ttmodel.wdb.possible_courses[tutor] & courses:
                         continue
-                    for sl in slots_filter(ttmodel.wdb.courses_slots, week=week):
+                    for sl in slots_filter(ttmodel.wdb.courses_slots, period=period):
                         tutor_sum = ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor]
                                                 for c in tutor_courses & ttmodel.wdb.compatible_courses[sl])
                         guide_tutors_sum = ttmodel.sum(ttmodel.TTinstructors[sl, c, g]
@@ -118,7 +118,7 @@ class NotAloneForTheseCouseTypes(TTConstraint):
                         if self.weight is None:
                             ttmodel.add_constraint(tutor_sum - guide_tutors_sum, '<=', 0,
                                                    Constraint(constraint_type=ConstraintType.NOT_ALONE,
-                                                              instructors=tutor, weeks=week)
+                                                              instructors=tutor, periods=period)
                                                    )
                         else:
                             tutor_without_a_guide = ttmodel.add_var()
@@ -139,9 +139,9 @@ class ParallelizeCourses(TTConstraint):
     TTConstraint : Guarantees that the total course time of certain class of courses do not exceed a certain bound
     '''
 
-    course_type = models.ForeignKey('base.CourseType', null=True, blank=True, on_delete=models.CASCADE)
-    module = models.ForeignKey('base.Module', null=True, blank=True, on_delete=models.CASCADE)
-    desired_busy_slots_duration = models.PositiveSmallIntegerField(verbose_name="max busy slots duration desired")
+    course_types = models.ManyToManyField('base.CourseType', blank=True)
+    modules = models.ManyToManyField('base.Module', blank=True)
+    desired_busy_slots_duration = models.PositiveSmallIntegerField(verbose_name=_("Desired busy slots duration"))
 
 
     class Meta:
@@ -171,9 +171,9 @@ class ParallelizeCourses(TTConstraint):
 
         return text
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=10):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=10):
 
-        considered_courses = set(ttmodel.wdb.courses.filter(week=week))
+        considered_courses = set(ttmodel.wdb.courses.filter(period=period))
         if self.course_type is not None:
             considered_courses = considered_courses.filter(type=self.course_type)
         if self.module is not None:
@@ -200,4 +200,4 @@ class ParallelizeCourses(TTConstraint):
             for bound in range(start, end+1, step):
                 cost *= 2
                 cost += ttmodel.add_floor(total_courses_duration, bound-1, 100000)
-            ttmodel.add_to_generic_cost(cost*self.local_weight()*ponderation, week)
+            ttmodel.add_to_generic_cost(cost*self.local_weight()*ponderation, period)

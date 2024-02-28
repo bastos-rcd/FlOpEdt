@@ -1,4 +1,4 @@
-ARG BASE_IMG=python:3.7
+ARG BASE_IMG=python:3.11
 FROM $BASE_IMG
 
 # see output in our console 
@@ -13,7 +13,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && python --version \
     && pip install --upgrade pip \
-    && pip install matplotlib \
     && pip install --no-cache-dir -r /requirements.txt \
     && pip install --no-cache-dir -r /requirements.$CONFIG.txt \
     && apt-get purge -y --auto-remove gcc python3-dev apt-utils

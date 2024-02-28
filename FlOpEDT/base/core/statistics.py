@@ -84,19 +84,19 @@ def get_room_activity_by_day(department, year=None):
 
         for current_year, weeks in period:
             for current_week in weeks:
-                for week_day, _ in Day.CHOICES:
+                for weekday, _ in Day.CHOICES:
 
                     # Test if the current day is a holiday
-                    if (current_year, current_week, week_day,) in holiday_list:
+                    if (current_year, current_week, weekday,) in holiday_list:
                         continue
 
                     # Check occupation only for open days
-                    if week_day == Day.SATURDAY or week_day == Day.SUNDAY:
+                    if weekday == Day.SATURDAY or weekday == Day.SUNDAY:
                         continue
                     
                     # Test if a course has been realised in the 
                     # current room for a given day number
-                    room_availability = (room, current_year, current_week, week_day)
+                    room_availability = (room, current_year, current_week, weekday)
                     if not(room_availability in scheduled):
                         room_context['count'] += 1 
         

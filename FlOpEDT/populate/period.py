@@ -55,3 +55,8 @@ def generate_scheduling_periods(
         current = future
 
     SchedulingPeriodModel.objects.bulk_create(objects)
+
+
+
+
+

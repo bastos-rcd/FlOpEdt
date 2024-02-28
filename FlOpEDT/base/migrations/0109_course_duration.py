@@ -13,7 +13,7 @@ def transfer_duration(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("base", "0108_alter_module_period"),
+        ("base", "0106_rename_period_trainingperiod_and_more"),
     ]
 
     operations = [

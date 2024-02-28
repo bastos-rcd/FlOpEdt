@@ -8,11 +8,11 @@ from base import weeks
 
 class EdtVersion(models.Model):
     department = models.ForeignKey('base.Department', on_delete=models.CASCADE, null=True)
-    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
+    period = models.ForeignKey('SchedulingPeriod', on_delete=models.CASCADE, null=True, blank=True)
     version = models.PositiveIntegerField(default=0)
 
     class Meta:
-        unique_together = (("department", "week"),)
+        unique_together = (("department", "period"),)
 
 
 #    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -21,12 +21,12 @@ class EdtVersion(models.Model):
 # null iff no change
 class CourseModification(models.Model):
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
-    old_week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
+    old_period = models.ForeignKey('SchedulingPeriod', on_delete=models.CASCADE, null=True, blank=True)
     room_old = models.ForeignKey(
         'Room', blank=True, null=True, on_delete=models.CASCADE)
     day_old = models.CharField(
         max_length=2, choices=Day.CHOICES, default=None, null=True)
-    start_time_old = models.PositiveSmallIntegerField(default=None, null=True)  # FIXME : time with TimeField or DurationField
+    start_time_old = models.DateTimeField(default=None, null=True) 
     tutor_old = models.ForeignKey('people.Tutor',
                                   related_name='impacted_by_course_modif',
                                   null=True,
@@ -44,7 +44,7 @@ class CourseModification(models.Model):
                 course=course, work_copy=0)
         department = course.type.department
         al = '\n  · '
-        same = f'- Cours {course.module.abbrev} semaine {course.week}'
+        same = f'- Cours {course.module.abbrev} semaine {course.period}'
         changed = ''
 
         tutor_old_name = self.tutor_old.username if self.tutor_old is not None else "personne"

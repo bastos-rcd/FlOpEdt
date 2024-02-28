@@ -36,7 +36,7 @@ from base.models import (
 from base.timing import Day
 import base.queries as queries
 
-from TTapp.slots import Slot
+from TTapp.slots import Slot, days_filter
 
 from django.db.models import F, Q
 
@@ -45,7 +45,7 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 
 from core.decorators import timer
 
-from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints
+from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints, solution_files_path
 from TTapp.RoomConstraints.RoomConstraint import (
     LocateAllCourses,
     LimitGroupMoves,
@@ -63,20 +63,20 @@ from roomreservation.models import RoomReservation
 class RoomModel(FlopModel):
     @timer
     def __init__(
-        self, department_abbrev, weeks, work_copy=0, keep_many_solution_files=False
+        self, department_abbrev, periods, work_copy=0, keep_many_solution_files=False
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
         super(RoomModel, self).__init__(
-            department_abbrev, weeks, keep_many_solution_files=keep_many_solution_files
+            department_abbrev, periods, keep_many_solution_files=keep_many_solution_files
         )
 
-        print("\nLet's start rooms affectation for weeks #%s" % self.weeks)
+        print("\nLet's start rooms affectation for periods %s" % self.periods)
         self.work_copy = work_copy
         (
             self.scheduled_courses,
             self.courses,
             self.corresponding_scheduled_course,
-            self.courses_for_week,
+            self.courses_for_period,
         ) = self.courses_init()
         self.days, self.slots = self.slots_init()
         (
@@ -116,13 +116,14 @@ class RoomModel(FlopModel):
             for key, key_warnings in self.warnings.items():
                 print("%s : %s" % (key, ", ".join([str(x) for x in key_warnings])))
 
-    def solution_files_prefix(self):
-        return f"room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.weeks)}"
+    # Some extra Utils
+    def log_files_prefix(self):
+        return f"room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.periods)}"
 
     @timer
     def courses_init(self):
         scheduled_courses = ScheduledCourse.objects.filter(
-            course__week__in=self.weeks,
+            course__period__in=self.periods,
             work_copy=self.work_copy,
             course__type__department=self.department,
         ).select_related("course")
@@ -132,28 +133,28 @@ class RoomModel(FlopModel):
         corresponding_scheduled_course = {}
         for scheduled_course in scheduled_courses:
             corresponding_scheduled_course[scheduled_course.course] = scheduled_course
-        courses_for_week = {}
-        for week in self.weeks:
-            courses_for_week[week] = set(courses.filter(week=week))
+        courses_for_period = {}
+        for period in self.periods:
+            courses_for_period[period] = set(courses.filter(period=period))
         return (
             scheduled_courses,
             courses,
             corresponding_scheduled_course,
-            courses_for_week,
+            courses_for_period,
         )
 
     @timer
     def slots_init(self):
-        days = [
-            Day(week=week, day=day)
-            for week in self.weeks
-            for day in TimeGeneralSettings.objects.get(department=self.department).days
-        ]
+        all_days = set()
+        for period in self.periods:
+            all_days |= set(period.dates())
+        days = list(days_filter(all_days, weekday_in=TimeGeneralSettings.objects.get(department=self.department).days))
+        days.sort()
 
         slots = []
         for day in days:
             scheduled_courses_of_the_day = self.scheduled_courses.filter(
-                course__week=day.week, day=day.day
+                start_time__date = day
             )
             if not scheduled_courses_of_the_day.exists():
                 continue
@@ -164,14 +165,14 @@ class RoomModel(FlopModel):
             times_list.sort()
             for i in range(len(times_list) - 1):
                 slots.append(
-                    Slot(day=day, start_time=times_list[i], end_time=times_list[i + 1])
+                    Slot(start_time=times_list[i], end_time=times_list[i + 1])
                 )
         return days, slots
 
     @timer
     def other_departments_located_scheduled_courses_init(self):
         other_departments_located_scheduled_courses = (
-            ScheduledCourse.objects.filter(course__week__in=self.weeks, work_copy=0)
+            ScheduledCourse.objects.filter(course__period__in=self.periods, work_copy=0)
             .exclude(course__type__department=self.department)
             .exclude(room=None)
         )
@@ -334,16 +335,14 @@ class RoomModel(FlopModel):
                 if RoomAvailability.objects.filter(
                     start_time__lt=sl.start_time + sl.duration,
                     start_time__gt=sl.start_time - F("duration"),
-                    day=sl.day.day,
-                    week=sl.day.week,
                     room=room,
                     value=0,
                 ).exists():
                     avail_room[room][sl] = 0
                 elif RoomReservation.objects.filter(
-                    start_time__lt=floptime_to_time(sl.start_time + sl.duration),
-                    end_time__gt=floptime_to_time(sl.start_time),
-                    date=flopday_to_date(sl.day),
+                    start_time__lt=sl.start_time + sl.duration,
+                    end_time__gt=sl.start_time,
+                    date=sl.date,
                     room=room,
                 ).exists():
                     avail_room[room][sl] = 0
@@ -370,7 +369,7 @@ class RoomModel(FlopModel):
                 zip(
                     self.tutors,
                     [
-                        {week: self.lin_expr() for week in self.weeks + [None]}
+                        {period: self.lin_expr() for period in self.periods + [None]}
                         for _ in self.tutors
                     ],
                 )
@@ -382,7 +381,7 @@ class RoomModel(FlopModel):
                 zip(
                     self.basic_groups,
                     [
-                        {week: self.lin_expr() for week in self.weeks + [None]}
+                        {period: self.lin_expr() for period in self.periods + [None]}
                         for _ in self.basic_groups
                     ],
                 )
@@ -391,21 +390,21 @@ class RoomModel(FlopModel):
 
         cost_SL = dict(list(zip(self.slots, [self.lin_expr() for _ in self.slots])))
 
-        generic_cost = {week: self.lin_expr() for week in self.weeks + [None]}
+        generic_cost = {period: self.lin_expr() for period in self.periods + [None]}
 
         return cost_I, cost_G, cost_SL, generic_cost
 
-    def add_to_slot_cost(self, slot, cost):
+    def add_to_slot_cost(self, slot, cost, week=None):
         self.cost_SL[slot] += cost
 
-    def add_to_inst_cost(self, instructor, cost, week=None):
-        self.cost_I[instructor][week] += cost
+    def add_to_inst_cost(self, instructor, cost, period=None):
+        self.cost_I[instructor][period] += cost
 
-    def add_to_group_cost(self, group, cost, week=None):
-        self.cost_G[group][week] += cost
+    def add_to_group_cost(self, group, cost, period=None):
+        self.cost_G[group][period] += cost
 
-    def add_to_generic_cost(self, cost, week=None):
-        self.generic_cost[week] += cost
+    def add_to_generic_cost(self, cost, period=None):
+        self.generic_cost[period] += cost
 
     @timer
     def add_core_constraints(self):
@@ -441,21 +440,21 @@ class RoomModel(FlopModel):
         """
         Add the active specific constraints stored in the database.
         """
-        for week in self.weeks:
+        for period in self.periods:
             for constr in get_room_constraints(
-                self.department, week=week, is_active=True
+                self.department, period=period, is_active=True
             ):
                 print(constr.__class__.__name__, constr.id, end=" - ")
-                timer(constr.enrich_room_model)(self, week)
+                timer(constr.enrich_room_model)(self, period)
 
     def update_objective(self):
         self.obj = self.lin_expr()
-        for week in self.weeks + [None]:
+        for period in self.periods + [None]:
             for i in self.tutors:
-                self.obj += self.cost_I[i][week]
+                self.obj += self.cost_I[i][period]
             for g in self.basic_groups:
-                self.obj += self.cost_G[g][week]
-            self.obj += self.generic_cost[week]
+                self.obj += self.cost_G[g][period]
+            self.obj += self.generic_cost[period]
         for sl in self.slots:
             self.obj += self.cost_SL[sl]
         self.set_objective(self.obj)
@@ -481,10 +480,10 @@ class RoomModel(FlopModel):
         work copy number.
         If target_work_copy is not given, stores under the lowest working copy
         number that is greater than the maximum work copy numbers for the
-        considered week.
+        considered period.
         Returns the number of the work copy
         """
-        print("\nLet's solve weeks #%s" % self.weeks)
+        print("\nLet's solve periods #%s" % self.periods)
 
         self.update_objective()
 

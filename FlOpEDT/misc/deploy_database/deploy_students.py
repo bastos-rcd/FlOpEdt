@@ -38,12 +38,17 @@ def extract_students_file(file_name, department, train_prog):
         last_name = row['nom']
         first_name = row['prenom']
         email = row['email']
-        gp_name = row['Groupe TP']
+        gp_name = row['groupe']
         username = email.split('@')[0]
         group = StructuralGroup.objects.get(train_prog=train_prog, name=gp_name)
-        S=Student(username = username, first_name=first_name, last_name=last_name, email=email)
+        S, created =Student.objects.get_or_create(username = username)
+        S.first_name=first_name
+        S.last_name=last_name
+        S.email=email
         S.save()
-        S.set_password('patate_en_carton')
+        if created:
+            S.set_password('patate_en_carton')
+        S.generic_groups.clear()
         S.generic_groups.add(group)
         S.is_student = True
         S.save()

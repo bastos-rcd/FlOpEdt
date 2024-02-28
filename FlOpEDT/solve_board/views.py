@@ -35,9 +35,9 @@ from django.template.response import TemplateResponse
 
 from core.decorators import dept_admin_required
 
-from base.models import TrainingProgramme, ScheduledCourse, Week
+from base.models import TrainingProgramme, ScheduledCourse, SchedulingPeriod
 from base.core.period_weeks import PeriodWeeks
-from TTapp.TTModel import get_ttconstraints
+from TTapp.FlopModel import get_flop_constraints
 
 from django.utils.functional import Promise
 from django.utils.encoding import force_str
@@ -104,7 +104,7 @@ def get_constraints_viewmodel(department, **kwargs):
     #
     # Extract simplified datas from constraints instances
     #
-    constraints = get_ttconstraints(department, **kwargs)
+    constraints = get_flop_constraints(department, **kwargs)
     return [c.get_viewmodel() for c in constraints]
 
 
@@ -168,7 +168,6 @@ def launch_pre_analyse(req, train_prog, year, week, type, **kwargs):
         for constraint in constraints:
             result = constraint.pre_analyse(week=Week.objects.get(nb= week, year =year))
             resultat[type].append(result)
-            
     return JsonResponse(resultat)
 
 
@@ -195,6 +194,7 @@ def main_board(req, **kwargs):
                    'weeks': json.dumps(week_list),
                    'train_progs': json.dumps(all_tps),
                    'solvers': solvers_viewmodel,
+                   'email': req.user.email,
                    }
     
     # Get contextual datas (constraints, work_copies)

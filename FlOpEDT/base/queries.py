@@ -46,7 +46,7 @@ from base.models import (
     CourseType,
     TrainingProgramme,
     Course,
-    Week,
+    SchedulingPeriod,
 )
 
 from displayweb.models import GroupDisplay, TrainingProgrammeDisplay, BreakingNews

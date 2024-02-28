@@ -1,26 +1,33 @@
 import { Timestamp } from '@quasar/quasar-ui-qcalendar'
-
 /**
  * Calendar event, for display purpose
  */
-export interface CalendarEvent {
+export interface CalendarEventNoCol {
+  id: number
   title: string
-  details: string
+
+  toggled: boolean
 
   bgcolor: string
   icon?: string
 
-  columnIds: number[]
-
   data: EventData
+}
+
+export interface InputCalendarEvent extends CalendarEventNoCol {
+  columnIds: number[]
+}
+
+export interface CalendarEvent extends CalendarEventNoCol {
+  spans: Array<{ istart: number; weight: number; columnIds: number[] }>
 }
 
 export interface EventData {
   dataId: number
-  dataType: string
+  dataType: 'event' | 'dropzone' | 'header' | 'avail'
   start: Timestamp
   duration?: number
-  days?: number
+  value?: number
 }
 
 /**
@@ -50,9 +57,32 @@ export interface CalendarResourceEvent {
   title: string
 }
 
-export interface CalendarDropzoneEvent {
-  eventId: number
-  duration: number
-  columnIds: number[]
-  possibleStarts: Record<string, { isClose: boolean; timeStart: Timestamp }[]>
+interface AvailabilityData {
+  color: Record<string, string>
+  icon: Record<string, string>
+}
+
+export const availabilityData: AvailabilityData = {
+  color: {
+    '0': '#fc0328',
+    '1': '#fc3403',
+    '2': '#fc6703',
+    '3': '#faa305',
+    '4': '#faf405',
+    '5': '#a4fa05',
+    '6': '#53fd02',
+    '7': '#04fb13',
+    '8': '#00ff5e',
+  },
+  icon: {
+    '0': 'matBattery0Bar',
+    '1': 'matBattery1Bar',
+    '2': 'matBattery2Bar',
+    '3': 'matBattery3Bar',
+    '4': 'matBattery4Bar',
+    '5': 'matBattery5Bar',
+    '6': 'matBattery6Bar',
+    '7': 'matBatteryFull',
+    '8': 'matBatteryChargingFull',
+  },
 }

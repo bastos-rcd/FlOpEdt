@@ -54,9 +54,10 @@ describe('Calendar component', () => {
       props: {
         columns: useCase.columns,
         events: useCase.events.value,
-        dropzoneEvents: useCase.dropzoneEvents,
       },
     })
     expect(wrapper).toBeDefined()
   })
+
+  it.todo('Formats data without duplicating ids')
 })

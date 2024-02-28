@@ -44,13 +44,13 @@ class FlopConstraint(models.Model):
 
     Attributes:
         department : the department concerned by the constraint. Has to be filled.
-        weeks : the weeks for which the constraint should be applied. All if None.
+        periods : the scheduling periods for which the constraint should be applied. All if None.
         weight : from 1 to max_weight if the constraint is optional, depending on its importance
                  None if the constraint is necessary
         is_active : usefull to de-activate a Constraint just before the generation
     """
     department = models.ForeignKey('base.Department', null=True, on_delete=models.CASCADE)
-    weeks = models.ManyToManyField('base.Week', blank=True)
+    periods = models.ManyToManyField('base.SchedulingPeriod', blank=True)
     weight = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
         null=True, default=None, blank=True)
@@ -77,10 +77,10 @@ class FlopConstraint(models.Model):
         :return: a dictionnary with view-related data
         """
 
-        if self.weeks.exists():
-            week_value = ','.join([f"{w.nb} ({w.year})" for w in self.weeks.all()])
+        if self.periods.exists():
+            period_value = ','.join([f"{p.name} " for p in self.periods.all()])
         else:
-            week_value = 'All'
+            period_value = 'All'
 
         return {
             'model': self.__class__.__name__,
@@ -91,7 +91,7 @@ class FlopConstraint(models.Model):
             'explanation': self.one_line_description(),
             'comment': self.comment,
             'details': {
-                'weeks': week_value,
+                'periods': period_value,
                 'weight': self.weight,
                 }
             }
@@ -110,7 +110,7 @@ class FlopConstraint(models.Model):
         else:
             return TimeGeneralSettings.objects.get(department = self.department)
 
-    def get_courses_queryset_by_parameters(self, flopmodel, week,
+    def get_courses_queryset_by_parameters(self, flopmodel, period,
                                            train_progs=None,
                                            train_prog=None,
                                            module=None,
@@ -121,7 +121,7 @@ class FlopConstraint(models.Model):
         Filter courses depending on constraints parameters
         parameter group : if not None, return all courses that has one group connected to group
         """
-        courses_qs = flopmodel.courses.filter(week=week)
+        courses_qs = flopmodel.courses.filter(period=period)
         courses_filter = {}
 
         if train_progs is not None:
@@ -144,11 +144,11 @@ class FlopConstraint(models.Model):
 
         return courses_qs.filter(**courses_filter)
 
-    def get_courses_queryset_by_attributes(self, flopmodel, week, **kwargs):
+    def get_courses_queryset_by_attributes(self, flopmodel, period, **kwargs):
         """
         Filter courses depending constraint attributes
         """
         for attr in ['train_prog', 'module', 'group', 'course_type', 'tutor', 'room_type']:
             if hasattr(self, attr) and attr not in kwargs:
                 kwargs[attr] = getattr(self, attr)
-        return self.get_courses_queryset_by_parameters(flopmodel, week, **kwargs)
+        return self.get_courses_queryset_by_parameters(flopmodel, period, **kwargs)

@@ -61,7 +61,7 @@ def read(department):
                 module.description,
                 module.train_prog.name,
                 head,
-                module.period.name,
+                module.training_period.name,
             )
         )
     return JsonResponse(
@@ -198,7 +198,7 @@ def update(entries, department):
                     module.head = Tutor.objects.get(
                         username=entries["new_values"][i][5]
                     )
-                    module.period = TrainingPeriod.objects.get(
+                    module.training_period = TrainingPeriod.objects.get(
                         name=entries["new_values"][i][6], department=department
                     )
                     module.save()

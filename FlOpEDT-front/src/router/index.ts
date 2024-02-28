@@ -14,7 +14,7 @@ export const routeNames = {
 
 const routes = [
   {
-    path: '/schedule',
+    path: '/schedule/:dept?/:locale?',
     name: routeNames.schedule,
     component: () => import('@/views/ScheduleView.vue'),
     meta: {
@@ -31,7 +31,17 @@ const routes = [
   //   },
   // },
   {
-    path: '/contact/:locale?/:dept?',
+    path: '/login/:dept?/:locale?',
+    name: routeNames.login,
+    component: () => import('@/views/LoginView.vue'),
+    meta: {
+      title: 'Connexion',
+      needsAuth: false,
+      nextPath: '',
+    },
+  },
+  {
+    path: '/contact/:dept?/:locale?',
     name: routeNames.contact,
     component: () => import('@/views/ContactView.vue'),
     meta: {
@@ -40,7 +50,7 @@ const routes = [
     },
   },
   {
-    path: '/home/:locale?/:dept?',
+    path: '/:dept?/:locale?',
     name: routeNames.home,
     component: () => import('@/views/HomeView.vue'),
     meta: {
@@ -57,16 +67,6 @@ const routes = [
       needsAuth: false,
     },
   },
-  {
-    path: '/login/:locale?/:dept?',
-    name: routeNames.login,
-    component: () => import('@/views/LoginView.vue'),
-    meta: {
-      title: 'Connexion',
-      needsAuth: false,
-      nextPath: '',
-    },
-  },
 ]
 
 const router = createRouter({
@@ -77,8 +77,8 @@ router.beforeEach(async (to, from, next) => {
   const { availableLocales, locale } = i18n.global
   const deptStore = useDepartmentStore()
   const authStore = useAuth()
-  if (deptStore.getCurrentDepartment.id === -1) deptStore.getDepartmentFromURL(to.fullPath)
-
+  if (!deptStore.isAllDepartmentsFetched) await deptStore.fetchAllDepartments()
+  if (deptStore.current.id === -1) deptStore.getDepartmentFromURL(to.fullPath)
   if (!authStore.isUserFetchTried) await authStore.fetchAuthUser()
 
   availableLocales.forEach((currentLocale: string) => {
@@ -90,7 +90,7 @@ router.beforeEach(async (to, from, next) => {
     })
   })
   if (to.meta.needsAuth && !authStore.isUserAuthenticated) {
-    next({ path: `/login/${deptStore.getCurrentDepartment.abbrev}`, query: { redirect: to.fullPath } })
+    next({ path: `/login/${deptStore.current.abbrev}`, query: { redirect: to.fullPath } })
   } else {
     next()
   }

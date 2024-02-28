@@ -12,8 +12,7 @@ from base.timing import Day, Time, min_to_str, days_list
 
 
 class Holiday(models.Model):
-    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.ForeignKey("Week", on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField(default = dt.date(1890, 5, 1))
 
     class Meta:
         verbose_name = _("holiday")
@@ -29,8 +28,7 @@ class TrainingHalfDay(models.Model):
         default=None,
         blank=True,
     )
-    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.ForeignKey("Week", on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField(default=dt.date(1890, 5, 1))
     train_prog = models.ForeignKey(
         "TrainingProgramme",
         null=True,
@@ -45,19 +43,14 @@ class TrainingPeriod(models.Model):
     department = models.ForeignKey(
         "base.Department", on_delete=models.CASCADE, null=True
     )
-    starting_week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)]
-    )
-    ending_week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)]
-    )
+    periods = models.ManyToManyField("SchedulingPeriod")
 
     class Meta:
         verbose_name = _("training period")
         verbose_name_plural = _("training periods")
 
     def __str__(self):
-        return f"Period {self.name}: {self.department}, {self.starting_week} -> {self.ending_week}"
+        return f"Period {self.name}: {self.department}, {min(sp.start_date for sp in self.periods)} -> {max(sp.end_date for sp in self.periods)}"
 
 
 class PeriodEnum:
@@ -75,12 +68,12 @@ class PeriodEnum:
         (CUSTOM, _("custom")),
     ]
 
-
 class SchedulingPeriod(models.Model):
     """
     start_date and end_date included
     """
-
+    
+    name = models.CharField(max_length=20, null=True, blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
     mode = models.CharField(
@@ -91,47 +84,37 @@ class SchedulingPeriod(models.Model):
     )
 
     def __str__(self):
-        ret = f"{self.start_date} - {self.end_date} ({self.mode}"
-        if self.department is not None:
-            ret += f", {self.department.abbrev}"
-        return ret + ")"
-
-
-class Week(models.Model):
-    nb = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)],
-        verbose_name=_("Week number"),
-    )
-    year = models.PositiveSmallIntegerField()
-
-    def __str__(self):
-        return f"{self.nb}-{self.year}"
+        return self.name
+    
+    def __lte__(self, other):
+        if type(other) is SchedulingPeriod:
+            return self.start_date <= other.start_date
+        elif type(other) is dt.date:
+            return self.start_date <= other
 
     def __lt__(self, other):
-        if isinstance(other, Week):
-            return self.year < other.year or (
-                self.year == other.year and self.nb < other.nb
-            )
-        else:
-            return False
-
+        if type(other) is SchedulingPeriod:
+            return self.end_date < other.start_date
+        elif type(other) is dt.date:
+            return self.end_date < other
+        
     def __gt__(self, other):
-        if isinstance(other, Week):
-            return self.year > other.year or (
-                self.year == other.year and self.nb > other.nb
-            )
-        else:
-            return False
-
-    def __le__(self, other):
-        return self == other or self < other
-
-    def __ge__(self, other):
-        return self == other or self > other
-
-    class Meta:
-        verbose_name = _("week")
-        verbose_name_plural = _("weeks")
+        if type(other) is SchedulingPeriod:
+            return self.start_date > other.end_date
+        elif type(other) is dt.date:
+            return self.start_date > other
+        
+    def __gte__(self, other):
+        if type(other) is SchedulingPeriod:
+            return self.end_date >= other.end_date
+        elif type(other) is dt.date:
+            return self.end_date >= other
+    
+    def dates(self):
+        return [self.start_date + dt.timedelta(days=i) for i in range((self.end_date - self.start_date).days + 1)]
+    
+    def index(self, date):
+        return self.dates().index(date)
 
 
 class TimeGeneralSettings(models.Model):

@@ -25,6 +25,7 @@
 
 from collections.abc import Iterable
 from TTapp.ilp_constraints.constraint_type import ConstraintType
+from base.timing import get_all_scheduling_periods
 
 def sing_or_plural(dimension):
     plurial = ""
@@ -40,7 +41,9 @@ def get_readable_day(day):
         "tu": "Mardi",
         "w": "Mercredi",
         "th": "Jeudi",
-        "f": "Vendredi"
+        "f": "Vendredi",
+        'sa': "Samedi",
+        'su': "Dimanche"
     }.get(day, "None")
 
 
@@ -54,11 +57,11 @@ def convert_to_list(dimension):
 
 
 class Constraint:
-    def __init__(self, constraint_type=ConstraintType.UNDEFINED, instructors=[], slots=[], courses=[], weeks=[], rooms=[],
+    def __init__(self, constraint_type=ConstraintType.UNDEFINED, instructors=[], slots=[], courses=[], periods=[], rooms=[],
                  groups=[], days=[], departments=[], modules=[], apm=[], name=None):
 
-        instructors, slots, courses, weeks, rooms, groups, days, departments, modules, apm \
-            = self.handle_dimensions(instructors, slots, courses, weeks, rooms, groups, days,
+        instructors, slots, courses, periods, rooms, groups, days, departments, modules, apm \
+            = self.handle_dimensions(instructors, slots, courses, periods, rooms, groups, days,
                                      departments, modules, apm)
         self.name = name
 
@@ -77,9 +80,9 @@ class Constraint:
                 "display": "cours",
                 "value": courses
             },
-            "weeks": {
-                "display": "semaine",
-                "value": weeks
+            "periods": {
+                "display": "période",
+                "value": periods
             },
             "rooms": {
                 "display": "salle",
@@ -107,10 +110,10 @@ class Constraint:
             }
         }
 
-    def handle_dimensions(self, instructors, slots, courses, weeks, rooms, groups, days, departments,
+    def handle_dimensions(self, instructors, slots, courses, periods, rooms, groups, days, departments,
                           modules, apm):
         instructors = convert_to_list(instructors)
-        weeks = convert_to_list(weeks)
+        periods = convert_to_list(periods)
         rooms = convert_to_list(rooms)
         groups = convert_to_list(groups)
         days = [get_readable_day(day) for day in convert_to_list(days)]
@@ -121,12 +124,12 @@ class Constraint:
         courses = convert_to_list(courses)
 
         for slot in slots:
-            day = get_readable_day(slot.get_day().day)
+            day = get_readable_day(slot.get_day().weekday())
             if day not in days:
                 days.append(day)
-            week = slot.get_day().week
-            if week not in weeks:
-                weeks.append(week)
+            for period in get_all_scheduling_periods(slot.department):
+                if day in period.dates():
+                    periods.append(period)
 
         for course in courses:
             if course.tutor not in instructors:
@@ -137,7 +140,7 @@ class Constraint:
             if course.module not in modules:
                 modules.append(course.module)
 
-        return instructors, slots, courses, weeks, rooms, groups, days, departments, modules, apm
+        return instructors, slots, courses, periods, rooms, groups, days, departments, modules, apm
 
     # generic method
     def get_summary_format(self):

@@ -2,37 +2,54 @@
   <Story>
     <Variant title="Use case 1">
       <Calendar
-        :columns="useCase1.columns"
-        v-model:events="useCase1.events.value"
-        :dropzone-events="useCase1.dropzoneEvents"
+        :columns="useCase1.columns.value"
+        v-model:events="useCase2.events.value"
         @dragstart="onDragStart"
+        :end-of-day-hours="19"
       />
     </Variant>
     <Variant title="Use case 2">
       <Calendar
-        :columns="useCase2.columns"
+        :columns="useCase2.columns.value"
         v-model:events="useCase2.events.value"
-        :dropzone-events="useCase2.dropzoneEvents"
+        :dropzones="dzs"
         @dragstart="onDragStart"
+        @weekdays="(wd: number[]) => (weekdays = wd)"
+        :end-of-day-hours="19"
       />
     </Variant>
     <Variant title="Use case 3">
-      <Calendar :columns="useCase3.columns" v-model:events="useCase1.events.value" @dragstart="onDragStart" />
+      <Calendar
+        :columns="useCase3.columns.value"
+        v-model:events="useCase3.events.value"
+        @dragstart="onDragStart"
+        :end-of-day-hours="19"
+      />
+    </Variant>
+    <Variant title="Availabilities">
+      <button color="orange" style="margin: 2px" @click="toggleAvailabilities()">Show Availabilities</button>
+      <Calendar
+        :columns="useCase4.columns.value"
+        v-model:events="useCase4.events.value"
+        :dropzones="dzs"
+        @dragstart="onDragStart"
+        :end-of-day-hours="19"
+      />
     </Variant>
   </Story>
 </template>
 
 <script setup lang="ts">
-import type { CalendarEvent, CalendarDropzoneEvent, CalendarColumn } from './declaration'
-import _ from 'lodash'
+import type { CalendarColumn, InputCalendarEvent } from './declaration'
+import { concat, find, map, maxBy, remove } from 'lodash'
 import { Timestamp, parseDate, parseTime, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
-import { ref, Ref, computed } from 'vue'
+import { ref, Ref } from 'vue'
 
 import Calendar from './Calendar.vue'
 
 const CURRENT_DAY = new Date()
-
-const weekStart = getStartOfWeek(parseDate(CURRENT_DAY) as Timestamp, [1, 2, 3, 4, 5])
+const weekdays = ref([1, 2, 3, 4, 5])
+const weekStart = getStartOfWeek(parseDate(CURRENT_DAY) as Timestamp, weekdays.value)
 
 function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
   const tm = addToDate(weekStart, { day: relativeDay })
@@ -42,14 +59,44 @@ function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
   return tm as Timestamp
 }
 
+function createDZ(
+  eventIdStart: number,
+  dataId: number,
+  eventCollection: InputCalendarEvent[],
+  starts: Array<{ dayShift: number; hhmm: string }>
+): Array<InputCalendarEvent> {
+  const relatedEvent = find(eventCollection, (event) => event.data.dataId === dataId) as InputCalendarEvent
+  if (relatedEvent === undefined) {
+    console.log('Issue with the event')
+    console.log('Could not find the data with id', dataId)
+    return []
+  }
+  const dropzones: InputCalendarEvent[] = map(starts, (start) => {
+    const dropzone = {
+      id: eventIdStart++,
+      title: '',
+      toggled: false,
+      bgcolor: 'rgba(0,0,0,0.5)',
+      columnIds: relatedEvent.columnIds,
+      data: {
+        dataId: dataId,
+        dataType: 'dropzone',
+        start: shiftInCurrentWeek(start.dayShift, start.hhmm),
+        duration: relatedEvent.data.duration,
+      },
+    } as InputCalendarEvent
+    return dropzone
+  })
+  return dropzones
+}
+
 interface UseCase {
-  columns: CalendarColumn[]
-  events: Ref<CalendarEvent[]>
-  dropzoneEvents: CalendarDropzoneEvent[]
+  columns: Ref<CalendarColumn[]>
+  events: Ref<InputCalendarEvent[]>
 }
 
 const useCase2: UseCase = {
-  columns: [
+  columns: ref([
     {
       id: 0,
       name: 'TD1',
@@ -70,11 +117,12 @@ const useCase2: UseCase = {
       name: 'TP32',
       weight: 1,
     },
-  ],
-  events: ref([
+  ]),
+  events: ref<InputCalendarEvent[]>([
     {
+      id: 1,
       title: 'TP INFO',
-      details: "Let' work on our Python project",
+      toggled: true,
 
       bgcolor: 'red',
       icon: 'fas fa-handshake',
@@ -83,190 +131,60 @@ const useCase2: UseCase = {
 
       data: {
         dataId: 3,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(1, '08:00'),
         duration: 120,
       },
     },
     {
+      id: 2,
       title: 'Lunch',
-      details: 'Company is paying!',
+      toggled: true,
       bgcolor: 'teal',
       icon: 'fas fa-hamburger',
       columnIds: [0, 1, 2, 3],
       data: {
         dataId: 4,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(1, '12:00'),
         duration: 120,
       },
     },
     {
+      id: 3,
       title: 'Conference TD1',
-      details: 'Always a nice chat with mom',
+      toggled: true,
       bgcolor: 'grey',
       icon: 'fas fa-car',
       columnIds: [0],
       data: {
         dataId: 5,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(1, '17:00'),
         duration: 90,
       },
     },
     {
+      id: 4,
       title: 'Conference TD2',
-      details: 'Teaching Javascript 101',
+      toggled: true,
       bgcolor: 'grey',
       icon: 'fas fa-chalkboard-teacher',
       columnIds: [1],
       data: {
         dataId: 6,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(2, '08:00'),
         duration: 150,
       },
     },
   ]),
-  dropzoneEvents: [
-    {
-      eventId: 5,
-      duration: 90,
-      columnIds: [0, 1],
-      possibleStarts: {
-        [shiftInCurrentWeek(0)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '08:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '08:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '09:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '15:30') },
-        ],
-        [shiftInCurrentWeek(1)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '11:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '18:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '14:30') },
-        ],
-        [shiftInCurrentWeek(2)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '11:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '18:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '14:30') },
-        ],
-        [shiftInCurrentWeek(3)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '11:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '18:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '14:30') },
-        ],
-        [shiftInCurrentWeek(4)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '11:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '18:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '14:30') },
-        ],
-      },
-    },
-    {
-      eventId: 4,
-      duration: 120,
-      columnIds: [0, 1, 2, 3],
-      possibleStarts: {
-        [shiftInCurrentWeek(0)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '11:00') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '13:30') },
-        ],
-        [shiftInCurrentWeek(1)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '11:00') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '13:30') },
-        ],
-        [shiftInCurrentWeek(2)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '11:00') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '13:30') },
-        ],
-        [shiftInCurrentWeek(4)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '11:00') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '13:30') },
-        ],
-      },
-    },
-    {
-      eventId: 3,
-      duration: 120,
-      columnIds: [2, 3],
-      possibleStarts: {
-        [shiftInCurrentWeek(0)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '08:00') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '10:30') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '14:00') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '16:30') },
-        ],
-        [shiftInCurrentWeek(1)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '08:00') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '13:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '19:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '16:30') },
-        ],
-        [shiftInCurrentWeek(2)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '08:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '13:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '19:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '16:30') },
-        ],
-        [shiftInCurrentWeek(3)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '08:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '13:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '19:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '16:30') },
-        ],
-        [shiftInCurrentWeek(4)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '08:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '13:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '19:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '16:30') },
-        ],
-      },
-    },
-    {
-      eventId: 6,
-      duration: 150,
-      columnIds: [1],
-      possibleStarts: {
-        [shiftInCurrentWeek(1)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '08:00') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '19:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '16:30') },
-        ],
-        [shiftInCurrentWeek(2)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '08:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '19:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '16:30') },
-        ],
-        [shiftInCurrentWeek(3)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '08:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '19:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '16:30') },
-        ],
-      },
-    },
-  ],
 }
 
-// _.forEach(useCase2.columns as Array<CalendarColumn>, col => col.active = true)
+//useCase2.events.value = concat(useCase2.events.value, dzs)
 
-const useCase1 = {
-  columns: [
+const useCase1: UseCase = {
+  columns: ref([
     {
       id: 0,
       name: 'TPA',
@@ -292,184 +210,166 @@ const useCase1 = {
       name: 'GIM2',
       weight: 3,
     },
-  ],
-  totalWeight: 7,
-  events: ref([
+  ]),
+  events: ref<InputCalendarEvent[]>([
     {
+      id: 1,
       title: '1st of the Month',
-      details: 'Everything is funny as long as it is happening to someone else',
+      toggled: true,
       bgcolor: 'orange',
       columnIds: [1],
       data: {
         dataId: 1,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(0),
       },
     },
     {
+      id: 2,
       title: 'Sisters Birthday',
-      details: 'Buy a nice present',
-      date: shiftInCurrentWeek(1),
+      toggled: true,
       bgcolor: 'green',
       icon: 'fas fa-birthday-cake',
       columnIds: [1],
       data: {
         dataId: 2,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(1),
       },
     },
     {
+      id: 3,
       title: 'Meeting',
-      details: 'Time to pitch my idea to the company',
+      toggled: true,
       bgcolor: 'red',
       icon: 'fas fa-handshake',
       columnIds: [1, 3],
       data: {
         dataId: 3,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(1, '10:00'),
         duration: 120,
       },
     },
     {
+      id: 4,
       title: 'Lunch',
-      details: 'Company is paying!',
+      toggled: true,
       bgcolor: 'teal',
       icon: 'fas fa-hamburger',
       columnIds: [2, 4],
       data: {
         dataId: 4,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(1, '11:30'),
         duration: 90,
       },
     },
     {
+      id: 5,
       title: 'Visit mom',
-      details: 'Always a nice chat with mom',
+      toggled: true,
       bgcolor: 'grey',
       icon: 'fas fa-car',
       columnIds: [1],
       data: {
         dataId: 5,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(1, '17:00'),
         duration: 90,
       },
     },
     {
+      id: 6,
       title: 'Conference',
-      details: 'Teaching Javascript 101',
+      toggled: true,
       bgcolor: 'blue',
       icon: 'fas fa-chalkboard-teacher',
       columnIds: [1, 2, 3],
       data: {
         dataId: 6,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(2, '08:00'),
         duration: 540,
       },
     },
     {
+      id: 7,
       title: 'Girlfriend',
-      details: 'Meet GF for dinner at Swanky Restaurant',
+      toggled: true,
       bgcolor: 'teal',
       icon: 'fas fa-utensils',
       columnIds: [1],
       data: {
         dataId: 7,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(3, '19:00'),
         duration: 180,
       },
     },
     {
+      id: 8,
       title: 'Fishing',
-      details: 'Time for some weekend R&R',
+      toggled: true,
       bgcolor: 'purple',
       icon: 'fas fa-fish',
       columnIds: [1],
       data: {
         dataId: 8,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(3),
-        days: 2,
       },
     },
     {
+      id: 9,
       title: 'Vacation',
-      details: "Trails and hikes, going camping! Don't forget to bring bear spray!",
+      toggled: true,
       bgcolor: 'purple',
       icon: 'fas fa-plane',
       columnIds: [1],
       data: {
         dataId: 9,
-        dataType: 'mok',
+        dataType: 'event',
         start: shiftInCurrentWeek(3),
-        days: 5,
       },
     },
   ]),
-  dropzoneEvents: [
-    {
-      eventId: 5,
-      duration: 90,
-      columnIds: [1],
-      possibleStarts: {
-        [shiftInCurrentWeek(0)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '08:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '08:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '09:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(0, '15:30') },
-        ],
-        [shiftInCurrentWeek(1)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '11:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '18:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(1, '14:30') },
-        ],
-        [shiftInCurrentWeek(2)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '11:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '18:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(2, '14:30') },
-        ],
-        [shiftInCurrentWeek(3)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '11:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '18:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(3, '14:30') },
-        ],
-        [shiftInCurrentWeek(4)!.date]: [
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '10:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '10:50') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '11:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '18:10') },
-          { isClose: false, timeStart: shiftInCurrentWeek(4, '14:30') },
-        ],
-      },
-    },
-  ],
 }
 
-// _.forEach(useCase1.columns as Array<CalendarColumn>, col => col.active = true)
+// dzs = []
+// dzs = concat(
+//   dzs,
+//   createDZ((maxBy(useCase1.events.value, (event) => event.id)?.id as number) + 1, 6, useCase1.events.value, [
+//     { dayShift: 2, hhmm: '14:00' },
+//     { dayShift: 2, hhmm: '11:00' },
+//     { dayShift: 2, hhmm: '09:50' },
+//     { dayShift: 2, hhmm: '09:00' },
+//     { dayShift: 2, hhmm: '08:50' },
+//     { dayShift: 0, hhmm: '14:00' },
+//     { dayShift: 0, hhmm: '11:00' },
+//     { dayShift: 0, hhmm: '09:50' },
+//     { dayShift: 0, hhmm: '09:00' },
+//     { dayShift: 0, hhmm: '08:50' },
+//     { dayShift: 3, hhmm: '14:00' },
+//     { dayShift: 3, hhmm: '11:00' },
+//     { dayShift: 3, hhmm: '09:50' },
+//     { dayShift: 3, hhmm: '09:00' },
+//     { dayShift: 3, hhmm: '08:50' },
+//     { dayShift: 1, hhmm: '14:00' },
+//     { dayShift: 1, hhmm: '11:00' },
+//     { dayShift: 1, hhmm: '09:50' },
+//     { dayShift: 1, hhmm: '09:00' },
+//     { dayShift: 1, hhmm: '08:50' },
+//   ])
+// )
 
 const currentEventId = ref<number | null>(null)
 function onDragStart(eventId: number) {
   currentEventId.value = eventId
 }
 
-const currentDropzoneEvents = computed(() => {
-  return useCase2.dropzoneEvents.find((d) => d.eventId === currentEventId.value)
-})
-
 const useCase3: UseCase = {
-  columns: [
+  columns: ref([
     {
       id: 0,
       name: 'TPA',
@@ -495,10 +395,281 @@ const useCase3: UseCase = {
       name: 'GIM2',
       weight: 3,
     },
-  ],
-  events: useCase1.events,
-  dropzoneEvents: [],
+  ]),
+  events: useCase2.events,
 }
+
+const useCase4: UseCase = {
+  columns: ref(useCase2.columns.value),
+  events: ref(useCase2.events.value),
+}
+// cloneDeep(useCase2)
+
+let nextEventId = (maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1
+
+const availabilityColumn = {
+  id: 4,
+  name: 'Avail',
+  weight: 1,
+}
+
+function toggleAvailabilities() {
+  const excluded = remove(useCase4.columns.value, (c) => c.id == availabilityColumn.id)
+  if (excluded.length == 0) {
+    useCase4.columns.value.push(availabilityColumn)
+  }
+}
+
+useCase4.events.value = concat(useCase4.events.value, [
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '07:00'),
+      duration: 150,
+      value: 0,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '09:30'),
+      duration: 90,
+      value: 4,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '11:00'),
+      duration: 60,
+      value: 6,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '12:00'),
+      duration: 120,
+      value: 0,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '14:00'),
+      duration: 60,
+      value: 7,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '15:00'),
+      duration: 60,
+      value: 3,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(0, '16:00'),
+      duration: 180,
+      value: 1,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(1, '12:00'),
+      duration: 120,
+      value: 0,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '1',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(1, '07:00'),
+      duration: 300,
+      value: 1,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '2',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(1, '14:00'),
+      duration: 300,
+      value: 2,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '3',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(3, '11:30'),
+      duration: 450,
+      value: 3,
+    },
+  },
+  {
+    id: nextEventId++,
+    title: '8',
+    toggled: true,
+    bgcolor: '',
+    columnIds: [4],
+    data: {
+      dataId: 69,
+      dataType: 'avail',
+      start: shiftInCurrentWeek(4, '07:00'),
+      duration: 720,
+      value: 8,
+    },
+  },
+])
+
+let dzs: InputCalendarEvent[] = []
+dzs = concat(
+  dzs,
+  createDZ((maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1, 6, useCase2.events.value, [
+    { dayShift: 2, hhmm: '14:00' },
+    { dayShift: 2, hhmm: '11:00' },
+    { dayShift: 2, hhmm: '09:50' },
+    { dayShift: 2, hhmm: '09:00' },
+    { dayShift: 2, hhmm: '08:50' },
+    { dayShift: 0, hhmm: '14:00' },
+    { dayShift: 0, hhmm: '11:00' },
+    { dayShift: 0, hhmm: '09:50' },
+    { dayShift: 0, hhmm: '09:00' },
+    { dayShift: 0, hhmm: '08:50' },
+  ])
+)
+
+dzs = concat(
+  dzs,
+  createDZ(maxBy(dzs, (dz) => dz.id)?.id as number, 4, useCase2.events.value, [
+    { dayShift: 0, hhmm: '11:00' },
+    { dayShift: 0, hhmm: '13:30' },
+    { dayShift: 1, hhmm: '11:00' },
+    { dayShift: 1, hhmm: '13:30' },
+    { dayShift: 2, hhmm: '11:00' },
+    { dayShift: 2, hhmm: '13:30' },
+    { dayShift: 3, hhmm: '11:00' },
+    { dayShift: 3, hhmm: '13:30' },
+    { dayShift: 4, hhmm: '11:00' },
+    { dayShift: 4, hhmm: '13:30' },
+  ])
+)
+
+dzs = concat(
+  dzs,
+  createDZ(maxBy(dzs, (dz) => dz.id)?.id as number, 3, useCase2.events.value, [
+    { dayShift: 0, hhmm: '08:00' },
+    { dayShift: 0, hhmm: '10:30' },
+    { dayShift: 0, hhmm: '14:00' },
+    { dayShift: 0, hhmm: '16:30' },
+    { dayShift: 1, hhmm: '08:00' },
+    { dayShift: 1, hhmm: '10:50' },
+    { dayShift: 1, hhmm: '13:10' },
+    { dayShift: 1, hhmm: '19:10' },
+    { dayShift: 1, hhmm: '16:30' },
+    { dayShift: 2, hhmm: '08:00' },
+    { dayShift: 2, hhmm: '10:50' },
+    { dayShift: 2, hhmm: '13:10' },
+    { dayShift: 2, hhmm: '19:10' },
+    { dayShift: 2, hhmm: '16:30' },
+    { dayShift: 3, hhmm: '08:00' },
+    { dayShift: 3, hhmm: '10:50' },
+    { dayShift: 3, hhmm: '13:10' },
+    { dayShift: 3, hhmm: '19:10' },
+    { dayShift: 3, hhmm: '16:30' },
+    { dayShift: 4, hhmm: '08:00' },
+    { dayShift: 4, hhmm: '10:50' },
+    { dayShift: 4, hhmm: '13:10' },
+    { dayShift: 4, hhmm: '19:10' },
+  ])
+)
+
+dzs = concat(
+  dzs,
+  createDZ(maxBy(dzs, (dz) => dz.id)?.id as number, 5, useCase2.events.value, [
+    { dayShift: 1, hhmm: '16:30' },
+    { dayShift: 1, hhmm: '08:00' },
+    { dayShift: 1, hhmm: '10:50' },
+    { dayShift: 1, hhmm: '19:10' },
+    { dayShift: 2, hhmm: '16:30' },
+    { dayShift: 2, hhmm: '08:00' },
+    { dayShift: 2, hhmm: '10:50' },
+    { dayShift: 2, hhmm: '19:10' },
+    { dayShift: 3, hhmm: '16:30' },
+    { dayShift: 3, hhmm: '08:00' },
+    { dayShift: 3, hhmm: '10:50' },
+    { dayShift: 3, hhmm: '19:10' },
+  ])
+)
 </script>
 
 <docs lang="md">
@@ -537,6 +708,7 @@ seems to stop the propagation, but I could not figure out who.
 
 - The aesthetics should be improved
 - Drag computation could be optimized
+- Put the avail step and day boundaries as component's parameters
 
 ---
 

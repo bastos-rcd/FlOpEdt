@@ -41,14 +41,15 @@ from rest_framework.exceptions import APIException
 from api.TTapp import serializers
 from api.permissions import IsAdminOrReadOnly
 from base.weeks import current_year
+from django.conf import settings as ds
 import os
 import json
 import re
+import pkgutil
 
-DOC_DIR = os.path.join(os.getcwd(),'TTapp/TTConstraints/doc')
-IMG_DIR = os.path.join(os.getcwd(),'TTapp/TTConstraints/doc/images')
-TEMP_DIR = os.path.join(os.getcwd(),'temp')
-CORRUPTED_JSON_PATH = os.path.join(os.getcwd(),'discarded.json')
+DOC_DIR = os.path.join(os.path.dirname(pkgutil.get_loader("TTapp").get_filename()),'TTConstraints/doc')
+IMG_DIR = os.path.join(os.path.dirname(pkgutil.get_loader("TTapp").get_filename()),'TTConstraints/doc/images')
+CORRUPTED_JSON_PATH = os.path.join(ds.TMP_DIRECTORY,'discarded.json')
 EN_DIR_NAME = "en"
 REGEX_IMAGE = r"(?:[!]\[(.*?)\])\(((\.\.)(.*?))\)"
 # ---------------
@@ -225,7 +226,6 @@ class FlopConstraintListViewSet(viewsets.ViewSet):
     """
     permission_classes = [IsAdminOrReadOnly]
     filterset_fields = '__all__'
-
     def list(self, request, **kwargs):
         # Getting all the filters
         week = self.request.query_params.get('week', None)
@@ -483,7 +483,7 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                 if field.name in ["tutor", "tutors", "room", "rooms", "possible_rooms", "guide_tutors"]:
                     acceptablelist = acceptablelist.filter(departments=department)
 
-                elif field.name in ["train_progs", "course_type", "course_types"]:
+                elif field.name in ["train_progs", "course_type", "course_types", "room_type", "room_types"]:
                     acceptablelist = acceptablelist.filter(department=department)
 
                 elif field.name in ["modules", "module", "groups", "group"]:
@@ -519,7 +519,6 @@ class FlopDocVisu(viewsets.ViewSet):
     def list(self, request, **kwargs):
         name = kwargs['name']
         name_no_extensions = name.split(".")[0]
-
         url = CustomUrl(request)
         dir_lang = os.path.join(DOC_DIR, url.lang)
 
@@ -603,8 +602,12 @@ def check_file(path, url, name):
     json_path = None
     found = True
 
-    temp_path = os.path.join(TEMP_DIR, url.lang)
+    temp_path = os.path.join(ds.TMP_DIRECTORY, url.lang)
     file_temp_path = os.path.join(temp_path, name)
+
+    # Create the temp subdirectory if it doesn't exists
+    if not os.path.isdir(temp_path):
+        os.makedirs(temp_path)
 
     # test if cached file exist
     try:

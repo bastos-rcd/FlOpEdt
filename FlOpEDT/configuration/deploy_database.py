@@ -69,11 +69,11 @@ from misc.assign_colors import assign_module_color
 
 from configuration.database_description_checker import database_description_check
 
+from django.conf import settings as ds
+
 import datetime as dt
 
-media_dir = "media/configuration"
-logger = logging.getLogger("base")
-
+logger = logging.getLogger('base')
 
 @transaction.atomic
 def extract_database_file(
@@ -101,7 +101,7 @@ def extract_database_file(
         )
     if book is None:
         if bookname is None:
-            bookname = f"{media_dir}/database_file_{department_abbrev}.xlsx"
+            bookname = f"{ds.MEDIA_ROOT}/database_file_{department_abbrev}.xlsx"
 
         book = database_description_load_xlsx_file(bookname)
 
@@ -112,33 +112,31 @@ def extract_database_file(
     if len(check) > 0:
         raise Exception("\n".join(check))
 
-    settings_extract(department, book["settings"])
-    people_extract(department, book["people"])
-    rooms_extract(
-        department, book["room_groups"], book["room_categories"], book["rooms"]
-    )
-    groups_extract(
-        department,
-        book["promotions"],
-        book["group_types"],
-        book["groups"],
-        book["transversal_groups"],
-    )
-    modules_extract(department, book["modules"])
-    course_types_extract(department, book["course_types"])
-    course_start_time_constraints_extract(department, book["course_start_time_constraints"])
+    settings_extract(department, book['settings'])
+    rooms_extract(department, book['room_groups'], book['room_categories'], book['rooms'])
+    groups_extract(department, book['promotions'], book['group_types'], book['groups'], book['transversal_groups'])
+    people_extract(department, book['people'], fill_default_preferences)
+    modules_extract(department, book['modules'])
+    courses_extract(department, book['courses'])
 
 
-def people_extract(department, people):
+def people_extract(department, people, fill_default_preferences):
 
     logger.info("People extraction : start")
     for id_, person in people.items():
 
-        try:
-            tutor = Tutor.objects.get(username=id_)
+        tutor = Tutor.objects.filter(username=id_)
+        if tutor.exists():
+            del person['status']
+            del person["employer"]
+            tutor.update(**person)
+            tutor=tutor.get()
+            UserDepartmentSettings.objects.get_or_create(department=department, user=tutor)
+            if fill_default_preferences:
+                split_preferences(tutor)
             logger.debug(f"update tutor : '{id_}'")
 
-        except Tutor.DoesNotExist:
+        else:
 
             try:
 
@@ -147,11 +145,9 @@ def people_extract(department, people):
                     tutor = FullStaff(username=id_, **person)
                     tutor.status = Tutor.FULL_STAFF
                 else:
-                    # FIXME: can 'position' be anything else?!
                     tutor = SupplyStaff(username=id_, position="Salarié", **person)
                     tutor.status = Tutor.SUPP_STAFF
 
-                tutor.set_password("passe")
                 tutor.is_tutor = True
                 tutor.save()
 
@@ -165,11 +161,7 @@ def people_extract(department, people):
                 )
                 pass
             else:
-                logger.info(f"create tutor with id:{id_}")
-        else:
-            UserDepartmentSettings.objects.get_or_create(
-                department=department, user=tutor
-            )
+                logger.info(f'create tutor with id:{id_}')
 
     logger.info("People extraction : finish")
 
@@ -220,7 +212,6 @@ def rooms_extract(department, room_groups, room_categories, rooms):
             logger.warning(
                 f"A constraint has not been respected creating the room group '{group_id}' : {ie}"
             )
-            pass  # FIXME: continue?
 
         for room_id in members:
             try:
@@ -231,6 +222,7 @@ def rooms_extract(department, room_groups, room_categories, rooms):
                 else:
                     logger.info(f"Add room '{room_id}' to group '{group_id}'")
                     room.subroom_of.add(room_group)
+                    room.departments.add(department)
 
             except Room.DoesNotExist:
                 logger.warning(f"Unable to find room '{room_id}'")

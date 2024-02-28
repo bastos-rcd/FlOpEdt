@@ -25,10 +25,10 @@
 
 
 from core.decorators import timer
-from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
+from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval
-from base.models import CourseStartTimeConstraint, Week
+from base.models import CourseStartTimeConstraint, SchedulingPeriod
 from django.db import models
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
@@ -50,12 +50,13 @@ from TTapp.TTConstraints.groups_constraints import (
     pre_analysis_considered_basic_groups,
 )
 from base.models import Course, UserAvailability, Holiday
+from base.models.availability import period_actual_availabilities
 from base.partition import Partition
 import TTapp.GlobalPreAnalysis.partition_with_constraints as partition_bis
 from base.timing import Day, flopdate_to_datetime
 from people.models import Tutor
 from django.db.models import Q
-from datetime import timedelta
+import datetime as dt
 
 
 class NoSimultaneousGroupCourses(TTConstraint):
@@ -70,14 +71,14 @@ class NoSimultaneousGroupCourses(TTConstraint):
         verbose_name_plural = verbose_name
 
     @timer
-    def pre_analyse(self, week):
+    def pre_analyse(self, period):
         """Pre analysis of the Constraint
-        Compare the available time of the week to the minimum required in any cases (the time of all courses + the time needed for the longest parallel group)
+        Compare the available time of the period to the minimum required in any cases (the time of all courses + the time needed for the longest parallel group)
         then to the probable mimimum required (the time of all courses + the time of all parallel groups that are maximum of their graph color) and then
-        checks if there is enough available slots for each course type in the week.
+        checks if there is enough available slots for each course type in the period.
 
         Parameter:
-            week (Week): the week we want to analyse the data from
+            period (SchedulingPeriod): the period we want to analyse the data from
 
         Returns:
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem
@@ -85,18 +86,18 @@ class NoSimultaneousGroupCourses(TTConstraint):
         jsondict = {
             "status": _("OK"),
             "messages": [],
-            "period": {"week": week.nb, "year": week.year},
+            "period": {"id": period.id, "name": period.name},
         }
 
         considered_basic_groups = pre_analysis_considered_basic_groups(self)
         no_user_pref = not ConsiderTutorsUnavailability.objects.filter(
-            weeks=week
+            periods=period
         ).exists()
         for bg in considered_basic_groups:
 
             # Retrieving information about general time settings and creating the partition with information about other constraints
             group_partition = partition_bis.create_group_partition_from_constraints(
-                week=week,
+                period=period,
                 department=bg.type.department,
                 group=bg,
                 available=no_user_pref,
@@ -112,7 +113,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
             if tuple_graph:
                 graph, color_max = tuple_graph
                 for transversal_group in graph:
-                    time_courses = transversal_group.time_of_courses(week)
+                    time_courses = transversal_group.time_of_courses(period)
                     if time_courses > max_courses_time_transversal:
                         max_courses_time_transversal = time_courses
 
@@ -126,17 +127,17 @@ class NoSimultaneousGroupCourses(TTConstraint):
                             groups.append(summit)
 
                     group_to_consider = groups[0]
-                    time_group_courses = groups[0].time_of_courses(week)
+                    time_group_courses = groups[0].time_of_courses(period)
                     for gp in groups:
-                        if gp.time_of_courses(week) > time_group_courses:
+                        if gp.time_of_courses(period) > time_group_courses:
                             group_to_consider = gp
-                            time_group_courses = gp.time_of_courses(week)
+                            time_group_courses = gp.time_of_courses(period)
                     transversal_conflict_groups.add(group_to_consider)
 
             # Set of courses for the group and all its structural ancestors
             considered_courses = set(
                 c
-                for c in Course.objects.filter(week=week, groups__in=bg.and_ancestors())
+                for c in Course.objects.filter(period=period, groups__in=bg.and_ancestors())
             )
 
             # Mimimum time needed in any cases
@@ -168,7 +169,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                     considered_courses = considered_courses | set(
                         c
                         for c in Course.objects.filter(
-                            week=week, groups__in=transversal_conflict_groups
+                            period=period, groups__in=transversal_conflict_groups
                         )
                     )
 
@@ -208,14 +209,14 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
                     all_start_times = []
                     all_nb_courses = 0
-                    min_duration = 1440
+                    min_duration = dt.timedelta(minutes=1440)
 
                     for course_duration, nb_courses in course_dict.items():
 
                         # We compute the total number of courses, all the different start times and the minimum duration of course
                         all_nb_courses += nb_courses
                         start_times = CourseStartTimeConstraint.objects.get(
-                            duration=duration, department=self.department
+                            duration=course_duration, department=self.department
                         ).allowed_start_times
                         if course_duration < min_duration:
                             min_duration = course_duration
@@ -277,8 +278,8 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
         return jsondict
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
-        relevant_slots = slots_filter(ttmodel.wdb.availability_slots, week=week)
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
+        relevant_slots = slots_filter(ttmodel.wdb.availability_slots, period=period)
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         # Count the number of transversal groups
         if ttmodel.wdb.transversal_groups.exists():
@@ -312,32 +313,28 @@ class NoSimultaneousGroupCourses(TTConstraint):
                         relevant_sum, n_tg + 1, n_tg * len(relevant_slots)
                     )
                     ttmodel.add_to_group_cost(
-                        bg, self.local_weight() * ponderation * two_courses, week
+                        bg, self.local_weight() * ponderation * two_courses, period
                     )
 
             for tg in ttmodel.wdb.transversal_groups:
-                not_parallel_nb = len(ttmodel.wdb.not_parallel_transversal_groups[tg])
-                relevant_sum_for_tg = not_parallel_nb * ttmodel.sum(
-                    ttmodel.TT[(sl2, c2)]
-                    for sl2 in slots_filter(
-                        ttmodel.wdb.courses_slots, simultaneous_to=sl
-                    )
-                    for c2 in ttmodel.wdb.courses_for_group[tg]
-                    & ttmodel.wdb.compatible_courses[sl2]
-                ) + ttmodel.sum(
-                    ttmodel.TT[(sl2, c2)]
-                    for tg2 in ttmodel.wdb.not_parallel_transversal_groups[tg]
-                    for sl2 in slots_filter(
-                        ttmodel.wdb.courses_slots, simultaneous_to=sl
-                    )
-                    for c2 in ttmodel.wdb.courses_for_group[tg2]
-                    & ttmodel.wdb.compatible_courses[sl2]
-                )
+                # The "+1" is for the case where all transversal groups are parallel
+                not_parallel_nb_bound = len(ttmodel.wdb.not_parallel_transversal_groups[tg]) + 1
+                relevant_sum_for_tg = not_parallel_nb_bound * ttmodel.sum(ttmodel.TT[(sl2, c2)]
+                                                                    for sl2 in slots_filter(ttmodel.wdb.courses_slots,
+                                                                                            simultaneous_to=sl)
+                                                                    for c2 in ttmodel.wdb.courses_for_group[tg]
+                                                                    & ttmodel.wdb.compatible_courses[sl2]) \
+                                      + ttmodel.sum(ttmodel.TT[(sl2, c2)]
+                                                    for tg2 in ttmodel.wdb.not_parallel_transversal_groups[tg]
+                                                    for sl2 in slots_filter(ttmodel.wdb.courses_slots,
+                                                                            simultaneous_to=sl)
+                                                    for c2 in ttmodel.wdb.courses_for_group[tg2]
+                                                    & ttmodel.wdb.compatible_courses[sl2])
                 if self.weight is None:
                     ttmodel.add_constraint(
                         relevant_sum_for_tg,
                         "<=",
-                        not_parallel_nb,
+                        not_parallel_nb_bound,
                         SimulSlotGroupConstraint(sl, tg),
                     )
                 else:
@@ -345,7 +342,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                         relevant_sum_for_tg, 2, len(relevant_slots)
                     )
                     ttmodel.add_to_global_cost(
-                        self.local_weight() * ponderation * two_courses, week
+                        self.local_weight() * ponderation * two_courses, period
                     )
 
     def one_line_description(self):
@@ -381,7 +378,7 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name = _("Schedule once all considered courses")
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=100):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(
             c
@@ -413,7 +410,7 @@ class ScheduleAllCourses(TTConstraint):
                     (ttmodel.one_var - not_scheduled)
                     * self.local_weight()
                     * ponderation,
-                    week,
+                    period,
                 )
 
     def one_line_description(self):
@@ -474,7 +471,7 @@ class AssignAllCourses(TTConstraint):
             )
         return result_courses
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=100):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(
             c
@@ -527,7 +524,7 @@ class AssignAllCourses(TTConstraint):
                     )
                     assigned = ttmodel.add_floor(relevant_sum, 0, 1000)
                     ttmodel.add_to_generic_cost(
-                        (1 - assigned) * self.local_weight() * ponderation, week
+                        (1 - assigned) * self.local_weight() * ponderation, period
                     )
         if self.pre_assigned_only:
             possible_useless_assignations_sum = ttmodel.sum(
@@ -572,14 +569,14 @@ class ConsiderTutorsUnavailability(TTConstraint):
         verbose_name_plural = verbose_name
 
     @timer
-    def pre_analyse(self, week, spec_tutor=None):
+    def pre_analyse(self, period, spec_tutor=None):
         """Pre analysis of the Constraint
-        For each tutor considered, checks if he or she has enough time available during the week and then
+        For each tutor considered, checks if he or she has enough time available during the period and then
         if he or she has enough slots for each type of courses
         It takes in consideration the scheduled courses of other departments
 
         Parameters:
-            week (Week): the week we want to analyse the data from
+            period (SchedulingPeriod): the period we want to analyse the data from
             spec_tutor (Tutor): the tutor we want to consider. If None, we'll consider tutors from the constraint
 
         Returns:
@@ -588,7 +585,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
         jsondict = {
             "status": _("OK"),
             "messages": [],
-            "period": {"week": week.nb, "year": week.year},
+            "period": {"id": period.id, "name": period.name},
         }
         if spec_tutor:
             considered_tutors = [spec_tutor]
@@ -600,13 +597,13 @@ class ConsiderTutorsUnavailability(TTConstraint):
 
         for tutor in considered_tutors:
             courses = Course.objects.filter(
-                Q(tutor=tutor) | Q(supp_tutor=tutor), week=week
+                Q(tutor=tutor) | Q(supp_tutor=tutor), period=period
             )
             if not courses.filter(type__department=self.department):
                 continue
 
             tutor_partition = partition_bis.create_tutor_partition_from_constraints(
-                week=week, department=self.department, tutor=tutor
+                period=period, department=self.department, tutor=tutor
             )
 
             if tutor_partition.available_duration < sum(
@@ -635,24 +632,24 @@ class ConsiderTutorsUnavailability(TTConstraint):
                 jsondict["status"] = _("KO")
 
             else:
-                no_course_tutor = NoTutorCourseOnDay.objects.filter(
+                no_course_tutor = NoTutorCourseOnWeekDay.objects.filter(
                     Q(tutors=tutor) | Q(tutor_status=tutor.status) | Q(tutors=None),
                     department=self.department,
-                    weeks=week,
+                    periods=period,
                 )
                 if not no_course_tutor:
-                    no_course_tutor = NoTutorCourseOnDay.objects.filter(
+                    no_course_tutor = NoTutorCourseOnWeekDay.objects.filter(
                         Q(tutors=tutor) | Q(tutor_status=tutor.status) | Q(tutors=None),
                         department=self.department,
-                        weeks=None,
+                        periods=None,
                     )
                 forbidden_days = ""
                 if no_course_tutor.exists():
                     for constraint in no_course_tutor:
                         forbidden_days += (
-                            constraint.weekday + "-" + constraint.period + ", "
+                            constraint.weekday + "-" + constraint.periods + ", "
                         )
-                        slot = constraint.get_slot_constraint(week, forbidden=True)
+                        slot = constraint.get_slot_constraint(period, forbidden=True)
                         if slot:
                             tutor_partition.add_slot(
                                 slot[0], "no_course_tutor", slot[1]
@@ -660,14 +657,13 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     # we remove the last ','
                     forbidden_days = forbidden_days[:-2]
 
-                holidays = Holiday.objects.filter(week=week)
+                holidays = Holiday.objects.filter(date__in=period.dates())
                 holiday_text = ""
                 if holidays.exists():
                     for h in holidays:
                         holiday_text += h.day + ", "
-                        d = Day(h.day, h.week)
-                        start = flopdate_to_datetime(d, 0)
-                        end = start + timedelta(days=1)
+                        start = dt.datetime.combine(h.date, dt.time(0))
+                        end = start + dt.timedelta(days=1)
                         t = TimeInterval(start, end)
                         tutor_partition.add_slot(t, "holiday", {"forbidden": True})
                     holiday_text = holiday_text[:-2]
@@ -726,11 +722,11 @@ class ConsiderTutorsUnavailability(TTConstraint):
                         start_times = CourseStartTimeConstraint.objects.get(
                             duration=course_duration, department=self.department
                         ).allowed_start_times
-                        course_partition = Partition.get_partition_of_week(
-                            week, self.department, True
+                        course_partition = Partition.get_partition_of_period(
+                            period, self.department, True
                         )
                         course_partition.add_scheduled_courses_to_partition(
-                            week, self.department, tutor, True
+                            period, self.department, tutor, True
                         )
                         course_partition.add_partition_data_type(
                             tutor_partition, "user_preference"
@@ -765,7 +761,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                             jsondict["status"] = _("KO")
         return jsondict
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         considered_tutors = set(ttmodel.wdb.instructors)
         if self.tutors.exists():
             considered_tutors &= set(self.tutors.all())
@@ -812,7 +808,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     ttmodel.add_to_inst_cost(
                         tutor,
                         tutor_undesirable_course * self.local_weight() * ponderation,
-                        week,
+                        period,
                     )
 
     def one_line_description(self):
@@ -826,61 +822,39 @@ class ConsiderTutorsUnavailability(TTConstraint):
     def __str__(self):
         return _("Consider tutors unavailability")
 
-    def complete_tutor_partition(self, partition, tutor, week):
+    def complete_tutor_partition(self, partition, tutor, period):
         """
-            Complete the partition in parameters with informations given by the UserAvailabilities of the given tutor for the given week.
+            Complete the partition in parameters with informations given by the UserAvailabilities of the given tutor for the given period.
         This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
-        Warning : ConsiderTutorsUnavailability constraint must exist for the given week in the database to consider tutor's preferences.
+        Warning : ConsiderTutorsUnavailability constraint must exist for the given period in the database to consider tutor's preferences.
 
         :param partition: A partition (empty or not) with informations about a tutor's availability.
         :type partition: Partition
         :param tutor: The tutor from whom the partition is about.
         :type tutor: Tutor
-        :param week: The week we want to make a pre-analysis on (can be None if all).
-        :type week: Week
+        :param period: The period we want to make a pre-analysis on (can be None if all).
+        :type period: SchedulingPeriod
         :return: A partition with new informations about tutor's availabilities.
         :rtype: Partition
 
         """
         if partition.tutor_supp:
+            user_unavailabilities = period_actual_availabilities(tutor, period, unavail_only=True)
 
-            user_preferences = UserAvailability.objects.filter(user=tutor, week=week)
-
-            if not user_preferences.exists():
-                user_preferences = UserAvailability.objects.filter(
-                    user=tutor, week=None
-                )
-
-            user_preferences = user_preferences.filter(value=0)
-            for up in user_preferences:
-                up_day = Day(up.day, week)
+            for up in user_unavailabilities:
                 partition.add_slot(
-                    TimeInterval(
-                        flopdate_to_datetime(up_day, up.start_time),
-                        flopdate_to_datetime(up_day, up.end_time),
-                    ),
+                    TimeInterval(up.start_time, up.end_time),
                     "user_preference",
                     {"value": up.value, "forbidden": True, "tutor": up.user.username},
                 )
 
         else:
 
-            user_preferences = UserAvailability.objects.filter(user=tutor, week=week)
+            user_availabilities = period_actual_availabilities(tutor, period, avail_only=True)
 
-            if not user_preferences.exists():
-                user_preferences = UserAvailability.objects.filter(
-                    user=tutor, week=None
-                )
-
-            user_preferences = user_preferences.filter(value__gte=1)
-
-            for up in user_preferences:
-                up_day = Day(up.day, week)
+            for up in user_availabilities:
                 partition.add_slot(
-                    TimeInterval(
-                        flopdate_to_datetime(up_day, up.start_time),
-                        flopdate_to_datetime(up_day, up.end_time),
-                    ),
+                    TimeInterval(up.start_time, up.end_time),
                     "user_preference",
                     {"value": up.value, "available": True, "tutor": up.user.username},
                 )

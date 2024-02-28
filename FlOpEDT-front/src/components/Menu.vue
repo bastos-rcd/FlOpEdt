@@ -1,12 +1,17 @@
 <template>
   <nav id="menu-links">
     <ul>
+      <li v-if="authStore.isUserAuthenticated">
+        <button @click="toggleSideBar()" class="sidebar-button">
+          <icon icon="iconoir:menu" class="IconMenu"></icon>
+        </button>
+      </li>
       <li>
         <router-link
           :to="{
             name: routeNames.home,
             params: {
-              dept: deptStore.getCurrentDepartment.abbrev,
+              dept: deptStore.current.abbrev,
               locale: locale,
             },
           }"
@@ -14,25 +19,32 @@
         >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/`">{{ $t('navbar.schedule') }}</a>
+        <router-link
+          :to="{
+            name: routeNames.schedule,
+            params: {
+              dept: deptStore.current.abbrev,
+              locale: locale,
+            },
+          }"
+          >{{ $t('navbar.schedule') }}</router-link
+        >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/semaine-type`">{{
-          $t('navbar.preferences')
-        }}</a>
+        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/semaine-type`">{{ $t('navbar.preferences') }}</a>
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/ics/${deptStore.getCurrentDepartment.abbrev}/`">{{ $t('navbar.iCal') }}</a>
+        <a :href="`/${locale}/ics/${deptStore.current.abbrev}/`">{{ $t('navbar.iCal') }}</a>
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/aide`">{{ $t('navbar.help') }}</a>
+        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/aide`">{{ $t('navbar.help') }}</a>
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
         <router-link
           :to="{
             name: routeNames.contact,
             params: {
-              dept: deptStore.getCurrentDepartment.abbrev,
+              dept: deptStore.current.abbrev,
               locale: locale,
             },
           }"
@@ -40,19 +52,7 @@
         >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.getCurrentDepartment.abbrev}/modules`">{{ $t('navbar.modules') }}</a>
-      </li>
-      <li v-if="deptStore.isCurrentDepartmentSelected">
-        <router-link
-          :to="{
-            name: routeNames.roomReservation,
-            params: {
-              dept: deptStore.getCurrentDepartment.abbrev,
-              locale: locale,
-            },
-          }"
-          >{{ $t('navbar.reservations') }}</router-link
-        >
+        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/modules`">{{ $t('navbar.modules') }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
         <a :href="`/${locale}/edt/INFO/decale`">{{ $t('navbar.move-cancel') }}</a>
@@ -61,14 +61,10 @@
         <a :href="`/${locale}/cstmanager/manager/`">{{ $t('navbar.constraints') }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/solve-board/${deptStore.getCurrentDepartment.abbrev}/main/`">{{
-          $t('navbar.generate')
-        }}</a>
+        <a :href="`/${locale}/solve-board/${deptStore.current.abbrev}/main/`">{{ $t('navbar.generate') }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/flopeditor/${deptStore.getCurrentDepartment.abbrev}/parameters`">{{
-          $t('navbar.flop-editor')
-        }}</a>
+        <a :href="`/${locale}/flopeditor/${deptStore.current.abbrev}/parameters`">{{ $t('navbar.flop-editor') }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
         <a :href="`/${locale}/configuration/`">{{ $t('navbar.import') }}</a>
@@ -86,6 +82,7 @@ import { useDepartmentStore } from '@/stores/department'
 import { routeNames } from '@/router'
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Icon } from '@iconify/vue'
 
 const authStore = useAuth()
 const deptStore = useDepartmentStore()
@@ -95,6 +92,10 @@ onMounted(() => {
     deptStore.getDepartmentFromURL()
   }
 })
+
+function toggleSideBar() {
+  authStore.toggleSidePanel()
+}
 </script>
 
 <style scoped>
@@ -110,6 +111,8 @@ a {
 #menu-links li {
   float: left;
   border-right: 1px solid #bbb;
+  min-width: 85px;
+  min-height: 50px;
 }
 #menu-links li a {
   color: white;
@@ -129,5 +132,13 @@ a {
 }
 li:hover {
   background-color: rgb(200, 200, 200);
+}
+.IconMenu {
+  color: red;
+}
+.sidebar-button {
+  width: 85px;
+  height: 50px;
+  background-color: rgba(0, 0, 0, 0);
 }
 </style>

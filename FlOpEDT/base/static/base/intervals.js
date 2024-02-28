@@ -201,11 +201,106 @@ function fill_holes(pref, def_value) {
       pref.splice(i + 1, 0,
         {
           start_time: pref[i].start_time + pref[i].duration,
-          duration: pref[i + 1].start_time - pref[i].duration,
+          duration: pref[i + 1].start_time - (pref[i].start_time + pref[i].duration),
           value: def_value
         });
       i++;
     }
     i++;
+  }
+}
+
+function extend_pref(pref_list, start, end, value) {
+  if (pref_list[0].start_time > start) {
+    pref_list.unshift({
+      start_time: start,
+      duration: pref_list[0].start_time - start,
+      value: value,
+    });
+  }
+  let prev_end =
+    pref_list[pref_list.length - 1].start_time +
+    pref_list[pref_list.length - 1].duration;
+  if (end > prev_end) {
+    pref_list.push({
+      start_time: prev_end,
+      duration: end - prev_end,
+      value: value,
+    });
+  }
+}
+
+function merge_pref(dic, key_from, key_to) {
+  let existing_keys = Object.keys(dic);
+  if (existing_keys.indexOf(key_from) == -1) {
+    return;
+  }
+  if (existing_keys.indexOf(key_to) == -1) {
+    let days_from = Object.keys(dic[key_from]);
+    dic[key_to] = {};
+    for (iday = 0; iday < days_from.length; iday++) {
+      dic[key_to][days_from[iday]] = [];
+    }
+  }
+
+  let common_days = Object.keys(dic[key_from]).filter(function (day) {
+    return Object.keys(dic[key_to]).indexOf(day) !== -1;
+  });
+
+  for (ik = 0; ik < common_days.length; ik++) {
+    let day = common_days[ik];
+    if (dic[key_from][day].length == 0) {
+      continue;
+    }
+    if (dic[key_to][day].length == 0) {
+      dic[key_to][day] = dic[key_from][day].slice();
+      continue;
+    }
+
+    let p_from = dic[key_from][day];
+    let p_to = dic[key_to][day];
+    let i_from = 0;
+    let i_to = 0;
+    let p_merged = [];
+
+    let new_start = Math.min(p_from[0].start_time, p_to[0].start_time);
+    let new_end = Math.max(
+      p_from[p_from.length - 1].start_time + p_from[p_from.length - 1].duration,
+      p_to[p_to.length - 1].start_time + p_to[p_to.length - 1].duration
+    );
+    extend_pref(p_from, new_start, new_end, 1);
+    extend_pref(p_to, new_start, new_end, 1);
+
+    let next_slot = { start_time: new_start };
+    while (
+      p_from[i_from].start_time + p_from[i_from].duration < new_end ||
+      p_to[i_to].start_time + p_to[i_to].duration < new_end
+    ) {
+      let end_from = p_from[i_from].start_time + p_from[i_from].duration;
+      let end_to = p_to[i_to].start_time + p_to[i_to].duration;
+      next_slot["value"] = Math.min(
+        p_from[i_from]["value"],
+        p_to[i_to]["value"]
+      );
+      if (end_from <= end_to) {
+        next_slot["duration"] = end_from - next_slot["start_time"];
+        p_merged.push(next_slot);
+        next_slot = { start_time: end_from };
+        i_from++;
+        if (end_to == end_from) {
+          i_to++;
+        }
+      } else if (end_to < end_from) {
+        next_slot["duration"] = end_to - next_slot["start_time"];
+        p_merged.push(next_slot);
+        next_slot = { start_time: end_to };
+        i_to++;
+      }
+    }
+    next_slot["value"] = Math.min(p_from[i_from]["value"], p_to[i_to]["value"]);
+    next_slot["duration"] = new_end - next_slot["start_time"];
+    p_merged.push(next_slot);
+
+    dic[key_to][day] = p_merged;
   }
 }

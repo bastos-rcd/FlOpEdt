@@ -69,6 +69,7 @@
 - Lauric Teysseyre
 - Pierre-Louis Renon
 - Julien Wattier
+- Cynthia Rey
 
 # TRANSLATORS:
 - Thomas Demarty

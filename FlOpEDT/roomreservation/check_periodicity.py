@@ -1,7 +1,7 @@
 from dateutil.rrule import rrule, MONTHLY, WEEKLY, MO, TU, WE, TH, FR, SA, SU
 from django.db.models import F
 
-from base.models import ScheduledCourse, Week
+from base.models import ScheduledCourse, SchedulingPeriod
 from base.timing import days_list, time_to_floptime, days_index
 from roomreservation.models import ReservationPeriodicity, RoomReservation
 

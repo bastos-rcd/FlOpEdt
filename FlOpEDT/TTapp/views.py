@@ -26,7 +26,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 
-from base.models import ScheduledCourse, Week
+from base.models import ScheduledCourse, SchedulingPeriod
 
 from TTapp.TTUtils import get_conflicts
 

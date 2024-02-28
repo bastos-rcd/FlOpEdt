@@ -70,15 +70,15 @@ export class TreeNode implements ITreeNode {
       const allNodeIds = _.map(_.keys(this.tree.byId), (nidStr: string) => parseInt(nidStr))
       const activeNodeIds = _.filter(allNodeIds, (id: number) => this.tree.byId[id].active)
       if (allNodeIds.length == activeNodeIds.length) {
-        console.log('all there')
+        //console.log('all there')
 
         const activeNodes = _.concat(this.descendants, this.ancestors, this)
-        console.log(
-          _.difference(
-            allNodeIds,
-            _.map(activeNodes, (n: TreeNode) => n.id)
-          )
-        )
+        // console.log(
+        //   _.difference(
+        //     allNodeIds,
+        //     _.map(activeNodes, (n: TreeNode) => n.id)
+        //   )
+        // )
         _.forEach(
           _.difference(
             allNodeIds,
@@ -207,6 +207,7 @@ export class Tree implements ITree {
       this.byId[linkIdUp.id] = new TreeNode(this, [], linkIdUp as LinkUp)
     })
     _.forEach(_.values(this.byId), (val) => {
+      if (!val.parentsId) val.parentsId = []
       _.forEach(val.parentsId, (parentId) => {
         if (this.byId[parentId] === undefined) {
           throw new Error('Tree: unknown parent')

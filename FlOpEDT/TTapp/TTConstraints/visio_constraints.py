@@ -47,12 +47,12 @@ class NoVisio(TTConstraint):
         verbose_name = _('No visio courses')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1000000):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1000000):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore NoVisio constraint")
             return
         considered_groups = considered_basic_groups(self, ttmodel)
-        days = days_filter(ttmodel.wdb.days, week=week)
+        days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         for group in considered_groups:
@@ -112,12 +112,12 @@ class VisioOnly(TTConstraint):
         verbose_name = _('Only visio courses')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1000000):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1000000):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore VisioOnly constraint")
             return
         considered_groups = considered_basic_groups(self, ttmodel)
-        days = days_filter(ttmodel.wdb.days, week=week)
+        days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         for group in considered_groups:
@@ -179,7 +179,7 @@ class LimitGroupsPhysicalPresence(TTConstraint):
         verbose_name = _('Limit simultaneous physical presence')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1000):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1000):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore LimitGroupsPhysicalPresence constraint")
             return
@@ -188,7 +188,7 @@ class LimitGroupsPhysicalPresence(TTConstraint):
                 ttmodel.wdb.basic_groups.filter(train_prog__in=self.train_progs.all()))
         else:
             considered_basic_groups = set(ttmodel.wdb.basic_groups)
-        days = days_filter(ttmodel.wdb.days, week=week)
+        days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         proportion = self.percentage / 100
@@ -206,7 +206,7 @@ class LimitGroupsPhysicalPresence(TTConstraint):
                         '==', 0,
                         Constraint(constraint_type=ConstraintType.VISIO_LIMIT_GROUP_PRESENCE))
                 else:
-                    ttmodel.add_to_generic_cost(is_over_bound * self.local_weight() * ponderation, week=week)
+                    ttmodel.add_to_generic_cost(is_over_bound * self.local_weight() * ponderation, period=period)
 
     def one_line_description(self):
         text = "Pas plus de " + str(self.percentage) + "% des groupes"
@@ -232,7 +232,7 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
         verbose_name = _('Bound physical presence half days')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore BoundPhysicalPresenceHalfDays constraint")
             return
@@ -248,12 +248,12 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
                 # at least nb_min half-days of physical-presence for each group
                 ttmodel.add_constraint(
                     physical_presence_half_days_number[g], '>=', self.nb_min,
-                    Constraint(constraint_type=ConstraintType.MIN_PHYSICAL_HALF_DAYS, groups=g, weeks=week))
+                    Constraint(constraint_type=ConstraintType.MIN_PHYSICAL_HALF_DAYS, groups=g, periods=period))
 
                 # at most nb_max half-days of physical presence for each group
                 ttmodel.add_constraint(physical_presence_half_days_number[g], '<=', self.nb_max,
                                        Constraint(constraint_type=ConstraintType.MAX_PHYSICAL_HALF_DAYS,
-                                                  groups=g, weeks=week))
+                                                  groups=g, periods=period))
         else:
             for g in considered_groups:
                 cost = ponderation * self.local_weight() * \
@@ -261,7 +261,7 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
                                                        self.nb_min, total_nb_half_days)
                         + ttmodel.add_floor(physical_presence_half_days_number[g],
                                             self.nb_max, total_nb_half_days))
-                ttmodel.add_to_group_cost(g, cost, week)
+                ttmodel.add_to_group_cost(g, cost, period)
 
     def one_line_description(self):
         text = f"Au moins {self.nb_min} et au plus {self.nb_max} demie_journées de présentiel"
@@ -281,7 +281,7 @@ class Curfew(TTConstraint):
         Defines a curfew (after which only Visio courses are allowed)
     """
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    curfew_time = models.PositiveSmallIntegerField(validators=[MaxValueValidator(24*60)])  # FIXME : time with TimeField or DurationField
+    curfew_time = models.TimeField() 
 
     class Meta:
         verbose_name = _('Curfew')
@@ -290,11 +290,11 @@ class Curfew(TTConstraint):
     def one_line_description(self):
         text = f"Curfew after {min_to_str(self.curfew_time)}"
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=2):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=2):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore Curfew constraint")
             return
-        days = days_filter(ttmodel.wdb.days, week=week)
+        days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
 
@@ -304,7 +304,7 @@ class Curfew(TTConstraint):
                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
                                                           ends_after=self.curfew_time,
                                                           day_in=days,
-                                                          week=week))
+                                                          period=period))
         if self.weight is None:
             ttmodel.add_constraint(relevant_sum,
                                    '==',

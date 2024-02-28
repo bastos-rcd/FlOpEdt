@@ -32,7 +32,7 @@
 
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
-
+from django.conf import settings as ds
 import datetime as dt
 import logging
 logger = logging.getLogger(__name__)
@@ -156,6 +156,7 @@ def find_marker_cell(sheet, marker, row = 1, col = 1):
         col = 1
     return None, None
 
+# TODO : transform into time object
 def time_from_integer(time:int):
     hours = time // 60
     minutes = time % 60
@@ -491,3 +492,128 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
     except FileNotFoundError as ex:
         logger.warning("Database file couldn't be opened: ", ex)
         return None
+
+
+def database_description_save_xlsx_file(filename, database):
+    wb = load_workbook(f"{ds.MEDIA_ROOT}/empty_database_file.xlsx") 
+
+    sheet = wb[settings_sheet]
+    row, col = find_marker_cell(sheet, 'Jalon')
+    sheet.cell(row=row+1, column=col+1, value=time_from_integer(database['settings']['day_start_time']))
+    sheet.cell(row=row+2, column=col+1, value=time_from_integer(database['settings']['day_finish_time']))
+    sheet.cell(row=row+3, column=col+1, value=time_from_integer(database['settings']['lunch_break_start_time']))
+    sheet.cell(row=row+4, column=col+1, value=time_from_integer(database['settings']['lunch_break_finish_time']))
+
+    row, col = find_marker_cell(sheet, 'Granularité')
+    sheet.cell(row=row, column=col+1, value=database['settings']['default_preference_duration'])
+
+    row, col = find_marker_cell(sheet, 'Jours ouvrables')
+    days = database['settings']['days']
+    cols = {'m': 0,
+            'tu': 1,
+            'w': 2,
+            'th': 3,
+            'f': 4,
+            'sa': 5,
+            'su': 6}
+    for day, delta in cols.items():
+        if day in days:
+            sheet.cell(row=row+2, column=col+delta, value='X')
+        else:
+            sheet.cell(row=row+2, column=col+delta, value=None)
+
+    row, col = find_marker_cell(sheet, 'Périodes')
+    row = row + 1
+    for id_, (start, finish) in database['settings']['periods'].items():
+        row = row + 1
+        sheet.cell(row=row, column=col, value=id_)
+        sheet.cell(row=row, column=col+1, value=start)
+        sheet.cell(row=row, column=col+2, value=finish)
+
+    sheet = wb[people_sheet]
+    row, col = find_marker_cell(sheet, 'Identifiant')
+    for id_, data in database['people'].items():
+        row = row + 1
+        sheet.cell(row=row, column=col, value=id_)
+        sheet.cell(row=row, column=col+1, value=data['last_name'])
+        sheet.cell(row=row, column=col+2, value=data['first_name'])
+        sheet.cell(row=row, column=col+3, value=data['email'])
+        sheet.cell(row=row, column=col+4, value=data['status'])
+        sheet.cell(row=row, column=col+5, value=data['employer'])
+
+    sheet = wb[rooms_sheet]
+    
+    row, col_start = find_marker_cell(sheet, 'Groupes')
+    for id_, rooms in database['room_groups'].items():
+        row = row + 1
+        col = col_start
+        sheet.cell(row=row, column=col, value=id_)
+        for room in rooms:
+            col = col + 1
+            sheet.cell(row=row, column=col, value=room)
+
+    row, col_start = find_marker_cell(sheet, 'Catégories')
+    for id_, rooms in database['room_categories'].items():
+        row = row + 1
+        col = col_start
+        sheet.cell(row=row, column=col, value=id_)
+        for room in rooms:
+            col = col + 1
+            sheet.cell(row=row, column=col, value=room)
+
+    sheet = wb[groups_sheet]
+
+    # FIXME: if we have too many promotions, we destroy the marker below!
+    row, col = find_marker_cell(sheet, 'Identifiant')
+    for id_, name in database['promotions'].items():
+        row = row + 1
+        sheet.cell(row=row, column=col, value=id_)
+        sheet.cell(row=row, column=col+1, value=name)
+
+    # FIXME: if we have too many group types, we destroy the marker below!
+    row, col = find_marker_cell(sheet, 'Identifiant', row)
+    for id_ in database['group_types']:
+        row = row + 1
+        sheet.cell(row=row, column=col, value=id_)
+
+    row, col = find_marker_cell(sheet, 'Identifiant', row)
+    for id_, data in database['groups'].items():
+        row = row + 1
+        sheet.cell(row=row, column=col, value=id_)
+        sheet.cell(row=row, column=col+1, value=data['promotion'])
+        sheet.cell(row=row, column=col+2, value=data['group_type'])
+        for parent in data['parent']:
+            sheet.cell(row=row, column=col+3, value=parent)
+
+    sheet = wb[modules_sheet]
+    row, col = find_marker_cell(sheet, 'Identifiant')
+    for id_, data in database['modules'].items():
+        row = row + 1
+        sheet.cell(row=row, column=col, value=id_)
+        sheet.cell(row=row, column=col+1, value=data['short'])
+        sheet.cell(row=row, column=col+2, value=data['PPN'])
+        sheet.cell(row=row, column=col+3, value=data['name'])
+        sheet.cell(row=row, column=col+4, value=data['promotion'])
+        sheet.cell(row=row, column=col+5, value=data['period'])
+        sheet.cell(row=row, column=col+6, value=data['responsable'])
+
+    sheet = wb[courses_sheet]
+    row, col_start = find_marker_cell(sheet, 'Type')
+    for id_, data in database['courses'].items():
+        row = row + 1
+        col = col_start
+        sheet.cell(row=row, column=col, value=id_)
+        sheet.cell(row=row, column=col+1, value=data['duration'])
+        col = col_start + 1
+        for group_type in data['group_types']:
+            col = col + 1
+            sheet.cell(row=row, column=col, value=group_type)
+        row = row + 1
+        col = col_start + 1
+        start_times = list(data['start_times'])
+        start_times.sort()
+        for start_time in start_times:
+            col = col + 1
+            sheet.cell(row=row, column=col, value=time_from_integer(start_time))
+
+    wb.save(filename)

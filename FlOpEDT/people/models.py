@@ -29,7 +29,8 @@ from django.contrib.auth.models import AbstractUser
 from base.models import Department
 from base.timing import Day
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+import datetime as dt
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 
@@ -192,18 +193,18 @@ class TutorPreference(models.Model):
     tutor = models.OneToOneField('Tutor',
                                  on_delete=models.CASCADE,
                                  related_name='preferences')
-    pref_hours_per_day = models.PositiveSmallIntegerField(
-        verbose_name="How many hours per day would you prefer ?",
-        default=4)  # FIXME : time with TimeField or DurationField
-    max_hours_per_day = models.PositiveSmallIntegerField(
-        verbose_name="How many hours per day can you suffer ?",
-        default=9)  # FIXME : time with TimeField or DurationField
-    min_hours_per_day = models.PositiveSmallIntegerField(
-        verbose_name="Under how many hours would you prefer to avoid to have class?",
-        default=0)  # FIXME : time with TimeField or DurationField
-
+    pref_time_per_day = models.DurationField(
+        verbose_name=_("How much teaching time per day would you prefer ?"),
+        default=dt.timedelta(hours=4))
+    max_time_per_day = models.DurationField(
+        verbose_name=("How much teaching time per day can you suffer ?"),
+        default=dt.timedelta(hours=9))
+    min_time_per_day = models.DurationField(
+        verbose_name=_("Under how  much teaching time per day would you prefer to avoid to have class?"),
+        default=dt.timedelta(0)) 
+    
     def __str__(self):
-        ret = f"{self.tutor} - P{self.pref_hours_per_day} - M{self.pref_hours_per_day} - m{self.min_hours_per_day}"
+        ret = f"{self.tutor} - P{self.pref_time_per_day} - M{self.pref_time_per_day} - m{self.min_time_per_day}"
         return ret
 
 
@@ -328,8 +329,7 @@ class UserPreferredLinks(models.Model):
 
 class PhysicalPresence(models.Model):
     user = models.ForeignKey('people.User', on_delete=models.CASCADE, related_name='physical_presences')
-    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.ForeignKey('base.Week', on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField(default=dt.date(1789,7,14))
 
     def __str__(self):
-        return f"{self.user.username} is present {self.day} of week {self.week}"
+        return f"{self.user.username} is present {self.date}"

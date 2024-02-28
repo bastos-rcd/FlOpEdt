@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('base', '0111_auto_20240221_1158'),
+        ('base', '0111_remove_coursetype_duration_and_more'),
     ]
 
     operations = [

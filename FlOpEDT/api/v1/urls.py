@@ -30,8 +30,8 @@ from api.v1.availability.urls import routerAvailability
 routerV1 = routers.SimpleRouter()
 
 url_V1_patterns = [
-    # path("base/", include((url_base_patterns, "api"), namespace="base")),
-    # path("people/", include((url_people_patterns, "api"), namespace="people")),
+    path("base/", include((url_base_patterns, "api"), namespace="base")),
+    path("people/", include((url_people_patterns, "api"), namespace="people")),
     path(
         "availability/",
         include((routerAvailability.urls, "api"), namespace="availability"),

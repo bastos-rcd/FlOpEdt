@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -35,6 +36,7 @@ from openpyxl.utils import get_column_letter
 from copy import copy
 
 import logging
+import os
 logger = logging.getLogger(__name__)
 from configuration.database_description_xlsx import \
     people_sheet, rooms_sheet, groups_sheet, modules_sheet, courses_sheet, settings_sheet, REASONABLE, \
@@ -43,6 +45,7 @@ from configuration.database_description_xlsx import \
 
 from base.models import Room, RoomType, TrainingPeriod, TransversalGroup, StructuralGroup, TrainingProgramme, GroupType, Module, CourseType, CourseStartTimeConstraint
 from people.models import Tutor
+from django.conf import settings as ds
 #################################################
 #                                               #
 #   Filler functions for the different pages    #
@@ -103,9 +106,9 @@ def dict_from_dept_database(department):
 
 
 def make_filled_database_file(department, filename=None):
-    wb = load_workbook('media/configuration/empty_database_file.xlsx')
+    wb = load_workbook(os.path.join(os.path.dirname(__file__),'xls/empty_database_file.xlsx'))
     if filename is None:
-        filename = f'media/configuration/database_file_{department.abbrev}.xlsx'
+        filename = os.path.join(ds.CONF_XLS_DIR,f'database_file_{department.abbrev}.xlsx')
 
     sheet = wb[settings_sheet]
     row, col = find_marker_cell(sheet, 'Jalon')
@@ -262,7 +265,7 @@ def make_filled_database_file(department, filename=None):
         sheet.cell(row=row, column=col+2, value=module.ppn)
         sheet.cell(row=row, column=col+3, value=module.name)
         sheet.cell(row=row, column=col+4, value=module.train_prog.abbrev)
-        sheet.cell(row=row, column=col+5, value=module.period.name)
+        sheet.cell(row=row, column=col+5, value=module.training_period.name)
         if module.head is not None:
             sheet.cell(row=row, column=col+6, value=module.head.username)
 

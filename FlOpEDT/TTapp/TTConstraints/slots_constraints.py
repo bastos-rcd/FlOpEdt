@@ -26,7 +26,7 @@
 
 from core.decorators import timer
 import TTapp.GlobalPreAnalysis.partition_with_constraints as partition_bis
-from datetime import timedelta
+import datetime as dt
 
 from django.http.response import JsonResponse
 from base.models import CourseStartTimeConstraint, Dependency
@@ -57,23 +57,23 @@ class SimultaneousCourses(TTConstraint):
     """
     courses = models.ManyToManyField('base.Course', related_name='simultaneous_courses_constraints')
 
-    def pre_analyse(self,week):
+    def pre_analyse(self, period):
         """
         Pre-analysis of the constraint
         Firstly verify if there is only one course per group/tutor to be done simultaneously
         Then built a partition comparing each tutor availability (Can be optimized)
-        At the end, try to find an available slot in the week for the considered_courses
+        At the end, try to find an available slot in the period for the considered_courses
 
         Parameters :
-            week : pre_analyse's current week
+            period : pre_analyse's current period
 
         Returns :
             jsondict :  a Json dictionary that contains the result of the pre-analyse
         """
-        jsondict = {"status": _("OK"), "messages": [], "period": {"week": week.nb, "year": week.year}}
+        jsondict = {"status": _("OK"), "messages": [], "period": {"id": period.id, "name": period.name}}
 
-        # pre_analyse's week simultaneous courses retrieval
-        considered_courses = (list(c for c in self.courses.all() if c.week == week ))
+        # pre_analyse's period simultaneous courses retrieval
+        considered_courses = (list(c for c in self.courses.all() if c.period == period ))
 
         #We verify if there is only one course to do simultaneously for each tutor/group
         jsondict,OK = self.maxOneCourse(jsondict, considered_courses)
@@ -83,17 +83,17 @@ class SimultaneousCourses(TTConstraint):
         # No course in the constraint case
         if len(considered_courses) == 0:
             jsondict["status"] = _("KO")
-            message = gettext("No partition created : maybe there is no courses or it's wrong the week")
+            message = gettext("No partition created : maybe there is no courses or it's wrong the period")
             jsondict["messages"].append({"str": message, "type": "SimultaneousCourses"})
             return jsondict
 
-        # We build a week's partition comparing partition of each tutors
+        # We build a period's partition comparing partition of each tutors
         partition = None
-        no_user_pref = not ConsiderTutorsUnavailability.objects.filter(weeks=week).exists()
+        no_user_pref = not ConsiderTutorsUnavailability.objects.filter(periods=period).exists()
         for course in considered_courses :
             if partition == None : # Here we build the partition of the first teacher
-                partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department,available=no_user_pref)
-            new_partition = partition_bis.create_course_partition_from_constraints(course,week,course.type.department,available=no_user_pref)
+                partition = partition_bis.create_course_partition_from_constraints(course,period,course.type.department,available=no_user_pref)
+            new_partition = partition_bis.create_course_partition_from_constraints(course,period,course.type.department,available=no_user_pref)
             """
             Then, for each interval (named interval1) available and not forbidden of the main partition (named partition) 
             we watch if the interval of another teacher (named interval2) is also available and not forbidden 
@@ -112,7 +112,7 @@ class SimultaneousCourses(TTConstraint):
             max_duration = max(max_duration, course.duration)
 
 
-        # Here we search for an available slot in the week
+        # Here we search for an available slot in the period
         if partition.nb_slots_available_of_duration(max_duration) < 1:
             jsondict["status"] = _("KO")
             message = gettext("Not enough common available time for courses ")
@@ -162,15 +162,15 @@ class SimultaneousCourses(TTConstraint):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        courses_weeks = self.courses.all().distinct('week')
-        nb = courses_weeks.count()
+        courses_periods = self.courses.all().distinct('period')
+        nb = courses_periods.count()
         if nb == 0:
             return
         else:
             super().save(*args, **kwargs)
-            self.weeks.clear()
-            for w in courses_weeks:
-                self.weeks.add(w.week)
+            self.periods.clear()
+            for w in courses_periods:
+                self.periods.add(w.period)
 
 
     @classmethod
@@ -179,7 +179,7 @@ class SimultaneousCourses(TTConstraint):
         attributes.extend(['courses'])
         return attributes
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         course_types = set(c.type for c in self.courses.all())
         relevant_courses = set(self.courses.all()) & set(ttmodel.wdb.courses)
         nb_courses = len(relevant_courses)
@@ -188,7 +188,7 @@ class SimultaneousCourses(TTConstraint):
         possible_start_times = set()
         for t in course_types:
             possible_start_times |= set(t.coursestarttimeconstraint_set.all()[0].allowed_start_times)
-        for day in days_filter(ttmodel.wdb.days, week=week):
+        for day in days_filter(ttmodel.wdb.days, period=period):
             for st in possible_start_times:
                 check_var = ttmodel.add_var("check_var")
                 expr = ttmodel.lin_expr()
@@ -248,8 +248,8 @@ class StartTimeConstraint(TTConstraint):
     def excluded_slots(self, ttmodel):
         raise NotImplementedError
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
-        fc = self.get_courses_queryset_by_attributes(ttmodel, week)
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
+        fc = self.get_courses_queryset_by_attributes(ttmodel, period)
         excluded_slots = self.excluded_slots(ttmodel)
         if self.tutor is None:
             relevant_sum = ttmodel.sum(ttmodel.TT[(sl, c)]
@@ -260,7 +260,7 @@ class StartTimeConstraint(TTConstraint):
                                        for c in fc
                                        for sl in ttmodel.wdb.compatible_slots[c] & excluded_slots)
         if self.weight is not None:
-            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum, week=week)
+            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum, period=period)
         else:
             ttmodel.add_constraint(relevant_sum, '==', 0,
                                    Constraint(constraint_type=ConstraintType.LIMITED_START_TIME_CHOICES,
@@ -292,7 +292,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
     def excluded_slots(self, ttmodel):
         return set(sl for sl in ttmodel.wdb.courses_slots
                    if (sl.start_time not in self.considered_start_times(ttmodel)
-                       or sl.day.day not in self.considered_week_days()))
+                       or sl.start_time.date().day not in self.considered_week_days()))
 
     def one_line_description(self):
         text = "Les "
@@ -371,10 +371,10 @@ class AvoidStartTimes(StartTimeConstraint):
         if not (self.forbidden_week_days or self.forbidden_start_times):
             text += ' ... Tout le temps!'
         else:
-            if self.possible_week_days:
+            if self.forbidden_week_days:
                 text += ' les '
                 text += ', '.join(self.forbidden_week_days)
-            if self.possible_start_times:
+            if self.forbidden_week_days:
                 text += ' à '
                 text += ', '.join([french_format(pst) for pst in self.forbidden_start_times])
         text += '.'
@@ -390,8 +390,8 @@ def find_successive_slots(course_slot1, course_slot2, course1_duration, course2_
     Parameters:
         course_slot1 (list(TimeInterval)): A list of time interval representing when the first course can be placed
         course_slot2 (list(TimeInterval)): A list of time interval representing when the second course can be placed
-        course1_duration (timedelta): The duration of the first course
-        course2_duration (timedelta): The duration of the second course
+        course1_duration (dt.timedelta): The duration of the first course
+        course2_duration (dt.timedelta): The duration of the second course
 
     Returns:
         (boolean): If we found at least one eligible slot'''
@@ -419,7 +419,7 @@ def find_day_gap_slots(course_slots1, course_slots2, day_gap):
 
     Returns:
         (boolean) : whether there is available time for the second course after the day gap or not"""
-    day_slot = course_slots1[0].start + timedelta(days=day_gap) - timedelta(hours=course_slots1[0].start.hour, minutes=course_slots1[0].start.minute)
+    day_slot = course_slots1[0].start + dt.timedelta(days=day_gap) - dt.timedelta(hours=course_slots1[0].start.hour, minutes=course_slots1[0].start.minute)
     for cs2 in course_slots2:
         if cs2.start > day_slot:
             return True
@@ -441,20 +441,20 @@ class ConsiderDependencies(TTConstraint):
         verbose_name_plural = verbose_name
 
     @timer
-    def pre_analyse(self, week):
+    def pre_analyse(self, period):
         """Pre analysis of the Constraint
         For each dependency, first checks if there is available slots for both courses taking in consideration tutor's and supp_tutor's
         availabilities, NoTutorCourseOnDay constraints and possible start times. Then we check if we still have slots for the second one
         starting after the first one and then if the options are True and or above 0 we check successive slots and the day gap.
 
         Parameter:
-            week (Week): the week we want to analyse the data from
+            period (SchedulingPeriod): the period we want to analyse the data from
 
         Returns:
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem"""
-        dependencies = self.considered_dependecies().filter(course1__week=week, course2__week=week)
-        jsondict = {"status" : _("OK"), "messages" : [], "period": { "week": week.nb, "year": week.year} }
-        no_user_pref1 = no_user_pref2 = not ConsiderTutorsUnavailability.objects.filter(Q(weeks=week)|Q(weeks__isnull=True)).exists()
+        dependencies = self.considered_dependecies().filter(course1__period=period, course2__period=period)
+        jsondict = {"status" : _("OK"), "messages" : [], "period": { "id": period.id, "name": period.name} }
+        no_user_pref1 = no_user_pref2 = not ConsiderTutorsUnavailability.objects.filter(Q(periods=period)|Q(periods__isnull=True)).exists()
         for dependency in dependencies:
             ok_so_far = True
             # Setting up partitions with data about other constraints for both courses
@@ -463,20 +463,20 @@ class ConsiderDependencies(TTConstraint):
             if dependency.course2.tutor is None:
                 no_user_pref2 = True
 
-            week_partition_course1 = partition_bis.create_course_partition_from_constraints(dependency.course1, week,
+            period_partition_course1 = partition_bis.create_course_partition_from_constraints(dependency.course1, period,
                                                                                             self.department,
                                                                                             available=no_user_pref1)
-            week_partition_course2 = partition_bis.create_course_partition_from_constraints(dependency.course2, week,
+            period_partition_course2 = partition_bis.create_course_partition_from_constraints(dependency.course2, period,
                                                                                             self.department,
                                                                                             available=no_user_pref2)
 
-            if week_partition_course1 and week_partition_course2:
+            if period_partition_course1 and period_partition_course2:
                 # Retrieving possible start times for both courses
                 course1_start_times = CourseStartTimeConstraint.objects.get(course_type=dependency.course1.type).allowed_start_times
                 course2_start_times = CourseStartTimeConstraint.objects.get(course_type=dependency.course2.type).allowed_start_times
                 # Retrieving only TimeInterval for each course
-                course1_slots = week_partition_course1.find_all_available_timeinterval_starting_at(course1_start_times, dependency.course1.duration)
-                course2_slots = week_partition_course2.find_all_available_timeinterval_starting_at(course2_start_times, dependency.course2.duration)
+                course1_slots = period_partition_course1.find_all_available_timeinterval_starting_at(course1_start_times, dependency.course1.duration)
+                course2_slots = period_partition_course2.find_all_available_timeinterval_starting_at(course2_start_times, dependency.course2.duration)
                 if course1_slots and course2_slots:
                     while course2_slots[0].end < course1_slots[0].start + dependency.course1.duration+ dependency.course2.duration:
                         course2_slots.pop(0)
@@ -548,8 +548,8 @@ class ConsiderDependencies(TTConstraint):
             result = result.filter(course1__module__train_prog__in=self.train_progs.all(), course2__module__train_prog__in=self.train_progs.all())
         if self.modules.exists():
             result = result.filter(course1__module__in=self.modules.all(), course2__module__in=self.modules.all())
-        if self.weeks.exists():
-            result = result.filter(course1__week__in=self.weeks.all(), course2__week__in=self.weeks.all())
+        if self.periods.exists():
+            result = result.filter(course1__period__in=self.periods.all(), course2__period__in=self.periods.all())
         return result
 
     def one_line_description(self):
@@ -560,7 +560,7 @@ class ConsiderDependencies(TTConstraint):
             text += ' pour les modules ' + ', '.join([module.abbrev for module in self.modules.all()])
         return text
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=10):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=10):
         if self.train_progs.exists():
             train_progs = set(tp for tp in self.train_progs.all() if tp in ttmodel.train_prog)
         else:
@@ -616,7 +616,7 @@ class ConsiderPivots(TTConstraint):
             text += ' pour les modules ' + ', '.join([module.abbrev for module in self.modules.all()])
         return text
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=10):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=10):
         if self.train_progs.exists():
             train_progs = set(tp for tp in self.train_progs.all() if tp in ttmodel.train_prog)
         else:
@@ -673,8 +673,8 @@ class AvoidBothTimesSameDay(TTConstraint):
     Idéalement, on pourrait paramétrer slot1, et slot2 à partir de slot1... Genre slot1
     c'est 8h n'importe quel jour, et slot2 14h le même jour...
     """
-    time1 = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
-    time2 = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    time1 = models.TimeField()
+    time2 = models.TimeField()
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
 
@@ -689,20 +689,20 @@ class AvoidBothTimesSameDay(TTConstraint):
         return attributes
 
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         considered_groups = considered_basic_groups(self, ttmodel)
-        days = days_filter(ttmodel.wdb.days, week=week)
+        days = days_filter(ttmodel.wdb.days, period=period)
         slots1 = set([slot for slot in ttmodel.wdb.courses_slots
-                      if slot.start_time <= self.time1 < slot.end_time])
+                      if slot.start_time.time() <= self.time1 < slot.end_time.time()])
         slots2 = set([slot for slot in ttmodel.wdb.courses_slots
-                      if slot.start_time <= self.time2 < slot.end_time])
+                      if slot.start_time.time() <= self.time2 < slot.end_time.time()])
         if self.weekdays:
-            days = days_filter(days, day_in=self.weekdays)
+            days = days_filter(days, weekday_in=self.weekdays)
         for day in days:
             day_slots1 = slots_filter(slots1, day=day)
             day_slots2 = slots_filter(slots2, day=day)
             for group in considered_groups:
-                considered_courses = self.get_courses_queryset_by_parameters(ttmodel, week, group=group)
+                considered_courses = self.get_courses_queryset_by_parameters(ttmodel, period, group=group)
                 sum1 = ttmodel.sum(ttmodel.TT[sl,c]
                                    for c in considered_courses
                                    for sl in day_slots1 & ttmodel.wdb.compatible_slots[c])
@@ -717,9 +717,9 @@ class AvoidBothTimesSameDay(TTConstraint):
                                            '==',
                                            0,
                                            Constraint(constraint_type=ConstraintType.AVOID_BOTH_TIME_SAME_DAY,
-                                                      groups=group, days=day, weeks=week))
+                                                      groups=group, days=day, periods=period))
                 else:
-                    ttmodel.add_to_group_cost(group, self.local_weight() * ponderation * both, week=week)
+                    ttmodel.add_to_group_cost(group, self.local_weight() * ponderation * both, period=period)
 
 
     def one_line_description(self):
@@ -731,28 +731,28 @@ class AvoidBothTimesSameDay(TTConstraint):
         return text
 
 
-class LimitUndesiredSlotsPerWeek(TTConstraint):
+class LimitUndesiredSlotsPerPeriod(TTConstraint):
     """
-    Allow to limit the number of undesired slots per week
+    Allow to limit the number of undesired slots per period
     start_time and end_time are in minuts from 0:00 AM
     """
 
     tutors = models.ManyToManyField('people.Tutor', blank=True, verbose_name=_('Tutors'))
-    slot_start_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
-    slot_end_time = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    slot_start_time = models.TimeField()
+    slot_end_time = models.TimeField()
     max_number = models.PositiveSmallIntegerField(validators=[MaxValueValidator(7)])
 
     class Meta:
-        verbose_name = _('Limit undesired slots per week')
+        verbose_name = _('Limit undesired slots per period')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         tutor_to_be_considered = considered_tutors(self, ttmodel)
-        days = days_filter(ttmodel.wdb.days, week=week)
-        undesired_slots = [Slot(day=day, start_time=self.slot_start_time, end_time=self.slot_end_time)
+        days = days_filter(ttmodel.wdb.days, period=period)
+        undesired_slots = [Slot(dt.datetime.combine(day, self.slot_start_time), dt.datetime.combine(day, self.slot_end_time))
                              for day in days]
         for tutor in tutor_to_be_considered:
-            considered_courses = self.get_courses_queryset_by_parameters(ttmodel, week, tutor=tutor)
+            considered_courses = self.get_courses_queryset_by_parameters(ttmodel, period, tutor=tutor)
             expr = ttmodel.lin_expr()
             for undesired_slot in undesired_slots:
                 expr += ttmodel.add_floor(
@@ -771,7 +771,7 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
                 for i in range(self.max_number+1, len(days)+1):
                     cost = self.local_weight() * ponderation
                     undesired_situation = ttmodel.add_floor(expr, i, len(days))
-                    ttmodel.add_to_inst_cost(tutor, cost * undesired_situation, week)
+                    ttmodel.add_to_inst_cost(tutor, cost * undesired_situation, period)
                     cost *= 2
 
     def one_line_description(self):
@@ -781,7 +781,7 @@ class LimitUndesiredSlotsPerWeek(TTConstraint):
         else:
             text += "Les profs"
         text += f" n'ont pas cours plus de {self.max_number} jours par semaine " \
-               f"entre {french_format(self.slot_start_time)} et {french_format(self.slot_end_time)}"
+               f"entre {self.slot_start_time} et {self.slot_end_time}"
         return text
 
 
@@ -806,7 +806,7 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
         attributes.extend(['course_type', "modules"])
         return attributes
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         relevant_courses = ttmodel.wdb.courses
         if self.course_type is not None:
             relevant_courses = relevant_courses.filter(type=self.course_type)
@@ -827,7 +827,7 @@ class LimitSimultaneousCoursesNumber(TTConstraint):
                 relevant_sum += more_than_limit
             ttmodel.add_constraint(relevant_sum, '==', 0,
                                    Constraint(constraint_type=ConstraintType.LimitSimultaneousCoursesNumber,
-                                              weeks=week))
+                                              periods=period))
         else:
             for bound in range(self.limit, nb_courses+1):
                 relevant_sum *= 2

@@ -36,15 +36,15 @@ from TTapp.models import \
     LimitModulesTimePerPeriod, StabilizeTutorsCourses, StabilizeGroupsCourses, \
     MinModulesHalfDays, MinTutorsHalfDays, MinGroupsHalfDays,\
     MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, \
-    CustomConstraint, SimultaneousCourses, MinimizeBusyDays, RespectMaxHoursPerDay, RespectTutorsMinHoursPerDay, \
+    CustomConstraint, SimultaneousCourses, MinimizeTutorsBusyDays, RespectTutorsMaxTimePerDay, RespectTutorsMinTimePerDay, \
     LimitedRoomChoices, LimitStartTimeChoices, LimitCourseTypeTimePerPeriod, \
     LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, BreakAroundCourseType, \
     NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
-    NoTutorCourseOnDay, NoGroupCourseOnDay, \
+    NoTutorCourseOnWeekDay, NoGroupCourseOnWeekDay, \
     ConsiderDependencies, Curfew, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
-    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerWeek, LimitSimultaneousCoursesNumber, \
+    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerPeriod, LimitSimultaneousCoursesNumber, \
     LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts, AvoidBothTimesSameDay, AvoidStartTimes, \
     NotAloneForTheseCouseTypes, LimitSimultaneousRoomCourses, ParallelizeCourses
 
@@ -346,9 +346,9 @@ admin.site.register(MinModulesHalfDays, MinModulesHalfDaysAdmin)
 admin.site.register(MinNonPreferedTutorsSlot, BasicTutorsConstraintAdmin)
 admin.site.register(MinNonPreferedTrainProgsSlot, BasicConstraintAdmin)
 admin.site.register(SimultaneousCourses, CoursesAdmin)
-admin.site.register(MinimizeBusyDays, BasicTutorsConstraintAdmin)
-admin.site.register(RespectMaxHoursPerDay, BasicTutorsConstraintAdmin)
-admin.site.register(RespectTutorsMinHoursPerDay, BasicTutorsConstraintAdmin)
+admin.site.register(MinimizeTutorsBusyDays, BasicTutorsConstraintAdmin)
+admin.site.register(RespectTutorsMaxTimePerDay, BasicTutorsConstraintAdmin)
+admin.site.register(RespectTutorsMinTimePerDay, BasicTutorsConstraintAdmin)
 admin.site.register(LimitStartTimeChoices, StartTimeChoicesAdmin)
 admin.site.register(AvoidStartTimes, StartTimeChoicesAdmin)
 admin.site.register(LimitedRoomChoices, LimitRoomChoicesAdmin)
@@ -360,8 +360,8 @@ admin.site.register(LowerBoundBusyDays, LowerBoundBusyDaysAdmin)
 admin.site.register(GroupsLunchBreak, GroupsLunchBreakAdmin)
 admin.site.register(TutorsLunchBreak, BasicTutorsConstraintAdmin)
 admin.site.register(BreakAroundCourseType, GroupsConstraintAdmin)
-admin.site.register(NoGroupCourseOnDay, NoCourseOnDayAdmin)
-admin.site.register(NoTutorCourseOnDay, NoCourseOnDayAdmin)
+admin.site.register(NoGroupCourseOnWeekDay, NoCourseOnDayAdmin)
+admin.site.register(NoTutorCourseOnWeekDay, NoCourseOnDayAdmin)
 admin.site.register(Curfew, BasicConstraintAdmin)
 admin.site.register(NoVisio, GroupsConstraintAdmin)
 admin.site.register(VisioOnly, GroupsConstraintAdmin)
@@ -374,7 +374,7 @@ admin.site.register(ConsiderTutorsUnavailability, BasicConstraintAdmin)
 admin.site.register(LimitHoles, BasicConstraintAdmin)
 admin.site.register(LimitTutorTimePerWeeks, BasicConstraintAdmin)
 admin.site.register(ModulesByBloc, BasicConstraintAdmin)
-admin.site.register(LimitUndesiredSlotsPerWeek, BasicConstraintAdmin)
+admin.site.register(LimitUndesiredSlotsPerPeriod, BasicConstraintAdmin)
 admin.site.register(LimitSimultaneousCoursesNumber, BasicConstraintAdmin)
 admin.site.register(NotAloneForTheseCouseTypes, BasicConstraintAdmin)
 admin.site.register(ConsiderRoomSorts, BasicConstraintAdmin)

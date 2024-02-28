@@ -28,7 +28,9 @@ from base.models import (
     ScheduledCourse,
     TimeGeneralSettings,
     UserAvailability,
+    SchedulingPeriod
 )
+from base.models.availability import period_actual_availabilities
 from base.timing import (
     TimeInterval,
     Day,
@@ -38,7 +40,7 @@ from base.timing import (
 )
 import datetime as dt
 from django.db.models import Q
-from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnDay
+from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 import copy
 
 
@@ -815,43 +817,41 @@ class Partition(object):
                     self.intervals[interval_index][1][key] = value
 
     @staticmethod
-    def get_partition_of_week(week, department, with_day_time=False, available=False):
-        """Considering a week and a department we built and return a partition with minimum data in it
+    def get_partition_of_period(period:SchedulingPeriod, department, with_day_time=False, available=False):
+        """Considering a period and a department we built and return a partition with minimum data in it
         Complexity on O(1)
 
         Parameters:
-            week (Week): the week we want to consider to build the partition
+            period (SchedulingPeriod): the period we want to consider to build the partition
             department (Department): the department we're gonna get the TimeGeneralSettings data from
             with_day_time (boolean): determine if the partition will contain lunch breaks and night times
 
         Returns:
             (None)"""
         time_settings = TimeGeneralSettings.objects.get(department=department)
-        day_start_week = Day(time_settings.days[0], week)
-        day_end_week = Day(time_settings.days[len(time_settings.days) - 1], week)
-        start_week = flopdate_to_datetime(day_start_week, time_settings.day_start_time)
-        end_week = flopdate_to_datetime(day_end_week, time_settings.day_finish_time)
-        considered_week_partition = Partition(
-            "None", start_week, end_week, available=available
+        period_start_date = period.start_date
+        period_end_date = period.end_date
+        considered_period_partition = Partition(
+            "None", period_start_date, period_end_date, available=available
         )
         if with_day_time:
-            considered_week_partition.add_lunch_break(
+            considered_period_partition.add_lunch_break(
                 time_settings.morning_end_time,
                 time_settings.afternoon_start_time,
             )
-            considered_week_partition.add_night_time(
-                time_settings.day_start_time, time_settings.day_finish_time
+            considered_period_partition.add_night_time(
+                time_settings.day_start_time, time_settings.day_end_time
             )
-        return considered_week_partition
+        return considered_period_partition
 
     def add_scheduled_courses_to_partition(
-        self, week, department, tutor=None, forbidden=False
+        self, period, department, tutor=None, forbidden=False
     ):
         """Add all scheduled courses of other department to the partition.
         Complexity on O(s*i) s being the number of scheduled courses and i being the number of interval inside the partition.
 
         Parameters:
-            week (Week): the week we want to consider to get the scheduled courses from
+            period (SchedulingPeriod): the period we want to consider to get the scheduled courses from
             department (Department): the department from which we don't want any courses
             tutor (Tutor) [Optionnal]: the tutor teaching the scheduled courses, if None takes all scheduled courses
             forbidden (boolean) [Optionnal]: whether we want to consider all intervals as being forbidden or not
@@ -859,30 +859,25 @@ class Partition(object):
         Returns:
             (None)"""
         other_departments_sched_courses = self.get_other_department_scheduled_courses(
-            week, department, tutor
+            period, department, tutor
         )
         for sc_course in other_departments_sched_courses:
             data = {"scheduled_course": sc_course}
             if forbidden:
                 data["forbidden"] = True
             self.add_slot(
-                TimeInterval(
-                    flopdate_to_datetime(
-                        Day(sc_course.day, week), sc_course.start_time
-                    ),
-                    flopdate_to_datetime(Day(sc_course.day, week), sc_course.end_time),
-                ),
+                TimeInterval(sc_course.start_time, sc_course.end_time),
                 "scheduled_course",
                 data,
             )
 
     @staticmethod
-    def get_other_department_scheduled_courses(week, department, tutor=None, room=None):
+    def get_other_department_scheduled_courses(period:SchedulingPeriod, department, tutor=None, room=None):
         """Retrieve all scheduled courses for the other departments
         Complexity on O(1)
 
         Parameters:
-            week (Week): the week we want to consider to get the scheduled courses from
+            period (SchedulingPeriod): the period we want to consider to get the scheduled courses from
             department (Department): the department from which we don't want any courses
             tutor (Tutor) [Optionnal]: the tutor teaching the scheduled courses, if None takes all scheduled courses
 
@@ -891,29 +886,29 @@ class Partition(object):
         if tutor:
             return ScheduledCourse.objects.filter(
                 Q(tutor=tutor) | Q(course__supp_tutor=tutor),
-                course__week=week,
+                course__period=period,
                 work_copy=0,
             ).exclude(course__type__department=department)
         else:
             return ScheduledCourse.objects.filter(
-                course__week=week, work_copy=0
+                course__period=period, work_copy=0
             ).exclude(course__type__department=department)
 
     @staticmethod
-    def get_available_partition_for_course(course, week, department):
+    def get_available_partition_for_course(course, period:SchedulingPeriod, department):
         """Build and returns a partition with all available intervals and data for a specific course.
         Complexity on O(i) with i being the size of the partition.
 
         Parameters:
             course (Course): the course we want to retrieve data for
-            week (Week): the week we want to consider
+            period (SchedulingPerion): the period we want to consider
             department (Department): the department we're gonna get the TimeGeneralSettings data from
 
         Returns:
             (Partition): None if there is no tutor's availability for the course and the correct partition otherwise
 
         """
-        week_partition = Partition.get_partition_of_week(week, department, True)
+        period_partition = Partition.get_partition_of_period(period, department, True)
         possible_tutors_1 = set()
         required_supp_1 = set()
         if course.tutor is not None:
@@ -935,47 +930,34 @@ class Partition(object):
         if course.supp_tutor is not None:
             required_supp_1 = set(course.supp_tutor.all())
 
-        D1 = UserAvailability.objects.filter(
-            user__in=possible_tutors_1,
-            week=week,
-            value__gte=1,
-        )
-        if not D1:
-            D1 = UserAvailability.objects.filter(
-                user__in=possible_tutors_1,
-                week=None,
-                value__gte=1,
-            )
+        D1 = set(ua for possible_tutor in possible_tutors_1 for ua in period_actual_availabilities(period, possible_tutor, avail_only=True) )
+
         if D1:
             # Retrieving constraints for days were tutors shouldn't be working
-            no_course_tutor1 = NoTutorCourseOnDay.objects.filter(
+            no_course_tutor1 = NoTutorCourseOnWeekDay.objects.filter(
                 Q(tutors__in=required_supp_1.union(possible_tutors_1))
                 | Q(
                     tutor_status=[
                         pt.status for pt in required_supp_1.union(possible_tutors_1)
                     ]
                 ),
-                weeks=week,
+                periods=period,
             )
             if not no_course_tutor1:
-                no_course_tutor1 = NoTutorCourseOnDay.objects.filter(
+                no_course_tutor1 = NoTutorCourseOnWeekDay.objects.filter(
                     Q(tutors__in=required_supp_1.union(possible_tutors_1))
                     | Q(
                         tutor_status=[
                             pt.status for pt in required_supp_1.union(possible_tutors_1)
                         ]
                     ),
-                    weeks=None,
+                    periods=None,
                 )
 
             # Adding all user preferences to the partition
             for up in D1:
-                up_day = Day(up.day, week)
-                week_partition.add_slot(
-                    TimeInterval(
-                        flopdate_to_datetime(up_day, up.start_time),
-                        flopdate_to_datetime(up_day, up.end_time),
-                    ),
+                period_partition.add_slot(
+                    TimeInterval(up.start_time,up.end_time),
                     "user_preference",
                     {"value": up.value, "available": True, "tutor": up.user},
                 )
@@ -983,41 +965,31 @@ class Partition(object):
             # Retrieving no tutor course constraint slots and adding them to the partition
             # Slots are not set to be forbidden
             for constraint in no_course_tutor1:
-                slot = constraint.get_slot_constraint(week)
+                slot = constraint.get_slot_constraint(period)
                 if slot:
-                    week_partition.add_slot(slot[0], "no_course_tutor", slot[1])
+                    period_partition.add_slot(slot[0], "no_course_tutor", slot[1])
 
-            for interval in week_partition.intervals:
-                if not NoTutorCourseOnDay.tutor_and_supp(
+            for interval in period_partition.intervals:
+                if not NoTutorCourseOnWeekDay.tutor_and_supp(
                     interval, required_supp_1, possible_tutors_1
                 ):
                     interval[1]["available"] = False
 
             if required_supp_1:
                 # Retrieving and adding user preferences for the required tutors
-                RUS1 = UserAvailability.objects.filter(
-                    user__in=required_supp_1, week=week, value__gte=1
-                )
-                if not RUS1:
-                    RUS1 = UserAvailability.objects.filter(
-                        user__in=required_supp_1, week=None, value__gte=1
-                    )
+                RUS1 = period_actual_availabilities(period, required_supp_1, avail_only=True)
 
                 for up in RUS1:
-                    up_day = Day(up.day, week)
-                    week_partition.add_slot(
-                        TimeInterval(
-                            flopdate_to_datetime(up_day, up.start_time),
-                            flopdate_to_datetime(up_day, up.end_time),
-                        ),
+                    period_partition.add_slot(
+                        TimeInterval(up.start_time, up.end_time),
                         "user_preference",
                         {"value": up.value, "available": True, "tutor": up.user},
                     )
 
-                for interval in week_partition.intervals:
-                    if not NoTutorCourseOnDay.tutor_and_supp(
+                for interval in period_partition.intervals:
+                    if not NoTutorCourseOnWeekDay.tutor_and_supp(
                         interval, required_supp_1, possible_tutors_1
                     ):
                         interval[1]["available"] = False
-            return week_partition
+            return period_partition
         return None

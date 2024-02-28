@@ -4,8 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 from base.timing import Day
-
-slot_pause = 30
+from base.timing import slot_pause
 
 class Module(models.Model):
     name = models.CharField(max_length=200, null=True, verbose_name=_('name'))
@@ -14,7 +13,7 @@ class Module(models.Model):
         on_delete=models.CASCADE, verbose_name=_('head (resp)'))
     ppn = models.CharField(max_length=30, default='M')
     train_prog = models.ForeignKey('TrainingProgramme', on_delete=models.CASCADE, verbose_name=_('training programme'))
-    period = models.ForeignKey('TrainingPeriod', on_delete=models.CASCADE, verbose_name=_('training period'))
+    training_period = models.ForeignKey('TrainingPeriod', on_delete=models.CASCADE, verbose_name=_('training period'))
     url = models.URLField(null=True, blank=True, default=None)
     description = models.TextField(null=True, blank=True, default=None)
 
@@ -37,7 +36,7 @@ class ModuleTutorRepartition(models.Model):
     module = models.ForeignKey('Module', on_delete=models.CASCADE)
     course_type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     tutor = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
-    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
+    period = models.ForeignKey('SchedulingPeriod', on_delete=models.CASCADE, null=True, blank=True)
     courses_nb = models.PositiveSmallIntegerField(default=1)
 
 
@@ -66,7 +65,7 @@ class Course(models.Model):
     module = models.ForeignKey('Module', related_name='courses', on_delete=models.CASCADE)
     modulesupp = models.ForeignKey('Module', related_name='courses_as_modulesupp', null=True, blank=True, on_delete=models.CASCADE)
     pay_module = models.ForeignKey('Module', related_name='courses_as_pay_module', null=True, blank=True, on_delete=models.CASCADE)
-    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
+    period = models.ForeignKey('SchedulingPeriod', on_delete=models.CASCADE, null=True, blank=True)
     suspens = models.BooleanField(verbose_name=_('Suspens?'), default=False)
     show_id = False
 
@@ -93,8 +92,8 @@ class Course(models.Model):
                and list(self.groups.all()) == list(other.groups.all()) \
                and self.module == other.module
 
-    def get_week(self):
-        return self.week
+    def get_period(self):
+        return self.period
 
     @property
     def is_graded(self):
@@ -102,6 +101,10 @@ class Course(models.Model):
             return self.additional.graded
         else:
             return self.type.graded
+    
+    @property
+    def minutes(self):
+        return self.duration.seconds // 60
 
 
 class CourseAdditional(models.Model):
@@ -118,9 +121,7 @@ class CoursePossibleTutors(models.Model):
 
 class ScheduledCourse(models.Model):
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
-    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    # in minutes from 12AM
-    start_time = models.PositiveSmallIntegerField() # FIXME : time with TimeField or DurationField
+    start_time = models.DateTimeField()
     room = models.ForeignKey('Room', blank=True, null=True, on_delete=models.SET_NULL)
     number = models.PositiveSmallIntegerField(null=True, blank=True)
     noprec = models.BooleanField(verbose_name='vrai si on ne veut pas garder la salle', default=True)
@@ -136,28 +137,40 @@ class ScheduledCourse(models.Model):
 
     def __str__(self):
         return (f"{self.course}{self.number}:"
-                f"{self.day}-t{self.start_time}-{self.room}")
+                f"{self.day}-{self.start_time.time()}/{self.end_time.time()}-{self.room}")
 
     def unique_name(self):
         return (f"{self.course.type}_{self.duration}_{self.room}_{self.tutor}"
-                f"_{self.day}_{self.start_time}_{self.end_time}")
+                f"_{self.start_time}_{self.end_time}")
 
     @property
     def end_time(self):
-        return self.start_time + self.course.duration
+        return self.start_time + self.duration
+    
+    @property
+    def date(self):
+        return self.start_time.date()
+    
+    @property
+    def day(self):
+        return self.date
 
-    def has_same_day(self, other):
-        return self.course.week == other.course.week and self.day == other.day
+    def has_same_date(self, other):
+        return self.start_time.date() == other.start_time.date()
 
     def is_successor_of(self, other):
-        return self.has_same_day(other) and other.end_time <= self.start_time <= other.end_time + slot_pause
+        return other.end_time <= self.start_time <= other.end_time + slot_pause
 
     def is_simultaneous_to(self, other):
-        return self.has_same_day(other) and self.start_time < other.end_time and other.start_time < self.end_time
+        return self.start_time < other.end_time and other.start_time < self.end_time
 
     @property
     def duration(self):
         return self.course.duration
+
+    @property
+    def minutes(self):
+        return self.course.minutes
 
     # @property
     # def pay_duration(self):

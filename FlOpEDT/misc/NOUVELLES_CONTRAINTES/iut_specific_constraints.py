@@ -67,7 +67,7 @@ def add_iut_blagnac_specials(ttmodel):
         ttmodel.add_constraint(ttmodel.sum(ttmodel.TT[(sl, c)]
                                            for c in pas_jeudi_PM
                                            for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
-                                                                  week_day=Day.THURSDAY, apm=Time.PM)
+                                                                  weekday=Day.THURSDAY, apm=Time.PM)
                                            ),
                                '==', 0,
                                Constraint(constraint_type=ConstraintType.PAS_COURS_JEUDI_APREM))
@@ -114,7 +114,7 @@ def add_iut_blagnac_specials(ttmodel):
     if 41 in ttmodel.weeks and ttmodel.department.abbrev in ['RT', 'INFO']:
         C = ttmodel.wdb.courses.filter(groups__train_prog__abbrev__in=['INFO2', 'RT2', 'RT2A', 'APSIO']) \
             .exclude(module__abbrev='CONF')
-        mardi_11h = slots_filter(ttmodel.wdb.courses_slots, week_day=Day.TUESDAY, start_time=11 * 60, week=41).pop()
+        mardi_11h = slots_filter(ttmodel.wdb.courses_slots, weekday=Day.TUESDAY, start_time=11 * 60, week=41).pop()
         ttmodel.add_constraint(ttmodel.sum(ttmodel.TT[sl, c]
                                            for sl in slots_filter(ttmodel.wdb.courses_slots, simultaneous_to=mardi_11h)
                                            for c in set(C) & ttmodel.wdb.compatible_courses[sl]),
@@ -186,7 +186,7 @@ def add_iut_blagnac_info(ttmodel):
     # Semaine 40 : WE d'intégration
     if 40 in ttmodel.weeks and ttmodel.year == 2019:
         print("WE d'intégration")
-        for sl in slots_filter(ttmodel.wdb.courses_slots, week_day=Day.FRIDAY, apm=Time.PM, week=40):
+        for sl in slots_filter(ttmodel.wdb.courses_slots, weekday=Day.FRIDAY, apm=Time.PM, week=40):
             for c in set(course for course in
                          ttmodel.wdb.compatible_courses[sl]
                          if course.module.train_prog.abbrev != 'APSIO'):
@@ -317,7 +317,7 @@ def add_iut_blagnac_info(ttmodel):
                 jours = [Day.MONDAY, Day.TUESDAY, Day.WEDNESDAY, Day.THURSDAY]
                 for rang, jour in enumerate([Day.MONDAY, Day.TUESDAY, Day.WEDNESDAY]):
                     cdu6[jour] = ttmodel.add_var("cdu6_%s" % jour)
-                    slots = slots_filter(ttmodel.wdb.courses_slots, week_day=jour, week=week)
+                    slots = slots_filter(ttmodel.wdb.courses_slots, weekday=jour, week=week)
                     jour_sum = ttmodel.sum(
                         ttmodel.TT[sl, c] for sl in slots for c in cours_cdu & ttmodel.wdb.compatible_courses[sl])
                     ttmodel.add_constraint(jour_sum - cdu6[jour], '<=', 5,
@@ -325,7 +325,7 @@ def add_iut_blagnac_info(ttmodel):
                     ttmodel.add_constraint(jour_sum - 6 * cdu6[jour], '>=', 0,
                                            Constraint(constraint_type=ConstraintType.CDU_VEUT_VENIR_1_JOUR_ENTIER_QUAND_6_CRENEAUX))  # vaut 0 si day_sum < 6
                     if len(cours_cdu) == 7:
-                        suivant_8h = slots_filter(ttmodel.wdb.courses_slots, week_day=jours[rang + 1], start_time=8 * 60,
+                        suivant_8h = slots_filter(ttmodel.wdb.courses_slots, weekday=jours[rang + 1], start_time=8 * 60,
                                                   week=week).pop()
                         ttmodel.add_constraint(
                             cdu6[jour] -
@@ -339,7 +339,7 @@ def add_iut_blagnac_info(ttmodel):
 
     # Semaine 49, nuit de l'info
     # if 49 in ttmodel.weeks and ttmodel.year == 2018:
-    #     for sl in slots_filter(ttmodel.wdb.courses_slots, week_day=Day.THURSDAY, week=49):
+    #     for sl in slots_filter(ttmodel.wdb.courses_slots, weekday=Day.THURSDAY, week=49):
     #         for c in ttmodel.wdb.compatible_courses[sl]:
     #             if (c.module.train_prog.abbrev == 'INFO2' and c.group.name in {'2B'}) \
     #                     or (c.module.train_prog.abbrev == 'INFO1' and c.group.name in {'4A'}):
@@ -406,7 +406,7 @@ def add_iut_blagnac_info(ttmodel):
         for day in [Day.THURSDAY, Day.FRIDAY]:
             ttmodel.add_constraint(ttmodel.sum(ttmodel.TT[sl, c]
                                                for c in C
-                                               for sl in slots_filter(ttmodel.wdb.courses_slots, week_day=day, week=4)
+                                               for sl in slots_filter(ttmodel.wdb.courses_slots, weekday=day, week=4)
                                                & ttmodel.wdb.compatible_slots[c])
                                    , '==',
                                    0,
@@ -455,7 +455,7 @@ def add_iut_blagnac_info(ttmodel):
         ttmodel.add_constraint(ttmodel.sum(ttmodel.TT[(sl, c)]
                                            for i in ttmodel.wdb.instructors if i.status == Tutor.FULL_STAFF
                                            for c in ttmodel.wdb.courses_for_tutor[i]
-                                           for sl in slots_filter(ttmodel.wdb.courses_slots, week_day=Day.FRIDAY, apm=Time.PM,
+                                           for sl in slots_filter(ttmodel.wdb.courses_slots, weekday=Day.FRIDAY, apm=Time.PM,
                                                                   week=6)
                                            & ttmodel.wdb.compatible_slots[c]),
                                '==',
@@ -465,7 +465,7 @@ def add_iut_blagnac_info(ttmodel):
     if 9 in ttmodel.weeks and ttmodel.year == 2020:
         for c in ttmodel.wdb.courses.filter(module__abbrev='FLOP'):
             sc = ScheduledCourse.objects.get(course=c, work_copy=14)
-            slots = slots_filter(ttmodel.wdb.courses_slots, week_day=sc.day, start_time=sc.start_time)
+            slots = slots_filter(ttmodel.wdb.courses_slots, weekday=sc.day, start_time=sc.start_time)
             ttmodel.add_constraint(
                 ttmodel.sum(ttmodel.TTrooms[(slot, c, sc.room)] for slot in slots & ttmodel.wdb.compatible_slots[c]),
                 '==',
@@ -684,7 +684,7 @@ def add_iut_blagnac_rt(ttmodel):
     if 36 in ttmodel.weeks:
         ttmodel.add_constraint(ttmodel.sum(ttmodel.TT[sl, c]
                                            for sl in slots_filter(ttmodel.wdb.courses_slots, start_time=8 * 60,
-                                                                  week=36, week_day=Day.MONDAY)
+                                                                  week=36, weekday=Day.MONDAY)
                                            for c in set(ttmodel.wdb.courses
                                                         .filter(groups__train_prog__abbrev__in=['RT2', 'RT2A'])
                                                         .exclude(module__abbrev='SC'))
@@ -761,7 +761,7 @@ def add_iut_blagnac_gim(ttmodel):
     if 36 in ttmodel.weeks:
         ttmodel.add_constraint(ttmodel.sum(ttmodel.TT[sl, c]
                                            for sl in slots_filter(ttmodel.wdb.courses_slots, start_time=8 * 60,
-                                                                  week_day=Day.MONDAY, week=36)
+                                                                  weekday=Day.MONDAY, week=36)
                                            for c in set(ttmodel.wdb.courses
                                                         .filter(groups__train_prog__abbrev__in=['GIM2']))
                                            & ttmodel.wdb.compatible_courses[sl]),
@@ -842,7 +842,7 @@ def add_iut_blagnac_cs(ttmodel):
             ttmodel.add_constraint(ttmodel.sum(ttmodel.TT[sl, c] for c in FV | NVIG
                                                for sl in ttmodel.wdb.compatible_slots[c]
                                                - slots_filter(ttmodel.wdb.compatible_slots[c],
-                                                              week_day=Day.TUESDAY, apm=Time.PM, week=week)),
+                                                              weekday=Day.TUESDAY, apm=Time.PM, week=week)),
                                    '==',
                                    0,
                                    Constraint(constraint_type=ConstraintType.TECH_MARDI_APREM))

@@ -1,19 +1,18 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from base.timing import Day, str_slot, days_index, days_list
+from base.timing import days_list, get_default_date
 
-from datetime import date, time, timedelta, datetime
-
+import datetime as dt 
 
 class Availability(models.Model):
-    start_time = models.DateTimeField(default=datetime(1871, 3, 18))
-    date = models.DateField(default=date(1, 1, 1))
-    duration = models.DurationField(default=timedelta(0))
-
+    start_time = models.DateTimeField(default=dt.datetime(1871, 3, 18))
+    date = models.DateField(default=dt.date(1, 1, 1))
+    duration = models.DurationField(default=dt.timedelta(0))
     value = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(8)], default=8
     )
+    is_default = models.BooleanField(null=True)
 
     class Meta:
         abstract = True
@@ -22,6 +21,8 @@ class Availability(models.Model):
         force_date = kwargs.pop("force_date") if "force_date" in kwargs else False
         if force_date is False:
             self.date = self.start_time.date()
+        if self.date <= dt.date(1,1,7):
+            self.is_default = True
         super(Availability, self).save(*args, **kwargs)
 
     @property
@@ -35,6 +36,10 @@ class Availability(models.Model):
     @property
     def in_day_end_time(self):
         return self.end_time.time()
+    
+    @property
+    def minutes(self):
+        return self.duration.seconds // 60
 
     def __str__(self):
         return (
@@ -54,6 +59,13 @@ class Availability(models.Model):
             return self.start_time > other.end_time
         else:
             raise NotImplementedError
+    
+    def weekday_is(self, weekday):
+        return days_list[self.date.weekday()] == weekday
+    
+    def weekday__in(self, weekdays):
+        return days_list[self.date.weekday()] in weekdays
+    
 
 
 class UserAvailability(Availability):
@@ -61,35 +73,6 @@ class UserAvailability(Availability):
 
     def __str__(self):
         return self.user.username + super().__str__()
-
-    # def is_same(self, other):
-    #     if isinstance(other, UserAvailability):
-    #         return (
-    #             (
-    #                 ((self.week and other.week) and self.week == other.week)
-    #                 or not self.week
-    #                 or not other.week
-    #             )
-    #             and days_index[self.day] == days_index[other.day]
-    #             and self.start_time == other.start_time
-    #         )
-    #     else:
-    #         raise NotImplementedError
-
-    # def same_day(self, other):
-    #     if isinstance(other, UserAvailability):
-    #         return days_index[self.day] == days_index[other.day]
-    #     else:
-    #         raise ValueError
-
-    # def is_successor_of(self, other):
-    #     if isinstance(other, UserAvailability):
-    #         return (
-    #             self.same_day(other)
-    #             and other.end_time <= self.start_time <= other.end_time + 30
-    #         )  # slot_pause
-    #     else:
-    #         raise ValueError
 
 
 class CourseAvailability(Availability):
@@ -105,3 +88,54 @@ class RoomAvailability(Availability):
 
     def __str__(self):
         return str(self.room) + super().__str__()
+
+def dated_availabilities(user, date, avail_only=False, unavail_only=False):
+    if unavail_only and avail_only:
+        raise ValueError("avail_only and unavail_only cannot be both True")
+    user_availabilities = UserAvailability.objects.filter(user=user, date=date)
+    if avail_only:
+        user_availabilities = user_availabilities.filter(value__gt=0)
+    if unavail_only:
+        user_availabilities = user_availabilities.filter(value=0)
+    return set(user_availabilities)
+
+
+def default_availabilities(user, date:dt.date, avail_only=False, unavail_only=False):
+    if unavail_only and avail_only:
+        raise ValueError("avail_only and unavail_only cannot be both True")
+    default_date = get_default_date(date)
+    user_availabilities = UserAvailability.objects.filter(user=user, date=default_date)
+    if avail_only:
+        user_availabilities = user_availabilities.filter(value__gt=0)
+    if unavail_only:
+        user_availabilities = user_availabilities.filter(value=0)
+    return set(user_availabilities)
+
+
+def actual_availabilities(user, date:dt.date, avail_only=False, unavail_only=False):
+    if dated_availabilities(user, date):
+        return dated_availabilities(user, date, avail_only, unavail_only)
+    else:
+        result = set()
+        for defaut_availability in default_availabilities(user, date, avail_only, unavail_only):
+            defaut_availability.start_time = dt.datetime.combine(date, defaut_availability.in_day_start_time)
+            defaut_availability.date = date
+            result.add(defaut_availability)
+        return result
+
+
+def period_actual_availabilities(users, periods, avail_only=False, unavail_only=False):
+    result = set()
+    try:
+        iter(users)
+    except:
+        users = [users]
+    try:
+        iter(periods)
+    except:
+        periods = [periods]
+    for user in users:
+        for period in periods:
+            for date in period.dates():
+                result |= actual_availabilities(user, date, avail_only, unavail_only)
+    return result

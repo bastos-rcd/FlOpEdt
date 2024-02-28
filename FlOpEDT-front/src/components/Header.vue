@@ -5,6 +5,10 @@
     </a>
     <span id="head_logo"></span>
     <ChangeLocale></ChangeLocale>
+    <div style="margin-left: 10px; border: 2px solid black; padding: 3px; background-color: antiquewhite">
+      <span v-if="authStore.isUserAuthenticated">{{ $t('header.logged-in') + authStore.getUser.username }}</span>
+      <span v-else>{{ $t('header.logged-out') }}</span>
+    </div>
     <a id="agpl" target="_blank" href="https://framagit.org/flopedt/flopedt">
       <img src="@/assets/images/agplv3-88x31.png" height="31" width="88" alt="AGPL v.3" />
     </a>
@@ -15,6 +19,9 @@
 <script setup lang="ts">
 import Menu from '@/components/Menu.vue'
 import ChangeLocale from '@/components/utils/ChangeLocale.vue'
+import { useAuth } from '@/stores/auth'
+
+const authStore = useAuth()
 </script>
 
 <style scoped>

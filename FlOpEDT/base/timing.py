@@ -28,10 +28,9 @@
 import datetime as dt
 from datetime import date, time, datetime
 import base.models as bm
-from enum import Enum
 from django.utils.translation import gettext_lazy as _
 
-
+slot_pause = dt.timedelta(minutes=30)
 
 class Day(object):
   MONDAY = "m"
@@ -159,11 +158,14 @@ def time_to_str(t, sep=":"):
 #Returns the index of the first monday of the given year.
 #Argument "day" being a flop_day type
 def first_day_first_week(day):
+    year = day.week.year
+    if year == 0:
+        year = 1
     i = 1
-    first = datetime(day.week.year, 1, i)
+    first = datetime(year, 1, i)
     while first.weekday() != 0:
         i+=1
-        first = datetime(day.week.year, 1, i)
+        first = datetime(year, 1, i)
     return i - 1
 
 
@@ -178,10 +180,15 @@ def flopdate_to_datetime(day: Day, time):
 ##Takes a day (with week and year)
 #and returns the date object corresponding
 def flopday_to_date(day):
+    us_day_index = (days_index[day.day] + 1)%7
     if day.week is None:
-        return date.fromordinal(days_index[day.day])
-    nb_leap_year = day.week.year // 4 - day.week.year // 100 + day.week.year // 400
-    return date.fromordinal((day.week.year-1) * 365 + (day.week.nb-1)*7 + days_index[day.day] + 1 + nb_leap_year + first_day_first_week(day))
+        day_string = f"0001-1-{us_day_index}"
+    else:
+        four_digit_year = str(day.week.year)
+        if len(four_digit_year) < 4:
+            four_digit_year = (4 - len(four_digit_year)) * '0' + four_digit_year
+        day_string = f"{four_digit_year}-{day.week.nb}-{us_day_index}"
+    return datetime.strptime(day_string, "%Y-%W-%w").date()
 
 
 # Takes a starting time and returns the time object corresponding
@@ -281,3 +288,20 @@ def all_possible_start_times(department):
     apst_list = list(apst_set)
     apst_list.sort()
     return apst_list
+
+def get_default_date(date):
+    return dt.date.fromisocalendar(1, 1, date.weekday()+1)
+
+
+def add_duration_to_time(time:dt.time, duration:dt.timedelta):
+    return (dt.datetime.combine(dt.date.today(), time) + duration).time()
+
+
+def get_all_scheduling_periods(department):
+    if department is None:
+        return bm.SchedulingPeriod.objects.all()
+    elif department.timegeneralsettings.scheduling_period_mode == bm.PeriodEnum.CUSTOM:
+        return department.schedulingperiod_set.all()
+    else:
+        return bm.SchedulingPeriod.objects.filter(mode=department.timegeneralsettings.scheduling_period_mode)
+    

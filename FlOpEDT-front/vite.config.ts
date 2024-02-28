@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import * as path from 'path'
-import { quasar, transformAssetUrls } from '@quasar/vite-plugin'
+
+const FLOP_BACKEND_URL = process.env.FLOP_BACKEND_URL || 'http://127.0.0.1:8000'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue({ template: { transformAssetUrls } }), quasar({ sassVariables: 'src/quasar-variables.sass' })],
+  plugins: [vue()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
@@ -15,23 +16,23 @@ export default defineConfig({
   server: {
     proxy: {
       '/fr': {
-        target: 'http://127.0.0.1:8000',
+        target: FLOP_BACKEND_URL,
         changeOrigin: true,
       },
       '/en': {
-        target: 'http://127.0.0.1:8000',
+        target: FLOP_BACKEND_URL,
         changeOrigin: true,
       },
       '/es': {
-        target: 'http://127.0.0.1:8000',
+        target: FLOP_BACKEND_URL,
         changeOrigin: true,
       },
       '/static': {
-        target: 'http://127.0.0.1:8000',
+        target: FLOP_BACKEND_URL,
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: FLOP_BACKEND_URL,
         changeOrigin: true,
       },
     },
