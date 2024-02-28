@@ -1461,9 +1461,9 @@ class TTModel(FlopModel):
         target_work_copy=None,
         solver=GUROBI_NAME,
         threads=None,
+        ignore_sigint=True,
+        send_gurobi_logs_email_to=None):
         
-              ignore_sigint=True,
-    , send_gurobi_logs_email_to=None):
         """
         Generates a schedule from the TTModel
         The solver stops either when the best schedule is obtained or timeLimit
