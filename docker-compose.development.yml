@@ -60,7 +60,9 @@ services:
     network_mode: "host"
     ports:
       - "5173:5173"
+      # - "8080:8000"
     entrypoint: ["yarn", "dev"]
+    # entrypoint: /code/docker/script/init-vue.sh
 
   maildev:
     image: maildev/maildev:2.1.0
