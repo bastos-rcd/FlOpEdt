@@ -37,6 +37,7 @@ from api.base.courses.serializers import CoursesSerializer, Group_SC_Serializer,
 
 class ScheduledCoursesSerializer(serializers.Serializer):
     # Specification of wanted fields
+    id = serializers.IntegerField()
     course_id = serializers.IntegerField(source='course.id')
     module_id = serializers.IntegerField(source='course.module.id')
     tutor_id = serializers.IntegerField(source='tutor.id', allow_null=True)

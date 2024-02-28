@@ -1,4 +1,4 @@
-ARG BASE_IMG=python:3.7
+ARG BASE_IMG=python:3.11
 FROM $BASE_IMG
 
 # see output in our console 

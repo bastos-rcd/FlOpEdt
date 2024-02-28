@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { GridCell, IdX } from './declaration'
+import { GridCell } from './declaration'
 import { Tree, LinkIdUp } from '@/ts/tree'
 import { forEach, indexOf, cloneDeep, find, range, values, filter, sortBy } from 'lodash'
 

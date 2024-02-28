@@ -1,6 +1,8 @@
-import { Department, type Time, type Room, type WeekDay, type FlopWeek } from '@/ts/type'
-import { useRoomStore } from '@/stores/room'
+import { Department } from '@/ts/type'
+import { Room } from '@/stores/declarations'
+import { useRoomStore } from '@/stores/timetable/room'
 import { api } from '@/utils/api'
+import { Timestamp, getDateTime, parseTimestamp, updateFormatted } from '@quasar/quasar-ui-qcalendar'
 
 export function convertDecimalTimeToHuman(time: number): string {
   const hours = Math.trunc(time)
@@ -55,11 +57,6 @@ export function listGroupBy<T>(list: Array<T>, keyPredicate: (value: T) => strin
   return out
 }
 
-export function createTime(time: number): Time {
-  const text = convertDecimalTimeToHuman(time / 60)
-  return { value: time, text: text } as Time
-}
-
 /**
  * Accepts an array of objects having an id and returns an array containing only those ids.
  * @param list
@@ -91,11 +88,11 @@ export function filterBySelectedDepartments<T>(
 export function isRoomInSelectedDepartments(roomId: number, departments: Array<Department>): boolean {
   const roomStore = useRoomStore()
   let inDept = false
-  const room = roomStore.rooms.find((r: Room) => r.id === roomId)
+  const room: Room = roomStore.getRoomById(roomId) as unknown as Room
   if (room)
-    room.departments.forEach((roomDept: Department) => {
+    room.departmentIds.forEach((roomDeptId: number) => {
       departments.forEach((dept) => {
-        if (dept.id === roomDept.id) {
+        if (dept.id === roomDeptId) {
           inDept = true
         }
       })
@@ -120,16 +117,6 @@ export function addTo<T>(collection: { [p: string]: Array<T> }, id: string | num
   collection[id].push(element)
 }
 
-export async function getCurrentWeekDays(flopWeek: FlopWeek): Promise<Array<WeekDay>> {
-  let newWeekdays: Array<WeekDay> = []
-  await api.fetch
-    .weekdays({ week: flopWeek.week, year: flopWeek.year })
-    .then((value: { date: string; name: string; num: number; ref: string }[]) => {
-      newWeekdays = value
-    })
-  return newWeekdays
-}
-
 /**
  * Takes the day and the month to return a string representing the date
  * @param day number of the day in the month : 1 - 31
@@ -147,19 +134,6 @@ export function createDateId(day: string | number, month: string | number): stri
  */
 export function deleteReservationPeriodicity(periodicityId: number): Promise<unknown> {
   return api.delete.reservationPeriodicity(periodicityId)
-}
-
-export function isRoomSelected(roomId: number, selectedRoom: Room | undefined): boolean {
-  const roomStore = useRoomStore()
-  if (selectedRoom) {
-    // Return false if the course's sub rooms are not selected
-    if (
-      !roomStore.perId[roomId]?.basic_rooms.find((val: { id: number; name: string }) => val.id === selectedRoom?.id)
-    ) {
-      return false
-    }
-  }
-  return true
 }
 
 /**
@@ -182,4 +156,105 @@ export function minutesFromDate(d: Date): number {
   midnight.setHours(0)
   const diff = new Date(d.getTime() - midnight.getTime())
   return diff.getHours() * 60 + diff.getMinutes()
+}
+
+export function getDateFromWeekDayOfWeekYear(
+  weekNumber: number,
+  dayOfWeek: number,
+  minutesSinceMidnight: number,
+  year: number = -1
+) {
+  if (year === -1) year = new Date().getFullYear() // Assuming current year
+  const firstJan = new Date(year, 0, 1) // January 1st of the current year
+  let daysFirstWeek = 0
+  if (firstJan.getDay() > 4 || firstJan.getDay() === 0) {
+    daysFirstWeek = 8 - (firstJan.getDay() || 7)
+  } else {
+    daysFirstWeek = -(firstJan.getDay() - 1)
+  }
+  if (dayOfWeek === 0) dayOfWeek = 7
+  const daysToAdd = (weekNumber - 1) * 7 + dayOfWeek + daysFirstWeek
+  const resultDate = new Date(year, 0, daysToAdd)
+
+  const hours = Math.floor(minutesSinceMidnight / 60)
+  const minutes = minutesSinceMidnight % 60
+  resultDate.setHours(hours, minutes, 0, 0)
+  return resultDate
+}
+
+export function getDayOfWeek(dayOfWeek: string): number {
+  switch (dayOfWeek) {
+    case 'm':
+      return 1
+    case 'tu':
+      return 2
+    case 'w':
+      return 3
+    case 'th':
+      return 4
+    case 'f':
+      return 5
+    case 'sa':
+      return 6
+    case 'su':
+      return 0
+    default:
+      return -1
+  }
+}
+
+export function getDayOfWeekString(dayOfWeek: number): string {
+  switch (dayOfWeek) {
+    case 1:
+      return 'm'
+    case 2:
+      return 'tu'
+    case 3:
+      return 'w'
+    case 4:
+      return 'th'
+    case 5:
+      return 'f'
+    case 6:
+      return 'sa'
+    case 0:
+      return 'su'
+    default:
+      return ''
+  }
+}
+
+export function getDateTimeStringFromDate(date: Date, time: boolean = false): string {
+  let dateString: string = date.getFullYear() + '-'
+  if (date.getMonth() < 9) dateString += '0'
+  dateString += date.getMonth() + 1 + '-'
+  if (date.getDate() < 10) dateString += '0'
+  dateString += date.getDate()
+  if (time) {
+    dateString += ' '
+    if (date.getHours() < 10) dateString += '0'
+    dateString += date.getHours() + ':'
+    if (date.getMinutes() < 10) dateString += '0'
+    dateString += date.getMinutes()
+  }
+  return dateString
+}
+
+export function getDateStringFromTimestamp(date: Timestamp): string {
+  date = updateFormatted(date)
+  let dateString: string = date.year + '-'
+  if (date.month < 9) dateString += '0'
+  dateString += date.month + '-'
+  if (date.day < 10) dateString += '0'
+  dateString += date.day
+  return dateString
+}
+
+export function dateToTimestamp(date: Date): Timestamp {
+  let dateString: string = getDateTimeStringFromDate(date, true)
+  return parseTimestamp(dateString) as Timestamp
+}
+
+export function timestampToDate(ts: Timestamp): Date {
+  return new Date(getDateTime(ts))
 }

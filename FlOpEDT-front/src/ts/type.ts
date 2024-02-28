@@ -1,4 +1,11 @@
-import { MappableToIdArray } from '@/stores/store'
+export interface AvailabilityBack {
+  id: number
+  av_type: string
+  start_time: Date
+  end_time: Date
+  value: number
+  dataId: number
+}
 
 export class Course {
   id: number
@@ -84,7 +91,7 @@ export class Department implements Department {
   abbrev = 'NF'
   name = 'not found'
 
-  constructor(id: number = -1, abbrev: string = 'NF', name = 'not found') {
+  constructor(id: number = -1, abbrev: string = '', name = '') {
     this.id = id
     this.abbrev = abbrev
     this.name = name
@@ -97,21 +104,10 @@ export interface FlopWeek {
 }
 
 export interface RoomAPI {
-  departments: Array<number>
   id: number
   name: string
-  subroom_of: Array<number>
-  is_basic: boolean
-  basic_rooms: Array<{ id: number; name: string }>
-}
-
-export interface Room {
-  departments: Array<Department>
-  id: number
-  name: string
-  subroom_of: MappableToIdArray<Room>
-  is_basic: boolean
-  basic_rooms: Array<{ id: number; name: string }>
+  over_room_ids: number[]
+  department_ids: number[]
 }
 
 export interface RoomAttribute {
@@ -128,29 +124,47 @@ export interface RoomAttributeValue {
 
 export class ScheduledCourse {
   id: number
-  room?: { id: number; name: string; is_basic: boolean }
+  roomId: number
   start_time: Date
   end_time: Date
-  course: Course
-  tutor: string
+  courseId: number
+  tutor: number
   id_visio: number
+  moduleId: number
+  trainProgId: number
+  groupIds: number[]
+  suppTutorsIds: number[]
+  courseTypeId: number
+  no: number
 
   constructor(
-    id = 0,
-    room = { id: 0, name: '', is_basic: true },
+    id = -1,
+    room = -1,
     start_time = '',
     end_time = '',
-    course = new Course(),
-    tutor = '',
-    id_visio = 0
+    courseId = -1,
+    tutor = -1,
+    id_visio = -1,
+    moduleId = -1,
+    trainProgId = -1,
+    groupIds = [],
+    suppTutorsIds = [],
+    courseTypeId = -1,
+    no = -1
   ) {
     this.id = id
-    this.room = room
+    this.roomId = room
     this.start_time = new Date(start_time)
     this.end_time = new Date(end_time)
-    this.course = course
+    this.courseId = courseId
     this.tutor = tutor
     this.id_visio = id_visio
+    this.moduleId = moduleId
+    this.trainProgId = trainProgId
+    this.groupIds = groupIds
+    this.suppTutorsIds = suppTutorsIds
+    this.courseTypeId = courseTypeId
+    this.no = no
   }
 }
 
@@ -165,18 +179,35 @@ export interface TimeSettings {
   department: number
 }
 
-export interface User {
+export interface TrainingProgrammeAPI {
+  id: number
+  abbrev: string
+  name: string
+  department_id: number
+}
+
+export interface UserAPI {
+  id: number
   username: string
   first_name: string
   last_name: string
+  email: string
+  rights: number
+  departments: Array<{ department_id: number; is_admin: string }>
+}
+
+export interface User {
+  username: string
+  firstname: string
+  lastname: string
   email: string
   id: number
 }
 
 export class User implements User {
   username = ''
-  first_name = ''
-  last_name = 'AnonymousUser'
+  firstname = ''
+  lastname = 'AnonymousUser'
   email = ''
   id = -1
 }
@@ -201,9 +232,20 @@ export interface UserD {
   departments: Array<Department>
 }
 
-export interface Group {
-  pouet: string
+export interface GroupAPI {
+  id: number
+  name: string
+  train_prog_id: number
+  type_id: number
+  parent_ids?: number[]
+  conflicting_group_ids?: number[]
+  parallel_group_ids?: number[]
 }
-export interface Module {
-  tut: string
+export interface ModuleAPI {
+  id: number
+  abbrev: string
+  name: string
+  head_id: number
+  train_prog_id: number
+  description: string
 }

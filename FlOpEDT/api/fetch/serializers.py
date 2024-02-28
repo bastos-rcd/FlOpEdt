@@ -112,8 +112,8 @@ class NewApiScheduledCoursesSerializer(serializers.Serializer):
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
     course = CoursesSerializer()
-    tutor = serializers.CharField(source="tutor.username", allow_null=True)
-    id_visio = serializers.IntegerField(source="additional.link.id", allow_null=True)
+    tutor = serializers.IntegerField(source='tutor.id', allow_null=True)
+    id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
     number = serializers.IntegerField()
 
     # Mise en forme des données

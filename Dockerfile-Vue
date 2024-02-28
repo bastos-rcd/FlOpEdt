@@ -9,4 +9,4 @@ RUN rm -rf FlOpEDT-front/node_modules\
     && rm -f FlOpEDT-front/package-lock.json
 
 RUN yarn global add vite\
-    && yarn install
+    && yarn install --frozen-lockfile
