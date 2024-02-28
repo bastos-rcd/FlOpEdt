@@ -115,8 +115,10 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
 
         target_begin_time = dt.datetime.combine(from_date, dt.time(0))
         if abs(availability[0].start_time - target_begin_time) > epsilon:
-            raise exceptions.APIException(
-                detail=f"Should start at 00:00, got {availability[0].start_time}",
+            raise exceptions.ValidationError(
+                detail={
+                    "intervals": f"Should start at 00:00, got {availability[0].start_time}"
+                },
                 code=status.HTTP_400_BAD_REQUEST,
             )
         availability[0].start_time = target_begin_time
@@ -127,22 +129,26 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
             - availability[-1].start_time
         )
         if abs(availability[-1].duration - target_last_duration) > epsilon:
-            raise exceptions.APIException(
+            raise exceptions.ValidationError(
                 detail=(
-                    f"Should cover the whole period but finishes at "
-                    f"{availability[-1].start_time + availability[-1].duration}"
+                    {
+                        "intervals": f"Should cover the whole period but finishes at "
+                        f"{availability[-1].start_time + availability[-1].duration}"
+                    }
                 ),
                 code=status.HTTP_400_BAD_REQUEST,
             )
 
         for i, (prev, cons) in enumerate(zip(availability[:-1], availability[1:])):
             if abs(prev.start_time + prev.duration - cons.start_time) > epsilon:
-                raise exceptions.APIException(
-                    detail=(
-                        f"Should be a partition of the period "
-                        f"but interval#{i} finishes at {prev.start_time + prev.duration} "
-                        f"while interval#{i+1} starts at {cons.start_time}"
-                    ),
+                raise exceptions.ValidationError(
+                    detail={
+                        "intervals": (
+                            f"Should be a partition of the period "
+                            f"but interval#{i} finishes at {prev.start_time + prev.duration} "
+                            f"while interval#{i+1} starts at {cons.start_time}"
+                        )
+                    },
                     code=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -155,8 +161,8 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                 )
             }
         except self.model.SubjectModel.DoesNotExist:
-            raise exceptions.APIException(
-                detail="Unknown user", code=status.HTTP_400_BAD_REQUEST
+            raise exceptions.ValidationError(
+                detail={"subject_id": "Unknown user"}, code=status.HTTP_400_BAD_REQUEST
             )
         availability = sorted(
             [
