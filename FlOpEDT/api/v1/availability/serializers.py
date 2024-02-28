@@ -109,8 +109,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                     f"expected {from_date} but got "
                     f"{availability[0].start_time.date()} as "
                     f"date of the starting time of the first interval"
-                },
-                code=status.HTTP_400_BAD_REQUEST,
+                }
             )
 
         target_begin_time = dt.datetime.combine(from_date, dt.time(0))
@@ -118,8 +117,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
             raise exceptions.ValidationError(
                 detail={
                     "intervals": f"Should start at 00:00, got {availability[0].start_time}"
-                },
-                code=status.HTTP_400_BAD_REQUEST,
+                }
             )
         availability[0].start_time = target_begin_time
 
@@ -135,8 +133,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                         "intervals": f"Should cover the whole period but finishes at "
                         f"{availability[-1].start_time + availability[-1].duration}"
                     }
-                ),
-                code=status.HTTP_400_BAD_REQUEST,
+                )
             )
 
         for i, (prev, cons) in enumerate(zip(availability[:-1], availability[1:])):
@@ -148,8 +145,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                             f"but interval#{i} finishes at {prev.start_time + prev.duration} "
                             f"while interval#{i+1} starts at {cons.start_time}"
                         )
-                    },
-                    code=status.HTTP_400_BAD_REQUEST,
+                    }
                 )
 
     def create(self, validated_data):
@@ -180,8 +176,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
         for a in availability:
             if not is_my_availability(self.context["request"].user, a):
                 raise exceptions.PermissionDenied(
-                    detail={"subject_id": f"Not your availability"},
-                    code=status.HTTP_403_FORBIDDEN,
+                    detail={"subject_id": f"Not your availability"}
                 )
 
         self.check_intervals(
