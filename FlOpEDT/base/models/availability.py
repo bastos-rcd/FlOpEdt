@@ -3,16 +3,18 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from base.timing import Day, str_slot, days_index, days_list
 
-from datetime import date, time, timedelta, datetime
+import datetime as dt
+
 
 from rules.contrib.models import RulesModel
 from rules import always_allow, always_deny
 from base.rules import is_my_availability
 
+
 class Availability(RulesModel):
-    start_time = models.DateTimeField(default=datetime(1871, 3, 18))
+    start_time = models.DateTimeField(default=dt.datetime(1871, 3, 18))
     date = models.DateField(default=date(1, 1, 1))
-    duration = models.DurationField(default=timedelta(0))
+    duration = models.DurationField(default=dt.timedelta(0))
 
     value = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(8)], default=8
@@ -64,7 +66,7 @@ class UserAvailability(Availability):
 
     def __str__(self):
         return self.user.username + super().__str__()
-    
+
     class Meta:
         rules_permissions = {
             "add": is_my_availability,
@@ -72,7 +74,6 @@ class UserAvailability(Availability):
             "delete": is_my_availability,
             "view": always_allow,
         }
-
 
     # def is_same(self, other):
     #     if isinstance(other, UserAvailability):
