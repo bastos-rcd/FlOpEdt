@@ -29,7 +29,7 @@ from django.dispatch import receiver
 from people.models import Tutor
 from base.models import UserAvailability
 
-from datetime import date, time, timedelta
+import datetime as dt
 
 
 @receiver(post_save, sender=Tutor)
@@ -38,7 +38,6 @@ def create_tutor_default_availability(sender, instance, created, **kwargs):
         for d in range(1, 8):
             UserAvailability.objects.create(
                 user=instance,
-                in_day_start_time=time(0),
-                date=date(1, 1, d),
-                duration=timedelta(hours=24),
+                start_time=dt.datetime(1, 1, 1, 0),
+                duration=dt.timedelta(hours=24),
             )
