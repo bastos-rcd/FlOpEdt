@@ -221,6 +221,8 @@ class SimultaneousCourses(TTConstraint):
 
 
 class StartTimeConstraint(TTConstraint):
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     module = models.ForeignKey('base.Module',
                                null=True,
                                blank=True,
@@ -434,6 +436,8 @@ class ConsiderDependencies(TTConstraint):
     -include simultaneity (double dependency)
     If there is a weight, it's a preference, else it's a constraint...
     """
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     modules = models.ManyToManyField('base.Module', blank=True)
 
     class Meta:
@@ -602,6 +606,8 @@ class ConsiderPivots(TTConstraint):
     -include non same-day constraint
     If there is a weight, it's a preference, else it's a constraint...
     """
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     modules = models.ManyToManyField('base.Module', blank=True)
 
     class Meta:
@@ -673,6 +679,8 @@ class AvoidBothTimesSameDay(TTConstraint):
     Idéalement, on pourrait paramétrer slot1, et slot2 à partir de slot1... Genre slot1
     c'est 8h n'importe quel jour, et slot2 14h le même jour...
     """
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     time1 = models.TimeField()
     time2 = models.TimeField()
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
@@ -685,7 +693,7 @@ class AvoidBothTimesSameDay(TTConstraint):
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['groups'])
+        attributes.extend(['groups', 'train_progs'])
         return attributes
 
 

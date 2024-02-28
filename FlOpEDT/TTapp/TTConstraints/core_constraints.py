@@ -63,13 +63,20 @@ class NoSimultaneousGroupCourses(TTConstraint):
     """
     Only one course for each considered group on simultaneous slots
     """
-
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     groups = models.ManyToManyField("base.StructuralGroup", blank=True)
 
     class Meta:
         verbose_name = _("No simultaneous courses for groups")
         verbose_name_plural = verbose_name
 
+    @classmethod
+    def get_viewmodel_prefetch_attributes(cls):
+        attributes = super().get_viewmodel_prefetch_attributes()
+        attributes.extend(['train_progs', 'groups'])
+        return attributes
+    
     @timer
     def pre_analyse(self, period):
         """Pre analysis of the Constraint
@@ -368,7 +375,8 @@ class ScheduleAllCourses(TTConstraint):
     """
     The considered courses are scheduled, and only once
     """
-
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     modules = models.ManyToManyField("base.Module", blank=True)
     groups = models.ManyToManyField("base.StructuralGroup", blank=True)
     tutors = models.ManyToManyField("people.Tutor", blank=True)
@@ -440,7 +448,8 @@ class AssignAllCourses(TTConstraint):
     The considered courses are assigned to a tutor
     If pre_assigned_only, it does assign a tutor only to courses that already have one
     """
-
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     modules = models.ManyToManyField("base.Module", blank=True)
     groups = models.ManyToManyField("base.StructuralGroup", blank=True)
     course_types = models.ManyToManyField("base.CourseType", blank=True)
@@ -451,6 +460,12 @@ class AssignAllCourses(TTConstraint):
     class Meta:
         verbose_name = _("Each course is assigned to one tutor (max)")
         verbose_name_plural = verbose_name
+
+    @classmethod
+    def get_viewmodel_prefetch_attributes(cls):
+        attributes = super().get_viewmodel_prefetch_attributes()
+        attributes.extend(['train_progs', 'modules', 'groups', 'course_types'])
+        return attributes
 
     def no_tutor_courses(self, courses):
         result_courses = courses

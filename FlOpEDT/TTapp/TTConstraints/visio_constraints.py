@@ -38,6 +38,8 @@ from django.utils.translation import gettext_lazy as _
 
 
 class NoVisio(TTConstraint):
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='no_visio')
     course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='no_visio')
@@ -103,6 +105,8 @@ class NoVisio(TTConstraint):
 
 
 class VisioOnly(TTConstraint):
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='visio_only')
     course_types = models.ManyToManyField('base.CourseType', blank=True, related_name='visio_only')
@@ -172,6 +176,8 @@ class LimitGroupsPhysicalPresence(TTConstraint):
     """
     at most a given proportion of basic groups are present each half-day
     """
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     percentage = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
 
@@ -224,6 +230,8 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
     """
     Bound the number of Half-Days of physical presence
     """
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     nb_max = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(14)], default=14)
     nb_min = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(14)], default=0)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='bound_physical_presence_half_days')

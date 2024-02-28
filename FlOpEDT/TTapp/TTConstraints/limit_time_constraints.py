@@ -67,12 +67,6 @@ class LimitTimePerPeriod(TTConstraint):
 
         return fd_or_apm_period_by_day
 
-    def considered_train_progs(self, ttmodel):
-        train_progs = self.train_progs.all()
-        if not train_progs:
-            train_progs = ttmodel.train_prog
-        return train_progs
-
     def considered_courses(self, ttmodel, period:SchedulingPeriod, train_prog, tutor, module, group):
         return set(self.get_courses_queryset_by_parameters(ttmodel, period,
                                                            course_type=self.course_type,
@@ -114,6 +108,9 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
     Attributes:
         groups : the groups concerned by the limitation. All the groups of self.train_progs if None.
     """
+
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     groups = models.ManyToManyField('base.StructuralGroup',
                                     blank=True,
                                     related_name="Course_type_limits")
@@ -134,7 +131,7 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['groups', 'course_type'])
+        attributes.extend(['groups', 'course_type', 'train_progs'])
         return attributes
 
     def get_viewmodel(self):
@@ -181,6 +178,8 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
     Attributes:
         modules : the modules concerned by the limitation. All the modules of self.train_progs if None.
     """
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     modules = models.ManyToManyField('base.Module',
                                      blank=True,
                                      related_name="Course_type_limits")
@@ -209,7 +208,7 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['modules', 'course_type'])
+        attributes.extend(['modules', 'course_type', 'train_progs'])
         return attributes
 
     def get_viewmodel(self):

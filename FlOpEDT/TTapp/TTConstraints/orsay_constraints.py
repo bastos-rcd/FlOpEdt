@@ -54,7 +54,8 @@ class GroupsLunchBreak(TTConstraint):
     """
     Ensures time for lunch in a given interval for given groups (all if groups is Null)
     """
-
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     start_lunch_time = models.TimeField()
     end_lunch_time = models.TimeField()
     # ArrayField unusable with django-import-export
@@ -65,6 +66,12 @@ class GroupsLunchBreak(TTConstraint):
     class Meta:
         verbose_name = _('Lunch break for groups')
         verbose_name_plural = verbose_name
+
+    @classmethod
+    def get_viewmodel_prefetch_attributes(cls):
+        attributes = super().get_viewmodel_prefetch_attributes()
+        attributes.extend(['train_progs', 'groups'])
+        return attributes
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         considered_groups = considered_basic_groups(self, ttmodel)

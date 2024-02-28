@@ -36,14 +36,11 @@ class TTConstraint(FlopConstraint):
 
     Attributes:
         department : the department concerned by the constraint. Has to be filled.
-        train_progs : the training programs concerned by the constraint. All of self.department if None
-        periods : the periods for which the constraint should be applied. All if None.
+        periods : the scheduling periods for which the constraint should be applied. All if None.
         weight : from 1 to max_weight if the constraint is optional, depending on its importance
                  None if the constraint is necessary
         is_active : usefull to de-activate a Constraint just before the generation
     """
-    train_progs = models.ManyToManyField('base.TrainingProgramme',
-                                         blank=True)
 
     class Meta:
         abstract = True
@@ -52,23 +49,9 @@ class TTConstraint(FlopConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         raise NotImplementedError
 
-    def get_viewmodel(self):
-        """
-        :return: a dictionnary with view-related data
-        """
-        result = FlopConstraint.get_viewmodel(self)
-        if self.train_progs.exists():
-            train_prog_value = ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
-        else:
-            train_prog_value = 'All'
-
-        result['train_progs'] = train_prog_value
-
-        return result
-
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
-        return ['train_progs', 'department',]
+        return ['department',]
 
     def get_courses_queryset_by_parameters(self, ttmodel, period,
                                            train_progs=None,
@@ -98,6 +81,7 @@ class TTConstraint(FlopConstraint):
         """
         Filter courses depending constraint attributes
         """
-        if self.train_progs.exists() and 'train_progs' not in kwargs:
-            kwargs['train_progs'] = self.train_progs.all()
+        if hasattr(self, "train_progs"):
+            if self.train_progs.exists() and 'train_progs' not in kwargs:
+                kwargs['train_progs'] = self.train_progs.all()
         return FlopConstraint.get_courses_queryset_by_attributes(self, ttmodel, period, **kwargs)

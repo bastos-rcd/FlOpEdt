@@ -334,7 +334,7 @@ class FlopModel(object):
             return None
 
 
-def get_ttconstraints(department, period=None, train_prog=None, is_active=None):
+def get_ttconstraints(department, period=None, is_active=None):
     #
     #  Return tt_constraints corresponding to the specific filters
     #
@@ -343,14 +343,7 @@ def get_ttconstraints(department, period=None, train_prog=None, is_active=None):
     if is_active:
         query &= Q(is_active=is_active)
 
-    if train_prog:
-        query &= \
-            Q(train_progs__abbrev=train_prog) & Q(periods__isnull=True) | \
-            Q(train_progs__abbrev=train_prog) & Q(periods=period) | \
-            Q(train_progs__isnull=True) & Q(periods=period) | \
-            Q(train_progs__isnull=True) & Q(periods__isnull=True)
-    else:
-        query &= Q(periods=period) | Q(periods__isnull=True)
+    query &= Q(periods=period) | Q(periods__isnull=True)
 
     # Look up the TTConstraint subclasses records to update
     types = all_subclasses(TTConstraint)
@@ -391,10 +384,10 @@ def get_room_constraints(department, period=None, is_active=None):
             yield constraint
 
 
-def get_flop_constraints(department, week=None, is_active=None, train_prog=None):
+def get_flop_constraints(department, period=None, is_active=None):
     #
     #  Return FlopConstraints corresponding to the specific filters
     #
-    tt_constraints = get_ttconstraints(department, week, train_prog, is_active)
-    room_constraints = get_room_constraints(department, week, is_active)
+    tt_constraints = get_ttconstraints(department, period, is_active)
+    room_constraints = get_room_constraints(department, period, is_active)
     return list(tt_constraints) + list(room_constraints)

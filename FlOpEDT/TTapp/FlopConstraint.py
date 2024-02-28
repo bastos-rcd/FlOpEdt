@@ -59,6 +59,12 @@ class FlopConstraint(models.Model):
     is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
     modified_at = models.DateField(auto_now=True)
 
+    def test_work_copy(self, work_copy):
+        """
+        Test if the work_copy satisfies the constraint
+        """
+        return True
+
     def local_weight(self):
         if self.weight is None:
             return 10
@@ -152,3 +158,10 @@ class FlopConstraint(models.Model):
             if hasattr(self, attr) and attr not in kwargs:
                 kwargs[attr] = getattr(self, attr)
         return self.get_courses_queryset_by_parameters(flopmodel, period, **kwargs)
+
+    def considered_train_progs(self, ttmodel):
+        train_progs = set(ttmodel.train_prog)
+        if hasattr(self, "train_progs"):
+            if self.train_progs.exists():
+                train_progs &= set(self.train_progs.all())
+        return train_progs

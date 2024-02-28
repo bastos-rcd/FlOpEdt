@@ -80,9 +80,6 @@ class MinTutorsHalfDays(TTConstraint):
         else:
             text += " de tous les profs"
 
-        if self.train_progs.exists():
-            text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
-
         return text
 
 
@@ -196,6 +193,12 @@ class MinimizeTutorsBusyDays(TTConstraint):
         You can give a contextual explanation about what this constraint doesnt
         """
         return "MinimizeTutorsBusyDays online description"
+    
+    @classmethod
+    def get_viewmodel_prefetch_attributes(cls):
+        attributes = super().get_viewmodel_prefetch_attributes()
+        attributes.extend(['tutors'])
+        return attributes
 
 
 class RespectTutorsMaxTimePerDay(TTConstraint):

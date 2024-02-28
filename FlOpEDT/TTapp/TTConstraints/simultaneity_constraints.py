@@ -139,8 +139,8 @@ class ParallelizeCourses(TTConstraint):
     TTConstraint : Guarantees that the total course time of certain class of courses do not exceed a certain bound
     '''
 
-    course_types = models.ManyToManyField('base.CourseType', blank=True)
-    modules = models.ManyToManyField('base.Module', blank=True)
+    course_type = models.ForeignKey('base.CourseType', blank=True, null=True, on_delete=models.CASCADE, verbose_name=_('course type'))
+    module = models.ForeignKey('base.Module', blank=True, null=True, on_delete=models.CASCADE, verbose_name=_('module'))
     desired_busy_slots_duration = models.PositiveSmallIntegerField(verbose_name=_("Desired busy slots duration"))
 
 
@@ -164,7 +164,7 @@ class ParallelizeCourses(TTConstraint):
         text = f"Tous les cours sont concentrés en {french_format(self.desired_busy_slots_duration)}"
 
         if self.course_type is not None:
-            text += ' pour le type ' + 'self.course_type.name'
+            text += ' pour le type ' + self.course_type.name
 
         if self.module is not None:
             text += ' pour le module ' + self.course_type.name

@@ -108,6 +108,8 @@ class MinGroupsHalfDays(TTConstraint):
     """
     All courses will fit in a minimum of half days
     """
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
 
     class Meta:
@@ -152,7 +154,9 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
     Minimize the use of unprefered Slots for groups.
     Make impossible the use of forbidden slots.
     """
-
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
+    
     class Meta:
         verbose_name = _('Minimize undesired slots for groups')
         verbose_name_plural = verbose_name
@@ -222,6 +226,8 @@ class GroupsMinHoursPerDay(TTConstraint):
     """
     Respect the min_time_per_day declared
     """
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
     min_time = models.DurationField(default=dt.timedelta(hours=3), verbose_name=_('min_time'))
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)

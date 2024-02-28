@@ -1232,7 +1232,6 @@ class TTModel(FlopModel):
             for constr in get_ttconstraints(
                 self.department,
                 period=period,
-                # train_prog=promo,
                 is_active=True,
             ):
                 if not self.core_only or constr.__class__ in [

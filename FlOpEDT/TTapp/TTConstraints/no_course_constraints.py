@@ -67,6 +67,8 @@ class NoCourseOnWeekDay(TTConstraint):
 
 
 class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
     course_types = models.ManyToManyField('base.CourseType', related_name='no_course_on_days', blank=True)
     transversal_groups_included = models.BooleanField(default=True, verbose_name=_("transveral_groups_included"))
@@ -189,6 +191,8 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
 
 
 class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     tutors = models.ManyToManyField('people.Tutor', blank=True)
     tutor_status = models.CharField(max_length=2, choices=Tutor.TUTOR_CHOICES, null=True, blank=True)
 
@@ -218,6 +222,7 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
         return ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
                            for i in self.considered_tutors(ttmodel)
                            for c in ttmodel.wdb.possible_courses[i]
+                           if c.module.train_prog in self.considered_train_progs(ttmodel)
                            for sl in self.considered_slots(ttmodel, period) & ttmodel.wdb.compatible_slots[c])
 
     def one_line_description(self):
