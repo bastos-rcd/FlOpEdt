@@ -10,10 +10,6 @@
 default:
   image: python:3.11
 
-# Official framework image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/node/tags/
-image: node:latest
-
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
 variables:
@@ -35,6 +31,7 @@ stages:
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
 
 gate-quality:
+  image: node:latest
   stage: quality
   script:
     - cd FlOpEDT-front
@@ -42,7 +39,8 @@ gate-quality:
     - npx prettier -c .
     - yarn test --coverage
 
-build:
+build-front:
+  image: node:latest
   stage: build
   script:
     - cd FlOpEDT-front
