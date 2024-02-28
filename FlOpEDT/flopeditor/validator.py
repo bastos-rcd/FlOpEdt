@@ -351,36 +351,22 @@ def validate_module_values(entry, entries):
     return False
 
 
-def validate_period_values(name, starting_week, ending_week, entries):
+def validate_training_period_values(name, scheduling_periods, entries):
     """Validate parameters for period values' CRUD
 
-    :param name: period name to test
-    :type abbrev: text
-    :param starting_week: value of starting_week
-    :type abbrev: int
-    :param ending_week: value of ending_week
-    :type abbrev: int
+    :param name: training period name to test
+    :type name: text
+    :param scheduling_periods: value of scheduling_periods
+    :type scheduling_periods: list
     :param entries: list that is returned to CrudJS
     :type abbrev: list
 
     :return: boolean are the paramaters valid
     """
 
-    if starting_week is None:
+    if scheduling_periods is None:
         entries['result'].append([ERROR_RESPONSE,
-                                  "La semaine de début est invalide"])
-    elif ending_week is None:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "La semaine de fin est invalide"])
-    elif starting_week <= 0 or starting_week > 53:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "La semaine de début doit être compris entre [1-53]"])
-    elif ending_week <= 0 or ending_week > 53:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "La semaine de fin doit être compris entre [1-53]"])
-    elif starting_week == ending_week:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "La semaine de début ne peut pas être égale à la semaine de fin"])
+                                  "Les périodes de génération ne peuvent pas être vide."])
     elif not name:
         entries['result'].append([ERROR_RESPONSE,
                                   "Le nom du semestre ne peut pas être vide."])
