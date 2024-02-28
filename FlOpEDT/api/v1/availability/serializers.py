@@ -129,7 +129,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
         if abs(availability[-1].duration - target_last_duration) > epsilon:
             raise exceptions.APIException(
                 detail=(
-                    f"Should cover the whole day but finishes at "
+                    f"Should cover the whole period but finishes at "
                     f"{availability[-1].start_time + availability[-1].duration}"
                 ),
                 code=status.HTTP_400_BAD_REQUEST,

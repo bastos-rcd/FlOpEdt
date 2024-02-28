@@ -114,9 +114,43 @@ class TestUpdateUserAvailability:
                 "value": 5,
             },
         ]
-        print(push)
         response = retrieve_elements(client.post(self.endpoint, push), 4)
         assert response == push
+
+    def test_update_cut_day_end(self, client: APIClient, make_user_hourly_commune):
+        user = User.objects.first()
+        client.force_authenticate(user=user)
+        push = copy.deepcopy(self.wanted) | {"subject_id": user.id}
+        push["to_date"] = "1871-03-21"
+        push["intervals"] += [
+            {
+                "start_time": f"{push['to_date']}T00:00:00",
+                "duration": "10:00:00",
+                "value": 4,
+            },
+        ]
+        response = client.post(self.endpoint, push)
+        assert not is_success(response.status_code), response
+
+    def test_update_cut_day_middle(self, client: APIClient, make_user_hourly_commune):
+        user = User.objects.first()
+        client.force_authenticate(user=user)
+        push = copy.deepcopy(self.wanted) | {"subject_id": user.id}
+        push["to_date"] = "1871-03-21"
+        push["intervals"] += [
+            {
+                "start_time": f"{push['to_date']}T00:00:00",
+                "duration": "10:00:00",
+                "value": 4,
+            },
+            {
+                "start_time": f"{push['to_date']}T12:00:00",
+                "duration": "12:00:00",
+                "value": 4,
+            },
+        ]
+        response = client.post(self.endpoint, push)
+        assert not is_success(response.status_code), response
 
     def test_update_rights(self, client, make_users, make_default_week_user):
         user = User.objects.first()
