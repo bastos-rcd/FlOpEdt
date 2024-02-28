@@ -13,8 +13,10 @@ def generate_scheduling_periods(
     while current <= to_date:
         objects.append(
             SchedulingPeriodModel(
-                start_date=current, end_date=current, mode=PeriodEnum.DAY
-                name = str(current)
+                start_date=current,
+                end_date=current,
+                mode=PeriodEnum.DAY,
+                name=str(current),
             )
         )
         current += dt.timedelta(days=1)
@@ -26,7 +28,7 @@ def generate_scheduling_periods(
                 start_date=current,
                 end_date=current + dt.timedelta(days=6),
                 mode=PeriodEnum.WEEK,
-                name = f"W{current.isocalendar().week}-{current.isocalendar().year}"
+                name=f"W{current.isocalendar().week}-{current.isocalendar().year}",
             )
         )
         current += dt.timedelta(days=7)
@@ -39,7 +41,7 @@ def generate_scheduling_periods(
                 start_date=current,
                 end_date=future - dt.timedelta(days=1),
                 mode=PeriodEnum.MONTH,
-                name= current.strftime("%B_%Y")
+                name=current.strftime("%B_%Y"),
             )
         )
         current = future
@@ -53,10 +55,9 @@ def generate_scheduling_periods(
                 start_date=current,
                 end_date=future - dt.timedelta(days=1),
                 mode=PeriodEnum.YEAR,
-                name = str(current.year)
+                name=str(current.year),
             )
         )
         current = future
 
     SchedulingPeriodModel.objects.bulk_create(objects)
-
