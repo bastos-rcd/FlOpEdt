@@ -4,9 +4,9 @@
       <h3>{{ $t('side.availabilityTitle') }}</h3>
       <Separator class="Separator" orientation="horizontal" />
       <div class="avail-div">
-        <CheckboxRoot @update:checked="handleCheckboxClick" class="CheckboxRoot">
+        <CheckboxRoot class="CheckboxRoot" v-model:checked="availCheckBox" :defaultChecked="availCheckBox">
           <CheckboxIndicator class="CheckboxIndicator">
-            <icon icon="iconoir:check"></icon>
+            <Icon icon="iconoir:check"></Icon>
           </CheckboxIndicator>
         </CheckboxRoot>
         {{ $t('side.availabilityLabel') }}
@@ -15,7 +15,7 @@
     <div class="workcopy-div">
       <h3>{{ $t('side.workcopyTitle') }}</h3>
       <Separator class="Separator" />
-      <SelectRoot>
+      <SelectRoot v-model="workcopy">
         <SelectTrigger class="SelectTrigger">
           <SelectValue :placeholder="$t('side.workcopyPlaceholder')" />
           <Icon icon="iconoir:nav-arrow-down" />
@@ -45,6 +45,26 @@
         </SelectContent>
       </SelectRoot>
     </div>
+    <div class="RoomSelect">
+      <Separator class="Separator" />
+      <FilterSelector
+        :multiple="true"
+        :items="props.rooms"
+        filterSelectorUndefinedLabel="Filter Rooms"
+        v-model:selectedItems="roomsSelected"
+        item-variable-name="name"
+      />
+    </div>
+    <div class="TutorSelect">
+      <Separator class="Separator" />
+      <FilterSelector
+        :multiple="false"
+        :items="props.tutors"
+        filterSelectorUndefinedLabel="Filter teachers"
+        v-model:selectedItems="tutorSelected"
+        item-variable-name="username"
+      />
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -68,14 +88,42 @@ import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 import { Separator } from 'radix-vue'
 import { useAuth } from '@/stores/auth'
+import { computed, ref } from 'vue'
+import FilterSelector from './utils/FilterSelector.vue'
+import { Room, User } from '@/stores/declarations'
+import { useEventStore } from '@/stores/display/event'
+import { storeToRefs } from 'pinia'
 const { t } = useI18n()
 const authStore = useAuth()
+const eventStore = useEventStore()
+const availCheckBox = computed({
+  get() {
+    return props.availChecked
+  },
+  set(v: boolean) {
+    emits('update:checkbox', v)
+  },
+})
+const workcopy = computed({
+  get() {
+    return props.workcopy.toString()
+  },
+  set(v: any) {
+    emits('update:workcopy', Number(v))
+  },
+})
+const { roomsSelected, tutorSelected } = storeToRefs(eventStore)
+const props = defineProps<{
+  availChecked: boolean
+  workcopy: number
+  rooms: Room[]
+  tutors: User[]
+}>()
 const emits = defineEmits<{
   (e: 'update:checkbox', v: boolean): void
+  (e: 'update:workcopy', v: number): void
+  (e: 'update:rooms', v: Room[]): void
 }>()
-function handleCheckboxClick(v: boolean) {
-  emits('update:checkbox', v)
-}
 </script>
 <style>
 h3 {
@@ -119,10 +167,10 @@ h3 {
   margin-top: 10px;
 }
 .Separator {
-  width: 90%;
+  width: 100%;
   background-color: white;
   height: 1px;
-  margin: 0 0 8px 5px;
+  margin: 5px 0 8px 0;
 }
 .SelectTrigger {
   display: inline-flex;
