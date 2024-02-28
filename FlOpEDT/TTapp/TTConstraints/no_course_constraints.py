@@ -68,7 +68,8 @@ class NoCourseOnWeekDay(TTConstraint):
 
 class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    course_types = models.ManyToManyField('base.CourseType', related_name='no_course_on_days')
+    course_types = models.ManyToManyField('base.CourseType', related_name='no_course_on_days', blank=True)
+    transversal_groups_included = models.BooleanField(default=True, verbose_name=_("transveral_groups_included"))
 
     class Meta:
         verbose_name = _('No courses on declared week days for groups')
@@ -84,8 +85,12 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
             ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, period), period)
 
     def considered_courses(self, ttmodel):
-        c_c = set(c for g in considered_basic_groups(self, ttmodel)
-                  for c in ttmodel.wdb.courses_for_basic_group[g])
+        if self.transversal_groups_included:
+            c_c = set(c for g in considered_basic_groups(self, ttmodel)
+                      for c in ttmodel.wdb.all_courses_for_basic_group[g])
+        else:
+            c_c = set(c for g in considered_basic_groups(self, ttmodel)
+                      for c in ttmodel.wdb.courses_for_basic_group[g])
         if self.course_types.exists():
             c_c = set(c for c in c_c
                       if c.type in self.course_types.all())

@@ -296,7 +296,10 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
 
-        type_value = self.course_type.name
+        if self.course_type is not None:
+            type_value = self.course_type.name
+        else:
+            type_value = 'Any'
 
         if self.tutors.exists():
             tutor_value = ', '.join([tutor.username for tutor in self.tutors.all()])

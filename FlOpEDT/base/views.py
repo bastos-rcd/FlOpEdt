@@ -345,7 +345,7 @@ def room_preference(req, department, tutor=None):
         pass
 
     base_pref = {}
-    for rs in RoomSort.objects.filter(tutor=tutor):
+    for rs in RoomSort.objects.filter(tutor=tutor, for_type__department=req.department):
         if rs.for_type not in base_pref:
             base_pref[rs.for_type] = []
         base_pref[rs.for_type].append({"better": rs.prefer, "worse": rs.unprefer})
@@ -890,13 +890,9 @@ def fetch_extra_sched(req, year, week, **kwargs):
 
 def fetch_shared_rooms(req, year, week, **kwargs):
     # which room groups are shared among departments
-    shared_rooms = []
-    for rg in Room.objects.all().prefetch_related("types__department"):
-        depts = set()
-        for rt in rg.types.all():
-            depts.add(rt.department)
-            if len(depts) > 1:
-                shared_rooms.append(rg)
+    shared_rooms = [
+        room for room in Room.objects.all().prefetch_related('departments') if room.departments.count() > 1
+    ]
 
     # courses in any shared room
     courses = (
@@ -905,12 +901,10 @@ def fetch_shared_rooms(req, year, week, **kwargs):
             course__week__year=year,
             work_copy=0,
             room__in=shared_rooms,
-        )
-        .select_related(
-            "course__room_type__department", "room", "course__type__department"
-        )
-        .exclude(course__room_type__department=req.department)
-    )
+        ) \
+        .select_related('room',
+                        'course__type__department', 'course__week')\
+        .exclude(course__type__department=req.department)
     dataset = SharedRoomsResource().export(courses)
     return HttpResponse(dataset.csv, content_type="text/csv")
 

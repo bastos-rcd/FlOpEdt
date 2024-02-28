@@ -242,11 +242,12 @@ def send_notifications():
         intro_text = _("Hi ") + student.first_name + ",<br /> <br />"
         intro_text += _("Here are the changes of your planning for the %g following days :") % nb_of_notified_days
         intro_text += "<br /> <br />"
-        groups = student.belong_to.all()
+        groups = student.generic_groups.all()
         department = groups[0].train_prog.department.abbrev
         student_changes = []
         for group in groups:
-            student_changes += student_changes_dict[group.train_prog.department.abbrev][group.train_prog.abbrev][group.name]
+            if group.name in student_changes_dict[group.train_prog.department.abbrev][group.train_prog.abbrev]:
+                student_changes += student_changes_dict[group.train_prog.department.abbrev][group.train_prog.abbrev][group.name]
 
         filtered_changes = [change for change in student_changes
                             if 0 <= days_nb_from_today(change) <= nb_of_notified_days]

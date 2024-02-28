@@ -51,10 +51,15 @@ class EventFeed(ICalFeed):
         ret += f'Salle : {location}'
         return ret
 
+    def item_location(self, scourse):
+         return scourse.room.name if scourse.room is not None else ''
+
     def item_start_datetime(self, scourse):
         course = scourse.course
+        course_week_year = course.week.year if course.week.year >= 1 else 1
+        course_week_nb = course.week.nb if course.week.nb >= 1 else 1
         begin = datetime.combine(
-            Week(course.week.year, course.week.nb)\
+            Week(course_week_year, course_week_nb)\
             .day(self.days.index(scourse.day)),
             datetime.min.time()) \
             + timedelta(minutes=scourse.start_time)
@@ -79,11 +84,9 @@ class TutorEventFeed(EventFeed):
 
     def item_title(self, scourse):
         course = scourse.course
-        location = scourse.room.name if scourse.room is not None else ''
         gp_str, plural = str_groups(course)
         return (f'{course.module.abbrev} {course.type.name} {"N°"+str(scourse.number) if scourse.number else ""} '
                 f'- {gp_str} '
-                f'- {location}'
         )
 
 
@@ -155,12 +158,9 @@ class GroupEventFeed(EventFeed):
 
     def item_title(self, scourse):
         course = scourse.course
-        location = scourse.room.name if scourse.room is not None else ''
         return (f'{course.module.abbrev} {course.type.name} '
                 f'- {scourse.tutor.username if scourse.tutor is not None else "x"} '
-                f'- {location}'
         )
-
 
 class StructuralGroupEventFeed(GroupEventFeed):
     def get_object(self, request, department, group_id):

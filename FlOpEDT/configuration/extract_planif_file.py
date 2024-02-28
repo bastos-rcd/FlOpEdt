@@ -49,6 +49,7 @@ from TTapp.models import StabilizationThroughPeriods
 
 from django.db import transaction
 from django.db.models import Q
+from django.conf import settings as ds
 
 
 def do_assign(module, course_type, period, book):
@@ -98,7 +99,9 @@ def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeri
     Course.objects.filter(
         type__department=department, period=period, module__period=training_period
     ).delete()
+    after_type_dependencies = []
     # lookup period column
+
     wc = 1
     for wr in [1]:
         while wc < 50:
@@ -273,15 +276,16 @@ def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeri
                         relevant_groups |= (
                             g.ancestor_groups() | {g} | g.descendants_groups()
                         )
-                    courses = Course.objects.filter(
+                    course_type_queryset = Course.objects.filter(
                         type__name=course_type,
                         module=MODULE,
                         period=period,
                         groups__in=relevant_groups,
-                    )
-                    for course in courses[:n]:
-                        P = Dependency(course1=course, course2=C)
-                        P.save()
+                    ).exclude(id=C.id)
+                    for relevant_group in relevant_groups:
+                        courses_queryset = course_type_queryset.filter(groups=relevant_group)
+                        if courses_queryset.exists():
+                            after_type_dependencies.append((C.id, courses_queryset, n, row))
 
                 if "P" in all_comments:
                     course_additional, created = CourseAdditional.objects.get_or_create(
@@ -323,10 +327,17 @@ def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeri
                         ND=True,
                     )
                     P.save()
+
         except Exception as e:
             raise Exception(
                 f"Exception ligne {row}, période {period.name} de {feuille}: {e} \n"
             )
+
+    # Add after_type dependecies
+    for id, courses_queryset, n, row in after_type_dependencies:
+        course2 = Course.objects.get(id=id)
+        for course1 in courses_queryset[:n]:
+            P = Dependency.objects.create(course1=course1, course2=course2)        
 
 
 @transaction.atomic
@@ -373,7 +384,7 @@ def extract_planif(
     Generate the courses from bookname; the school year starts in actual_year
     """
     if bookname is None:
-        bookname = "media/configuration/planif_file_" + department.abbrev + ".xlsx"
+        bookname = os.path.join(ds.MEDIA_ROOT,'media/configuration/planif_file_'+department.abbrev+'.xlsx')
     book = load_workbook(filename=bookname, data_only=True)
     training_periods = define_training_periods(department, book, training_periods)
     for training_period in training_periods:
@@ -391,7 +402,7 @@ def extract_planif(
 @transaction.atomic
 def extract_planif_scheduling_periods(scheduling_periods, department, bookname=None, training_periods=None):
     if bookname is None:
-        bookname = "media/configuration/planif_file_" + department.abbrev + ".xlsx"
+        bookname = os.path.join(ds.MEDIA_ROOT,'media/configuration/planif_file_'+department.abbrev+'.xlsx')
     book = load_workbook(filename=bookname, data_only=True)
     training_periods = define_training_periods(department, book, training_periods)
     for training_period in training_periods:

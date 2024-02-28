@@ -45,7 +45,7 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 
 from core.decorators import timer
 
-from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints
+from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints, solution_files_path
 from TTapp.RoomConstraints.RoomConstraint import (
     LocateAllCourses,
     LimitGroupMoves,
@@ -116,7 +116,8 @@ class RoomModel(FlopModel):
             for key, key_warnings in self.warnings.items():
                 print("%s : %s" % (key, ", ".join([str(x) for x in key_warnings])))
 
-    def solution_files_prefix(self):
+    # Some extra Utils
+    def log_files_prefix(self):
         return f"room_model_{self.department.abbrev}_{'_'.join(str(w) for w in self.periods)}"
 
     @timer
@@ -393,7 +394,7 @@ class RoomModel(FlopModel):
 
         return cost_I, cost_G, cost_SL, generic_cost
 
-    def add_to_slot_cost(self, slot, cost):
+    def add_to_slot_cost(self, slot, cost, week=None):
         self.cost_SL[slot] += cost
 
     def add_to_inst_cost(self, instructor, cost, period=None):

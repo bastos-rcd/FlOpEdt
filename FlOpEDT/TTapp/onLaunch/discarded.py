@@ -1,10 +1,10 @@
-
 import json
 import re
 import os
 from pathlib import Path
 from MyFlOp.colors import Tcolors
 from TTapp.onLaunch.settings import settings
+from django.conf import settings as ds
 LANG_LIST = settings()["langs"]
 
 
@@ -14,7 +14,7 @@ def createDiscardFile():
             corrupted = []
             unavailable_pics = []
             #available languages
-            path = 'TTapp/TTConstraints/doc/'
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../TTConstraints/doc/')
             for language in LANG_LIST:
                 language += "/"
                 entries = next(os.walk(path+language))[2]
@@ -51,6 +51,6 @@ def createDiscardFile():
             #Append lists of discarded files and write them in a json
             list_discarded = list(set().union(list(corrupted), list(unavailable_pics)))
             version_json = json.dumps(list_discarded)
-            with open("discarded.json",'w') as file:
+            with open(os.path.join(ds.TMP_DIRECTORY,"discarded.json"),'w') as file:
                 file.write('{"discarded": '+version_json+'}')
             file.close()

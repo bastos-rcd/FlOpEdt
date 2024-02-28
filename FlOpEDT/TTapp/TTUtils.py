@@ -166,7 +166,7 @@ def compute_conflicts(department, period, copy_a):
     conflict_room_list = get_shared_rooms()
 
     for room in conflict_room_list:
-        dic_subrooms[str(room.id)] = [r.name for r in room.and_subrooms()]
+        dic_subrooms[str(room.id)] = [r.name for r in room.related_rooms()]
     print(dic_subrooms)
     courses_list = (
         ScheduledCourse.objects.select_related("course__duration")
@@ -538,3 +538,22 @@ def number_courses(
                 for i, sc in enumerate(sorted_sched_courses):
                     sc.number = past_courses_number + i + 1
                     sc.save()
+
+def print_differences(department, weeks, old_copy, new_copy, tutors=Tutor.objects.all()):
+    for week in weeks:
+        print("For", week)
+        for tutor in tutors:
+            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=old_copy, course__week=week,
+                                                 course__type__department=department)
+            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=new_copy, course__week=week,
+                                                 course__type__department=department)
+            slots_a = set([(x.day, x.start_time//60) for x in SCa])
+            slots_b = set([(x.day, x.start_time//60) for x in SCb])
+            if slots_a ^ slots_b:
+                result = "For %s old copy has :" % tutor
+                for sl in slots_a - slots_b:
+                    result += "%s, " % str(sl)
+                result += "and new copy has :"
+                for sl in slots_b - slots_a:
+                    result += "%s, " % str(sl)
+                print(result)

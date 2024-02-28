@@ -50,7 +50,7 @@ class MinTutorsHalfDays(TTConstraint):
     """
     tutors = models.ManyToManyField('people.Tutor', blank=True, verbose_name=_('tutors'))
     join2courses = models.BooleanField(
-        verbose_name='If a tutor has 2 or 4 courses only, join it?',
+        verbose_name=_('If a tutor has 2 or 4 courses only, join it?'),
         default=False)
 
     class Meta:

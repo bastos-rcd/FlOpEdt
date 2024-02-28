@@ -223,7 +223,7 @@ class GroupsMinHoursPerDay(TTConstraint):
     Respect the min_time_per_day declared
     """
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    min_time = models.DurationField(default=dt.timedelta(hours=3))
+    min_time = models.DurationField(default=dt.timedelta(hours=3), verbose_name=_('min_time'))
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
 
     class Meta:

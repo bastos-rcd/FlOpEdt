@@ -74,6 +74,7 @@ from TTapp.slots import slots_filter, days_filter
 
 from TTapp.PeriodsDatabase import PeriodsDatabase
 
+from TTapp.TTUtils import print_differences
 
 from django.db import close_old_connections
 from django.db.models import F
@@ -92,13 +93,14 @@ from TTapp.FlopModel import (
     FlopModel,
     GUROBI_NAME,
     get_ttconstraints,
-    get_room_constraints,
+    get_room_constraints, solution_files_path, gurobi_log_files_path, iis_files_path,
 )
 from TTapp.RoomModel import RoomModel
 
 from django.utils.translation import gettext_lazy as _
 
 import datetime as dt
+from django.utils.translation import gettext
 
 
 class TTModel(FlopModel):
@@ -1343,6 +1345,11 @@ class TTModel(FlopModel):
                 sca.scheduled_course = cp
                 sca.save()
             cp.save()
+            
+       # On imprime les différences si demandé
+        if self.stabilize_work_copy is not None:
+            print_differences(self.department, self.weeks,
+                              self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
 
         # # On enregistre les coûts dans la BDD
         TutorCost.objects.filter(
@@ -1392,9 +1399,9 @@ class TTModel(FlopModel):
                 cg.save()
 
     # Some extra Utils
-    def solution_files_prefix(self):
+    def log_files_prefix(self):
         return (
-            f"flopmodel_{self.department.abbrev}_{'_'.join(p.name for p in self.periods)}"
+            f"TTmodel_{self.department.abbrev}_{'_'.join(p.name for p in self.periods)}"
         )
 
     def add_tt_to_db_from_file(self, filename=None, target_work_copy=None):
@@ -1454,8 +1461,9 @@ class TTModel(FlopModel):
         target_work_copy=None,
         solver=GUROBI_NAME,
         threads=None,
-        ignore_sigint=True,
-    ):
+        
+              ignore_sigint=True,
+    , send_gurobi_logs_email_to=None):
         """
         Generates a schedule from the TTModel
         The solver stops either when the best schedule is obtained or timeLimit
@@ -1493,7 +1501,20 @@ class TTModel(FlopModel):
             if self.post_assign_rooms:
                 RoomModel(self.department.abbrev, self.periods, target_work_copy).solve()
                 print("Rooms assigned")
-            return target_work_copy
+        
+        if send_gurobi_logs_email_to is not None:
+            if result is None:
+                solved=False
+                subject = f"Logs {self.department.abbrev} {self.weeks} : not solved"
+            else:
+                solved=True
+                subject = f"Logs {self.department.abbrev} {self.weeks} : copy {target_work_copy}"
+            self.send_gurobi_log_files_email(
+                subject=subject,
+                to=[send_gurobi_logs_email_to],
+                solved=solved
+            )
+        return target_work_copy
 
     def find_same_course_slot_in_other_period(self, slot, other_period):
         other_slots = slots_filter(self.wdb.courses_slots, period=other_period, same=slot)
@@ -1502,3 +1523,21 @@ class TTModel(FlopModel):
                 f"Wrong slots among periods {other_period} \n {slot} vs {other_slots}"
             )
         return other_slots.pop()
+    
+    def send_gurobi_log_files_email(self, subject, to, solved):
+        from django.core.mail import EmailMessage
+        message = gettext("This email was automatically sent by the flop!EDT timetable generator\n\n")
+        if solved:
+            message += gettext("Here is the log of the last run of the generator:\n\n")
+            logs = open(self.gurobi_log_file(),'r').read().split('logging started')
+            if self.post_assign_rooms:
+                message += logs[-2] + '\n\n'
+                message += logs[-1] + '\n\n'
+            else:
+                message += logs[-1] + '\n\n'
+        else:
+            message += open("%s/constraints_summary%s.txt" % (iis_files_path, self.iis_filename_suffixe()), errors='replace').read() + '\n\n'
+            message += open("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe()), errors='replace').read() 
+            
+        email = EmailMessage(subject, message, to=to)
+        email.send()

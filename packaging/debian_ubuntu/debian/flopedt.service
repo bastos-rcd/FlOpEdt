@@ -1,0 +1,16 @@
+[Unit]
+Description=FlOPEDT service
+
+[Service]
+User=flopedt
+Group=flopedt
+Environment=DJANGO_SETTINGS_MODULE=FlOpEDT.settings.production
+EnvironmentFile=/etc/default/flopedt
+ExecStartPre=+/usr/bin/flop_admin migrate
+ExecStartPre=+/usr/bin/flop_admin collectstatic --noinput
+ExecStartPre=+/bin/sh -c '/usr/bin/find /var/flopedt/tmp -type f -exec /usr/bin/rm -Rf {} \\;'
+ExecStartPre=+/bin/sh -c '/usr/bin/find /var/flopedt/cache -type f -exec /usr/bin/rm -Rf {} \\;'
+ExecStart=/opt/venvs/flopedt/bin/python -u /opt/venvs/flopedt/bin/daphne -b ${DAPHNE_HOST} -p ${DAPHNE_PORT} -v 1 FlOpEDT.asgi:application
+
+[Install]
+WantedBy=multi-user.target

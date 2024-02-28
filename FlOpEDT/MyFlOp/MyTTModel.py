@@ -28,7 +28,7 @@ import importlib
 
 from TTapp.TTModel import TTModel, GUROBI_NAME
 
-from MyFlOp.MyTTUtils import print_differences, number_courses
+from MyFlOp.MyTTUtils import number_courses, print_differences
 
 
 class MyTTModel(TTModel):
@@ -81,7 +81,8 @@ class MyTTModel(TTModel):
         TTModel.add_specific_constraints(self)
 
     def solve(self, time_limit=None, target_work_copy=None,
-              solver=GUROBI_NAME, threads=None, ignore_sigint=True, with_numerotation=True):
+              solver=GUROBI_NAME, threads=None, ignore_sigint=True, send_gurobi_logs_email_to=None,
+              with_numerotation=True):
         """
         If you shall add pre (or post) processing apps, you may write them down
         here.
@@ -91,12 +92,16 @@ class MyTTModel(TTModel):
                                          target_work_copy=target_work_copy,
                                          solver=solver,
                                          threads=threads,
-                                         ignore_sigint=ignore_sigint)
+                                         ignore_sigint=ignore_sigint,
+                                         send_gurobi_logs_email_to=send_gurobi_logs_email_to)
+
         if result_work_copy is not None and self.stabilize_work_copy is not None:
             print_differences(self.department, self.periods,
                               self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
+
         if with_numerotation:
             number_courses(self.department, periods=self.periods,
                            work_copy=result_work_copy)
+            
         return result_work_copy
 

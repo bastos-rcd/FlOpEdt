@@ -103,7 +103,7 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
     Only one course for each considered room on simultaneous slots
     """
     rooms = models.ManyToManyField('base.Room', blank=True)
-    can_combine_two_groups_if_no_tutor = models.BooleanField(default=False)
+    can_combine_two_groups_if_no_tutor = models.BooleanField(default=False, verbose_name=_('Can combine two groups if no tutor'))
 
     class Meta:
         verbose_name = _('Limit simultaneous courses for rooms')
@@ -356,12 +356,17 @@ class ConsiderRoomSorts(RoomConstraint):
                 room_model.add_to_inst_cost(tutor,
                                             self.local_weight() * ponderation * (unpreferred_sum - preferred_sum),
                                             period=period)
+    def one_line_description(self):
+        text =  f"Prend en compte les préférences de salles des enseignant·e·s "
+        return text
 
 
 class LocateAllCourses(RoomConstraint):
     modules = models.ManyToManyField('base.Module', blank=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
     course_types = models.ManyToManyField('base.CourseType', blank=True)
+    room_types = models.ManyToManyField('base.RoomType', blank=True)
+    tutors = models.ManyToManyField('people.Tutor', blank=True)
 
     class Meta:
         verbose_name = _('Assign a room to the courses')
@@ -373,6 +378,13 @@ class LocateAllCourses(RoomConstraint):
             courses_to_consider = set(c for c in courses_to_consider if c.module in self.modules.all())
         if self.course_types.exists():
             courses_to_consider = set(c for c in courses_to_consider if c.type in self.course_types.all())
+        if self.room_types.exists():
+            courses_to_consider = set(c for c in courses_to_consider if c.room_type in self.room_types.all())
+        if self.groups.exists():
+            courses_to_consider = set(c for c in courses_to_consider if all(g in self.groups.all() for g in c.groups.all()))
+        if self.tutors.exists():
+            courses_to_consider = set(c for c in courses_to_consider if c.tutor in self.tutors.all())
+        
         return courses_to_consider
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
@@ -401,6 +413,18 @@ class LocateAllCourses(RoomConstraint):
             else:
                 room_model.add_to_generic_cost((room_model.one_var - relevant_sum) * self.local_weight() * ponderation,
                                                period)
+    
+    def one_line_description(self):
+        text =  f"Attribue une salle à tous les cours"
+        if self.groups.exists():
+            text += ' des groupes ' + ', '.join([group.name for group in self.groups.all()])
+        if self.modules.exists():
+            text += ' pour les modules ' + ', '.join([module.abbrev for module in self.modules.all()])
+        if self.course_types.exists():
+            text += ' pour les types ' + ', '.join([ct.name for ct in self.course_types.all()])
+        text+='.'
+        return text
+
 
 class LimitMoves(RoomConstraint):
     class Meta:
@@ -455,6 +479,15 @@ class LimitGroupMoves(LimitMoves):
     @property
     def ponderation(self):
         return 2
+    
+    def one_line_description(self):
+        text =  f"Limite les changements de salles"
+        if self.groups.exists():
+            text += ' des groupes ' + ', '.join([group.name for group in self.groups.all()]) + "."
+        else:
+            text += ' de tous les groupes.'
+        return text
+    
 
 class LimitTutorMoves(LimitMoves):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
@@ -471,6 +504,14 @@ class LimitTutorMoves(LimitMoves):
 
     def add_to_obj_method(self, room_model):
         return room_model.add_to_inst_cost
+    
+    def one_line_description(self):
+        text =  f"Limite les changements de salles"
+        if self.tutors.exists():
+            text += ' des profs ' + ', '.join([tutor.username for tutor in self.tutors.all()]) + "."
+        else:
+            text += ' de tous les profs.'
+        return text
 
     @property
     def ponderation(self):
