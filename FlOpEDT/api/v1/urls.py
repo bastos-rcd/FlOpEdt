@@ -27,11 +27,16 @@ from api.v1.base.urls import url_base_patterns
 from api.v1.people.urls import url_people_patterns
 from api.v1.availability.urls import routerAvailability
 
+from api.v1.people.views import ThemePreferenceViewSet, StudentsViewSet
+
 routerV1 = routers.SimpleRouter()
+routerV1.register(r"themes", ThemePreferenceViewSet, basename="theme")
+routerV1.register(r"students", StudentsViewSet, basename="students")
 
 url_V1_patterns = [
-    path("base/", include((url_base_patterns, "api"), namespace="base")),
-    path("people/", include((url_people_patterns, "api"), namespace="people")),
+    # path("base/", include((url_base_patterns, "api"), namespace="base")),
+    # path("people/", include((url_people_patterns, "api"), namespace="people")),
+    path("people/", include((routerV1.urls, "api"), namespace="people")),
     path(
         "availability/",
         include((routerAvailability.urls, "api"), namespace="availability"),

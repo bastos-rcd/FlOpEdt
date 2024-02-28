@@ -1,4 +1,5 @@
 import datetime as dt
+import copy
 
 import pytest
 
@@ -26,25 +27,7 @@ def client():
     return APIClient()
 
 
-@pytest.fixture
-def make_availabilities_IUT(db: None):
-    TutorFactory.create_batch(size=2)
-    tutor = Tutor.objects.first()
-    week = Week.objects.get(nb=4, year=2030)
-    UserIUTEveningFactory.create_batch(
-        size=UserIUTEveningFactory.cycle, user=tutor, week=week
-    )
-    week = Week.objects.get(nb=5, year=2030)
-    UserIUTMorningFactory.create_batch(
-        size=UserIUTMorningFactory.cycle, user=tutor, week=week
-    )
-    tutor = Tutor.objects.all()[1]
-    UserIUTEveningFactory.create_batch(
-        size=UserIUTEveningFactory.cycle, user=tutor, week=week
-    )
-
-
-class TestUserAvailabilityActual:
+class TestUpdateUserAvailability:
     endpoint = f"/fr/api/v1/availability/user/"
 
     def test_user_or_dept_required(self, client: APIClient):
@@ -86,61 +69,99 @@ class TestUserAvailabilityActual:
         ]
 
 
-class TestUserAvailabilityActual:
+class TestUpdateUserAvailability:
     endpoint = f"/fr/api/v1/availability/update_user/"
+    from_date = "1871-03-20"
+    to_date = "1871-03-20"
+    wanted = {
+        "from_date": from_date,
+        "to_date": to_date,
+        "intervals": [
+            {
+                "start_time": f"{from_date}T00:00:00",
+                "duration": "12:00:00",
+                "value": 3,
+            },
+            {
+                "start_time": f"{to_date}T12:00:00",
+                "duration": "12:00:00",
+                "value": 2,
+            },
+        ],
+    }
 
-    # @pytest.mark.skip(reason="rights have to be implemented")
-    def test_update(self, client, make_user_hourly_commune):
+    def test_update_single_day(self, client, make_user_hourly_commune):
         user = User.objects.first()
         client.force_authenticate(user=user)
-        date = "1871-03-20"
-        wanted = {
-            "date": date,
-            "subject_id": user.id,
-            "intervals": [
-                {
-                    "start_time": f"{date}T00:00:00",
-                    "duration": "12:00:00",
-                    "value": 3,
-                },
-                {
-                    "start_time": f"{date}T12:00:00",
-                    "duration": "12:00:00",
-                    "value": 2,
-                },
-            ],
-        }
-        response = retrieve_elements(client.post(self.endpoint, wanted), 3)
-        assert response == wanted
+        push = self.wanted | {"subject_id": user.id}
+        response = retrieve_elements(client.post(self.endpoint, push), 4)
+        assert response == push
+
+    def test_update_two_days(self, client, make_user_hourly_commune):
+        user = User.objects.first()
+        client.force_authenticate(user=user)
+        push = copy.deepcopy(self.wanted) | {"subject_id": user.id}
+        push["to_date"] = "1871-03-21"
+        push["intervals"] += [
+            {
+                "start_time": f"{push['to_date']}T00:00:00",
+                "duration": "10:00:00",
+                "value": 4,
+            },
+            {
+                "start_time": f"{push['to_date']}T10:00:00",
+                "duration": "14:00:00",
+                "value": 5,
+            },
+        ]
+        response = retrieve_elements(client.post(self.endpoint, push), 4)
+        assert response == push
+
+    def test_update_cut_day_end(self, client: APIClient, make_user_hourly_commune):
+        user = User.objects.first()
+        client.force_authenticate(user=user)
+        push = copy.deepcopy(self.wanted) | {"subject_id": user.id}
+        push["to_date"] = "1871-03-21"
+        push["intervals"] += [
+            {
+                "start_time": f"{push['to_date']}T00:00:00",
+                "duration": "10:00:00",
+                "value": 4,
+            },
+        ]
+        response = client.post(self.endpoint, push)
+        assert not is_success(response.status_code), response
+
+    def test_update_cut_day_middle(self, client: APIClient, make_user_hourly_commune):
+        user = User.objects.first()
+        client.force_authenticate(user=user)
+        push = copy.deepcopy(self.wanted) | {"subject_id": user.id}
+        push["to_date"] = "1871-03-21"
+        push["intervals"] += [
+            {
+                "start_time": f"{push['to_date']}T00:00:00",
+                "duration": "10:00:00",
+                "value": 4,
+            },
+            {
+                "start_time": f"{push['to_date']}T12:00:00",
+                "duration": "12:00:00",
+                "value": 4,
+            },
+        ]
+        response = client.post(self.endpoint, push)
+        assert not is_success(response.status_code), response
 
     def test_update_rights(self, client, make_users, make_default_week_user):
         user = User.objects.first()
         client.force_authenticate(user=user)
-        date = "1871-03-20"
-        wanted = {
-            "date": date,
-            "subject_id": user.id,
-            "intervals": [
-                {
-                    "start_time": f"{date}T00:00:00",
-                    "duration": "12:00:00",
-                    "value": 3,
-                },
-                {
-                    "start_time": f"{date}T12:00:00",
-                    "duration": "12:00:00",
-                    "value": 2,
-                },
-            ],
-        }
-        response = client.post(self.endpoint, wanted)
+        push = self.wanted | {"subject_id": user.id}
+        response = client.post(self.endpoint, push)
         assert is_success(response.status_code), response.content
-        wanted["subject_id"] = User.objects.all()[1].id
-        assert user.id != wanted["subject_id"]
-        response = client.post(self.endpoint, wanted)
-        print(dir(response))
-        print(response.content)
-        print(response.data)
+
+        push["subject_id"] = User.objects.all()[1].id
+        assert user.id != push["subject_id"]
+        response = client.post(self.endpoint, push)
         assert response.status_code == HTTP_403_FORBIDDEN, (response.content, user.id)
 
     def test_rights(self):

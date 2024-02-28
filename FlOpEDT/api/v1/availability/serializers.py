@@ -27,6 +27,8 @@ from people.models import User
 from base.timing import Day, flopdate_to_datetime
 import datetime as dt
 
+from base.rules import is_my_availability
+
 
 # -----------------
 # -- PREFERENCES --
@@ -60,8 +62,9 @@ class RoomAvailabilitySerializer(AvailabilitySerializer):
 
 
 class AvailabilityFullDayModel:
-    def __init__(self, date, subject_id, intervals):
-        self.date = date
+    def __init__(self, from_date, to_date, subject_id, intervals):
+        self.from_date = from_date
+        self.to_date = to_date
         self.subject_id = subject_id
         self.intervals = intervals
 
@@ -85,31 +88,32 @@ class RoomAvailabilityFullDayModel(AvailabilityFullDayModel):
 
 
 class AvailabilityFullDaySerializer(serializers.Serializer):
-    date = serializers.DateField()
+    from_date = serializers.DateField()
+    to_date = serializers.DateField()
     subject_id = serializers.IntegerField()
     intervals = AvailabilitySerializer(many=True)
 
     class Meta:
         abstract = True
 
-    def check_intervals(self, availability, av_date):
+    def check_intervals(self, availability, from_date, to_date):
         epsilon = dt.timedelta(seconds=60)
         if len(availability) == 0:
-            raise exceptions.APIException(
-                detail="Empty request", code=status.HTTP_400_BAD_REQUEST
+            raise exceptions.ValidationError(
+                detail={"intervals": "Empty request"}, code=status.HTTP_400_BAD_REQUEST
             )
-        if availability[0].start_time.date() != av_date:
-            raise exceptions.APIException(
-                detail=(
-                    f"Date and intervals do not match: "
-                    f"expected {av_date} but got "
+        if availability[0].start_time.date() != from_date:
+            raise exceptions.ValidationError(
+                detail={
+                    "intervals": f"Date and intervals do not match: "
+                    f"expected {from_date} but got "
                     f"{availability[0].start_time.date()} as "
                     f"date of the starting time of the first interval"
-                ),
+                },
                 code=status.HTTP_400_BAD_REQUEST,
             )
 
-        target_begin_time = dt.datetime.combine(av_date, dt.time(0))
+        target_begin_time = dt.datetime.combine(from_date, dt.time(0))
         if abs(availability[0].start_time - target_begin_time) > epsilon:
             raise exceptions.APIException(
                 detail=f"Should start at 00:00, got {availability[0].start_time}",
@@ -118,12 +122,14 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
         availability[0].start_time = target_begin_time
 
         target_last_duration = (
-            target_begin_time + dt.timedelta(hours=24) - availability[-1].start_time
+            dt.datetime.combine(to_date, dt.time(0))
+            + (dt.timedelta(hours=24))
+            - availability[-1].start_time
         )
         if abs(availability[-1].duration - target_last_duration) > epsilon:
             raise exceptions.APIException(
                 detail=(
-                    f"Should cover the whole day but finishes at "
+                    f"Should cover the whole period but finishes at "
                     f"{availability[-1].start_time + availability[-1].duration}"
                 ),
                 code=status.HTTP_400_BAD_REQUEST,
@@ -133,7 +139,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
             if abs(prev.start_time + prev.duration - cons.start_time) > epsilon:
                 raise exceptions.APIException(
                     detail=(
-                        f"Should be a partition of the day "
+                        f"Should be a partition of the period "
                         f"but interval#{i} finishes at {prev.start_time + prev.duration} "
                         f"while interval#{i+1} starts at {cons.start_time}"
                     ),
@@ -164,14 +170,28 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
             ],
             key=lambda ua: ua.start_time,
         )
-        self.check_intervals(availability, validated_data["date"])
+
+        for a in availability:
+            if not is_my_availability(self.context["request"].user, a):
+                raise exceptions.PermissionDenied(
+                    detail={"subject_id": f"Not your availability"},
+                    code=status.HTTP_403_FORBIDDEN,
+                )
+
+        self.check_intervals(
+            availability, validated_data["from_date"], validated_data["to_date"]
+        )
+
         self.model.AvailabilityModel.objects.filter(
-            date=validated_data["date"], **subject_dict
+            date__gte=validated_data["from_date"],
+            date__lte=validated_data["to_date"],
+            **subject_dict,
         ).delete()
         for obj in availability:
             obj.save()
         return self.model(
-            validated_data["date"],
+            validated_data["from_date"],
+            validated_data["to_date"],
             validated_data["subject_id"],
             availability,
         )
