@@ -83,7 +83,7 @@ class TrainingPrograms_M_Serializer(serializers.Serializer):
 class Period_M_Serializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TrainingPeriod
-        fields = ["starting_week", "ending_week", "name"]
+        fields = ["periods", "name"]
 
 
 class ModuleFullSerializer(serializers.ModelSerializer):
@@ -112,11 +112,10 @@ class Department_Name_Serializer(serializers.Serializer):
 class CourseType_C_Serializer(serializers.Serializer):
     department = Department_TC_Serializer()
     name = serializers.CharField()
-    duration = serializers.IntegerField()
 
     class Meta:
         model = bm.CourseType
-        fields = ['name', 'department', 'duration']
+        fields = ['name', 'department']
 
 class RoomType_SC_Serializer(serializers.Serializer):
     name = serializers.CharField()
@@ -174,7 +173,7 @@ class CourseTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = bm.CourseType
-        fields = ['name', 'duration']
+        fields = ['name', 'department']
 
 
 class CourseTypeNameSerializer(serializers.ModelSerializer):

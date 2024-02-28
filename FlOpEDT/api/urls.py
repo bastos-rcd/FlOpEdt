@@ -110,7 +110,7 @@ urlpatterns = [
     ),
     path("preferences/", include(routerAvailability.urls)),
     path("rooms/", include((routerRooms.urls, "api"), namespace="rooms")),
-    # path("courses/", include((routerCourses.urls, "api"), namespace="course")),
+    path("courses/", include((routerCourses.urls, "api"), namespace="course")),
     path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
     path("extra/", include((routerExtra.urls, "api"), namespace="extra")),
     path("myflop/", include((routerMyFlop.urls, "api"), namespace="myflop")),
