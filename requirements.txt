@@ -35,3 +35,4 @@ django-crontab
 python-dateutil
 pytest
 pytest-django
+rules

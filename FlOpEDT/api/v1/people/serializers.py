@@ -32,17 +32,25 @@ class UserSerializer(serializers.ModelSerializer):
     def get_departments(self, obj):
         if obj.is_superuser:
             for dep in bm.Department.objects.all():
-                yield {'department_id': dep.id, 'is_admin': 'true'} 
+                yield {"department_id": dep.id, "is_admin": "true"}
         else:
             for dep in obj.departments.all():
                 if obj.has_department_perm:
-                    yield {'department_id': dep.id, 'is_admin': 'true'} 
+                    yield {"department_id": dep.id, "is_admin": "true"}
                 else:
-                    yield {'department_id': dep.id, 'is_admin': 'false'}
+                    yield {"department_id": dep.id, "is_admin": "false"}
 
     class Meta:
         model = pm.User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'rights', 'departments')
+        fields = (
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "rights",
+            "departments",
+        )
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -53,4 +61,18 @@ class StudentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = pm.Student
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'rights', 'department_ids')
+        fields = (
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "rights",
+            "department_ids",
+        )
+
+
+class ThemePreferencesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = pm.ThemesPreferences
+        fields = "__all__"

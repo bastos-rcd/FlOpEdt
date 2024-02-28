@@ -25,6 +25,9 @@ import datetime as dt
 
 from distutils.util import strtobool
 
+from rules.contrib.rest_framework import AutoPermissionViewSetMixin
+from rules.contrib.views import PermissionRequiredMixin
+
 from rest_framework import viewsets, exceptions, mixins, parsers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -51,14 +54,16 @@ from api.shared.params import (
 )
 
 
-class DatedAvailabilityViewSet(
-    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+class DatedAvailabilityListViewSet(
+    AutoPermissionViewSetMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
 ):
     """
     Availability. Either a user or a department must be entered.
     """
 
-    permission_classes = [IsAdminOrReadOnly]
+    # permission_classes = [IsAdminOrReadOnly]
 
     class Meta:
         abstract = True
@@ -96,7 +101,7 @@ class DatedAvailabilityViewSet(
         ],
     ),
 )
-class RoomDatedAvailabilityListViewSet(DatedAvailabilityViewSet):
+class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     """
     Availability. Either a room or a department must be entered.
     """
@@ -143,7 +148,7 @@ class RoomDatedAvailabilityUpdateViewSet(
         ],
     ),
 )
-class UserDatedAvailabilityListViewSet(DatedAvailabilityViewSet):
+class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     """
     Availability. Either a user or a department must be entered.
     """
@@ -167,6 +172,18 @@ class UserDatedAvailabilityListViewSet(DatedAvailabilityViewSet):
         return ret
 
 
+class UserDatedAvailabilityUpdateViewSet(
+    AutoPermissionViewSetMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Availability. Either a room or a department must be entered.
+    """
+
+    AvailabilityModel = bm.UserAvailability
+    serializer_class = serializers.UserAvailabilityFullDaySerializer
+    queryset = bm.UserAvailability.objects.all()
+
+
 @method_decorator(
     name="list",
     decorator=swagger_auto_schema(
@@ -176,10 +193,10 @@ class UserDatedAvailabilityListViewSet(DatedAvailabilityViewSet):
         ],
     ),
 )
-class UserDefaultAvailabilityViewSet(UserDatedAvailabilityListViewSet):
+class UserDefaultAvailabilityListViewSet(UserDatedAvailabilityListViewSet):
     def list(self, request, *args, **kwargs):
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
-        return super(UserDefaultAvailabilityViewSet, self).list(
+        return super(UserDefaultAvailabilityListViewSet, self).list(
             request, *args, **kwargs
         )
