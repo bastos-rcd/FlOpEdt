@@ -93,6 +93,13 @@ Après les migrations :
   - [ ] StartTimeConstraints : clarifier le rôle des possible_start_times (Datetime? Time?) et des possible week_days
 - [ ] RoomReservation
   - [ ] Passer de TimeField et DateField en DateTimeField + api
+
+## Rien à voir
+
+- [ ] interdire caractères spéciaux dans abbrev de Dept (et dans tout ce qui peut apparaître dans une url)
+- [ ] setup.cfg pour les tests vs migrations
+- [ ] discarded.json
+
 ## Des trucs à savoir
 
 - attention people/0037, TTapp/0077, base/0093 viennent de migrations non commitées précédentes
