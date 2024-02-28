@@ -9,6 +9,7 @@
         v-model:workcopy="workcopySelected"
         :rooms="roomsFetched"
         :tutors="tutors"
+        :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)"
       />
     </div>
     <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
@@ -82,6 +83,7 @@ const { columns } = storeToRefs(columnStore)
 const { daysSelected, calendarEvents } = storeToRefs(eventStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const { tutors } = storeToRefs(tutorStore)
+const { fetchedStructuralGroups } = storeToRefs(groupStore)
 const selectedGroups = ref<Group[]>([])
 const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()

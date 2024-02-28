@@ -45,6 +45,16 @@
         </SelectContent>
       </SelectRoot>
     </div>
+    <div class="GroupSelect">
+      <Separator class="Separator" />
+      <FilterSelector
+        :multiple="true"
+        :items="props.groups"
+        filterSelectorUndefinedLabel="Groups to display"
+        v-model:selectedItems="groupsSelected"
+        item-variable-name="name"
+      />
+    </div>
     <div class="RoomSelect">
       <Separator class="Separator" />
       <FilterSelector
@@ -88,14 +98,16 @@ import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 import { Separator } from 'radix-vue'
 import { useAuth } from '@/stores/auth'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import FilterSelector from './utils/FilterSelector.vue'
-import { Room, User } from '@/stores/declarations'
+import { Group, Room, User } from '@/stores/declarations'
 import { useEventStore } from '@/stores/display/event'
 import { storeToRefs } from 'pinia'
+import { useColumnStore } from '@/stores/display/column'
 const { t } = useI18n()
 const authStore = useAuth()
 const eventStore = useEventStore()
+const columnStore = useColumnStore()
 const availCheckBox = computed({
   get() {
     return props.availChecked
@@ -113,11 +125,13 @@ const workcopy = computed({
   },
 })
 const { roomsSelected, tutorSelected } = storeToRefs(eventStore)
+const { groupsSelected } = storeToRefs(columnStore)
 const props = defineProps<{
   availChecked: boolean
   workcopy: number
   rooms: Room[]
   tutors: User[]
+  groups: Group[]
 }>()
 const emits = defineEmits<{
   (e: 'update:checkbox', v: boolean): void

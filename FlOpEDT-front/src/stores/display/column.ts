@@ -1,7 +1,8 @@
 import { CalendarColumn } from '@/components/calendar/declaration'
 import { defineStore, storeToRefs } from 'pinia'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useGroupStore } from '@/stores/timetable/group'
+import { Group } from '../declarations'
 
 /**
  * This store is a work in progress,
@@ -12,12 +13,20 @@ import { useGroupStore } from '@/stores/timetable/group'
 export const useColumnStore = defineStore('column', () => {
   const groupStore = useGroupStore()
   const { fetchedStructuralGroups } = storeToRefs(groupStore)
+  const groupsSelected = ref<Group[]>([])
 
   const columns = computed(() => {
     let columns: CalendarColumn[] = []
     let max: number = 0
     fetchedStructuralGroups.value.forEach((g) => {
-      if (g.columnIds.length === 1) {
+      if (groupsSelected.value.length !== 0) {
+        groupsSelected.value.forEach((gs: Group) => {
+          if (g.id === gs.id && g.columnIds.length === 1) {
+            columns.push({ id: g.id, name: g.name, weight: 1 })
+            if (max < g.id) max = g.id
+          }
+        })
+      } else if (g.columnIds.length === 1) {
         columns.push({ id: g.id, name: g.name, weight: 1 })
         if (max < g.id) max = g.id
       }
@@ -28,5 +37,6 @@ export const useColumnStore = defineStore('column', () => {
 
   return {
     columns,
+    groupsSelected,
   }
 })
