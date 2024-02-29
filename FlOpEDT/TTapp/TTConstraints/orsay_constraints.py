@@ -92,7 +92,7 @@ class GroupsLunchBreak(TTConstraint):
             slot_vars = {}
 
             for group in considered_groups:
-                considered_courses = self.get_courses_queryset_by_parameters(ttmodel, period, group=group)
+                considered_courses = self.get_courses_queryset_by_parameters( period, ttmodel, group=group)
                 for local_slot in local_slots:
                     # Je veux que slot_vars[group, local_slot] soit à 1
                     # si et seulement si undesired_scheduled_courses vaut plus que 1
@@ -209,7 +209,7 @@ class TutorsLunchBreak(TTConstraint):
             for tutor in tutors_to_be_considered:
                 slot_vars = {}
                 other_deps_unavailable_slots_number = 0
-                considered_courses = self.get_courses_queryset_by_parameters(ttmodel, period, tutor=tutor)
+                considered_courses = self.get_courses_queryset_by_parameters(period, ttmodel, tutor=tutor)
                 if not considered_courses:
                     continue
                 other_dep_scheduled_courses = \
@@ -330,8 +330,8 @@ class BreakAroundCourseType(TTConstraint):
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         for group in considered_groups:
-            specific_courses = set(self.get_courses_queryset_by_parameters(ttmodel, period, group=group, course_type=self.course_type))
-            other_courses = set(self.get_courses_queryset_by_parameters(ttmodel, period, group=group).exclude(type=self.course_type))
+            specific_courses = set(self.get_courses_queryset_by_parameters(period, ttmodel, group=group, course_type=self.course_type))
+            other_courses = set(self.get_courses_queryset_by_parameters(period, ttmodel, group=group).exclude(type=self.course_type))
             broken_breaks = ttmodel.lin_expr()
             for day in days:
                 day_slots = slots_filter(ttmodel.wdb.courses_slots, day=day)

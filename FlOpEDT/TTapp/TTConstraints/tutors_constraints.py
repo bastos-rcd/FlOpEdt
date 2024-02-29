@@ -322,7 +322,7 @@ class LowerBoundBusyDays(TTConstraint):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        relevant_courses = self.get_courses_queryset_by_attributes(ttmodel, period)
+        relevant_courses = self.get_courses_queryset_by_attributes(period, ttmodel)
 
         if sum(c.duration for c in relevant_courses) > self.lower_bound_hours:
             ttmodel.add_constraint(ttmodel.IBD_GTE[self.min_days_nb][self.tutor], '==', 1,

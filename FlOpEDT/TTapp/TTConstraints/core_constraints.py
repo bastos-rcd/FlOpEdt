@@ -386,27 +386,16 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name = _("Schedule once all considered courses")
         verbose_name_plural = verbose_name
 
+    def test_period_work_copy(self, period, work_copy):
+        for c in self.considered_courses(period):
+            if self.period_work_copy_scheduled_courses(period, work_copy).filter(course=c).count() != 1:
+                return False
+        return True
+
+
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
-        relevant_basic_groups = considered_basic_groups(self, ttmodel)
-        considered_courses = set(
-            c
-            for bg in relevant_basic_groups
-            for c in ttmodel.wdb.all_courses_for_basic_group[bg]
-        )
         max_slots_nb = len(ttmodel.wdb.courses_slots)
-        if self.modules.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.module in self.modules.all()
-            )
-        if self.tutors.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.tutor in self.tutors.all()
-            )
-        if self.course_types.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.type in self.course_types.all()
-            )
-        for c in considered_courses:
+        for c in self.considered_courses(period, ttmodel):
             relevant_sum = ttmodel.sum(
                 [ttmodel.TT[(sl, c)] for sl in ttmodel.wdb.compatible_slots[c]]
             )
@@ -486,27 +475,30 @@ class AssignAllCourses(TTConstraint):
             )
         return result_courses
 
-    def enrich_ttmodel(self, ttmodel, period, ponderation=100):
-        relevant_basic_groups = considered_basic_groups(self, ttmodel)
-        considered_courses = set(
-            c
-            for bg in relevant_basic_groups
-            for c in ttmodel.wdb.all_courses_for_basic_group[bg]
-        )
+    def tutors_courses_and_no_tutor_courses(self, period, ttmodel=None):
+        considered_courses = self.considered_courses(period, ttmodel)
         if self.pre_assigned_only:
             no_tutor_courses = set(c for c in considered_courses if c.tutor is None)
-            considered_courses = set(
+            tutor_courses = set(
                 c for c in considered_courses if c.tutor is not None
             )
+        else:
+            tutor_courses = considered_courses
+            no_tutor_courses = set()
+
         if self.modules.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.module in self.modules.all()
+            tutor_courses = set(
+                c for c in tutor_courses if c.module in self.modules.all()
             )
         if self.course_types.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.type in self.course_types.all()
+            tutor_courses = set(
+                c for c in tutor_courses if c.type in self.course_types.all()
             )
-        for c in considered_courses:
+        return tutor_courses, no_tutor_courses
+
+    def enrich_ttmodel(self, ttmodel, period, ponderation=100):
+        tutor_courses, no_tutor_courses = self.tutors_courses_and_no_tutor_courses(period, ttmodel)
+        for c in tutor_courses:
             for sl in ttmodel.wdb.compatible_slots[c]:
                 relevant_sum = (
                     ttmodel.sum(

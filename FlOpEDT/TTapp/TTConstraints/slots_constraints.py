@@ -251,7 +251,7 @@ class StartTimeConstraint(TTConstraint):
         raise NotImplementedError
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
-        fc = self.get_courses_queryset_by_attributes(ttmodel, period)
+        fc = self.get_courses_queryset_by_attributes(period, ttmodel)
         excluded_slots = self.excluded_slots(ttmodel)
         if self.tutor is None:
             relevant_sum = ttmodel.sum(ttmodel.TT[(sl, c)]
@@ -710,7 +710,7 @@ class AvoidBothTimesSameDay(TTConstraint):
             day_slots1 = slots_filter(slots1, day=day)
             day_slots2 = slots_filter(slots2, day=day)
             for group in considered_groups:
-                considered_courses = self.get_courses_queryset_by_parameters(ttmodel, period, group=group)
+                considered_courses = self.get_courses_queryset_by_parameters(period, ttmodel, group=group)
                 sum1 = ttmodel.sum(ttmodel.TT[sl,c]
                                    for c in considered_courses
                                    for sl in day_slots1 & ttmodel.wdb.compatible_slots[c])
@@ -760,7 +760,7 @@ class LimitUndesiredSlotsPerPeriod(TTConstraint):
         undesired_slots = [Slot(dt.datetime.combine(day, self.slot_start_time), dt.datetime.combine(day, self.slot_end_time))
                              for day in days]
         for tutor in tutor_to_be_considered:
-            considered_courses = self.get_courses_queryset_by_parameters(ttmodel, period, tutor=tutor)
+            considered_courses = self.get_courses_queryset_by_parameters(period, ttmodel, tutor=tutor)
             expr = ttmodel.lin_expr()
             for undesired_slot in undesired_slots:
                 expr += ttmodel.add_floor(
