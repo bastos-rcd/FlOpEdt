@@ -3,7 +3,6 @@ from base.models import (
     Department,
     Course,
     ScheduledCourse,
-    Week,
     Module,
     StructuralGroup,
     TrainingProgramme,
@@ -66,16 +65,6 @@ def basic_group_a(
     )
     basic_group.parent_groups.add(parent_group_a)
     return basic_group
-
-
-@pytest.fixture
-def week_2024_01(db) -> Week:
-    return Week.objects.create(nb=1, year=2024)
-
-
-@pytest.fixture
-def week_2024_2(db) -> Week:
-    return Week.objects.create(nb=2, year=2024)
 
 
 @pytest.fixture
