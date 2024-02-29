@@ -5,7 +5,7 @@ import { useScheduledCourseStore } from '../timetable/course'
 import { Timestamp, copyTimestamp, parseTime } from '@quasar/quasar-ui-qcalendar'
 import { useAvailabilityStore } from '../timetable/availability'
 import { useColumnStore } from './column'
-import { Course, Module, Room, User } from '../declarations'
+import { Course, Group, Module, Room, User } from '../declarations'
 import { usePermanentStore } from '../timetable/permanent'
 import { useGroupStore } from '../timetable/group'
 
@@ -15,6 +15,7 @@ export const useEventStore = defineStore('eventStore', () => {
   const columnStore = useColumnStore()
   const permanentStore = usePermanentStore()
   const groupStore = useGroupStore()
+  const { groupsSelected, groups } = storeToRefs(groupStore)
   const { modules, moduleColor } = storeToRefs(permanentStore)
   const { columns } = storeToRefs(columnStore)
   const daysSelected: Ref<Timestamp[]> = ref<Timestamp[]>([])
@@ -64,7 +65,10 @@ export const useEventStore = defineStore('eventStore', () => {
         currentEvent.bgcolor = moduleColor.value.get(module.id)!
       }
       c.groupIds.forEach((courseGroup: number) => {
-        const currentGroup = groupStore.groups.find((g) => g.id === courseGroup)
+        let currentGroup: Group | undefined
+        if (groupsSelected.value && groupsSelected.value.length !== 0)
+          currentGroup = groupsSelected.value.find((g: Group) => g.id === courseGroup)
+        else currentGroup = groups.value.find((g) => g.id === courseGroup)
         if (currentGroup) {
           currentGroup.columnIds.forEach((cI) => {
             currentEvent.columnIds.push(cI)

@@ -22,6 +22,7 @@ export const useGroupStore = defineStore('group', () => {
       selectedTransversalGroups.value.length === 0 ? fetchedTransversalGroups.value : selectedTransversalGroups.value
     )
   })
+  const groupsSelected = ref<Group[]>([])
 
   async function fetchGroups(department: Department): Promise<void> {
     clearGroups()
@@ -140,5 +141,6 @@ export const useGroupStore = defineStore('group', () => {
     addTransversalGroupToSelection,
     removeTransversalGroupToSelection,
     clearSelected,
+    groupsSelected,
   }
 })

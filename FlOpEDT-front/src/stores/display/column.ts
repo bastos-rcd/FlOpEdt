@@ -12,8 +12,7 @@ import { Group } from '../declarations'
  */
 export const useColumnStore = defineStore('column', () => {
   const groupStore = useGroupStore()
-  const { fetchedStructuralGroups } = storeToRefs(groupStore)
-  const groupsSelected = ref<Group[]>([])
+  const { fetchedStructuralGroups, groupsSelected } = storeToRefs(groupStore)
   const max = computed((): number => {
     let currentMax: number = 0
     fetchedStructuralGroups.value.forEach((g: Group) => {
@@ -26,7 +25,7 @@ export const useColumnStore = defineStore('column', () => {
   const columns = computed(() => {
     let columns: CalendarColumn[] = []
     fetchedStructuralGroups.value.forEach((g: Group) => {
-      if (groupsSelected.value.length !== 0) {
+      if (groupsSelected.value && groupsSelected.value.length !== 0) {
         groupsSelected.value.forEach((gs: Group) => {
           if (g.id === gs.id && g.columnIds.length === 1) {
             columns.push({ id: g.id, name: g.name, weight: 1 })
