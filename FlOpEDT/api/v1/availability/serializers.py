@@ -158,7 +158,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
             }
         except self.model.SubjectModel.DoesNotExist:
             raise exceptions.ValidationError(
-                detail={"subject_id": "Unknown user"}, code=status.HTTP_400_BAD_REQUEST
+                detail={"subject_id": f"Unknown {self.model.subject_type}"}
             )
         availability = sorted(
             [
