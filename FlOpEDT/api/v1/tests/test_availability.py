@@ -9,7 +9,7 @@ from rest_framework.status import (
     HTTP_403_FORBIDDEN,
     is_success,
 )
-from api.v1.tests.utils import retrieve_elements
+from api.v1.tests.utils import retrieve_elements, add_user_permission
 
 from django.utils.duration import duration_string
 from django.contrib.auth.models import Permission
@@ -48,7 +48,7 @@ class TestListUserAvailability:
                 {
                     "from_date": "0001-01-02",
                     "to_date": "0001-01-04",
-                    "user": user.id,
+                    "user_id": user.id,
                 },
             ),
             2,
@@ -68,7 +68,7 @@ class TestListUserAvailability:
                 "start_time": dt.datetime(1, 1, 3, 0).isoformat(),
                 "duration": duration_string(dt.timedelta(hours=24)),
             },
-        ]
+        ], response.content
 
 
 class TestUpdateUserAvailability:
@@ -94,6 +94,8 @@ class TestUpdateUserAvailability:
 
     def test_update_single_day(self, client, make_user_hourly_commune):
         user = User.objects.first()
+        user.is_superuser = True
+        user.save()
         client.force_authenticate(user=user)
         push = self.wanted | {"subject_id": user.id}
         response = retrieve_elements(client.post(self.endpoint, push), 4)
@@ -154,23 +156,40 @@ class TestUpdateUserAvailability:
         response = client.post(self.endpoint, push)
         assert not is_success(response.status_code), response
 
-    def test_update_rights(self, client, make_users, make_default_week_user):
+    def test_perm_push_mine_denied(self, client, make_users):
         user = User.objects.first()
         client.force_authenticate(user=user)
         push = self.wanted | {"subject_id": user.id}
         response = client.post(self.endpoint, push)
+        assert response.status_code == HTTP_403_FORBIDDEN, response.content
+
+    def test_perm_push_mine_allowed(self, client, make_user_perm_push_my_user_av):
+        user = make_user_perm_push_my_user_av
+        client.force_authenticate(user=user)
+        push = self.wanted | {"subject_id": user.id}
+        assert user.id == push["subject_id"]
+        response = client.post(self.endpoint, push)
         assert is_success(response.status_code), response.content
 
-        push["subject_id"] = User.objects.all()[1].id
-        assert user.id != push["subject_id"]
+    def test_perm_push_other_denied(
+        self, client, make_user_perm_push_my_user_av, make_users
+    ):
+        user = make_user_perm_push_my_user_av
+        other = User.objects.all().exclude(id=user.id).first()
+        client.force_authenticate(user=user)
+        push = self.wanted | {"subject_id": other.id}
         response = client.post(self.endpoint, push)
-        assert response.status_code == HTTP_403_FORBIDDEN, (response.content, user.id)
+        assert response.status_code == HTTP_403_FORBIDDEN, response.content
 
-    def test_rights(self):
-        pass
-
-    def test_rc(self, db):
-        assert Room.objects.count() == 0
+    def test_perm_push_other_allowed(
+        self, client, make_user_perm_push_any_user_av, make_users
+    ):
+        user = make_user_perm_push_any_user_av
+        other = User.objects.all().exclude(id=user.id).first()
+        client.force_authenticate(user=user)
+        push = self.wanted | {"subject_id": other.id}
+        response = client.post(self.endpoint, push)
+        assert is_success(response.status_code), response.content
 
 
 class TestUpdateRoomAvailability:
@@ -194,31 +213,23 @@ class TestUpdateRoomAvailability:
         ],
     }
 
-    def test_rights(self, client: APIClient, db, make_users):
+    def test_perm_push_denied(
+        self, client: APIClient, db, make_users, make_perm_push_room_av
+    ):
         r = Room.objects.create(name="r")
         u = User.objects.first()
-
         data = self.wanted | {"subject_id": r.id}
-
-        p = Permission.objects.create(
-            name="push roomavailability",
-            content_type=ContentType.objects.get(
-                app_label="base", model="roomavailability"
-            ),
-            codename="push_roomavailability",
-        )
 
         client.force_authenticate(u)
         response = client.post(self.endpoint, data=data)
         assert response.status_code == HTTP_403_FORBIDDEN, response.content
 
-        u.user_permissions.add(p)
-        del u._perm_cache
-        del u._user_perm_cache
+    def test_perm_push_allowed(self, client, make_user_perm_push_room_av):
+        r = Room.objects.create(name="r")
+        u = make_user_perm_push_room_av
+        data = self.wanted | {"subject_id": r.id}
+
         client.force_authenticate(u)
-        assert (
-            "base.push_roomavailability" in u.get_all_permissions()
-        ), u.get_all_permissions()
         response = client.post(self.endpoint, data=data)
         assert is_success(response.status_code), response.content
 

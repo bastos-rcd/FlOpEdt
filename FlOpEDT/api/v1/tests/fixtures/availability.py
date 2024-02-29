@@ -24,7 +24,8 @@ def make_default_week_user(db):
 @pytest.fixture
 def make_user_hourly_commune(db):
     user = UserFactory.create(username="u_h_pc")
-    user.set_password("secret")
+    user.is_superuser = True
+    user.save()
     UserHourlyAvailabilityFactory.create_batch(
         UserHourlyAvailabilityFactory.cycle, user=user
     )

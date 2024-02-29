@@ -169,7 +169,7 @@ class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
 
 
 class UserDatedAvailabilityUpdateViewSet(
-    AutoPermissionViewSetMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+    mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     """
     Availability. Either a room or a department must be entered.

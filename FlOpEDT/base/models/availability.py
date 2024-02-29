@@ -11,7 +11,7 @@ from rules import always_allow, always_deny
 from base.rules import can_push_user_availability
 
 
-class Availability(RulesModel):
+class Availability(models.Model):
     start_time = models.DateTimeField(default=dt.datetime(1871, 3, 18))
     date = models.DateField(default=dt.date(1, 1, 1))
     duration = models.DurationField(default=dt.timedelta(0))
@@ -78,12 +78,6 @@ class UserAvailability(Availability):
 
     def __str__(self):
         return self.user.username + super().__str__()
-
-    class Meta:
-        rules_permissions = {
-            "add": can_push_user_availability,
-            "view": always_allow,
-        }
 
 
 class CourseAvailability(Availability):

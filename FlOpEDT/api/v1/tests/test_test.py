@@ -39,7 +39,6 @@ class TestDjangoRules:
 
     def test_theme_retrieve_any_allowed(self, make_themes, client):
         u = User.objects.first()
-        print(ContentType.objects.filter(app_label="people"))
         p, _ = Permission.objects.get_or_create(
             name="pouet",
             content_type=ContentType.objects.get(
@@ -58,7 +57,6 @@ class TestDjangoRules:
 
     def test_theme_retrieve_other_forbidden_on_other(self, make_themes, client):
         u = User.objects.first()
-        print(ContentType.objects.filter(app_label="people"))
         p, _ = Permission.objects.get_or_create(
             name="pouet",
             content_type=ContentType.objects.get(
@@ -77,7 +75,6 @@ class TestDjangoRules:
 
     def test_theme_retrieve_other_forbidden_on_mine(self, make_themes, client):
         u = User.objects.first()
-        print(ContentType.objects.filter(app_label="people"))
         p, _ = Permission.objects.get_or_create(
             name="pouet",
             content_type=ContentType.objects.get(
