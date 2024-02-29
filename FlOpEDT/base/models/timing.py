@@ -50,7 +50,12 @@ class TrainingPeriod(models.Model):
         verbose_name_plural = _("training periods")
 
     def __str__(self):
-        return f"Period {self.name}: {self.department}, {min(sp.start_date for sp in self.periods)} -> {max(sp.end_date for sp in self.periods)}"
+        result = f"Period {self.name}: {self.department}"
+        if self.periods.exists():
+            result += f", {min(sp.start_date for sp in self.periods.all())} -> {max(sp.end_date for sp in self.periods.all())}"
+        else:
+            result += ", no period"
+        return result
 
 
 class PeriodEnum:

@@ -109,7 +109,7 @@ def make_filled_database_file(department, filename=None):
     wb = load_workbook(os.path.join(os.path.dirname(__file__),'xls/empty_database_file.xlsx'))
     if filename is None:
         filename = os.path.join(ds.CONF_XLS_DIR,f'database_file_{department.abbrev}.xlsx')
-
+        print(filename)
     sheet = wb[settings_sheet]
     row, col = find_marker_cell(sheet, 'Jalon')
     sheet.cell(row=row+1, column=col+1, value=strftime_from_time(department.timegeneralsettings.day_start_time))
@@ -155,13 +155,19 @@ def make_filled_database_file(department, filename=None):
         else:
             sheet.cell(row=row+2, column=col+delta, value=None)
 
-    row, col = find_marker_cell(sheet, 'Périodes de cours')
+    row, training_period_col = find_marker_cell(sheet, 'Périodes de cours')
     row = row + 1
-    for period in TrainingPeriod.objects.filter(department=department):
+    for training_period in TrainingPeriod.objects.filter(department=department):
         row = row + 1
-        sheet.cell(row=row, column=col, value=period.name)
-        sheet.cell(row=row, column=col+1, value=period.starting_week)
-        sheet.cell(row=row, column=col+2, value=period.ending_week)
+        sheet.cell(row=row, column=training_period_col, value=training_period.name)
+        col = training_period_col
+        scheduling_periods = list(training_period.periods.all())
+        scheduling_periods.sort(key=lambda x: x.start_date)
+        if len(scheduling_periods) > 0:
+            first = scheduling_periods[0]
+            last = scheduling_periods[-1]
+            sheet.cell(row=row, column=col+1, value=first.start_date)
+            sheet.cell(row=row, column=col+2, value=last.end_date)
 
     sheet = wb[people_sheet]
     row, col = find_marker_cell(sheet, 'Identifiant')
