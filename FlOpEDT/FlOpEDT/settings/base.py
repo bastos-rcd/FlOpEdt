@@ -72,7 +72,7 @@ INSTALLED_APPS = [
     "api",
     "rest_framework.authtoken",
     "dj_rest_auth",
-    "drf_yasg",
+    "drf_spectacular",
     "corsheaders",
     "cstmanager",
     "notifications",
@@ -222,6 +222,14 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticatedOrReadOnly"
     ],
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API flop",
+    "DESCRIPTION": "Communiquer avec flop!",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 # Use the host domain and port instead of Django's
