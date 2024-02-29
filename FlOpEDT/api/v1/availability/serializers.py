@@ -173,12 +173,17 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
             key=lambda ua: ua.start_time,
         )
 
-        for a in availability:
-            if not is_my_availability(self.context["request"].user, a):
+        if self.model.subject_type == "user":
+            for a in availability:
+                if not is_my_availability(self.context["request"].user, a):
+                    raise exceptions.PermissionDenied(
+                        detail={"subject_id": f"Not your availability"}
+                    )
+        elif self.model.subject_type == "room":
+            if not self.context["request"].user.has_perm("base.push_roomavailability"):
                 raise exceptions.PermissionDenied(
-                    detail={"subject_id": f"Not your availability"}
+                    detail={"subject_id": f"You cannot push room availability."},
                 )
-
         self.check_intervals(
             availability, validated_data["from_date"], validated_data["to_date"]
         )

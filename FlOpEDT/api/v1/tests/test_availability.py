@@ -12,10 +12,12 @@ from rest_framework.status import (
 from api.v1.tests.utils import retrieve_elements
 
 from django.utils.duration import duration_string
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 
+from base.models.rooms import Room
 from base.models.groups import Department
 from base.models.availability import UserAvailability
-from base.models.timing import Week
 from people.models import Tutor, User
 
 
@@ -27,7 +29,7 @@ def client():
     return APIClient()
 
 
-class TestUpdateUserAvailability:
+class TestListUserAvailability:
     endpoint = f"/fr/api/v1/availability/user/"
 
     def test_user_or_dept_required(self, client: APIClient):
@@ -46,7 +48,7 @@ class TestUpdateUserAvailability:
                 {
                     "from_date": "0001-01-02",
                     "to_date": "0001-01-04",
-                    "user_id": user.id,
+                    "user": user.id,
                 },
             ),
             2,
@@ -166,6 +168,59 @@ class TestUpdateUserAvailability:
 
     def test_rights(self):
         pass
+
+    def test_rc(self, db):
+        assert Room.objects.count() == 0
+
+
+class TestUpdateRoomAvailability:
+    endpoint = f"/fr/api/v1/availability/update_room/"
+    from_date = "1848-04-27"
+    to_date = "1848-04-27"
+    wanted = {
+        "from_date": from_date,
+        "to_date": to_date,
+        "intervals": [
+            {
+                "start_time": f"{from_date}T00:00:00",
+                "duration": "12:00:00",
+                "value": 3,
+            },
+            {
+                "start_time": f"{to_date}T12:00:00",
+                "duration": "12:00:00",
+                "value": 2,
+            },
+        ],
+    }
+
+    def test_rights(self, client: APIClient, db, make_users):
+        r = Room.objects.create(name="r")
+        u = User.objects.first()
+
+        data = self.wanted | {"subject_id": r.id}
+
+        p = Permission.objects.create(
+            name="push roomavailability",
+            content_type=ContentType.objects.get(
+                app_label="base", model="roomavailability"
+            ),
+            codename="push_roomavailability",
+        )
+
+        client.force_authenticate(u)
+        response = client.post(self.endpoint, data=data)
+        assert response.status_code == HTTP_403_FORBIDDEN, response.content
+
+        u.user_permissions.add(p)
+        del u._perm_cache
+        del u._user_perm_cache
+        client.force_authenticate(u)
+        assert (
+            "base.push_roomavailability" in u.get_all_permissions()
+        ), u.get_all_permissions()
+        response = client.post(self.endpoint, data=data)
+        assert is_success(response.status_code), response.content
 
 
 class TestUserAvailabilityDefault:
