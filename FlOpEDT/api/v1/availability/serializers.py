@@ -27,7 +27,7 @@ from people.models import User
 from base.timing import Day, flopdate_to_datetime
 import datetime as dt
 
-from base.rules import is_my_availability
+from base.rules import can_push_user_availability
 
 
 # -----------------
@@ -174,11 +174,12 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
         )
 
         if self.model.subject_type == "user":
-            for a in availability:
-                if not is_my_availability(self.context["request"].user, a):
-                    raise exceptions.PermissionDenied(
-                        detail={"subject_id": f"Not your availability"}
-                    )
+            if not can_push_user_availability(
+                self.context["request"].user, availability[0]
+            ):
+                raise exceptions.PermissionDenied(
+                    detail={"subject_id": f"Not your availability"}
+                )
         elif self.model.subject_type == "room":
             if not self.context["request"].user.has_perm("base.push_roomavailability"):
                 raise exceptions.PermissionDenied(
