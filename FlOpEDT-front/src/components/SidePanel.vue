@@ -103,11 +103,11 @@ import FilterSelector from './utils/FilterSelector.vue'
 import { Group, Room, User } from '@/stores/declarations'
 import { useEventStore } from '@/stores/display/event'
 import { storeToRefs } from 'pinia'
-import { useColumnStore } from '@/stores/display/column'
+import { useGroupStore } from '@/stores/timetable/group'
 const { t } = useI18n()
 const authStore = useAuth()
 const eventStore = useEventStore()
-const columnStore = useColumnStore()
+const groupStore = useGroupStore()
 const availCheckBox = computed({
   get() {
     return props.availChecked
@@ -125,7 +125,7 @@ const workcopy = computed({
   },
 })
 const { roomsSelected, tutorSelected } = storeToRefs(eventStore)
-const { groupsSelected } = storeToRefs(columnStore)
+const { groupsSelected } = storeToRefs(groupStore)
 const props = defineProps<{
   availChecked: boolean
   workcopy: number
