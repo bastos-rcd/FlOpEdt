@@ -78,13 +78,16 @@ def convert_week_day_into_date_holiday(apps, schema_editor):
 def convert_day_start_time_into_new_start_time(apps, schema_editor):
     ScheduledCourse = apps.get_model("base", "ScheduledCourse")
     for sc in ScheduledCourse.objects.all():
-        new_date_time = (
-            dt.datetime.combine(sc.course.period.start_date, dt.time(0))
-            + dt.timedelta(days=days_index[sc.day])
-            + dt.timedelta(minutes=sc.start_time)
-        )
-        sc.start_time_tmp = new_date_time
-        sc.save()
+        if sc.course.period is not None:
+            new_date_time = (
+                dt.datetime.combine(sc.course.period.start_date, dt.time(0))
+                + dt.timedelta(days=days_index[sc.day])
+                + dt.timedelta(minutes=sc.start_time)
+            )
+            sc.start_time_tmp = new_date_time
+            sc.save()
+        else:
+            sc.delete()
 
 
 class Migration(migrations.Migration):
