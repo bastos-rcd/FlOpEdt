@@ -51,6 +51,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.conf import settings as ds
 
+import datetime as dt
 
 def do_assign(module, course_type, period, book):
     already_done = ModuleTutorRepartition.objects.filter(
@@ -97,32 +98,30 @@ def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeri
     sheet = book[feuille]
     training_period = TrainingPeriod.objects.get(name=feuille, department=department)
     Course.objects.filter(
-        type__department=department, period=period, module__period=training_period
+        type__department=department, period=period, module__training_period=training_period
     ).delete()
     after_type_dependencies = []
     # lookup period column
 
-    wc = 1
+    wc = 7
     for wr in [1]:
-        while wc < 50:
+        while wc < 100:
             wc += 1
-            period_name = sheet.cell(row=wr, column=wc).value
-            if period_name == float(period.name):
+            short_period_name = sheet.cell(row=wr, column=wc).value
+            if short_period_name is None or short_period_name == "VERIF":
+                print("Pas de période %s en %s" % (period.name, feuille))
+                return
+            if period.name.startswith(short_period_name) :
                 PERIOD_COL = wc
                 break
-    try:
-        PERIOD_COL += 0
-    except UnboundLocalError:
-        print("Pas de période %s en %s" % (period.name, feuille))
-        return
     print("Période %s de %s : colonne %g" % (period.name, feuille, PERIOD_COL))
 
     row = 4
     module_COL = 1
     nature_COL = 3
-    duree_COL = 4
+    duration_COL = 4
     prof_COL = 5
-    salle_COL = 6
+    room_type_COL = 6
     group_COL = 7
     sumtotal = 0
     while 1:
@@ -141,12 +140,12 @@ def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeri
             continue
 
         try:
-            salle = sheet.cell(row=row, column=salle_COL).value
+            room_type = sheet.cell(row=row, column=room_type_COL).value
             module = sheet.cell(row=row, column=module_COL).value
             N = float(N)
             # handle dark green lines - Vert fonce
-            assert isinstance(salle, str) and salle is not None
-            if salle == "Type de Salle":
+            assert isinstance(room_type, str) and room_type is not None
+            if room_type == "Type de Salle":
                 nominal = int(N)
                 if N != nominal:
                     print(
@@ -180,7 +179,8 @@ def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeri
             prof = sheet.cell(row=row, column=prof_COL).value
             grps = sheet.cell(row=row, column=group_COL).value
             COURSE_TYPE = CourseType.objects.get(name=nature, department=department)
-            ROOMTYPE = RoomType.objects.get(name=salle, department=department)
+            ROOM_TYPE = RoomType.objects.get(name=room_type, department=department)
+            DURATION = dt.timedelta(minutes = sheet.cell(row=row, column=duration_COL).value)
             supp_profs = []
             possible_profs = []
             if prof is None:
@@ -242,7 +242,8 @@ def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeri
                     type=COURSE_TYPE,
                     module=MODULE,
                     period=period,
-                    room_type=ROOMTYPE,
+                    room_type=ROOM_TYPE,
+                    duration=DURATION,
                 )
                 C.save()
                 if courses_to_stabilize is not None:
