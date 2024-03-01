@@ -31,28 +31,22 @@ def client():
 
 class TestListUserAvailability:
     endpoint = f"/fr/api/v1/availability/user/"
+    target_dates = {
+        "from_date": "0001-01-02",
+        "to_date": "0001-01-04",
+    }
 
     def test_user_or_dept_required(self, client: APIClient):
         with pytest.raises(AssertionError) as e_info:
-            retrieve_elements(
-                client.get(
-                    self.endpoint, {"from_date": "2030-01-22", "to_date": "2030-01-24"}
-                )
-            )
+            retrieve_elements(client.get(self.endpoint, self.target_dates))
 
     def test_list_date(self, client: APIClient, make_default_week_user: None):
         user = User.objects.first()
-        response = retrieve_elements(
-            client.get(
-                self.endpoint,
-                {
-                    "from_date": "0001-01-02",
-                    "to_date": "0001-01-04",
-                    "user_id": user.id,
-                },
-            ),
-            2,
-        )
+        user.is_superuser = True
+        user.save()
+        client.force_authenticate(user)
+        wanted = self.target_dates | {"user_id": user.id}
+        response = retrieve_elements(client.get(self.endpoint, wanted), 2)
         response = sorted(response, key=lambda ua: ua["start_time"])
         assert len(response) == 2
         response = [
@@ -69,6 +63,76 @@ class TestListUserAvailability:
                 "duration": duration_string(dt.timedelta(hours=24)),
             },
         ], response.content
+
+    def test_perm_view_mine_denied(self, client: APIClient, make_users):
+        make_users(1)
+        user = User.objects.first()
+        client.force_authenticate(user)
+        wanted = self.target_dates | {"user_id": user.id}
+        response = client.get(self.endpoint, wanted)
+        assert response.status_code == HTTP_403_FORBIDDEN, response
+
+    def test_perm_view_mine_allowed(
+        self, client: APIClient, make_users, make_perm_view_my_user_av
+    ):
+        make_users(1)
+        user = User.objects.first()
+        add_user_permission(user, make_perm_view_my_user_av)
+        client.force_authenticate(user)
+        wanted = self.target_dates | {"user_id": user.id}
+        response = client.get(self.endpoint, wanted)
+        assert is_success(response.status_code), response
+
+    def test_perm_view_other_user_allowed(
+        self, client: APIClient, make_users, make_perm_view_any_user_av
+    ):
+        make_users(2)
+        user = User.objects.first()
+        add_user_permission(user, make_perm_view_any_user_av)
+        other = User.objects.all().exclude(id=user.id)[0]
+        client.force_authenticate(user)
+        wanted = self.target_dates | {"user_id": other.id}
+        response = client.get(self.endpoint, wanted)
+        assert is_success(response.status_code), response
+
+    def test_perm_view_other_user_allowed(self, client: APIClient, make_users):
+        make_users(2)
+        user = User.objects.first()
+        other = User.objects.all().exclude(id=user.id)[0]
+        client.force_authenticate(user)
+        wanted = self.target_dates | {"user_id": other.id}
+        response = client.get(self.endpoint, wanted)
+        assert response.status_code == HTTP_403_FORBIDDEN, response
+
+    def test_perm_view_dept_allowed(
+        self, client: APIClient, make_users, make_perm_view_any_user_av
+    ):
+        make_users(1)
+        user = User.objects.first()
+        add_user_permission(user, make_perm_view_any_user_av)
+        d = Department.objects.create(abbrev="d")
+        client.force_authenticate(user)
+        wanted = self.target_dates | {"dept_id": d.id}
+        response = client.get(self.endpoint, wanted)
+        assert is_success(response.status_code), response
+
+    def test_perm_view_dept_allowed(self, client: APIClient, make_users):
+        make_users(1)
+        user = User.objects.first()
+        d = Department.objects.create(abbrev="d")
+        client.force_authenticate(user)
+        wanted = self.target_dates | {"dept_id": d.id}
+        response = client.get(self.endpoint, wanted)
+        assert response.status_code == HTTP_403_FORBIDDEN, response
+
+    @pytest.mark.skip("Test subfactory")
+    def test_facto(self, client, make_users_and_av):
+        make_users_and_av(10)
+        print(UserAvailability.objects.filter(user=User.objects.first()))
+        assert User.objects.count() == 10, User.objects.all()
+        assert (
+            UserAvailability.objects.count() == 10 * 7
+        ), UserAvailability.objects.all()
 
 
 class TestUpdateUserAvailability:
@@ -157,6 +221,7 @@ class TestUpdateUserAvailability:
         assert not is_success(response.status_code), response
 
     def test_perm_push_mine_denied(self, client, make_users):
+        make_users(1)
         user = User.objects.first()
         client.force_authenticate(user=user)
         push = self.wanted | {"subject_id": user.id}
@@ -174,6 +239,7 @@ class TestUpdateUserAvailability:
     def test_perm_push_other_denied(
         self, client, make_user_perm_push_my_user_av, make_users
     ):
+        make_users(2)
         user = make_user_perm_push_my_user_av
         other = User.objects.all().exclude(id=user.id).first()
         client.force_authenticate(user=user)
@@ -184,6 +250,7 @@ class TestUpdateUserAvailability:
     def test_perm_push_other_allowed(
         self, client, make_user_perm_push_any_user_av, make_users
     ):
+        make_users(2)
         user = make_user_perm_push_any_user_av
         other = User.objects.all().exclude(id=user.id).first()
         client.force_authenticate(user=user)
@@ -213,9 +280,8 @@ class TestUpdateRoomAvailability:
         ],
     }
 
-    def test_perm_push_denied(
-        self, client: APIClient, db, make_users, make_perm_push_room_av
-    ):
+    def test_perm_push_denied(self, client: APIClient, db, make_users):
+        make_users(1)
         r = Room.objects.create(name="r")
         u = User.objects.first()
         data = self.wanted | {"subject_id": r.id}
@@ -237,8 +303,18 @@ class TestUpdateRoomAvailability:
 class TestUserAvailabilityDefault:
     endpoint = f"/fr/api/v1/availability/user-default-week/"
 
-    def test_tutor_creation(self):
-        pass
+    def test_tutor_creation(self, client, make_default_week_user):
+        user = User.objects.first()
+        tutor = Tutor.objects.create(username="tutor")
+        user_av = UserAvailability.objects.filter(user=user).order_by("start_time")
+        tutor_av = UserAvailability.objects.filter(user=tutor).order_by("start_time")
+        assert len(user_av) == len(tutor_av)
+        for ua, ta in zip(user_av, tutor_av):
+            assert (
+                ua.start_time == ta.start_time
+                and ua.duration == ta.duration
+                and ua.value == ta.value
+            )
 
     def test_update(self):
         pass
