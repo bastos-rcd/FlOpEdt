@@ -34,3 +34,4 @@ python-dateutil
 pytest
 pytest-django
 rules
+ics

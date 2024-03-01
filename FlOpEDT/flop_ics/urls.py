@@ -1,9 +1,9 @@
 from django.urls import path
-from ics.feeds import TutorEventFeed, RoomEventFeed, StructuralGroupEventFeed, TransversalGroupEventFeed, RegenFeed
+from flop_ics.feeds import TutorEventFeed, RoomEventFeed, StructuralGroupEventFeed, TransversalGroupEventFeed, RegenFeed
 
-from ics import views
+from flop_ics import views
 
-app_name = 'ics'
+app_name = 'flop_ics'
 
 urlpatterns = [
     path(r'', views.index, name="index"),
