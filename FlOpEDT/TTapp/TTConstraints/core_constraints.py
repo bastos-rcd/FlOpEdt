@@ -369,6 +369,22 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
     def __str__(self):
         return _("No simultaneous courses for one group")
+    
+    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+        relevant_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        relevant_basic_groups = considered_basic_groups(self)
+        is_satisfied = True
+        result = {}
+        for bg in relevant_basic_groups:
+            result[bg] = []
+            bg_scheduled_courses = relevant_scheduled_courses.filter(groups=bg.connected_groups())
+            for sched_course in bg_scheduled_courses:
+                for sched_course2 in bg_scheduled_courses.exclude(id__gt=sched_course.id):
+                    if sched_course.is_simultaneous_to(sched_course2):
+                        result[bg].append((sched_course, sched_course2))
+                        is_satisfied = False
+        return {"success": is_satisfied, "more": result}
+        
 
 
 class ScheduleAllCourses(TTConstraint):
@@ -387,10 +403,16 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name_plural = verbose_name
 
     def test_period_work_copy(self, period, work_copy):
+        is_satisfied = True
+        result = {"not_scheduled": [], "scheduled_more_than_once": []}
         for c in self.considered_courses(period):
-            if self.period_work_copy_scheduled_courses(period, work_copy).filter(course=c).count() != 1:
-                return False
-        return True
+            if self.period_work_copy_scheduled_courses_queryset(period, work_copy).filter(course=c).count() == 0:
+                is_satisfied = False
+                result["not_scheduled"].append(c)
+            elif self.period_work_copy_scheduled_courses_queryset(period, work_copy).filter(course=c).count() > 1:
+                is_satisfied = False
+                result["scheduled_more_than_once"].append(c)
+        return {"success": is_satisfied, "more": result}
 
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
@@ -546,6 +568,19 @@ class AssignAllCourses(TTConstraint):
                 0,
                 Constraint(constraint_type=ConstraintType.PRE_ASSIGNED_TUTORS_ONLY),
             )
+    
+    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+        is_satisfied = True
+        result = {}
+        tutor_courses, no_tutor_courses = self.tutors_courses_and_no_tutor_courses(period)
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        not_assigned_scheduled_courses = considered_scheduled_courses.filter(course__in=tutor_courses,
+                                                                             tutor__isnull=True)
+        if not_assigned_scheduled_courses.exists():
+            is_satisfied = False
+            result["no_tutor"] = not_assigned_scheduled_courses
+        return {"success": is_satisfied, "more": result}
+
 
     def one_line_description(self):
         text = f"Assigne tous les cours "
@@ -817,6 +852,26 @@ class ConsiderTutorsUnavailability(TTConstraint):
                         tutor_undesirable_course * self.local_weight() * ponderation,
                         period,
                     )
+    
+    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+        is_satisfied = True
+        result = {}
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        considered_tutors = set(sc.tutor for sc in considered_scheduled_courses)
+        for sc in considered_scheduled_courses:
+            considered_tutors |= set(sc.supp_tutor.all())
+        for tutor in considered_tutors:
+            tutor_courses = considered_scheduled_courses.filter(Q(tutor=tutor)|Q(supp_tutor=tutor))
+            user_unavailabilities = period_actual_availabilities(tutor, period, unavail_only=True)
+            for sc in tutor_courses:
+                if user_unavailabilities.filter(start_time__lt=sc.end_time, end_time__gt=sc.start_time).exists():
+                    is_satisfied = False
+                    if tutor not in result:
+                        result[tutor] = []
+                    result[tutor].append(sc)
+
+        return {"success": is_satisfied, "more": {}}
+
 
     def one_line_description(self):
         text = f"Considère les indispos"

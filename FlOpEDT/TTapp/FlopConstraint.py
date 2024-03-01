@@ -63,9 +63,9 @@ class FlopConstraint(models.Model):
         """
         Test if the given work_copy satisfies the constraint for the given period
         """
-        return True
+        return {'success': True, 'more': {}}
     
-    def period_work_copy_scheduled_courses(self, period: SchedulingPeriod, work_copy: int):
+    def period_work_copy_scheduled_courses_queryset(self, period: SchedulingPeriod, work_copy: int) -> models.QuerySet:
         """
         Return all scheduled courses of the given work copy for the given period
         """
