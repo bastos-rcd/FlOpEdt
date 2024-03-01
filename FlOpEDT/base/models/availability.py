@@ -8,7 +8,7 @@ import datetime as dt
 
 from rules.contrib.models import RulesModel
 from rules import always_allow, always_deny
-from base.rules import can_push_user_availability
+from base.rules import can_push_user_availability, can_view_user_availability
 
 
 class Availability(models.Model):

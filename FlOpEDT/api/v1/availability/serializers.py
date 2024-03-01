@@ -175,7 +175,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
 
         if self.model.subject_type == "user":
             if not can_push_user_availability(
-                self.context["request"].user, availability[0]
+                self.context["request"].user, validated_data["subject_id"]
             ):
                 raise exceptions.PermissionDenied(
                     detail={"subject_id": f"Not your availability"}

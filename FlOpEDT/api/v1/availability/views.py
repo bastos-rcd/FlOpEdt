@@ -57,15 +57,9 @@ from api.shared.params import (
 
 
 class DatedAvailabilityListViewSet(
-    AutoPermissionViewSetMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    """
-    Availability. Either a user or a department must be entered.
-    """
-
-    # permission_classes = [IsAdminOrReadOnly]
 
     class Meta:
         abstract = True
@@ -75,12 +69,14 @@ class DatedAvailabilityListViewSet(
         if getattr(self, "swagger_fake_view", False):
             return bm.RoomAvailability.objects.none()
 
-        self.from_date = dt.datetime.fromisoformat(
-            self.request.query_params.get("from_date")
-        ).date()
-        self.to_date = dt.datetime.fromisoformat(
-            self.request.query_params.get("to_date")
-        ).date()
+        if not hasattr(self, "from_date"):
+            self.from_date = dt.datetime.fromisoformat(
+                self.request.query_params.get("from_date")
+            ).date()
+        if not hasattr(self, "to_date"):
+            self.to_date = dt.datetime.fromisoformat(
+                self.request.query_params.get("to_date")
+            ).date()
 
         if self.from_date > self.to_date:
             raise exceptions.NotAcceptable(
@@ -160,11 +156,18 @@ class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
 
         if user_id is None and dept_id is None:
             raise exceptions.NotAcceptable("A user or a department must be entered.")
+        if user_id is not None:
+            user_id = int(user_id)
+
+        if not can_view_user_availability(self.request.user, user_id):
+            raise exceptions.PermissionDenied(
+                detail="You have no access to these availabilities"
+            )
 
         if user_id is not None:
             ret = ret.filter(user__id=int(user_id))
         if dept_id is not None:
-            ret = ret.filter(user__departments=dept_id)
+            ret = ret.filter(user__departments=int(dept_id))
         return ret
 
 
