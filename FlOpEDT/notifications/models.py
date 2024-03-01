@@ -70,7 +70,7 @@ class BackUpModif(models.Model):
     def __hash__(self):
         return hash(f"{self.course_type_name} {self.module_abbrev} {self.tutor_username} "
                     f"{self.supp_tutor_usernames} {self.start_time} {self.group_name} "
-                    f"{self.department_abbrev} {self.train_prog_name} {self.room_name}")
+                    f"{self.department_abbrev} {self.train_prog_name}")
 
 
 # </editor-fold desc="BACKUP">

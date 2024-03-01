@@ -37,20 +37,15 @@ import configparser, os
 import logging
 
 logger = logging.getLogger("base")
-
 # Let's parse the configuration file
 flop_config = configparser.ConfigParser()
-# Modifier le délimiteur d'interpolation pour les valeurs, pour accepter les = dans les URL
-flop_config._DEFAULT_INTERPOLATION = configparser.ExtendedInterpolation()
 flop_config.read(os.environ.get("FLOP_CONFIG_FILE"))
-
-
-paris = timezone("Europe/Paris")
-
 ics_url = flop_config['roomreservations-import']['ics_url']
 key_exclusion = flop_config['roomreservations-import']['key_exclusion']
 exclude_if_key_contains = flop_config['roomreservations-import']['exclude_if_key_contains']
 imported_reservations_name=flop_config['roomreservations-import']['imported_reservations_name']
+
+paris = timezone("Europe/Paris")
 
 @transaction.atomic
 def import_reservations_from_ics_url(room_reservations_ics_url=ics_url, 

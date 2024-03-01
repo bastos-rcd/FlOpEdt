@@ -23,13 +23,9 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from core.decorators import timer
-from base.models import Course, ScheduledCourse, Week, GenericGroup, Room
+from base.models import Course, ScheduledCourse, GenericGroup
 from notifications.models import BackUpModif
-from base.timing import flopdate_to_datetime, Day, french_format
 from people.models import Tutor, NotificationsPreferences
-import django
-import os
 import json
 import datetime as dt
 from django.utils.translation import gettext_lazy as _
@@ -39,6 +35,16 @@ from django.core.mail import send_mail
 from django.utils.html import strip_tags
 
 from django.conf import settings as ds
+
+import configparser, os
+import logging
+
+logger = logging.getLogger("base")
+# Let's parse the configuration file
+flop_config = configparser.ConfigParser()
+flop_config.read(os.environ.get("FLOP_CONFIG_FILE"))
+send_room_changes_to = flop_config['send_room_changes_to']
+
 
 def backup():
     print("Deleting old backup")
@@ -100,6 +106,9 @@ def check_changes(save_json_files=False):
     news = new_backup - old_backup
     olds = old_backup - new_backup
     changes = olds | news
+    except_rooms_news = set(new for new in news if all([hash(new)!=hash(old) for old in olds]))
+    except_rooms_olds = set(old for old in olds if all([hash(old)!=hash(new) for new in news]))
+    except_rooms_changes = except_rooms_olds | except_rooms_news
 
     # Create two dict that will be save as JSON at the end
     student_changes_dict = {}
@@ -112,7 +121,7 @@ def check_changes(save_json_files=False):
     for department in departments:
         student_changes_dict[department] = {}
 
-    for change in changes:
+    for change in except_rooms_changes:
         if change in olds:
             mode = "Deleted"
             #Useful for translation
@@ -159,12 +168,13 @@ def check_changes(save_json_files=False):
                         gettext('Room'): room}
         tutor_changes_dict[tutor_username][department].append(tutor_object)
 
+    for change in changes:
         # Store all changes for rooms
         if room not in room_changes_dict:
             room_changes_dict[room] = []
         room_object = {gettext('Mode'): mode,
-                       gettext('Date'): change_datetime.date().strftime('%d/%m/%Y'),
-                       gettext('Start time'): french_format(start_time),
+                       gettext('Date'): start_time.date().strftime('%d/%m/%Y'),
+                       gettext('Start time'): start_time.time().strftime('%H:%M'),
                        gettext('Course Type'): course_type,
                        gettext('Module'): module,
                        gettext('Train_prog'): train_prog,
@@ -195,7 +205,7 @@ def days_nb_from_today(change):
     return (datetime_date - dt.date.today()).days
 
 
-def send_notifications():
+def send_notifications(send_rooms_changes_to=send_room_changes_to):
     student_changes_dict, tutor_changes_dict, room_changes_dict = check_changes()
     # Choose department
     if not student_changes_dict:
@@ -279,7 +289,7 @@ def send_notifications():
         html_msg = html_table_with_changes(filtered_changes)
         send_changes_email(subject, intro_text, html_msg, outro_text, to_email=student.email)
 
-    # Send changes for rooms        
+    # Send changes for rooms
     subject = "[flop!Scheduler] Changes on rooms planning"
     intro_text = "Hi " + ",<br /> <br />"
     intro_text += "Here are the changes of rooms planning for the following days :"
@@ -288,8 +298,7 @@ def send_notifications():
     for room_name, room_dic in room_changes_dict.items():
         html_msg += "For the room %s :" % room_name + "<br />"
         html_msg += html_table_with_changes(room_dic)
-    send_changes_email(subject, intro_text, html_msg, outro_text, to_email=ds.DEFAULT_FROM_EMAIL)
-
+    send_changes_email(subject, intro_text, html_msg, outro_text, to_email=send_rooms_changes_to, fail_silently=True)
 
 def html_table_with_changes(filtered_changes):
     msg = "<table>"
@@ -310,7 +319,7 @@ def html_table_with_changes(filtered_changes):
     return msg
 
 
-def send_changes_email(subject, intro_text, html_msg, outro_text, to_email, from_email=""):
+def send_changes_email(subject, intro_text, html_msg, outro_text, to_email, from_email="", fail_silently=False):
     html_message = f"""
          <html>
            <head>
@@ -334,4 +343,4 @@ def send_changes_email(subject, intro_text, html_msg, outro_text, to_email, from
          </html>
          """
     plain_message = strip_tags(html_message)
-    send_mail(subject, plain_message, from_email, [to_email], html_message=html_message)
+    send_mail(subject, plain_message, from_email, [to_email], html_message=html_message, fail_silently=fail_silently)
