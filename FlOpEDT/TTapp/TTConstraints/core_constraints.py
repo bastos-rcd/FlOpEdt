@@ -368,7 +368,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
         return text
 
     def __str__(self):
-        return _("No simultaneous courses for one group")
+        return "No simultaneous courses for one group"
     
     def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
         relevant_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
@@ -376,11 +376,12 @@ class NoSimultaneousGroupCourses(TTConstraint):
         is_satisfied = True
         result = {}
         for bg in relevant_basic_groups:
-            result[bg] = []
-            bg_scheduled_courses = relevant_scheduled_courses.filter(groups=bg.connected_groups())
+            bg_scheduled_courses = relevant_scheduled_courses.filter(course__groups__in=bg.and_ancestors())
             for sched_course in bg_scheduled_courses:
-                for sched_course2 in bg_scheduled_courses.exclude(id__gt=sched_course.id):
+                for sched_course2 in bg_scheduled_courses.filter(id__gt=sched_course.id):
                     if sched_course.is_simultaneous_to(sched_course2):
+                        if bg not in result:
+                            result[bg] = []
                         result[bg].append((sched_course, sched_course2))
                         is_satisfied = False
         return {"success": is_satisfied, "more": result}
@@ -404,13 +405,17 @@ class ScheduleAllCourses(TTConstraint):
 
     def test_period_work_copy(self, period, work_copy):
         is_satisfied = True
-        result = {"not_scheduled": [], "scheduled_more_than_once": []}
+        result = {}
         for c in self.considered_courses(period):
             if self.period_work_copy_scheduled_courses_queryset(period, work_copy).filter(course=c).count() == 0:
                 is_satisfied = False
+                if "not_scheduled" not in result:
+                    result["not_scheduled"] = []
                 result["not_scheduled"].append(c)
             elif self.period_work_copy_scheduled_courses_queryset(period, work_copy).filter(course=c).count() > 1:
                 is_satisfied = False
+                if "scheduled_more_than_once" not in result:
+                    result["scheduled_more_than_once"] = []
                 result["scheduled_more_than_once"].append(c)
         return {"success": is_satisfied, "more": result}
 
@@ -859,12 +864,12 @@ class ConsiderTutorsUnavailability(TTConstraint):
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         considered_tutors = set(sc.tutor for sc in considered_scheduled_courses)
         for sc in considered_scheduled_courses:
-            considered_tutors |= set(sc.supp_tutor.all())
+            considered_tutors |= set(sc.course.supp_tutor.all())
         for tutor in considered_tutors:
-            tutor_courses = considered_scheduled_courses.filter(Q(tutor=tutor)|Q(supp_tutor=tutor))
+            tutor_courses = considered_scheduled_courses.filter(Q(tutor=tutor)|Q(course__supp_tutor=tutor))
             user_unavailabilities = period_actual_availabilities(tutor, period, unavail_only=True)
             for sc in tutor_courses:
-                if user_unavailabilities.filter(start_time__lt=sc.end_time, end_time__gt=sc.start_time).exists():
+                if slots_filter(user_unavailabilities, simultaneous_to=sc):
                     is_satisfied = False
                     if tutor not in result:
                         result[tutor] = []

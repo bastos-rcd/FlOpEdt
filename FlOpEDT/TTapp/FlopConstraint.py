@@ -70,7 +70,7 @@ class FlopConstraint(models.Model):
         Return all scheduled courses of the given work copy for the given period
         """
         return ScheduledCourse.objects.filter(course__period=period, 
-                                              course__groups__train_prog__departments=self.department,
+                                              course__groups__train_prog__department=self.department,
                                               work_copy=work_copy)
     
     def local_weight(self):
@@ -140,7 +140,7 @@ class FlopConstraint(models.Model):
         parameter group : if not None, return all courses that has one group connected to group
         """
         if flopmodel is None:
-            courses_qs = Course.objects.filter(period=period, groups__train_prog__departments=self.department)
+            courses_qs = Course.objects.filter(period=period, groups__train_prog__department=self.department)
         else:
             courses_qs = flopmodel.courses.filter(period=period)
         courses_filter = {}
