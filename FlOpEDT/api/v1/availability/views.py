@@ -34,6 +34,7 @@ from rest_framework.decorators import action
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema
 
 import django_filters.rest_framework as filters
 from django.utils.decorators import method_decorator
@@ -49,6 +50,7 @@ from api.shared.params import (
     user_id_param,
     room_id_param,
     dept_param,
+    dept_id_param,
     from_date_param,
     to_date_param,
 )
@@ -90,16 +92,13 @@ class DatedAvailabilityListViewSet(
         )
 
 
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        manual_parameters=[
-            from_date_param(required=True),
-            to_date_param(required=True),
-            room_id_param(),
-            dept_param(),
-        ],
-    ),
+@extend_schema(
+    parameters=[
+        from_date_param(required=True),
+        to_date_param(required=True),
+        room_id_param(),
+        dept_id_param(),
+    ],
 )
 class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     """
@@ -114,15 +113,15 @@ class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
         ret = super(RoomDatedAvailabilityListViewSet, self).get_queryset()
 
         room_id = self.request.query_params.get("room_id", None)
-        dept_abbrev = self.request.query_params.get("dept", None)
+        dept_id = self.request.query_params.get("dept_id", None)
 
-        if room_id is None and dept_abbrev is None:
+        if room_id is None and dept_id is None:
             raise exceptions.NotAcceptable("A room or a department must be entered.")
 
         if room_id is not None:
-            ret = ret.filter(room__id=int(room_id))
-        if dept_abbrev is not None:
-            ret = ret.filter(room__departments__abbrev=dept_abbrev)
+            ret = ret.filter(room=int(room_id))
+        if dept_id is not None:
+            ret = ret.filter(room__departments=int(dept_id))
         return ret
 
 
@@ -130,23 +129,20 @@ class RoomDatedAvailabilityUpdateViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     """
-    Availability. Either a room or a department must be entered.
+    Update availability. Should cover the whole period between from_date and to_date
     """
 
     AvailabilityModel = bm.RoomAvailability
     serializer_class = serializers.RoomAvailabilityFullDaySerializer
 
 
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        manual_parameters=[
-            from_date_param(required=True),
-            to_date_param(required=True),
-            user_id_param(),
-            dept_param(),
-        ],
-    ),
+@extend_schema(
+    parameters=[
+        from_date_param(required=True),
+        to_date_param(required=True),
+        user_id_param(),
+        dept_id_param(),
+    ],
 )
 class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     """
@@ -160,15 +156,15 @@ class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
         ret = super(UserDatedAvailabilityListViewSet, self).get_queryset()
 
         user_id = self.request.query_params.get("user_id", None)
-        dept_abbrev = self.request.query_params.get("dept", None)
+        dept_id = self.request.query_params.get("dept_id", None)
 
-        if user_id is None and dept_abbrev is None:
+        if user_id is None and dept_id is None:
             raise exceptions.NotAcceptable("A user or a department must be entered.")
 
         if user_id is not None:
             ret = ret.filter(user__id=int(user_id))
-        if dept_abbrev is not None:
-            ret = ret.filter(user__departments__abbrev=dept_abbrev)
+        if dept_id is not None:
+            ret = ret.filter(user__departments=dept_id)
         return ret
 
 
@@ -184,19 +180,35 @@ class UserDatedAvailabilityUpdateViewSet(
     queryset = bm.UserAvailability.objects.all()
 
 
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        manual_parameters=[
-            user_id_param(),
-            dept_param(),
-        ],
-    ),
+@extend_schema(
+    parameters=[
+        user_id_param(),
+        dept_id_param(),
+    ],
 )
 class UserDefaultAvailabilityListViewSet(UserDatedAvailabilityListViewSet):
     def list(self, request, *args, **kwargs):
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
         return super(UserDefaultAvailabilityListViewSet, self).list(
+            request, *args, **kwargs
+        )
+
+
+@extend_schema(
+    parameters=[
+        room_id_param(),
+        dept_id_param(),
+    ],
+)
+class RoomDefaultAvailabilityListViewSet(RoomDatedAvailabilityListViewSet):
+    """
+    Default availability. Either a room or a department must be entered.
+    """
+
+    def list(self, request, *args, **kwargs):
+        self.from_date = dt.datetime(1, 1, 1)
+        self.to_date = dt.datetime(1, 1, 8)
+        return super(RoomDefaultAvailabilityListViewSet, self).list(
             request, *args, **kwargs
         )

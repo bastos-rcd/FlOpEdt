@@ -30,7 +30,7 @@ DEBUG = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'flop_database_public_dev',
+        'NAME': 'flop_database_vesoul',
         'USER': 'flop_user',
         'PASSWORD': 'your_password',
         'HOST': '127.0.0.1',
@@ -114,3 +114,4 @@ INTERNAL_IPS = ['127.0.0.1']
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173'
 ]
+

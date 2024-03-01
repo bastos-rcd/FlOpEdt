@@ -8,13 +8,6 @@ from populate.period import generate_scheduling_periods
 import datetime as dt
 
 
-def populate_scheduling_periods(apps, schema_editor):
-    SchedulingPeriod = apps.get_model("base", "SchedulingPeriod")
-    generate_scheduling_periods(
-        dt.date(2023, 1, 1), dt.date(2029, 12, 31), SchedulingPeriod
-    )
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("base", "0103_alter_holiday_day_alter_timegeneralsettings_days_and_more"),
@@ -61,5 +54,4 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
-        migrations.RunPython(populate_scheduling_periods),
     ]

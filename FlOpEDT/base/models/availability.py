@@ -8,7 +8,7 @@ import datetime as dt
 
 from rules.contrib.models import RulesModel
 from rules import always_allow, always_deny
-from base.rules import is_my_availability
+from base.rules import can_push_user_availability
 
 
 class Availability(RulesModel):
@@ -81,9 +81,7 @@ class UserAvailability(Availability):
 
     class Meta:
         rules_permissions = {
-            "add": is_my_availability,
-            "change": is_my_availability,
-            "delete": is_my_availability,
+            "add": can_push_user_availability,
             "view": always_allow,
         }
 

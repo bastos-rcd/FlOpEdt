@@ -44,7 +44,7 @@
                   <tr>
                      <td>{{ g.train_prog.abbrev }}</td>
                      <td>{{ g.name }}</td>
-                     <td><a href="{% url "ics:structural_group" department g.id %}">{% trans "Copy this link" %} - {{ g.name }}</a></td>
+                     <td><a href="{% url "flop_ics:structural_group" department g.id %}">{% trans "Copy this link" %} - {{ g.name }}</a></td>
                   </tr>
               {% endfor %}
             </table>
@@ -56,7 +56,7 @@
                         <tr>
                         <td>{{ g.train_prog.abbrev }}</td>
                         <td>{{ g.name }}</td>
-                        <td><a href="{% url "ics:transversal_group" department g.id %}">{% trans "Copy this link" %} - {{ g.name }}</a></td>
+                        <td><a href="{% url "flop_ics:transversal_group" department g.id %}">{% trans "Copy this link" %} - {{ g.name }}</a></td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -73,7 +73,7 @@
           <td>{{ e.first_name }}</td>
           <td>{{ e.last_name }}</td>
           <td>{{ e.departments.all | join:", " }}</td>
-          <td><a href="{% url "ics:tutor" department e.id %}">{% trans "Copy this link" %} - {{ e.username }}</a></td>
+          <td><a href="{% url "flop_ics:tutor" department e.id %}">{% trans "Copy this link" %} - {{ e.username }}</a></td>
         </tr>
 	{% endfor %}
       </table>
@@ -86,7 +86,7 @@
         {% for s in rooms %}
         <tr>
           <td>{{ s.name }}</td>
-          <td><a href="{% url "ics:room" department s.id %}">{% trans "Copy this link" %} - {{ s.name }}</a></td>
+          <td><a href="{% url "flop_ics:room" department s.id %}">{% trans "Copy this link" %} - {{ s.name }}</a></td>
         </tr>
         {% endfor %}
       </table>
@@ -99,7 +99,7 @@
         {% for d in deps %}
         <tr>
           <td>{{ d.abbrev }}</td>
-          <td><a href="{% url "ics:regen" department d.id%}">{% trans "Copy this link" %} - {{ d.abbrev }}</a></td>
+          <td><a href="{% url "flop_ics:regen" department d.id%}">{% trans "Copy this link" %} - {{ d.abbrev }}</a></td>
         </tr>
         {% endfor %}
       </table>

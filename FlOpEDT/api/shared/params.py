@@ -22,156 +22,165 @@
 # without disclosing the source code of your own applications.
 
 from drf_yasg import openapi
+from drf_spectacular.utils import OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 
 def date_param(**kwargs):
-    return openapi.Parameter(
-        "date",
-        openapi.IN_QUERY,
+    return OpenApiParameter(
+        name="date",
+        location=OpenApiParameter.QUERY,
         description="date",
-        type=openapi.TYPE_STRING,
-        format=openapi.FORMAT_DATE,
+        type=OpenApiTypes.DATE,
         **kwargs
     )
 
 
 def weekday_param(**kwargs):
-    return openapi.Parameter(
-        "weekday",
-        openapi.IN_QUERY,
+    return OpenApiParameter(
+        name="weekday",
+        location=OpenApiParameter.QUERY,
         description="weekday",
-        type=openapi.TYPE_STRING,
+        type=OpenApiTypes.STR,
         **kwargs
     )
 
 
 def from_date_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "from_date",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="from date (included)",
-        type=openapi.TYPE_STRING,
-        format=openapi.FORMAT_DATE,
+        type=OpenApiTypes.DATE,
         **kwargs
     )
 
 
 def to_date_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "to_date",
-        openapi.IN_QUERY,
-        description="to date (excluded)",
-        type=openapi.TYPE_STRING,
-        format=openapi.FORMAT_DATE,
+        location=OpenApiParameter.QUERY,
+        description="to date (included)",
+        type=OpenApiTypes.DATE,
         **kwargs
     )
 
 
 def week_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "week_number",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="week number",
-        type=openapi.TYPE_INTEGER,
+        type=OpenApiTypes.INT,
         **kwargs
     )
 
 
 def year_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "year",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="year",
-        type=openapi.TYPE_INTEGER,
+        type=OpenApiTypes.INT,
         **kwargs
     )
 
 
 def user_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "user",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="username",
-        type=openapi.TYPE_STRING,
+        type=OpenApiTypes.STR,
         **kwargs
     )
 
 
 def user_id_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "user_id",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="user id",
-        type=openapi.TYPE_INTEGER,
+        type=OpenApiTypes.INT,
         **kwargs
     )
 
 
 def room_id_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "room_id",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="room id",
-        type=openapi.TYPE_INTEGER,
+        type=OpenApiTypes.INT,
         **kwargs
     )
 
 
 def tutor_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "tutor_name",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="tutor username",
-        type=openapi.TYPE_STRING,
+        type=OpenApiTypes.STR,
         **kwargs
     )
 
 
 def dept_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "dept",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="department abbreviation",
-        type=openapi.TYPE_STRING,
+        type=OpenApiTypes.STR,
+        **kwargs
+    )
+
+
+def dept_id_param(**kwargs):
+    return OpenApiParameter(
+        "dept_id",
+        location=OpenApiParameter.QUERY,
+        description="department id",
+        type=OpenApiTypes.INT,
         **kwargs
     )
 
 
 def work_copy_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "work_copy",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="N° of work copy (default: 0)",
-        type=openapi.TYPE_INTEGER,
+        type=OpenApiTypes.INT,
         **kwargs
     )
 
 
 def group_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "group",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="Group name",
-        type=openapi.TYPE_STRING,
+        type=OpenApiTypes.STR,
         **kwargs
     )
 
 
 def train_prog_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "train_prog",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="Training programme abbreviation",
-        type=openapi.TYPE_STRING,
+        type=OpenApiTypes.STR,
         **kwargs
     )
 
 
 def lineage_param(**kwargs):
-    return openapi.Parameter(
+    return OpenApiParameter(
         "lineage",
-        openapi.IN_QUERY,
+        location=OpenApiParameter.QUERY,
         description="includes parent groups (default: false)",
-        type=openapi.TYPE_BOOLEAN,
+        type=OpenApiTypes.BOOL,
         **kwargs
     )

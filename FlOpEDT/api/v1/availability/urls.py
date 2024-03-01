@@ -30,9 +30,9 @@ routerAvailability = routers.SimpleRouter()
 routerAvailability.register(
     r"user", views.UserDatedAvailabilityListViewSet, basename="user"
 )
-# routerAvailability.register(
-#     r"update_user", views.UserDatedAvailabilityUpdateViewSet, basename="user-update"
-# )
+routerAvailability.register(
+    r"update_user", views.UserDatedAvailabilityUpdateViewSet, basename="user-update"
+)
 routerAvailability.register(
     r"user-default-week",
     views.UserDefaultAvailabilityListViewSet,
@@ -47,6 +47,6 @@ routerAvailability.register(
 
 routerAvailability.register(
     r"room-default-week",
-    views.UserDefaultAvailabilityListViewSet,
+    views.RoomDefaultAvailabilityListViewSet,
     basename="user-default-week",
 )

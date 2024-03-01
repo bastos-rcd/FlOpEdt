@@ -24,11 +24,12 @@
 from django.contrib.auth.decorators import login_required
 from django.urls import path, re_path, include
 from django.views.generic import TemplateView
-from drf_yasg import openapi
 
-from drf_yasg.views import get_schema_view
+
 from rest_framework import routers, permissions
 from rest_framework.authtoken.views import obtain_auth_token
+
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 import api.base.views as views_base
 import api.fetch.views as views_fetch
@@ -77,46 +78,36 @@ routerExtra.register("week-infos", views.WeekInfoViewSet, basename="week-infos")
 ################
 # SWAGGER VIEW #
 ################
-schema_view = get_schema_view(
-    openapi.Info(
-        title="Snippets API",
-        default_version="v1",
-        description="Test description",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@snippets.local"),
-        license=openapi.License(name="BSD License"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
+
 
 urlpatterns = [
-    path("", views_base.LoginView.as_view(), name="api_root"),
-    path("logout/", views_base.LogoutView.as_view()),
-    path(
-        "backoffice/", login_required(TemplateView.as_view(template_name="logout.html"))
-    ),
-    path("base/", include((url_base_patterns, "api"), namespace="base")),
-    path("user/", include((url_user_patterns, "api"), namespace="people")),
-    path("display/", include(routerDisplayweb.urls)),
-    path("ttapp/", include((routerTTapp.urls, "api"), namespace="ttapp")),
-    path("fetch/", include((routerFetch.urls, "api"), namespace="fetch")),
-    path("rest-auth/", include("dj_rest_auth.urls")),
-    path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
+    # path("", views_base.LoginView.as_view(), name="api_root"),
+    # path("logout/", views_base.LogoutView.as_view()),
+    # path(
+    #     "backoffice/", login_required(TemplateView.as_view(template_name="logout.html"))
+    # ),
+    # path("base/", include((url_base_patterns, "api"), namespace="base")),
+    # path("user/", include((url_user_patterns, "api"), namespace="people")),
+    # path("display/", include(routerDisplayweb.urls)),
+    # path("ttapp/", include((routerTTapp.urls, "api"), namespace="ttapp")),
+    # path("fetch/", include((routerFetch.urls, "api"), namespace="fetch")),
+    # path("rest-auth/", include("dj_rest_auth.urls")),
+    # path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
+    # path("preferences/", include(routerAvailability.urls)),
+    # path("rooms/", include((routerRooms.urls, "api"), namespace="rooms")),
+    # path("courses/", include((routerCourses.urls, "api"), namespace="course")),
+    # path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
+    # path("extra/", include((routerExtra.urls, "api"), namespace="extra")),
+    # path("myflop/", include((routerMyFlop.urls, "api"), namespace="myflop")),
+    # path(
+    #     "roomreservations/",
+    #     include((routerRoomReservation.urls, "api"), namespace="roomreservations"),
+    # ),
+    path("v1/", include((url_V1_patterns, "api"), namespace="V1")),
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "doc/",
-        schema_view.with_ui("swagger", cache_timeout=0),
-        name="schema-swagger-ui",
+        SpectacularSwaggerView.as_view(url_name="api:schema"),
+        name="swagger-ui",
     ),
-    path("preferences/", include(routerAvailability.urls)),
-    path("rooms/", include((routerRooms.urls, "api"), namespace="rooms")),
-    path("courses/", include((routerCourses.urls, "api"), namespace="course")),
-    path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
-    path("extra/", include((routerExtra.urls, "api"), namespace="extra")),
-    path("myflop/", include((routerMyFlop.urls, "api"), namespace="myflop")),
-    path(
-        "roomreservations/",
-        include((routerRoomReservation.urls, "api"), namespace="roomreservations"),
-    ),
-    path("v1/", include((url_V1_patterns, "api"), namespace="V1")),
 ]

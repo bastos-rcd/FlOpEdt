@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     "quote",
     "people",
     "solve_board",
-    "ics",
+    "flop_ics",
     "displayweb",
     "configuration",
     "easter_egg",
@@ -72,7 +72,7 @@ INSTALLED_APPS = [
     "api",
     "rest_framework.authtoken",
     "dj_rest_auth",
-    "drf_yasg",
+    "drf_spectacular",
     "corsheaders",
     "cstmanager",
     "notifications",
@@ -222,6 +222,14 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticatedOrReadOnly"
     ],
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API flop",
+    "DESCRIPTION": "Communiquer avec flop!",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 # Use the host domain and port instead of Django's
@@ -474,9 +482,6 @@ LOGGING = {
 # Configure django-crontab to use flop_admin as manage script when it exists
 CRONTAB_DJANGO_MANAGE_PATH = sys.argv[0]
 
-# Specific cronjob
-CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]
-
 ###############################
 # Configuration File Parsing  #
 ###############################
@@ -706,11 +711,11 @@ LOGGING = {
     },
 }
 
-# Configure django-crontab to use flop_admin as manage script when it exists
-CRONTAB_DJANGO_MANAGE_PATH = sys.argv[0]
 
 # Specific cronjob
-CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]
+# CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]
+CRONJOBS = [(cron_time, cron_command) for cron_time, cron_command in flop_config['cronjobs'].items()]
+
 
 AUTHENTICATION_BACKENDS = (
     "rules.permissions.ObjectPermissionBackend",

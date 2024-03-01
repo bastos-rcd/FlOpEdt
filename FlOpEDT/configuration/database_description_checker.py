@@ -279,7 +279,7 @@ def check_settings(settings):
         return result
     if settings.keys() != { 'day_start_time', 'day_end_time',
                             'morning_end_time', 'afternoon_start_time',
-                             'days', 'periods'}:
+                             'days', 'training_periods', 'mode'}:
         result.append(f"D: settings doesn't have the expected keys")
         return result
     result.extend(check_type(settings['day_start_time'], dt.time, "Day start time in settings"))
@@ -292,15 +292,15 @@ def check_settings(settings):
     else:
         result.append("D: the days in settings should be a 'set'")
 
-    if isinstance(settings['periods'], dict):
-        for id_, val in settings['periods'].items():
+    if isinstance(settings['training_periods'], dict):
+        for id_, val in settings['training_periods'].items():
             if isinstance(val, tuple) and len(val) == 2:
-                result.extend(check_type(val[0], int, f"start week for period '{id_}' in settings"))
-                result.extend(check_type(val[1], int, f"finish week for period '{id_}' in settings"))
+                result.extend(check_type(val[0], dt.date, f"start date for training period '{id_}' in settings"))
+                result.extend(check_type(val[1], dt.date, f"finish date for training period '{id_}' in settings"))
             else:
-                result.append(f"D: the data for period '{id_}' in settings should be a pair")
+                result.append(f"D: the data for training period '{id_}' in settings should be a pair")
     else:
-        result.append("D: the periods in settings should be a 'dict'")
+        result.append("D: the training periods in settings should be a 'dict'")
 
     return result
 
@@ -380,20 +380,6 @@ def check_duplicates(ids, name):
 
     return result
 
-def check_non_overlapping_periods(periods):
-    result = []
-
-    periods.sort(key=operator.itemgetter(1))
-
-    for ii in range(0, len(periods)):
-
-        for jj in range(ii+1, len(periods)):
-
-            if periods[jj][1] <= periods[ii][2]:
-                result.append(f"Les périodes '{periods[ii][0]}' et '{periods[jj][0]}' se chevauchent dans '{settings_sheet}'")
-    
-    return result
-
 ##########################################
 #                                        #
 #         Higher level checks            #
@@ -442,9 +428,9 @@ def check_settings_sheet(database):
         result.append(f"Aucun jour ouvrable déclaré dans '{settings_sheet}'")
 
     #
-    # check periods
+    # check training periods
     #
-    periods = database['settings']['periods']
+    periods = database['settings']['training_periods']
     if len(periods) == 0:
         result.append(f"Aucune période n'est définie dans '{settings_sheet}'")
 
@@ -452,9 +438,9 @@ def check_settings_sheet(database):
 
     valid_periods = []
     for id_, (start, finish) in periods.items():
-        if start < 0:
+        if start is None:
             result.append(f"Le début de la période '{id_}' dans '{settings_sheet}' est invalide")
-        elif finish < 0:
+        elif finish is None:
             result.append(f"La fin de la période '{id_}' dans '{settings_sheet}' est invalide")
         elif not id_.startswith(':INVALID:'):
             valid_periods.append((id_, start, finish))
@@ -586,7 +572,7 @@ def check_modules_sheet(database):
             result.append(f"L'abréviation du module '{id_}' dans '{modules_sheet}' est vide")
         if not module['promotion'] in database['promotions'].keys() and not id_.startswith(':INVALID:'):
             result.append(f"La promotion du module '{id_}' dans '{modules_sheet}' est invalide")
-        if not module['period'] in database['settings']['periods'].keys() and not id_.startswith(':INVALID:'):
+        if not module['period'] in database['settings']['training_periods'].keys() and not id_.startswith(':INVALID:'):
             result.append(f"La période du module '{id_}' dans '{modules_sheet}' est invalide")
         if not module['responsable'] in database['people'].keys() and not id_.startswith(':INVALID:'):
             result.append(f"La personne responsable du module '{id_}' dans '{modules_sheet}' est invalide")
