@@ -406,7 +406,7 @@ var garbage = {
 // bknews = breaking news
 var bknews = {
   time_height: 30,
-  time_margin: 1,
+  time_margin: 10,
   ratio_margin: .15, // ratio over course height 
   cont: [], // array of bknews contents
   nb_rows: 0, // maximum number of bknews in the same day
