@@ -69,8 +69,7 @@ class FlopConstraint(models.Model):
         """
         Return all scheduled courses of the given work copy for the given period
         """
-        return ScheduledCourse.objects.filter(course__period=period, 
-                                              course__groups__train_prog__department=self.department,
+        return ScheduledCourse.objects.filter(course__in=self.considered_courses(period),
                                               work_copy=work_copy)
     
     def local_weight(self):

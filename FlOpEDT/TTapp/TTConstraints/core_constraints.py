@@ -406,13 +406,14 @@ class ScheduleAllCourses(TTConstraint):
     def test_period_work_copy(self, period, work_copy):
         is_satisfied = True
         result = {}
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         for c in self.considered_courses(period):
-            if self.period_work_copy_scheduled_courses_queryset(period, work_copy).filter(course=c).count() == 0:
+            if considered_scheduled_courses.filter(course=c).count() == 0:
                 is_satisfied = False
                 if "not_scheduled" not in result:
                     result["not_scheduled"] = []
                 result["not_scheduled"].append(c)
-            elif self.period_work_copy_scheduled_courses_queryset(period, work_copy).filter(course=c).count() > 1:
+            elif considered_scheduled_courses.filter(course=c).count() > 1:
                 is_satisfied = False
                 if "scheduled_more_than_once" not in result:
                     result["scheduled_more_than_once"] = []
@@ -577,7 +578,7 @@ class AssignAllCourses(TTConstraint):
     def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
         is_satisfied = True
         result = {}
-        tutor_courses, no_tutor_courses = self.tutors_courses_and_no_tutor_courses(period)
+        tutor_courses, _ = self.tutors_courses_and_no_tutor_courses(period)
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         not_assigned_scheduled_courses = considered_scheduled_courses.filter(course__in=tutor_courses,
                                                                              tutor__isnull=True)
