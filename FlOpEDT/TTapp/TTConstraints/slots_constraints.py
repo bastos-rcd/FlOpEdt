@@ -275,7 +275,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
     """
 
     possible_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
+    possible_start_times = ArrayField(models.TimeField(), blank=True, null=True)
 
     class Meta:
         verbose_name = _('Limited start time choices')
@@ -284,7 +284,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
     def considered_start_times(self, ttmodel):
         if self.possible_start_times:
             return self.possible_start_times
-        return set(sl.start_time for sl in ttmodel.wdb.courses_slots)
+        return set(sl.start_time.time() for sl in ttmodel.wdb.courses_slots)
 
     def considered_week_days(self):
         if self.possible_week_days:
@@ -293,7 +293,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
 
     def excluded_slots(self, ttmodel):
         return set(sl for sl in ttmodel.wdb.courses_slots
-                   if (sl.start_time not in self.considered_start_times(ttmodel)
+                   if (sl.start_time.time() not in self.considered_start_times(ttmodel)
                        or sl.start_time.date().day not in self.considered_week_days()))
 
     def one_line_description(self):
@@ -321,7 +321,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
                 text += ', '.join(self.possible_week_days)
             if self.possible_start_times:
                 text += ' à '
-                text += ', '.join([french_format(pst) for pst in self.possible_start_times])
+                text += ', '.join([pst for pst in self.possible_start_times])
         text += '.'
         return text
 
@@ -332,7 +332,7 @@ class AvoidStartTimes(StartTimeConstraint):
     """
 
     forbidden_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    forbidden_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
+    forbidden_start_times = ArrayField(models.TimeField(), blank=True, null=True)
 
     class Meta:
         verbose_name = _('Avoid considered start times')
@@ -341,7 +341,7 @@ class AvoidStartTimes(StartTimeConstraint):
     def considered_start_times(self, ttmodel):
         if self.forbidden_start_times:
             return self.forbidden_start_times
-        return set(sl.start_time for sl in ttmodel.wdb.courses_slots)
+        return set(sl.start_time.time() for sl in ttmodel.wdb.courses_slots)
 
     def considered_week_days(self):
         if self.forbidden_week_days:
@@ -350,7 +350,7 @@ class AvoidStartTimes(StartTimeConstraint):
 
     def excluded_slots(self, ttmodel):
         return set(sl for sl in ttmodel.wdb.courses_slots
-                   if (sl.start_time in self.considered_start_times(ttmodel)
+                   if (sl.start_time.time() in self.considered_start_times(ttmodel)
                        and sl.day.day in self.considered_week_days()))
 
     def one_line_description(self):
@@ -378,7 +378,7 @@ class AvoidStartTimes(StartTimeConstraint):
                 text += ', '.join(self.forbidden_week_days)
             if self.forbidden_week_days:
                 text += ' à '
-                text += ', '.join([french_format(pst) for pst in self.forbidden_start_times])
+                text += ', '.join([fst for fst in self.forbidden_start_times])
         text += '.'
         return text
 
