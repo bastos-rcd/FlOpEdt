@@ -7,14 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
 ## [1.0.0] -- TO BE RELEASED
-This version will include incompatible changes. More specifically:
-- the front-end will be refactored and rely on [https://vuejs.org/](`Vue3`)
-- the time management will be fundamentally changed to land on standard formats
-- the `API` will hence be refactored as well
-- Restructuration of the base app by splitting the models.py in several files under folder models/
-- Improving i18n on models
+This version include incompatible changes. More specifically:
+- the front-end has been refactored and rely on [https://vuejs.org/](`Vue3`)
+- the time management has been fundamentally changed to land on standard formats
+- the `API` has hence been refactored as well
+- the base app has been refactored by splitting the models.py in several files under folder models/
+- improving i18n on models
+- configuration file contains parameters to activate cron for flop-methods
+- roomreservations import from ics url
+- new HMI allowing to describe courses planification
+- many new tests on `API` and time-table constraints and model, with better CI integration
 
-## [0.5.6] -- 2024-??
+
+## [0.5.6] -- 2024-02-17
 **Note:** `0.5` is the last `0.*` version.
 ### Changed
 - ics with location
