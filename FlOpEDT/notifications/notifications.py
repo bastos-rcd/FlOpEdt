@@ -43,7 +43,11 @@ logger = logging.getLogger("base")
 # Let's parse the configuration file
 flop_config = configparser.ConfigParser()
 flop_config.read(os.environ.get("FLOP_CONFIG_FILE"))
-send_room_changes_to = flop_config['send_room_changes_to']
+if "send_room_changes_to" not in flop_config:
+    flop_config["send_room_changes_to"] = []
+else:
+    send_room_changes_to_str = flop_config['send_room_changes_to']
+    send_room_changes_to = send_room_changes_to_str.replace(' ', '').split(',')
 
 
 def backup():
@@ -320,6 +324,10 @@ def html_table_with_changes(filtered_changes):
 
 
 def send_changes_email(subject, intro_text, html_msg, outro_text, to_email, from_email="", fail_silently=False):
+    if type(to_email) == str:
+        to_email_list = [to_email]
+    if type(to_email) == list:
+        to_email_list = to_email
     html_message = f"""
          <html>
            <head>
@@ -343,4 +351,4 @@ def send_changes_email(subject, intro_text, html_msg, outro_text, to_email, from
          </html>
          """
     plain_message = strip_tags(html_message)
-    send_mail(subject, plain_message, from_email, [to_email], html_message=html_message, fail_silently=fail_silently)
+    send_mail(subject, plain_message, from_email, to_email_list, html_message=html_message, fail_silently=fail_silently)
