@@ -148,8 +148,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                     }
                 )
 
-    def create(self, validated_data):
-
+    def prepare_create(self, validated_data):
         try:
             subject_dict = {
                 self.model.subject_type: self.model.SubjectModel.objects.get(
@@ -188,20 +187,51 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
         self.check_intervals(
             availability, validated_data["from_date"], validated_data["to_date"]
         )
+        return availability, subject_dict
 
+    def finalize_create(self, availability_add, subject_dict, validated_data):
         self.model.AvailabilityModel.objects.filter(
             date__gte=validated_data["from_date"],
             date__lte=validated_data["to_date"],
             **subject_dict,
         ).delete()
-        for obj in availability:
+        for obj in availability_add:
             obj.save()
         return self.model(
             validated_data["from_date"],
             validated_data["to_date"],
             validated_data["subject_id"],
-            availability,
+            availability_add,
         )
+
+    def create(self, validated_data):
+        availability, subject_dict = self.prepare_create(validated_data)
+        return self.finalize_create(availability, subject_dict, validated_data)
+
+
+class AvailabilityDefaultWeekSerializer(AvailabilityFullDaySerializer):
+    def validate(self, value):
+        value = super().validate(value)
+
+        if (value["to_date"] - value["from_date"]).days > 6:
+            raise exceptions.ValidationError(
+                detail={"to_date": "Expected no more than a week!"}
+            )
+
+        value["from_date"] = dt.date(1, 1, value["from_date"].isocalendar().weekday)
+        value["to_date"] = dt.date(1, 1, value["to_date"].isocalendar().weekday)
+
+        for a in value["intervals"]:
+            a["start_time"] = dt.datetime.combine(
+                dt.date(1, 1, a["start_time"].isocalendar().weekday),
+                a["start_time"].time(),
+            )
+
+        return value
+
+
+class UserAvailabilityDefaultWeekSerializer(AvailabilityDefaultWeekSerializer):
+    model = UserAvailabilityFullDayModel
 
 
 class UserAvailabilityFullDaySerializer(AvailabilityFullDaySerializer):

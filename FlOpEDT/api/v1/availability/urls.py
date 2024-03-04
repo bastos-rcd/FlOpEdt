@@ -39,6 +39,11 @@ routerAvailability.register(
     basename="user-default-week",
 )
 routerAvailability.register(
+    r"update_user-default-week",
+    views.UserDefaultAvailabilityUpdateViewSet,
+    basename="user-update-def",
+)
+routerAvailability.register(
     r"room", views.RoomDatedAvailabilityListViewSet, basename="room"
 )
 routerAvailability.register(

@@ -215,3 +215,15 @@ class RoomDefaultAvailabilityListViewSet(RoomDatedAvailabilityListViewSet):
         return super(RoomDefaultAvailabilityListViewSet, self).list(
             request, *args, **kwargs
         )
+
+
+class UserDefaultAvailabilityUpdateViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Update default availability. (Will be pushed in the default week based on the weekday of the dates from the query parameters)
+    """
+
+    AvailabilityModel = bm.UserAvailability
+    serializer_class = serializers.UserAvailabilityDefaultWeekSerializer
+    queryset = bm.UserAvailability.objects.all()
