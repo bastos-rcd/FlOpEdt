@@ -404,22 +404,15 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name_plural = verbose_name
 
     def test_period_work_copy(self, period, work_copy):
-        is_satisfied = True
-        result = {}
+        not_scheduled=[]
+        scheduled_more_than_once = []
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         for c in self.considered_courses(period):
             if considered_scheduled_courses.filter(course=c).count() == 0:
-                is_satisfied = False
-                if "not_scheduled" not in result:
-                    result["not_scheduled"] = []
-                result["not_scheduled"].append(c)
+                not_scheduled.append(c)
             elif considered_scheduled_courses.filter(course=c).count() > 1:
-                is_satisfied = False
-                if "scheduled_more_than_once" not in result:
-                    result["scheduled_more_than_once"] = []
-                result["scheduled_more_than_once"].append(c)
-        return {"success": is_satisfied, "more": result}
-
+                scheduled_more_than_once.append(c)
+        assert len(not_scheduled) == 0 and len(scheduled_more_than_once) == 0, f"not_scheduled: {not_scheduled}, scheduled_more_than_once: {scheduled_more_than_once}"
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         max_slots_nb = len(ttmodel.wdb.courses_slots)
