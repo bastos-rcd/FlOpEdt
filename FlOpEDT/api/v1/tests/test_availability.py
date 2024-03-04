@@ -347,34 +347,34 @@ class TestListUserAvailabilityDefault:
 
 class TestUpdateUserAvailabilityDefault:
     endpoint = f"/fr/api/v1/availability/update_user-default-week/"
+    from_date = "1929-10-29"
+    to_date = "1929-10-29"
+    wanted = {
+        "from_date": from_date,
+        "to_date": to_date,
+        "intervals": [
+            {
+                "start_time": f"{from_date}T00:00:00",
+                "duration": "12:00:00",
+                "value": 3,
+            },
+            {
+                "start_time": f"{to_date}T12:00:00",
+                "duration": "12:00:00",
+                "value": 2,
+            },
+        ],
+    }
 
     def test_update(self, db, client, make_default_week_user):
         user = User.objects.first()
         user.is_superuser = True
         user.save()
-        from_date = "1929-10-29"
-        to_date = "1929-10-29"
-        wanted = {
-            "from_date": from_date,
-            "to_date": to_date,
-            "intervals": [
-                {
-                    "start_time": f"{from_date}T00:00:00",
-                    "duration": "12:00:00",
-                    "value": 3,
-                },
-                {
-                    "start_time": f"{to_date}T12:00:00",
-                    "duration": "12:00:00",
-                    "value": 2,
-                },
-            ],
-        }
 
         client.force_authenticate(user)
         response = client.post(
             self.endpoint,
-            wanted
+            self.wanted
             | {
                 "subject_id": user.id,
                 "subject_type": "user",
@@ -387,7 +387,7 @@ class TestUpdateUserAvailabilityDefault:
             ),
             8,
         )
-        expected = wanted["intervals"]
+        expected = copy.deepcopy(self.wanted["intervals"])
         expected[0]["start_time"] = "0001-01-02T00:00:00"
         expected[1]["start_time"] = "0001-01-02T12:00:00"
         response.sort(key=lambda a: a["start_time"])
@@ -399,6 +399,44 @@ class TestUpdateUserAvailabilityDefault:
             }
             for inter in response[1:3]
         ] == expected, response
+
+    def test_perm_push_mine_denied(self, client, make_users):
+        make_users(1)
+        user = User.objects.first()
+        client.force_authenticate(user=user)
+        push = self.wanted | {"subject_id": user.id}
+        response = client.post(self.endpoint, push)
+        assert response.status_code == HTTP_403_FORBIDDEN, response.content
+
+    def test_perm_push_mine_allowed(self, client, make_user_perm_push_my_user_av):
+        user = make_user_perm_push_my_user_av
+        client.force_authenticate(user=user)
+        push = self.wanted | {"subject_id": user.id}
+        assert user.id == push["subject_id"]
+        response = client.post(self.endpoint, push)
+        assert is_success(response.status_code), response.content
+
+    def test_perm_push_other_denied(
+        self, client, make_user_perm_push_my_user_av, make_users
+    ):
+        make_users(2)
+        user = make_user_perm_push_my_user_av
+        other = User.objects.all().exclude(id=user.id).first()
+        client.force_authenticate(user=user)
+        push = self.wanted | {"subject_id": other.id}
+        response = client.post(self.endpoint, push)
+        assert response.status_code == HTTP_403_FORBIDDEN, response.content
+
+    def test_perm_push_other_allowed(
+        self, client, make_user_perm_push_any_user_av, make_users
+    ):
+        make_users(2)
+        user = make_user_perm_push_any_user_av
+        other = User.objects.all().exclude(id=user.id).first()
+        client.force_authenticate(user=user)
+        push = self.wanted | {"subject_id": other.id}
+        response = client.post(self.endpoint, push)
+        assert is_success(response.status_code), response.content
 
 
 class TestRoomAvailabilityActual:

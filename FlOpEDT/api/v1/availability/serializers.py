@@ -96,8 +96,17 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
     class Meta:
         abstract = True
 
-    def check_intervals(self, availability, from_date, to_date):
+    def validate(self, value):
+        value = self.create_unsaved_models(value)
+        self.check_intervals(value)
+        return value
+
+    def check_intervals(self, value):
+        super().validate(value)
         epsilon = dt.timedelta(seconds=60)
+        from_date = value["from_date"]
+        to_date = value["to_date"]
+        availability = value["intervals"]
         if len(availability) == 0:
             raise exceptions.ValidationError(
                 detail={"intervals": "Empty request"}, code=status.HTTP_400_BAD_REQUEST
@@ -148,18 +157,18 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                     }
                 )
 
-    def prepare_create(self, validated_data):
+    def create_unsaved_models(self, value):
         try:
             subject_dict = {
                 self.model.subject_type: self.model.SubjectModel.objects.get(
-                    id=validated_data["subject_id"]
+                    id=value["subject_id"]
                 )
             }
         except self.model.SubjectModel.DoesNotExist:
             raise exceptions.ValidationError(
                 detail={"subject_id": f"Unknown {self.model.subject_type}"}
             )
-        availability = sorted(
+        value["intervals"] = sorted(
             [
                 self.model.AvailabilityModel(
                     start_time=interval["start_time"],
@@ -167,14 +176,14 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                     value=interval["value"],
                     **subject_dict,
                 )
-                for interval in validated_data["intervals"]
+                for interval in value["intervals"]
             ],
             key=lambda ua: ua.start_time,
         )
 
         if self.model.subject_type == "user":
             if not can_push_user_availability(
-                self.context["request"].user, validated_data["subject_id"]
+                self.context["request"].user, value["subject_id"]
             ):
                 raise exceptions.PermissionDenied(
                     detail={"subject_id": f"Not your availability"}
@@ -184,33 +193,34 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                 raise exceptions.PermissionDenied(
                     detail={"subject_id": f"You cannot push room availability."},
                 )
-        self.check_intervals(
-            availability, validated_data["from_date"], validated_data["to_date"]
-        )
-        return availability, subject_dict
+        return value
 
-    def finalize_create(self, availability_add, subject_dict, validated_data):
+    def save(self):
+        subject_dict = {
+            self.model.subject_type: self.model.SubjectModel.objects.get(
+                id=self.validated_data["subject_id"]
+            )
+        }
         self.model.AvailabilityModel.objects.filter(
-            date__gte=validated_data["from_date"],
-            date__lte=validated_data["to_date"],
+            date__gte=self.validated_data["from_date"],
+            date__lte=self.validated_data["to_date"],
             **subject_dict,
         ).delete()
-        for obj in availability_add:
+        for obj in self.validated_data["intervals"]:
             obj.save()
         return self.model(
-            validated_data["from_date"],
-            validated_data["to_date"],
-            validated_data["subject_id"],
-            availability_add,
+            self.validated_data["from_date"],
+            self.validated_data["to_date"],
+            self.validated_data["subject_id"],
+            self.validated_data["intervals"],
         )
-
-    def create(self, validated_data):
-        availability, subject_dict = self.prepare_create(validated_data)
-        return self.finalize_create(availability, subject_dict, validated_data)
 
 
 class AvailabilityDefaultWeekSerializer(AvailabilityFullDaySerializer):
     def validate(self, value):
+        """
+        Shift dates to default week
+        """
         value = super().validate(value)
 
         if (value["to_date"] - value["from_date"]).days > 6:
@@ -222,9 +232,9 @@ class AvailabilityDefaultWeekSerializer(AvailabilityFullDaySerializer):
         value["to_date"] = dt.date(1, 1, value["to_date"].isocalendar().weekday)
 
         for a in value["intervals"]:
-            a["start_time"] = dt.datetime.combine(
-                dt.date(1, 1, a["start_time"].isocalendar().weekday),
-                a["start_time"].time(),
+            a.start_time = dt.datetime.combine(
+                dt.date(1, 1, a.start_time.isocalendar().weekday),
+                a.start_time.time(),
             )
 
         return value
