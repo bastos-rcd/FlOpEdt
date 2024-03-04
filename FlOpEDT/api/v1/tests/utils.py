@@ -5,7 +5,7 @@ from rest_framework import status
 def retrieve_elements(response, n=None):
     assert status.is_success(response.status_code), (
         f"Unsuccessful request (status {response.status_code})",
-        response,
+        response.content,
     )
     response_dict = json.loads(response.content)
     if n is not None:

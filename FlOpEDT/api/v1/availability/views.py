@@ -105,7 +105,7 @@ class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
 
     def get_queryset(self):
 
-        ret = super(RoomDatedAvailabilityListViewSet, self).get_queryset()
+        ret = super().get_queryset()
 
         room_id = self.request.query_params.get("room_id", None)
         dept_id = self.request.query_params.get("dept_id", None)
@@ -148,7 +148,7 @@ class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     serializer_class = serializers.UserAvailabilitySerializer
 
     def get_queryset(self):
-        ret = super(UserDatedAvailabilityListViewSet, self).get_queryset()
+        ret = super().get_queryset()
 
         user_id = self.request.query_params.get("user_id", None)
         dept_id = self.request.query_params.get("dept_id", None)
@@ -194,7 +194,7 @@ class UserDefaultAvailabilityListViewSet(UserDatedAvailabilityListViewSet):
     def get_queryset(self):
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
-        return super(UserDefaultAvailabilityListViewSet, self).get_queryset()
+        return super().get_queryset()
 
 
 @extend_schema(
@@ -211,9 +211,7 @@ class RoomDefaultAvailabilityListViewSet(RoomDatedAvailabilityListViewSet):
     def list(self, request, *args, **kwargs):
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
-        return super(RoomDefaultAvailabilityListViewSet, self).list(
-            request, *args, **kwargs
-        )
+        return super().list(request, *args, **kwargs)
 
 
 class UserDefaultAvailabilityUpdateViewSet(
