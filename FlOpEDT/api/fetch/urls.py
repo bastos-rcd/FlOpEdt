@@ -24,7 +24,6 @@
 from rest_framework import routers
 
 from api.fetch import views
-import api.preferences.views as views_preferences
 
 routerFetch = routers.SimpleRouter()
 

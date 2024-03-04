@@ -593,18 +593,18 @@ let fetchers = {
                 console.error(err);
             });
     },
-    fetchWeeks: (e) => {
-        fetch(urlWeeks)
+    fetchPeriods: (e) => {
+        fetch(urlPeriods)
             .then(resp => resp.json())
             .then(jsonObj => {
-                database['weeks'] = {};
+                database['periods'] = {};
                 Object.values(jsonObj).forEach(obj => {
                     let currentYear = new Date().getFullYear();
-                    let year = obj['year'];
+                    let year = obj['start_date'].year;
                     if (year < currentYear - 1 || year > currentYear + 1) {
                         return;
                     }
-                    database['weeks'][obj['id']] = obj;
+                    database['periods'][obj['id']] = obj;
                 });
             })
             .catch(err => {
@@ -673,10 +673,11 @@ let responseToDict = (resp) => {
     return ret;
 }
 
-// returns week object from week and year numbers
+// returns period object from week and year numbers
+// FIXME : this function shuld consider more than week mode periods
 let getWeek = (year, week) => {
-    let w = Object.values(database.weeks).find(week_object => {
-        return (week_object.name === 'W'+week.toString()+'-'+ year.toString());
+    let w = Object.values(database.periods).find(period_object => {
+        return (period_object.name === 'W'+week.toString()+'-'+ year.toString());
     })
     return w;
 };
@@ -737,7 +738,7 @@ let database = {
     'course_types': null,
     'room_types': null,
     'courses': null,
-    'weeks': null,
+    'periods': null,
     'acceptable_values': null,
     'constraint_types': null,
 }
@@ -1287,8 +1288,8 @@ let getCorrespondingDatabase = (param) => {
         case 'possible_rooms':
         case 'room':
             return database['rooms']
-        case 'weeks':
-            return database['weeks'];
+        case 'periods':
+            return database['periods'];
         default:
             return database['acceptable_values'][param];
     }
@@ -1312,6 +1313,7 @@ let getCorrespondingInfo = (id, param) => {
         case 'rooms':
         case 'possible_rooms':
         case 'room':
+        case 'periods':
             return db[id]['name'];
         case 'course_type':
         case 'course_types':
@@ -2114,7 +2116,7 @@ fetchers.fetchCourseTypes(null);
 fetchers.fetchRoomTypes(null);
 fetchers.fetchTutorsIDs(null);
 //fetchers.fetchCourses(null);
-fetchers.fetchWeeks();
+fetchers.fetchPeriods();
 fetchers.fetchConstraintTypes();
 fetchers.fetchConstraints(null);
 

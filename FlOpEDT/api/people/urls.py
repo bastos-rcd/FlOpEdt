@@ -23,7 +23,6 @@
 from rest_framework import routers
 from django.urls import path
 from api.people import views
-import api.preferences.views as views_preferences
 
 routerPeople = routers.SimpleRouter()
 
