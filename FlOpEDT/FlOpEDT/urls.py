@@ -87,7 +87,7 @@ urlpatterns += i18n_patterns(
     path('flopeditor/', include('flopeditor.urls')),
     re_path(r'^display/(?P<department>[a-zA-Z]\w{0,6})/',
             include('displayweb.urls')),
-    path('cstmanager/', include('cstmanager.urls')),
+    re_path(r'^cstmanager/(?P<department>[a-zA-Z]\w{0,6})/', include('cstmanager.urls')),
     path('api/', include('api.urls')),
     re_path(r'^roomreservation/(?P<department>[a-zA-Z]\w{0,6})/',
             include('roomreservation.urls')),
