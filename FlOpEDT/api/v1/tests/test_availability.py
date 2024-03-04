@@ -261,24 +261,47 @@ class TestUpdateUserAvailability:
 
 class TestUpdateRoomAvailability:
     endpoint = f"/fr/api/v1/availability/update_room/"
-    from_date = "1848-04-27"
-    to_date = "1848-04-27"
+    from_date = "1848-04-17"
+    to_date = "1848-04-18"
     wanted = {
         "from_date": from_date,
         "to_date": to_date,
         "intervals": [
             {
                 "start_time": f"{from_date}T00:00:00",
-                "duration": "12:00:00",
-                "value": 3,
+                "duration": "10:00:00",
+                "value": 2,
             },
             {
-                "start_time": f"{to_date}T12:00:00",
-                "duration": "12:00:00",
+                "start_time": f"{from_date}T10:00:00",
+                "duration": "10:00:00",
+                "value": 2,
+            },
+            {
+                "start_time": f"{from_date}T20:00:00",
+                "duration": "04:00:00",
+                "value": 2,
+            },
+            {
+                "start_time": f"{to_date}T00:00:00",
+                "duration": "04:00:00",
+                "value": 2,
+            },
+            {
+                "start_time": f"{to_date}T04:00:00",
+                "duration": "20:00:00",
                 "value": 2,
             },
         ],
     }
+
+    def test_update_(self, client, make_rooms_and_av):
+        room = make_rooms_and_av(3)[0]
+        user = User.objects.create_superuser(username="u")
+        client.force_authenticate(user=user)
+        push = self.wanted | {"subject_id": room.id}
+        response = retrieve_elements(client.post(self.endpoint, push), 4)
+        assert response == push
 
     def test_perm_push_denied(self, client: APIClient, db, make_users):
         make_users(1)

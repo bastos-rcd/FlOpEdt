@@ -50,3 +50,12 @@ class UserDailyAvailabilityFactory(factory.django.DjangoModelFactory):
     start_time = factory.Sequence(lambda n: dt.datetime(1871, 3, 18 + (n % 7)))
     duration = dt.timedelta(days=1)
     value = factory.Iterator(range(9))
+
+
+class RoomDailyAvailabilityFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "base.RoomAvailability"
+
+    start_time = factory.Sequence(lambda n: dt.datetime(1871, 3, 18 + (n % 7)))
+    duration = dt.timedelta(days=1)
+    value = factory.Iterator(range(9))
