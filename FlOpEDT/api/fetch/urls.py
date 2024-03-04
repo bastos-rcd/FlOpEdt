@@ -24,7 +24,6 @@
 from rest_framework import routers
 
 from api.fetch import views
-import api.preferences.views as views_preferences
 
 routerFetch = routers.SimpleRouter()
 
@@ -41,10 +40,6 @@ routerFetch.register(
     views.UnscheduledCoursesViewSet,
     basename="unscheduledcourses",
 )
-# routerFetch.register(r'availabilities', views.AvailabilitiesViewSet, basename='availabilities')
-# routerFetch.register(
-#     r"dweek", views_preferences.UserAvailabilityDefaultViewSet, basename="dweek"
-# )
 # routerFetch.register(
 #     r"coursedefweek", views.CourseTypeDefaultWeekViewSet, basename="coursedefweek"
 # )
