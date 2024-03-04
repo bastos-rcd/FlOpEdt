@@ -42,7 +42,6 @@ from api.base.urls import url_base_patterns
 from api.fetch.urls import routerFetch
 from api.myflop.urls import routerMyFlop
 from api.people.urls import url_user_patterns
-from api.preferences.urls import routerAvailability
 from api.roomreservation.urls import routerRoomReservation
 
 # TODO remove V1...
