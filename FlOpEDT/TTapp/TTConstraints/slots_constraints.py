@@ -25,7 +25,7 @@
 
 
 from core.decorators import timer
-import TTapp.GlobalPreAnalysis.partition_with_constraints as partition_bis
+import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
 import datetime as dt
 
 from django.http.response import JsonResponse

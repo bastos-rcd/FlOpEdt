@@ -52,7 +52,7 @@ from TTapp.TTConstraints.groups_constraints import (
 from base.models import Course, UserAvailability, Holiday
 from base.models.availability import period_actual_availabilities
 from base.partition import Partition
-import TTapp.GlobalPreAnalysis.partition_with_constraints as partition_bis
+import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
 from base.timing import Day, flopdate_to_datetime
 from people.models import Tutor
 from django.db.models import Q
