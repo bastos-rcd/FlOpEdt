@@ -318,6 +318,60 @@ class TestUserAvailabilityDefault:
 
     def test_update(self):
         pass
+class TestUpdateUserAvailabilityDefault:
+    endpoint = f"/fr/api/v1/availability/update_user-default-week/"
+
+    def test_update(self, db, client, make_default_week_user):
+        user = User.objects.first()
+        user.is_superuser = True
+        user.save()
+        from_date = "1929-10-29"
+        to_date = "1929-10-29"
+        wanted = {
+            "from_date": from_date,
+            "to_date": to_date,
+            "intervals": [
+                {
+                    "start_time": f"{from_date}T00:00:00",
+                    "duration": "12:00:00",
+                    "value": 3,
+                },
+                {
+                    "start_time": f"{to_date}T12:00:00",
+                    "duration": "12:00:00",
+                    "value": 2,
+                },
+            ],
+        }
+
+        client.force_authenticate(user)
+        response = client.post(
+            self.endpoint,
+            wanted
+            | {
+                "subject_id": user.id,
+                "subject_type": "user",
+            },
+        )
+        assert is_success(response.status_code), response
+        response = retrieve_elements(
+            client.get(
+                "/fr/api/v1/availability/user-default-week/", {"user_id": user.id}
+            ),
+            8,
+        )
+        expected = wanted["intervals"]
+        expected[0]["start_time"] = "0001-01-02T00:00:00"
+        expected[1]["start_time"] = "0001-01-02T12:00:00"
+        response.sort(key=lambda a: a["start_time"])
+        assert [
+            {
+                k: v
+                for (k, v) in inter.items()
+                if k in ["start_time", "duration", "value"]
+            }
+            for inter in response[1:3]
+        ] == expected, response
 
 
 class TestRoomAvailabilityActual:
