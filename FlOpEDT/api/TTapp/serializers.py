@@ -207,7 +207,10 @@ class FlopConstraintSerializer(serializers.ModelSerializer):
                         typename = type(field.base_field).__name__
                         # Remplace la liste vide par la liste des valeurs
                         attr = getattr(obj, field.name)
-                        id_list = attr
+                        if "start_time" in field.name:
+                            id_list = list(st.strftime("%H:%M") for st in attr)
+                        else:
+                            id_list = attr
 
                     else:
                         # Insère la valeur de l'attribut unitaire
