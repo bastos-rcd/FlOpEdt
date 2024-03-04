@@ -64,8 +64,8 @@ class BackUpModif(models.Model):
         return self.module_abbrev == other.module_abbrev and self.tutor_username == other.tutor_username \
                and self.supp_tutor_usernames == other.supp_tutor_usernames and self.start_time == other.start_time \
                and self.group_name == other.group_name and self.course_type_name == other.course_type_name \
-               and self.department_abbrev == other.department_abbrev and self.train_prog_name == other.train_prog_name
-        # and self.room_name == other.room_name \
+               and self.department_abbrev == other.department_abbrev and self.train_prog_name == other.train_prog_name \
+               and self.room_name == other.room_name
 
     def __hash__(self):
         return hash(f"{self.course_type_name} {self.module_abbrev} {self.tutor_username} "

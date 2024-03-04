@@ -251,7 +251,7 @@ class StartTimeConstraint(TTConstraint):
         raise NotImplementedError
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
-        fc = self.get_courses_queryset_by_attributes(ttmodel, period)
+        fc = self.get_courses_queryset_by_attributes(period, ttmodel)
         excluded_slots = self.excluded_slots(ttmodel)
         if self.tutor is None:
             relevant_sum = ttmodel.sum(ttmodel.TT[(sl, c)]
@@ -275,7 +275,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
     """
 
     possible_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    possible_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
+    possible_start_times = ArrayField(models.TimeField(), blank=True, null=True)
 
     class Meta:
         verbose_name = _('Limited start time choices')
@@ -284,7 +284,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
     def considered_start_times(self, ttmodel):
         if self.possible_start_times:
             return self.possible_start_times
-        return set(sl.start_time for sl in ttmodel.wdb.courses_slots)
+        return set(sl.start_time.time() for sl in ttmodel.wdb.courses_slots)
 
     def considered_week_days(self):
         if self.possible_week_days:
@@ -293,7 +293,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
 
     def excluded_slots(self, ttmodel):
         return set(sl for sl in ttmodel.wdb.courses_slots
-                   if (sl.start_time not in self.considered_start_times(ttmodel)
+                   if (sl.start_time.time() not in self.considered_start_times(ttmodel)
                        or sl.start_time.date().day not in self.considered_week_days()))
 
     def one_line_description(self):
@@ -321,7 +321,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
                 text += ', '.join(self.possible_week_days)
             if self.possible_start_times:
                 text += ' à '
-                text += ', '.join([french_format(pst) for pst in self.possible_start_times])
+                text += ', '.join([pst for pst in self.possible_start_times])
         text += '.'
         return text
 
@@ -332,7 +332,7 @@ class AvoidStartTimes(StartTimeConstraint):
     """
 
     forbidden_week_days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
-    forbidden_start_times = ArrayField(models.PositiveSmallIntegerField(), blank=True, null=True)
+    forbidden_start_times = ArrayField(models.TimeField(), blank=True, null=True)
 
     class Meta:
         verbose_name = _('Avoid considered start times')
@@ -341,7 +341,7 @@ class AvoidStartTimes(StartTimeConstraint):
     def considered_start_times(self, ttmodel):
         if self.forbidden_start_times:
             return self.forbidden_start_times
-        return set(sl.start_time for sl in ttmodel.wdb.courses_slots)
+        return set(sl.start_time.time() for sl in ttmodel.wdb.courses_slots)
 
     def considered_week_days(self):
         if self.forbidden_week_days:
@@ -350,7 +350,7 @@ class AvoidStartTimes(StartTimeConstraint):
 
     def excluded_slots(self, ttmodel):
         return set(sl for sl in ttmodel.wdb.courses_slots
-                   if (sl.start_time in self.considered_start_times(ttmodel)
+                   if (sl.start_time.time() in self.considered_start_times(ttmodel)
                        and sl.day.day in self.considered_week_days()))
 
     def one_line_description(self):
@@ -378,7 +378,7 @@ class AvoidStartTimes(StartTimeConstraint):
                 text += ', '.join(self.forbidden_week_days)
             if self.forbidden_week_days:
                 text += ' à '
-                text += ', '.join([french_format(pst) for pst in self.forbidden_start_times])
+                text += ', '.join([fst for fst in self.forbidden_start_times])
         text += '.'
         return text
 
@@ -710,7 +710,7 @@ class AvoidBothTimesSameDay(TTConstraint):
             day_slots1 = slots_filter(slots1, day=day)
             day_slots2 = slots_filter(slots2, day=day)
             for group in considered_groups:
-                considered_courses = self.get_courses_queryset_by_parameters(ttmodel, period, group=group)
+                considered_courses = self.get_courses_queryset_by_parameters(period, ttmodel, group=group)
                 sum1 = ttmodel.sum(ttmodel.TT[sl,c]
                                    for c in considered_courses
                                    for sl in day_slots1 & ttmodel.wdb.compatible_slots[c])
@@ -760,7 +760,7 @@ class LimitUndesiredSlotsPerPeriod(TTConstraint):
         undesired_slots = [Slot(dt.datetime.combine(day, self.slot_start_time), dt.datetime.combine(day, self.slot_end_time))
                              for day in days]
         for tutor in tutor_to_be_considered:
-            considered_courses = self.get_courses_queryset_by_parameters(ttmodel, period, tutor=tutor)
+            considered_courses = self.get_courses_queryset_by_parameters(period, ttmodel, tutor=tutor)
             expr = ttmodel.lin_expr()
             for undesired_slot in undesired_slots:
                 expr += ttmodel.add_floor(

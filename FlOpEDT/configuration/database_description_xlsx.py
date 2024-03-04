@@ -76,6 +76,23 @@ def parse_time(sheet, row, column):
     except:
         return None
 
+def parse_date(sheet, row, column):
+    "Helper function to get a date out of a cell"
+    "as a datetime.date object"
+    "(will return None if anything goes wrong)"
+    try:
+        val = sheet.cell(row=row, column=column).value
+        if type(val) is str:
+            val = ' '.split(val)[0]
+            print(val)
+            return dt.date.fromisoformat(val)
+        elif type(val) is dt.datetime:
+            return val.date()
+        elif type(val) is dt.date:
+            return val
+    except:
+        return None
+
 def parse_time_list_in_line(sheet, row, col_start):
     "Parse a line representing a list of times"
     "(stop at the first empty cell)"
@@ -316,6 +333,34 @@ def parse_settings(sheet):
                 days.append(day)
     result['days'] = days
 
+    row, col = find_marker_cell(sheet, 'Modes')
+    visio_mode_str = parse_string(sheet, row + 1, col)
+    cosmo_mode_str = parse_integer(sheet, row + 2, col)
+    scheduling_mode_str = parse_string(sheet, row + 3, col)
+
+    visio_mode = (visio_mode_str == "Visio")
+    cosmo_mode = 0
+    if cosmo_mode_str == "Educatif":
+        cosmo_mode = 0
+    elif cosmo_mode_str == "Coop.(Poste)":
+        cosmo_mode = 1
+    elif cosmo_mode_str == "Coop. (Salarié)":
+        cosmo_mode = 2
+    scheduling_mode = 'w'
+    if scheduling_mode_str == "Par semaine":
+        scheduling_mode = 'w'
+    elif scheduling_mode_str == "Par jour":
+        scheduling_mode = 'd'
+    elif scheduling_mode_str == "Par mois":
+        scheduling_mode = 'm'
+    elif scheduling_mode_str == "Par an":
+        scheduling_mode = 'y'
+    elif scheduling_mode_str == "Custom":
+        scheduling_mode = 'c'
+
+    result['mode'] = {'visio': visio_mode, 'cosmo': cosmo_mode, 'scheduling_mode': scheduling_mode}
+
+
     periods = dict()
     row, col = find_marker_cell(sheet, 'Périodes de cours')
     if row != None:
@@ -327,15 +372,11 @@ def parse_settings(sheet):
                 continue
             if id_ in periods:
                 id_ = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row, col))
-            start = parse_integer(sheet, row, col + 1)
-            if start == None:
-                start = -1
-            finish = parse_integer(sheet, row, col + 2)
-            if finish == None:
-                finish = -1
-            periods[id_] = (start, finish)
+            start_date = parse_date(sheet, row, col + 1)
+            end_date = parse_date(sheet, row, col + 2)
+            periods[id_] = (start_date, end_date)
             row = row + 1
-    result['periods'] = periods
+    result['training_periods'] = periods
 
     return result
 

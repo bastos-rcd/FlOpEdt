@@ -368,7 +368,24 @@ class NoSimultaneousGroupCourses(TTConstraint):
         return text
 
     def __str__(self):
-        return _("No simultaneous courses for one group")
+        return "No simultaneous courses for one group"
+    
+    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+        relevant_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        relevant_basic_groups = considered_basic_groups(self)
+        is_satisfied = True
+        result = {}
+        for bg in relevant_basic_groups:
+            bg_scheduled_courses = relevant_scheduled_courses.filter(course__groups__in=bg.and_ancestors())
+            for sched_course in bg_scheduled_courses:
+                for sched_course2 in bg_scheduled_courses.filter(id__gt=sched_course.id):
+                    if sched_course.is_simultaneous_to(sched_course2):
+                        if bg not in result:
+                            result[bg] = []
+                        result[bg].append((sched_course, sched_course2))
+                        is_satisfied = False
+        return {"success": is_satisfied, "more": result}
+        
 
 
 class ScheduleAllCourses(TTConstraint):
@@ -386,27 +403,27 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name = _("Schedule once all considered courses")
         verbose_name_plural = verbose_name
 
+    def test_period_work_copy(self, period, work_copy):
+        is_satisfied = True
+        result = {}
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        for c in self.considered_courses(period):
+            if considered_scheduled_courses.filter(course=c).count() == 0:
+                is_satisfied = False
+                if "not_scheduled" not in result:
+                    result["not_scheduled"] = []
+                result["not_scheduled"].append(c)
+            elif considered_scheduled_courses.filter(course=c).count() > 1:
+                is_satisfied = False
+                if "scheduled_more_than_once" not in result:
+                    result["scheduled_more_than_once"] = []
+                result["scheduled_more_than_once"].append(c)
+        return {"success": is_satisfied, "more": result}
+
+
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
-        relevant_basic_groups = considered_basic_groups(self, ttmodel)
-        considered_courses = set(
-            c
-            for bg in relevant_basic_groups
-            for c in ttmodel.wdb.all_courses_for_basic_group[bg]
-        )
         max_slots_nb = len(ttmodel.wdb.courses_slots)
-        if self.modules.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.module in self.modules.all()
-            )
-        if self.tutors.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.tutor in self.tutors.all()
-            )
-        if self.course_types.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.type in self.course_types.all()
-            )
-        for c in considered_courses:
+        for c in self.considered_courses(period, ttmodel):
             relevant_sum = ttmodel.sum(
                 [ttmodel.TT[(sl, c)] for sl in ttmodel.wdb.compatible_slots[c]]
             )
@@ -486,27 +503,30 @@ class AssignAllCourses(TTConstraint):
             )
         return result_courses
 
-    def enrich_ttmodel(self, ttmodel, period, ponderation=100):
-        relevant_basic_groups = considered_basic_groups(self, ttmodel)
-        considered_courses = set(
-            c
-            for bg in relevant_basic_groups
-            for c in ttmodel.wdb.all_courses_for_basic_group[bg]
-        )
+    def tutors_courses_and_no_tutor_courses(self, period, ttmodel=None):
+        considered_courses = self.considered_courses(period, ttmodel)
         if self.pre_assigned_only:
             no_tutor_courses = set(c for c in considered_courses if c.tutor is None)
-            considered_courses = set(
+            tutor_courses = set(
                 c for c in considered_courses if c.tutor is not None
             )
+        else:
+            tutor_courses = considered_courses
+            no_tutor_courses = set()
+
         if self.modules.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.module in self.modules.all()
+            tutor_courses = set(
+                c for c in tutor_courses if c.module in self.modules.all()
             )
         if self.course_types.exists():
-            considered_courses = set(
-                c for c in considered_courses if c.type in self.course_types.all()
+            tutor_courses = set(
+                c for c in tutor_courses if c.type in self.course_types.all()
             )
-        for c in considered_courses:
+        return tutor_courses, no_tutor_courses
+
+    def enrich_ttmodel(self, ttmodel, period, ponderation=100):
+        tutor_courses, no_tutor_courses = self.tutors_courses_and_no_tutor_courses(period, ttmodel)
+        for c in tutor_courses:
             for sl in ttmodel.wdb.compatible_slots[c]:
                 relevant_sum = (
                     ttmodel.sum(
@@ -554,6 +574,19 @@ class AssignAllCourses(TTConstraint):
                 0,
                 Constraint(constraint_type=ConstraintType.PRE_ASSIGNED_TUTORS_ONLY),
             )
+    
+    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+        is_satisfied = True
+        result = {}
+        tutor_courses, _ = self.tutors_courses_and_no_tutor_courses(period)
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        not_assigned_scheduled_courses = considered_scheduled_courses.filter(course__in=tutor_courses,
+                                                                             tutor__isnull=True)
+        if not_assigned_scheduled_courses.exists():
+            is_satisfied = False
+            result["no_tutor"] = not_assigned_scheduled_courses
+        return {"success": is_satisfied, "more": result}
+
 
     def one_line_description(self):
         text = f"Assigne tous les cours "
@@ -825,6 +858,26 @@ class ConsiderTutorsUnavailability(TTConstraint):
                         tutor_undesirable_course * self.local_weight() * ponderation,
                         period,
                     )
+    
+    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+        is_satisfied = True
+        result = {}
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        considered_tutors = set(sc.tutor for sc in considered_scheduled_courses)
+        for sc in considered_scheduled_courses:
+            considered_tutors |= set(sc.course.supp_tutor.all())
+        for tutor in considered_tutors:
+            tutor_courses = considered_scheduled_courses.filter(Q(tutor=tutor)|Q(course__supp_tutor=tutor))
+            user_unavailabilities = period_actual_availabilities(tutor, period, unavail_only=True)
+            for sc in tutor_courses:
+                if slots_filter(user_unavailabilities, simultaneous_to=sc):
+                    is_satisfied = False
+                    if tutor not in result:
+                        result[tutor] = []
+                    result[tutor].append(sc)
+
+        return {"success": is_satisfied, "more": {}}
+
 
     def one_line_description(self):
         text = f"Considère les indispos"

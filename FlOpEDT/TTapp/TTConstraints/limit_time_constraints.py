@@ -68,7 +68,7 @@ class LimitTimePerPeriod(TTConstraint):
         return fd_or_apm_period_by_day
 
     def considered_courses(self, ttmodel, period:SchedulingPeriod, train_prog, tutor, module, group):
-        return set(self.get_courses_queryset_by_parameters(ttmodel, period,
+        return set(self.get_courses_queryset_by_parameters(period, ttmodel, 
                                                            course_type=self.course_type,
                                                            train_prog=train_prog,
                                                            module=module,

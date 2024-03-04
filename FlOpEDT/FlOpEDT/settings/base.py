@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     "quote",
     "people",
     "solve_board",
-    "ics",
+    "flop_ics",
     "displayweb",
     "configuration",
     "easter_egg",
@@ -482,9 +482,6 @@ LOGGING = {
 # Configure django-crontab to use flop_admin as manage script when it exists
 CRONTAB_DJANGO_MANAGE_PATH = sys.argv[0]
 
-# Specific cronjob
-CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]
-
 ###############################
 # Configuration File Parsing  #
 ###############################
@@ -714,11 +711,11 @@ LOGGING = {
     },
 }
 
-# Configure django-crontab to use flop_admin as manage script when it exists
-CRONTAB_DJANGO_MANAGE_PATH = sys.argv[0]
 
 # Specific cronjob
-CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]
+# CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]
+CRONJOBS = [(cron_time, cron_command) for cron_time, cron_command in flop_config['cronjobs'].items()]
+
 
 AUTHENTICATION_BACKENDS = (
     "rules.permissions.ObjectPermissionBackend",

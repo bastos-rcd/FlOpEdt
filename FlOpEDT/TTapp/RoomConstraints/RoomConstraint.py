@@ -58,44 +58,37 @@ class RoomConstraint(FlopConstraint):
     def period_courses_queryset(self, room_model, period):
         return room_model.courses.filter(period=period)
 
-    def get_courses_queryset_by_parameters(self, room_model, period,
-                                           train_progs=None,
+    def get_courses_queryset_by_parameters(self, period, room_model,
                                            train_prog=None,
-                                           module=None,
+                                           train_progs=None,
                                            group=None,
+                                           groups=None,
+                                           module=None,
+                                           modules=None,
                                            course_type=None,
+                                           course_types=None,
                                            room_type=None,
-                                           tutor=None):
+                                           room_types=None,
+                                           tutor=None,
+                                           tutors=None):
 
-        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(self, room_model, period,
-                                                                       train_progs=train_progs,
+        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(self, period, room_model,
                                                                        train_prog=train_prog,
-                                                                       module=module,
+                                                                       train_progs=train_progs,
                                                                        group=group,
+                                                                       groups=groups,
+                                                                       module=module,
+                                                                       modules=modules,
                                                                        course_type=course_type,
-                                                                       room_type=room_type)
+                                                                       course_types=course_types,
+                                                                       room_type=room_type,
+                                                                       room_types=room_types)
         if tutor is not None:
-            return courses_qs.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
-        else:
-            return courses_qs
+            courses_qs = courses_qs.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
+        if tutors:
+            courses_qs = courses_qs.filter(Q(tutor__in=tutors) | Q(supp_tutor__in=tutors))
 
-    def get_ttmodel_courses_queryset_by_parameters(self, ttmodel, period,
-                                                   train_progs=None,
-                                                   train_prog=None,
-                                                   module=None,
-                                                   group=None,
-                                                   course_type=None,
-                                                   room_type=None,
-                                                   tutor=None):
-
-        return TTConstraint.get_courses_queryset_by_parameters(self, ttmodel, period,
-                                                               train_progs=train_progs,
-                                                               train_prog=train_prog,
-                                                               module=module,
-                                                               group=group,
-                                                               course_type=course_type,
-                                                               room_type=room_type,
-                                                               tutor=tutor)
+        return courses_qs
 
 
 class LimitSimultaneousRoomCourses(RoomConstraint):
@@ -274,7 +267,7 @@ class LimitedRoomChoices(RoomConstraint):
         verbose_name_plural = verbose_name
 
     def enrich_room_model(self, room_model, period, ponderation=1.):
-        filtered_courses = self.get_courses_queryset_by_attributes(room_model, period)
+        filtered_courses = self.get_courses_queryset_by_attributes(period, room_model)
         possible_rooms = self.possible_rooms.all()
         relevant_sum = room_model.sum(room_model.TTrooms[(course, room)]
                                       for course in filtered_courses
@@ -288,7 +281,7 @@ class LimitedRoomChoices(RoomConstraint):
                                                  rooms=possible_rooms))
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
-        fc = self.get_courses_queryset_by_attributes(ttmodel, period)
+        fc = self.get_courses_queryset_by_attributes(period, ttmodel)
         possible_rooms = self.possible_rooms.all()
         if self.tutor is None:
             relevant_var_dic = ttmodel.TTrooms

@@ -42,8 +42,6 @@ from base.models import (
     Module,
     GroupType,
     TrainingPeriod,
-    Time,
-    Day,
     CourseType,
     Department,
     CourseStartTimeConstraint,
@@ -51,6 +49,8 @@ from base.models import (
     UserAvailability,
     CourseAvailability,
     GenericGroup,
+    Mode,
+    SchedulingPeriod
 )
 
 from people.models import (
@@ -81,6 +81,7 @@ def extract_database_file(
     department_abbrev=None,
     bookname=None,
     book=None,
+    fill_default_availabilities=True
 ):
 
     # Test department existence
@@ -115,12 +116,13 @@ def extract_database_file(
     settings_extract(department, book['settings'])
     rooms_extract(department, book['room_groups'], book['room_categories'], book['rooms'])
     groups_extract(department, book['promotions'], book['group_types'], book['groups'], book['transversal_groups'])
-    people_extract(department, book['people'], fill_default_preferences)
+    people_extract(department, book['people'], fill_default_availabilities)
     modules_extract(department, book['modules'])
-    courses_extract(department, book['courses'])
+    course_types_extract(department, book['course_types'])
+    course_start_time_constraints_extract(department, book['course_start_time_constraints'])
 
 
-def people_extract(department, people, fill_default_preferences):
+def people_extract(department, people, fill_default_availabilities=True):
 
     logger.info("People extraction : start")
     for id_, person in people.items():
@@ -132,8 +134,8 @@ def people_extract(department, people, fill_default_preferences):
             tutor.update(**person)
             tutor=tutor.get()
             UserDepartmentSettings.objects.get_or_create(department=department, user=tutor)
-            if fill_default_preferences:
-                split_preferences(tutor)
+            if fill_default_availabilities:
+                pass # FIXME : we should split user availabilities in here!
             logger.debug(f"update tutor : '{id_}'")
 
         else:
@@ -415,7 +417,7 @@ def modules_extract(department, modules):
             abbrev=id_,
             train_prog__abbrev=module["promotion"],
             train_prog__department=department,
-            period__name=module["period"],
+            training_period__name=module["period"],
         )
 
         if not verif.exists():
@@ -424,7 +426,7 @@ def modules_extract(department, modules):
                 abbrev=module["promotion"], department=department
             )
             prof = Tutor.objects.get(username=module["responsable"])
-            period = TrainingPeriod.objects.get(
+            training_period = TrainingPeriod.objects.get(
                 name=module["period"], department=department
             )
 
@@ -436,7 +438,7 @@ def modules_extract(department, modules):
                     ppn=module["PPN"],
                     train_prog=promotion,
                     head=prof,
-                    period=period,
+                    training_period=training_period,
                 )
                 module.save()
 
@@ -514,34 +516,56 @@ def convert_time(value):
 def settings_extract(department, settings):
 
     logger.info("Settings extraction : start")
-    for id_, (s_week, e_week) in settings["periods"].items():
+    modes = settings["mode"]
+    verif = Mode.objects.filter(department=department)
+    if verif.exists():
+        mode = verif[0]
+        mode.cosmo = modes["cosmo"]
+        mode.visio = modes["visio"]
+        mode.scheduling_mode = modes["scheduling_mode"]
+        mode.save()
+        logger.info("Mode has been updated")
+    else:
+        mode = Mode.objects.create(
+            department=department,
+            cosmo=modes["cosmo"],
+            visio=modes["visio"],
+            scheduling_mode=modes["scheduling_mode"],
+        )
+        logger.info("Mode has been created")
+
+
+    for id_, (start_date, end_date) in settings["training_periods"].items():
+        if mode.scheduling_mode == "c":
+            scheduling_periods = department.scheduling_periods.all()
+        else:
+            scheduling_periods = SchedulingPeriod.objects.filter(mode=mode.scheduling_mode)
+
+        considered_scheduling_periods = scheduling_periods.filter(end_date__gte=start_date, start_date__lte=end_date)
 
         verif = TrainingPeriod.objects.filter(department=department, name=id_)
-
+        
         if verif.exists():
-            period = verif[0]
-            if (period.starting_week, period.ending_week) != (s_week, e_week):
-                period.starting_week = s_week
-                period.ending_week = e_week
-                period.save()
-                logger.info(f" Period {id_}' extreme weeks have been updated")
+            training_period = verif[0]
+            if set(training_period.periods.all()) != set(considered_scheduling_periods):
+                training_period.periods.set(considered_scheduling_periods)
+                logger.info(f" Training_period {id_}' scheduling periods have been updated")
         else:
             try:
-                TrainingPeriod.objects.create(
-                    name=id_,
-                    department=department,
-                    starting_week=s_week,
-                    ending_week=e_week,
-                )
+                training_period = TrainingPeriod.objects.create(name=id_,
+                                                                department=department
+                                                                )
+                training_period.periods.set(considered_scheduling_periods)
+
 
             except IntegrityError as ie:
                 logger.warning(
                     f"A constraint has not been respected creating the period '{id_}' : {ie}"
                 )
-                pass  # FIXME: continue?
 
     params = copy(settings)
-    del params["periods"]
+    del params["training_periods"]
+    del params["mode"]
     logger.info(f"TimeGeneralSettings : {params}")
     TimeGeneralSettings.objects.filter(
         department=department

@@ -30,4 +30,4 @@ def index(request, **kwargs):
                'deps': deps,
                # 'requi': request.build_absolute_uri()[:-suffix_length]
                }
-    return render(request, 'ics/index.html', context=context)
+    return render(request, 'flop_ics/index.html', context=context)

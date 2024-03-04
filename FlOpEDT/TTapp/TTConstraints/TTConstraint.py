@@ -23,7 +23,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.db import models
+from django.db.models import Q
 
 from core.decorators import timer
 
@@ -53,21 +53,30 @@ class TTConstraint(FlopConstraint):
     def get_viewmodel_prefetch_attributes(cls):
         return ['department',]
 
-    def get_courses_queryset_by_parameters(self, ttmodel, period,
-                                           train_progs=None,
+    def get_courses_queryset_by_parameters(self, period, ttmodel,
                                            train_prog=None,
-                                           module=None,
+                                           train_progs=None,
                                            group=None,
+                                           groups=None,
+                                           module=None,
+                                           modules=None,
                                            course_type=None,
+                                           course_types=None,
                                            room_type=None,
-                                           tutor=None):
-        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(self, ttmodel, period,
-                                                                       train_progs=train_progs,
+                                           room_types=None,
+                                           tutor=None,
+                                           tutors=None):
+        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(self, period, ttmodel,
                                                                        train_prog=train_prog,
-                                                                       module=module,
+                                                                       train_progs=train_progs,
                                                                        group=group,
+                                                                       groups=groups,
+                                                                       module=module,
+                                                                       modules=modules,
                                                                        course_type=course_type,
-                                                                       room_type=room_type)
+                                                                       course_types=course_types,
+                                                                       room_type=room_type,
+                                                                       room_types=room_types)
 
         #if tutor is not None, we have to reduce to the courses that are in possible_course[tutor]
         if tutor is not None:
@@ -75,13 +84,8 @@ class TTConstraint(FlopConstraint):
                 return courses_qs.filter(id__in = [c.id for c in ttmodel.wdb.possible_courses[tutor]])
             else:
                 return courses_qs.filter(id__in = [])
-        return courses_qs
+        if tutors:
+            considered_tutors = set(tutors) & set(ttmodel.wdb.instructors)
+            return courses_qs.filter(id__in = [c.id for c in ttmodel.wdb.possible_courses[tutor] for tutor in considered_tutors])
 
-    def get_courses_queryset_by_attributes(self, ttmodel, period, **kwargs):
-        """
-        Filter courses depending constraint attributes
-        """
-        if hasattr(self, "train_progs"):
-            if self.train_progs.exists() and 'train_progs' not in kwargs:
-                kwargs['train_progs'] = self.train_progs.all()
-        return FlopConstraint.get_courses_queryset_by_attributes(self, ttmodel, period, **kwargs)
+        return courses_qs
