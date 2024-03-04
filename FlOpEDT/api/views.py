@@ -25,8 +25,7 @@ from random import randint
 
 from django.db.models import Q
 import django_filters.rest_framework as filters
-from django.utils.decorators import method_decorator
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
@@ -190,27 +189,38 @@ def pref_requirements(department, tutor, period_id):
         week_av = week_av.exclude(day__in=holidays)
 
     # FIXME New-time
-    # Exclude NoTutorCourseOnDay 
-    tutor_no_course_on_day_query = tm.NoTutorCourseOnDay.objects.filter(Q(tutors=tutor) | Q(tutors__isnull=True),
-                                                                         Q(weeks=week) | Q(weeks__isnull=True),
-                                                                         weight=None)
+    # Exclude NoTutorCourseOnDay
+    tutor_no_course_on_day_query = tm.NoTutorCourseOnDay.objects.filter(
+        Q(tutors=tutor) | Q(tutors__isnull=True),
+        Q(weeks=week) | Q(weeks__isnull=True),
+        weight=None,
+    )
     if tutor_no_course_on_day_query.exists():
         for tncod in tutor_no_course_on_day_query:
             if tncod.fampm_period == tm.NoTutorCourseOnDay.FULL_DAY:
                 week_av = week_av.exclude(day=tncod.weekday)
             elif tncod.fampm_period == tm.NoTutorCourseOnDay.AM:
-                week_av = week_av.exclude(day=tncod.weekday, start_time__lt=department.timegeneralsettings.lunch_break_start_time)
+                week_av = week_av.exclude(
+                    day=tncod.weekday,
+                    start_time__lt=department.timegeneralsettings.lunch_break_start_time,
+                )
             elif tncod.fampm_period == tm.NoTutorCourseOnDay.PM:
-                week_av = week_av.exclude(day=tncod.weekday, start_time__gte=department.timegeneralsettings.lunch_break_end_time)
+                week_av = week_av.exclude(
+                    day=tncod.weekday,
+                    start_time__gte=department.timegeneralsettings.lunch_break_end_time,
+                )
 
-    filled = sum(a.duration for a in
-                 week_av.filter(value__gte=1,
-                                day__in=queries.get_working_days(department))
-                 )
-    
+    filled = sum(
+        a.duration
+        for a in week_av.filter(
+            value__gte=1, day__in=queries.get_working_days(department)
+        )
+    )
+
     # Exclude lunch break TODO
     tutor_lunch_break_query = tm.TutorsLunchBreak.objects.filter(
-        Q(tutors=tutor) | Q(tutors__isnull=True), Q(weeks=period) | Q(weeks__isnull=True)
+        Q(tutors=tutor) | Q(tutors__isnull=True),
+        Q(weeks=period) | Q(weeks__isnull=True),
     )
 
     # END FIXME New-time
@@ -218,16 +228,6 @@ def pref_requirements(department, tutor, period_id):
     return filled, courses_time
 
 
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        manual_parameters=[
-            week_param(required=True),
-            year_param(required=True),
-            dept_param(required=True),
-        ]
-    ),
-)
 class WeekInfoViewSet(viewsets.ViewSet):
     """
     Aggregated infos of a given week
@@ -239,6 +239,13 @@ class WeekInfoViewSet(viewsets.ViewSet):
 
     permission_classes = [IsAdminOrReadOnly]
 
+    @extend_schema(
+        parameters=[
+            week_param(required=True),
+            year_param(required=True),
+            dept_param(required=True),
+        ]
+    )
     def list(self, request, format=None):
         week_nb = int(request.query_params.get("week"))
         year = int(request.query_params.get("year"))

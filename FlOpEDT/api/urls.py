@@ -42,7 +42,6 @@ from api.base.urls import url_base_patterns
 from api.fetch.urls import routerFetch
 from api.myflop.urls import routerMyFlop
 from api.people.urls import url_user_patterns
-from api.preferences.urls import routerAvailability
 from api.roomreservation.urls import routerRoomReservation
 
 # TODO remove V1...
@@ -81,28 +80,27 @@ routerExtra.register("week-infos", views.WeekInfoViewSet, basename="week-infos")
 
 
 urlpatterns = [
-    # path("", views_base.LoginView.as_view(), name="api_root"),
-    # path("logout/", views_base.LogoutView.as_view()),
-    # path(
-    #     "backoffice/", login_required(TemplateView.as_view(template_name="logout.html"))
-    # ),
-    # path("base/", include((url_base_patterns, "api"), namespace="base")),
-    # path("user/", include((url_user_patterns, "api"), namespace="people")),
-    # path("display/", include(routerDisplayweb.urls)),
-    # path("ttapp/", include((routerTTapp.urls, "api"), namespace="ttapp")),
-    # path("fetch/", include((routerFetch.urls, "api"), namespace="fetch")),
-    # path("rest-auth/", include("dj_rest_auth.urls")),
-    # path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
-    # path("preferences/", include(routerAvailability.urls)),
-    # path("rooms/", include((routerRooms.urls, "api"), namespace="rooms")),
-    # path("courses/", include((routerCourses.urls, "api"), namespace="course")),
-    # path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
-    # path("extra/", include((routerExtra.urls, "api"), namespace="extra")),
-    # path("myflop/", include((routerMyFlop.urls, "api"), namespace="myflop")),
-    # path(
-    #     "roomreservations/",
-    #     include((routerRoomReservation.urls, "api"), namespace="roomreservations"),
-    # ),
+    path("", views_base.LoginView.as_view(), name="api_root"),
+    path("logout/", views_base.LogoutView.as_view()),
+    path(
+        "backoffice/", login_required(TemplateView.as_view(template_name="logout.html"))
+    ),
+    path("base/", include((url_base_patterns, "api"), namespace="base")),
+    path("user/", include((url_user_patterns, "api"), namespace="people")),
+    path("display/", include(routerDisplayweb.urls)),
+    path("ttapp/", include((routerTTapp.urls, "api"), namespace="ttapp")),
+    path("fetch/", include((routerFetch.urls, "api"), namespace="fetch")),
+    path("rest-auth/", include("dj_rest_auth.urls")),
+    path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
+    path("rooms/", include((routerRooms.urls, "api"), namespace="rooms")),
+    path("courses/", include((routerCourses.urls, "api"), namespace="course")),
+    path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
+    path("extra/", include((routerExtra.urls, "api"), namespace="extra")),
+    path("myflop/", include((routerMyFlop.urls, "api"), namespace="myflop")),
+    path(
+        "roomreservations/",
+        include((routerRoomReservation.urls, "api"), namespace="roomreservations"),
+    ),
     path("v1/", include((url_V1_patterns, "api"), namespace="V1")),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path(

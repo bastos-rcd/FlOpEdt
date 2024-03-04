@@ -54,6 +54,17 @@ Après les migrations :
 
 ## Rights/belts
 
+### Permission
+
+- [x] UserAvailability (both normal and default week)
+  - [x] push_my_useravailability -> serializer create
+  - [x] push_any_useravailability -> serializer create
+  - [x] view_my_useravailability -> viewset queryset
+  - [x] view_any_useravailability -> viewset queryset
+- RoomAvailability
+  - [ ] view_roomavailability -> viewset
+  - [ ] push_roomavailability -> serializer
+
 ## Performance
 
 - [ ] tester si utile de mettre un index sur le date de Availability

@@ -23,9 +23,9 @@
 
 from api.shared.params import dept_param, week_param, year_param
 from django.utils.decorators import method_decorator
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from django.apps import apps
-from django.http import FileResponse,HttpResponse
+from django.http import FileResponse, HttpResponse
 from pathlib import Path
 from TTapp.FlopConstraint import FlopConstraint, all_subclasses
 from base.models import Department
@@ -35,7 +35,7 @@ from base.timing import all_possible_start_times, Day
 from MyFlOp.colors import Tcolors
 
 from drf_yasg import openapi
-from rest_framework import viewsets,generics
+from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from api.TTapp import serializers
@@ -47,9 +47,14 @@ import json
 import re
 import pkgutil
 
-DOC_DIR = os.path.join(os.path.dirname(pkgutil.get_loader("TTapp").get_filename()),'TTConstraints/doc')
-IMG_DIR = os.path.join(os.path.dirname(pkgutil.get_loader("TTapp").get_filename()),'TTConstraints/doc/images')
-CORRUPTED_JSON_PATH = os.path.join(ds.TMP_DIRECTORY,'discarded.json')
+DOC_DIR = os.path.join(
+    os.path.dirname(pkgutil.get_loader("TTapp").get_filename()), "TTConstraints/doc"
+)
+IMG_DIR = os.path.join(
+    os.path.dirname(pkgutil.get_loader("TTapp").get_filename()),
+    "TTConstraints/doc/images",
+)
+CORRUPTED_JSON_PATH = os.path.join(ds.TMP_DIRECTORY, "discarded.json")
 EN_DIR_NAME = "en"
 REGEX_IMAGE = r"(?:[!]\[(.*?)\])\(((\.\.)(.*?))\)"
 # ---------------
@@ -212,32 +217,29 @@ class TTLimitedRoomChoicesViewSet(viewsets.ModelViewSet):
  """
 
 
-@method_decorator(name='list',
-                  decorator=swagger_auto_schema(
-                      manual_parameters=[week_param(),
-                                         year_param(),
-                                         dept_param()])
-                  )
 class FlopConstraintListViewSet(viewsets.ViewSet):
     """
     ViewSet to see all the constraints and their parameters
 
     Result can be filtered by week, year and dept
     """
+
     permission_classes = [IsAdminOrReadOnly]
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
+
+    @extend_schema(parameters=[week_param(), year_param(), dept_param()])
     def list(self, request, **kwargs):
         # Getting all the filters
-        week = self.request.query_params.get('week', None)
-        year = self.request.query_params.get('year', None)
-        dept = self.request.query_params.get('dept', None)
+        week = self.request.query_params.get("week", None)
+        year = self.request.query_params.get("year", None)
+        dept = self.request.query_params.get("dept", None)
         data = list()
         constraintlist = all_subclasses(FlopConstraint)
 
         for constraint in constraintlist:
 
             if constraint._meta.abstract == False:
-                queryset = constraint.objects.all().select_related('department')
+                queryset = constraint.objects.all().select_related("department")
 
                 if week is not None:
                     queryset = queryset.filter(weeks__nb=week)
@@ -255,38 +257,30 @@ class FlopConstraintListViewSet(viewsets.ViewSet):
         return Response(data)
 
 
-@method_decorator(name='list',
-                  decorator=swagger_auto_schema(
-                      manual_parameters=[week_param(), year_param(), dept_param()])
-                  )
-@method_decorator(name='retrieve',
-                  decorator=swagger_auto_schema(
-                      manual_parameters=[week_param(),
-                                         year_param(),
-                                         dept_param()])
-                  )
 class FlopConstraintViewSet(viewsets.ViewSet):
     """
     ViewSet to see all the constraints and their parameters
 
     Result can be filtered by week, year and dept
     """
-    permission_classes = [IsAdminOrReadOnly]
-    filterset_fields = '__all__'
-    lookup_field = 'id'
-    lookup_value_regex = '[0-9]{1,32}'
 
+    permission_classes = [IsAdminOrReadOnly]
+    filterset_fields = "__all__"
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]{1,32}"
+
+    @extend_schema(parameters=[week_param(), year_param(), dept_param()])
     def list(self, request, **kwargs):
-        name = kwargs['name']
+        name = kwargs["name"]
         # Getting all the filters
-        week = self.request.query_params.get('week', None)
-        year = self.request.query_params.get('year', None)
-        dept = self.request.query_params.get('dept', None)
+        week = self.request.query_params.get("week", None)
+        year = self.request.query_params.get("year", None)
+        dept = self.request.query_params.get("dept", None)
         data = list()
 
-        constraint = apps.get_model('TTapp', name)
+        constraint = apps.get_model("TTapp", name)
         if constraint._meta.abstract == False:
-            queryset = constraint.objects.all().select_related('department')
+            queryset = constraint.objects.all().select_related("department")
 
             if week is not None:
                 queryset = queryset.filter(weeks__nb=week)
@@ -302,10 +296,11 @@ class FlopConstraintViewSet(viewsets.ViewSet):
                 data.append(serializer.data)
         return Response(data)
 
+    @extend_schema(parameters=[week_param(), year_param(), dept_param()])
     def retrieve(self, request, name, id):
-        #name = request.query_params.get('name', None)
+        # name = request.query_params.get('name', None)
         # Obtenir la contrainte à partir du nom
-        constraint = apps.get_model('TTapp', name)
+        constraint = apps.get_model("TTapp", name)
 
         instance = constraint.objects.get(pk=id)
         serializer = serializers.TTConstraintSerializer(instance)
@@ -313,8 +308,10 @@ class FlopConstraintViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        model = apps.get_model('TTapp', request.data['name'])
-        serializer = serializers.flopconstraint_serializer_factory(model)(data=request.data)
+        model = apps.get_model("TTapp", request.data["name"])
+        serializer = serializers.flopconstraint_serializer_factory(model)(
+            data=request.data
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -323,14 +320,18 @@ class FlopConstraintViewSet(viewsets.ViewSet):
         response = "{{'message': '{}'}}"
 
         try:
-            model = apps.get_model('TTapp', name)
+            model = apps.get_model("TTapp", name)
         except LookupError:
-            return Response(response.format('Given constraint name does not exist'))
+            return Response(response.format("Given constraint name does not exist"))
         try:
             instance = model.objects.get(id=id)
         except:
-            return Response(response.format(f'Could not find constraint {name} with id {id}'))
-        serializer = serializers.flopconstraint_serializer_factory(model)(instance, data=request.data)
+            return Response(
+                response.format(f"Could not find constraint {name} with id {id}")
+            )
+        serializer = serializers.flopconstraint_serializer_factory(model)(
+            instance, data=request.data
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -339,37 +340,49 @@ class FlopConstraintViewSet(viewsets.ViewSet):
         response = "{{'message': '{}'}}"
 
         try:
-            model = apps.get_model('TTapp', name)
+            model = apps.get_model("TTapp", name)
         except LookupError:
-            return Response(response.format('Given constraint name does not exist'))
+            return Response(response.format("Given constraint name does not exist"))
         try:
             instance = model.objects.get(id=id)
         except:
-            return Response(response.format(f'Could not find constraint {name} with id {id}'))
+            return Response(
+                response.format(f"Could not find constraint {name} with id {id}")
+            )
         instance.delete()
-        return Response(response.format('Deleted successfully'))
+        return Response(response.format("Deleted successfully"))
 
 
-@method_decorator(name='list',
-                  decorator=swagger_auto_schema(
-                  )
-                  )
 class FlopConstraintTypeViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     def list(self, request):
         classes = []
-        excluded_fields = {'id', 'class_name',
-                           'department', 'weight', 'title', 'comment',
-                           'is_active', 'modified_at', 'courses'}
+        excluded_fields = {
+            "id",
+            "class_name",
+            "department",
+            "weight",
+            "title",
+            "comment",
+            "is_active",
+            "modified_at",
+            "courses",
+        }
 
         for constraint_class in all_subclasses(FlopConstraint):
             fields = constraint_class._meta.get_fields()
 
-            parameters_fields = set([f for f in fields
-                                     if f.name not in excluded_fields])
-            classes.append({'name': constraint_class.__name__, 'local_name': constraint_class._meta.verbose_name,
-                            'parameters': parameters_fields})
+            parameters_fields = set(
+                [f for f in fields if f.name not in excluded_fields]
+            )
+            classes.append(
+                {
+                    "name": constraint_class.__name__,
+                    "local_name": constraint_class._meta.verbose_name,
+                    "parameters": parameters_fields,
+                }
+            )
 
         serializer = serializers.FlopConstraintTypeSerializer(classes, many=True)
         return Response(serializer.data)
@@ -381,35 +394,39 @@ class NoVisioViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
-@method_decorator(name='list',
-                  decorator=swagger_auto_schema(
-                      manual_parameters=[
-                          dept_param(required=True)
-                      ])
-                  )
 class FlopConstraintFieldViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
+    @extend_schema(parameters=[dept_param(required=True)])
     def list(self, request):
-        dept = self.request.query_params.get('dept', None)
+        dept = self.request.query_params.get("dept", None)
         if dept is None:
-            raise APIException(detail='Department not provided')
+            raise APIException(detail="Department not provided")
         try:
             department = Department.objects.get(abbrev=dept)
         except Department.DoesNotExist:
-            raise APIException(detail='Unknown department')
+            raise APIException(detail="Unknown department")
         flop_constraints_fields = set()
         # exclude useless fields
-        excluded_fields = {'id', 'class_name',
-                           'department', 'weight', 'title', 'comment',
-                           'is_active', 'modified_at', 'courses'}
+        excluded_fields = {
+            "id",
+            "class_name",
+            "department",
+            "weight",
+            "title",
+            "comment",
+            "is_active",
+            "modified_at",
+            "courses",
+        }
 
         for constraint_class in all_subclasses(FlopConstraint):
             fields = constraint_class._meta.get_fields()
             # Exclude already considered fields
             excluded_fields |= set(f.name for f in flop_constraints_fields)
-            parameters_fields = set([f for f in fields
-                                     if f.name not in excluded_fields])
+            parameters_fields = set(
+                [f for f in fields if f.name not in excluded_fields]
+            )
             flop_constraints_fields |= parameters_fields
 
         fields_list = list(flop_constraints_fields)
@@ -445,15 +462,19 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                 typename = type(field).__name__
 
                 # Récupère les validators dans acceptable
-                if typename == 'BooleanField':
+                if typename == "BooleanField":
                     acceptable = [True, False]
 
-                elif typename == 'CharField':
+                elif typename == "CharField":
                     choices = field.choices
                     if choices is not None:
                         if "day" in field.name:
                             acceptable_days = department.timegeneralsettings.days
-                            acceptable = [choice[0] for choice in Day.CHOICES if choice[0] in acceptable_days]
+                            acceptable = [
+                                choice[0]
+                                for choice in Day.CHOICES
+                                if choice[0] in acceptable_days
+                            ]
                         else:
                             acceptable = [c[0] for c in choices]
                 
@@ -469,10 +490,13 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                         acceptable = all_possible_start_times(department)
                     elif "day" in field.name:
                         acceptable_days = department.timegeneralsettings.days
-                        acceptable = [choice[0] for choice in Day.CHOICES if choice[0] in acceptable_days]
+                        acceptable = [
+                            choice[0]
+                            for choice in Day.CHOICES
+                            if choice[0] in acceptable_days
+                        ]
                     elif choices is not None:
                         acceptable = [c[0] for c in choices]
-
 
             else:
                 # Récupère le modele en relation avec un ManyToManyField ou un ForeignKey
@@ -482,14 +506,29 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                 acceptablelist = mod.objects.values("id")
 
                 # Filtre les ID dans acceptable list en fonction du department
-                if field.name in ["tutor", "tutors", "room", "rooms", "possible_rooms", "guide_tutors"]:
+                if field.name in [
+                    "tutor",
+                    "tutors",
+                    "room",
+                    "rooms",
+                    "possible_rooms",
+                    "guide_tutors",
+                ]:
                     acceptablelist = acceptablelist.filter(departments=department)
 
-                elif field.name in ["train_progs", "course_type", "course_types", "room_type", "room_types"]:
+                elif field.name in [
+                    "train_progs",
+                    "course_type",
+                    "course_types",
+                    "room_type",
+                    "room_types",
+                ]:
                     acceptablelist = acceptablelist.filter(department=department)
 
                 elif field.name in ["modules", "module", "groups", "group"]:
-                    acceptablelist = acceptablelist.filter(train_prog__department=department)
+                    acceptablelist = acceptablelist.filter(
+                        train_prog__department=department
+                    )
 
                 # Accept only periods that are in the current year, and on the week mode
                 # FIXME accept other modes!
@@ -505,8 +544,8 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-class CustomUrl():
-    #Class to better handle url
+class CustomUrl:
+    # Class to better handle url
     def __init__(self, request):
         self.domain = request.get_host()
         self.protocol = request.scheme
@@ -515,13 +554,9 @@ class CustomUrl():
         self.lang = self.splited_path[1]
 
 
-@method_decorator(name='list',
-                  decorator=swagger_auto_schema(
-                  )
-                  )
 class FlopDocVisu(viewsets.ViewSet):
     def list(self, request, **kwargs):
-        name = kwargs['name']
+        name = kwargs["name"]
         name_no_extensions = name.split(".")[0]
         url = CustomUrl(request)
         dir_lang = os.path.join(DOC_DIR, url.lang)
@@ -533,22 +568,24 @@ class FlopDocVisu(viewsets.ViewSet):
             return HttpResponse(status=500)
         forbidden_files = data["discarded"]
 
-        if (name in forbidden_files):
-            print(f"{Tcolors.FAIL}{Tcolors.BOLD}Attempt to access forbidden file : {name}{Tcolors.ENDC}")
+        if name in forbidden_files:
+            print(
+                f"{Tcolors.FAIL}{Tcolors.BOLD}Attempt to access forbidden file : {name}{Tcolors.ENDC}"
+            )
             return HttpResponse(status=404)
 
         # if doc not found in language will try to find it in english
-        if (url.lang != EN_DIR_NAME):
+        if url.lang != EN_DIR_NAME:
             f_path = recursive_search(dir_lang, name)
-            if (len(f_path) == 0):
-               dir_lang = os.path.join(DOC_DIR, EN_DIR_NAME)
-               f_path = recursive_search(dir_lang, name)
-               if (len(f_path) == 0):
-                   return HttpResponse(status=404)
+            if len(f_path) == 0:
+                dir_lang = os.path.join(DOC_DIR, EN_DIR_NAME)
+                f_path = recursive_search(dir_lang, name)
+                if len(f_path) == 0:
+                    return HttpResponse(status=404)
         # english doc
         else:
             f_path = recursive_search(dir_lang, name)
-            if (len(f_path) == 0):
+            if len(f_path) == 0:
                 return HttpResponse(status=404)
 
         # will replace image path and interpolate file
@@ -567,18 +604,14 @@ class FlopDocVisu(viewsets.ViewSet):
         return HttpResponse(status=403)
 
 
-@method_decorator(name='list',
-                  decorator=swagger_auto_schema(
-                  )
-                  )
 class FlopImgVisu(viewsets.ViewSet):
-    #Work the same as FlopDocVisu
+    # Work the same as FlopDocVisu
     def list(self, request, **kwargs):
-        name = kwargs['name']
+        name = kwargs["name"]
         f_path = recursive_search(IMG_DIR, name)
-        if (len(f_path) == 0):
+        if len(f_path) == 0:
             return HttpResponse(status=404)
-        file_handle = open(f_path, 'rb')
+        file_handle = open(f_path, "rb")
         return FileResponse(file_handle)
 
     def create(self, request, **kwargs):
@@ -590,12 +623,13 @@ class FlopImgVisu(viewsets.ViewSet):
     def destroy(self, request, **kwargs):
         return HttpResponse(status=403)
 
+
 #################################################
 
 
 def recursive_search(path, filename):
     liste = list(Path(path).rglob(filename))
-    if (len(liste) == 0):
+    if len(liste) == 0:
         return []
     else:
         return str(liste[0])
@@ -619,28 +653,26 @@ def check_file(path, url, name):
     except:
         found = False
 
-    if (found):
+    if found:
         # if cached file exist we return it
         json_file = json.load(json_path)
-        print(f'{Tcolors.OKGREEN}Opened cached file{Tcolors.ENDC}')
+        print(f"{Tcolors.OKGREEN}Opened cached file{Tcolors.ENDC}")
         return json.dumps(json_file)
     else:
         # create json and attempt to write it in cache
-        file_handle = open(path, 'r')
+        file_handle = open(path, "r")
         text = image_interpolation(file_handle, url.full_domain)
         text, dico_inter = doc_interpolation(text)
 
-        full_dico = {
-            "text": text,
-            "inter": dico_inter
-        }
+        full_dico = {"text": text, "inter": dico_inter}
         json_file = json.dumps(full_dico)
         try:
-            json_path = open(file_temp_path, 'x')
+            json_path = open(file_temp_path, "x")
             json_path.write(json_file)
         except:
             print(
-                f"{Tcolors.FAIL}{Tcolors.BOLD}CAN'T WRITE FILE INTO TEMP, BAD PERFORMANCE EXPECTED{Tcolors.ENDC}")
+                f"{Tcolors.FAIL}{Tcolors.BOLD}CAN'T WRITE FILE INTO TEMP, BAD PERFORMANCE EXPECTED{Tcolors.ENDC}"
+            )
             return json_file
 
         print(f"{Tcolors.OKGREEN}Created json file {name} {Tcolors.ENDC}")
@@ -650,8 +682,8 @@ def check_file(path, url, name):
 def image_interpolation(file, domain):
     text = file.read()
     # use 4th group (image name, identified by r\4) from regex image and add the domain
-    image_path = domain+"/fr/api/ttapp"+r"\4"
-    full_link = "!["+r"\1"+"]("+image_path+")"  # rebuild
+    image_path = domain + "/fr/api/ttapp" + r"\4"
+    full_link = "![" + r"\1" + "](" + image_path + ")"  # rebuild
 
     replaced = re.sub(REGEX_IMAGE, full_link, text)
     return replaced
@@ -659,11 +691,11 @@ def image_interpolation(file, domain):
 
 def doc_interpolation(docu):
     # will replace in the doc every {{xx}} with <span id=xxDisplayer>...
-    reg = r'({{(.*?)}})'
+    reg = r"({{(.*?)}})"
 
     pattern = re.compile(reg)
     paramCallCount = {}
-    newstring = ''
+    newstring = ""
     start = 0
     for m in re.finditer(pattern, docu):
         ###
@@ -672,12 +704,17 @@ def doc_interpolation(docu):
         ###
 
         name = m.group(2).strip()
-        if (paramCallCount.get(name) == None):
+        if paramCallCount.get(name) == None:
             paramCallCount[name] = 0
 
         paramCallCount[name] = paramCallCount.get(name) + 1
-        rep = '<span id="' + name + 'Displayer' + \
-            str(paramCallCount.get(name)) + '"></span>'
+        rep = (
+            '<span id="'
+            + name
+            + "Displayer"
+            + str(paramCallCount.get(name))
+            + '"></span>'
+        )
 
         ###
         newstring += rep

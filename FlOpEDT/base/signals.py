@@ -38,6 +38,6 @@ def create_tutor_default_availability(sender, instance, created, **kwargs):
         for d in range(1, 8):
             UserAvailability.objects.create(
                 user=instance,
-                start_time=dt.datetime(1, 1, 1, 0),
+                start_time=dt.datetime(1, 1, d, 0),
                 duration=dt.timedelta(hours=24),
             )
