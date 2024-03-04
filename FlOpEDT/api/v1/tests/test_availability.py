@@ -300,7 +300,7 @@ class TestUpdateRoomAvailability:
         assert is_success(response.status_code), response.content
 
 
-class TestUserAvailabilityDefault:
+class TestListUserAvailabilityDefault:
     endpoint = f"/fr/api/v1/availability/user-default-week/"
 
     def test_tutor_creation(self, client, make_default_week_user):
@@ -316,8 +316,35 @@ class TestUserAvailabilityDefault:
                 and ua.value == ta.value
             )
 
-    def test_update(self):
-        pass
+    def test_list(self, client, make_default_week_user, make_users):
+        user = User.objects.first()
+        user.is_superuser = True
+        user.save()
+        make_users(2)
+        expected = []
+        for day in range(1, 8):
+            expected.append(
+                {
+                    "subject_type": "user",
+                    "subject_id": user.id,
+                    "start_time": f"0001-01-{day:02d}T00:00:00",
+                    "duration": duration_string(dt.timedelta(hours=24)),
+                    "value": 8,
+                }
+            )
+        client.force_authenticate(user)
+        response = retrieve_elements(client.get(self.endpoint, {"user_id": user.id}), 7)
+        assert sorted(expected, key=lambda a: a["start_time"]) == sorted(
+            response, key=lambda a: a["start_time"]
+        )
+
+    def test_perm_mine_denied(self, client, make_default_week_user):
+        user = User.objects.first()
+        client.force_authenticate(user)
+        response = client.get(self.endpoint, {"user_id": user.id})
+        assert response.status_code == HTTP_403_FORBIDDEN, response
+
+
 class TestUpdateUserAvailabilityDefault:
     endpoint = f"/fr/api/v1/availability/update_user-default-week/"
 

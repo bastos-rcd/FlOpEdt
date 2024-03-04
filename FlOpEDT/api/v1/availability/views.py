@@ -29,12 +29,10 @@ from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 from rules.contrib.views import PermissionRequiredMixin
 
 from rest_framework import viewsets, exceptions, mixins, parsers
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
 from rest_framework.decorators import action
 
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 import django_filters.rest_framework as filters
 from django.utils.decorators import method_decorator
@@ -46,6 +44,7 @@ import people.models as pm
 
 from api.v1.availability import serializers
 from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly, IsTutor
+from base.rules import can_view_user_availability
 from api.shared.params import (
     user_id_param,
     room_id_param,
@@ -187,15 +186,15 @@ class UserDatedAvailabilityUpdateViewSet(
     parameters=[
         user_id_param(),
         dept_id_param(),
+        OpenApiParameter("to_date", exclude=True),
+        OpenApiParameter("from_date", exclude=True),
     ],
 )
 class UserDefaultAvailabilityListViewSet(UserDatedAvailabilityListViewSet):
-    def list(self, request, *args, **kwargs):
+    def get_queryset(self):
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
-        return super(UserDefaultAvailabilityListViewSet, self).list(
-            request, *args, **kwargs
-        )
+        return super(UserDefaultAvailabilityListViewSet, self).get_queryset()
 
 
 @extend_schema(
