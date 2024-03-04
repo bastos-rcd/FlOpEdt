@@ -450,20 +450,22 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
 
                 elif typename == 'CharField':
                     choices = field.choices
-                    if "start_time" in field.name:
-                        acceptable = all_possible_start_times(department)
-                    elif choices is not None:
+                    if choices is not None:
                         if "day" in field.name:
                             acceptable_days = department.timegeneralsettings.days
                             acceptable = [choice[0] for choice in Day.CHOICES if choice[0] in acceptable_days]
                         else:
                             acceptable = [c[0] for c in choices]
+                
+                elif typename == 'TimeField':
+                    acceptable = all_possible_start_times(department)
 
                 elif type(field) is ArrayField:
                     typename = type(field.base_field).__name__
                     # Récupère les choices de l'arrayfield dans acceptable
                     choices = field.base_field.choices
-                    if "start_time" in field.name:
+                    # Si c'est des timme, on récupère les start times possibles
+                    if "time" in field.name:
                         acceptable = all_possible_start_times(department)
                     elif "day" in field.name:
                         acceptable_days = department.timegeneralsettings.days
@@ -489,8 +491,10 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                 elif field.name in ["modules", "module", "groups", "group"]:
                     acceptablelist = acceptablelist.filter(train_prog__department=department)
 
-                elif field.name == "weeks":
-                    acceptablelist = acceptablelist.filter(year__in=[current_year, current_year + 1])
+                # Accept only periods that are in the current year, and on the week mode
+                # FIXME accept other modes!
+                elif field.name == "periods":
+                    acceptablelist = acceptablelist.filter(mode="w", start_date__year__in=[current_year, current_year + 1])
 
                 for element in acceptablelist:
                     acceptable.append(element["id"])
