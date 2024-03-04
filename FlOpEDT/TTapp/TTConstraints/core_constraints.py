@@ -412,7 +412,7 @@ class ScheduleAllCourses(TTConstraint):
                 not_scheduled.append(c)
             elif considered_scheduled_courses.filter(course=c).count() > 1:
                 scheduled_more_than_once.append(c)
-        assert len(not_scheduled) == 0 and len(scheduled_more_than_once) == 0, f"not_scheduled: {not_scheduled}, scheduled_more_than_once: {scheduled_more_than_once}"
+        return {"success": len(not_scheduled) == 0 and len(scheduled_more_than_once) == 0, "not_scheduled": not_scheduled, "scheduled_more_than_once": scheduled_more_than_once}
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         max_slots_nb = len(ttmodel.wdb.courses_slots)

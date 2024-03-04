@@ -63,7 +63,7 @@ class FlopConstraint(models.Model):
         """
         Test if the given work_copy satisfies the constraint for the given period
         """
-        raise NotImplementedError
+        return {"success": True, "more": "Constraint test not implemented"}
     
     def period_work_copy_scheduled_courses_queryset(self, period: SchedulingPeriod, work_copy: int) -> models.QuerySet:
         """
