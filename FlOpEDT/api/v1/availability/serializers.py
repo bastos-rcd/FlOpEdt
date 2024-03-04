@@ -243,6 +243,9 @@ class AvailabilityDefaultWeekSerializer(AvailabilityFullDaySerializer):
 class UserAvailabilityDefaultWeekSerializer(AvailabilityDefaultWeekSerializer):
     model = UserAvailabilityFullDayModel
 
+class RoomAvailabilityDefaultWeekSerializer(AvailabilityDefaultWeekSerializer):
+    model = RoomAvailabilityFullDayModel
+
 
 class UserAvailabilityFullDaySerializer(AvailabilityFullDaySerializer):
     model = UserAvailabilityFullDayModel

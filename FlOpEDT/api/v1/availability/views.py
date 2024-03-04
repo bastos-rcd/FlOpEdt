@@ -226,3 +226,15 @@ class UserDefaultAvailabilityUpdateViewSet(
     AvailabilityModel = bm.UserAvailability
     serializer_class = serializers.UserAvailabilityDefaultWeekSerializer
     queryset = bm.UserAvailability.objects.all()
+
+
+class RoomDefaultAvailabilityUpdateViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Update default availability. (Will be pushed in the default week based on the weekday of the dates from the query parameters)
+    """
+
+    AvailabilityModel = bm.UserAvailability
+    serializer_class = serializers.RoomAvailabilityDefaultWeekSerializer
+    queryset = bm.RoomAvailability.objects.all()
