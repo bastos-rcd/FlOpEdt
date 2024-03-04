@@ -46,7 +46,7 @@ def possible_start_time(department):
     horaire = dt.datetime.combine(dt.date(1,1,1), time.day_start_time)
     possible_start_time_list = []
     while horaire.time() <= time.day_end_time:
-        possible_start_time_list.append(horaire.time())
+        possible_start_time_list.append(horaire.time().strftime("%H:%M"))
         horaire += dt.timedelta(minutes = 5)
     return possible_start_time_list
 
@@ -61,8 +61,9 @@ def get_start_time(new_starts_times):
 
     """
     start_time_list = []
-    for start_time in new_starts_times:
-        start_time_list.append(start_time)
+    for start_time_str in new_starts_times:
+        start_time_list.append(dt.datetime.strptime(start_time_str, '%H:%M').time())
+    start_time_list.sort()
     return start_time_list
 
 
@@ -82,7 +83,7 @@ def read(department):
 
         list_starts_times = []
         for value in cstc.allowed_start_times:
-            list_starts_times.append(value)
+            list_starts_times.append(value.strftime("%H:%M"))
 
         values.append((cstc.duration.seconds//60, list_starts_times))
 
@@ -121,7 +122,7 @@ def create(entries, department):
     for i in range(len(entries['new_values'])):
         new_duration_minutes = entries['new_values'][i][0]
         new_duration = dt.timedelta(minutes=new_duration_minutes)
-        new_starts_ti = entries['new_values'][i][1]
+        new_starts_times = entries['new_values'][i][1]
 
         if CourseStartTimeConstraint.objects.filter(duration=new_duration, department=department):
             entries['result'].append([
@@ -131,7 +132,7 @@ def create(entries, department):
             return entries
 
         new_cstc = CourseStartTimeConstraint.objects.create(department=department,
-                                                            duration=new_duration,            allowed_start_times=get_start_time(new_starts_ti))
+                                                            duration=new_duration,            allowed_start_times=get_start_time(new_starts_times))
 
         entries['result'].append([OK_RESPONSE])
 
