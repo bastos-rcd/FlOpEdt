@@ -23,8 +23,7 @@
 
 import django_filters.rest_framework as filters
 from django.http import HttpResponse, JsonResponse
-from django.utils.decorators import method_decorator
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 
 import base.models as bm
@@ -40,21 +39,22 @@ class RoomTypesViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a RoomTypes object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = bm.RoomType.objects.all()
     serializer_class = serializers.RoomTypesSerializer
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class RoomFilterSet(filters.FilterSet):
     permission_classes = [IsAdminOrReadOnly]
 
-    dept = filters.CharFilter(field_name='departments__abbrev', required=False)
+    dept = filters.CharFilter(field_name="departments__abbrev", required=False)
 
     class Meta:
         model = bm.Room
-        fields = ['dept']
+        fields = ["dept"]
 
 
 class RoomViewSet(viewsets.ModelViewSet):
@@ -63,6 +63,7 @@ class RoomViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with parameter="dept"[required] of a Room object, with the function RoomsFilterSet
     """
+
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = bm.Room.objects.all()
@@ -76,6 +77,7 @@ class RoomNameViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Room object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = bm.Room.objects.all()
@@ -83,20 +85,17 @@ class RoomNameViewSet(viewsets.ModelViewSet):
     filterset_class = RoomFilterSet
 
 
-@method_decorator(name='list',
-                  decorator=swagger_auto_schema(
-                      manual_parameters=[dept_param()])
-                  )
 class RoomAllViewSet(viewsets.ViewSet):
     queryset = bm.Room.objects.all()
     filterset_class = RoomFilterSet
     permission_classes = [IsAdminOrReadOnly]
 
+    @extend_schema(parameters=[dept_param()])
     def list(self, req):
         room_filtered = RoomFilterSet(data=req.query_params)
         if not room_filtered.is_valid():
             return HttpResponse(room_filtered.errors)
-        department = room_filtered.data.get('dept')
+        department = room_filtered.data.get("dept")
         rooms = queries.get_room_types_groups(department)
         return JsonResponse(rooms, safe=False)
 
@@ -107,63 +106,69 @@ class RoomSortsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a RoomSort object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = bm.RoomSort.objects.all()
     serializer_class = serializers.RoomSortsSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class RoomAttributeViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the boolean room attributes.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = bm.RoomAttribute.objects.all()
     serializer_class = serializers.RoomAttributeSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class BooleanRoomAttributeViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the boolean room attributes.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = bm.BooleanRoomAttribute.objects.all()
     serializer_class = serializers.BooleanRoomAttributeSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class NumericRoomAttributeViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the boolean room attributes.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = bm.NumericRoomAttribute.objects.all()
     serializer_class = serializers.NumericRoomAttributeSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class BooleanRoomAttributeValuesViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the boolean room attribute values.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = bm.BooleanRoomAttributeValue.objects.all()
     serializer_class = serializers.BooleanRoomAttributeValuesSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class NumericRoomAttributeValuesViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the boolean room attribute values.
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = bm.NumericRoomAttributeValue.objects.all()
     serializer_class = serializers.NumericRoomAttributeValuesSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
