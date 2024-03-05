@@ -53,6 +53,10 @@ def pre_analyse_next_periods(department, nb_of_weeks):
 
 
 def send_pre_analyse_email(department_abbrev, email_adress, nb_of_weeks=10):
+    try:
+        nb_of_weeks = int(nb_of_weeks)
+    except:
+        nb_of_weeks = 10
     translation.activate('fr')
     department = Department.objects.get(abbrev=department_abbrev)
     result = pre_analyse_next_periods(nb_of_weeks, department)
