@@ -76,3 +76,9 @@ class TrainingProgrammesSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TrainingProgramme
         fields = ("id", "name", "abbrev", "department_id")
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.Department
+        fields = "__all__"
