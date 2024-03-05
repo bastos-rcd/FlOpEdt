@@ -29,25 +29,13 @@ import base.models as bm
 
 
 class StructuralGroupsSerializer(serializers.ModelSerializer):
-    type_id = serializers.IntegerField(source="type.id")
-    train_prog_id = serializers.IntegerField(source="train_prog.id")
-    parent_ids = serializers.SerializerMethodField()
 
     class Meta:
         model = bm.StructuralGroup
-        fields = ("id", "name", "train_prog_id", "type_id", "parent_ids")
-
-    @extend_schema_field(List[OpenApiTypes.INT])
-    def get_parent_ids(self, obj):
-        return [parent.id for parent in obj.parent_groups.all()]
+        fields = ("id", "name", "train_prog_id", "type_id", "parent_groups")
 
 
 class TransversalGroupsSerializer(serializers.ModelSerializer):
-    type_id = serializers.IntegerField(source="type.id")
-    train_prog_id = serializers.IntegerField(source="train_prog.id")
-    conflicting_group_ids = serializers.SerializerMethodField()
-    parallel_group_ids = serializers.SerializerMethodField()
-
     class Meta:
         model = bm.TransversalGroup
         fields = (
@@ -55,19 +43,9 @@ class TransversalGroupsSerializer(serializers.ModelSerializer):
             "name",
             "train_prog_id",
             "type_id",
-            "conflicting_group_ids",
-            "parallel_group_ids",
+            "conflicting_groups",
+            "parallel_groups",
         )
-
-    @extend_schema_field(List[OpenApiTypes.INT])
-    def get_conflicting_group_ids(self, obj):
-        return [
-            conflicting_group.id for conflicting_group in obj.conflicting_groups.all()
-        ]
-
-    @extend_schema_field(List[OpenApiTypes.INT])
-    def get_parallel_group_ids(self, obj):
-        return [parallel_group.id for parallel_group in obj.parallel_groups.all()]
 
 
 class TrainingProgrammesSerializer(serializers.ModelSerializer):

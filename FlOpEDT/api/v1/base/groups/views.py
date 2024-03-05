@@ -82,14 +82,14 @@ class StructuralGroupsViewSet(GenericGroupsViewSet):
     queryset = bm.StructuralGroup.objects.all()
     serializer_class = serializers.StructuralGroupsSerializer
     filterset_class = StructuralGroupsFilterSet
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [DjangoModelPermissionsOrReadOnly]
 
 
 class TransversalGroupsViewSet(GenericGroupsViewSet):
     queryset = bm.TransversalGroup.objects.all()
     serializer_class = serializers.TransversalGroupsSerializer
     filterset_class = TransversalGroupsFilterSet
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [DjangoModelPermissionsOrReadOnly]
 
 
 class TrainingProgramsViewSet(viewsets.ModelViewSet):
