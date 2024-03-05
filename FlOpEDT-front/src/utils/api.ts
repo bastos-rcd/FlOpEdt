@@ -17,8 +17,8 @@ import {
 const API_ENDPOINT = '/fr/api/'
 
 const urls = {
-  getcurrentuser: 'user/getcurrentuser',
-  getAllDepartments: 'fetch/alldepts',
+  getcurrentuser: 'v1/people/getcurrentuser',
+  getAllDepartments: 'v1/base/groups/department',
   getScheduledcourses: 'v1/base/courses/scheduled_courses',
   getRooms: 'v1/base/courses/rooms',
   weekdays: 'fetch/weekdays',
