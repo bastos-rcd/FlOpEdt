@@ -714,7 +714,8 @@ LOGGING = {
 
 # Specific cronjob
 # CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]
-CRONJOBS = [(cron_time, cron_command) for cron_time, cron_command in flop_config['cronjobs'].items()]
+CRONJOBS = [(cron_time, cron_command.replace(' ','').split(',')[0], cron_command.replace(' ','').split(',')[1:]) 
+            for cron_time, cron_command in flop_config['cronjobs'].items()]
 
 
 AUTHENTICATION_BACKENDS = (
