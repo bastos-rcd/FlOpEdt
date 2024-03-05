@@ -1,6 +1,5 @@
 import pytest
 
-from rest_framework.test import APIClient
 from rest_framework.status import (
     HTTP_406_NOT_ACCEPTABLE,
     HTTP_403_FORBIDDEN,
@@ -21,11 +20,6 @@ def make_themes(db):
     ThemesPreferences.objects.create(user=u, theme="pouet_th")
     u = UserFactory.create(username="patate")
     ThemesPreferences.objects.create(user=u, theme="patate_th")
-
-
-@pytest.fixture
-def client():
-    return APIClient()
 
 
 class TestDjangoRules:

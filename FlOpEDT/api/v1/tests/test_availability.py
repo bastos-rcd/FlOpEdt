@@ -3,7 +3,7 @@ import copy
 
 import pytest
 
-from rest_framework.test import APIClient, APITestCase
+
 from rest_framework.status import (
     HTTP_406_NOT_ACCEPTABLE,
     HTTP_403_FORBIDDEN,
@@ -24,11 +24,6 @@ from people.models import Tutor, User
 from .factories.availability import UserIUTEveningFactory, UserIUTMorningFactory
 
 
-@pytest.fixture
-def client():
-    return APIClient()
-
-
 class TestListUserAvailability:
     endpoint = f"/fr/api/v1/availability/user/"
     target_dates = {
@@ -36,11 +31,11 @@ class TestListUserAvailability:
         "to_date": "0001-01-04",
     }
 
-    def test_user_or_dept_required(self, client: APIClient):
+    def test_user_or_dept_required(self, client):
         with pytest.raises(AssertionError) as e_info:
             retrieve_elements(client.get(self.endpoint, self.target_dates))
 
-    def test_list_date(self, client: APIClient, make_default_week_user: None):
+    def test_list_date(self, client, make_default_week_user: None):
         user = User.objects.first()
         user.is_superuser = True
         user.save()
@@ -64,7 +59,7 @@ class TestListUserAvailability:
             },
         ], response.content
 
-    def test_perm_view_mine_denied(self, client: APIClient, make_users):
+    def test_perm_view_mine_denied(self, client, make_users):
         make_users(1)
         user = User.objects.first()
         client.force_authenticate(user)
@@ -73,7 +68,7 @@ class TestListUserAvailability:
         assert response.status_code == HTTP_403_FORBIDDEN, response
 
     def test_perm_view_mine_allowed(
-        self, client: APIClient, make_users, make_perm_view_my_user_av
+        self, client, make_users, make_perm_view_my_user_av
     ):
         make_users(1)
         user = User.objects.first()
@@ -84,7 +79,7 @@ class TestListUserAvailability:
         assert is_success(response.status_code), response
 
     def test_perm_view_other_user_allowed(
-        self, client: APIClient, make_users, make_perm_view_any_user_av
+        self, client, make_users, make_perm_view_any_user_av
     ):
         make_users(2)
         user = User.objects.first()
@@ -95,7 +90,7 @@ class TestListUserAvailability:
         response = client.get(self.endpoint, wanted)
         assert is_success(response.status_code), response
 
-    def test_perm_view_other_user_allowed(self, client: APIClient, make_users):
+    def test_perm_view_other_user_allowed(self, client, make_users):
         make_users(2)
         user = User.objects.first()
         other = User.objects.all().exclude(id=user.id)[0]
@@ -105,7 +100,7 @@ class TestListUserAvailability:
         assert response.status_code == HTTP_403_FORBIDDEN, response
 
     def test_perm_view_dept_allowed(
-        self, client: APIClient, make_users, make_perm_view_any_user_av
+        self, client, make_users, make_perm_view_any_user_av
     ):
         make_users(1)
         user = User.objects.first()
@@ -116,7 +111,7 @@ class TestListUserAvailability:
         response = client.get(self.endpoint, wanted)
         assert is_success(response.status_code), response
 
-    def test_perm_view_dept_allowed(self, client: APIClient, make_users):
+    def test_perm_view_dept_allowed(self, client, make_users):
         make_users(1)
         user = User.objects.first()
         d = Department.objects.create(abbrev="d")
@@ -185,7 +180,7 @@ class TestUpdateUserAvailability:
         response = retrieve_elements(client.post(self.endpoint, push), 4)
         assert response == push
 
-    def test_update_cut_day_end(self, client: APIClient, make_user_hourly_commune):
+    def test_update_cut_day_end(self, client, make_user_hourly_commune):
         user = User.objects.first()
         client.force_authenticate(user=user)
         push = copy.deepcopy(self.wanted) | {"subject_id": user.id}
@@ -200,7 +195,7 @@ class TestUpdateUserAvailability:
         response = client.post(self.endpoint, push)
         assert not is_success(response.status_code), response
 
-    def test_update_cut_day_middle(self, client: APIClient, make_user_hourly_commune):
+    def test_update_cut_day_middle(self, client, make_user_hourly_commune):
         user = User.objects.first()
         client.force_authenticate(user=user)
         push = copy.deepcopy(self.wanted) | {"subject_id": user.id}
@@ -295,7 +290,7 @@ class TestUpdateRoomAvailability:
         ],
     }
 
-    def test_update_(self, client, make_rooms_and_av):
+    def test_update(self, client, make_rooms_and_av):
         room = make_rooms_and_av(3)[0]
         user = User.objects.create_superuser(username="u")
         client.force_authenticate(user=user)
@@ -303,7 +298,7 @@ class TestUpdateRoomAvailability:
         response = retrieve_elements(client.post(self.endpoint, push), 4)
         assert response == push
 
-    def test_perm_push_denied(self, client: APIClient, db, make_users):
+    def test_perm_push_denied(self, client, db, make_users):
         make_users(1)
         r = Room.objects.create(name="r")
         u = User.objects.first()
