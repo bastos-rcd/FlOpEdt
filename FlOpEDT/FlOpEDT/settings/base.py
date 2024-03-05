@@ -714,7 +714,14 @@ LOGGING = {
 
 # Specific cronjob
 # CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]
-CRONJOBS = [(cron_time, cron_command) for cron_time, cron_command in flop_config['cronjobs'].items()]
+try:
+    CRONJOBS = [
+        (cron_time, cron_command)
+        for cron_time, cron_command in flop_config["cronjobs"].items()
+    ]
+except KeyError:
+    print("WARNING - no CRON jobs hence no backup is configured")
+    CRONJOBS = []
 
 
 AUTHENTICATION_BACKENDS = (
