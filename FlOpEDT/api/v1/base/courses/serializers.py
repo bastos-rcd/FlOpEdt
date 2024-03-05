@@ -20,60 +20,71 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-
+from typing import List
 from rest_framework import serializers
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 import base.models as bm
 import displayweb.models as dwm
 import people.models as pm
 from base.timing import Day, flopdate_to_datetime
 from datetime import timedelta
-from api.base.courses.serializers import CoursesSerializer, Group_SC_Serializer, Module_SC_Serializer, Department_TC_Serializer
+from api.base.courses.serializers import (
+    CoursesSerializer,
+    Group_SC_Serializer,
+    Module_SC_Serializer,
+    Department_TC_Serializer,
+)
 
 #                             ------------------------------                            #
 #                             ----Scheduled Courses (SC)----                            #
 #                             ------------------------------                            #
 
 
-
 class ScheduledCoursesSerializer(serializers.Serializer):
     # Specification of wanted fields
     id = serializers.IntegerField()
-    course_id = serializers.IntegerField(source='course.id')
-    module_id = serializers.IntegerField(source='course.module.id')
-    tutor_id = serializers.IntegerField(source='tutor.id', allow_null=True)
+    course_id = serializers.IntegerField(source="course.id")
+    module_id = serializers.IntegerField(source="course.module.id")
+    tutor_id = serializers.IntegerField(source="tutor.id", allow_null=True)
     supp_tutor_ids = serializers.SerializerMethodField()
-    room_id = serializers.IntegerField(source='room.id', allow_null=True)
-    # TODO V1: change into DatetimeFields
-    # start_time = serializers.DatetimeField()
-    # end_time = serializers.DateTimeField()
-    start_time = serializers.SerializerMethodField()
-    end_time = serializers.SerializerMethodField()
+    room_id = serializers.IntegerField(source="room.id", allow_null=True)
+    start_time = serializers.DateTimeField()
+    end_time = serializers.DateTimeField()
     train_prog_id = serializers.SerializerMethodField()
-    group_ids = serializers.SerializerMethodField()    
+    group_ids = serializers.SerializerMethodField()
 
     # Sructuration of the data
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['id', 'course_id', 'module_id', 'tutor_id', 'supp_tutor_ids', 'room_id', 'start_time', 'end_time', 'train_prog_id', 'group_ids']
-        ref_name = "New api scheduled course serializer"
-
-    def get_start_time(self, obj):
-        flop_week, flop_weekday, flop_start_time = obj.course.week, obj.day, obj.start_time
-        flop_day = Day(flop_weekday, flop_week)
-        return flopdate_to_datetime(flop_day, flop_start_time)
+        fields = [
+            "id",
+            "course_id",
+            "module_id",
+            "tutor_id",
+            "supp_tutor_ids",
+            "room_id",
+            "start_time",
+            "end_time",
+            "train_prog_id",
+            "group_ids",
+        ]
+        # ref_name = "New api scheduled course serializer"
 
     def get_end_time(self, obj):
         start_time = self.get_start_time(obj)
-        #TODO : duration should be in course instead of course type
-        duration = obj.course.type.duration
+        duration = obj.course.duration
         return start_time + timedelta(seconds=duration * 60)
-    
+
+    @extend_schema_field(List[OpenApiTypes.INT])
     def get_group_ids(self, obj):
         return list(g.id for g in obj.course.groups.all())
-    
+
+    @extend_schema_field(List[OpenApiTypes.INT])
     def get_supp_tutor_ids(self, obj):
         return list(t.id for t in obj.course.supp_tutor.all())
-    
+
+    @extend_schema_field(OpenApiTypes.INT)
     def get_train_prog_id(self, obj):
         return obj.course.groups.first().train_prog.id
 
@@ -84,19 +95,21 @@ class RoomsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = bm.Room
-        fields = ('id', 'name', 'over_room_ids', 'department_ids')
+        fields = ("id", "name", "over_room_ids", "department_ids")
 
+    @extend_schema_field(List[OpenApiTypes.INT])
     def get_department_ids(self, obj):
         return [dep.id for dep in obj.departments.all()]
-    
+
+    @extend_schema_field(List[OpenApiTypes.INT])
     def get_over_room_ids(self, obj):
         return [over_room.id for over_room in obj.subroom_of.all()]
 
 
 class ModulesSerializer(serializers.ModelSerializer):
-    head_id = serializers.IntegerField(source='head.id', allow_null=True)
-    train_prog_id = serializers.IntegerField(source='train_prog.id')
-    
+    head_id = serializers.IntegerField(source="head.id", allow_null=True)
+    train_prog_id = serializers.IntegerField(source="train_prog.id")
+
     class Meta:
         model = bm.Module
-        fields = ('id', 'name', 'abbrev','head_id', 'train_prog_id', 'description')
+        fields = ("id", "name", "abbrev", "head_id", "train_prog_id", "description")

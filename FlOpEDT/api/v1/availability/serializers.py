@@ -27,6 +27,9 @@ from people.models import User
 from base.timing import Day, flopdate_to_datetime
 import datetime as dt
 
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
+
 from base.rules import can_push_user_availability
 
 
@@ -45,7 +48,11 @@ class AvailabilitySerializer(serializers.ModelSerializer):
 
 class UserAvailabilitySerializer(AvailabilitySerializer):
     subject_id = serializers.IntegerField(source="user.id")
-    subject_type = serializers.ReadOnlyField(default="user")
+    subject_type = serializers.SerializerMethodField()
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_subject_type(self, obj):
+        return "user"
 
     class Meta:
         model = bm.UserAvailability
@@ -54,7 +61,11 @@ class UserAvailabilitySerializer(AvailabilitySerializer):
 
 class RoomAvailabilitySerializer(AvailabilitySerializer):
     subject_id = serializers.IntegerField(source="room.id")
-    subject_type = serializers.ReadOnlyField(default="room")
+    subject_type = serializers.SerializerMethodField()
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_subject_type(self, obj):
+        return "room"
 
     class Meta:
         model = bm.RoomAvailability
@@ -242,6 +253,7 @@ class AvailabilityDefaultWeekSerializer(AvailabilityFullDaySerializer):
 
 class UserAvailabilityDefaultWeekSerializer(AvailabilityDefaultWeekSerializer):
     model = UserAvailabilityFullDayModel
+
 
 class RoomAvailabilityDefaultWeekSerializer(AvailabilityDefaultWeekSerializer):
     model = RoomAvailabilityFullDayModel
