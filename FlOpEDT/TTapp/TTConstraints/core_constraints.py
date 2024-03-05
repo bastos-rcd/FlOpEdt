@@ -16,10 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public
 # License along with this program. If not, see
-# <http://www.gnu.org/licenses/>.
-#
-# You can be released from the requirements of the license by purchasing
-# a commercial license. Buying such a license is mandatory as soon as
+# <http://www.gnu.org/licenses/>.is_satisfied
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
@@ -370,21 +367,17 @@ class NoSimultaneousGroupCourses(TTConstraint):
     def __str__(self):
         return "No simultaneous courses for one group"
     
-    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+    def is_satisfied_for(self, period, work_copy):
         relevant_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         relevant_basic_groups = considered_basic_groups(self)
-        is_satisfied = True
-        result = {}
+        problematic_groups = []
         for bg in relevant_basic_groups:
             bg_scheduled_courses = relevant_scheduled_courses.filter(course__groups__in=bg.and_ancestors())
             for sched_course in bg_scheduled_courses:
                 for sched_course2 in bg_scheduled_courses.filter(id__gt=sched_course.id):
                     if sched_course.is_simultaneous_to(sched_course2):
-                        if bg not in result:
-                            result[bg] = []
-                        result[bg].append((sched_course, sched_course2))
-                        is_satisfied = False
-        return {"success": is_satisfied, "more": result}
+                        problematic_groups.append(bg)
+        assert not problematic_groups, f"{self} is not satisfied for period {period}, work_copy {work_copy} and the following groups : {problematic_groups}"
         
 
 
@@ -403,16 +396,18 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name = _("Schedule once all considered courses")
         verbose_name_plural = verbose_name
 
-    def test_period_work_copy(self, period, work_copy):
-        not_scheduled=[]
+    def is_satisfied_for(self, period, work_copy):
+        unscheduled=[]
         scheduled_more_than_once = []
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         for c in self.considered_courses(period):
             if considered_scheduled_courses.filter(course=c).count() == 0:
-                not_scheduled.append(c)
+                unscheduled.append(c)
             elif considered_scheduled_courses.filter(course=c).count() > 1:
                 scheduled_more_than_once.append(c)
-        return {"success": len(not_scheduled) == 0 and len(scheduled_more_than_once) == 0, "not_scheduled": not_scheduled, "scheduled_more_than_once": scheduled_more_than_once}
+        not_asserted_text = f"{self} is not satisfied for period {period} and work_copy {work_copy}"
+        assert not unscheduled, not_asserted_text + f"The following courses are not scheduled : {unscheduled}"
+        assert not scheduled_more_than_once, not_asserted_text + f"The following courses are scheduled more than once : {scheduled_more_than_once}"
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         max_slots_nb = len(ttmodel.wdb.courses_slots)
@@ -568,18 +563,12 @@ class AssignAllCourses(TTConstraint):
                 Constraint(constraint_type=ConstraintType.PRE_ASSIGNED_TUTORS_ONLY),
             )
     
-    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
-        is_satisfied = True
-        result = {}
+    def is_satisfied_for(self, period, work_copy):
         tutor_courses, _ = self.tutors_courses_and_no_tutor_courses(period)
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
-        not_assigned_scheduled_courses = considered_scheduled_courses.filter(course__in=tutor_courses,
+        unassigned_scheduled_courses = considered_scheduled_courses.filter(course__in=tutor_courses,
                                                                              tutor__isnull=True)
-        if not_assigned_scheduled_courses.exists():
-            is_satisfied = False
-            result["no_tutor"] = not_assigned_scheduled_courses
-        return {"success": is_satisfied, "more": result}
-
+        assert not unassigned_scheduled_courses.exists(), f"{self} is not satisfied for period {period} and work_copy {work_copy}. The following courses are not assigned to a tutor : {unassigned_scheduled_courses}"
 
     def one_line_description(self):
         text = f"Assigne tous les cours "
@@ -852,24 +841,19 @@ class ConsiderTutorsUnavailability(TTConstraint):
                         period,
                     )
     
-    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
-        is_satisfied = True
-        result = {}
+    def is_satisfied_for(self, period, work_copy):
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         considered_tutors = set(sc.tutor for sc in considered_scheduled_courses)
         for sc in considered_scheduled_courses:
             considered_tutors |= set(sc.course.supp_tutor.all())
+        unavailable_tutors = []
         for tutor in considered_tutors:
             tutor_courses = considered_scheduled_courses.filter(Q(tutor=tutor)|Q(course__supp_tutor=tutor))
             user_unavailabilities = period_actual_availabilities(tutor, period, unavail_only=True)
             for sc in tutor_courses:
                 if slots_filter(user_unavailabilities, simultaneous_to=sc):
-                    is_satisfied = False
-                    if tutor not in result:
-                        result[tutor] = []
-                    result[tutor].append(sc)
-
-        return {"success": is_satisfied, "more": {}}
+                    unavailable_tutors.append(tutor)
+        assert not unavailable_tutors, f"{self} is not satisfied for period {period} and work_copy {work_copy}. The following tutors have courses on declared unavailabilities : {unavailable_tutors}"
 
 
     def one_line_description(self):

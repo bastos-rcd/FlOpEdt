@@ -59,11 +59,11 @@ class FlopConstraint(models.Model):
     is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
     modified_at = models.DateField(auto_now=True)
 
-    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+    def is_satisfied_for(self, period: SchedulingPeriod, work_copy: int):
         """
-        Test if the given work_copy satisfies the constraint for the given period
+        Test if the constraint is satisfied for the given period and work copy
         """
-        return {"success": True, "more": "Constraint test not implemented"}
+        raise NotImplementedError
     
     def period_work_copy_scheduled_courses_queryset(self, period: SchedulingPeriod, work_copy: int) -> models.QuerySet:
         """
