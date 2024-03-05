@@ -27,13 +27,17 @@ from api.v1.people import views as people_views
 
 routerPeople = routers.SimpleRouter()
 
-routerPeople.register(r'users', people_views.UsersViewSet, basename="users")
-routerPeople.register(r'students', people_views.UsersViewSet, basename="students")
-routerPeople.register(r'tutors', people_views.TutorsViewSet, basename="tutors")
-
+routerPeople.register(r"users", people_views.UsersViewSet, basename="users")
+routerPeople.register(r"students", people_views.UsersViewSet, basename="students")
+routerPeople.register(r"tutors", people_views.TutorsViewSet, basename="tutors")
+routerPeople.register(r"themes", people_views.ThemePreferenceViewSet, basename="theme")
 
 url_people_patterns = [
-    path(r'getcurrentuser/', people_views.getCurrentUserView.as_view(), name='getcurrentuser'),
+    path(
+        r"getcurrentuser/",
+        people_views.getCurrentUserView.as_view(),
+        name="getcurrentuser",
+    ),
 ]
 
 url_people_patterns += routerPeople.urls

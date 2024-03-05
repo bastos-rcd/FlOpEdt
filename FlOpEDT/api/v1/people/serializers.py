@@ -34,6 +34,7 @@ import base.models as bm
 class UserSerializer(serializers.ModelSerializer):
     departments = serializers.SerializerMethodField()
 
+    @extend_schema_field(List[OpenApiTypes.INT])
     def get_departments(self, obj):
         if obj.is_superuser:
             for dep in bm.Department.objects.all():

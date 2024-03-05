@@ -22,7 +22,7 @@
 # without disclosing the source code of your own applications.
 from django.utils.decorators import method_decorator
 import django_filters.rest_framework as filters
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -58,6 +58,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 class getCurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=UserSerializer)
     def get(self, request):
         return Response(UserSerializer(request.user).data)
 
