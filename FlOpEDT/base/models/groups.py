@@ -14,7 +14,7 @@ class Department(models.Model):
     def __str__(self):
         return self.abbrev
 
-# TODO : Adopter l'écriture US plutôt que UK (=> TrainingProgram)
+
 class TrainingProgramme(models.Model):
     name = models.CharField(max_length=50)
     abbrev = models.CharField(max_length=50)
@@ -44,8 +44,8 @@ class GroupType(models.Model):
 class GenericGroup(models.Model):
     # TODO : should not include "-" nor "|"
     name = models.CharField(max_length=100)
-    train_prog = models.ForeignKey('TrainingProgramme', on_delete=models.CASCADE)
-    type = models.ForeignKey('GroupType', on_delete=models.CASCADE, null=True)
+    train_prog = models.ForeignKey("TrainingProgramme", on_delete=models.CASCADE)
+    type = models.ForeignKey("GroupType", on_delete=models.CASCADE, null=True)
     size = models.PositiveSmallIntegerField()
 
     class Meta:
@@ -88,9 +88,13 @@ class GenericGroup(models.Model):
 
 
 class StructuralGroup(GenericGroup):
-    basic = models.BooleanField(verbose_name=_('Basic group?'), default=False)
-    parent_groups = models.ManyToManyField('self', symmetrical=False, blank=True, related_name="children_groups")
-    generic = models.OneToOneField('GenericGroup', on_delete=models.CASCADE, parent_link=True)
+    basic = models.BooleanField(verbose_name=_("Basic group?"), default=False)
+    parent_groups = models.ManyToManyField(
+        "self", symmetrical=False, blank=True, related_name="children_groups"
+    )
+    generic = models.OneToOneField(
+        "GenericGroup", on_delete=models.CASCADE, parent_link=True
+    )
 
     def ancestor_groups(self):
         """
@@ -138,16 +142,21 @@ class StructuralGroup(GenericGroup):
         """
         :return: the set of all TransversalGroup containing self
         """
-        return TransversalGroup.objects.filter(conflicting_groups__in=self.connected_groups())
+        return TransversalGroup.objects.filter(
+            conflicting_groups__in=self.connected_groups()
+        )
 
     class Meta:
         verbose_name = _("structural group")
         verbose_name_plural = _("structural groups")
 
+
 class TransversalGroup(GenericGroup):
     conflicting_groups = models.ManyToManyField("base.StructuralGroup", blank=True)
-    parallel_groups = models.ManyToManyField('self', symmetrical=True, blank=True)
-    generic = models.OneToOneField('GenericGroup', on_delete=models.CASCADE, parent_link=True)
+    parallel_groups = models.ManyToManyField("self", symmetrical=True, blank=True)
+    generic = models.OneToOneField(
+        "GenericGroup", on_delete=models.CASCADE, parent_link=True
+    )
 
     class Meta:
         verbose_name = _("transversal group")
