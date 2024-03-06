@@ -2,9 +2,10 @@ from django.db import models
 from base.models.courses import Course
 from django.utils.translation import gettext_lazy as _
 
+
 class Department(models.Model):
     name = models.CharField(max_length=50)
-    abbrev = models.CharField(max_length=7)
+    abbrev = models.CharField(max_length=7, unique=True)
 
     class Meta:
         verbose_name = _("department")
@@ -22,6 +23,7 @@ class TrainingProgramme(models.Model):
     class Meta:
         verbose_name = _("training programme")
         verbose_name_plural = _("training programmes")
+        unique_together = ["abbrev", "department"]
 
     def __str__(self):
         return self.abbrev
