@@ -37,6 +37,7 @@ import people.models as pm
 
 from . import serializers
 from api.shared.params import (
+    dept_id_param,
     dept_param,
     from_date_param,
     to_date_param,
@@ -57,6 +58,7 @@ import datetime as dt
         from_date_param(required=True),
         to_date_param(required=True),
         work_copy_param(),
+        dept_id_param(),
         dept_param(),
         train_prog_param(),
         group_param(),
@@ -76,10 +78,17 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
         lineage = True if lineage == "true" else False
 
         # TODO change into dpt_id
+        self.dept_id = self.request.query_params.get("dept_id", None)
+        if self.dept_id is not None:
+            self.dept_id = int(self.dept_id)
         self.dept = self.request.query_params.get("dept", None)
         if self.dept is not None:
+            if self.dept_id is not None:
+                raise exceptions.NotAcceptable(
+                    detail=f"Please choose beetween dept_id={self.dept_id} and dept={self.dept}"
+                )
             try:
-                self.dept = bm.Department.objects.get(abbrev=self.dept)
+                self.dept_id = bm.Department.objects.get(abbrev=self.dept).id
             except bm.Department.DoesNotExist:
                 raise exceptions.NotAcceptable(detail="Unknown department")
 
@@ -119,9 +128,9 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
 
         if self.train_prog is not None:
             try:
-                if self.dept is not None:
+                if self.dept_id is not None:
                     self.train_prog = bm.TrainingProgramme.objects.get(
-                        abbrev=self.train_prog, department=self.dept
+                        abbrev=self.train_prog, department=self.dept_id
                     )
                 else:
                     self.train_prog = bm.TrainingProgramme.objects.get(
@@ -152,14 +161,14 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 queryset = queryset.filter(course__groups__train_prog=self.train_prog)
 
         if group_name is None and self.train_prog is None:
-            if self.dept is None:
+            if self.dept_id is None:
                 if self.tutor is None:
                     pass
                     # raise exceptions.NotAcceptable(
                     #     detail='You should either pick a group and a training programme, or a tutor, or a department')
             else:
                 queryset = queryset.filter(
-                    course__module__train_prog__department=self.dept
+                    course__module__train_prog__department=self.dept_id
                 )
             if self.tutor is not None:
                 queryset = queryset.filter(

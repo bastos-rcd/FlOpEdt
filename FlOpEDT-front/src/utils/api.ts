@@ -135,7 +135,7 @@ const fetcher2 = (url: string, params?: object, renameList?: Array<[string, stri
   fetchData(url, params ? filterObject(params, renameList) : {})
 
 export interface FlopAPI {
-  getScheduledCourses(from?: Date, to?: Date, department?: string, tutor?: number): Promise<Array<ScheduledCourse>>
+  getScheduledCourses(from?: Date, to?: Date, department_id?: number, tutor?: number): Promise<Array<ScheduledCourse>>
   getStructuralGroups(department?: string): Promise<GroupAPI[]>
   getTransversalGroups(department?: string): Promise<GroupAPI[]>
   getModules(): Promise<ModuleAPI[]>
@@ -174,40 +174,21 @@ const api: FlopAPI = {
   async getScheduledCourses(
     from?: Date,
     to?: Date,
-    department?: string,
+    department_id?: number,
     tutor?: number
   ): Promise<Array<ScheduledCourse>> {
     let scheduledCourses: Array<ScheduledCourse> = []
-    let firstParam: boolean = false
-    let finalUrl: string = API_ENDPOINT + urls.getScheduledcourses + '/'
-    if (department) {
-      finalUrl += '?dept=' + department
-      firstParam = true
-    }
+    let context = new Map<string, any>([['dept_id', department_id]])
     if (from) {
-      if (firstParam) finalUrl += '&'
-      else {
-        finalUrl += '?'
-        firstParam = true
-      }
-      finalUrl += 'from_date=' + dateToString(from)
+      context.set('from_date', dateToString(from))
     }
     if (to) {
-      if (firstParam) finalUrl += '&'
-      else {
-        finalUrl += '?'
-        firstParam = true
-      }
-      finalUrl += 'to_date=' + dateToString(to)
+      context.set('to_date', dateToString(to))
     }
-    if (tutor && tutor !== -1) {
-      if (firstParam) finalUrl += '&'
-      else {
-        finalUrl += '?'
-        firstParam = true
-      }
-      finalUrl += 'tutor_name=' + tutor
+    if (tutor !== -1) {
+      context.set('tutor_name', tutor)
     }
+    const finalUrl = buildUrl(API_ENDPOINT + urls.getScheduledcourses + '/', context)
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',

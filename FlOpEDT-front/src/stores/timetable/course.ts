@@ -25,7 +25,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     courses.value = new Map<string, Course[]>()
     if (scheduledCourses.value.has(getDateTimeStringFromDate(from!))) isLoading.value = true
     try {
-      await api.getScheduledCourses(from, to, department?.abbrev, tutor).then((result: ScheduledCourse[]) => {
+      await api.getScheduledCourses(from, to, department?.id, tutor).then((result: ScheduledCourse[]) => {
         result.forEach((r: ScheduledCourse) => {
           if (!scheduledCourses.value.has(getDateTimeStringFromDate(r.start_time, false)))
             scheduledCourses.value.set(getDateTimeStringFromDate(r.start_time, false), [])

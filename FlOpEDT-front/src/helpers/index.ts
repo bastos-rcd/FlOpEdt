@@ -258,3 +258,15 @@ export function dateToTimestamp(date: Date): Timestamp {
 export function timestampToDate(ts: Timestamp): Date {
   return new Date(getDateTime(ts))
 }
+export function buildUrl(endpoint: string, context: Map<string, any>, accept_null: boolean = false) {
+  let url = ''
+  for (const [k, v] of context) {
+    if (accept_null || v) {
+      url += `&${k}=${v}`
+    }
+  }
+  if (url === '') {
+    return endpoint
+  }
+  return endpoint + '?' + url.substring(1)
+}
