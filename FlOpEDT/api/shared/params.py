@@ -118,10 +118,20 @@ def room_id_param(**kwargs):
 
 def tutor_param(**kwargs):
     return OpenApiParameter(
-        "tutor_name",
+        "tutor",
         location=OpenApiParameter.QUERY,
         description="tutor username",
         type=OpenApiTypes.STR,
+        **kwargs
+    )
+
+
+def tutor_id_param(**kwargs):
+    return OpenApiParameter(
+        "tutor_id",
+        location=OpenApiParameter.QUERY,
+        description="tutor id",
+        type=OpenApiTypes.INT,
         **kwargs
     )
 
@@ -166,6 +176,26 @@ def group_param(**kwargs):
     )
 
 
+def struct_group_param(**kwargs):
+    return OpenApiParameter(
+        "struct_group",
+        location=OpenApiParameter.QUERY,
+        description="Structural group name",
+        type=OpenApiTypes.STR,
+        **kwargs
+    )
+
+
+def struct_group_id_param(**kwargs):
+    return OpenApiParameter(
+        "struct_group_id",
+        location=OpenApiParameter.QUERY,
+        description="Structural group id",
+        type=OpenApiTypes.INT,
+        **kwargs
+    )
+
+
 def train_prog_param(**kwargs):
     return OpenApiParameter(
         "train_prog",
@@ -176,11 +206,31 @@ def train_prog_param(**kwargs):
     )
 
 
+def train_prog_id_param(**kwargs):
+    return OpenApiParameter(
+        "train_prog_id",
+        location=OpenApiParameter.QUERY,
+        description="Training programme id",
+        type=OpenApiTypes.INT,
+        **kwargs
+    )
+
+
 def lineage_param(**kwargs):
     return OpenApiParameter(
         "lineage",
         location=OpenApiParameter.QUERY,
         description="includes parent groups (default: false)",
+        type=OpenApiTypes.BOOL,
+        **kwargs
+    )
+
+
+def and_transversal_param(**kwargs):
+    return OpenApiParameter(
+        "and_transversal",
+        location=OpenApiParameter.QUERY,
+        description="include related transversal groups (default: true)",
         type=OpenApiTypes.BOOL,
         **kwargs
     )
