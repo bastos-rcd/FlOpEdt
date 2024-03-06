@@ -22,9 +22,10 @@
 # without disclosing the source code of your own applications.
 
 import django_filters.rest_framework as filters
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 from rest_framework import exceptions
+from rest_framework import serializers as rfs
 
 from django.utils.decorators import method_decorator
 from django.core.exceptions import MultipleObjectsReturned
@@ -37,15 +38,19 @@ import people.models as pm
 
 from . import serializers
 from api.shared.params import (
-    dept_id_param,
-    dept_param,
     from_date_param,
     to_date_param,
     work_copy_param,
-    group_param,
-    train_prog_param,
-    lineage_param,
     tutor_param,
+    tutor_id_param,
+    dept_id_param,
+    dept_param,
+    train_prog_param,
+    train_prog_id_param,
+    struct_group_param,
+    struct_group_id_param,
+    lineage_param,
+    and_transversal_param,
 )
 from api.permissions import IsAdminOrReadOnly
 
@@ -53,20 +58,142 @@ from base.timing import date_to_flopday, days_list, days_index
 import datetime as dt
 
 
+class ScheduledCourseQueryParamsSerializer(rfs.Serializer):
+    from_date = rfs.DateField()
+    to_date = rfs.DateField()
+    work_copy = rfs.IntegerField(required=False, default=0)
+    tutor = rfs.CharField(required=False)
+    tutor_id = rfs.IntegerField(required=False)
+    dept = rfs.CharField(required=False)
+    dept_id = rfs.IntegerField(required=False)
+    train_prog = rfs.CharField(required=False)
+    train_prog_id = rfs.IntegerField(required=False)
+    struct_group = rfs.CharField(required=False)
+    struct_group_id = rfs.IntegerField(required=False)
+    and_transversal = rfs.BooleanField(required=False, default=True)
+    lineage = rfs.BooleanField(required=False)
+
+    def validate(self, value):
+        value = super().validate(value)
+
+        # department
+        if "dept" in value:
+            if "dept_id" in value:
+                raise exceptions.ValidationError(
+                    detail={
+                        "dept": f"Please choose beetween dept_id={value['dept_id']} and dept={value['dept']}"
+                    }
+                )
+            try:
+                value["dept_id"] = bm.Department.objects.get(abbrev=value["dept"]).id
+            except bm.Department.DoesNotExist:
+                raise exceptions.ValidationError(detail={"dept": "Unknown department"})
+
+        # tutor
+        if "tutor" in value:
+            if "tutor_id" in value:
+                raise exceptions.ValidationError(
+                    detail={
+                        "tutor": f"Please choose beetween tutor_id={value['tutor_id']} and tutor={value['tutor']}"
+                    }
+                )
+            try:
+                value["tutor_id"] = pm.Tutor.objects.get(username=value["tutor"])
+            except pm.Tutor.DoesNotExist:
+                raise exceptions.ValidationError(detail={"tutor": "Unknown tutor"})
+
+        # training programme
+        if "train_prog" in value:
+            if "dept_id" not in value:
+                raise exceptions.ValidationError(
+                    detail={
+                        "train_prog": "If you provide a training programme, you should also provide a department"
+                    }
+                )
+            try:
+                value["train_prog_id"] = bm.TrainingProgramme.objects.get(
+                    abbrev=value["train_prog"], department=value["dept_id"]
+                )
+            except bm.TrainingProgramme.DoesNotExist:
+                raise exceptions.ValidationError(
+                    detail={"train_prog": "Unknown training programme"}
+                )
+
+        # group
+        if "struct_group_id" in value:
+            try:
+                groups = {bm.StructuralGroup.objects.get(id=value["struct_group_id"])}
+            except bm.StructuralGroup.DoesNotExist:
+                raise exceptions.NotAcceptable(detail={"struct_group": "Unknown group"})
+
+        groups = None
+        if "struct_group" in value:
+            if "train_prog_id" not in value:
+                raise exceptions.ValidationError(
+                    detail={
+                        "train_prog": "If you provide a group name, you should also provide a training programme (and a department if training programme name)"
+                    }
+                )
+            try:
+                groups = {
+                    bm.StructuralGroup.objects.get(
+                        name=value["struct_group_id"], train_prog=value["train_prog_id"]
+                    )
+                }
+            except bm.StructuralGroup.DoesNotExist:
+                raise exceptions.NotAcceptable(detail={"struct_group": "Unknown group"})
+
+        if groups is not None:
+            if value["lineage"]:
+                groups |= groups.ancestor_groups()
+            value["group_ids"] = [gp.id for gp in groups]
+
+        if groups is not None and value["and_transversal"]:
+            tgroups = bm.TransversalGroup.objects.filter(
+                conflicting_groups__in=groups
+            ).distinct("id")
+            value["group_ids"].extend([gp.id for gp in tgroups])
+
+        main_keys = [
+            k
+            for k in value
+            if k in ["tutor_id", "dept_id", "train_prog_id", "group_ids"]
+        ]
+        if len(main_keys) == 0:
+            raise exceptions.ValidationError(
+                detail={
+                    "non_fields_error": "You should provide a department or a tutor or a training programme or a group"
+                }
+            )
+
+        return value
+
+
 @extend_schema(
     parameters=[
         from_date_param(required=True),
         to_date_param(required=True),
         work_copy_param(),
-        dept_id_param(),
-        dept_param(),
-        train_prog_param(),
-        group_param(),
-        lineage_param(),
         tutor_param(),
+        tutor_id_param(),
+        dept_param(),
+        dept_id_param(),
+        train_prog_param(),
+        train_prog_id_param(),
+        struct_group_param(),
+        struct_group_id_param(),
+        lineage_param(),
+        and_transversal_param(),
     ]
 )
 class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Get a list of scheduled courses.
+    If several parameters apply on groups of people (department, training programme, structural groups),
+    only the finest grain filter is used and other group parameters are ignored (filters on structural
+    groups if provided, then on training programme if provided, then on department if provided).
+    """
+
     serializer_class = serializers.ScheduledCoursesSerializer
 
     def get_queryset(self):
@@ -74,114 +201,38 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return bm.ScheduledCourse.objects.none()
 
-        lineage = self.request.query_params.get("lineage", "false")
-        lineage = True if lineage == "true" else False
-
-        # TODO change into dpt_id
-        self.dept_id = self.request.query_params.get("dept_id", None)
-        if self.dept_id is not None:
-            self.dept_id = int(self.dept_id)
-        self.dept = self.request.query_params.get("dept", None)
-        if self.dept is not None:
-            if self.dept_id is not None:
-                raise exceptions.NotAcceptable(
-                    detail=f"Please choose beetween dept_id={self.dept_id} and dept={self.dept}"
-                )
-            try:
-                self.dept_id = bm.Department.objects.get(abbrev=self.dept).id
-            except bm.Department.DoesNotExist:
-                raise exceptions.NotAcceptable(detail="Unknown department")
-
-        self.train_prog = self.request.query_params.get("train_prog", None)
-        group_name = self.request.query_params.get("group", None)
-        self.tutor = self.request.query_params.get("tutor_name", None)
-        work_copy = self.request.query_params.get("work_copy", 0)
-        from_date = self.request.query_params.get("from_date", None)
-        to_date = self.request.query_params.get("to_date", None)
-
-        if self.tutor is not None:
-            try:
-                self.tutor = pm.Tutor.objects.get(username=self.tutor)
-            except pm.Tutor.DoesNotExist:
-                raise exceptions.NotAcceptable(detail="Unknown tutor")
-
-        queryset = (
-            bm.ScheduledCourse.objects.all()
-            .select_related(
-                "course__module__train_prog__department",
-                "tutor__display",
-                "course__type",
-                "course__room_type",
-                "course__module__display",
-            )
-            .prefetch_related(
-                "course__groups__train_prog", "room", "course__supp_tutor"
-            )
+        serializer = ScheduledCourseQueryParamsSerializer(
+            data=self.request.query_params
         )
-        queryset = queryset.filter(work_copy=work_copy)
-        # sanity check
-        if group_name is not None and self.train_prog is None:
-            raise exceptions.NotAcceptable(
-                detail="A training programme should be "
-                "given when a group name is given"
+        serializer.is_valid(raise_exception=True)
+
+        params = serializer.validated_data
+
+        queryset = bm.ScheduledCourse.objects.filter(
+            work_copy=params["work_copy"],
+            start_time__gte=dt.datetime.combine(params["from_date"], dt.time(0, 0, 0)),
+            start_time__lte=dt.datetime.combine(
+                params["to_date"] + dt.timedelta(days=1), dt.time(0, 0, 0)
+            ),
+        )
+
+        if "tutor_id" in params:
+            queryset = queryset.filter(
+                Q(tutor=params["tutor_id"]) | Q(course__supp_tutor=params["tutor_id"])
             )
 
-        if self.train_prog is not None:
-            try:
-                if self.dept_id is not None:
-                    self.train_prog = bm.TrainingProgramme.objects.get(
-                        abbrev=self.train_prog, department=self.dept_id
-                    )
-                else:
-                    self.train_prog = bm.TrainingProgramme.objects.get(
-                        abbrev=self.train_prog
-                    )
-            except bm.TrainingProgramme.DoesNotExist:
-                raise exceptions.NotAcceptable(detail="No such training programme")
-            except MultipleObjectsReturned:
-                raise exceptions.NotAcceptable(
-                    detail="Multiple training programme with this name"
-                )
+        if "group_ids" in params:
+            queryset = queryset.filter(course__groups__in=params["group_ids"])
+        elif "train_prog_id" in params:
+            queryset = queryset.filter(
+                course__module__train_prog=params["train_prog_id"]
+            )
+        elif "dept_id" in params:
+            queryset = queryset.filter(
+                course__module__train_prog__department=params["dept_id"]
+            )
 
-        if group_name is not None:
-            try:
-                declared_group = bm.StructuralGroup.objects.get(
-                    name=group_name, train_prog=self.train_prog
-                )
-                self.groups = {declared_group}
-                if lineage:
-                    self.groups |= declared_group.ancestor_groups()
-            except bm.StructuralGroup.DoesNotExist:
-                raise exceptions.NotAcceptable(detail="No such group")
-            except:
-                raise exceptions.NotAcceptable(detail="Issue with the group")
-            queryset = queryset.filter(course__groups__in=self.groups)
-        else:
-            if self.train_prog is not None:
-                queryset = queryset.filter(course__groups__train_prog=self.train_prog)
-
-        if group_name is None and self.train_prog is None:
-            if self.dept_id is None:
-                if self.tutor is None:
-                    pass
-                    # raise exceptions.NotAcceptable(
-                    #     detail='You should either pick a group and a training programme, or a tutor, or a department')
-            else:
-                queryset = queryset.filter(
-                    course__module__train_prog__department=self.dept_id
-                )
-            if self.tutor is not None:
-                queryset = queryset.filter(
-                    Q(tutor=self.tutor) | Q(course__supp_tutor=self.tutor)
-                )
-
-        if from_date is not None:
-            from_date_time = dt.datetime.fromisoformat(from_date)
-        if to_date is not None:
-            to_date_time = dt.datetime.fromisoformat(to_date) + dt.timedelta(days=1)
-        return queryset.filter(
-            start_time__gte=from_date_time, start_time__lte=to_date_time
-        )
+        return queryset
 
 
 class RoomFilterSet(filters.FilterSet):
