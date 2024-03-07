@@ -73,20 +73,31 @@ export const useEventStore = defineStore('eventStore', () => {
           })
         }
       })
-      if (tutorsSelected.value.length !== 0) {
-        tutorsSelected.value.forEach((t: User) => {
-          if (c.tutorId === t.id) currentEvent.toggled = true
-        })
-      }
-      if (roomsSelected.value.length !== 0) {
-        roomsSelected.value.forEach((room: Room) => {
-          if (c.room === room.id) currentEvent.toggled = true
-        })
-      }
+      currentEvent.toggled = isCurrentEventSelected(c)
       eventsReturned.push(currentEvent)
     })
     calendarEvents.value = eventsReturned
   })
+
+  function isCurrentEventSelected(c: Course): boolean {
+    let isTutorSelected = tutorsSelected.value.length === 0
+    let isRoomSelected = roomsSelected.value.length === 0
+    let i = 0
+    while (i < tutorsSelected.value.length && !isTutorSelected) {
+      if (c.tutorId === tutorsSelected.value[i].id) {
+        isTutorSelected = true
+      }
+      i++
+    }
+    i = 0
+    while (i < roomsSelected.value.length && !isRoomSelected) {
+      if (c.room === roomsSelected.value[i].id) {
+        isRoomSelected = true
+      }
+      i++
+    }
+    return isTutorSelected && isRoomSelected
+  }
 
   return {
     daysSelected,
