@@ -33,25 +33,26 @@ export const useTutorStore = defineStore('tutor', () => {
   })
 
   async function fetchTutors(tutorId?: number): Promise<void> {
-    isAllTutorsFetched.value = false
-    await api.getTutors(tutorId).then((result: UserAPI[]) => {
-      result.forEach((user: UserAPI) => {
-        const newTutor = {
-          id: user.id,
-          username: user.username,
-          firstname: user.first_name,
-          lastname: user.last_name,
-          email: user.email,
-          type: 'tutor',
-          departments: new Map<number, boolean>(),
-        }
-        user.departments.forEach((dep) => {
-          newTutor.departments.set(dep.department_id, dep.is_admin === 'true')
+    if (!isAllTutorsFetched.value) {
+      await api.getTutors(tutorId).then((result: UserAPI[]) => {
+        result.forEach((user: UserAPI) => {
+          const newTutor = {
+            id: user.id,
+            username: user.username,
+            firstname: user.first_name,
+            lastname: user.last_name,
+            email: user.email,
+            type: 'tutor',
+            departments: new Map<number, boolean>(),
+          }
+          user.departments.forEach((dep) => {
+            newTutor.departments.set(dep.department_id, dep.is_admin === 'true')
+          })
+          tutors.value.push(newTutor)
         })
-        tutors.value.push(newTutor)
+        isAllTutorsFetched.value = true
       })
-      isAllTutorsFetched.value = true
-    })
+    }
   }
 
   function clearTutors(): void {

@@ -62,7 +62,10 @@ export const useEventStore = defineStore('eventStore', () => {
         },
       }
       if (module) {
-        currentEvent.bgcolor = moduleColor.value.get(module.id)!
+        const eventColor = moduleColor.value.get(module.id)
+        if (eventColor) {
+          currentEvent.bgcolor = eventColor
+        }
       }
       const courseGroupIds = c.groupIds.map((id) => groupStore.collectDescendantLeafNodeIds(id)).flat()
       courseGroupIds.forEach((courseGroup: number) => {

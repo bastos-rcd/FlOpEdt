@@ -7,6 +7,7 @@ import { api } from '@/utils/api'
 export const useRoomStore = defineStore('room', () => {
   const roomsFetched = ref<Array<Room>>([])
   const isLoading = ref<boolean>(false)
+  const isRoomFetched = ref<boolean>(false)
   const loadingError = ref<Error | null>(null)
   const getRoomById = computed(() => {
     return async (roomId: number) => {
@@ -49,11 +50,12 @@ export const useRoomStore = defineStore('room', () => {
           })
         })
         isLoading.value = false
+        isRoomFetched.value = true
       })
     } catch (e) {
       loadingError.value = e as Error
     }
   }
 
-  return { fetchRooms, roomsFetched, getRoomById }
+  return { fetchRooms, roomsFetched, getRoomById, isRoomFetched }
 })

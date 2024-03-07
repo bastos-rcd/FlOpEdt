@@ -140,11 +140,8 @@ onBeforeMount(async () => {
   }
   fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
-  roomStore.fetchRooms()
-  tutorStore.fetchTutors()
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
   groupStore.fetchGroups(deptStore.current)
-  permanentStore.fetchModules()
 })
 </script>
 

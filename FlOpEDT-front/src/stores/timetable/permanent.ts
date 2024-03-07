@@ -118,5 +118,7 @@ export const usePermanentStore = defineStore('permanent', () => {
     moduleColor,
     getModule,
     getTrainProgs,
+    isModulesFetched,
+    isTrainProgsFetched,
   }
 })
