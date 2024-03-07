@@ -1,4 +1,4 @@
-from TTapp.GlobalPreAnalysis.tools_centralized_preanalysis import getFlopConstraintsInDB
+from TTapp.global_pre_analysis.tools_centralized_preanalysis import getFlopConstraintsInDB
 from base.partition import Partition
 from base.models import ModulePossibleTutors
 

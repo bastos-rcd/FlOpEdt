@@ -281,10 +281,9 @@ class TimeInterval(object):
 
 def all_possible_start_times(department):
     apst_set = set()
-    CT = department.coursetype_set.all()
-    for ct in CT:
-        for cstc in ct.coursestarttimeconstraint_set.all():
-           apst_set |= set(cstc.allowed_start_times)
+    for cstc in department.coursestarttimeconstraint_set.all():
+        for start_time in cstc.allowed_start_times:
+            apst_set.add(start_time.strftime("%H:%M"))
     apst_list = list(apst_set)
     apst_list.sort()
     return apst_list

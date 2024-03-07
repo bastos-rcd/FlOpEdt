@@ -6,7 +6,7 @@ const list_close = new Event('list-close');
 
 // usefull_translations
 let paramaters_translation=[gettext("time2"), gettext("nb_max"), gettext("weekdays"), gettext("nb_min"),
-    gettext("If a tutor has 2 or 4 courses only, join it?"), gettext("slot_start_time"), gettext("curfew_time"), gettext("weeks"),
+    gettext("If a tutor has 2 or 4 courses only, join it?"), gettext("slot_start_time"), gettext("curfew_time"), gettext("weeks"), gettext("periods"), 
     gettext("slot_end_time"), gettext("max_number"), gettext("max_holes_per_day"), gettext("train_progs"),
     gettext("max_holes_per_week"), gettext("limit"), gettext("min_time_per_period"), gettext("max_time_per_period"),
     gettext("course_type"), gettext("max_hours"), gettext("fhd_period"), gettext("tolerated_margin"),
@@ -231,7 +231,7 @@ let filter = {
             if (!(pageid in constraints)) {
                 return false;
             }
-            let param = constraints[pageid].parameters.find(parameter => parameter.name === 'weeks');
+            let param = constraints[pageid].parameters.find(parameter => parameter.name === 'periods');
             return (param.id_list.length === 0 || param.id_list.includes('' + week_id));
         });
     },
@@ -399,16 +399,16 @@ let changeEvents = {
 }
 
 
-// convert floptime to readable time for labels
-function floptime_to_str_time(floptime){
-    let min_from_midnight= parseInt(floptime)
-    let minutes = min_from_midnight%60
-    let hours = (min_from_midnight - minutes) /60
-    let str_minutes = "0" + minutes.toString()
-    let str_hours = hours.toString()
-    let formattedTime = str_hours + ':' + str_minutes.substr(-2)
-    return formattedTime
-}
+// // convert floptime to readable time for labels
+// function floptime_to_str_time(floptime){
+//     let min_from_midnight= parseInt(floptime)
+//     let minutes = min_from_midnight%60
+//     let hours = (min_from_midnight - minutes) /60
+//     let str_minutes = "0" + minutes.toString()
+//     let str_hours = hours.toString()
+//     let formattedTime = str_hours + ':' + str_minutes.substr(-2)
+//     return formattedTime
+// }
 
 
 // object containing functions that fetch data from the database
@@ -593,18 +593,18 @@ let fetchers = {
                 console.error(err);
             });
     },
-    fetchWeeks: (e) => {
-        fetch(urlWeeks)
+    fetchPeriods: (e) => {
+        fetch(urlPeriods)
             .then(resp => resp.json())
             .then(jsonObj => {
-                database['weeks'] = {};
+                database['periods'] = {};
                 Object.values(jsonObj).forEach(obj => {
                     let currentYear = new Date().getFullYear();
-                    let year = obj['year'];
+                    let year = obj['start_date'].year;
                     if (year < currentYear - 1 || year > currentYear + 1) {
                         return;
                     }
-                    database['weeks'][obj['id']] = obj;
+                    database['periods'][obj['id']] = obj;
                 });
             })
             .catch(err => {
@@ -673,11 +673,13 @@ let responseToDict = (resp) => {
     return ret;
 }
 
-// returns week object from week and year numbers
+// returns period object from week and year numbers
+// FIXME : this function shuld consider more than week mode periods
 let getWeek = (year, week) => {
-    return Object.values(database.weeks).find(week_object => {
-        return (week_object.nb === week && week_object.year === year);
+    let w = Object.values(database.periods).find(period_object => {
+        return (period_object.name === 'W'+week.toString()+'-'+ year.toString());
     })
+    return w;
 };
 
 // a simple way to make a copy of a JSON object
@@ -736,7 +738,7 @@ let database = {
     'course_types': null,
     'room_types': null,
     'courses': null,
-    'weeks': null,
+    'periods': null,
     'acceptable_values': null,
     'constraint_types': null,
 }
@@ -1286,8 +1288,8 @@ let getCorrespondingDatabase = (param) => {
         case 'possible_rooms':
         case 'room':
             return database['rooms']
-        case 'weeks':
-            return database['weeks'];
+        case 'periods':
+            return database['periods'];
         default:
             return database['acceptable_values'][param];
     }
@@ -1311,6 +1313,7 @@ let getCorrespondingInfo = (id, param) => {
         case 'rooms':
         case 'possible_rooms':
         case 'room':
+        case 'periods':
             return db[id]['name'];
         case 'course_type':
         case 'course_types':
@@ -1319,11 +1322,6 @@ let getCorrespondingInfo = (id, param) => {
             return db[id];
         case 'weeks':
             return `${db[id]['year']}-${db[id]['nb']}`;
-        case 'start_time':
-        case 'start_times':
-        case 'possible_start_times':
-        case 'allowed_start_times':
-            return floptime_to_str_time(id);
         case 'fampm_period':
         case 'fhd_period':
         case 'weekday':
@@ -1601,9 +1599,7 @@ let buttonWithDropBuilder = (constraint, parameter) => {
             'aria-expanded': 'false',
             'aria-controls': collapseID,
         });
-        console.log(parameter.name);
         button.innerText = gettext(parameter.name);
-        console.log(gettext(parameter.name));
         button.append(badge);
 
         let elements;
@@ -2120,7 +2116,7 @@ fetchers.fetchCourseTypes(null);
 fetchers.fetchRoomTypes(null);
 fetchers.fetchTutorsIDs(null);
 //fetchers.fetchCourses(null);
-fetchers.fetchWeeks();
+fetchers.fetchPeriods();
 fetchers.fetchConstraintTypes();
 fetchers.fetchConstraints(null);
 

@@ -3,11 +3,11 @@ from TTapp.FlopConstraint import all_subclasses
 from django.db.models import Q
 
 
-def getFlopConstraintsInDB(week, department):
+def getFlopConstraintsInDB(period, department):
     """
-        Returns all classes' instances that inherit from TTConstraint and exist for the given week and department in the database.
+        Returns all classes' instances that inherit from TTConstraint and exist for the given period and department in the database.
 
-    :param week: The week we want to search the TTConstraints that are applied on.
+    :param period: The scheduling period we want to search the TTConstraints that are applied on.
     :param department: The department we want to search the TTConstraints that are applied on.
     :return: A list of TTConstraint's instances.
 
@@ -21,7 +21,7 @@ def getFlopConstraintsInDB(week, department):
     # Browse for each subclass if we can find an existing instance of this subclass and add it to the list
     for constraint_class in all_constraints_classes:
             if constraint_class.objects.all().exists():
-                all_this_type_constraints = constraint_class.objects.filter(Q(weeks=week)|Q(weeks__isnull=True),
+                all_this_type_constraints = constraint_class.objects.filter(Q(periods=period)|Q(periods__isnull=True),
                                                                             department=department,
                                                                             weight=None,
                                                                             is_active=True)

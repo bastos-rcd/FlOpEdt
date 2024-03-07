@@ -3,7 +3,7 @@ import django
 django.setup()
 # end
 from unittest import skip
-from TTapp.tests.tools_test_pre_analyse.constraint_test_case import ConstraintTestCase
+from TTapp.deprecated_tests.tools_test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
 from TTapp.TTConstraints.slots_constraints import ConsiderDependencies
 
