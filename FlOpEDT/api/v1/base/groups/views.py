@@ -74,9 +74,7 @@ class GenericGroupsViewSet(viewsets.ModelViewSet):
 
 class StructuralGroupsViewSet(GenericGroupsViewSet):
     """
-    ViewSet to see all the groups
-
-    Can be filtered as wanted with parameter="dept"[required] of a Group object, with the function GroupsFilterSet
+    Structural groups
     """
 
     queryset = bm.StructuralGroup.objects.all()
@@ -86,6 +84,10 @@ class StructuralGroupsViewSet(GenericGroupsViewSet):
 
 
 class TransversalGroupsViewSet(GenericGroupsViewSet):
+    """
+    Transversal groups
+    """
+
     queryset = bm.TransversalGroup.objects.all()
     serializer_class = serializers.TransversalGroupsSerializer
     filterset_class = TransversalGroupsFilterSet
