@@ -11,8 +11,8 @@ from base.models import (
 )
 from people.models import Tutor, UserDepartmentSettings, FullStaff, SupplyStaff
 
-from api.v1.tests.factories.base import DepartmentFactory
-from api.v1.tests.factories.people import UserFactory
+from ..factories.group import DepartmentFactory
+from ..factories.people import UserFactory
 
 
 @pytest.fixture
