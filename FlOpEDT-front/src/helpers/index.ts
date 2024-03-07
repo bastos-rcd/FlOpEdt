@@ -258,6 +258,78 @@ export function dateToTimestamp(date: Date): Timestamp {
 export function timestampToDate(ts: Timestamp): Date {
   return new Date(getDateTime(ts))
 }
+
+const DURATION_ISO_REGEX = /P?(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/
+const DURATION_DJANGO_REGEX =
+  /^(?:(?<days>-?\d+) (days?, )?)?(?<sign>-?)((?:(?<hours>\d+):)(?=\d+:\d+))?(?:(?<minutes>\d+):)?(?<seconds>\d+)(?:[\.,](?<microseconds>\d{1,6})\d{0,6})?$/
+
+export function dateToString(date: Date): string {
+  return date.toISOString().split('T')[0]
+}
+
+export function datetimeStringToDate(datetime: string) {
+  return datetime.split('T')[0]
+}
+
+export function durationISOToMinutes(duration: string): number {
+  const { weeks, days, hours, minutes, seconds } = DURATION_ISO_REGEX.exec(duration)?.groups as {
+    weeks: string
+    days: string
+    hours: string
+    minutes: string
+    seconds: string
+  }
+  return (
+    (weeks ? Number(weeks) * 7 * 24 * 60 : 0) +
+    (days ? Number(days) * 24 * 60 : 0) +
+    (hours ? Number(hours) * 60 : 0) +
+    (minutes ? Number(minutes) : 0) +
+    (seconds ? Number(seconds) / 60 : 0)
+  )
+}
+
+export function durationDjangoToMinutes(duration: string): number {
+  const { days, sign, hours, minutes, seconds, microseconds } = DURATION_DJANGO_REGEX.exec(duration)?.groups as {
+    days: string
+    sign: string
+    hours: string
+    minutes: string
+    seconds: string
+    microseconds: string
+  }
+  const sumMinutes =
+    (days ? Number(days) * 24 * 60 : 0) +
+    (hours ? Number(hours) * 60 : 0) +
+    (minutes ? Number(minutes) : 0) +
+    (seconds ? Number(seconds) / 60 : 0)
+  return sign == '-' ? -sumMinutes : sumMinutes
+}
+
+export function durationMinutesToDjango(duration: number): string {
+  let ret = ''
+  let slice = 24 * 60
+  let fillStarted = false
+  if (duration > slice) {
+    ret += Math.floor(duration / slice).toString() + ' '
+    fillStarted = true
+    duration = duration % slice
+  }
+  slice = 60
+  if (fillStarted || duration > slice) {
+    ret += Math.floor(duration / slice).toString() + ':'
+    fillStarted = true
+    duration = duration % slice
+  }
+  if (fillStarted || duration > 1) {
+    ret += Math.floor(duration).toString() + ':'
+    fillStarted = true
+    duration -= Math.floor(duration)
+  }
+  duration *= 60
+  ret += Math.floor(duration).toString()
+  return ret
+}
+
 export function buildUrl(endpoint: string, context: Map<string, any>, accept_null: boolean = false) {
   let url = ''
   for (const [k, v] of context) {
