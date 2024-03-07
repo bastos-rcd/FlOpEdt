@@ -21,41 +21,42 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import base.models as bm
+from typing import List
 from rest_framework import serializers
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
+import base.models as bm
 
 
 class StructuralGroupsSerializer(serializers.ModelSerializer):
-    type_id = serializers.IntegerField(source='type.id')
-    train_prog_id = serializers.IntegerField(source='train_prog.id')
-    parent_ids = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = bm.StructuralGroup
-        fields = ('id', 'name', 'train_prog_id', 'type_id', 'parent_ids')
-    
-    def get_parent_ids(self, obj):
-        return [parent.id for parent in obj.parent_groups.all()]
+        fields = ("id", "name", "train_prog_id", "type_id", "parent_groups")
 
 
-class TransversalGroupsSerializer(serializers.ModelSerializer): 
-    type_id = serializers.IntegerField(source='type.id')
-    train_prog_id = serializers.IntegerField(source='train_prog.id')
-    conflicting_group_ids = serializers.SerializerMethodField()
-    parallel_group_ids = serializers.SerializerMethodField()
-    
+class TransversalGroupsSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TransversalGroup
-        fields = ('id', 'name', 'train_prog_id', 'type_id', 'conflicting_group_ids', 'parallel_group_ids')
-    
-    def get_conflicting_group_ids(self, obj):
-        return [conflicting_group.id for conflicting_group in obj.conflicting_groups.all()]
-    def get_parallel_group_ids(self, obj):
-        return [parallel_group.id for parallel_group in obj.parallel_groups.all()]
+        fields = (
+            "id",
+            "name",
+            "train_prog_id",
+            "type_id",
+            "conflicting_groups",
+            "parallel_groups",
+        )
+
 
 class TrainingProgrammesSerializer(serializers.ModelSerializer):
-    department_id = serializers.IntegerField(source='department.id')
+    department_id = serializers.IntegerField(source="department.id")
 
     class Meta:
         model = bm.TrainingProgramme
-        fields = ('id', 'name', 'abbrev', 'department_id')
+        fields = ("id", "name", "abbrev", "department_id")
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.Department
+        fields = "__all__"

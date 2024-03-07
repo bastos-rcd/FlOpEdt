@@ -35,9 +35,9 @@ from django.template.response import TemplateResponse
 
 from core.decorators import dept_admin_required
 
-from base.models import TrainingProgramme, ScheduledCourse, Week
+from base.models import TrainingProgramme, ScheduledCourse, SchedulingPeriod
 from base.core.period_weeks import PeriodWeeks
-from TTapp.TTModel import get_ttconstraints
+from TTapp.FlopModel import get_flop_constraints
 
 from django.utils.functional import Promise
 from django.utils.encoding import force_str
@@ -104,20 +104,16 @@ def get_constraints_viewmodel(department, **kwargs):
     #
     # Extract simplified datas from constraints instances
     #
-    constraints = get_ttconstraints(department, **kwargs)
+    constraints = get_flop_constraints(department, **kwargs)
     return [c.get_viewmodel() for c in constraints]
 
 
-def get_context(department, year, week, train_prog=None):
+def get_context(department, year, week):
     #
     #   Get contextual datas
     #
     week_object = Week.objects.get(nb=week, year=year)
     params = {'week': week_object}
-
-    # Get constraints
-    if train_prog and not train_prog == text_all:
-        params.update({'train_prog':train_prog})
 
     constraints = get_constraints_viewmodel(department, **params)
 
@@ -143,10 +139,7 @@ def launch_pre_analyse(req, train_prog, year, week, type, **kwargs):
     resultat = { type: [] }
     result= dict()
     if type == "ConsiderTutorsUnavailability":
-        if train_prog == "All" or not ConsiderTutorsUnavailability.objects.filter(train_progs__in = TrainingProgramme.objects.filter(abbrev=train_prog).all(), department = req.department):
-            constraints = ConsiderTutorsUnavailability.objects.filter(department = req.department)
-        else:
-            constraints = ConsiderTutorsUnavailability.objects.filter(train_progs__in = TrainingProgramme.objects.filter(abbrev=train_prog).all(), department = req.department)
+        constraints = ConsiderTutorsUnavailability.objects.filter(department = req.department)
         for constraint in constraints:
             result = constraint.pre_analyse(week=Week.objects.get(nb= week, year =year))
             resultat[type].append(result)
@@ -168,7 +161,6 @@ def launch_pre_analyse(req, train_prog, year, week, type, **kwargs):
         for constraint in constraints:
             result = constraint.pre_analyse(week=Week.objects.get(nb= week, year =year))
             resultat[type].append(result)
-            
     return JsonResponse(resultat)
 
 
@@ -195,6 +187,7 @@ def main_board(req, **kwargs):
                    'weeks': json.dumps(week_list),
                    'train_progs': json.dumps(all_tps),
                    'solvers': solvers_viewmodel,
+                   'email': req.user.email,
                    }
     
     # Get contextual datas (constraints, work_copies)

@@ -178,15 +178,14 @@ class FlopConstraintSerializer(serializers.ModelSerializer):
     def get_name(self, obj):
         return obj.__class__.__name__
 
-    def get_weeks(self, obj):
-        weeklist = []
-        weeks = getattr(obj, "weeks").values("nb", "year")
+    def get_periods(self, obj):
+        periodlist = []
+        periods = getattr(obj, "periods").values("name")
 
-        for i in weeks:
-            weeklist.append(i)
+        for i in periods:
+            periodlist.append(i)
 
-        return(weeklist)
-
+        return(periodlist)
 
     def get_parameters(self, obj):
         paramlist = []
@@ -207,7 +206,10 @@ class FlopConstraintSerializer(serializers.ModelSerializer):
                         typename = type(field.base_field).__name__
                         # Remplace la liste vide par la liste des valeurs
                         attr = getattr(obj, field.name)
-                        id_list = attr
+                        if "start_time" in field.name:
+                            id_list = list(st.strftime("%H:%M") for st in attr)
+                        else:
+                            id_list = attr
 
                     else:
                         # Insère la valeur de l'attribut unitaire

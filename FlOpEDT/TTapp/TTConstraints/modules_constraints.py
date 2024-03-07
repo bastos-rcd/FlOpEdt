@@ -42,11 +42,11 @@ class MinModulesHalfDays(TTConstraint):
         verbose_name = _('Minimize used half-days for modules')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         considered_modules = set(ttmodel.wdb.modules)
         if self.modules.exists():
             considered_modules &= set(self.modules.all())
-        helper = MinHalfDaysHelperModule(ttmodel, self, week, ponderation)
+        helper = MinHalfDaysHelperModule(ttmodel, self, period, ponderation)
         for module in considered_modules:
             helper.enrich_model(module=module)
 

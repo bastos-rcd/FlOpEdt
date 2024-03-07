@@ -43,7 +43,7 @@ class RoomConstraint(FlopConstraint):
 
     Attributes:
         department : the department concerned by the constraint. Has to be filled.
-        weeks : the weeks for which the constraint should be applied. All if None.
+        periods : the periods for which the constraint should be applied. All if None.
         weight : from 1 to max_weight if the constraint is optional, depending on its importance
                  None if the constraint is necessary
         is_active : usefull to de-activate a Constraint just before the generation
@@ -52,50 +52,43 @@ class RoomConstraint(FlopConstraint):
         abstract = True
 
     @timer
-    def enrich_room_model(self, room_model, week, ponderation=1):
+    def enrich_room_model(self, room_model, period, ponderation=1):
         raise NotImplementedError
 
-    def week_courses_queryset(self, room_model, week):
-        return room_model.courses.filter(week=week)
+    def period_courses_queryset(self, room_model, period):
+        return room_model.courses.filter(period=period)
 
-    def get_courses_queryset_by_parameters(self, room_model, week,
-                                           train_progs=None,
+    def get_courses_queryset_by_parameters(self, period, room_model,
                                            train_prog=None,
-                                           module=None,
+                                           train_progs=None,
                                            group=None,
+                                           groups=None,
+                                           module=None,
+                                           modules=None,
                                            course_type=None,
+                                           course_types=None,
                                            room_type=None,
-                                           tutor=None):
+                                           room_types=None,
+                                           tutor=None,
+                                           tutors=None):
 
-        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(self, room_model, week,
-                                                                       train_progs=train_progs,
+        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(self, period, room_model,
                                                                        train_prog=train_prog,
-                                                                       module=module,
+                                                                       train_progs=train_progs,
                                                                        group=group,
+                                                                       groups=groups,
+                                                                       module=module,
+                                                                       modules=modules,
                                                                        course_type=course_type,
-                                                                       room_type=room_type)
+                                                                       course_types=course_types,
+                                                                       room_type=room_type,
+                                                                       room_types=room_types)
         if tutor is not None:
-            return courses_qs.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
-        else:
-            return courses_qs
+            courses_qs = courses_qs.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
+        if tutors:
+            courses_qs = courses_qs.filter(Q(tutor__in=tutors) | Q(supp_tutor__in=tutors))
 
-    def get_ttmodel_courses_queryset_by_parameters(self, ttmodel, week,
-                                                   train_progs=None,
-                                                   train_prog=None,
-                                                   module=None,
-                                                   group=None,
-                                                   course_type=None,
-                                                   room_type=None,
-                                                   tutor=None):
-
-        return TTConstraint.get_courses_queryset_by_parameters(self, ttmodel, week,
-                                                               train_progs=train_progs,
-                                                               train_prog=train_prog,
-                                                               module=module,
-                                                               group=group,
-                                                               course_type=course_type,
-                                                               room_type=room_type,
-                                                               tutor=tutor)
+        return courses_qs
 
 
 class LimitSimultaneousRoomCourses(RoomConstraint):
@@ -103,7 +96,7 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
     Only one course for each considered room on simultaneous slots
     """
     rooms = models.ManyToManyField('base.Room', blank=True)
-    can_combine_two_groups_if_no_tutor = models.BooleanField(default=False)
+    can_combine_two_groups_if_no_tutor = models.BooleanField(default=False, verbose_name=_('Can combine two groups if no tutor'))
 
     class Meta:
         verbose_name = _('Limit simultaneous courses for rooms')
@@ -121,11 +114,11 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
             text+='.'
         return text
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         considered_rooms = set(ttmodel.wdb.basic_rooms)
         if self.rooms.exists():
             considered_rooms = considered_rooms & set(self.rooms.all())
-        relevant_slots = slots_filter(ttmodel.wdb.availability_slots, week=week)
+        relevant_slots = slots_filter(ttmodel.wdb.availability_slots, period=period)
 
         for r in considered_rooms:
             for sl in relevant_slots:
@@ -163,7 +156,7 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
                             undesired_situation = ttmodel.add_floor(2 * tutor_courses_sum + no_tutor_courses_sum,
                                                                     3,
                                                                     1000)
-                            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation, week=week)
+                            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation, period=period)
 
                 else:
                     if self.weight is None:
@@ -181,9 +174,9 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
                             undesired_situation = ttmodel.add_floor(all_courses_sum,
                                                                     2,
                                                                     1000)
-                            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation, week=week)
+                            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation, period=period)
 
-    def enrich_room_model(self, room_model, week, ponderation=1.):
+    def enrich_room_model(self, room_model, period, ponderation=1.):
         considered_rooms = set(room_model.basic_rooms)
         if self.rooms.exists():
             considered_rooms = considered_rooms & set(self.rooms.all())
@@ -218,7 +211,7 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
                                                                        3,
                                                                        1000)
                             room_model.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation,
-                                                           week=week)
+                                                           period=period)
                 else:
                     if self.weight is None:
                         room_model.add_constraint(all_courses_sum,
@@ -236,7 +229,7 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
                                                                        room_model.avail_room[basic_room][sl] + 1,
                                                                        1000)
                             room_model.add_to_generic_cost(self.local_weight() * ponderation * undesired_situation,
-                                                           week=week)
+                                                           period=period)
 
 
 class LimitedRoomChoices(RoomConstraint):
@@ -273,22 +266,22 @@ class LimitedRoomChoices(RoomConstraint):
         verbose_name = _('Limited room choices')
         verbose_name_plural = verbose_name
 
-    def enrich_room_model(self, room_model, week, ponderation=1.):
-        filtered_courses = self.get_courses_queryset_by_attributes(room_model, week)
+    def enrich_room_model(self, room_model, period, ponderation=1.):
+        filtered_courses = self.get_courses_queryset_by_attributes(period, room_model)
         possible_rooms = self.possible_rooms.all()
         relevant_sum = room_model.sum(room_model.TTrooms[(course, room)]
                                       for course in filtered_courses
                                       for room in room_model.course_room_compat[course] if room not in possible_rooms)
         if self.weight is not None:
-            room_model.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum, week=week)
+            room_model.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum, period=period)
         else:
             room_model.add_constraint(relevant_sum, '==', 0,
                                       Constraint(constraint_type=ConstraintType.LIMITED_ROOM_CHOICES,
                                                  instructors=self.tutor, groups=self.group, modules=self.module,
                                                  rooms=possible_rooms))
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
-        fc = self.get_courses_queryset_by_attributes(ttmodel, week)
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
+        fc = self.get_courses_queryset_by_attributes(period, ttmodel)
         possible_rooms = self.possible_rooms.all()
         if self.tutor is None:
             relevant_var_dic = ttmodel.TTrooms
@@ -303,7 +296,7 @@ class LimitedRoomChoices(RoomConstraint):
                                    for sl in ttmodel.wdb.compatible_slots[c]
                                    for rg in ttmodel.wdb.course_rg_compat[c] if rg not in possible_rooms)
         if self.weight is not None:
-            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum, week=week)
+            ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum, period=period)
         else:
             ttmodel.add_constraint(relevant_sum, '==', 0,
                                    Constraint(constraint_type=ConstraintType.LIMITED_ROOM_CHOICES,
@@ -335,9 +328,9 @@ class ConsiderRoomSorts(RoomConstraint):
         verbose_name = _("Consider tutors rooms sorts")
         verbose_name_plural = verbose_name
 
-    def enrich_room_model(self, room_model, week, ponderation=1.):
+    def enrich_room_model(self, room_model, period, ponderation=1.):
         for tutor in considered_tutors(self, room_model):
-            tutor_courses = room_model.courses_for_tutor[tutor] & room_model.courses_for_week[week]
+            tutor_courses = room_model.courses_for_tutor[tutor] & room_model.courses_for_period[period]
             room_sorts = room_model.tutor_room_sorts[tutor]
             for room_sort in room_sorts:
                 room_type = room_sort.for_type
@@ -355,28 +348,40 @@ class ConsiderRoomSorts(RoomConstraint):
                                                  for course in considered_courses)
                 room_model.add_to_inst_cost(tutor,
                                             self.local_weight() * ponderation * (unpreferred_sum - preferred_sum),
-                                            week=week)
+                                            period=period)
+    def one_line_description(self):
+        text =  f"Prend en compte les préférences de salles des enseignant·e·s "
+        return text
 
 
 class LocateAllCourses(RoomConstraint):
     modules = models.ManyToManyField('base.Module', blank=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
     course_types = models.ManyToManyField('base.CourseType', blank=True)
+    room_types = models.ManyToManyField('base.RoomType', blank=True)
+    tutors = models.ManyToManyField('people.Tutor', blank=True)
 
     class Meta:
         verbose_name = _('Assign a room to the courses')
         verbose_name_plural = verbose_name
 
-    def considered_courses(self, courses_of_the_week):
-        courses_to_consider = courses_of_the_week
+    def considered_courses(self, courses_of_the_period):
+        courses_to_consider = courses_of_the_period
         if self.modules.exists():
             courses_to_consider = set(c for c in courses_to_consider if c.module in self.modules.all())
         if self.course_types.exists():
             courses_to_consider = set(c for c in courses_to_consider if c.type in self.course_types.all())
+        if self.room_types.exists():
+            courses_to_consider = set(c for c in courses_to_consider if c.room_type in self.room_types.all())
+        if self.groups.exists():
+            courses_to_consider = set(c for c in courses_to_consider if all(g in self.groups.all() for g in c.groups.all()))
+        if self.tutors.exists():
+            courses_to_consider = set(c for c in courses_to_consider if c.tutor in self.tutors.all())
+        
         return courses_to_consider
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1):
-        considered_courses = self.considered_courses(ttmodel.wdb.courses_by_week[week])
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
+        considered_courses = self.considered_courses(ttmodel.wdb.courses_by_period[period])
         for c in considered_courses:
             for sl in ttmodel.wdb.compatible_slots[c]:
                 undesired_situation = ttmodel.TT[(sl, c)] - \
@@ -387,10 +392,10 @@ class LocateAllCourses(RoomConstraint):
                                            Constraint(constraint_type=ConstraintType.LOCATE_ALL_COURSES,
                                                       slots=sl, courses=c))
                 else:
-                    ttmodel.add_to_slot_cost(sl, undesired_situation * self.local_weight() * ponderation, week)
+                    ttmodel.add_to_slot_cost(sl, undesired_situation * self.local_weight() * ponderation, period)
 
-    def enrich_room_model(self, room_model, week, ponderation=1):
-        considered_courses = self.considered_courses(room_model.courses_for_week[week])
+    def enrich_room_model(self, room_model, period, ponderation=1):
+        considered_courses = self.considered_courses(room_model.courses_for_period[period])
         for course in considered_courses:
             relevant_sum = room_model.sum(room_model.TTrooms[(course, room)]
                                           for room in room_model.course_room_compat[course])
@@ -400,7 +405,19 @@ class LocateAllCourses(RoomConstraint):
                                                      courses=course))
             else:
                 room_model.add_to_generic_cost((room_model.one_var - relevant_sum) * self.local_weight() * ponderation,
-                                               week)
+                                               period)
+    
+    def one_line_description(self):
+        text =  f"Attribue une salle à tous les cours"
+        if self.groups.exists():
+            text += ' des groupes ' + ', '.join([group.name for group in self.groups.all()])
+        if self.modules.exists():
+            text += ' pour les modules ' + ', '.join([module.abbrev for module in self.modules.all()])
+        if self.course_types.exists():
+            text += ' pour les types ' + ', '.join([ct.name for ct in self.course_types.all()])
+        text+='.'
+        return text
+
 
 class LimitMoves(RoomConstraint):
     class Meta:
@@ -419,9 +436,9 @@ class LimitMoves(RoomConstraint):
     def add_to_obj_method(self, room_model):
         raise NotImplementedError
 
-    def enrich_room_model(self, room_model, week, ponderation=1):
+    def enrich_room_model(self, room_model, period, ponderation=1):
         for thing in self.objects_to_consider(room_model):
-            considered_courses = self.courses_dict(room_model)[thing] & room_model.courses_for_week[week]
+            considered_courses = self.courses_dict(room_model)[thing] & room_model.courses_for_period[period]
             for course in considered_courses:
                 scheduled_course = room_model.corresponding_scheduled_course[course]
                 successors = set(c for c in considered_courses if
@@ -433,7 +450,7 @@ class LimitMoves(RoomConstraint):
                                                                   room_model.TTrooms[(successor, room)])
                                           for room in common_rooms)
                     cost = - self.ponderation * self.local_weight() * ponderation * same
-                    self.add_to_obj_method(room_model)(thing, cost, week)
+                    self.add_to_obj_method(room_model)(thing, cost, period)
 
 
 class LimitGroupMoves(LimitMoves):
@@ -455,6 +472,15 @@ class LimitGroupMoves(LimitMoves):
     @property
     def ponderation(self):
         return 2
+    
+    def one_line_description(self):
+        text =  f"Limite les changements de salles"
+        if self.groups.exists():
+            text += ' des groupes ' + ', '.join([group.name for group in self.groups.all()]) + "."
+        else:
+            text += ' de tous les groupes.'
+        return text
+    
 
 class LimitTutorMoves(LimitMoves):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
@@ -471,6 +497,14 @@ class LimitTutorMoves(LimitMoves):
 
     def add_to_obj_method(self, room_model):
         return room_model.add_to_inst_cost
+    
+    def one_line_description(self):
+        text =  f"Limite les changements de salles"
+        if self.tutors.exists():
+            text += ' des profs ' + ', '.join([tutor.username for tutor in self.tutors.all()]) + "."
+        else:
+            text += ' de tous les profs.'
+        return text
 
     @property
     def ponderation(self):

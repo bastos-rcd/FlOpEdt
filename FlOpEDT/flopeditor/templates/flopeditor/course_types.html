@@ -26,7 +26,22 @@
 {% block nav-classes-course %} active {% endblock %}
 
 {% block card_header %}
-  
-{% endblock %}
+<li class="nav-item">
+  <a
+    class="nav-link {% block card-nav-classes-modules %}active{% endblock %}"
+    href="{% url 'flopeditor:flopeditor-department-course-types' department_abbrev=department.abbrev %}"
+  >
+    Types de cours
+  </a>
+</li>
+<li class="nav-item">
+  <a
+    class="nav-link {% block card-nav-classes-periods %}{% endblock %}"
+    href="{% url 'flopeditor:flopeditor-department-course-start-times-constraints' department_abbrev=department.abbrev %}"
+  >
+    Contraintes de début
+  </a>
+</li>
+{% endblock %} 
 
 {% block crud_js_url %}{% url 'flopeditor:flopeditor-crud-courses' department_abbrev=department.abbrev %}{% endblock %}

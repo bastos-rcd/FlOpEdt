@@ -3,7 +3,7 @@ from .courses import *
 from .groups import *
 from .misc import *
 from .modifications import *
-from .preferences import *
+from .availability import *
 from .rooms import *
 from .theme import *
 from .timing import *

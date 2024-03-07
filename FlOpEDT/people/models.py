@@ -29,7 +29,12 @@ from django.contrib.auth.models import AbstractUser
 from base.models import Department
 from base.timing import Day
 from django.core.validators import MinValueValidator, MaxValueValidator
+import datetime as dt
+from django.utils.translation import gettext_lazy as _
+from rules.contrib.models import RulesModel
 
+from people.rules import is_theme_ok, is_theme_view_ok
+from rules import always_true, always_false, is_staff
 
 # Create your models here.
 
@@ -37,10 +42,10 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 class User(AbstractUser):
     is_student = models.BooleanField(default=False)
     is_tutor = models.BooleanField(default=False)
-    rights = models.PositiveSmallIntegerField(verbose_name="Droits particuliers",
-                                              default=0)
-    departments = models.ManyToManyField(
-        Department, through='UserDepartmentSettings')
+    rights = models.PositiveSmallIntegerField(
+        verbose_name="Droits particuliers", default=0
+    )
+    departments = models.ManyToManyField(Department, through="UserDepartmentSettings")
 
     # 0b azmyx en binaire
     # x==1 <=> quand "modifier Cours" coché, les cours sont colorés
@@ -63,35 +68,25 @@ class User(AbstractUser):
         if self.is_superuser:
             return True
 
-        return (self.is_tutor
-                and department in self.departments.all()
-                and (not admin
-                     or
-                     UserDepartmentSettings.objects \
-                     .get(user=self,
-                          department=department) \
-                     .is_admin
-                     )
-                )
-
-    def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
-        return self.is_staff
-
-    def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
-        return self.is_staff
+        return (
+            self.is_tutor
+            and department in self.departments.all()
+            and (
+                not admin
+                or UserDepartmentSettings.objects.get(
+                    user=self, department=department
+                ).is_admin
+            )
+        )
 
     def uni_extended(self):
-        ret = self.username + '<'
+        ret = self.username + "<"
         if self.is_student:
-            ret += 'S'
+            ret += "S"
         if self.is_tutor:
-            ret += 'T'
-        ret += '>'
-        ret += '(' + str(self.rights) + ')'
+            ret += "T"
+        ret += ">"
+        ret += "(" + str(self.rights) + ")"
         return ret
 
     ###
@@ -102,7 +97,9 @@ class User(AbstractUser):
         return self.themes_preference.theme
 
     class Meta:
-        ordering = ['username', ]
+        ordering = [
+            "username",
+        ]
 
 
 class UserDepartmentSettings(models.Model):
@@ -110,35 +107,39 @@ class UserDepartmentSettings(models.Model):
     This model allows to add additionnal settings to the
     relation between User and Department
     """
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     is_main = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
     def __str__(self):
-        return (f'U:{self.user.username}, D:{self.department.abbrev}, {"main" if self.is_main else "secondary"}, '
-                f'{"admin" if self.is_admin else "regular"}')
+        return (
+            f'U:{self.user.username}, D:{self.department.abbrev}, {"main" if self.is_main else "secondary"}, '
+            f'{"admin" if self.is_admin else "regular"}'
+        )
 
 
 class Tutor(User):
-    FULL_STAFF = 'fs'
-    SUPP_STAFF = 'ss'
-    BIATOS = 'bi'
-    TUTOR_CHOICES = ((FULL_STAFF, "Full staff"),
-                     (SUPP_STAFF, "Supply staff"),
-                     (BIATOS, "BIATOS"))
-    status = models.CharField(max_length=2,
-                              choices=TUTOR_CHOICES,
-                              verbose_name="Status",
-                              default=FULL_STAFF)
+    FULL_STAFF = "fs"
+    SUPP_STAFF = "ss"
+    BIATOS = "bi"
+    TUTOR_CHOICES = (
+        (FULL_STAFF, "Full staff"),
+        (SUPP_STAFF, "Supply staff"),
+        (BIATOS, "BIATOS"),
+    )
+    status = models.CharField(
+        max_length=2, choices=TUTOR_CHOICES, verbose_name="Status", default=FULL_STAFF
+    )
 
     def uni_extended(self):
         ret = super(Tutor, self).uni_extended()
-        ret += '-' + self.status
+        ret += "-" + self.status
         return ret
 
     class Meta:
-        verbose_name = 'Tutor'
+        verbose_name = "Tutor"
 
     def save(self, *args, **kwargs):
         self.is_tutor = True
@@ -151,33 +152,32 @@ class FullStaff(Tutor):
     def uni_extended(self):
         ret = super(FullStaff, self).uni_extended()
         if not self.is_iut:
-            ret += '-n'
-        ret += '-IUT'
+            ret += "-n"
+        ret += "-IUT"
         return ret
 
     class Meta:
-        verbose_name = 'FullStaff'
+        verbose_name = "FullStaff"
 
 
 class SupplyStaff(Tutor):
-    employer = models.CharField(max_length=50,
-                                verbose_name="Employeur ?",
-                                default=None, null=True, blank=True)
-    position = models.CharField(max_length=50,
-                                default=None, null=True, blank=True)
-    field = models.CharField(max_length=50,
-                             verbose_name="Domaine ?",
-                             default=None, null=True, blank=True)
+    employer = models.CharField(
+        max_length=50, verbose_name="Employeur ?", default=None, null=True, blank=True
+    )
+    position = models.CharField(max_length=50, default=None, null=True, blank=True)
+    field = models.CharField(
+        max_length=50, verbose_name="Domaine ?", default=None, null=True, blank=True
+    )
 
     def uni_extended(self):
         ret = super(SupplyStaff, self).uni_extended()
-        ret += '-Emp:' + self.employer + '-'
-        ret += '-Pos:' + self.position + '-'
-        ret += '-Dom:' + self.field
+        ret += "-Emp:" + self.employer + "-"
+        ret += "-Pos:" + self.position + "-"
+        ret += "-Dom:" + self.field
         return ret
 
     class Meta:
-        verbose_name = 'SupplyStaff'
+        verbose_name = "SupplyStaff"
 
 
 class BIATOS(Tutor):
@@ -185,25 +185,30 @@ class BIATOS(Tutor):
         return super(BIATOS, self).uni_extended()
 
     class Meta:
-        verbose_name = 'BIATOS'
+        verbose_name = "BIATOS"
 
 
 class TutorPreference(models.Model):
-    tutor = models.OneToOneField('Tutor',
-                                 on_delete=models.CASCADE,
-                                 related_name='preferences')
-    pref_hours_per_day = models.PositiveSmallIntegerField(
-        verbose_name="How many hours per day would you prefer ?",
-        default=4)  # FIXME : time with TimeField or DurationField
-    max_hours_per_day = models.PositiveSmallIntegerField(
-        verbose_name="How many hours per day can you suffer ?",
-        default=9)  # FIXME : time with TimeField or DurationField
-    min_hours_per_day = models.PositiveSmallIntegerField(
-        verbose_name="Under how many hours would you prefer to avoid to have class?",
-        default=0)  # FIXME : time with TimeField or DurationField
+    tutor = models.OneToOneField(
+        "Tutor", on_delete=models.CASCADE, related_name="preferences"
+    )
+    pref_time_per_day = models.DurationField(
+        verbose_name=_("How much teaching time per day would you prefer ?"),
+        default=dt.timedelta(hours=4),
+    )
+    max_time_per_day = models.DurationField(
+        verbose_name=("How much teaching time per day can you suffer ?"),
+        default=dt.timedelta(hours=9),
+    )
+    min_time_per_day = models.DurationField(
+        verbose_name=_(
+            "Under how  much teaching time per day would you prefer to avoid to have class?"
+        ),
+        default=dt.timedelta(0),
+    )
 
     def __str__(self):
-        ret = f"{self.tutor} - P{self.pref_hours_per_day} - M{self.pref_hours_per_day} - m{self.min_hours_per_day}"
+        ret = f"{self.tutor} - P{self.pref_time_per_day} - M{self.pref_time_per_day} - m{self.min_time_per_day}"
         return ret
 
 
@@ -218,28 +223,36 @@ class TutorPreference(models.Model):
 
 
 class Student(User):  # for now: representative
-    generic_groups = models.ManyToManyField('base.GenericGroup',
-                                            blank=True)
+    generic_groups = models.ManyToManyField("base.GenericGroup", blank=True)
 
     def __str__(self):
         return str(self.username)
 
     def __repr__(self):
-        return str(self.username) + ' (G:' + ', '.join([group.name for group in self.generic_groups.all()]) + ')'
+        return (
+            str(self.username)
+            + " (G:"
+            + ", ".join([group.name for group in self.generic_groups.all()])
+            + ")"
+        )
 
     class Meta:
-        verbose_name = 'Student'
+        verbose_name = "Student"
 
 
 class Preferences(models.Model):
     morning_weight = models.DecimalField(
-        default=.5, blank=True, max_digits=3, decimal_places=2)
+        default=0.5, blank=True, max_digits=3, decimal_places=2
+    )
     free_half_day_weight = models.DecimalField(
-        default=.5, blank=True, max_digits=3, decimal_places=2)
+        default=0.5, blank=True, max_digits=3, decimal_places=2
+    )
     hole_weight = models.DecimalField(
-        default=.5, blank=True, max_digits=3, decimal_places=2)
+        default=0.5, blank=True, max_digits=3, decimal_places=2
+    )
     eat_weight = models.DecimalField(
-        default=.5, blank=True, max_digits=3, decimal_places=2)
+        default=0.5, blank=True, max_digits=3, decimal_places=2
+    )
 
     def get_morning_weight(self):
         return float(self.morning_weight)
@@ -258,19 +271,21 @@ class Preferences(models.Model):
 
 
 class StudentPreferences(Preferences):
-    student = models.OneToOneField('people.Student',
-                                   related_name='preferences',
-                                   on_delete=models.CASCADE)
+    student = models.OneToOneField(
+        "people.Student", related_name="preferences", on_delete=models.CASCADE
+    )
 
 
 class GroupPreferences(Preferences):
-    group = models.OneToOneField('base.StructuralGroup',
-                                 related_name='preferences',
-                                 on_delete=models.CASCADE)
+    group = models.OneToOneField(
+        "base.StructuralGroup", related_name="preferences", on_delete=models.CASCADE
+    )
 
     def calculate_fields(self):
         # To pull students from the group
-        students_preferences = StudentPreferences.objects.filter(student__generic_groups=self.group)
+        students_preferences = StudentPreferences.objects.filter(
+            student__generic_groups=self.group
+        )
 
         # To initialise variables and getting the divider to get the average
         local_morning_weight = 0
@@ -299,37 +314,48 @@ class GroupPreferences(Preferences):
 
 
 class NotificationsPreferences(models.Model):
-    user = models.OneToOneField('User',
-                                on_delete=models.CASCADE,
-                                related_name='notifications_preference')
+    user = models.OneToOneField(
+        "User", on_delete=models.CASCADE, related_name="notifications_preference"
+    )
     nb_of_notified_weeks = models.PositiveSmallIntegerField(default=0)
     notify_other_user_modifications = models.BooleanField(default=False)
+
 
 ###
 # Save the user's preferred theme in the data base
 ###
-class ThemesPreferences(models.Model):
-    user = models.OneToOneField('User',
-                                on_delete=models.CASCADE,
-                                related_name='themes_preference')
-    theme = models.CharField(max_length=50, default='White')
+class ThemesPreferences(RulesModel):
+    user = models.OneToOneField(
+        "User", on_delete=models.CASCADE, related_name="themes_preference"
+    )
+    theme = models.CharField(max_length=50, default="White")
+
+    class Meta:
+        rules_permissions = {
+            "add": always_true,
+            "change": is_theme_ok,
+            "delete": is_theme_ok,
+            "view": is_theme_view_ok,
+        }
+
 
 class UserPreferredLinks(models.Model):
-    user = models.OneToOneField('User',
-                                on_delete=models.CASCADE,
-                                related_name='preferred_links')
-    links = models.ManyToManyField('base.EnrichedLink',
-                                   related_name='user_set')
+    user = models.OneToOneField(
+        "User", on_delete=models.CASCADE, related_name="preferred_links"
+    )
+    links = models.ManyToManyField("base.EnrichedLink", related_name="user_set")
 
     def __str__(self):
-        return self.user.username + ' : ' + \
-               ' ; '.join([str(l) for l in self.links.all()])
+        return (
+            self.user.username + " : " + " ; ".join([str(l) for l in self.links.all()])
+        )
 
 
 class PhysicalPresence(models.Model):
-    user = models.ForeignKey('people.User', on_delete=models.CASCADE, related_name='physical_presences')
-    day = models.CharField(max_length=2, choices=Day.CHOICES, default=Day.MONDAY)
-    week = models.ForeignKey('base.Week', on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(
+        "people.User", on_delete=models.CASCADE, related_name="physical_presences"
+    )
+    date = models.DateField(default=dt.date(1789, 7, 14))
 
     def __str__(self):
-        return f"{self.user.username} is present {self.day} of week {self.week}"
+        return f"{self.user.username} is present {self.date}"

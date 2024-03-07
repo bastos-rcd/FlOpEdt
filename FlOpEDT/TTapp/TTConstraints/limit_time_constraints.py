@@ -30,13 +30,14 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from django.utils.translation import gettext_lazy as _
+from base.models import SchedulingPeriod
 
 
-def build_period_slots(ttmodel, day, period):
-    if period is None:
+def build_fd_or_apm_period_slots(ttmodel, day, apm_period):
+    if apm_period is None:
         return slots_filter(ttmodel.wdb.courses_slots, day=day)
     else:
-        return slots_filter(ttmodel.wdb.courses_slots, day=day, apm=period)
+        return slots_filter(ttmodel.wdb.courses_slots, day=day, apm=apm_period)
 
 
 class LimitTimePerPeriod(TTConstraint):
@@ -53,53 +54,47 @@ class LimitTimePerPeriod(TTConstraint):
     class Meta:
         abstract = True
 
-    def build_period_by_day(self, ttmodel, week):
+    def build_fd_or_apm_period_by_day(self, ttmodel, period:SchedulingPeriod):
         if self.fhd_period == self.FULL_DAY:
-            periods = [None]
+            apm_periods = [None]
         else:
-            periods = ttmodel.possible_apms
+            apm_periods = ttmodel.possible_apms
 
-        period_by_day = []
-        for day in days_filter(ttmodel.wdb.days, week=week):
-            for period in periods:
-                period_by_day.append((day, period,))
+        fd_or_apm_period_by_day = []
+        for day in days_filter(ttmodel.wdb.days, period=period):
+            for apm_period in apm_periods:
+                fd_or_apm_period_by_day.append((day, apm_period,))
 
-        return period_by_day
+        return fd_or_apm_period_by_day
 
-    def considered_train_progs(self, ttmodel):
-        train_progs = self.train_progs.all()
-        if not train_progs:
-            train_progs = ttmodel.train_prog
-        return train_progs
-
-    def considered_courses(self, ttmodel, week, train_prog, tutor, module, group):
-        return set(self.get_courses_queryset_by_parameters(ttmodel, week,
+    def considered_courses(self, ttmodel, period:SchedulingPeriod, train_prog, tutor, module, group):
+        return set(self.get_courses_queryset_by_parameters(period, ttmodel, 
                                                            course_type=self.course_type,
                                                            train_prog=train_prog,
                                                            module=module,
                                                            group=group,
                                                            tutor=tutor))
 
-    def build_period_expression(self, ttmodel, day, period, considered_courses, tutor=None):
+    def build_apm_period_expression(self, ttmodel, day, apm_period, considered_courses, tutor=None):
         expr = ttmodel.lin_expr()
-        for slot in build_period_slots(ttmodel, day, period):
+        for slot in build_fd_or_apm_period_slots(ttmodel, day, apm_period):
             for course in considered_courses & ttmodel.wdb.compatible_courses[slot]:
-                expr += ttmodel.TT[(slot, course)] * course.type.duration
+                expr += ttmodel.TT[(slot, course)] * course.minutes
 
         return expr
 
-    def enrich_model_for_one_object(self, ttmodel, week, ponderation,
+    def enrich_model_for_one_object(self, ttmodel, period:SchedulingPeriod, ponderation,
                                     train_prog=None, tutor=None, module=None, group=None):
 
-        considered_courses = self.considered_courses(ttmodel, week, train_prog, tutor, module, group)
-        for day, period in self.build_period_by_day(ttmodel, week):
+        considered_courses = self.considered_courses(ttmodel, period, train_prog, tutor, module, group)
+        for day, fd_or_apm_period in self.build_fd_or_apm_period_by_day(ttmodel, period):
 
-            expr = self.build_period_expression(ttmodel, day, period, considered_courses, tutor)
+            expr = self.build_apm_period_expression(ttmodel, day, fd_or_apm_period, considered_courses, tutor)
 
             if self.weight is not None:
                 var = ttmodel.add_floor(expr,
                                         int(self.max_hours * 60) + 1, 3600*24)
-                ttmodel.add_to_generic_cost(self.local_weight() * ponderation * var, week=week)
+                ttmodel.add_to_generic_cost(self.local_weight() * ponderation * var, period=period)
             else:
                 ttmodel.add_constraint(expr, '<=', self.max_hours*60,
                                        Constraint(constraint_type=ConstraintType.MAX_HOURS,
@@ -113,6 +108,9 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
     Attributes:
         groups : the groups concerned by the limitation. All the groups of self.train_progs if None.
     """
+
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     groups = models.ManyToManyField('base.StructuralGroup',
                                     blank=True,
                                     related_name="Course_type_limits")
@@ -121,19 +119,19 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         verbose_name = _('Limit groups busy time per period')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
 
         # if self.groups.exists():
         #     considered_groups = self.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
         # else:
         #     considered_groups = ttmodel.wdb.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
         for group in considered_basic_groups(self,ttmodel):
-            self.enrich_model_for_one_object(ttmodel, week, ponderation, group=group)
+            self.enrich_model_for_one_object(ttmodel, period, ponderation, group=group)
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['groups', 'course_type'])
+        attributes.extend(['groups', 'course_type', 'train_progs'])
         return attributes
 
     def get_viewmodel(self):
@@ -180,6 +178,8 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
     Attributes:
         modules : the modules concerned by the limitation. All the modules of self.train_progs if None.
     """
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
     modules = models.ManyToManyField('base.Module',
                                      blank=True,
                                      related_name="Course_type_limits")
@@ -188,7 +188,7 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         verbose_name = _('Limit modules busy time per period')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
 
         if self.modules.exists():
             considered_modules = self.modules.filter(train_prog__in=self.considered_train_progs(ttmodel))
@@ -203,12 +203,12 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
 
         for module in considered_modules:
             for group in considered_basic_groups:
-                self.enrich_model_for_one_object(ttmodel, week, ponderation, module=module, group=group)
+                self.enrich_model_for_one_object(ttmodel, period, ponderation, module=module, group=group)
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['modules', 'course_type'])
+        attributes.extend(['modules', 'course_type', 'train_progs'])
         return attributes
 
     def get_viewmodel(self):
@@ -268,15 +268,15 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
         verbose_name = _('Limit tutors busy time per period')
         verbose_name_plural = verbose_name
 
-    def build_period_expression(self, ttmodel, day, period, considered_courses, tutor=None):
+    def build_apm_period_expression(self, ttmodel, day, fd_or_apm_period, considered_courses, tutor=None):
         expr = ttmodel.lin_expr()
-        for slot in build_period_slots(ttmodel, day, period):
+        for slot in build_fd_or_apm_period_slots(ttmodel, day, fd_or_apm_period):
             for course in considered_courses & ttmodel.wdb.compatible_courses[slot]:
-                expr += ttmodel.TTinstructors[(slot, course, tutor)] * course.type.duration
+                expr += ttmodel.TTinstructors[(slot, course, tutor)] * course.minutes
 
         return expr
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
 
         if self.tutors.exists():
             considered_tutors = self.tutors.all()
@@ -284,7 +284,7 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
             considered_tutors = ttmodel.wdb.instructors
 
         for tutor in considered_tutors:
-            self.enrich_model_for_one_object(ttmodel, week, ponderation, tutor=tutor)
+            self.enrich_model_for_one_object(ttmodel, period, ponderation, tutor=tutor)
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -295,7 +295,10 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
 
-        type_value = self.course_type.name
+        if self.course_type is not None:
+            type_value = self.course_type.name
+        else:
+            type_value = 'Any'
 
         if self.tutors.exists():
             tutor_value = ', '.join([tutor.username for tutor in self.tutors.all()])
@@ -335,8 +338,8 @@ class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
         verbose_name = _('Limit course type time, regardless of tutor, module or group')
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1.):
-        self.enrich_model_for_one_object(ttmodel, week, ponderation)
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
+        self.enrich_model_for_one_object(ttmodel, period, ponderation)
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):

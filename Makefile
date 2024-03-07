@@ -44,8 +44,7 @@ bootstrap: ## Prepare Docker images for the project
 bootstrap: \
 	config \
 	build \
-	start \
-	start-frontend
+	start
 
 
 config: ## Create config files
@@ -81,7 +80,6 @@ endif
 
 build: ## builds edt's docker services
 	docker compose -f docker-compose.$(CONFIG).yml --profile full build
-	@$(MAKE) install-frontend
 
 
 start: ## starts edt's docker services
@@ -136,12 +134,6 @@ switch-http: ## switch port to 80
 
 switch-https: ## switch port to 443
 	make PORT=443 config && cp -v docker/nginx/templates/https docker/nginx/templates/default.conf.template
-
-install-frontend:
-	docker compose -f docker-compose.$(CONFIG).yml run --rm vue yarn install --frozen-lockfile
-	
-start-frontend:
-	docker compose -f docker-compose.$(CONFIG).yml run --rm vue yarn dev --host
 
 h: ## (default) Short default help task
 	@echo "$(BOLD)flop Makefile$(RESET)"

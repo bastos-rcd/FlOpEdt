@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -35,15 +36,16 @@ from openpyxl.utils import get_column_letter
 from copy import copy
 
 import logging
+import os
 logger = logging.getLogger(__name__)
 from configuration.database_description_xlsx import \
     people_sheet, rooms_sheet, groups_sheet, modules_sheet, courses_sheet, settings_sheet, REASONABLE, \
-    find_marker_cell, time_from_integer
+    find_marker_cell, time_from_integer, strftime_from_time
 
 
-from base.models import Room, RoomType, Period, TransversalGroup, StructuralGroup, TrainingProgramme, GroupType, \
-    Module, CourseType
+from base.models import Room, RoomType, TrainingPeriod, TransversalGroup, StructuralGroup, TrainingProgramme, GroupType, Module, CourseType, CourseStartTimeConstraint
 from people.models import Tutor
+from django.conf import settings as ds
 #################################################
 #                                               #
 #   Filler functions for the different pages    #
@@ -98,25 +100,22 @@ def dict_from_dept_database(department):
     database_dict['settings'] = {}
     settings = department.timegeneralsettings
     database_dict['settings']['day_start_time'] = settings.day_start_time
-    database_dict['settings']['day_finish_time'] = settings.day_finish_time
-    database_dict['settings']['lunch_break_start_time'] = settings.lunch_break_start_time
-    database_dict['settings']['lunch_break_finish_time'] = settings.lunch_break_finish_time
+    database_dict['settings']['day_end_time'] = settings.day_end_time
+    database_dict['settings']['morning_end_time'] = settings.morning_end_time
+    database_dict['settings']['afternoon_start_time'] = settings.afternoon_start_time
 
 
 def make_filled_database_file(department, filename=None):
-    wb = load_workbook('media/configuration/empty_database_file.xlsx')
+    wb = load_workbook(os.path.join(os.path.dirname(__file__),'xls/empty_database_file.xlsx'))
     if filename is None:
-        filename = f'media/configuration/database_file_{department.abbrev}.xlsx'
-
+        filename = os.path.join(ds.CONF_XLS_DIR,f'database_file_{department.abbrev}.xlsx')
+        print(filename)
     sheet = wb[settings_sheet]
     row, col = find_marker_cell(sheet, 'Jalon')
-    sheet.cell(row=row+1, column=col+1, value=time_from_integer(department.timegeneralsettings.day_start_time))
-    sheet.cell(row=row+2, column=col+1, value=time_from_integer(department.timegeneralsettings.day_finish_time))
-    sheet.cell(row=row+3, column=col+1, value=time_from_integer(department.timegeneralsettings.lunch_break_start_time))
-    sheet.cell(row=row+4, column=col+1, value=time_from_integer(department.timegeneralsettings.lunch_break_finish_time))
-
-    row, col = find_marker_cell(sheet, 'Granularité')
-    sheet.cell(row=row, column=col+1, value=department.timegeneralsettings.default_preference_duration)
+    sheet.cell(row=row+1, column=col+1, value=strftime_from_time(department.timegeneralsettings.day_start_time))
+    sheet.cell(row=row+2, column=col+1, value=strftime_from_time(department.timegeneralsettings.day_end_time))
+    sheet.cell(row=row+3, column=col+1, value=strftime_from_time(department.timegeneralsettings.morning_end_time))
+    sheet.cell(row=row+4, column=col+1, value=strftime_from_time(department.timegeneralsettings.afternoon_start_time))
 
     row, col = find_marker_cell(sheet, 'Modes')
     mode = department.mode
@@ -130,7 +129,16 @@ def make_filled_database_file(department, filename=None):
         sheet.cell(row=row + 2, column=col, value="Coop.(Poste)")
     else:
         sheet.cell(row=row + 2, column=col, value="Coop. (Salarié)")
-
+    if mode.scheduling_mode == 'w':
+        sheet.cell(row=row + 3, column=col, value="Par semaine")
+    elif mode.scheduling_mode == 'd':
+        sheet.cell(row=row + 3, column=col, value="Par jour")
+    elif mode.scheduling_mode == 'm':
+        sheet.cell(row=row + 3, column=col, value="Par mois")
+    elif mode.scheduling_mode == 'y':
+        sheet.cell(row=row + 3, column=col, value="Par an")
+    else:
+        sheet.cell(row=row + 3, column=col, value="Custom")
 
     row, col = find_marker_cell(sheet, 'Jours ouvrables')
     days = department.timegeneralsettings.days
@@ -147,13 +155,19 @@ def make_filled_database_file(department, filename=None):
         else:
             sheet.cell(row=row+2, column=col+delta, value=None)
 
-    row, col = find_marker_cell(sheet, 'Périodes')
+    row, training_period_col = find_marker_cell(sheet, 'Périodes de cours')
     row = row + 1
-    for period in Period.objects.filter(department=department):
+    for training_period in TrainingPeriod.objects.filter(department=department):
         row = row + 1
-        sheet.cell(row=row, column=col, value=period.name)
-        sheet.cell(row=row, column=col+1, value=period.starting_week)
-        sheet.cell(row=row, column=col+2, value=period.ending_week)
+        sheet.cell(row=row, column=training_period_col, value=training_period.name)
+        col = training_period_col
+        scheduling_periods = list(training_period.periods.all())
+        scheduling_periods.sort(key=lambda x: x.start_date)
+        if len(scheduling_periods) > 0:
+            first = scheduling_periods[0]
+            last = scheduling_periods[-1]
+            sheet.cell(row=row, column=col+1, value=first.start_date)
+            sheet.cell(row=row, column=col+2, value=last.end_date)
 
     sheet = wb[people_sheet]
     row, col = find_marker_cell(sheet, 'Identifiant')
@@ -257,30 +271,39 @@ def make_filled_database_file(department, filename=None):
         sheet.cell(row=row, column=col+2, value=module.ppn)
         sheet.cell(row=row, column=col+3, value=module.name)
         sheet.cell(row=row, column=col+4, value=module.train_prog.abbrev)
-        sheet.cell(row=row, column=col+5, value=module.period.name)
+        sheet.cell(row=row, column=col+5, value=module.training_period.name)
         if module.head is not None:
             sheet.cell(row=row, column=col+6, value=module.head.username)
 
 
     sheet = wb[courses_sheet]
-    row, col_start = find_marker_cell(sheet, 'Type')
+    row, col_start = find_marker_cell(sheet, 'Type de cours')
     course_types = CourseType.objects.filter(department=department)
-    insert_missing_rows(sheet, row, list(course_types)+list(course_types), 12)
+    insert_missing_rows(sheet, row, list(course_types), 10)
     for course_type in course_types:
         row = row + 1
         col = col_start
         sheet.cell(row=row, column=col, value=course_type.name)
-        sheet.cell(row=row, column=col+1, value=course_type.duration)
+        if course_type.graded:
+            sheet.cell(row=row, column=col+1, value="Oui")
+        else:
+            sheet.cell(row=row, column=col+1, value="Non")
         col = col_start + 1
         for group_type in course_type.group_types.all():
             col = col + 1
             sheet.cell(row=row, column=col, value=group_type.name)
+        
+    row, col_start = find_marker_cell(sheet, 'Durée de cours')
+    course_start_time_constraints = CourseStartTimeConstraint.objects.filter(department=department)
+    insert_missing_rows(sheet, row, list(course_start_time_constraints), 12)
+    for course_start_time_constraint in course_start_time_constraints:
         row = row + 1
-        col = col_start + 1
-        allowed_start_times = course_type.coursestarttimeconstraint_set.first().allowed_start_times
+        col = col_start
+        sheet.cell(row=row, column=col, value=course_start_time_constraint.duration.seconds//60)
+        allowed_start_times = course_start_time_constraint.allowed_start_times
         allowed_start_times.sort()
         for start_time in allowed_start_times:
             col = col + 1
-            sheet.cell(row=row, column=col, value=time_from_integer(start_time))
+            sheet.cell(row=row, column=col, value=start_time)
 
     wb.save(filename)

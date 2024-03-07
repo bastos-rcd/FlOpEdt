@@ -23,7 +23,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import TimeGeneralSettings
+from base.models import TimeGeneralSettings, SchedulingPeriod, ScheduledCourse, Course
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django.utils.translation import gettext_lazy as _
@@ -44,13 +44,13 @@ class FlopConstraint(models.Model):
 
     Attributes:
         department : the department concerned by the constraint. Has to be filled.
-        weeks : the weeks for which the constraint should be applied. All if None.
+        periods : the scheduling periods for which the constraint should be applied. All if None.
         weight : from 1 to max_weight if the constraint is optional, depending on its importance
                  None if the constraint is necessary
         is_active : usefull to de-activate a Constraint just before the generation
     """
     department = models.ForeignKey('base.Department', null=True, on_delete=models.CASCADE)
-    weeks = models.ManyToManyField('base.Week', blank=True)
+    periods = models.ManyToManyField('base.SchedulingPeriod', blank=True)
     weight = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
         null=True, default=None, blank=True)
@@ -59,6 +59,19 @@ class FlopConstraint(models.Model):
     is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
     modified_at = models.DateField(auto_now=True)
 
+    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+        """
+        Test if the given work_copy satisfies the constraint for the given period
+        """
+        raise NotImplementedError
+    
+    def period_work_copy_scheduled_courses_queryset(self, period: SchedulingPeriod, work_copy: int) -> models.QuerySet:
+        """
+        Return all scheduled courses of the given work copy for the given period
+        """
+        return ScheduledCourse.objects.filter(course__in=self.considered_courses(period),
+                                              work_copy=work_copy)
+    
     def local_weight(self):
         if self.weight is None:
             return 10
@@ -77,10 +90,10 @@ class FlopConstraint(models.Model):
         :return: a dictionnary with view-related data
         """
 
-        if self.weeks.exists():
-            week_value = ','.join([f"{w.nb} ({w.year})" for w in self.weeks.all()])
+        if self.periods.exists():
+            period_value = ','.join([f"{p.name} " for p in self.periods.all()])
         else:
-            week_value = 'All'
+            period_value = 'All'
 
         return {
             'model': self.__class__.__name__,
@@ -91,7 +104,7 @@ class FlopConstraint(models.Model):
             'explanation': self.one_line_description(),
             'comment': self.comment,
             'details': {
-                'weeks': week_value,
+                'periods': period_value,
                 'weight': self.weight,
                 }
             }
@@ -110,45 +123,85 @@ class FlopConstraint(models.Model):
         else:
             return TimeGeneralSettings.objects.get(department = self.department)
 
-    def get_courses_queryset_by_parameters(self, flopmodel, week,
-                                           train_progs=None,
+    def get_courses_queryset_by_parameters(self, period, flopmodel=None,
                                            train_prog=None,
-                                           module=None,
+                                           train_progs=None,
                                            group=None,
+                                           groups=None,
+                                           module=None,
+                                           modules=None,
                                            course_type=None,
-                                           room_type=None):
+                                           course_types=None,
+                                           room_type=None,
+                                           room_types=None):
         """
         Filter courses depending on constraints parameters
         parameter group : if not None, return all courses that has one group connected to group
         """
-        courses_qs = flopmodel.courses.filter(week=week)
+        if flopmodel is None:
+            courses_qs = Course.objects.filter(period=period, groups__train_prog__department=self.department)
+        else:
+            courses_qs = flopmodel.courses.filter(period=period)
         courses_filter = {}
-
-        if train_progs is not None:
-            courses_filter['module__train_prog__in'] = train_progs
 
         if train_prog is not None:
             courses_filter['module__train_prog'] = train_prog
 
+        if train_progs:
+            courses_filter['module__train_prog__in'] = train_progs
+
         if module is not None:
             courses_filter['module'] = module
+
+        if modules:
+            courses_filter['module__in'] = modules
 
         if group is not None:
             courses_filter['groups__in'] = group.connected_groups()
 
+        if groups:
+            all_groups = set()
+            for g in groups:
+                all_groups |= set(g.connected_groups())
+            courses_filter['groups__in'] = all_groups
+
         if course_type is not None:
             courses_filter['type'] = course_type
 
+        if course_types:
+            courses_filter['type__in'] = course_types
+
         if room_type is not None:
             courses_filter['room_type'] = room_type
+        
+        if room_types:
+            courses_filter['room_type__in'] = room_types
 
         return courses_qs.filter(**courses_filter)
 
-    def get_courses_queryset_by_attributes(self, flopmodel, week, **kwargs):
+
+    def get_courses_queryset_by_attributes(self, period, flopmodel=None, **kwargs):
         """
         Filter courses depending constraint attributes
         """
-        for attr in ['train_prog', 'module', 'group', 'course_type', 'tutor', 'room_type']:
-            if hasattr(self, attr) and attr not in kwargs:
-                kwargs[attr] = getattr(self, attr)
-        return self.get_courses_queryset_by_parameters(flopmodel, week, **kwargs)
+        for attr_name in ['train_prog', "train_progs" 'module', 'modules', 'group', 
+                          'groups', 'course_type', 'course_types', 'tutor', 'tutors', 
+                          'room_type', 'room_types']:
+            if hasattr(self, attr_name) and attr_name not in kwargs:
+                attr = getattr(self, attr_name)
+                if type(attr).__name__ == "ManyRelatedManager":
+                    kwargs[attr_name] = attr.all()
+                else:
+                    kwargs[attr_name] = attr
+        return self.get_courses_queryset_by_parameters(period, flopmodel, **kwargs)
+    
+
+    def considered_courses(self, period, flopmodel=None):
+        return self.get_courses_queryset_by_attributes(period, flopmodel)
+
+    def considered_train_progs(self, ttmodel):
+        train_progs = set(ttmodel.train_prog)
+        if hasattr(self, "train_progs"):
+            if self.train_progs.exists():
+                train_progs &= set(self.train_progs.all())
+        return train_progs

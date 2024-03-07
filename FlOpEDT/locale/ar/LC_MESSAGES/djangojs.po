@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-26 13:34+0000\n"
+"POT-Creation-Date: 2023-12-06 11:31+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,11 +19,11 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: base/static/base/action.js:852
+#: base/static/base/action.js:862
 msgid "The schedule shall be fully regenerated (see downside to the right)."
 msgstr ""
 
-#: base/static/base/action.js:853
+#: base/static/base/action.js:863
 msgid ""
 "Just update your availabilities : they will be considered for the next "
 "generation."
@@ -172,40 +172,27 @@ msgid "Number of days"
 msgstr ""
 
 #: base/static/base/transformation.js:267
-#: base/static/base/transformation_tmp.js:267
-#: base/static/base/transformation_tmp.js:269
 msgid "You have to do  "
 msgstr ""
 
 #: base/static/base/transformation.js:269
-#: base/static/base/transformation_tmp.js:272
 msgid "No course for you this week."
 msgstr ""
 
 #: base/static/base/transformation.js:277
-#: base/static/base/transformation_tmp.js:281
-#: base/static/base/transformation_tmp.js:283
 msgid "You propose   "
 msgstr ""
 
 #: base/static/base/transformation.js:290
-#: base/static/base/transformation_tmp.js:296
 msgid "Maybe you should free up more..."
 msgstr ""
 
 #: base/static/base/transformation.js:292
-#: base/static/base/transformation_tmp.js:298
 msgid "It seems OK."
 msgstr ""
 
 #: base/static/base/transformation.js:296
-#: base/static/base/transformation_tmp.js:302
 msgid "Thank you for adding some."
-msgstr ""
-
-#: base/static/base/transformation_tmp.js:267
-#: base/static/base/transformation_tmp.js:281
-msgid " slot(s)"
 msgstr ""
 
 #: base/static/base/update.js:1339
@@ -360,7 +347,7 @@ msgid "nb_min"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:9
-msgid "join2courses"
+msgid "If a tutor has 2 or 4 courses only, join it?"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:9
@@ -535,134 +522,150 @@ msgstr ""
 msgid "time1"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:23
-msgid "AM"
+#: cstmanager/static/cstmanager/js/script.js:20
+msgid "room_type"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:24
-msgid "PM"
+#: cstmanager/static/cstmanager/js/script.js:20
+msgid "room_types"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:20
+msgid "Desired busy slots duration"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:21
+msgid "min_hours"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:25
-msgid "fd"
+msgid "AM"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:26
-msgid "hd"
+msgid "PM"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:27
-msgid "m"
+msgid "fd"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:28
-msgid "tu"
+msgid "hd"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:29
-msgid "w"
+msgid "m"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:30
-msgid "th"
+msgid "tu"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:31
-msgid "f"
+msgid "w"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:32
-msgid "sa"
+msgid "th"
 msgstr ""
 
 #: cstmanager/static/cstmanager/js/script.js:33
+msgid "f"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:34
+msgid "sa"
+msgstr ""
+
+#: cstmanager/static/cstmanager/js/script.js:35
 msgid "su"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:392
+#: cstmanager/static/cstmanager/js/script.js:394
 msgid "All changes have been saved."
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:496
+#: cstmanager/static/cstmanager/js/script.js:498
 msgid "All groups"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:813
 #: cstmanager/static/cstmanager/js/script.js:830
-#: cstmanager/static/cstmanager/js/script.js:918
+#: cstmanager/static/cstmanager/js/script.js:847
+#: cstmanager/static/cstmanager/js/script.js:935
 msgid "Strong constraint"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:830
-#: cstmanager/static/cstmanager/js/script.js:920
+#: cstmanager/static/cstmanager/js/script.js:847
+#: cstmanager/static/cstmanager/js/script.js:937
 msgid "Weight : "
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1418
-#: cstmanager/static/cstmanager/js/script.js:1621
+#: cstmanager/static/cstmanager/js/script.js:1440
+#: cstmanager/static/cstmanager/js/script.js:1643
 msgid "Select all"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1427
-#: cstmanager/static/cstmanager/js/script.js:1635
+#: cstmanager/static/cstmanager/js/script.js:1449
+#: cstmanager/static/cstmanager/js/script.js:1657
 msgid "Remove all"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1436
-#: cstmanager/static/cstmanager/js/script.js:1645
+#: cstmanager/static/cstmanager/js/script.js:1458
+#: cstmanager/static/cstmanager/js/script.js:1667
 msgid "Cancel"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1525
+#: cstmanager/static/cstmanager/js/script.js:1547
 msgid "Required"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1590
+#: cstmanager/static/cstmanager/js/script.js:1612
 msgid "Guide tutor"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1592
-#: cstmanager/static/cstmanager/js/script.js:2077
+#: cstmanager/static/cstmanager/js/script.js:1614
+#: cstmanager/static/cstmanager/js/script.js:2099
 msgid "Tutor"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1732
-#: cstmanager/static/cstmanager/js/script.js:1743
+#: cstmanager/static/cstmanager/js/script.js:1754
+#: cstmanager/static/cstmanager/js/script.js:1765
 msgid "Strong constraints"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1736
-#: cstmanager/static/cstmanager/js/script.js:1745
+#: cstmanager/static/cstmanager/js/script.js:1758
+#: cstmanager/static/cstmanager/js/script.js:1767
 msgid "Preferences"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1754
-#: cstmanager/static/cstmanager/js/script.js:1760
+#: cstmanager/static/cstmanager/js/script.js:1776
+#: cstmanager/static/cstmanager/js/script.js:1782
 msgid "All constraints"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1953
+#: cstmanager/static/cstmanager/js/script.js:1975
 msgid "Edit"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1954
+#: cstmanager/static/cstmanager/js/script.js:1976
 msgid "Delete"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1955
+#: cstmanager/static/cstmanager/js/script.js:1977
 msgid "Duplicate"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1997
+#: cstmanager/static/cstmanager/js/script.js:2019
 msgid "Active"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:1997
+#: cstmanager/static/cstmanager/js/script.js:2019
 msgid "Inactive"
 msgstr ""
 
-#: cstmanager/static/cstmanager/js/script.js:2078
-#: cstmanager/static/cstmanager/js/script.js:2082
+#: cstmanager/static/cstmanager/js/script.js:2100
+#: cstmanager/static/cstmanager/js/script.js:2104
 msgid "All tutors"
 msgstr ""
 

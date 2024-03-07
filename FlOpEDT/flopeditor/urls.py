@@ -64,6 +64,8 @@ urlpatterns = [
          name='flopeditor-department-modules'),
     path('<slug:department_abbrev>/types-de-cours', views.department_course_types,
          name='flopeditor-department-course-types'),
+     path('<slug:department_abbrev>/contraintes-de-debut', views.department_course_start_times_constraints,
+         name='flopeditor-department-course-start-times-constraints'),
     path('<slug:department_abbrev>/semestres', views.department_periods,
          name='flopeditor-department-periods'),
 
@@ -111,6 +113,8 @@ urlpatterns = [
          name='flopeditor-crud-training-programmes'),
     path('<slug:department_abbrev>/crud/courses', crud.crud_course,
          name='flopeditor-crud-courses'),
+         path('<slug:department_abbrev>/crud/start_times_constraints', crud.crud_course_start_times_constraints,
+         name='flopeditor-crud-start-times-constraints'),
     path('<slug:department_abbrev>/crud/periods', crud.crud_periods,
          name='flopeditor-crud-periods'),
 

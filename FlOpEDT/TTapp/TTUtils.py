@@ -25,9 +25,23 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import ScheduledCourse, RoomPreference, EdtVersion, Department, CourseStartTimeConstraint,\
-    TimeGeneralSettings, Room, CourseModification, UserPreference, Week, Course, Module, CourseType, TrainingProgramme,\
-    Period
+from base.models import (
+    ScheduledCourse,
+    RoomAvailability,
+    EdtVersion,
+    Department,
+    CourseStartTimeConstraint,
+    TimeGeneralSettings,
+    Room,
+    CourseModification,
+    UserAvailability,
+    SchedulingPeriod,
+    Course,
+    Module,
+    CourseType,
+    TrainingProgramme,
+    TrainingPeriod,
+)
 from base.timing import str_slot, days_index
 from django.db.models import Count, Max, Q, F
 from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
@@ -39,305 +53,323 @@ from django.core.cache import cache
 from people.models import Tutor
 import json
 from django.utils.translation import gettext_lazy as _
+import datetime as dt
 
 
-def basic_reassign_rooms(department, week, work_copy, create_new_work_copy):
-    msg = {'status':'OK', 'more':_('Reload...')}
-    result_work_copy = RoomModel(department.abbrev, [week], work_copy).solve(create_new_work_copy=create_new_work_copy)
+def basic_reassign_rooms(department, period, work_copy, create_new_work_copy):
+    msg = {"status": "OK", "more": _("Reload...")}
+    result_work_copy = RoomModel(department.abbrev, [period], work_copy).solve(
+        create_new_work_copy=create_new_work_copy
+    )
     if result_work_copy is not None:
         if create_new_work_copy:
-            msg['more'] = _(f'Saved in copy {result_work_copy}')
+            msg["more"] = _(f"Saved in copy {result_work_copy}")
         else:
-            cache.delete(base_views.get_key_course_pl(department.abbrev,
-                                           week,
-                                           work_copy))
+            cache.delete(
+                base_views.get_key_course_pl(department.abbrev, period, work_copy)
+            )
     else:
-        msg['status'] = 'KO'
-        msg['more'] = _("Impossible to assign rooms")
+        msg["status"] = "KO"
+        msg["more"] = _("Impossible to assign rooms")
     return msg
 
 
-def get_shared_tutors(department, week, copy_a):
-    '''
-    Returns tutors that are busy both in the department for the given week (work_copy copy_a)
+def get_shared_tutors(department, period, copy_a):
+    """
+    Returns tutors that are busy both in the department for the given period (work_copy copy_a)
     and in another department (work_copy 0)
-    '''
-    busy_tutors_in_dept = [s.tutor for s in ScheduledCourse\
-                      .objects\
-                      .select_related('course__module__train_prog__department',
-                                      'tutor')\
-                      .filter(course__module__train_prog__department__abbrev=department,
-                              course__week=week,
-                              work_copy=copy_a)\
-                      .distinct('tutor')]
-    return [s.tutor.username for s in ScheduledCourse\
-            .objects\
-            .select_related('course__module__train_prog__department')\
-            .exclude(course__module__train_prog__department__abbrev=department)\
-            .filter(course__week=week,
-                    tutor__in=busy_tutors_in_dept,
-                    work_copy=0)\
-            .distinct('tutor')]
+    """
+    busy_tutors_in_dept = [
+        s.tutor
+        for s in ScheduledCourse.objects.select_related(
+            "course__module__train_prog__department", "tutor"
+        )
+        .filter(
+            course__module__train_prog__department__abbrev=department,
+            course__period=period,
+            work_copy=copy_a,
+        )
+        .distinct("tutor")
+    ]
+    return [
+        s.tutor.username
+        for s in ScheduledCourse.objects.select_related(
+            "course__module__train_prog__department"
+        )
+        .exclude(course__module__train_prog__department__abbrev=department)
+        .filter(course__period=period, tutor__in=busy_tutors_in_dept, work_copy=0)
+        .distinct("tutor")
+    ]
 
 
 def get_shared_rooms():
-    '''
+    """
     Returns the rooms that are shared between departments
-    '''
-    return Room.objects.annotate(num_depts=Count('departments')).filter(num_depts__gt=1)
+    """
+    return Room.objects.annotate(num_depts=Count("departments")).filter(num_depts__gt=1)
 
 
 def compute_conflicts_helper(dic):
-    '''
+    """
     Computes overlapping slots
-    '''
+    """
     conflicts = []
     for k in dic:
-        dic[k].sort(key=lambda s: (s['day'], s['start_time']))
+        dic[k].sort(key=lambda s: (s["start_time"]))
     for t, sched_list in dic.items():
-        for i in range(len(sched_list)-1):
-            if sched_list[i]['day'] == sched_list[i+1]['day'] and\
-               sched_list[i]['start_time'] + sched_list[i]['duration'] > sched_list[i+1]['start_time']:
-                conflicts.append((sched_list[i],sched_list[i+1]))
+        for i in range(len(sched_list) - 1):
+            if (
+                sched_list[i]["start_time"] + sched_list[i]["duration"]
+                > sched_list[i + 1]["start_time"]
+            ):
+                conflicts.append((sched_list[i], sched_list[i + 1]))
     return conflicts
-    
 
-def compute_conflicts(department, week, copy_a):
-    '''
+
+def compute_conflicts(department, period, copy_a):
+    """
     Computes the conflicts (tutor giving several courses at the same time or
-    room used in parallel) in week (year,nb) between the work copy copy_a
+    room used in parallel) in period between the work copy copy_a
     of department department, and work copy 0 of the other departments.
-    '''
+    """
     conflicts = {}
 
     # tutors with overlapping courses
     dic_by_tutor = {}
     tmp_conflicts = []
-    tutors_username_list = get_shared_tutors(department, week, copy_a)
-    courses_list = ScheduledCourse.objects.select_related('course__module__train_prog__department',
-                                                          'course__type__duration',
-                                                          'tutor')\
-                                          .filter(Q(work_copy=copy_a) & Q(course__module__train_prog__department__abbrev=department) \
-                                                  | Q(work_copy=0)&~Q(course__module__train_prog__department__abbrev=department),
-                                                  course__week=week,
-                                                  tutor__username__in=tutors_username_list,
-                                          )\
-                                          .annotate(duration=F('course__type__duration'),
-                                                    week=F('course__week'))\
-                                          .values('id',
-                                                  'week',
-                                                  'day','start_time','duration','tutor__username')
+    tutors_username_list = get_shared_tutors(department, period, copy_a)
+    courses_list = (
+        ScheduledCourse.objects.select_related(
+            "course__module__train_prog__department", "course__duration", "tutor"
+        )
+        .filter(
+            Q(work_copy=copy_a)
+            & Q(course__module__train_prog__department__abbrev=department)
+            | Q(work_copy=0)
+            & ~Q(course__module__train_prog__department__abbrev=department),
+            course__period=period,
+            tutor__username__in=tutors_username_list,
+        )
+        .annotate(duration=F("course__duration"), period=F("course__period"))
+        .values("id", "period", "start_time", "duration", "tutor__username")
+    )
     for t in tutors_username_list:
         dic_by_tutor[t] = []
     for sc in courses_list:
-        dic_by_tutor[sc['tutor__username']].append(sc)
-    conflicts['tutor'] = compute_conflicts_helper(dic_by_tutor)
+        dic_by_tutor[sc["tutor__username"]].append(sc)
+    conflicts["tutor"] = compute_conflicts_helper(dic_by_tutor)
 
     # rooms that are used in parallel
     tmp_conflicts = []
     dic_by_room = {}
     dic_subrooms = {}
     conflict_room_list = get_shared_rooms()
-    
+
     for room in conflict_room_list:
-        dic_subrooms[str(room.id)] = [r.name for r in room.and_subrooms()]
+        dic_subrooms[str(room.id)] = [r.name for r in room.related_rooms()]
     print(dic_subrooms)
-    courses_list = ScheduledCourse.objects.select_related('course__type__duration')\
-                                          .filter(Q(work_copy=copy_a) & Q(course__module__train_prog__department__abbrev=department) \
-                                                  | Q(work_copy=0)&~Q(course__module__train_prog__department__abbrev=department),
-                                                  course__week=week,
-                                                  work_copy=copy_a,
-                                                  room__in=conflict_room_list)\
-                                          .annotate(duration=F('course__type__duration'),
-                                                    week=F('course__week'))\
-                                          .values('id',
-                                                  'week',
-                                                  'day','start_time','duration','room')
+    courses_list = (
+        ScheduledCourse.objects.select_related("course__duration")
+        .filter(
+            Q(work_copy=copy_a)
+            & Q(course__module__train_prog__department__abbrev=department)
+            | Q(work_copy=0)
+            & ~Q(course__module__train_prog__department__abbrev=department),
+            course__period=period,
+            work_copy=copy_a,
+            room__in=conflict_room_list,
+        )
+        .annotate(duration=F("course__duration"), period=F("course__period"))
+        .values("id", "start_time", "duration", "room")
+    )
     for room in get_shared_rooms():
         dic_by_room[room.name] = []
 
     # create busy slots for every room in the roomgroups
     for sc in courses_list:
-        roomgroup = sc['room']
+        roomgroup = sc["room"]
         for subroom in dic_subrooms[str(roomgroup)]:
             if subroom in dic_by_room:
                 new_sc = sc.copy()
-                new_sc['room'] = subroom
-                dic_by_room[new_sc['room']].append(new_sc)
+                new_sc["room"] = subroom
+                dic_by_room[new_sc["room"]].append(new_sc)
 
-    conflicts['room'] = compute_conflicts_helper(dic_by_room)
+    conflicts["room"] = compute_conflicts_helper(dic_by_room)
 
     return conflicts
 
 
-def get_conflicts(department, week, copy_a):
-    '''
+def get_conflicts(department, period, copy_a):
+    """
     Checks whether the work copy copy_a of department department is compatible
     with the work copies 0 of the other departments.
     Returns a result {'status':'blabla', 'more':'explanation'}
-    '''
-    result = {'status':'OK'}
-    more = ''
-    
-    conflicts = compute_conflicts(department, week, copy_a)
+    """
+    result = {"status": "OK"}
+    more = ""
 
-    if len(conflicts['tutor']) + len(conflicts['room']) == 0:
+    conflicts = compute_conflicts(department, period, copy_a)
+
+    if len(conflicts["tutor"]) + len(conflicts["room"]) == 0:
         return result
-    
-    if len(conflicts['tutor']) > 0:
-        more += 'Prof déjà occupé·e : '
-        for conflict in conflicts['tutor']:
+
+    if len(conflicts["tutor"]) > 0:
+        more += "Prof déjà occupé·e : "
+        for conflict in conflicts["tutor"]:
             sched = []
             for sc in conflict:
-                sched.append(ScheduledCourse.objects.get(id=sc['id']))
-            more += sc['tutor__username'] + ' : '
-            str_sched = list(map(
-                lambda s: f'{str_slot(s.day,s.start_time,s.course.type.duration)} '\
-                + f'({s.course.module.abbrev}, {s.course.module.train_prog.department.abbrev})',
-                sched))
-            more += ' VS '.join(str_sched) + ' ; '
+                sched.append(ScheduledCourse.objects.get(id=sc["id"]))
+            more += sc["tutor__username"] + " : "
+            str_sched = list(
+                map(
+                    lambda s: f"{str_slot(s.day,s.start_time,s.course.duration)} "
+                    + f"({s.course.module.abbrev}, {s.course.module.train_prog.department.abbrev})",
+                    sched,
+                )
+            )
+            more += " VS ".join(str_sched) + " ; "
 
-    if len(conflicts['room']) > 0:
-        more += 'Salle déjà prise : '
-        for conflict in conflicts['room']:
+    if len(conflicts["room"]) > 0:
+        more += "Salle déjà prise : "
+        for conflict in conflicts["room"]:
             sched = []
             for sc in conflict:
-                sched.append(ScheduledCourse.objects.get(id=sc['id']))
-            str_sched = list(map(
-                lambda s: f'{s.room} ({str_slot(s.day,s.start_time,s.course.type.duration)}, '\
-                + f'{s.tutor.username if s.tutor is not None else "No one"}, '
-                + f'{s.course.module.train_prog.department.abbrev})',
-                sched))
-            more += ' VS '.join(str_sched) + ' ; '
+                sched.append(ScheduledCourse.objects.get(id=sc["id"]))
+            str_sched = list(
+                map(
+                    lambda s: f"{s.room} ({str_slot(s.day,s.start_time,s.course.duration)}, "
+                    + f'{s.tutor.username if s.tutor is not None else "No one"}, '
+                    + f"{s.course.module.train_prog.department.abbrev})",
+                    sched,
+                )
+            )
+            more += " VS ".join(str_sched) + " ; "
 
-    result['status'] = 'KO'
-    result['more'] = more
+    result["status"] = "KO"
+    result["more"] = more
 
     return result
 
 
-def basic_swap_version(department, week, copy_a, copy_b=0):
+def basic_swap_version(department, period, copy_a, copy_b=0):
 
     scheduled_courses_params = {
-        'course__module__train_prog__department': department,
-        'course__week': week,
+        "course__module__train_prog__department": department,
+        "course__period": period,
     }
 
     try:
-        tmp_wc = ScheduledCourse \
-                     .objects \
-                     .filter(**scheduled_courses_params) \
-                     .aggregate(Max('work_copy'))['work_copy__max'] + 1
+        tmp_wc = (
+            ScheduledCourse.objects.filter(**scheduled_courses_params).aggregate(
+                Max("work_copy")
+            )["work_copy__max"]
+            + 1
+        )
     except KeyError:
-        print('No scheduled courses')
+        print("No scheduled courses")
         return
 
-    version_copy = EdtVersion.objects.get(department=department, week=week)
+    version_copy = EdtVersion.objects.get(department=department, period=period)
 
-    for cp in ScheduledCourse.objects.filter(work_copy=copy_a, **scheduled_courses_params):
+    for cp in ScheduledCourse.objects.filter(
+        work_copy=copy_a, **scheduled_courses_params
+    ):
         cp.work_copy = tmp_wc
         cp.save()
 
-    for cp in ScheduledCourse.objects.filter(work_copy=copy_b, **scheduled_courses_params):
+    for cp in ScheduledCourse.objects.filter(
+        work_copy=copy_b, **scheduled_courses_params
+    ):
         cp.work_copy = copy_a
         cp.save()
 
-    for cp in ScheduledCourse.objects.filter(work_copy=tmp_wc, **scheduled_courses_params):
+    for cp in ScheduledCourse.objects.filter(
+        work_copy=tmp_wc, **scheduled_courses_params
+    ):
         cp.work_copy = copy_b
         cp.save()
 
     if copy_a == 0 or copy_b == 0:
-        CourseModification.objects.filter(course__week=week).delete()
+        CourseModification.objects.filter(course__period=period).delete()
         number_courses(department)
         version_copy.version += 1
         version_copy.save()
 
-    cache.delete(base_views.get_key_course_pl(department.abbrev,
-                                   week,
-                                   copy_a))
-    cache.delete(base_views.get_key_course_pl(department.abbrev,
-                                   week,
-                                   copy_b))
-    cache.delete(base_views.get_key_course_pp(department.abbrev,
-                                   week,
-                                   copy_a))
-    cache.delete(base_views.get_key_course_pp(department.abbrev,
-                                   week,
-                                   copy_b))
+    cache.delete(base_views.get_key_course_pl(department.abbrev, period, copy_a))
+    cache.delete(base_views.get_key_course_pl(department.abbrev, period, copy_b))
+    cache.delete(base_views.get_key_course_pp(department.abbrev, period, copy_a))
+    cache.delete(base_views.get_key_course_pp(department.abbrev, period, copy_b))
 
 
-def basic_delete_work_copy(department, week, work_copy):
+def basic_delete_work_copy(department, period, work_copy):
 
-    result = {'status': 'OK', 'more': ''}
+    result = {"status": "OK", "more": ""}
 
     scheduled_courses_params = {
-        'course__module__train_prog__department': department,
-        'course__week': week,
-        'work_copy': work_copy
+        "course__module__train_prog__department": department,
+        "course__period": period,
+        "work_copy": work_copy,
     }
 
     try:
-        sc_to_delete = ScheduledCourse \
-                     .objects \
-                     .filter(**scheduled_courses_params)
+        sc_to_delete = ScheduledCourse.objects.filter(**scheduled_courses_params)
     except KeyError:
-        result['status'] = 'KO'
-        result['more'] = 'No scheduled courses in wc #%g' % work_copy
+        result["status"] = "KO"
+        result["more"] = "No scheduled courses in wc #%g" % work_copy
         return result
 
     sc_to_delete.delete()
 
-    cache.delete(base_views.get_key_course_pl(department.abbrev,
-                                   week,
-                                   work_copy))
+    cache.delete(base_views.get_key_course_pl(department.abbrev, period, work_copy))
     return result
 
 
-def basic_delete_all_unused_work_copies(department, week):
-    result = {'status': 'OK', 'more': ''}
+def basic_delete_all_unused_work_copies(department, period):
+    result = {"status": "OK", "more": ""}
     scheduled_courses_params = {
-        'course__module__train_prog__department': department,
-        'course__week': week
+        "course__module__train_prog__department": department,
+        "course__period": period,
     }
-    work_copies = set(sc.work_copy
-                      for sc in ScheduledCourse.objects.filter(**scheduled_courses_params)
-                      .exclude(work_copy=0)
-                      .distinct("work_copy"))
+    work_copies = set(
+        sc.work_copy
+        for sc in ScheduledCourse.objects.filter(**scheduled_courses_params)
+        .exclude(work_copy=0)
+        .distinct("work_copy")
+    )
     for wc in work_copies:
-        result = basic_delete_work_copy(department, week, wc)
+        result = basic_delete_work_copy(department, period, wc)
         if result["status"] == "KO":
             return result
 
     return result
 
 
-def basic_duplicate_work_copy(department, week, work_copy):
+def basic_duplicate_work_copy(department, period, work_copy):
 
-    result = {'status': 'OK', 'more': ''}
+    result = {"status": "OK", "more": ""}
     scheduled_courses_params = {
-        'course__module__train_prog__department': department,
-        'course__week': week
+        "course__module__train_prog__department": department,
+        "course__period": period,
     }
-    local_max_wc = ScheduledCourse \
-        .objects \
-        .filter(**scheduled_courses_params) \
-        .aggregate(Max('work_copy'))['work_copy__max']
+    local_max_wc = ScheduledCourse.objects.filter(**scheduled_courses_params).aggregate(
+        Max("work_copy")
+    )["work_copy__max"]
     target_work_copy = local_max_wc + 1
 
     try:
-        sc_to_duplicate = ScheduledCourse \
-                            .objects \
-                            .filter(**scheduled_courses_params, work_copy=work_copy)
+        sc_to_duplicate = ScheduledCourse.objects.filter(
+            **scheduled_courses_params, work_copy=work_copy
+        )
     except KeyError:
-        result['status'] = 'KO'
-        result['more'] = 'No scheduled courses'
+        result["status"] = "KO"
+        result["more"] = "No scheduled courses"
         return result
 
     for sc in sc_to_duplicate:
         sc.pk = None
         sc.work_copy = target_work_copy
         sc.save()
-    result['status'] = f'Duplicated to copy #{target_work_copy}'
+    result["status"] = f"Duplicated to copy #{target_work_copy}"
 
     return result
 
@@ -346,13 +378,17 @@ def add_generic_constraints_to_database(department):
     # first objective  => minimise use of unpreferred slots for teachers
     # ponderation MIN_UPS_I
 
-    M, created = MinNonPreferedTutorsSlot.objects.get_or_create(weight=max_weight, department=department)
+    M, created = MinNonPreferedTutorsSlot.objects.get_or_create(
+        weight=max_weight, department=department
+    )
     M.save()
 
     # second objective  => minimise use of unpreferred slots for courses
     # ponderation MIN_UPS_C
 
-    M, created = MinNonPreferedTrainProgsSlot.objects.get_or_create(weight=max_weight, department=department)
+    M, created = MinNonPreferedTrainProgsSlot.objects.get_or_create(
+        weight=max_weight, department=department
+    )
     M.save()
 
 
@@ -364,66 +400,71 @@ def int_or_none(value):
 
 
 def load_dispos(json_filename):
-    data = json.loads(open(json_filename, 'r').read())
+    data = json.loads(open(json_filename, "r").read())
     exceptions = set()
     for dispo in data:
         try:
-            tutor = Tutor.objects.get(username=dispo['prof'])
+            tutor = Tutor.objects.get(username=dispo["prof"])
         except Tutor.DoesNotExist:
-            exceptions.add(dispo['prof'])
+            exceptions.add(dispo["prof"])
             continue
-        week = Week.objects.get(nb=int_or_none(dispo["week"]), year=int_or_none(dispo["year"]))
-        U, created = UserPreference.objects.get_or_create(
+        dispo["date"]
+        U, created = UserAvailability.objects.get_or_create(
             user=tutor,
-            week=week,
-            day=dispo['day'],
-            start_time=dispo['start_time'],
-            duration=dispo['duration']
+            date = dispo["date"],
+            start_time=dispo["start_time"],
+            duration=dispo["duration"],
         )
-        U.value = dispo['value']
+        U.value = dispo["value"]
         U.save()
 
     if exceptions:
         print("The following tutor do not exist:", exceptions)
 
 
-def duplicate_what_can_be_in_other_weeks(department, week, work_copy=0):
-    result = {'status': 'OK', 'more': ''}
+def duplicate_what_can_be_in_other_periods(department, period:SchedulingPeriod, work_copy=0):
+    result = {"status": "OK", "more": ""}
     try:
-        sched_week = ScheduledCourse.objects.filter(course__type__department=department,
-                                                    course__week=week,
-                                                    work_copy=work_copy)
-        other_weeks_courses = Course.objects.filter(type__department=department).exclude(week=week)
-        other_weeks = set(c.week for c in other_weeks_courses.distinct('week'))
-        new_dico = {}
-        for ow in other_weeks:
+        sched_period = ScheduledCourse.objects.filter(
+            course__type__department=department, course__period=period, work_copy=work_copy
+        )
+        other_periods_courses = Course.objects.filter(
+            type__department=department
+        ).exclude(period=period)
+        other_periods = set(c.period for c in other_periods_courses.distinct("period"))
+        period_dates = period.dates()
+        for op in other_periods:
+            other_period_dates = op.dates()
+            if len(period_dates) != (other_period_dates):
+                continue
             done = False
-            target_work_copy = first_free_work_copy(department, ow)
-            courses_ow = set(other_weeks_courses.filter(week=ow))
-            new_dico[ow] = []
-            for sc in sched_week:
-                filtered_c_ow = [c for c in courses_ow if sc.course.equals(c)]
-                if filtered_c_ow:
-                    corresponding_course = filtered_c_ow[0]
-                    courses_ow.remove(corresponding_course)
-                    sc.pk=None
-                    sc.course=corresponding_course
-                    sc.work_copy=target_work_copy
-                    sc.save()
-                    done = True
-            if done:
-                result['more'] += _('%s, ') % ow
+            target_work_copy = first_free_work_copy(department, op)
+            courses_op = set(other_periods_courses.filter(period=op))
+            for i, date in enumerate(period_dates):
+                other_date = other_period_dates[i]
+                for sc in sched_period.filter(start_time__date=date):
+                    filtered_c_ow = [c for c in courses_op if sc.course.equals(c)]
+                    if filtered_c_ow:
+                        corresponding_course = filtered_c_ow[0]
+                        courses_op.remove(corresponding_course)
+                        sc.pk = None
+                        sc.course = corresponding_course
+                        sc.work_copy = target_work_copy
+                        sc.date_time = dt.datetime.combine(other_date, sc.start_time.time())
+                        sc.save()
+                        done = True
+                if done:
+                    result["more"] += _("%s, ") % op
         return result
     except:
-        result['status'] = 'KO'
+        result["status"] = "KO"
         return result
 
 
-def first_free_work_copy(department, week):
-    local_max_wc = ScheduledCourse \
-        .objects \
-        .filter(course__week=week, course__type__department=department) \
-        .aggregate(Max('work_copy'))['work_copy__max']
+def first_free_work_copy(department, period):
+    local_max_wc = ScheduledCourse.objects.filter(
+        course__period=period, course__type__department=department
+    ).aggregate(Max("work_copy"))["work_copy__max"]
     if local_max_wc is not None:
         return local_max_wc + 1
     else:
@@ -431,7 +472,7 @@ def first_free_work_copy(department, week):
 
 
 def convert_into_set(declared_object_or_iterable):
-    if hasattr(declared_object_or_iterable, '__iter__'):
+    if hasattr(declared_object_or_iterable, "__iter__"):
         return set(declared_object_or_iterable)
     else:
         return {declared_object_or_iterable}
@@ -444,42 +485,75 @@ def intersect_with_declared_objects(considered_queryset, declared_object_or_iter
     return result_set
 
 
-def sorted_by_start_time(schedule_courses_iterable):
-    sc_list = list(schedule_courses_iterable)
-    return sorted(sc_list, key= lambda x: (x.course.week, days_index[x.day], x.start_time))
+def sorted_by_start_time(scheduled_courses_iterable):
+    sc_list = list(scheduled_courses_iterable)
+    return sorted(
+        sc_list, key=lambda x: (x.start_time)
+    )
 
 
-def number_courses(department, modules=None, course_types=None, periods=None, train_progs=None,
-                   from_week=None, until_week=None, work_copy=0):
-    considered_train_progs = intersect_with_declared_objects(TrainingProgramme.objects.filter(department=department),
-                                                             train_progs)
-    considered_periods = intersect_with_declared_objects(Period.objects.filter(department=department),
-                                                         periods)
-    considered_modules = intersect_with_declared_objects(Module.objects.filter(train_prog__in=considered_train_progs,
-                                                                               period__in=considered_periods),
-                                                         modules)
-    considered_course_types = intersect_with_declared_objects(CourseType.objects.filter(department=department),
-                                                              course_types)
+def number_courses(
+    department,
+    modules=None,
+    course_types=None,
+    training_periods=None,
+    train_progs=None,
+    periods=None,
+    work_copy=0,
+):
+    considered_train_progs = intersect_with_declared_objects(
+        TrainingProgramme.objects.filter(department=department), train_progs
+    )
+    considered_periods = intersect_with_declared_objects(
+        TrainingPeriod.objects.filter(department=department), training_periods
+    )
+    considered_modules = intersect_with_declared_objects(
+        Module.objects.filter(
+            train_prog__in=considered_train_progs, training_period__in=considered_periods
+        ),
+        modules,
+    )
+    considered_course_types = intersect_with_declared_objects(
+        CourseType.objects.filter(department=department), course_types
+    )
     for module in considered_modules:
         for course_type in considered_course_types:
             considered_courses = Course.objects.filter(module=module, type=course_type)
-            for c_group in considered_courses.distinct('groups'):
+            for c_group in considered_courses.distinct("groups"):
                 group = c_group.groups.first()
                 group_courses = considered_courses.filter(groups=group)
                 total_number = len(group_courses)
-                if from_week is not None:
-                    group_courses = group_courses.filter(week__gte=from_week)
-                    past_courses_number = len(group_courses.filter(week__lt=from_week))
+                if periods is not None:
+                    first_period = min(periods, key=lambda x: x.start_date)
+                    last_period = max(periods, key=lambda x: x.end_date)
+                    group_courses = group_courses.filter(period__gte=first_period, period__lte=last_period)
+                    past_courses_number = len(group_courses.filter(period__lt=first_period))
                 else:
                     past_courses_number = 0
-                if until_week is not None:
-                    group_courses = group_courses.filter(week__lte=until_week)
-                sorted_sched_courses = sorted_by_start_time(ScheduledCourse.objects.filter(course__in=group_courses,
-                                                                                           work_copy=work_copy))
+                sorted_sched_courses = sorted_by_start_time(
+                    ScheduledCourse.objects.filter(
+                        course__in=group_courses, work_copy=work_copy
+                    )
+                )
                 for i, sc in enumerate(sorted_sched_courses):
                     sc.number = past_courses_number + i + 1
                     sc.save()
 
-
-
-
+def print_differences(department, weeks, old_copy, new_copy, tutors=Tutor.objects.all()):
+    for week in weeks:
+        print("For", week)
+        for tutor in tutors:
+            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=old_copy, course__week=week,
+                                                 course__type__department=department)
+            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=new_copy, course__week=week,
+                                                 course__type__department=department)
+            slots_a = set([(x.day, x.start_time//60) for x in SCa])
+            slots_b = set([(x.day, x.start_time//60) for x in SCb])
+            if slots_a ^ slots_b:
+                result = "For %s old copy has :" % tutor
+                for sl in slots_a - slots_b:
+                    result += "%s, " % str(sl)
+                result += "and new copy has :"
+                for sl in slots_b - slots_a:
+                    result += "%s, " % str(sl)
+                print(result)

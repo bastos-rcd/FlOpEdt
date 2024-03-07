@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
+import datetime as dt
 
 
 class Dependency(models.Model):
@@ -30,15 +31,15 @@ class Pivot(models.Model):
 
 class CourseStartTimeConstraint(models.Model):
     # foreignkey instead of onetoone to leave room for a day attribute
-    course_type = models.ForeignKey(
-        'CourseType', null=True, default=None, on_delete=models.CASCADE)
-    allowed_start_times = ArrayField(
-        models.PositiveSmallIntegerField(), blank=True)  # FIXME : time with TimeField or DurationField
+    # course_type = models.ForeignKey('CourseType', null=True, default=None, blank=True, on_delete=models.CASCADE)
+    department = models.ForeignKey('base.Department', on_delete=models.CASCADE)
+    duration = models.DurationField(verbose_name=_('Duration'), default=dt.timedelta(minutes=60))
+    allowed_start_times = ArrayField(models.TimeField(), default=list)
 
 
 class Regen(models.Model):
     department = models.ForeignKey('base.Department', on_delete=models.CASCADE, null=True)
-    week = models.ForeignKey('Week', on_delete=models.CASCADE, null=True, blank=True)
+    period = models.ForeignKey('SchedulingPeriod', on_delete=models.CASCADE, null=True, blank=True)
     full = models.BooleanField(verbose_name=_('Full'), default=True)
     fdate = models.DateField(verbose_name=_('Full generation date'), null=True, blank=True)
     stabilize = models.BooleanField(verbose_name=_('Stabilized'), default=False)

@@ -100,3 +100,11 @@ class DailyVolumeSerializer(serializers.Serializer):
 class RoomDailyVolumeSerializer(serializers.Serializer):
     date = serializers.DateField()
     volume = serializers.FloatField()
+
+
+class DuplicateSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    time = serializers.CharField()
+    type = serializers.CharField()
+    tutor = serializers.CharField()
+    nb = serializers.IntegerField()

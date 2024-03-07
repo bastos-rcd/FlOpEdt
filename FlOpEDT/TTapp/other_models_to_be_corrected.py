@@ -235,17 +235,7 @@ class LimitedStartTimeChoices(TTConstraint):
 
 
     def enrich_ttmodel(self, ttmodel, ponderation=1.):
-        fc = ttmodel.wdb.courses
-        if self.tutor is not None:
-            fc = fc.filter(tutor=self.tutor)
-        if self.module is not None:
-            fc = fc.filter(module=self.module)
-        if self.type is not None:
-            fc = fc.filter(type=self.type)
-        if self.train_prog is not None:
-            fc = fc.filter(group__train_prog=self.train_prog)
-        if self.group is not None:
-            fc = fc.filter(group=self.group)
+        fc = self.considered_courses(ttmodel)
         possible_slots_ids = set(slot.id for slot in ttmodel.wdb.courses_slots
                                  if slot.start_time in self.possible_start_times.values_list())
 

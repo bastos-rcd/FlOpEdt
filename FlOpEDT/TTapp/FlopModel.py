@@ -40,6 +40,7 @@ from base.models import Department, ScheduledCourse
 from core.decorators import timer
 from django.db import close_old_connections
 from django.db.models import Q, Max
+from django.conf import settings
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
@@ -49,8 +50,9 @@ logger = logging.getLogger(__name__)
 pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
 GUROBI = 'GUROBI'
 GUROBI_NAME = 'GUROBI_CMD'
-solution_files_path = "misc/logs/solutions"
-iis_files_path = "misc/logs/iis"
+solution_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/solutions")
+iis_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/iis")
+gurobi_log_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/gurobi")
 
 
 class FlopVar:
@@ -66,10 +68,10 @@ class FlopVar:
 
 
 class FlopModel(object):
-    def __init__(self, department_abbrev, weeks, keep_many_solution_files=False, use_flop_vars=False):
+    def __init__(self, department_abbrev, periods, keep_many_solution_files=False, use_flop_vars=False):
         self.use_flop_vars = use_flop_vars
         self.department = Department.objects.get(abbrev=department_abbrev)
-        self.weeks = weeks
+        self.periods = periods
         self.model = LpProblem(self.solution_files_prefix(), LpMinimize)
         self.keep_many_solution_files = keep_many_solution_files
         self.var_nb = 0
@@ -198,8 +200,11 @@ class FlopModel(object):
         else:
             self.warnings[key] = [warning]
 
-    def solution_files_prefix(self):
+    def log_files_prefix(self):
         raise NotImplementedError
+
+    def solution_files_prefix(self):
+        return f"{solution_files_path}/{self.log_files_prefix()}"
 
     def all_counted_solution_files(self):
         solution_file_pattern = f"{self.solution_files_prefix()}_*.sol"
@@ -240,7 +245,7 @@ class FlopModel(object):
         local_max_wc = ScheduledCourse \
             .objects \
             .filter(course__module__train_prog__department=self.department,
-                    course__week__in=self.weeks) \
+                    course__period__in=self.periods) \
             .aggregate(Max('work_copy'))['work_copy__max']
 
         if local_max_wc is None:
@@ -249,7 +254,7 @@ class FlopModel(object):
         return local_max_wc + 1
 
     def iis_filename_suffixe(self):
-        return "_%s_%s" % (self.department.abbrev, self.weeks)
+        return "_%s_%s" % (self.department.abbrev, self.periods)
 
     def iis_filename(self):
         return "%s/IIS%s.ilp" % (iis_files_path, self.iis_filename_suffixe())
@@ -276,6 +281,9 @@ class FlopModel(object):
             self.constraintManager.handle_reduced_result(iis_filename,
                                                          iis_files_path,
                                                          self.iis_filename_suffixe())
+            
+    def gurobi_log_file(self):
+        return f"{gurobi_log_files_path}/{self.log_files_prefix()}_gurobi.log"
 
     @timer
     def optimize(self, time_limit, solver, presolve=2, threads=None, ignore_sigint=True):
@@ -290,14 +298,15 @@ class FlopModel(object):
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
             solver = GUROBI_NAME
             options = [("Presolve", presolve),
-                       ("MIPGapAbs", 0.2)]
+                       ("MIPGapAbs", 0.2),
+                       ('LogFile', self.gurobi_log_file())]
             if time_limit is not None:
                 options.append(("TimeLimit", time_limit))
             if threads is not None:
                 options.append(("Threads",threads))
             if self.keep_many_solution_files:
                 options.append(('SolFiles',
-                                f"{solution_files_path}/{self.solution_files_prefix()}"))
+                                f"{self.solution_files_prefix()}"))
             result = self.model.solve(GUROBI_CMD(keepFiles=1,
                                                  msg=True,
                                                  options=options))
@@ -310,7 +319,7 @@ class FlopModel(object):
             self.model.solve(command(keepFiles=1,
                                      msg=True,
                                      presolve=presolve,
-                                     maxSeconds=time_limit))
+                                     timeLimit=time_limit))
         else:
             print(f'Solver {solver} not found.')
             return None
@@ -325,23 +334,16 @@ class FlopModel(object):
             return None
 
 
-def get_ttconstraints(department, week=None, train_prog=None, is_active=None):
+def get_ttconstraints(department, period=None, is_active=None):
     #
-    #  Return constraints corresponding to the specific filters
+    #  Return tt_constraints corresponding to the specific filters
     #
     query = Q(department=department)
 
     if is_active:
         query &= Q(is_active=is_active)
 
-    if train_prog:
-        query &= \
-            Q(train_progs__abbrev=train_prog) & Q(weeks__isnull=True) | \
-            Q(train_progs__abbrev=train_prog) & Q(weeks=week) | \
-            Q(train_progs__isnull=True) & Q(weeks=week) | \
-            Q(train_progs__isnull=True) & Q(weeks__isnull=True)
-    else:
-        query &= Q(weeks=week) | Q(weeks__isnull=True)
+    query &= Q(periods=period) | Q(periods__isnull=True)
 
     # Look up the TTConstraint subclasses records to update
     types = all_subclasses(TTConstraint)
@@ -357,16 +359,16 @@ def get_ttconstraints(department, week=None, train_prog=None, is_active=None):
             yield constraint
 
 
-def get_room_constraints(department, week=None, is_active=None):
+def get_room_constraints(department, period=None, is_active=None):
     #
-    #  Return constraints corresponding to the specific filters
+    #  Return room_constraints corresponding to the specific filters
     #
     query = Q(department=department)
 
     if is_active:
         query &= Q(is_active=is_active)
 
-    query &= Q(weeks=week) | Q(weeks__isnull=True)
+    query &= Q(periods=period) | Q(periods__isnull=True)
 
     # Look up the TTConstraint subclasses records to update
     types = all_subclasses(RoomConstraint)
@@ -380,3 +382,12 @@ def get_room_constraints(department, week=None, is_active=None):
 
         for constraint in queryset.order_by('id'):
             yield constraint
+
+
+def get_flop_constraints(department, period=None, is_active=None):
+    #
+    #  Return FlopConstraints corresponding to the specific filters
+    #
+    tt_constraints = get_ttconstraints(department, period, is_active)
+    room_constraints = get_room_constraints(department, period, is_active)
+    return list(tt_constraints) + list(room_constraints)

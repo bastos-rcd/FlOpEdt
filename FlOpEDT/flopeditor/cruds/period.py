@@ -27,16 +27,30 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
-from base.models import Period
-from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_period_values
+from base.models import TrainingPeriod, PeriodEnum, SchedulingPeriod
+from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_training_period_values
 
 
+def all_scheduling_periods(department):
+    """Return all scheduling periods for a department
+    :param department: Department.
+    :type department:  base.models.Department
+    :return: list of scheduling periods
+    :rtype:  list(string)
+    """
 
+    if department.mode == PeriodEnum.CUSTOM:
+        result = department.scheduling_periods.all()
+    else:
+        result = SchedulingPeriod.objects.filter(mode=department.mode.scheduling_mode)
 
+    result_list = list(result)
+    result_list.sort(key = lambda x:x.start_date)
 
+    return [sp.name for sp in result_list]
 
 def read(department):
-    """Return all periods for a department
+    """Return all training periods for a department
     :param department: Department.
     :type department:  base.models.Department
     :return: Server response for the request.
@@ -44,29 +58,25 @@ def read(department):
 
     """
 
-    periods = Period.objects.filter(department=department)
+    training_periods = TrainingPeriod.objects.filter(department=department)
 
     values = []
-    for period in periods:
-        values.append((period.name, period.starting_week, period.ending_week))
+    for training_period in training_periods:
+        values.append((training_period.name, list(training_period.periods.values_list("name", flat=True))))
     return JsonResponse({
         "columns":  [{
             'name': 'Id du semestre',
             "type": "text",
             "options": {}
         }, {
-            'name': 'Semaine de début',
-            "type": "int",
-            "options": {}
-        }, {
-            'name': 'Semaine de fin',
-            "type": "int",
-            "options": {}
+            'name': 'Périodes de génération',
+            "type": "select-chips",
+            "options": {"values": all_scheduling_periods(department)}
         }],
         "values": values,
         "options": {
             "examples": [
-                ["S1", 36, 5]
+                ["S1", ['S2-2024', 'S3-2024']],
             ]
         }
     })
@@ -84,21 +94,23 @@ def create(entries, department):
     entries['result'] = []
     for i in range(len(entries['new_values'])):
         new_name = entries['new_values'][i][0]
-        new_starting_week = entries['new_values'][i][1]
-        new_ending_week = entries['new_values'][i][2]
-        if not validate_period_values(new_name, new_starting_week, new_ending_week, entries):
+        new_period_names = entries['new_values'][i][1]
+        if not validate_training_period_values(new_name, new_period_names, entries):
             pass
-        elif Period.objects.filter(name=new_name, department=department):
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Le semestre à ajouter est déjà présent dans la base de données."
-            ])
+        elif TrainingPeriod.objects.filter(name=new_name, department=department):
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Le semestre à ajouter est déjà présent dans la base de données.",
+                ]
+            )
         else:
-            Period.objects.create(name=new_name,
-                                  department=department,
-                                  starting_week=new_starting_week,
-                                  ending_week=new_ending_week)
-            entries['result'].append([OK_RESPONSE])
+            tp  = TrainingPeriod.objects.create(
+                name=new_name,
+                department=department,
+            )
+            tp.periods.set(SchedulingPeriod.objects.filter(name__in=new_period_names))
+            entries["result"].append([OK_RESPONSE])
     return entries
 
 
@@ -122,37 +134,43 @@ def update(entries, department):
     for i in range(len(entries['old_values'])):
         old_name = entries['old_values'][i][0]
         new_name = entries['new_values'][i][0]
-        new_starting_week = entries['new_values'][i][1]
-        new_ending_week = entries['new_values'][i][2]
-        if not validate_period_values(new_name, new_starting_week, new_ending_week, entries):
+        new_period_names = entries['new_values'][i][1]
+        if not validate_training_period_values(new_name, new_period_names, entries):
             pass
 
         else:
             try:
-                period_to_update = Period.objects.get(name=old_name,
-                                                      department=department)
-                if old_name != new_name and \
-                            Period.objects.filter(name=new_name,
-                                                  department=department):
-                    entries['result'].append(
-                        [ERROR_RESPONSE,
-                         "Le nom du semestre est déjà utilisé."])
+                period_to_update = TrainingPeriod.objects.get(
+                    name=old_name, department=department
+                )
+                if old_name != new_name and TrainingPeriod.objects.filter(
+                    name=new_name, department=department
+                ):
+                    entries["result"].append(
+                        [ERROR_RESPONSE, "Le nom du semestre est déjà utilisé."]
+                    )
                 else:
                     period_to_update.name = new_name
-                    period_to_update.starting_week = new_starting_week
-                    period_to_update.ending_week = new_ending_week
+                    period_to_update.periods.set(SchedulingPeriod.objects.filter(name__in=new_period_names))
                     period_to_update.save()
-                    entries['result'].append([OK_RESPONSE])
-            except Period.DoesNotExist:
-                entries['result'].append(
-                    [ERROR_RESPONSE,
-                     "Un semestre à modifier n'a pas été trouvé dans la base de données."])
-            except Period.MultipleObjectsReturned:
-                entries['result'].append(
-                    [ERROR_RESPONSE,
-                     "Plusieurs semestres du même nom existent en base de données."])
+                    entries["result"].append([OK_RESPONSE])
+            except TrainingPeriod.DoesNotExist:
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "Un semestre à modifier n'a pas été trouvé dans la base de données.",
+                    ]
+                )
+            except TrainingPeriod.MultipleObjectsReturned:
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "Plusieurs semestres du même nom existent en base de données.",
+                    ]
+                )
 
     return entries
+
 
 def delete(entries, department):
     """Delete values for period
@@ -163,15 +181,17 @@ def delete(entries, department):
     :return: Server response for the request.
     :rtype:  django.http.JsonResponse
     """
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
         try:
-            Period.objects.get(name=old_name,
-                               department=department).delete()
-            entries['result'].append([OK_RESPONSE])
-        except Period.DoesNotExist:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Un semestre à supprimer n'a pas été trouvé dans la base de données."])
+            TrainingPeriod.objects.get(name=old_name, department=department).delete()
+            entries["result"].append([OK_RESPONSE])
+        except TrainingPeriod.DoesNotExist:
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Un semestre à supprimer n'a pas été trouvé dans la base de données.",
+                ]
+            )
     return entries

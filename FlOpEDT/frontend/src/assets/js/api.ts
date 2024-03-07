@@ -169,7 +169,7 @@ function deleteData(url: string, id: number) {
 }
 
 const urls = {
-    departments: 'fetch/alldepts',
+    departments: 'v1/base/groups/department',
     rooms: 'rooms/room',
     weekdays: 'fetch/weekdays',
     timesettings: 'base/timesettings',

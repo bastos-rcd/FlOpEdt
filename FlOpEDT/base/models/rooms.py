@@ -98,6 +98,12 @@ class Room(models.Model):
                + f'Types: {[t.name for t in self.types.all()]}, ' \
                + f'Depts: {self.departments.all()}, ' \
                + f'Is in: {[rg.name for rg in self.subroom_of.all()]}'
+    
+    def related_rooms(self):
+        result = set()
+        for r in self.basic_rooms():
+            result |= r.and_overrooms()
+        return result
 
 
 class RoomSort(models.Model):

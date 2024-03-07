@@ -28,11 +28,11 @@ import importlib
 
 from TTapp.TTModel import TTModel, GUROBI_NAME
 
-from MyFlOp.MyTTUtils import print_differences, number_courses
+from MyFlOp.MyTTUtils import number_courses, print_differences
 
 
 class MyTTModel(TTModel):
-    def __init__(self, department_abbrev, weeks,
+    def __init__(self, department_abbrev, periods,
                  train_prog=None,
                  stabilize_work_copy=None,
                  min_nps_i=1.,
@@ -54,7 +54,7 @@ class MyTTModel(TTModel):
         problem, you must write it here, before calling TTModel's constructor.
 
         """
-        TTModel.__init__(self, department_abbrev, weeks,
+        TTModel.__init__(self, department_abbrev, periods,
                          train_prog=train_prog,
                          stabilize_work_copy=stabilize_work_copy,
                          min_nps_i=min_nps_i,
@@ -81,7 +81,8 @@ class MyTTModel(TTModel):
         TTModel.add_specific_constraints(self)
 
     def solve(self, time_limit=None, target_work_copy=None,
-              solver=GUROBI_NAME, threads=None, ignore_sigint=True, with_numerotation=True):
+              solver=GUROBI_NAME, threads=None, ignore_sigint=True, send_gurobi_logs_email_to=None,
+              with_numerotation=True):
         """
         If you shall add pre (or post) processing apps, you may write them down
         here.
@@ -91,12 +92,16 @@ class MyTTModel(TTModel):
                                          target_work_copy=target_work_copy,
                                          solver=solver,
                                          threads=threads,
-                                         ignore_sigint=ignore_sigint)
+                                         ignore_sigint=ignore_sigint,
+                                         send_gurobi_logs_email_to=send_gurobi_logs_email_to)
+
         if result_work_copy is not None and self.stabilize_work_copy is not None:
-            print_differences(self.department, self.weeks,
+            print_differences(self.department, self.periods,
                               self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
+
         if with_numerotation:
-            number_courses(self.department, from_week=self.weeks[0], until_week=self.weeks[-1],
+            number_courses(self.department, periods=self.periods,
                            work_copy=result_work_copy)
+            
         return result_work_copy
 

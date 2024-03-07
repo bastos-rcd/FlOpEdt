@@ -25,6 +25,21 @@ from api.v1.base.groups import views as groups_views
 
 routerGroups = routers.SimpleRouter()
 
-routerGroups.register(r'structural_groups', groups_views.StructuralGroupsViewSet, basename="structural_groups")
-routerGroups.register(r'transversal_groups', groups_views.TransversalGroupsViewSet, basename="transversal_groups")
-routerGroups.register(r'training_programmes', groups_views.TrainingProgramsViewSet, basename="training_programmes")
+routerGroups.register(
+    r"structural_groups",
+    groups_views.StructuralGroupsViewSet,
+    basename="structural_groups",
+)
+routerGroups.register(
+    r"transversal_groups",
+    groups_views.TransversalGroupsViewSet,
+    basename="transversal_groups",
+)
+routerGroups.register(
+    r"training_programmes",
+    groups_views.TrainingProgramsViewSet,
+    basename="training_programmes",
+)
+routerGroups.register(
+    r"department", groups_views.DepartmentViewSet, basename="department"
+)

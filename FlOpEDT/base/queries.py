@@ -30,11 +30,24 @@ from django.db import transaction
 from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
 
-from base.models import StructuralGroup, RoomType, Room, \
-    ScheduledCourse, EdtVersion, Department, Regen, \
-    Period, TutorCost, CourseStartTimeConstraint, \
-    TimeGeneralSettings, GroupType, CourseType, \
-    TrainingProgramme, Course, Week
+from base.models import (
+    StructuralGroup,
+    RoomType,
+    Room,
+    ScheduledCourse,
+    EdtVersion,
+    Department,
+    Regen,
+    TrainingPeriod,
+    TutorCost,
+    CourseStartTimeConstraint,
+    TimeGeneralSettings,
+    GroupType,
+    CourseType,
+    TrainingProgramme,
+    Course,
+    SchedulingPeriod,
+)
 
 from displayweb.models import GroupDisplay, TrainingProgrammeDisplay, BreakingNews
 
@@ -55,9 +68,16 @@ def create_first_department():
 
     # Update all existing department related models
     models = [
-        TrainingProgramme, EdtVersion, Regen, \
-        RoomType, Period, CourseType, BreakingNews, \
-        TutorCost, GroupType]
+        TrainingProgramme,
+        EdtVersion,
+        Regen,
+        RoomType,
+        TrainingPeriod,
+        CourseType,
+        BreakingNews,
+        TutorCost,
+        GroupType,
+    ]
 
     for model in models:
         model.objects.all().update(department=department)
@@ -277,16 +297,10 @@ def get_coursetype_constraints(department_abbrev):
     and list of allowed start times)
     """
     dic = {}
-    for ct in CourseType.objects.filter(department__abbrev=department_abbrev):
-        dic[ct.name] = {'duration': ct.duration,
-                        'allowed_st': []}
-        for ct_constraint in \
-                CourseStartTimeConstraint.objects.filter(course_type=ct):
-            dic[ct.name]['allowed_st'] += ct_constraint.allowed_start_times
-        dic[ct.name]['allowed_st'].sort()
-        if len(dic[ct.name]['allowed_st']) == 0:
-            dic[ct.name]['allowed_st'] += \
-                CourseStartTimeConstraint.objects.get(course_type=None).allowed_start_times
+    
+    for ct_constraint in CourseStartTimeConstraint.objects.filter(department__abbrev=department_abbrev):
+        dic[ct_constraint.id] = {'duration': ct_constraint.duration,
+                                 'allowed_st': ct_constraint.allowed_start_times}
     return dic
 
 
@@ -299,10 +313,9 @@ def get_department_settings(dept):
     department_settings = \
         {'time':
              {'day_start_time': ts.day_start_time,
-              'day_finish_time': ts.day_finish_time,
-              'lunch_break_start_time': ts.lunch_break_start_time,
-              'lunch_break_finish_time': ts.lunch_break_finish_time,
-              'def_pref_duration': ts.default_preference_duration},
+              'day_end_time': ts.day_end_time,
+              'morning_end_time': ts.morning_end_time,
+              'afternoon_start_time': ts.afternoon_start_time},
          'days': ts.days,
          'mode':
              {'cosmo': mode.cosmo,

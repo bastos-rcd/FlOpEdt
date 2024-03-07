@@ -83,8 +83,8 @@ function set_perfect_day() {
     async: true,
     contentType: "application/json; charset=utf-8",
     success: function (data) {
-      $('#user_pref_hours_per_day').attr('value', data.pref);
-      $('#user_max_hours_per_day').attr('value', data.max);
+      $('#user_pref_time_per_day').attr('value', data.pref);
+      $('#user_max_time_per_day').attr('value', data.max);
     },
     error: function (msg) {
       console.log("error");

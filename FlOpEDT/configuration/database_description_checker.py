@@ -75,10 +75,8 @@
 #
 # 'settings': a dictionary with keys:
 #
-#   - 'day_start_time', 'day_finish_time', 'lunch_break_start_time' and
-#     'lunch_break_finish_time' : integers with explicit meaning
-#
-#   - 'default_preference_duration': integer with explicit meaning
+#   - 'day_start_time', 'day_end_time', 'morning_start_time' and
+#     'afternoon_start_time' : integers with explicit meaning
 #
 #   - 'days': a list of strings among 'm', 'tu', 'w', 'th', 'f', 'sa'
 #     and 'su' (fixme)
@@ -108,6 +106,7 @@
 # - <helpers and checkers of higher levels>
 # - main checker
 
+import datetime as dt
 import operator
 
 people_sheet = 'Intervenants'
@@ -227,32 +226,49 @@ def check_modules(modules):
     return result
 
 
-def check_cours(cours):
+def check_course_type(course_type):
     result = []
-    if not isinstance(cours, dict):
-        result.append("D: the cours chunk should be a 'dict'")
+    if not isinstance(course_type, dict):
+        result.append("D: the course type chunk should be a 'dict'")
         return result
-    result.extend(check_identifiers(cours.keys(), "cours"))
+    result.extend(check_identifiers(course_type.keys(), "course type"))
     if len(result) > 0:
         return result
-    for id_, elem in cours.items():
+    for id_, elem in course_type.items():
         if not isinstance(elem, dict):
-            result.append("D: cours '{id_}' should be a 'dict'")
+            result.append("D: course type '{id_}' should be a 'dict'")
             continue
-        if elem.keys() != { 'duration', 'group_types', 'start_times' }:
-            result.append(f"D: cours '{id_}' doesn't have the expected keys")
+        if elem.keys() != {'group_types', 'graded'}:
+            result.append(f"D: course type '{id_}' doesn't have the expected keys")
             continue
-        result.extend(check_type(elem['duration'], int, f"duration of cours '{id_}'"))
         if isinstance(elem['group_types'], set):
             result.extend(check_identifiers(elem['group_types'],
-                                            f"group types of cours {id_}"))
+                                            f"group types of course type {id_}"))
         else:
-            result.append(f"D: group types of cours '{id_}' isn't a set")
+            result.append(f"D: group types of course type '{id_}' isn't a set")
+    return result
+
+
+def check_course_start_time_constraint(duration):
+    result = []
+    if not isinstance(duration, dict):
+        result.append("D: the duration chunk should be a 'dict'")
+        return result
+    result.extend(check_identifiers(duration.keys(), "duration"))
+    if len(result) > 0:
+        return result
+    for id_, elem in duration.items():
+        if not isinstance(elem, dict):
+            result.append("D: duration '{id_}' should be a 'dict'")
+            continue
+        if elem.keys() != {'start_times'}:
+            result.append(f"D: duration '{id_}' doesn't have the expected keys")
+            continue
         if isinstance(elem['start_times'], set):
             for time in elem['start_times']:
-                result.extend(check_type(time, int, f"one of the start times of cours '{id_}'"))
+                result.extend(check_type(time, dt.time, f"one of the start times of duration '{id_}'"))
         else:
-            result.append(f"D: start times of cours '{id_}' isn't a 'set'")
+            result.append(f"D: start times of duration '{id_}' isn't a 'set'")
     return result
 
 
@@ -261,32 +277,30 @@ def check_settings(settings):
     if not isinstance(settings, dict):
         result.append("D: the settings chunk should be a 'dict'")
         return result
-    if settings.keys() != { 'day_start_time', 'day_finish_time',
-                            'lunch_break_start_time', 'lunch_break_finish_time',
-                            'default_preference_duration', 'days', 'periods'}:
+    if settings.keys() != { 'day_start_time', 'day_end_time',
+                            'morning_end_time', 'afternoon_start_time',
+                             'days', 'training_periods', 'mode'}:
         result.append(f"D: settings doesn't have the expected keys")
         return result
-
-    result.extend(check_type(settings['day_start_time'], int, "Day start time in settings"))
-    result.extend(check_type(settings['day_finish_time'], int, "Day finish time in settings"))
-    result.extend(check_type(settings['lunch_break_start_time'], int, "Lunch break start time in settings"))
-    result.extend(check_type(settings['lunch_break_finish_time'], int, "Lunch break finish time in settings"))
-    result.extend(check_type(settings['default_preference_duration'], int, "Default preference duration in settings"))
+    result.extend(check_type(settings['day_start_time'], dt.time, "Day start time in settings"))
+    result.extend(check_type(settings['day_end_time'], dt.time, "Day end time in settings"))
+    result.extend(check_type(settings['morning_end_time'], dt.time, "Morning end time time in settings"))
+    result.extend(check_type(settings['afternoon_start_time'], dt.time, "Afternoon start time in settings"))
     if isinstance(settings['days'], list):
         if not set(settings['days']).issubset({'m', 'tu', 'w', 'th', 'f', 'sa', 'su'}):
             result.append("D: the days in settings contain invalid values")
     else:
         result.append("D: the days in settings should be a 'set'")
 
-    if isinstance(settings['periods'], dict):
-        for id_, val in settings['periods'].items():
+    if isinstance(settings['training_periods'], dict):
+        for id_, val in settings['training_periods'].items():
             if isinstance(val, tuple) and len(val) == 2:
-                result.extend(check_type(val[0], int, f"start week for period '{id_}' in settings"))
-                result.extend(check_type(val[1], int, f"finish week for period '{id_}' in settings"))
+                result.extend(check_type(val[0], dt.date, f"start date for training period '{id_}' in settings"))
+                result.extend(check_type(val[1], dt.date, f"finish date for training period '{id_}' in settings"))
             else:
-                result.append(f"D: the data for period '{id_}' in settings should be a pair")
+                result.append(f"D: the data for training period '{id_}' in settings should be a pair")
     else:
-        result.append("D: the periods in settings should be a 'dict'")
+        result.append("D: the training periods in settings should be a 'dict'")
 
     return result
 
@@ -366,20 +380,6 @@ def check_duplicates(ids, name):
 
     return result
 
-def check_non_overlapping_periods(periods):
-    result = []
-
-    periods.sort(key=operator.itemgetter(1))
-
-    for ii in range(0, len(periods)):
-
-        for jj in range(ii+1, len(periods)):
-
-            if periods[jj][1] <= periods[ii][2]:
-                result.append(f"Les périodes '{periods[ii][0]}' et '{periods[jj][0]}' se chevauchent dans '{settings_sheet}'")
-    
-    return result
-
 ##########################################
 #                                        #
 #         Higher level checks            #
@@ -393,39 +393,33 @@ def check_settings_sheet(database):
     # check the time settings
     #
     day_start_time = database['settings']['day_start_time']
-    day_finish_time = database['settings']['day_finish_time']
-    lunch_break_start_time = database['settings']['lunch_break_start_time']
-    lunch_break_finish_time = database['settings']['lunch_break_finish_time']
+    day_end_time = database['settings']['day_end_time']
+    morning_end_time = database['settings']['morning_end_time']
+    afternoon_start_time = database['settings']['afternoon_start_time']
 
-    if day_start_time < 0:
+    if day_start_time is None:
         result.append(f"L'heure de début de journée dans '{settings_sheet}' est invalide")
-    elif day_finish_time < 0:
+    elif day_end_time is None:
         result.append(f"L'heure de fin de journée dans '{settings_sheet}' est invalide")
-    elif lunch_break_start_time < 0:
+    elif morning_end_time is None:
         result.append(f"L'heure de début de pause méridienne dans '{settings_sheet}' est invalide")
-    elif database['settings']['lunch_break_finish_time'] < 0:
+    elif database['settings']['afternoon_start_time'] is None:
         result.append(f"L'heure de fin de pause méridienne '{settings_sheet}' est invalide")
     else:
         sane = True
-        if not day_start_time < day_finish_time:
+        if not day_start_time < day_end_time:
 
             result.append(f"Les horaires de début et de fin de journée dans '{settings_sheet}' sont incohérents")
             sane = False
-        if not lunch_break_start_time <= lunch_break_finish_time:
+        if not morning_end_time <= afternoon_start_time:
             result.append(f"Les horaires de début et de fin de pause méridienne dans '{settings_sheet}' sont incohérents")
             sane = False
-        if sane and not (day_start_time <= lunch_break_start_time
-                       and lunch_break_start_time < day_finish_time):
+        if sane and not (day_start_time <= morning_end_time
+                       and morning_end_time < day_end_time):
             result.append(f"La pause méridienne dans '{settings_sheet}' ne commence pas pendant la journée")
-        if sane and not (day_start_time < lunch_break_finish_time
-                       and lunch_break_finish_time <= day_finish_time):
+        if sane and not (day_start_time < afternoon_start_time
+                       and afternoon_start_time <= day_end_time):
             result.append(f"La pause méridienne dans '{settings_sheet}' ne termine pas pendant la journée")
-
-    #
-    # check default duration
-    #
-    if database['settings']['default_preference_duration'] < 0:
-        result.append(f"La granularité des séances dans '{settings_sheet}' est invalide")
 
     #
     # check days
@@ -434,9 +428,9 @@ def check_settings_sheet(database):
         result.append(f"Aucun jour ouvrable déclaré dans '{settings_sheet}'")
 
     #
-    # check periods
+    # check training periods
     #
-    periods = database['settings']['periods']
+    periods = database['settings']['training_periods']
     if len(periods) == 0:
         result.append(f"Aucune période n'est définie dans '{settings_sheet}'")
 
@@ -444,9 +438,9 @@ def check_settings_sheet(database):
 
     valid_periods = []
     for id_, (start, finish) in periods.items():
-        if start < 0:
+        if start is None:
             result.append(f"Le début de la période '{id_}' dans '{settings_sheet}' est invalide")
-        elif finish < 0:
+        elif finish is None:
             result.append(f"La fin de la période '{id_}' dans '{settings_sheet}' est invalide")
         elif not id_.startswith(':INVALID:'):
             valid_periods.append((id_, start, finish))
@@ -578,7 +572,7 @@ def check_modules_sheet(database):
             result.append(f"L'abréviation du module '{id_}' dans '{modules_sheet}' est vide")
         if not module['promotion'] in database['promotions'].keys() and not id_.startswith(':INVALID:'):
             result.append(f"La promotion du module '{id_}' dans '{modules_sheet}' est invalide")
-        if not module['period'] in database['settings']['periods'].keys() and not id_.startswith(':INVALID:'):
+        if not module['period'] in database['settings']['training_periods'].keys() and not id_.startswith(':INVALID:'):
             result.append(f"La période du module '{id_}' dans '{modules_sheet}' est invalide")
         if not module['responsable'] in database['people'].keys() and not id_.startswith(':INVALID:'):
             result.append(f"La personne responsable du module '{id_}' dans '{modules_sheet}' est invalide")
@@ -589,58 +583,55 @@ def check_modules_sheet(database):
 def check_courses_sheet(database):
     result = []
 
-    courses = database['courses']
+    course_types = database['course_types']
 
-    result.extend(check_duplicates(courses.keys(), f"cours in '{courses_sheet}'"))
+    result.extend(check_duplicates(course_types.keys(), f"cours in '{courses_sheet}'"))
 
-    for id_, course in courses.items():
-        
-        if course['duration'] <= 0 and not id_.startswith(':INVALID:'):
-            result.append(f"Le cours '{id_}' dans '{courses_sheet}' a une durée invalide")
-            
-        invalid = course['group_types'].difference(database['group_types'])
+    for id_, course_type in course_types.items():
+
+        invalid = course_type['group_types'].difference(database['group_types'])
         if len(invalid) > 0 and not id_.startswith(':INVALID:'):
             result.append("Certaines natures de groupe du groupe '{0:s}' dans '{1:s}' sont invalides: {2:s}".format(id_, courses_sheet, ', '.join(invalid)))
-    
+    course_start_time_constraints = database['course_start_time_constraints']
+    for duration_str, cstc in course_start_time_constraints.items():
+        duration = dt.timedelta(minutes=int(duration_str))
         settings = database['settings']
         day_start_time = settings['day_start_time']
-        day_finish_time = settings['day_finish_time']
-        lunch_break_start_time = settings['lunch_break_start_time']
-        lunch_break_finish_time = settings['lunch_break_finish_time']
+        day_end_time = settings['day_end_time']
+        morning_end_time = settings['morning_end_time']
+        afternoon_start_time = settings['afternoon_start_time']
         flag_invalid = False
         flag_start_not_in_day = False
         flag_start_in_lunch_break = False
         flag_finish_not_in_day = False
         flag_finish_in_lunch_break = False
-        for start_time in course['start_times']:
-            if start_time < 0 and not flag_invalid:
+        for start_time in cstc['start_times']:
+            if start_time is None and not flag_invalid:
                 flag_invalid = True
                 continue
-            if not (start_time >= day_start_time and start_time < day_finish_time) and not flag_start_not_in_day:
+            if not (start_time >= day_start_time and start_time < day_end_time) and not flag_start_not_in_day:
                 flag_start_not_in_day = True
                 continue
-            if start_time >= lunch_break_start_time and start_time < lunch_break_finish_time and not flag_start_in_lunch_break:
+            if start_time >= morning_end_time and start_time < afternoon_start_time and not flag_start_in_lunch_break:
                 flag_start_in_lunch_break = True
                 continue
-            if course['duration'] <= 0:
-                continue
-            end_time = start_time + course['duration']
-            if not (end_time > day_start_time and end_time <= day_finish_time) and not flag_finish_not_in_day:
+            end_time = (dt.datetime.combine(dt.date(1,1,1), start_time) + duration).time()
+            if not (day_start_time < end_time and end_time <= day_end_time) and not flag_finish_not_in_day:
                 flag_finish_not_in_day = True
                 continue
-            if end_time > lunch_break_start_time and end_time <= lunch_break_finish_time and not flag_finish_in_lunch_break:
+            if end_time > morning_end_time and end_time <= afternoon_start_time and not flag_finish_in_lunch_break:
                 flag_finish_in_lunch_break = True
                 continue
         if flag_invalid:
-            result.append(f"L'heure de début du cours '{id_}' dans '{courses_sheet}' est invalide")
+            result.append(f"L'heure de début des cours de {duration_str} min dans '{courses_sheet}' est invalide")
         if flag_start_not_in_day:
-            result.append(f"L'heure de début du cours '{id_}' dans '{courses_sheet}' n'est pas dans la journée")
+            result.append(f"L'heure de début des cours de {duration_str} min dans '{courses_sheet}' n'est pas dans la journée")
         if flag_start_in_lunch_break:
-            result.append(f"L'heure de début du cours '{id_}' dans '{courses_sheet}' est dans la pause méridienne")
+            result.append(f"L'heure de début des cours de {duration_str} min dans '{courses_sheet}' est dans la pause méridienne")
         # if flag_finish_not_in_day:
-        #     result.append(f"L'heure de fin du cours '{id_}' dans '{courses_sheet}' n'est pas dans la journée")
+        #     result.append(f"L'heure de fin des cours de {duration_str} min dans '{courses_sheet}' n'est pas dans la journée")
         if flag_finish_in_lunch_break:
-            result.append(f"L'heure de fin du cours '{id_}' dans '{courses_sheet}' est dans la pause méridienne")
+            result.append(f"L'heure de fin des cours de {duration_str} min dans '{courses_sheet}' est dans la pause méridienne")
     return result
 
 
@@ -663,7 +654,8 @@ def database_description_check (database):
         'room_categories': check_room_categories,
         'people': check_people,
         'modules': check_modules,
-        'courses': check_cours,
+        'course_types': check_course_type,
+        'course_start_time_constraints': check_course_start_time_constraint,
         'settings': check_settings,
         'promotions': check_promotions,
         'group_types': check_group_types,

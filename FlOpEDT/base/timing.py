@@ -25,12 +25,12 @@
  helpers for time management
  ---------------------------
 """
+import datetime as dt
 from datetime import date, time, datetime
 import base.models as bm
-from enum import Enum
 from django.utils.translation import gettext_lazy as _
 
-
+slot_pause = dt.timedelta(minutes=30)
 
 class Day(object):
   MONDAY = "m"
@@ -130,17 +130,42 @@ def str_to_min(time_string, sep=":"):
     return int(hours_minutes[0]) * 60 + int(hours_minutes[1])
 
 
+def str_to_time(time_string, sep=":"):
+    """Convert input time format into time object
+
+    :param time_string string in hour:minute format
+    :return: datetime.time object
+
+    """
+    hour, minute = time_string.split(sep)
+    return dt.time(hour, minute)
+
+
+def time_to_str(t, sep=":"):
+    """Convert datetime.time object into input time format
+
+    :param minutes: datetime.time object
+    :return: string in hour:minute format
+
+    """
+    h, m = t.hour, t.minute
+    return f"{h:02d}{sep}{m:02d}"
+
+
 ################################################################
 ###TRANSLATION FUNCTIONS BETWEEN FLOPDATES AND PYTHON'S DATES###
 
 #Returns the index of the first monday of the given year.
 #Argument "day" being a flop_day type
 def first_day_first_week(day):
+    year = day.week.year
+    if year == 0:
+        year = 1
     i = 1
-    first = datetime(day.week.year, 1, i)
+    first = datetime(year, 1, i)
     while first.weekday() != 0:
         i+=1
-        first = datetime(day.week.year, 1, i)
+        first = datetime(year, 1, i)
     return i - 1
 
 
@@ -242,7 +267,7 @@ class TimeInterval(object):
     @property
     def duration(self):
       #datetime1 - datetime2 = timedelta
-      return abs(self.start - self.end).total_seconds()//60
+      return abs(self.start - self.end)
     
     #Build a TimeInterval from a Flop-based day date type
     @staticmethod
@@ -256,10 +281,26 @@ class TimeInterval(object):
 
 def all_possible_start_times(department):
     apst_set = set()
-    CT = department.coursetype_set.all()
-    for ct in CT:
-        for cstc in ct.coursestarttimeconstraint_set.all():
-           apst_set |= set(cstc.allowed_start_times)
+    for cstc in department.coursestarttimeconstraint_set.all():
+        for start_time in cstc.allowed_start_times:
+            apst_set.add(start_time.strftime("%H:%M"))
     apst_list = list(apst_set)
     apst_list.sort()
     return apst_list
+
+def get_default_date(date):
+    return dt.date.fromisocalendar(1, 1, date.weekday()+1)
+
+
+def add_duration_to_time(time:dt.time, duration:dt.timedelta):
+    return (dt.datetime.combine(dt.date.today(), time) + duration).time()
+
+
+def get_all_scheduling_periods(department):
+    if department is None:
+        return bm.SchedulingPeriod.objects.all()
+    elif department.timegeneralsettings.scheduling_period_mode == bm.PeriodEnum.CUSTOM:
+        return department.schedulingperiod_set.all()
+    else:
+        return bm.SchedulingPeriod.objects.filter(mode=department.timegeneralsettings.scheduling_period_mode)
+    

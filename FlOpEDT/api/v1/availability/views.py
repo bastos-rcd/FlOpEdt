@@ -21,16 +21,18 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from datetime import datetime, timedelta
+import datetime as dt
 
 from distutils.util import strtobool
 
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import exceptions
+from rules.contrib.rest_framework import AutoPermissionViewSetMixin
+from rules.contrib.views import PermissionRequiredMixin
 
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from rest_framework import viewsets, exceptions, mixins, parsers
+from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
+from rest_framework.decorators import action
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 import django_filters.rest_framework as filters
 from django.utils.decorators import method_decorator
@@ -42,70 +44,202 @@ import people.models as pm
 
 from api.v1.availability import serializers
 from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly, IsTutor
+from base.rules import can_view_user_availability
 from api.shared.params import (
-    week_param,
-    year_param,
     user_id_param,
+    room_id_param,
     dept_param,
+    dept_id_param,
     from_date_param,
     to_date_param,
-    date_param,
-    weekday_param,
 )
 
 
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        manual_parameters=[
-            from_date_param(required=True),
-            to_date_param(required=True),
-            user_id_param(),
-        ],
-    ),
-)
-class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAdminOrReadOnly]
+class DatedAvailabilityListViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
 
-    serializer_class = serializers.UserAvailabilitySerializer
+    class Meta:
+        abstract = True
 
     def get_queryset(self):
-        from_date = datetime.fromisoformat(
-            self.request.query_params.get("from_date")
-        ).date()
-        to_date = datetime.fromisoformat(
-            self.request.query_params.get("to_date")
-        ).date()
+        # avoid warning
+        if getattr(self, "swagger_fake_view", False):
+            return bm.RoomAvailability.objects.none()
 
-        if from_date > to_date:
+        if not hasattr(self, "from_date"):
+            self.from_date = dt.datetime.fromisoformat(
+                self.request.query_params.get("from_date")
+            ).date()
+        if not hasattr(self, "to_date"):
+            self.to_date = dt.datetime.fromisoformat(
+                self.request.query_params.get("to_date")
+            ).date()
+
+        if self.from_date > self.to_date:
             raise exceptions.NotAcceptable(
                 '"from_date" parameter is later than "to_date" parameter'
             )
 
-        user_id = self.request.query_params.get("user_id")
+        return self.AvailabilityModel.objects.filter(
+            date__gte=self.from_date, date__lt=self.to_date
+        )
+
+
+@extend_schema(
+    parameters=[
+        from_date_param(required=True),
+        to_date_param(required=True),
+        room_id_param(),
+        dept_id_param(),
+    ],
+)
+class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
+    """
+    Availability. Either a room or a department must be entered.
+    """
+
+    AvailabilityModel = bm.RoomAvailability
+    serializer_class = serializers.RoomAvailabilitySerializer
+
+    def get_queryset(self):
+
+        if getattr(self, "swagger_fake_view", False):
+            return bm.RoomAvailability.objects.none()
+
+        ret = super().get_queryset()
+
+        room_id = self.request.query_params.get("room_id", None)
+        dept_id = self.request.query_params.get("dept_id", None)
+
+        if room_id is None and dept_id is None:
+            raise exceptions.NotAcceptable("A room or a department must be entered.")
+
+        if room_id is not None:
+            ret = ret.filter(room=int(room_id))
+        if dept_id is not None:
+            ret = ret.filter(room__departments=int(dept_id))
+        return ret
+
+
+class RoomDatedAvailabilityUpdateViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Update availability. Should cover the whole period between from_date and to_date
+    """
+
+    AvailabilityModel = bm.RoomAvailability
+    serializer_class = serializers.RoomAvailabilityFullDaySerializer
+
+
+@extend_schema(
+    parameters=[
+        from_date_param(required=True),
+        to_date_param(required=True),
+        user_id_param(),
+        dept_id_param(),
+    ],
+)
+class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
+    """
+    Availability. Either a user or a department must be entered.
+    """
+
+    AvailabilityModel = bm.UserAvailability
+    serializer_class = serializers.UserAvailabilitySerializer
+
+    def get_queryset(self):
+
+        if getattr(self, "swagger_fake_view", False):
+            return bm.UserAvailability.objects.none()
+
+        ret = super().get_queryset()
+
+        user_id = self.request.query_params.get("user_id", None)
+        dept_id = self.request.query_params.get("dept_id", None)
+
+        if user_id is None and dept_id is None:
+            raise exceptions.NotAcceptable("A user or a department must be entered.")
         if user_id is not None:
             user_id = int(user_id)
 
-        # TODO V1-DB
-        # ugly but will be removed
-        ret = bm.UserPreference.objects.none()
-        py_date = from_date
-        cal = py_date.isocalendar()
-        y, w, days = cal[0], cal[1], [Day.CHOICES[cal[2] - 1][0]]
-        py_date += timedelta(days=1)
-        while py_date <= to_date:
-            cal = py_date.isocalendar()
-            if cal[1] != w:
-                if user_id is None:
-                    ret |= bm.UserPreference.objects.filter(week__year=y, week__nb=w, day__in=days)   
-                else:
-                    ret |= bm.UserPreference.objects.filter(user__id=user_id, week__year=y, week__nb=w, day__in=days)
-                y, w, days = cal[0], cal[1], [Day.CHOICES[cal[2] - 1][0]]
-            else:
-                days.append(Day.CHOICES[cal[2] - 1][0])
-            py_date += timedelta(days=1)
-        if user_id is None:
-            ret |= bm.UserPreference.objects.filter(week__year=y, week__nb=w, day__in=days)   
-        else:
-            ret |= bm.UserPreference.objects.filter(user__id=user_id, week__year=y, week__nb=w, day__in=days)
+        if not can_view_user_availability(self.request.user, user_id):
+            raise exceptions.PermissionDenied(
+                detail="You have no access to these availabilities"
+            )
+
+        if user_id is not None:
+            ret = ret.filter(user__id=int(user_id))
+        if dept_id is not None:
+            ret = ret.filter(user__departments=int(dept_id))
         return ret
+
+
+class UserDatedAvailabilityUpdateViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Availability. Either a room or a department must be entered.
+    """
+
+    AvailabilityModel = bm.UserAvailability
+    serializer_class = serializers.UserAvailabilityFullDaySerializer
+    queryset = bm.UserAvailability.objects.all()
+
+
+@extend_schema(
+    parameters=[
+        user_id_param(),
+        dept_id_param(),
+        OpenApiParameter("to_date", exclude=True),
+        OpenApiParameter("from_date", exclude=True),
+    ],
+)
+class UserDefaultAvailabilityListViewSet(UserDatedAvailabilityListViewSet):
+    def get_queryset(self):
+        self.from_date = dt.datetime(1, 1, 1)
+        self.to_date = dt.datetime(1, 1, 8)
+        return super().get_queryset()
+
+
+@extend_schema(
+    parameters=[
+        room_id_param(),
+        dept_id_param(),
+    ],
+)
+class RoomDefaultAvailabilityListViewSet(RoomDatedAvailabilityListViewSet):
+    """
+    Default availability. Either a room or a department must be entered.
+    """
+
+    def list(self, request, *args, **kwargs):
+        self.from_date = dt.datetime(1, 1, 1)
+        self.to_date = dt.datetime(1, 1, 8)
+        return super().list(request, *args, **kwargs)
+
+
+class UserDefaultAvailabilityUpdateViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Update default availability. (Will be pushed in the default week based on the weekday of the dates from the query parameters)
+    """
+
+    AvailabilityModel = bm.UserAvailability
+    serializer_class = serializers.UserAvailabilityDefaultWeekSerializer
+    queryset = bm.UserAvailability.objects.all()
+
+
+class RoomDefaultAvailabilityUpdateViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Update default availability. (Will be pushed in the default week based on the weekday of the dates from the query parameters)
+    """
+
+    AvailabilityModel = bm.UserAvailability
+    serializer_class = serializers.RoomAvailabilityDefaultWeekSerializer
+    queryset = bm.RoomAvailability.objects.all()

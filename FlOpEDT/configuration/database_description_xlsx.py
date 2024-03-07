@@ -32,7 +32,8 @@
 
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
-
+from django.conf import settings as ds
+import datetime as dt
 import logging
 logger = logging.getLogger(__name__)
 
@@ -64,11 +65,31 @@ def parse_integer(sheet, row, column):
 
 def parse_time(sheet, row, column):
     "Helper function to get a time out of a cell"
-    "as a number of minutes since midnight"
+    "as a datetime.time object"
     "(will return None if anything goes wrong)"
     try:
         val = sheet.cell(row=row, column=column).value
-        return 60 * val.hour + val.minute
+        if type(val) is str:
+            return dt.datetime.strptime(val, '%H:%M').time()
+        elif type(val) is dt.time:
+            return val
+    except:
+        return None
+
+def parse_date(sheet, row, column):
+    "Helper function to get a date out of a cell"
+    "as a datetime.date object"
+    "(will return None if anything goes wrong)"
+    try:
+        val = sheet.cell(row=row, column=column).value
+        if type(val) is str:
+            val = ' '.split(val)[0]
+            print(val)
+            return dt.date.fromisoformat(val)
+        elif type(val) is dt.datetime:
+            return val.date()
+        elif type(val) is dt.date:
+            return val
     except:
         return None
 
@@ -152,10 +173,16 @@ def find_marker_cell(sheet, marker, row = 1, col = 1):
         col = 1
     return None, None
 
-def time_from_integer(time):
+# TODO : transform into time object
+def time_from_integer(time:int):
     hours = time // 60
     minutes = time % 60
     return f'{hours:02d}:{minutes:02d}'
+
+
+def strftime_from_time(time:dt.time):
+    return time.strftime('%H:%M')
+
 
 #################################################
 #                                               #
@@ -179,7 +206,7 @@ def parse_rooms(sheet):
     # parse the categories
     #
     categories = parse_string_set_dictionary(sheet, row_cats + 1, col_cats)
-
+    
     #
     # Build the set of rooms
     #
@@ -241,69 +268,61 @@ def parse_modules(sheet):
     return result
 
 def parse_courses(sheet):
-    row, col = find_marker_cell(sheet, 'Type')
-    if row == None:
-        logger.warning(f"The marker cell in sheet {courses_sheet} is missing")
-        return dict()
+    row_type, col_type = find_marker_cell(sheet, 'Type de cours')
+    if row_type is None:
+        logger.warning(f"The marker cell 'Type' in sheet {courses_sheet} is missing")
+        return dict(), dict()
 
-    row = row + 1
-    result = dict()
-    while row < REASONABLE:
-        id_ = parse_string(sheet, row, col)
+    row_constraint, col_constraint = find_marker_cell(sheet, 'Durée de cours')
+    if row_constraint is None:
+        logger.warning(f"The marker 'Duration' cell in sheet {courses_sheet} is missing")
+        return dict()
+    
+    row_type += 1
+    course_types = dict()
+    while row_type < row_constraint:
+        id_ = parse_string(sheet, row_type, col_type)
         if id_ == '':
-            row = row + 1
+            row_type = row_type + 1
             continue
-        if id_ in result:
-            id_ = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row, col))
-        try:
-            duree = int(parse_string(sheet, row, col + 1))
-        except:
-            duree = -1
-        result[id_] = {'duration': duree,
-                       'group_types': set(parse_string_set_in_line(sheet, row, col + 2)),
-                       'start_times': set(parse_time_list_in_line(sheet, row + 1, col + 2))}
-        row = row + 2 # sic
-    return result
+        if id_ in course_types:
+            id_ = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row_type, col_type))
+        course_types[id_] = {'graded':parse_string(sheet, row_type, col_type + 1),
+                             'group_types': set(parse_string_set_in_line(sheet, row_type, col_type + 2))}
+        row_type += 1
+
+    row_constraint += 1
+    course_start_time_constraints = dict()
+    while row_constraint < REASONABLE:
+        duration_str = parse_string(sheet, row_constraint, col_constraint)
+        if duration_str == '':
+            row_constraint = row_constraint + 1
+            continue
+        if duration_str in course_start_time_constraints:
+            duration_str = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row_constraint, col_constraint))
+        course_start_time_constraints[duration_str] = {'start_times': set(parse_time_list_in_line(sheet, row_constraint , col_constraint + 1))}
+        row_constraint += 1
+
+    return course_types, course_start_time_constraints
 
 def parse_settings(sheet):
     result = dict()
     row, col = find_marker_cell(sheet, 'Jalon')
     if row == None:
         logger.warning(f"The 'Jalon' cell in sheet {settings_sheet} is missing")
-        result['day_start_time'] = -1
-        result['day_finish_time'] = -1
-        result['lunch_break_start_time'] = -1
-        result['lunch_break_finish_time'] = -1
+        result['day_start_time'] = None
+        result['day_end_time'] = None
+        result['morning_end_time'] = None
+        result['afternoon_start_time'] = None
     else:
         val = parse_time(sheet, row + 1, col + 1)
-        if val == None:
-            val = -1
         result['day_start_time'] = val
         val = parse_time(sheet, row + 2, col + 1)
-        if val == None:
-            val = -1
-        if val <= result['day_start_time']:
-            val += 24 * 60
-        result['day_finish_time'] = val
+        result['day_end_time'] = val
         val = parse_time(sheet, row + 3, col + 1)
-        if val == None:
-            val = -1
-        result['lunch_break_start_time'] = val
+        result['morning_end_time'] = val
         val = parse_time(sheet, row + 4, col + 1)
-        if val == None:
-            val = -1
-        result['lunch_break_finish_time'] = val
-
-    row, col = find_marker_cell(sheet, 'Granularité')
-    if row == None:
-        logger.warning(f"The 'Granularité' cell in sheet {settings_sheet} is missing")
-        duration = -1
-    else:
-        try:
-            duration = int(parse_string(sheet, row, col + 1))
-        except:
-            duration = -1
-    result['default_preference_duration'] = duration
+        result['afternoon_start_time'] = val
 
     days = []
     row, col = find_marker_cell(sheet, 'Jours ouvrables')
@@ -314,8 +333,36 @@ def parse_settings(sheet):
                 days.append(day)
     result['days'] = days
 
+    row, col = find_marker_cell(sheet, 'Modes')
+    visio_mode_str = parse_string(sheet, row + 1, col)
+    cosmo_mode_str = parse_integer(sheet, row + 2, col)
+    scheduling_mode_str = parse_string(sheet, row + 3, col)
+
+    visio_mode = (visio_mode_str == "Visio")
+    cosmo_mode = 0
+    if cosmo_mode_str == "Educatif":
+        cosmo_mode = 0
+    elif cosmo_mode_str == "Coop.(Poste)":
+        cosmo_mode = 1
+    elif cosmo_mode_str == "Coop. (Salarié)":
+        cosmo_mode = 2
+    scheduling_mode = 'w'
+    if scheduling_mode_str == "Par semaine":
+        scheduling_mode = 'w'
+    elif scheduling_mode_str == "Par jour":
+        scheduling_mode = 'd'
+    elif scheduling_mode_str == "Par mois":
+        scheduling_mode = 'm'
+    elif scheduling_mode_str == "Par an":
+        scheduling_mode = 'y'
+    elif scheduling_mode_str == "Custom":
+        scheduling_mode = 'c'
+
+    result['mode'] = {'visio': visio_mode, 'cosmo': cosmo_mode, 'scheduling_mode': scheduling_mode}
+
+
     periods = dict()
-    row, col = find_marker_cell(sheet, 'Périodes')
+    row, col = find_marker_cell(sheet, 'Périodes de cours')
     if row != None:
         row = row + 2
         while row < REASONABLE:
@@ -325,15 +372,11 @@ def parse_settings(sheet):
                 continue
             if id_ in periods:
                 id_ = ':INVALID:DUPLICATE:{0:s}'.format(cell_name(row, col))
-            start = parse_integer(sheet, row, col + 1)
-            if start == None:
-                start = -1
-            finish = parse_integer(sheet, row, col + 2)
-            if finish == None:
-                finish = -1
-            periods[id_] = (start, finish)
+            start_date = parse_date(sheet, row, col + 1)
+            end_date = parse_date(sheet, row, col + 2)
+            periods[id_] = (start_date, end_date)
             row = row + 1
-    result['periods'] = periods
+    result['training_periods'] = periods
 
     return result
 
@@ -459,7 +502,7 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
             logger.warning(f"Sheet {courses_sheet} doesn't exist")
             return None
 
-        courses = parse_courses(sheet)
+        course_types, course_start_time_constraints = parse_courses(sheet)
 
         sheet = wb[settings_sheet]
         if not sheet:
@@ -480,7 +523,8 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
                 'room_categories' : room_categories,
                 'people' : people,
                 'modules' : modules,
-                'courses' : courses,
+                'course_types' : course_types,
+                'course_start_time_constraints' : course_start_time_constraints,
                 'settings' : settings,
                 'promotions': promotions,
                 'group_types' : group_types,
@@ -492,7 +536,7 @@ def database_description_load_xlsx_file(filename = 'file_essai.xlsx'):
 
 
 def database_description_save_xlsx_file(filename, database):
-    wb = load_workbook('/home/jpuydt/Logiciel/FlOpEDT/FlOpEDT/media/configuration/empty_database_file.xlsx') # FIXME HELP!
+    wb = load_workbook(f"{ds.MEDIA_ROOT}/empty_database_file.xlsx") 
 
     sheet = wb[settings_sheet]
     row, col = find_marker_cell(sheet, 'Jalon')

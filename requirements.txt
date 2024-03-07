@@ -1,5 +1,4 @@
 # python 3.11.3
-matplotlib
 Django==4.2
 django_redis
 django-import-export
@@ -15,24 +14,24 @@ daphne
 channels-redis
 channels
 python-memcached
-isoweek
 django-ical
 ipython
 openpyxl
 djangorestframework
 djangorestframework-csv
 dj-rest-auth
-django-rest-swagger
 Markdown
 django-debug-toolbar
 zeep
 tdqm
 django-debug-toolbar-request-history
 django-filter
-drf-yasg
+drf-spectacular
 django-cors-headers
 pyprof2calltree
 django-crontab
 python-dateutil
 pytest
 pytest-django
+rules
+ics

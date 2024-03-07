@@ -90,10 +90,11 @@ class PeriodsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Period object.
     """
-    queryset = bm.Period.objects.all()
-    serializer_class = serializers.PeriodsSerializer
 
-    filterset_fields = '__all__'
+    queryset = bm.TrainingPeriod.objects.all()
+    serializer_class = serializers.TrainingPeriodSerializer
+
+    filterset_fields = "__all__"
 
 
 class TimeGeneralFilter(filters.FilterSet):
@@ -116,23 +117,23 @@ class TimeGeneralSettingsViewSet(viewsets.ModelViewSet):
     filterset_class = TimeGeneralFilter
 
 
-class WeeksFilter(filters.FilterSet):
+class SchedulingPeriodsFilter(filters.FilterSet):
     class Meta:
-        model = bm.Week
-        fields = ('year',)
+        model = bm.SchedulingPeriod
+        fields = ('start_date',)
 
 
-class WeeksViewSet(viewsets.ModelViewSet):
+class SchedulingPeriodsViewSet(viewsets.ModelViewSet):
     """
-    ViewSet to see all weeks
+    ViewSet to see all Scheduling periods
 
     Can be filtered as wanted with every field of a Department object.
     """
     permission_classes = [IsAdminOrReadOnly]
 
-    queryset = bm.Week.objects.all()
-    serializer_class = serializers.WeeksSerializer
-    filterset_class = WeeksFilter
+    queryset = bm.SchedulingPeriod.objects.all()
+    serializer_class = serializers.SchedulingPeriodsSerializer
+    filterset_class = SchedulingPeriodsFilter
 
 
 # -------------
@@ -234,7 +235,7 @@ class CoureStartTimeFilter(filters.FilterSet):
 
     class Meta:
         model = bm.CourseStartTimeConstraint
-        fields = ('course_type', 'allowed_start_times')
+        fields = ('department', 'allowed_start_times')
 
 
 class CourseStartTimeConstraintsViewSet(viewsets.ModelViewSet):
@@ -255,7 +256,7 @@ class RegenFilterSet(filters.FilterSet):
 
     class Meta:
         model = bm.Regen
-        fields = ['dept', 'week']
+        fields = ['dept']
 
 
 class RegensViewSet(viewsets.ModelViewSet):

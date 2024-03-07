@@ -31,11 +31,11 @@ import logging
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.db import transaction
-from django.conf import settings
+from django.conf import settings as ds
 
 from core.decorators import dept_admin_required
 
-from base.models import Department, Period, Week
+from base.models import Department, TrainingPeriod, SchedulingPeriod
 
 from configuration.make_planif_file import make_planif_file
 from configuration.make_filled_database_file import make_filled_database_file
@@ -59,12 +59,17 @@ def configuration(req, **kwargs):
     arg_req['form_config'] = ImportConfig()
     arg_req['form_planif'] = ImportPlanif()
 
-    arg_req['departements'] = [{'name': depart.name, 'abbrev': depart.abbrev}
-                               for depart in Department.objects.all() if not depart.abbrev == 'default']
-    arg_req['periods'] = [{'name': period.name, 'department': period.department.abbrev}
-                          for period in Period.objects.all()]
-    arg_req['current_year'] = current_year
-    return render(req, 'configuration/configuration.html', arg_req)
+    arg_req["departments"] = [
+        {"name": depart.name, "abbrev": depart.abbrev}
+        for depart in Department.objects.all()
+        if not depart.abbrev == "default"
+    ]
+    arg_req["training_periods"] = [
+        {"name": training_period.name, "department": training_period.department.abbrev}
+        for training_period in TrainingPeriod.objects.all()
+    ]
+    arg_req["current_year"] = current_year
+    return render(req, "configuration/configuration.html", arg_req)
 
 
 @dept_admin_required
@@ -97,25 +102,18 @@ def import_config_file(req, **kwargs):
                         except:
                             dept_name = None
                         logger.debug(dept_name)
-                        try:
+                        if Department.objects.filter(abbrev=dept_abbrev).exists():
                             dept = Department.objects.get(abbrev=dept_abbrev)
                             if not dept_name == dept.name and dept_name is not None:
                                 response = {'status': 'error',
                                             'data': "Il existe déjà un département utilisant cette abbréviation."}
                                 return HttpResponse(json.dumps(response), content_type='application/json')
                             dept_name = dept.name
-                            dept.delete()
-                            logger.debug("flush OK")
-                        except Exception as e:
-                            logger.warning(f'Exception with dept')
-                            logger.warning(e)
 
                         extract_database_file(department_name=dept_name,
                                               department_abbrev=dept_abbrev, bookname=path)
                         logger.debug("extract OK")
-
-                        os.rename(path, os.path.join(settings.MEDIA_ROOT,
-                                                     'configuration',
+                        os.rename(path, os.path.join(ds.CONF_XLS_DIR,
                                                      f'database_file_{dept_abbrev}.xlsx'))
                         logger.warning("rename OK")
                         response = {'status': 'ok',
@@ -129,11 +127,9 @@ def import_config_file(req, **kwargs):
                     response = {'status': 'error', 'data': str(e)}
                     return HttpResponse(json.dumps(response), content_type='application/json')
                 dept = Department.objects.get(abbrev=dept_abbrev)
-                source = os.path.join(settings.MEDIA_ROOT,
-                                      'configuration',
-                                      'empty_planif_file.xlsx')
-                target_repo = os.path.join(settings.MEDIA_ROOT,
-                                           'configuration')
+                source = os.path.join(os.path.dirname(__file__),
+                                      'xls/empty_planif_file.xlsx')
+                target_repo = ds.CONF_XLS_DIR
                 logger.info("start planif")
                 make_planif_file(dept, empty_bookname=source, target_repo=target_repo)
                 logger.info("make planif OK")
@@ -152,7 +148,7 @@ def get_config_file(req, **kwargs):
     :param req:
     :return:
     """
-    f = open(f"{settings.MEDIA_ROOT}/configuration/empty_database_file.xlsx", "rb")
+    f = open(f"{os.path.join(os.path.dirname(__file__))}/xls/empty_database_file.xlsx", "rb")
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename="database_file.xls"'
     f.close()
@@ -168,20 +164,21 @@ def get_planif_file(req, with_courses=False, **kwargs):
     :return:
     """
     logger.debug(req.GET['departement'])
-    filename = os.path.join(settings.MEDIA_ROOT,
-                             'configuration',
-                             f"planif_file_{req.GET['departement']}")
+    dept_abbrev = req.GET['departement']
+    basic_filename =  f"planif_file_{dept_abbrev}"
     if with_courses:
-        filename += '_with_courses'
-    filename += ".xlsx"
+        basic_filename += '_with_courses'
+    basic_filename += ".xlsx"
+    filename = os.path.join(ds.CONF_XLS_DIR,
+                            basic_filename)
 
     if not os.path.exists(filename):
-        filename = os.path.join(settings.MEDIA_ROOT,
-                                'configuration',
-                                f"empty_planif_file.xlsx")
+        basic_filename = "empty_planif_file.xlsx"
+        filename = os.path.join(os.path.join(os.path.dirname(__file__)),
+                                f"xls/{basic_filename}")
     f = open(filename, "rb")
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="planif_file.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename="{basic_filename}"'
     f.close()
     return response
 
@@ -194,19 +191,17 @@ def get_filled_database_file(req, **kwargs):
     :return:
     """
     logger.debug(req.GET['departement'])
-    basic_filename = f"database_file_{req.GET['departement']}"
-    filename = os.path.join(settings.MEDIA_ROOT,
-                             'configuration',
+    basic_filename = f"database_file_{req.GET['departement']}.xlsx"
+    filename = os.path.join(ds.CONF_XLS_DIR,
                              basic_filename)
-    filename += ".xlsx"
 
     if not os.path.exists(filename):
-        filename = os.path.join(settings.MEDIA_ROOT,
-                                'configuration',
-                                f"empty_database_file.xlsx")
+        basic_filename = "empty_database_file.xlsx"
+        filename = os.path.join(os.path.dirname(__file__),
+                                f"xls/{basic_filename}")
     f = open(filename, "rb")
     response = HttpResponse(f, content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="planif_file.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename={basic_filename}'
     f.close()
     return response
 
@@ -216,11 +211,9 @@ def mk_and_dl_planif(req, with_courses, **kwargs):
     logger.debug(req.GET['departement'])
     dept_abbrev = req.GET['departement']
     dept = Department.objects.get(abbrev=dept_abbrev)
-    source = os.path.join(settings.MEDIA_ROOT,
-                          'configuration',
-                          'empty_planif_file.xlsx')
-    target_repo = os.path.join(settings.MEDIA_ROOT,
-                               'configuration')
+    source = os.path.join(os.path.dirname(__file__),
+                          'xls/empty_planif_file.xlsx')
+    target_repo = os.path.join(ds.CONF_XLS_DIR)
     logger.info("start planif")
     make_planif_file(dept, empty_bookname=source, target_repo=target_repo, with_courses=with_courses)
     return get_planif_file(req, with_courses, **kwargs)
@@ -249,21 +242,21 @@ def import_planif_file(req, **kwargs):
     if form.is_valid():
         if check_ext_file(req.FILES['fichier'], ['.xlsx', '.xls']):
             logger.info(req.FILES['fichier'])
-            path = upload_file(req.FILES['fichier'], "configuration/planif_file_.xlsx")
             # If one of methods fail, the transaction will be not commit.
             try:
                 with transaction.atomic():
                     try:
-                        dept = Department.objects.get(abbrev=req.POST['departement'])
+                        dept_abbrev = req.POST['departement']
+                        path = upload_file(req.FILES['fichier'], f"planif_file_{dept_abbrev}.xlsx")
+                        dept = Department.objects.get(abbrev=dept_abbrev)
                     except Exception as e:
                         response = {'status': 'error', 'data': str(e)}
                         return HttpResponse(json.dumps(response), content_type='application/json')
                     stabilize_courses = "stabilize" in req.POST
                     assign_colors = "assign_colors" in req.POST
-                    print("AAAAA", assign_colors)
-                    choose_weeks = "choose_weeks" in req.POST
-                    choose_periods = "choose_periods" in req.POST
-                    if choose_weeks:
+                    choose_scheduling_weeks = "choose_weeks" in req.POST
+                    choose_training_periods = "choose_periods" in req.POST
+                    if choose_scheduling_periods:
                         week_nb = req.POST["week_nb"]
                         year = req.POST["year"]
                         if not week_nb and not year:
@@ -284,18 +277,20 @@ def import_planif_file(req, **kwargs):
                         from_week = None
                         until_week = None
 
-                    if choose_periods:
-                        periods = Period.objects.filter(department=dept, name__in=req.POST.getlist('periods'))
-                        print(periods)
+                    if choose_training_periods:
+                        training_periods = TrainingPeriod.objects.filter(
+                            department=dept, name__in=req.POST.getlist("training_periods")
+                        )
+                        print(training_periods)
                     else:
-                        periods = None
+                        training_periods = None
 
-                    extract_planif(dept, bookname=path, from_week=from_week, until_week=until_week, periods=periods,
+                    extract_planif(dept, bookname=path, scheduling_periods=scheduling_periods, training_periods=training_periods,
                                    stabilize_courses=stabilize_courses, assign_colors=assign_colors)
                     logger.info("Extract file OK")
                     rep = "OK !"
 
-                    os.rename(path, f"{settings.MEDIA_ROOT}/configuration/planif_file.xlsx")
+                    os.rename(path, f"{ds.CONF_XLS_DIR}/planif_file_{dept_abbrev}.xlsx")
                     logger.info("Rename OK")
 
                     response = {'status': 'ok', 'data': rep}

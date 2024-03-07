@@ -1,0 +1,65 @@
+flopedt (0.5.6) unstable; urgency=medium
+
+  * ics with location
+  * margin between AM and PM when no breaking new declared
+  * debug solver for transversal groups
+  * debug limit_time constraints visualization
+  * add graded in flop!Editor
+
+ -- Pablo Seban <pablo@univ-tlse2.fr>  Sat, 17 Feb 2024 16:25:22 +0100
+
+flopedt (0.5.5) unstable; urgency=medium
+
+  * Fix many bugs on 0.5.4 version
+  * fix CBC use with time limit on solve_board
+
+ -- Pablo Seban <pablo@univ-tlse2.fr>  Tue, 06 Feb 2024 22:19:13 +0100
+
+flopedt (0.5.4) unstable; urgency=medium
+
+  * Docker deployment using makefile
+  * Student notifications
+  * ics date calculus
+  * user_tests decorators
+  * include transversal groups in NoGroupCourses constraints
+  * various minor bugs in deployment
+  * romm availabilities in js HMI
+  * ConsiderDependencies pre-analyze
+  * Possibility to receive solver log by email after resolution
+  * Better fileters in LocateAllCourses constraints
+
+ -- Pablo Seban <pablo@univ-tlse2.fr>  Thu, 11 Jan 2024 13:12:23 +0200
+
+flopedt (0.5.3) unstable; urgency=medium
+
+  * Debug rooms post_assignment solution_file storage in FlopModel
+  * Debug after_type comments in planif_file extraction
+  * Debug color assignment
+  * crontab command is now working with flop_admin (#72)
+
+ -- Pablo Seban <pablo@univ-tlse2.fr>  Mon, 17 Jul 2023 13:12:23 +0200
+
+flopedt (0.5.2) unstable; urgency=medium
+
+  * Add an [Install] section in systemd unit (#64)
+  * Store generated content in a dedicated storage directory and embbed missing XLS files (#65)
+  * Change the way /var directories are created and removed in debian package (#67)
+  * Embbed missing colors.json file (#68)
+  * systemd unit: Daphne listens now on only on 127.0.0.1 with default verbosity (#69)
+  * systemd unit: Launch daphne in unbufferized mode in order to have a correct solve board log display (#70)
+
+ -- Olivier Bonhomme <olivier@bonhomme.io>  Sun, 06 Jun 2023 11:47:03 +0200
+
+flopedt (0.5.1) unstable; urgency=medium
+
+  * Define correctly directories for constraints generation interface (#59) 
+  * Make ALLOWED_HOSTS configurable via flopedt.ini (#60)
+
+ -- Olivier Bonhomme <olivier@bonhomme.io>  Sun, 28 May 2023 17:05:45 +0200
+
+flopedt (0.5.0) unstable; urgency=medium
+
+  * FlOp - Version 0.5.0
+  * First packaging version
+
+ -- Olivier Bonhomme <olivier@bonhomme.io>  Sun, 14 May 2023 21:19:20 +0100

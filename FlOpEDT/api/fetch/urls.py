@@ -24,43 +24,47 @@
 from rest_framework import routers
 
 from api.fetch import views
-import api.preferences.views as views_preferences
 
 routerFetch = routers.SimpleRouter()
 
-routerFetch.register(r'scheduledcourses',
-                     views.ScheduledCoursesViewSet, basename='scheduledcourses')
-routerFetch.register(r'new_api_scheduledcourses', #entry of ScheduledCourses for new api with standard dates
-                     views.NewApiScheduledCoursesViewSet, basename='new_api_scheduledcourses')
-routerFetch.register(r'unscheduledcourses',
-                     views.UnscheduledCoursesViewSet, basename='unscheduledcourses')
-#routerFetch.register(r'availabilities', views.AvailabilitiesViewSet, basename='availabilities')
 routerFetch.register(
-    r'dweek', views_preferences.UserPreferenceDefaultViewSet, basename='dweek')
+    r"scheduledcourses", views.ScheduledCoursesViewSet, basename="scheduledcourses"
+)
 routerFetch.register(
-    r'coursedefweek', views.CourseTypeDefaultWeekViewSet, basename='coursedefweek')
-#routerFetch.register(r'allversions', views.AllVersionsViewSet)
-routerFetch.register(r'alldepts', views.DepartmentsViewSet, basename="dept")
-#routerFetch.register(r'tutorcourses', views.TutorCoursesViewSet, basename='tutorcourses')
+    r"new_api_scheduledcourses",  # entry of ScheduledCourses for new api with standard dates
+    views.NewApiScheduledCoursesViewSet,
+    basename="new_api_scheduledcourses",
+)
 routerFetch.register(
-    r'extrasched', views.ExtraSchedCoursesViewSet, basename='extrasched')
-routerFetch.register(r'bknews', views.BKNewsViewSet, basename='BKNews')
-routerFetch.register(r'unavailableroom',
-                     views.UnavailableRoomViewSet, basename="unavailablerooms")
+    r"unscheduledcourses",
+    views.UnscheduledCoursesViewSet,
+    basename="unscheduledcourses",
+)
+# routerFetch.register(
+#     r"coursedefweek", views.CourseTypeDefaultWeekViewSet, basename="coursedefweek"
+# )
+# routerFetch.register(r'allversions', views.AllVersionsViewSet)
+routerFetch.register(r"alldepts", views.DepartmentsViewSet, basename="dept")
+# routerFetch.register(r'tutorcourses', views.TutorCoursesViewSet, basename='tutorcourses')
 routerFetch.register(
-    r'constraints', views.ConstraintsQueriesViewSet, basename="constraints")
-routerFetch.register(r'weekdays', views.WeekDaysViewSet, basename="weekdays")
-routerFetch.register(r'idtutor', views.IDTutorViewSet, basename="idtutor")
+    r"extrasched", views.ExtraSchedCoursesViewSet, basename="extrasched"
+)
+routerFetch.register(r"bknews", views.BKNewsViewSet, basename="BKNews")
 routerFetch.register(
-    r'idtrainprog', views.IDTrainProgViewSet, basename="idtrainprog")
-routerFetch.register(r'idmodule', views.IDModuleViewSet, basename="idmodule")
+    r"unavailableroom", views.UnavailableRoomViewSet, basename="unavailablerooms"
+)
 routerFetch.register(
-    r'idcoursetype', views.IDCourseTypeViewSet, basename="idcoursetype")
-routerFetch.register(r'idgroup', views.IDGroupViewSet, basename="idgroup")
+    r"constraints", views.ConstraintsQueriesViewSet, basename="constraints"
+)
+routerFetch.register(r"weekdays", views.WeekDaysViewSet, basename="weekdays")
+routerFetch.register(r"idtutor", views.IDTutorViewSet, basename="idtutor")
+routerFetch.register(r"idtrainprog", views.IDTrainProgViewSet, basename="idtrainprog")
+routerFetch.register(r"idmodule", views.IDModuleViewSet, basename="idmodule")
 routerFetch.register(
-    r'idgrouptype', views.IDGroupTypeViewSet, basename="idgrouptype")
-routerFetch.register(r'idroom', views.IDRoomViewSet, basename="idroom")
-routerFetch.register(
-    r'idroomtype', views.IDRoomTypeViewSet, basename="idroomtype")
-routerFetch.register(r'parameter', views.ParameterViewSet,
-                     basename="parameter")
+    r"idcoursetype", views.IDCourseTypeViewSet, basename="idcoursetype"
+)
+routerFetch.register(r"idgroup", views.IDGroupViewSet, basename="idgroup")
+routerFetch.register(r"idgrouptype", views.IDGroupTypeViewSet, basename="idgrouptype")
+routerFetch.register(r"idroom", views.IDRoomViewSet, basename="idroom")
+routerFetch.register(r"idroomtype", views.IDRoomTypeViewSet, basename="idroomtype")
+routerFetch.register(r"parameter", views.ParameterViewSet, basename="parameter")

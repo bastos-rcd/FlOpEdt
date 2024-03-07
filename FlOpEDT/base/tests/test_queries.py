@@ -60,9 +60,11 @@ class ScheduledCourseTestCase(TestCase):
         cls.gt1 = models.GroupType.objects.create(name="group_type_1", department=cls.department1)
         cls.g1 = models.StructuralGroup.objects.create(name="gp1", train_prog=cls.tp1, type=cls.gt1, size=0)
         cls.ct1 = models.CourseType.objects.create(name="CourseType1")
-        cls.p1 = models.Period.objects.create(name="annee_complete", starting_week=0, ending_week=53)
         cls.m1 = models.Module.objects.create(name="module1", abbrev="m1", train_prog=cls.tp1, period=cls.p1)
         cls.c1 = models.Course.objects.create(group=cls.g1, week=39, year=2018, type=cls.ct1, module=cls.m1)
+        cls.p1 = models.TrainingPeriod.objects.create(
+            name="annee_complete", starting_week=0, ending_week=53
+        )
         cls.day1 = models.Day.objects.create(day=models.Day.MONDAY)
         cls.t1 = models.Time.objects.create()
         cls.s1 = models.Slot.objects.create(day=cls.day1, hour=cls.t1)

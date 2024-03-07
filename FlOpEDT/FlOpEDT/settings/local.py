@@ -23,54 +23,60 @@
 
 from .base import *
 
-SECRET_KEY = 'your_secret_key'
+SECRET_KEY = "your_secret_key"
 
 DEBUG = True
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'flop_database_public_dev',
-        'USER': 'flop_user',
-        'PASSWORD': 'your_password',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "flop_database_public_dev",
+        "USER": "flop_user",
+        "PASSWORD": "your_password",
+        "HOST": "127.0.0.1",
+        "PORT": "5432",
+        "TEST": {"NAME": "flop_pytest"},
     }
 }
 
-LOGGING = {  
-    'version': 1,  
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
         }
     },
-    'loggers': {
-        'base': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },        
-        'configuration': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },        
-        'django.db.backends': {
-            'level': 'INFO',
-            'handlers': ['console'],
-            'propagate': False,
-        }
-    }
+    "loggers": {
+        "base": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "configuration": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "django.db.backends": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        "rules": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+    },
 }
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [("127.0.0.1", 6379)],
         },
     },
 }
@@ -80,29 +86,27 @@ CHANNEL_LAYERS = {
 # MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware']
 
 DEBUG_TOOLBAR_PANELS = [
-    'ddt_request_history.panels.request_history.RequestHistoryPanel',  # Here it is 
-    'debug_toolbar.panels.versions.VersionsPanel',
-    'debug_toolbar.panels.timer.TimerPanel',
-    'debug_toolbar.panels.settings.SettingsPanel',
-    'debug_toolbar.panels.headers.HeadersPanel',
-    'debug_toolbar.panels.request.RequestPanel',
-    'debug_toolbar.panels.sql.SQLPanel',
-    'debug_toolbar.panels.templates.TemplatesPanel',
-    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
-    'debug_toolbar.panels.cache.CachePanel',
-    'debug_toolbar.panels.signals.SignalsPanel',
-    'debug_toolbar.panels.logging.LoggingPanel',
-    'debug_toolbar.panels.redirects.RedirectsPanel',
-    'debug_toolbar.panels.profiling.ProfilingPanel',
+    "ddt_request_history.panels.request_history.RequestHistoryPanel",  # Here it is
+    "debug_toolbar.panels.versions.VersionsPanel",
+    "debug_toolbar.panels.timer.TimerPanel",
+    "debug_toolbar.panels.settings.SettingsPanel",
+    "debug_toolbar.panels.headers.HeadersPanel",
+    "debug_toolbar.panels.request.RequestPanel",
+    "debug_toolbar.panels.sql.SQLPanel",
+    "debug_toolbar.panels.templates.TemplatesPanel",
+    "debug_toolbar.panels.staticfiles.StaticFilesPanel",
+    "debug_toolbar.panels.cache.CachePanel",
+    "debug_toolbar.panels.signals.SignalsPanel",
+    "debug_toolbar.panels.logging.LoggingPanel",
+    "debug_toolbar.panels.redirects.RedirectsPanel",
+    "debug_toolbar.panels.profiling.ProfilingPanel",
 ]
 
 DEBUG_TOOLBAR_CONFIG = {
-    'RESULTS_CACHE_SIZE': 100,
-    'RESULTS_STORE_SIZE': 100,
+    "RESULTS_CACHE_SIZE": 100,
+    "RESULTS_STORE_SIZE": 100,
 }
 
-INTERNAL_IPS = ['127.0.0.1']
+INTERNAL_IPS = ["127.0.0.1"]
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173'
-]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]

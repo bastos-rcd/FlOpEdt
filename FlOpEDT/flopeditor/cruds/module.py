@@ -28,7 +28,7 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
-from base.models import Module, Period, TrainingProgramme
+from base.models import Module, TrainingPeriod, TrainingProgramme
 from displayweb.models import ModuleDisplay
 from people.models import Tutor
 from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_module_values
@@ -53,49 +53,61 @@ def read(department):
             head = ""
         else:
             head = module.head.username
-        values.append((module.abbrev, module.ppn, module.name, module.description,
-                       module.train_prog.name, head, module.period.name))
-    return JsonResponse({
-        "columns":  [{
-            'name': 'Abréviation',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Code PPN',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Nom complet',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Description',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Promo',
-            "type": "select",
-            "options": {
-                "values": [*TrainingProgramme.objects.filter(department=department)
-                           .values_list('name', flat=True)]
-            }
-        }, {
-            'name': 'Enseignant·e responsable',
-            "type": "select",
-            "options": {
-                "values": [*Tutor.objects.filter(departments=department)
-                           .values_list('username', flat=True)]
-            }
-        }, {
-            'name': 'Semestre',
-            "type": "select",
-            "options": {
-                "values": [*Period.objects.filter(department=department)
-                           .values_list('name', flat=True)]
-            }
-        }],
-        "values": values
-    })
+        values.append(
+            (
+                module.abbrev,
+                module.ppn,
+                module.name,
+                module.description,
+                module.train_prog.name,
+                head,
+                module.training_period.name,
+            )
+        )
+    return JsonResponse(
+        {
+            "columns": [
+                {"name": "Abréviation", "type": "text", "options": {}},
+                {"name": "Code PPN", "type": "text", "options": {}},
+                {"name": "Nom complet", "type": "text", "options": {}},
+                {"name": "Description", "type": "text", "options": {}},
+                {
+                    "name": "Promo",
+                    "type": "select",
+                    "options": {
+                        "values": [
+                            *TrainingProgramme.objects.filter(
+                                department=department
+                            ).values_list("name", flat=True)
+                        ]
+                    },
+                },
+                {
+                    "name": "Enseignant·e responsable",
+                    "type": "select",
+                    "options": {
+                        "values": [
+                            *Tutor.objects.filter(departments=department).values_list(
+                                "username", flat=True
+                            )
+                        ]
+                    },
+                },
+                {
+                    "name": "Semestre",
+                    "type": "select",
+                    "options": {
+                        "values": [
+                            *TrainingPeriod.objects.filter(
+                                department=department
+                            ).values_list("name", flat=True)
+                        ]
+                    },
+                },
+            ],
+            "values": values,
+        }
+    )
 
 
 def create(entries, department):
@@ -127,20 +139,22 @@ def create(entries, department):
                     name=entries['new_values'][i][2],
                     description=entries['new_values'][i][3],
                     train_prog=TrainingProgramme.objects.get(
-                        name=entries['new_values'][i][4], department=department),
-                    head=Tutor.objects.get(
-                        username=entries['new_values'][i][5]),
-                    period=Period.objects.get(
-                        name=entries['new_values'][i][6], department=department)
+                        name=entries["new_values"][i][4], department=department
+                    ),
+                    head=Tutor.objects.get(username=entries["new_values"][i][5]),
+                    period=TrainingPeriod.objects.get(
+                        name=entries["new_values"][i][6], department=department
+                    ),
                 )
                 mod_disp = ModuleDisplay(module=module)
                 mod_disp.save()
-                entries['result'].append([OK_RESPONSE])
-            except (TrainingProgramme.DoesNotExist, Tutor.DoesNotExist, Period.DoesNotExist):
-                entries['result'].append([
-                    ERROR_RESPONSE,
-                    "Erreur en base de données"
-                ])
+                entries["result"].append([OK_RESPONSE])
+            except (
+                TrainingProgramme.DoesNotExist,
+                Tutor.DoesNotExist,
+                TrainingPeriod.DoesNotExist,
+            ):
+                entries["result"].append([ERROR_RESPONSE, "Erreur en base de données"])
     return entries
 
 
@@ -182,19 +196,20 @@ def update(entries, department):
                     module.train_prog = TrainingProgramme.objects.get(
                         name=entries['new_values'][i][4], department=department)
                     module.head = Tutor.objects.get(
-                        username=entries['new_values'][i][5])
-                    module.period = Period.objects.get(
-                        name=entries['new_values'][i][6], department=department)
+                        username=entries["new_values"][i][5]
+                    )
+                    module.training_period = TrainingPeriod.objects.get(
+                        name=entries["new_values"][i][6], department=department
+                    )
                     module.save()
-                    entries['result'].append([OK_RESPONSE])
-            except (Module.DoesNotExist,
-                    TrainingProgramme.DoesNotExist,
-                    Tutor.DoesNotExist,
-                    Period.DoesNotExist):
-                entries['result'].append([
-                    ERROR_RESPONSE,
-                    "Erreur en base de données"
-                ])
+                    entries["result"].append([OK_RESPONSE])
+            except (
+                Module.DoesNotExist,
+                TrainingProgramme.DoesNotExist,
+                Tutor.DoesNotExist,
+                TrainingPeriod.DoesNotExist,
+            ):
+                entries["result"].append([ERROR_RESPONSE, "Erreur en base de données"])
 
     return entries
 
