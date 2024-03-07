@@ -64,7 +64,8 @@ export const useEventStore = defineStore('eventStore', () => {
       if (module) {
         currentEvent.bgcolor = moduleColor.value.get(module.id)!
       }
-      c.groupIds.forEach((courseGroup: number) => {
+      const courseGroupIds = c.groupIds.map((id) => groupStore.collectDescendantLeafNodeIds(id)).flat()
+      courseGroupIds.forEach((courseGroup: number) => {
         let currentGroup: Group | undefined
         if (groupsSelected.value && groupsSelected.value.length !== 0)
           currentGroup = groupsSelected.value.find((g: Group) => g.id === courseGroup)

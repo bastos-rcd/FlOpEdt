@@ -16,9 +16,11 @@ export const useGroupStore = defineStore('group', () => {
   const fetchedTransversalGroups = ref<Group[]>([])
   const fetchedStructuralGroups = ref<Group[]>([])
   const selectedTransversalGroups = ref<Group[]>([])
+  // Map to keep track of children for each group
+  const childrenMap = new Map<number, number[]>()
   const groups = computed(() => {
     return concat(
-      fetchedStructuralGroups.value,
+      groupsSelected.value.length === 0 ? fetchedStructuralGroups.value : groupsSelected.value,
       selectedTransversalGroups.value.length === 0 ? fetchedTransversalGroups.value : selectedTransversalGroups.value
     )
   })
@@ -85,10 +87,7 @@ export const useGroupStore = defineStore('group', () => {
     })
   }
 
-  function populateGroupsColumnIds(groups: Group[]): Group[] {
-    // Map to keep track of children for each group
-    const childrenMap = new Map<number, number[]>()
-
+  function populateChildrenGroupMap(groups: Group[]): void {
     // Initialize the map with empty arrays for each group
     groups.forEach((group) => {
       childrenMap.set(group.id, [])
@@ -105,22 +104,25 @@ export const useGroupStore = defineStore('group', () => {
         })
       }
     })
-
-    // Recursive function to collect all descendant leaf node IDs
-    function collectDescendantLeafNodeIds(groupId: number): number[] {
-      const children = childrenMap.get(groupId)
-      if (!children || children.length === 0) {
-        return [groupId] // Leaf node
-      }
-      // Collect leaf node IDs from all children recursively
-      return children.flatMap((childId) => collectDescendantLeafNodeIds(childId))
-    }
-
+  }
+  function populateGroupsColumnIds(groups: Group[]): Group[] {
     // Generate columnIds for each group
+    populateChildrenGroupMap(groups)
     return groups.map((group) => {
       const descendantLeafNodeIds = collectDescendantLeafNodeIds(group.id)
       return { ...group, columnIds: descendantLeafNodeIds }
     })
+  }
+
+  // Recursive function to collect all descendant leaf node IDs
+  // !! This function doesn't populate the map !!
+  function collectDescendantLeafNodeIds(groupId: number): number[] {
+    const children = childrenMap.get(groupId)
+    if (!children || children.length === 0) {
+      return [groupId] // Leaf node
+    }
+    // Collect leaf node IDs from all children recursively
+    return children.flatMap((childId) => collectDescendantLeafNodeIds(childId))
   }
 
   function addTransversalGroupToSelection(group: Group): void {
@@ -142,5 +144,6 @@ export const useGroupStore = defineStore('group', () => {
     removeTransversalGroupToSelection,
     clearSelected,
     groupsSelected,
+    collectDescendantLeafNodeIds,
   }
 })
