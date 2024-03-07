@@ -14,6 +14,9 @@ import {
   AvailabilityBack,
 } from '@/ts/type'
 
+import { dateToString, buildUrl } from '@/helpers'
+import { parseTimestamp } from '@quasar/quasar-ui-qcalendar'
+
 const API_ENDPOINT = '/fr/api/'
 
 const urls = {
@@ -45,7 +48,7 @@ const urls = {
   getTransversalGroups: 'v1/base/groups/transversal_groups',
   getModules: 'v1/base/courses/modules',
   getTrainProgs: 'v1/base/groups/training_programmes',
-  getAvailability: 'v1/availability/user-actual',
+  getAvailability: 'v1/availability/user',
 }
 
 function getCookie(name: string) {
@@ -159,15 +162,6 @@ export interface FlopAPI {
     reservationPeriodicity(id: number): Promise<unknown>
     roomReservation(id: number): Promise<unknown>
   }
-}
-
-function dateToString(date: Date): string {
-  let dateString: string = date.getFullYear() + '-'
-  if (date.getMonth() + 1 < 10) dateString += '0' + (date.getMonth() + 1) + '-'
-  else dateString += date.getMonth() + 1 + '-'
-  if (date.getDate() < 10) dateString += '0' + date.getDate()
-  else dateString += date.getDate()
-  return dateString
 }
 
 const api: FlopAPI = {
@@ -482,10 +476,9 @@ const api: FlopAPI = {
           .then((data) => {
             data.forEach((avail: any) => {
               availabilities.push({
-                id: avail.id,
-                av_type: avail.av_type,
-                start_time: new Date(avail.start_time),
-                end_time: new Date(avail.end_time),
+                av_type: avail.subject_type,
+                start_time: avail.start_time,
+                duration: avail.duration,
                 dataId: userId,
                 value: avail.value,
               })

@@ -4,7 +4,15 @@ import { ref } from 'vue'
 import { Availability } from '../declarations'
 import { Timestamp, copyTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
-import { dateToTimestamp, getDateStringFromTimestamp, getDateTimeStringFromDate, timestampToDate } from '@/helpers'
+import {
+  dateToTimestamp,
+  getDateStringFromTimestamp,
+  getDateTimeStringFromDate,
+  timestampToDate,
+  datetimeStringToDate,
+  durationDjangoToMinutes,
+  durationMinutesToDjango,
+} from '@/helpers'
 import { InputCalendarEvent } from '@/components/calendar/declaration'
 import { remove } from 'lodash'
 
@@ -13,6 +21,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   const availabilities = ref<Map<string, Availability[]>>(new Map<string, Availability[]>())
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
+  let nextId = 0
 
   async function fetchUserAvailabilitiesBack(userId: number, from: Date, to: Date): Promise<void> {
     clearAvailabilities()
@@ -20,7 +29,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     try {
       await api.getAvailabilities(userId, from, to).then((result: AvailabilityBack[]) => {
         result.forEach((avb) => {
-          const dateString = getDateTimeStringFromDate(avb.start_time, false)
+          const dateString = datetimeStringToDate(avb.start_time)
           if (!availabilitiesBack.value.has(dateString)) {
             availabilitiesBack.value.set(dateString, [])
           }
@@ -39,11 +48,11 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
-    let start: Timestamp = dateToTimestamp(availabilityBack.start_time)
+    let start: Timestamp = dateToTimestamp(new Date(availabilityBack.start_time))
     let newAvailability: Availability = {
-      id: availabilityBack.id,
+      id: nextId++,
       type: availabilityBack.av_type,
-      duration: (availabilityBack.end_time.getTime() - availabilityBack.start_time.getTime()) / 1000 / 60,
+      duration: durationDjangoToMinutes(availabilityBack.duration),
       start: start,
       value: availabilityBack.value,
       dataId: availabilityBack.dataId,
@@ -54,9 +63,8 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   function availabilityToAvailabilityBack(availability: Availability): AvailabilityBack {
     let startCopy = copyTimestamp(availability.start)
     let newAvailabilityBack: AvailabilityBack = {
-      id: availability.id,
-      start_time: timestampToDate(availability.start),
-      end_time: timestampToDate(updateMinutes(startCopy, availability.duration + parseTime(startCopy))),
+      start_time: timestampToDate(availability.start).toISOString(),
+      duration: durationMinutesToDjango(availability.duration),
       value: availability.value,
       av_type: availability.type,
       dataId: availability.dataId,

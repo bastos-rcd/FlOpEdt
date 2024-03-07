@@ -1,8 +1,7 @@
 export interface AvailabilityBack {
-  id: number
   av_type: string
-  start_time: Date
-  end_time: Date
+  start_time: string
+  duration: string
   value: number
   dataId: number
 }
