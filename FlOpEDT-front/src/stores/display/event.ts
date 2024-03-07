@@ -5,7 +5,7 @@ import { useScheduledCourseStore } from '../timetable/course'
 import { Timestamp, copyTimestamp, parseTime } from '@quasar/quasar-ui-qcalendar'
 import { useAvailabilityStore } from '../timetable/availability'
 import { useColumnStore } from './column'
-import { Course, Module } from '../declarations'
+import { Course, Module, Room, User } from '../declarations'
 import { usePermanentStore } from '../timetable/permanent'
 import { useGroupStore } from '../timetable/group'
 
@@ -19,6 +19,8 @@ export const useEventStore = defineStore('eventStore', () => {
   const { columns } = storeToRefs(columnStore)
   const daysSelected: Ref<Timestamp[]> = ref<Timestamp[]>([])
   const calendarEvents: Ref<InputCalendarEvent[]> = ref([])
+  const roomsSelected: Ref<Room[]> = ref([])
+  const tutorSelected: Ref<User | undefined> = ref()
   let calendarEventIds: number = 0
 
   watchEffect(() => {
@@ -48,7 +50,7 @@ export const useEventStore = defineStore('eventStore', () => {
       const currentEvent: InputCalendarEvent = {
         id: ++calendarEventIds,
         title: module ? module.abbrev : 'Cours',
-        toggled: true,
+        toggled: !tutorSelected.value && roomsSelected.value.length === 0,
         bgcolor: 'blue',
         columnIds: [],
         data: {
@@ -69,6 +71,12 @@ export const useEventStore = defineStore('eventStore', () => {
           })
         }
       })
+      if (tutorSelected.value) if (c.tutorId === tutorSelected.value.id) currentEvent.toggled = true
+      if (roomsSelected.value.length !== 0) {
+        roomsSelected.value.forEach((room: Room) => {
+          if (c.room === room.id) currentEvent.toggled = true
+        })
+      }
       eventsReturned.push(currentEvent)
     })
     calendarEvents.value = eventsReturned
@@ -77,5 +85,7 @@ export const useEventStore = defineStore('eventStore', () => {
   return {
     daysSelected,
     calendarEvents,
+    roomsSelected,
+    tutorSelected,
   }
 })
