@@ -10,7 +10,7 @@ export const useTutorStore = defineStore('tutor', () => {
   const getTutorById = computed(() => {
     return async (tutorId: number) => {
       let tutor = tutors.value?.find((tutor) => tutor.id === tutorId)
-      if (!tutor) {
+      if (!tutor && tutorId !== null) {
         await api.getTutors(tutorId).then((result: UserAPI[]) => {
           if (result.length === 1) {
             tutor = {
