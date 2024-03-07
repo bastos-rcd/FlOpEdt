@@ -68,10 +68,10 @@
     <div class="TutorSelect">
       <Separator class="Separator" />
       <FilterSelector
-        :multiple="false"
+        :multiple="true"
         :items="props.tutors"
         filterSelectorUndefinedLabel="Filter teachers"
-        v-model:selectedItems="tutorSelected"
+        v-model:selectedItems="tutorsSelected"
         item-variable-name="username"
       />
     </div>
@@ -124,7 +124,7 @@ const workcopy = computed({
     emits('update:workcopy', Number(v))
   },
 })
-const { roomsSelected, tutorSelected } = storeToRefs(eventStore)
+const { roomsSelected, tutorsSelected } = storeToRefs(eventStore)
 const { groupsSelected } = storeToRefs(groupStore)
 const props = defineProps<{
   availChecked: boolean

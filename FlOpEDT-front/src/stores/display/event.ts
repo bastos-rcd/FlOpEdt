@@ -21,7 +21,7 @@ export const useEventStore = defineStore('eventStore', () => {
   const daysSelected: Ref<Timestamp[]> = ref<Timestamp[]>([])
   const calendarEvents: Ref<InputCalendarEvent[]> = ref([])
   const roomsSelected: Ref<Room[]> = ref([])
-  const tutorSelected: Ref<User | undefined> = ref()
+  const tutorsSelected: Ref<User[]> = ref([])
   let calendarEventIds: number = 0
 
   watchEffect(() => {
@@ -51,7 +51,7 @@ export const useEventStore = defineStore('eventStore', () => {
       const currentEvent: InputCalendarEvent = {
         id: ++calendarEventIds,
         title: module ? module.abbrev : 'Cours',
-        toggled: !tutorSelected.value && roomsSelected.value.length === 0,
+        toggled: tutorsSelected.value.length === 0 && roomsSelected.value.length === 0,
         bgcolor: 'blue',
         columnIds: [],
         data: {
@@ -73,7 +73,11 @@ export const useEventStore = defineStore('eventStore', () => {
           })
         }
       })
-      if (tutorSelected.value) if (c.tutorId === tutorSelected.value.id) currentEvent.toggled = true
+      if (tutorsSelected.value.length !== 0) {
+        tutorsSelected.value.forEach((t: User) => {
+          if (c.tutorId === t.id) currentEvent.toggled = true
+        })
+      }
       if (roomsSelected.value.length !== 0) {
         roomsSelected.value.forEach((room: Room) => {
           if (c.room === room.id) currentEvent.toggled = true
@@ -88,6 +92,6 @@ export const useEventStore = defineStore('eventStore', () => {
     daysSelected,
     calendarEvents,
     roomsSelected,
-    tutorSelected,
+    tutorsSelected,
   }
 })
