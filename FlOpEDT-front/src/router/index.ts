@@ -2,6 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useDepartmentStore } from '@/stores/department'
 import { useAuth } from '@/stores/auth'
 import i18n from '@/i18n'
+import { usePermanentStore } from '@/stores/timetable/permanent'
+import { useTutorStore } from '@/stores/timetable/tutor'
+import { storeToRefs } from 'pinia'
+import { useRoomStore } from '@/stores/timetable/room'
 
 export const routeNames = {
   home: Symbol('Home'),
@@ -14,7 +18,7 @@ export const routeNames = {
 
 const routes = [
   {
-    path: '/schedule/:dept?',
+    path: '/schedule/:dept?/:locale?',
     name: routeNames.schedule,
     component: () => import('@/views/ScheduleView.vue'),
     meta: {
@@ -31,7 +35,17 @@ const routes = [
   //   },
   // },
   {
-    path: '/contact/:locale?/:dept?',
+    path: '/login/:dept?/:locale?',
+    name: routeNames.login,
+    component: () => import('@/views/LoginView.vue'),
+    meta: {
+      title: 'Connexion',
+      needsAuth: false,
+      nextPath: '',
+    },
+  },
+  {
+    path: '/contact/:dept?/:locale?',
     name: routeNames.contact,
     component: () => import('@/views/ContactView.vue'),
     meta: {
@@ -40,7 +54,7 @@ const routes = [
     },
   },
   {
-    path: '/home/:locale?/:dept?',
+    path: '/:dept?/:locale?',
     name: routeNames.home,
     component: () => import('@/views/HomeView.vue'),
     meta: {
@@ -57,16 +71,6 @@ const routes = [
       needsAuth: false,
     },
   },
-  {
-    path: '/login/:locale?/:dept?',
-    name: routeNames.login,
-    component: () => import('@/views/LoginView.vue'),
-    meta: {
-      title: 'Connexion',
-      needsAuth: false,
-      nextPath: '',
-    },
-  },
 ]
 
 const router = createRouter({
@@ -76,15 +80,21 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const { availableLocales, locale } = i18n.global
   const deptStore = useDepartmentStore()
+  const roomStore = useRoomStore()
   const authStore = useAuth()
+  const permanentStore = usePermanentStore()
+  const tutorStore = useTutorStore()
+  const { isTrainProgsFetched, isModulesFetched } = storeToRefs(permanentStore)
   if (deptStore.current.id === -1) deptStore.getDepartmentFromURL(to.fullPath)
-
   if (!authStore.isUserFetchTried) await authStore.fetchAuthUser()
-
-  availableLocales.forEach((currentLocale: string) => {
+  if (!isModulesFetched.value) await permanentStore.fetchModules()
+  if (!isTrainProgsFetched.value) await permanentStore.fetchTrainingProgrammes()
+  if (!tutorStore.isAllTutorsFetched) await tutorStore.fetchTutors()
+  if (!deptStore.isAllDepartmentsFetched) await deptStore.fetchAllDepartments()
+  if (!roomStore.isRoomFetched) await roomStore.fetchRooms()
+  availableLocales.forEach((currentLocale: 'fr' | 'en' | 'es') => {
     to.fullPath.split('/').forEach((arg) => {
       if (arg.includes(currentLocale) && arg.length === currentLocale.length) {
-        //@ts-ignore
         locale.value = currentLocale
       }
     })

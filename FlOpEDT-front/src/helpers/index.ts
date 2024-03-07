@@ -2,7 +2,7 @@ import { Department } from '@/ts/type'
 import { Room } from '@/stores/declarations'
 import { useRoomStore } from '@/stores/timetable/room'
 import { api } from '@/utils/api'
-import { Timestamp, getDateTime, parseTimestamp } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, getDateTime, parseTimestamp, updateFormatted } from '@quasar/quasar-ui-qcalendar'
 
 export function convertDecimalTimeToHuman(time: number): string {
   const hours = Math.trunc(time)
@@ -224,16 +224,34 @@ export function getDayOfWeekString(dayOfWeek: number): string {
   }
 }
 
-export function dateToTimestamp(date: Date): Timestamp {
+export function getDateTimeStringFromDate(date: Date, time: boolean = false): string {
   let dateString: string = date.getFullYear() + '-'
   if (date.getMonth() < 9) dateString += '0'
   dateString += date.getMonth() + 1 + '-'
   if (date.getDate() < 10) dateString += '0'
-  dateString += date.getDate() + ' '
-  if (date.getHours() < 10) dateString += '0'
-  dateString += date.getHours() + ':'
-  if (date.getMinutes() < 10) dateString += '0'
-  dateString += date.getMinutes()
+  dateString += date.getDate()
+  if (time) {
+    dateString += ' '
+    if (date.getHours() < 10) dateString += '0'
+    dateString += date.getHours() + ':'
+    if (date.getMinutes() < 10) dateString += '0'
+    dateString += date.getMinutes()
+  }
+  return dateString
+}
+
+export function getDateStringFromTimestamp(date: Timestamp): string {
+  date = updateFormatted(date)
+  let dateString: string = date.year + '-'
+  if (date.month < 9) dateString += '0'
+  dateString += date.month + '-'
+  if (date.day < 10) dateString += '0'
+  dateString += date.day
+  return dateString
+}
+
+export function dateToTimestamp(date: Date): Timestamp {
+  let dateString: string = getDateTimeStringFromDate(date, true)
   return parseTimestamp(dateString) as Timestamp
 }
 

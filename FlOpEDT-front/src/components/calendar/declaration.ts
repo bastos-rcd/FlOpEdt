@@ -1,16 +1,4 @@
 import { Timestamp } from '@quasar/quasar-ui-qcalendar'
-import {
-  matBattery0Bar,
-  matBattery1Bar,
-  matBattery2Bar,
-  matBattery3Bar,
-  matBattery4Bar,
-  matBattery5Bar,
-  matBattery6Bar,
-  matBatteryFull,
-  matBatteryChargingFull,
-} from '@quasar/extras/material-icons'
-
 /**
  * Calendar event, for display purpose
  */
@@ -31,7 +19,7 @@ export interface InputCalendarEvent extends CalendarEventNoCol {
 }
 
 export interface CalendarEvent extends CalendarEventNoCol {
-  span: Array<{ istart: number; weight: number; columnIds: number[] }>
+  spans: Array<{ istart: number; weight: number; columnIds: number[] }>
 }
 
 export interface EventData {
@@ -87,14 +75,14 @@ export const availabilityData: AvailabilityData = {
     '8': '#00ff5e',
   },
   icon: {
-    '0': matBattery0Bar,
-    '1': matBattery1Bar,
-    '2': matBattery2Bar,
-    '3': matBattery3Bar,
-    '4': matBattery4Bar,
-    '5': matBattery5Bar,
-    '6': matBattery6Bar,
-    '7': matBatteryFull,
-    '8': matBatteryChargingFull,
+    '0': 'matBattery0Bar',
+    '1': 'matBattery1Bar',
+    '2': 'matBattery2Bar',
+    '3': 'matBattery3Bar',
+    '4': 'matBattery4Bar',
+    '5': 'matBattery5Bar',
+    '6': 'matBattery6Bar',
+    '7': 'matBatteryFull',
+    '8': 'matBatteryChargingFull',
   },
 }

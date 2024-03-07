@@ -82,7 +82,9 @@ class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
                 '"from_date" parameter is later than "to_date" parameter'
             )
 
-        user_id = int(self.request.query_params.get("user_id"))
+        user_id = self.request.query_params.get("user_id")
+        if user_id is not None:
+            user_id = int(user_id)
 
         # TODO V1-DB
         # ugly but will be removed
@@ -94,14 +96,16 @@ class UserDatedAvailabilityViewSet(viewsets.ModelViewSet):
         while py_date <= to_date:
             cal = py_date.isocalendar()
             if cal[1] != w:
-                ret |= bm.UserPreference.objects.filter(
-                    user__id=user_id, week__year=y, week__nb=w, day__in=days
-                )
+                if user_id is None:
+                    ret |= bm.UserPreference.objects.filter(week__year=y, week__nb=w, day__in=days)   
+                else:
+                    ret |= bm.UserPreference.objects.filter(user__id=user_id, week__year=y, week__nb=w, day__in=days)
                 y, w, days = cal[0], cal[1], [Day.CHOICES[cal[2] - 1][0]]
             else:
                 days.append(Day.CHOICES[cal[2] - 1][0])
             py_date += timedelta(days=1)
-        ret |= bm.UserPreference.objects.filter(
-            user__id=user_id, week__year=y, week__nb=w, day__in=days
-        )
+        if user_id is None:
+            ret |= bm.UserPreference.objects.filter(week__year=y, week__nb=w, day__in=days)   
+        else:
+            ret |= bm.UserPreference.objects.filter(user__id=user_id, week__year=y, week__nb=w, day__in=days)
         return ret

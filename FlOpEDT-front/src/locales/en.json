@@ -71,5 +71,19 @@
     "roomcalendar": {
       "room-label": "Room"
     }
+  },
+  "header": {
+    "logged-in": "You're logged in as ",
+    "logged-out": "You're not logged in"
+  },
+  "availabilityMenu": {
+    "trigger": "Right Click!"
+  },
+  "side": {
+    "availabilityTitle": "Availabilities",
+    "availabilityLabel": "Show your availabilities ?",
+    "workcopyTitle": "Workcopies",
+    "workcopyPlaceholder": "Select a workcopy..",
+    "workcopyNumber": "Workcopy n°"
   }
 }

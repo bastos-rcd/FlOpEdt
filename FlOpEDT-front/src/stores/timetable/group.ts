@@ -1,8 +1,9 @@
 import { Department, GroupAPI } from '@/ts/type'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { Group, User } from '@/stores/declarations'
+import { computed, ref } from 'vue'
+import { Group } from '@/stores/declarations'
 import { api } from '@/utils/api'
+import { concat, remove } from 'lodash'
 
 /**
  * This store is a work in progress,
@@ -12,126 +13,18 @@ import { api } from '@/utils/api'
  */
 export const useGroupStore = defineStore('group', () => {
   const isAllGroupsFetched = ref<boolean>(false)
-  const fetchedGroups = ref<Group[]>([])
-  const groups = ref<Group[]>([
-    {
-      id: 31,
-      name: 'CE',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [36, 37, 38, 39, 40, 41, 42, 43],
-      parentsId: [],
-    },
-    {
-      id: 32,
-      name: '1',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [36, 37],
-      parentsId: [31],
-    },
-    {
-      id: 33,
-      name: '2',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [38, 39],
-      parentsId: [31],
-    },
-    {
-      id: 34,
-      name: '3',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [40, 41],
-      parentsId: [31],
-    },
-    {
-      id: 35,
-      name: '4',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [42, 43],
-      parentsId: [31],
-    },
-    {
-      id: 36,
-      name: '1A',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [36],
-      parentsId: [32],
-    },
-    {
-      id: 37,
-      name: '1B',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [37],
-      parentsId: [32],
-    },
-    {
-      id: 38,
-      name: '2A',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [38],
-      parentsId: [33],
-    },
-    {
-      id: 39,
-      name: '2B',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [39],
-      parentsId: [33],
-    },
-    {
-      id: 40,
-      name: '3A',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [40],
-      parentsId: [34],
-    },
-    {
-      id: 41,
-      name: '3B',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [41],
-      parentsId: [34],
-    },
-    {
-      id: 42,
-      name: '4A',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [42],
-      parentsId: [35],
-    },
-    {
-      id: 43,
-      name: '4B',
-      size: 1,
-      trainProgId: -1,
-      type: 'structural',
-      columnIds: [43],
-      parentsId: [35],
-    },
-  ])
+  const fetchedTransversalGroups = ref<Group[]>([])
+  const fetchedStructuralGroups = ref<Group[]>([])
+  const selectedTransversalGroups = ref<Group[]>([])
+  // Map to keep track of children for each group
+  const childrenMap = new Map<number, number[]>()
+  const groups = computed(() => {
+    return concat(
+      groupsSelected.value.length === 0 ? fetchedStructuralGroups.value : groupsSelected.value,
+      selectedTransversalGroups.value.length === 0 ? fetchedTransversalGroups.value : selectedTransversalGroups.value
+    )
+  })
+  const groupsSelected = ref<Group[]>([])
 
   async function fetchGroups(department: Department): Promise<void> {
     clearGroups()
@@ -141,26 +34,60 @@ export const useGroupStore = defineStore('group', () => {
           id: gp.id,
           name: gp.name,
           size: 0,
-          trainProgId: -1,
+          trainProgId: gp.train_prog_id,
           type: 'structural',
           parentsId: gp.parent_ids,
+          conflictingGroupIds: [],
+          parallelGroupIds: [],
           columnIds: [],
         } as Group
-        fetchedGroups.value.push(newGp)
+        fetchedStructuralGroups.value.push(newGp)
       })
+    })
+    fetchedStructuralGroups.value = populateGroupsColumnIds(fetchedStructuralGroups.value)
+
+    await api.getTransversalGroups(department.abbrev).then((result: GroupAPI[]) => {
+      result.forEach((gp: GroupAPI) => {
+        let newGp = {
+          id: gp.id,
+          name: gp.name,
+          size: 0,
+          trainProgId: gp.train_prog_id,
+          type: 'transversal',
+          columnIds: [],
+          parentsId: [],
+          conflictingGroupIds: gp.conflicting_group_ids,
+          parallelGroupIds: gp.parallel_group_ids,
+        } as Group
+        fetchedTransversalGroups.value.push(newGp)
+      })
+      populateTransversalsColumnIds(fetchedTransversalGroups.value, fetchedStructuralGroups.value)
       isAllGroupsFetched.value = true
     })
-    fetchedGroups.value = populateGroupsColumnIds(fetchedGroups.value)
   }
 
   function clearGroups(): void {
-    fetchedGroups.value = []
+    fetchedStructuralGroups.value = []
+    fetchedTransversalGroups.value = []
+    selectedTransversalGroups.value = []
   }
 
-  function populateGroupsColumnIds(groups: Group[]): Group[] {
-    // Map to keep track of children for each group
-    const childrenMap = new Map<number, number[]>()
+  function clearSelected(): void {
+    selectedTransversalGroups.value = []
+  }
 
+  function populateTransversalsColumnIds(groups: Group[], structurals: Group[]): void {
+    groups.forEach((gp: Group) => {
+      gp.conflictingGroupIds.forEach((cgId: number) => {
+        const conflictingGroup: Group | undefined = structurals.find((gpConf) => gpConf.id === cgId)
+        if (conflictingGroup) {
+          conflictingGroup.columnIds.forEach((id) => gp.columnIds.push(id))
+        }
+      })
+    })
+  }
+
+  function populateChildrenGroupMap(groups: Group[]): void {
     // Initialize the map with empty arrays for each group
     groups.forEach((group) => {
       childrenMap.set(group.id, [])
@@ -177,27 +104,46 @@ export const useGroupStore = defineStore('group', () => {
         })
       }
     })
-
-    // Recursive function to collect all descendant leaf node IDs
-    function collectDescendantLeafNodeIds(groupId: number): number[] {
-      const children = childrenMap.get(groupId)
-      if (!children || children.length === 0) {
-        return [groupId] // Leaf node
-      }
-      // Collect leaf node IDs from all children recursively
-      return children.flatMap((childId) => collectDescendantLeafNodeIds(childId))
-    }
-
+  }
+  function populateGroupsColumnIds(groups: Group[]): Group[] {
     // Generate columnIds for each group
+    populateChildrenGroupMap(groups)
     return groups.map((group) => {
       const descendantLeafNodeIds = collectDescendantLeafNodeIds(group.id)
       return { ...group, columnIds: descendantLeafNodeIds }
     })
   }
 
+  // Recursive function to collect all descendant leaf node IDs
+  // !! This function doesn't populate the map !!
+  function collectDescendantLeafNodeIds(groupId: number): number[] {
+    const children = childrenMap.get(groupId)
+    if (!children || children.length === 0) {
+      return [groupId] // Leaf node
+    }
+    // Collect leaf node IDs from all children recursively
+    return children.flatMap((childId) => collectDescendantLeafNodeIds(childId))
+  }
+
+  function addTransversalGroupToSelection(group: Group): void {
+    if (group.type !== 'transversal') return
+    selectedTransversalGroups.value.push(group)
+  }
+
+  function removeTransversalGroupToSelection(group: Group): void {
+    if (group.type !== 'transversal') return
+    remove(selectedTransversalGroups.value, (g) => g.id === group.id)
+  }
+
   return {
     groups,
-    fetchedGroups,
+    fetchedStructuralGroups,
+    fetchedTransversalGroups,
     fetchGroups,
+    addTransversalGroupToSelection,
+    removeTransversalGroupToSelection,
+    clearSelected,
+    groupsSelected,
+    collectDescendantLeafNodeIds,
   }
 })

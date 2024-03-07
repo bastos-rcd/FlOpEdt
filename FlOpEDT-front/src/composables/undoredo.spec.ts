@@ -2,11 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useUndoredo } from '@/composables/undoredo'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { storeToRefs } from 'pinia'
-import { getCoursesData } from '@/composables/course'
 import { setActivePinia, createPinia } from 'pinia'
 import { Timestamp } from '@quasar/quasar-ui-qcalendar/dist/types/types'
-import { getDateTime, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
-import { Course } from '@/stores/declarations'
+import { getDateTime, parseTimestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { useAvailabilityStore } from '@/stores/timetable/availability'
 
 vi.mock('../utils/api.ts')
 
@@ -16,23 +15,47 @@ describe('undoredo composable', () => {
     // up by any useStore() call without having to pass it to it:
     // `useStore(pinia)`
     setActivePinia(createPinia())
+    const scheduledCourseStore = useScheduledCourseStore()
+    const availabilityStore = useAvailabilityStore()
+    scheduledCourseStore.addOrUpdateCourseToDate({
+      id: 65692,
+      no: 1,
+      room: 52,
+      start: parseTimestamp('2023-04-25 14:15') as Timestamp,
+      end: parseTimestamp('2023-04-25 15:20') as Timestamp,
+      tutorId: 43,
+      suppTutorIds: [55, 3],
+      module: 7,
+      groupIds: [422, 623, 552],
+      courseTypeId: 10,
+      roomTypeId: 3,
+      graded: false,
+      workCopy: 1,
+    })
+    const { availabilities } = storeToRefs(availabilityStore)
+    availabilities.value.set('2022-01-25 14:10', [])
+    availabilities.value.get('2022-01-25 14:10')?.push({
+      id: 23,
+      duration: 120,
+      start: parseTimestamp('2022-01-25 14:10') as Timestamp,
+      value: 3,
+      type: 'user',
+      dataId: 4,
+    })
   })
 
-  it('historize an update of a course', () => {
+  it('historizes an update of a course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
-    const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate } = useUndoredo()
-
-    courses.value = getCoursesData() as unknown as Course[]
-    const courseToUpdate = courses.value.find((sc) => sc.id === 65692)
+    const courseToUpdate = scheduledCourseStore.getCourse(65692, '2023-04-25')
     addUpdate(
       courseToUpdate!.id as number,
       {
         tutorId: courseToUpdate!.tutorId,
-        start: updateWorkWeek(parsed('2022-01-10 08:20') as Timestamp),
+        start: parseTimestamp('2022-01-10 08:20') as Timestamp,
         end: courseToUpdate!.end,
-        roomId: courseToUpdate?.room || -1,
+        roomId: courseToUpdate!.room,
         suppTutorIds: courseToUpdate!.suppTutorIds,
         graded: courseToUpdate!.graded,
         roomTypeId: courseToUpdate!.roomTypeId,
@@ -48,33 +71,31 @@ describe('undoredo composable', () => {
         tutorId: courseToUpdate!.tutorId,
         start: updateWorkWeek(parsed('2025-01-10 08:15') as Timestamp),
         end: courseToUpdate!.end,
-        roomId: courseToUpdate?.room || -1,
-        suppTutorIds: [],
+        roomId: courseToUpdate!.room,
+        suppTutorIds: [55, 3],
         graded: false,
-        roomTypeId: -1,
-        groupIds: [],
+        roomTypeId: 3,
+        groupIds: [422, 623, 552],
       },
       'course'
     )
     expect(getDateTime(courseToUpdate!.start)).toBe('2025-01-10 08:15')
   })
 
-  it('revert an update of a course', () => {
+  it('reverts an update of a course', () => {
     expect.assertions(2)
     const scheduledCourseStore = useScheduledCourseStore()
-    const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate, revertUpdate } = useUndoredo()
 
-    courses.value = getCoursesData() as unknown as Course[]
+    const courseToUpdate = scheduledCourseStore.getCourse(65692, '2023-04-25')
 
-    const courseToUpdate = courses.value.find((course) => course.id === 65692)
     addUpdate(
       courseToUpdate!.id as number,
       {
         tutorId: courseToUpdate!.tutorId,
-        start: updateWorkWeek(parsed('2022-01-10 08:20') as Timestamp),
+        start: parseTimestamp('2022-01-10 08:20') as Timestamp,
         end: courseToUpdate!.end,
-        roomId: courseToUpdate?.room || -1,
+        roomId: courseToUpdate!.room,
         suppTutorIds: courseToUpdate!.suppTutorIds,
         graded: courseToUpdate!.graded,
         roomTypeId: courseToUpdate!.roomTypeId,
@@ -90,16 +111,12 @@ describe('undoredo composable', () => {
     expect(getDateTime(courseToUpdate!.start)).toBe('2023-04-25 14:15')
   })
 
-  it('revert several updates of a course', () => {
+  it('reverts several updates of a course', () => {
     expect.assertions(4)
     const scheduledCourseStore = useScheduledCourseStore()
-    const { courses } = storeToRefs(scheduledCourseStore)
     const { addUpdate, revertUpdate } = useUndoredo()
 
-    courses.value = getCoursesData() as unknown as Course[]
-
-    const courseToUpdate = courses.value.find((course) => course.id === 65692)
-
+    const courseToUpdate = scheduledCourseStore.getCourse(65692, '2023-04-25')
     addUpdate(
       courseToUpdate!.id as number,
       {
@@ -141,5 +158,66 @@ describe('undoredo composable', () => {
     revertUpdate()
 
     expect(getDateTime(courseToUpdate!.start)).toBe('2023-04-25 14:15')
+  })
+
+  it('historizes an update of an availability', () => {
+    const availabilityStore = useAvailabilityStore()
+    const { addUpdate } = useUndoredo()
+    const availToUpdate = availabilityStore.getAvailability(23)
+    addUpdate(
+      availToUpdate!.id as number,
+      {
+        start: parseTimestamp('2022-01-25 14:00') as Timestamp,
+        value: 1,
+        duration: 60,
+      },
+      'availability'
+    )
+    expect(getDateTime(availToUpdate!.start)).toBe('2022-01-25 14:00')
+    expect(availToUpdate!.value).toBe(1)
+    expect(availToUpdate!.duration).toBe(60)
+
+    addUpdate(
+      availToUpdate!.id as number,
+      {
+        start: parseTimestamp('2023-04-22 16:00') as Timestamp,
+        value: 7,
+        duration: 150,
+      },
+      'availability'
+    )
+    expect(getDateTime(availToUpdate!.start)).toBe('2023-04-22 16:00')
+    expect(availToUpdate!.value).toBe(7)
+    expect(availToUpdate!.duration).toBe(150)
+  })
+
+  it('reverts an update of an availability', () => {
+    const availabilityStore = useAvailabilityStore()
+    const { addUpdate, revertUpdate } = useUndoredo()
+    const availToUpdate = availabilityStore.getAvailability(23)
+
+    addUpdate(
+      availToUpdate!.id as number,
+      {
+        start: parseTimestamp('2022-01-25 14:00') as Timestamp,
+        value: 1,
+        duration: 60,
+      },
+      'availability'
+    )
+    expect(getDateTime(availToUpdate!.start)).toBe('2022-01-25 14:00')
+    expect(availToUpdate!.value).toBe(1)
+    expect(availToUpdate!.duration).toBe(60)
+    revertUpdate()
+    expect(getDateTime(availToUpdate!.start)).toBe('2022-01-25 14:10')
+    expect(availToUpdate!.value).toBe(3)
+    expect(availToUpdate!.duration).toBe(120)
+  })
+
+  it.todo('reverts several updates of an availability', () => {
+    const availabilityStore = useAvailabilityStore()
+    const { availabilities } = storeToRefs(availabilityStore)
+    const { addUpdate } = useUndoredo()
+    const availToUpdate = availabilityStore.getAvailability(23)
   })
 })

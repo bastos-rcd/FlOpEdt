@@ -1,8 +1,8 @@
 export interface AvailabilityBack {
   id: number
-  type: string
-  start: Date
-  end: Date
+  av_type: string
+  start_time: Date
+  end_time: Date
   value: number
   dataId: number
 }
@@ -134,6 +134,8 @@ export class ScheduledCourse {
   trainProgId: number
   groupIds: number[]
   suppTutorsIds: number[]
+  courseTypeId: number
+  no: number
 
   constructor(
     id = -1,
@@ -146,7 +148,9 @@ export class ScheduledCourse {
     moduleId = -1,
     trainProgId = -1,
     groupIds = [],
-    suppTutorsIds = []
+    suppTutorsIds = [],
+    courseTypeId = -1,
+    no = -1
   ) {
     this.id = id
     this.roomId = room
@@ -159,6 +163,8 @@ export class ScheduledCourse {
     this.trainProgId = trainProgId
     this.groupIds = groupIds
     this.suppTutorsIds = suppTutorsIds
+    this.courseTypeId = courseTypeId
+    this.no = no
   }
 }
 
@@ -177,11 +183,17 @@ export interface TrainingProgrammeAPI {
   id: number
   abbrev: string
   name: string
+  department_id: number
 }
 
 export interface UserAPI {
-  name: string
   id: number
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+  rights: number
+  departments: Array<{ department_id: number; is_admin: string }>
 }
 
 export interface User {
@@ -225,10 +237,15 @@ export interface GroupAPI {
   name: string
   train_prog_id: number
   type_id: number
-  parent_ids: number[]
+  parent_ids?: number[]
+  conflicting_group_ids?: number[]
+  parallel_group_ids?: number[]
 }
 export interface ModuleAPI {
   id: number
   abbrev: string
   name: string
+  head_id: number
+  train_prog_id: number
+  description: string
 }

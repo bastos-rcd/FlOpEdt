@@ -1,31 +1,34 @@
 <template>
-  <q-btn
-    round
-    color="primary"
-    :icon="matBatteryFull"
-    style="margin: 5px"
-    @click="availabilityToggle = !availabilityToggle"
-  />
-  <FilterSelector
-    :items="roomsFetched"
-    filter-selector-undefined-label="Select a room"
-    v-model:selected-items="selectedRoom"
-    :multiple="false"
-    item-variable-name="name"
-  />
-  <Calendar
-    v-model:events="calendarEvents"
-    :columns="columnsToDisplay"
-    @dragstart="setCurrentScheduledCourse"
-    @update:week="changeDate"
-    :end-of-day-minutes="19"
-  />
+  <div class="content">
+    <div class="side-panel" :class="{ open: authStore.sidePanelToggle }" v-if="authStore.sidePanelToggle">
+      <SidePanel
+        v-if="authStore.sidePanelToggle"
+        @update:checkbox="(v) => (availabilityToggle = v)"
+        @update:workcopy="(n) => (workcopySelected = n)"
+        :avail-checked="availabilityToggle"
+        v-model:workcopy="workcopySelected"
+        :rooms="roomsFetched"
+        :tutors="tutors"
+        :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)"
+      />
+    </div>
+    <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
+      <Calendar
+        v-model:events="calendarEvents"
+        :columns="columnsToDisplay"
+        @dragstart="setCurrentScheduledCourse"
+        @update:week="changeDate"
+        :end-of-day-hours="endOfDay"
+        :workcopy="workcopySelected"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { CalendarColumn, InputCalendarEvent } from '@/components/calendar/declaration'
+import { CalendarColumn } from '@/components/calendar/declaration'
 import Calendar from '@/components/calendar/Calendar.vue'
-import { computed, onBeforeMount, ref, watchEffect } from 'vue'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
@@ -34,28 +37,27 @@ import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import {
   Timestamp,
   copyTimestamp,
+  getEndOfWeek,
+  getStartOfWeek,
   makeDate,
   nextDay,
-  parseTime,
-  prevDay,
-  relativeDays,
   today,
   updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
 import { filter } from 'lodash'
-import FilterSelector from '@/components/utils/FilterSelector.vue'
 import { useRoomStore } from '@/stores/timetable/room'
-import { Room } from '@/stores/declarations'
+import { Group } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
-import { matBatteryFull } from '@quasar/extras/material-icons'
-
+import { usePermanentStore } from '@/stores/timetable/permanent'
+import { useAuth } from '@/stores/auth'
+import { useAvailabilityStore } from '@/stores/timetable/availability'
+import { useEventStore } from '@/stores/display/event'
+import SidePanel from '@/components/SidePanel.vue'
 /**
  * Data translated to be passed to components
  */
-const calendarEvents = ref<InputCalendarEvent[]>([])
 const availabilityToggle = ref<boolean>(false)
-let id = 1
 
 const columnsToDisplay = computed(() => {
   if (availabilityToggle.value) return columns.value
@@ -68,43 +70,33 @@ const columnsToDisplay = computed(() => {
  * * The groups and columns helping to put events in schedule
  */
 const groupStore = useGroupStore()
+const eventStore = useEventStore()
 const columnStore = useColumnStore()
 const scheduledCourseStore = useScheduledCourseStore()
 const roomStore = useRoomStore()
-const { courses } = storeToRefs(scheduledCourseStore)
-const { columns } = storeToRefs(columnStore)
-const { roomsFetched } = storeToRefs(roomStore)
+const authStore = useAuth()
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
-const selectedRoom = ref<Room>()
+const availabilityStore = useAvailabilityStore()
+const permanentStore = usePermanentStore()
+const { columns } = storeToRefs(columnStore)
+const { daysSelected, calendarEvents } = storeToRefs(eventStore)
+const { roomsFetched } = storeToRefs(roomStore)
+const { tutors } = storeToRefs(tutorStore)
+const { fetchedStructuralGroups } = storeToRefs(groupStore)
+const selectedGroups = ref<Group[]>([])
+const sunday = ref<Timestamp>()
+const monday = ref<Timestamp>()
+const endOfDay = 19
+const workcopySelected = ref<number>(-1)
 
-watchEffect(() => {
-  calendarEvents.value = courses.value
-    .map((c) => {
-      const currentEvent: InputCalendarEvent = {
-        id: id++,
-        title: c.module ? c.module.toString() : 'Cours',
-        toggled: !selectedRoom.value || c.room === selectedRoom.value.id,
-        bgcolor: id % 2 === 0 ? 'red' : 'blue',
-        columnIds: [],
-        data: {
-          dataId: c.id,
-          dataType: 'event',
-          start: copyTimestamp(c.start),
-          duration: parseTime(c.end) - parseTime(c.start),
-        },
-      }
-      c.groupIds.forEach((courseGroup) => {
-        const currentGroup = groupStore.fetchedGroups.find((g) => g.id === courseGroup)
-        if (currentGroup) {
-          currentGroup.columnIds.forEach((cI) => {
-            currentEvent.columnIds.push(cI)
-          })
-        }
-      })
-      return currentEvent
-    })
-    .filter((ce) => ce.columnIds.length > 0)
+watch(selectedGroups, () => {
+  groupStore.clearSelected()
+  if (selectedGroups.value !== null) selectedGroups.value.forEach((gp) => groupStore.addTransversalGroupToSelection(gp))
+})
+
+watch(workcopySelected, () => {
+  console.log(workcopySelected.value)
 })
 
 const currentScheduledCourseId = ref<number | null>(null)
@@ -113,26 +105,41 @@ function setCurrentScheduledCourse(scheduledCourseId: number) {
 }
 
 function fetchScheduledCurrentWeek(from: Date, to: Date) {
-  scheduledCourseStore.fetchScheduledCourses((from = from), (to = to), deptStore.current.id)
+  scheduledCourseStore.fetchScheduledCourses((from = from), (to = to), -1, deptStore.current)
+}
+
+function fetchAvailCurrentWeek(from: Date, to: Date) {
+  availabilityStore.fetchUserAvailabilitiesBack(authStore.getUser.id, from, to)
 }
 
 function changeDate(newDate: Timestamp) {
-  const newMonday = updateFormatted(relativeDays(copyTimestamp(newDate), prevDay, newDate.weekday - 1 || 6))
-  const newSunday = updateFormatted(relativeDays(copyTimestamp(newMonday), nextDay, 6))
-  fetchScheduledCurrentWeek(makeDate(newMonday), makeDate(newSunday))
+  monday.value = updateFormatted(getStartOfWeek(newDate, [1, 2, 3, 4, 5, 6, 0]))
+  sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
+  fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
+  fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
+  let currentDate = copyTimestamp(monday.value!)
+  daysSelected.value = []
+  while (currentDate.weekday !== sunday.value!.weekday) {
+    daysSelected.value.push(copyTimestamp(currentDate))
+    currentDate = updateFormatted(nextDay(currentDate))
+  }
 }
 
 /**
  * Fetching data required on mount
  */
 onBeforeMount(async () => {
-  let todayDate = updateFormatted(parsed(today()))
-  fetchScheduledCurrentWeek(
-    makeDate(todayDate),
-    makeDate(updateFormatted(relativeDays(todayDate, nextDay, todayDate.weekday - 1 || 6)))
-  )
-  roomStore.fetchRooms()
-  tutorStore.fetchTutors(deptStore.current)
+  let todayDate: Timestamp = updateFormatted(parsed(today()))
+  monday.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
+  sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
+  let currentDate = copyTimestamp(monday.value!)
+  daysSelected.value = []
+  while (currentDate.weekday !== sunday.value!.weekday) {
+    daysSelected.value.push(copyTimestamp(currentDate))
+    currentDate = updateFormatted(nextDay(currentDate))
+  }
+  fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
+  fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
   groupStore.fetchGroups(deptStore.current)
 })
@@ -144,5 +151,25 @@ onBeforeMount(async () => {
 }
 .nac {
   background-color: rgb(133, 34, 34);
+}
+.side-panel {
+  left: -300px; /* Initially hidden outside the viewport */
+  position: relative;
+  margin-right: 0.2%;
+}
+.main-content {
+  width: 100%;
+  flex: 1;
+  position: relative;
+}
+.main-content.open {
+  width: 84.8%;
+  left: 0;
+}
+.side-panel.open {
+  left: 0;
+}
+.content {
+  display: flex;
 }
 </style>

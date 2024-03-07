@@ -1,6 +1,11 @@
 <template>
   <nav id="menu-links">
     <ul>
+      <li v-if="authStore.isUserAuthenticated">
+        <button @click="toggleSideBar()" class="sidebar-button">
+          <icon icon="iconoir:menu" class="IconMenu"></icon>
+        </button>
+      </li>
       <li>
         <router-link
           :to="{
@@ -77,6 +82,7 @@ import { useDepartmentStore } from '@/stores/department'
 import { routeNames } from '@/router'
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Icon } from '@iconify/vue'
 
 const authStore = useAuth()
 const deptStore = useDepartmentStore()
@@ -86,6 +92,10 @@ onMounted(() => {
     deptStore.getDepartmentFromURL()
   }
 })
+
+function toggleSideBar() {
+  authStore.toggleSidePanel()
+}
 </script>
 
 <style scoped>
@@ -101,6 +111,8 @@ a {
 #menu-links li {
   float: left;
   border-right: 1px solid #bbb;
+  min-width: 85px;
+  min-height: 50px;
 }
 #menu-links li a {
   color: white;
@@ -120,5 +132,13 @@ a {
 }
 li:hover {
   background-color: rgb(200, 200, 200);
+}
+.IconMenu {
+  color: red;
+}
+.sidebar-button {
+  width: 85px;
+  height: 50px;
+  background-color: rgba(0, 0, 0, 0);
 }
 </style>

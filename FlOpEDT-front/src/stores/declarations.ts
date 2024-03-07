@@ -37,9 +37,9 @@ export interface Group {
   size: number
   trainProgId: number
   type: string // structural or transversal
-  parentsId?: number[] // If not there then type = transversal
-  conflictingGroupIds?: number[] // If not there then type = structural
-  parallelGroupIds?: number[] // If not there then type = structural
+  parentsId: number[] // If empty then type = transversal
+  conflictingGroupIds: number[] // If empty then type = structural
+  parallelGroupIds: number[] // If empty then type = structural
   columnIds: number[] // cf calendar/types.ts: CalendarColumn
 }
 
@@ -66,14 +66,6 @@ export interface Room {
 // Association groupe - colonnes ? NON
 // Record<number, number[]>  // groupId -> columnIds
 
-// Course {
-//   id: number
-//   no: number
-//   tutorId: number
-//   suppTutorIds: number[]
-//   moduleId: number
-// }
-
 export interface TrainingProgramme {
   id: number
   name: string
@@ -88,5 +80,6 @@ export interface User {
   lastname: string
   email: string
   type: string
-  departments: Array<{ departmentId: number; rights: string }>
+  departments: Map<number, boolean>
+  //rights?: Record<string, string>
 }

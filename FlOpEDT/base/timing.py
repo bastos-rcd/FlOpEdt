@@ -155,10 +155,15 @@ def flopdate_to_datetime(day: Day, time):
 ##Takes a day (with week and year)
 #and returns the date object corresponding
 def flopday_to_date(day):
+    us_day_index = (days_index[day.day] + 1)%7
     if day.week is None:
-        return date.fromordinal(days_index[day.day])
-    nb_leap_year = day.week.year // 4 - day.week.year // 100 + day.week.year // 400
-    return date.fromordinal((day.week.year-1) * 365 + (day.week.nb-1)*7 + days_index[day.day] + 1 + nb_leap_year + first_day_first_week(day))
+        day_string = f"0001-1-{us_day_index}"
+    else:
+        four_digit_year = str(day.week.year)
+        if len(four_digit_year) < 4:
+            four_digit_year = (4 - len(four_digit_year)) * '0' + four_digit_year
+        day_string = f"{four_digit_year}-{day.week.nb}-{us_day_index}"
+    return datetime.strptime(day_string, "%Y-%W-%w").date()
 
 
 # Takes a starting time and returns the time object corresponding

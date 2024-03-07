@@ -1,53 +1,15 @@
 <template>
-  <div class="row justify-center">
-    <div class="q-pa-md q-gutter-sm row">
-      <q-btn no-caps class="button" style="margin: 2px" @click="onToday"> Today </q-btn>
-      <q-btn no-caps class="button" style="margin: 2px" @click="onPrev"> &lt; Prev </q-btn>
-      <q-btn no-caps class="button" style="margin: 2px" @click="onNext"> Next &gt; </q-btn>
+  <div class="calendar-div">
+    <div class="header">
+      <span>N° de version sélectionnée: {{ workcopy === -1 ? 'default' : workcopy }}</span>
+      <button @click="onPrev">&lt; Prev</button>
+      <button @click="onToday">Today</button>
+      <button @click="onNext">Next &gt;</button>
     </div>
-    <div class="q-pa-md q-gutter-sm row">
-      <q-btn-dropdown class="glossy" color="blue" style="margin: 2px">
-        <q-list>
-          <q-item clickable v-close-popup @click=";[weekdays, typeCalendar] = [[1, 2, 3, 4, 5, 6, 0], 'week']">
-            <q-item-section>
-              <q-item-label>Full Week</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable v-close-popup @click=";[weekdays, typeCalendar] = [[1, 2, 3, 4, 5], 'week']">
-            <q-item-section>
-              <q-item-label>Monday to Friday</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item v-close-popup>
-            <q-item-section>
-              <q-item-label>Select a day</q-item-label>
-              <q-btn-group push>
-                <q-btn push label="Monday" @click=";[weekdays, typeCalendar] = [[1], 'day']" />
-                <q-btn push label="Tuesday" @click=";[weekdays, typeCalendar] = [[2], 'day']" />
-                <q-btn push label="Wednesday" @click=";[weekdays, typeCalendar] = [[3], 'day']" />
-                <q-btn push label="Thursday" @click=";[weekdays, typeCalendar] = [[4], 'day']" />
-                <q-btn push label="Friday" @click=";[weekdays, typeCalendar] = [[5], 'day']" />
-                <q-btn push label="Saturday" @click=";[weekdays, typeCalendar] = [[6], 'day']" />
-                <q-btn push label="Sunday" @click=";[weekdays, typeCalendar] = [[0], 'day']" />
-              </q-btn-group>
-            </q-item-section>
-          </q-item>
-          <q-item v-close-popup>
-            <q-item-section>
-              <q-item-label>Select a day</q-item-label>
-              <q-range :marker-labels="arrayWeekdaysLabel" :min="1" :max="7" label-always v-model="dayStart" />
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-btn-dropdown>
-    </div>
-  </div>
-  <div style="display: flex; max-width: 100%; width: 100%; height: 100%">
     <q-calendar-day
       ref="calendar"
       v-model="selectedDate"
+      :locale="locale"
       :selected-dates="selectedDates"
       :view="typeCalendar"
       bordered
@@ -62,12 +24,14 @@
       :interval-height="28"
       time-clicks-clamped
       :weekdays="weekdays"
-      @click-time="onClickTime"
       :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
       :drag-leave-func="onDragLeave"
       @dragend="onDragStop"
     >
+      <template #head-intervals="{ scope }">
+        <span>{{ selectedDate.substring(5, 7) }}/{{ selectedDate.substring(0, 4) }}</span>
+      </template>
       <template #head-day-event="{ scope: { timestamp } }">
         <div style="display: flex">
           <template v-for="column in props.columns" :key="column.id">
@@ -95,7 +59,7 @@
 
       <template #day-body="{ scope: { timestamp, timeStartPos } }">
         <!-- events to display -->
-        <template v-for="event in eventsByDate[timestamp.date]" :key="event.id">
+        <template v-for="event in eventsByDate.get(timestamp.date)" :key="event.id">
           <template
             v-if="
               event.data.duration !== undefined &&
@@ -104,42 +68,42 @@
                 (isDragging && event.data.dataId === eventDragged?.data.dataId))
             "
           >
-            <div
-              :draggable="event.data.dataType !== 'avail'"
-              @dragstart="onDragStart($event, event)"
-              @mouseup="onMouseUp()"
-            >
+            <div :draggable="event.data.dataType !== 'avail'" @dragstart="onDragStart($event, event)">
               <div
-                v-for="span in event.span"
-                :key="event.id"
-                class="my-event"
+                v-for="span in event.spans"
+                :key="generateSpanId(event.id, span)"
+                class="event-span"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
-                :style="badgeStyles(event, span, timeStartPos)"
+                :style="badgeStyles(event, span, timeStartPos, preWeight, totalWeight, props.columns, calendar!.timeDurationHeight, closestStartTime, currentTime)"
                 @mousedown="onMouseDown($event, event.id)"
+                @mouseup="onMouseUp()"
               >
-                <slot name="event" :event="event">
-                  <span v-if="event.data.dataType !== 'avail'" class="title q-calendar__ellipsis">
-                    {{ event.title }}
-                  </span>
+                <slot name="event" :event="event" v-if="event.data.dataType !== 'avail'">
+                  <edit-event :event-object-id="event.data.dataId">
+                    <template v-slot:trigger>
+                      <CourseCard :event-id="event.data.dataId" />
+                    </template>
+                  </edit-event>
+                </slot>
+                <slot name="event" :event="event" v-else>
                   <div
-                    v-else
-                    style="width: 100%; height: 100%; flex-direction: column; align-items: center; display: flex"
+                    style="
+                      width: 100%;
+                      height: 100%;
+                      flex-direction: column;
+                      justify-content: center;
+                      align-items: center;
+                      display: flex;
+                    "
                     class="avail"
                   >
-                    <div style="flex: 2; display: flex; align-items: center" class="avail">
-                      <q-popup-edit v-model="newAvailValue" v-slot="scope" anchor="bottom left" context-menu>
-                        <q-btn-group style="display: flex; flex-direction: column">
-                          <q-btn
-                            v-for="(icon, index) in availabilityData.icon"
-                            :style="availMenuStyle(index)"
-                            :icon="icon"
-                            size="sm"
-                            @click="changeAvail(event.id, parseInt(index))"
-                          />
-                        </q-btn-group>
-                      </q-popup-edit>
-                      <q-icon color="black" :name="event.icon" size="xs" />
-                    </div>
+                    <AvailibityMenu :event="event" @update:event="changeAvailValue">
+                      <template v-slot:trigger>
+                        <span class="avail">
+                          {{ event.data.value }}
+                        </span>
+                      </template>
+                    </AvailibityMenu>
                   </div>
                 </slot>
               </div>
@@ -164,7 +128,7 @@ import {
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
-import _ from 'lodash'
+import { forEach, includes, concat, cloneDeep, remove, sortBy, find, sumBy, filter } from 'lodash'
 
 import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 
@@ -173,16 +137,31 @@ import {
   TimestampOrNull,
   Timestamp,
   parsed,
-  updateWorkWeek,
   QCalendar,
   parseTimestamp,
   prevDay,
   nextDay,
   getTime,
   updateFormatted,
+  getStartOfWeek,
 } from '@quasar/quasar-ui-qcalendar'
 import { watch } from 'vue'
 import { availabilityData } from './declaration'
+import EditEvent from '../EditEvent.vue'
+import { useI18n } from 'vue-i18n'
+import {
+  STEP_DEFAULT,
+  badgeClasses,
+  closestStep,
+  nextId,
+  generateSpanId,
+  badgeStyles,
+  updateEventsOverlap,
+} from './utilitary'
+import AvailibityMenu from '../AvailibityMenu.vue'
+import CourseCard from '../CourseCard.vue'
+
+const { locale } = useI18n({ useScope: 'global' })
 /**
  * Calendar component handling the display of a week with
  * events data in it.
@@ -198,7 +177,9 @@ const props = defineProps<{
   events: InputCalendarEvent[]
   dropzones?: InputCalendarEvent[]
   columns: CalendarColumn[]
-  endOfDayMinutes: number
+  endOfDayHours: number
+  step?: number
+  workcopy: number
 }>()
 
 const emits = defineEmits<{
@@ -206,12 +187,13 @@ const emits = defineEmits<{
   (e: 'update:events', value: InputCalendarEvent[]): void
   (e: 'update:week', value: Timestamp): void
   (e: 'weekdays', value: number[]): void
+  (e: 'event:details', value: number): void
 }>()
 
 const preWeight = computed(() => {
   const map: Record<number, number> = {}
   let preceeding = 0
-  _.forEach(props.columns, (col: CalendarColumn) => {
+  forEach(props.columns, (col: CalendarColumn) => {
     map[col.id] = preceeding
     preceeding += col.weight
   })
@@ -219,13 +201,14 @@ const preWeight = computed(() => {
 })
 
 const calendar: Ref<QCalendar | null> = ref(null)
-
 /**
  * QCalendar DATA TO DISPLAY
  * * Format the data from the events to match the calendar display,
  * * Functions to compute the style to render for each event
  */
-const selectedDate = ref<string>(today())
+const selectedDate = ref<string>(
+  updateFormatted(updateFormatted(getStartOfWeek(parseTimestamp(today())!, [1, 2, 3, 4, 5, 6, 0]))).date
+)
 
 watch(selectedDate, () => {
   console.log(updateFormatted(parsed(selectedDate.value) as Timestamp))
@@ -239,19 +222,10 @@ watch(selectedDate, () => {
 const weekdays = ref<number[]>([1, 2, 3, 4, 5])
 const selectedDates = ref<string[]>([today()])
 const typeCalendar = ref<string>('week')
-const arrayWeekdaysLabel = [
-  { value: 1, label: 'Monday' },
-  { value: 2, label: 'Tuesday' },
-  { value: 3, label: 'Wednesday' },
-  { value: 4, label: 'Thursday' },
-  { value: 5, label: 'Friday' },
-  { value: 6, label: 'Saturday' },
-  { value: 7, label: 'Sunday' },
-]
 const dayStart = ref<{ min: number; max: number }>()
 
 watch(dayStart, () => {
-  let newValue: number[] = []
+  const newValue: number[] = []
   if (dayStart.value)
     for (let i = dayStart.value?.min; i <= dayStart.value?.max; i++) {
       if (i === 7) newValue.push(0)
@@ -263,16 +237,15 @@ watch(dayStart, () => {
   } else {
     typeCalendar.value = 'week'
   }
-  let newSelectedDates = []
+  const newSelectedDates = []
   let now_date = parseTimestamp(selectedDate.value)
 
-  let i = 0
   while (now_date!.weekday > 1) {
     now_date = prevDay(now_date as Timestamp)
     now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
   }
   while (newSelectedDates.length < weekdays.value.length) {
-    if (_.includes(weekdays.value, now_date?.weekday)) {
+    if (includes(weekdays.value, now_date?.weekday)) {
       newSelectedDates.push(now_date?.date)
     }
     now_date = nextDay(now_date as Timestamp)
@@ -291,18 +264,18 @@ function putAZero(i: number): string {
 // Their columnIds are changed to merge the same events
 // occuring on different columns
 const eventsByDate = computed(() => {
-  const map: Record<string, CalendarEvent[]> = {}
+  const map: Map<string, CalendarEvent[]> = new Map<string, CalendarEvent[]>()
   let allEvents: InputCalendarEvent[] = props.events
   // Copy of events
-  let newEvents: CalendarEvent[] = []
+  const newEvents: CalendarEvent[] = []
   // Dict of column ids keys to their index
-  let columnIndexes: Record<number, number> = {}
-  _.forEach(props.columns, (c, i) => {
+  const columnIndexes: Record<number, number> = {}
+  forEach(props.columns, (c, i) => {
     columnIndexes[c.id] = i
   })
-  if (props.dropzones) allEvents = _.concat(allEvents, props.dropzones)
+  if (props.dropzones) allEvents = concat(allEvents, props.dropzones)
   allEvents.forEach((event) => {
-    let newEvent = _.cloneDeep(event)
+    const newEvent = cloneDeep(event)
     let columnIds = newEvent.columnIds
 
     // availability column
@@ -312,12 +285,12 @@ const eventsByDate = computed(() => {
     }
 
     // filter out absent columns
-    _.remove(columnIds, (colId) => !(colId in columnIndexes))
+    remove(columnIds, (colId) => !(colId in columnIndexes))
 
     // merge columns
-    columnIds = _.sortBy(columnIds, (colId) => columnIndexes[colId])
+    columnIds = sortBy(columnIds, (colId) => columnIndexes[colId])
 
-    const span: Array<{ istart: number; weight: number; columnIds: number[] }> = []
+    const spans: Array<{ istart: number; weight: number; columnIds: number[] }> = []
     if (columnIds.length > 0) {
       let currentSlice = {
         istart: columnIndexes[columnIds[0]],
@@ -325,14 +298,14 @@ const eventsByDate = computed(() => {
         iend: columnIndexes[columnIds[0]],
         columnIds: [] as number[],
       }
-      _.forEach(columnIds, (colId, i) => {
-        let colProps = _.find(props.columns, (col) => col.id == colId) as CalendarColumn
-        if (columnIndexes[colId] == currentSlice.iend) {
+      forEach(columnIds, (colId, i) => {
+        const colProps = find(props.columns, (col) => col.id == colId) as CalendarColumn
+        if (columnIndexes[colId] === currentSlice.iend) {
           currentSlice.weight += colProps.weight
           currentSlice.iend = columnIndexes[colId] + 1
           currentSlice.columnIds.push(colId)
         } else {
-          span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
+          spans.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
           currentSlice = {
             istart: columnIndexes[colId],
             weight: colProps.weight,
@@ -341,88 +314,31 @@ const eventsByDate = computed(() => {
           }
         }
       })
-      span.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
+      spans.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
     }
 
     // Created as InputCalendarEvent
     const cnewEvent = newEvent as any
     // Changing properties to convert to an CalendarEvent
     delete cnewEvent.columnIds
-    cnewEvent.span = span
+    cnewEvent.spans = spans
 
     newEvents.push(cnewEvent as CalendarEvent)
   })
+  const newEventsUpdated: CalendarEvent[] = updateEventsOverlap(newEvents)
   // sort by date
-  newEvents.forEach((event) => {
-    if (!map[event.data.start.date]) {
-      map[event.data.start.date] = []
+  newEventsUpdated.forEach((event) => {
+    if (!map.has(event.data.start.date)) {
+      map.set(event.data.start.date, [])
     }
-    map[event.data.start.date].push(event)
+    map.get(event.data.start.date)!.push(event)
   })
   return map
 })
 
 const totalWeight = computed(() => {
-  return _.sumBy(props.columns, (c: CalendarColumn) => c.weight)
+  return sumBy(props.columns, (c: CalendarColumn) => c.weight)
 })
-
-function badgeClasses(type: 'event' | 'dropzone' | 'header' | 'avail', bgcolor?: string, toggled?: boolean) {
-  switch (type) {
-    case 'event':
-      return {
-        [`text-white bg-${bgcolor}`]: true,
-        'rounded-border': true,
-      }
-    case 'dropzone':
-      return 'my-dropzone border-dashed'
-    case 'header':
-      return {}
-    case 'avail':
-      return { 'rounded-border': true }
-  }
-}
-function badgeStyles(
-  event: CalendarEvent,
-  span: { istart: number; weight: number; columnIds: number[] },
-  timeStartPos: any = undefined
-) {
-  // const currentColumn = columnsToDisplay.value.find((c) => displayData.columnId == c.id)
-  // if (!currentColumn) return undefined
-  const preceedingWeight = preWeight.value[props.columns[span.istart].id]
-
-  const s: Record<string, string> = {
-    top: '',
-    height: '',
-  }
-  if (!event.toggled) {
-    s['opacity'] = '0.5'
-  }
-  if (timeStartPos) {
-    s.top = timeStartPos(event.data?.start) + 'px'
-    s.left = Math.round((preceedingWeight / totalWeight.value) * 100) + '%'
-    s.width = Math.round((100 * span.weight) / totalWeight.value) + '%'
-    s.height = calendar.value!.timeDurationHeight(event.data?.duration) + 'px'
-  }
-  if (event.data.dataType === 'dropzone') {
-    s['background-color'] = 'transparent'
-  } else {
-    s['background-color'] = event.bgcolor
-  }
-  if (event.data.dataType === 'avail') {
-    s['resize'] = 'vertical'
-    s['overflow'] = 'auto'
-  }
-  if (
-    event.data?.dataType === 'dropzone' &&
-    event.data.start.time === closestStartTime.value &&
-    event.data.start.date === currentTime.value?.date
-  ) {
-    s['border-color'] = 'green'
-    s['border-width'] = '3px'
-  }
-  s['align-items'] = 'flex-start'
-  return s
-}
 
 /**
  *
@@ -441,6 +357,7 @@ function badgeStyles(
 const isDragging = ref(false)
 const currentTime = ref<TimestampOrNull>(null)
 const eventDragged = ref<CalendarEvent>()
+let minutesToStartEvent: number = 0
 let minutesToPixelRate: number
 
 /**
@@ -459,7 +376,7 @@ const eventsModel = computed({
  * Only returns the dropZone with the same ID as the event dragged
  */
 const dropZoneToDisplay = computed((): InputCalendarEvent[] | undefined => {
-  return _.filter(
+  return filter(
     props.dropzones,
     (e) =>
       e.data.dataType === 'dropzone' &&
@@ -522,7 +439,10 @@ function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
     if (!currentTime.value || currentTime.value.date !== dateTime.date)
       currentTime.value = copyTimestamp(dateTime) as TimestampOrNull
     if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
-    updateMinutes(currentTime.value as Timestamp, Math.round(parseTime(dateTime.time) + layerY * minutesToPixelRate))
+    updateMinutes(
+      currentTime.value as Timestamp,
+      Math.round(parseTime(dateTime.time) + layerY * minutesToPixelRate - minutesToStartEvent)
+    )
   }
 }
 
@@ -532,9 +452,11 @@ function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
  * @param event The event we are currently dragging
  */
 function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
+  //@ts-expect-error
+  minutesToStartEvent = browserEvent.layerY! * minutesToPixelRate
   currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
-  eventDragged.value = _.cloneDeep(event)
+  eventDragged.value = cloneDeep(event)
   emits('dragstart', event.data.dataId)
   if (!browserEvent.dataTransfer) return
   browserEvent.dataTransfer.dropEffect = 'copy'
@@ -588,8 +510,8 @@ function updateEventDropped(): void {
     console.log("I don't know what happened: Maybe it was an availability")
     return
   }
-  let newEvent: InputCalendarEvent = _.cloneDeep(
-    props.events.find((e) => eventDragged.value?.id === e.id) as InputCalendarEvent
+  const newEvent: InputCalendarEvent = cloneDeep(
+    eventsModel.value.find((e) => eventDragged.value?.id === e.id) as InputCalendarEvent
   )
   if (dropZoneToDisplay.value) {
     dropZoneToDisplay.value.forEach((cdze) => {
@@ -600,8 +522,8 @@ function updateEventDropped(): void {
   } else {
     console.log('NO DROPZONE FOR THIS EVENT OU ERREUR DE DROPZONE')
   }
-  let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
-  _.remove(newEvents, (e: InputCalendarEvent) => {
+  const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
+  remove(newEvents, (e: InputCalendarEvent) => {
     return e.id === newEvent.id
   })
   newEvents.push(newEvent)
@@ -627,148 +549,70 @@ function onNext(): void {
 /**
  * Functions for onclick management
  */
-
-let newAvailValue: number = 0
 let timeoutId: any = null
 let currentAvailId: number = -1
 let newAvailDuration: number = 0
 let oldAvailDuration: number = 0
 
-let availResizeObs = new ResizeObserver((entries) => {
-  if (calendar.value?.timeDurationHeight) {
-    newAvailDuration = entries[0].contentRect.height * minutesToPixelRate
-  }
-})
-
-function onMouseUp(): void {
-  if (currentAvailId !== -1) {
-    availResizeObs.disconnect()
-    let newEvent: InputCalendarEvent = _.cloneDeep(
-      props.events.find((e) => currentAvailId === e.id) as InputCalendarEvent
-    )
-    if (newEvent) {
-      oldAvailDuration = newEvent.data.duration as number
-      let newEnd = parseTime(newEvent.data.start) + newAvailDuration
-      if (
-        newEnd > props.endOfDayMinutes * 60 ||
-        (oldAvailDuration > newAvailDuration &&
-          parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayMinutes * 60)
-      )
-        newEnd = props.endOfDayMinutes * 60
-      newEvent.data.duration = closestStep(newEnd) - parseTime(newEvent.data.start)
-      newAvailDuration = newEvent.data.duration
-      let newEvents: InputCalendarEvent[] = _.cloneDeep(props.events)
-      _.remove(newEvents, (e: InputCalendarEvent) => {
-        return e.id === newEvent.id
-      })
-      newEvents.push(newEvent)
-      let idAvailsToUpdate: number[] = []
-      let oldDurationTotal: number = 0
-      let bigger: boolean = newAvailDuration - oldAvailDuration > 0
-      if (bigger) {
-        newEvents.forEach((currentEvent: InputCalendarEvent) => {
-          if (currentEvent.data.dataType === 'avail' && newEvent.id !== currentEvent.id) {
-            if (newEvent.data.start.date === currentEvent.data.start.date) {
-              let diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
-              if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration!) {
-                idAvailsToUpdate.push(currentEvent.id)
-              }
-            }
-          }
-        })
-        for (let k = 0; k < idAvailsToUpdate.length; k++) {
-          let availToUpdate = _.cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === idAvailsToUpdate[k]))
-          if (availToUpdate) {
-            let diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
-            oldDurationTotal += availToUpdate.data.duration!
-            if (diffBetweenStarts + availToUpdate.data.duration! <= newEvent.data.duration) {
-              _.remove(newEvents, (e: InputCalendarEvent) => {
-                return e.id === idAvailsToUpdate[k]
-              })
-            } else {
-              let oldTimeAvail = parseTime(getTime(availToUpdate.data.start))
-              updateMinutes(
-                availToUpdate?.data.start,
-                Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
-              )
-              availToUpdate.data.duration! -= parseTime(getTime(availToUpdate.data.start)) - oldTimeAvail
-              _.remove(newEvents, (e: InputCalendarEvent) => {
-                return e.id === availToUpdate!.id
-              })
-              newEvents.push(availToUpdate!)
-            }
-          }
-        }
-      } else {
-        let mins = Math.round(parseTime(newEvent.data.start) + newAvailDuration)
-        let availToUpdate: InputCalendarEvent | undefined
-        let i = 0
-        while (!availToUpdate && i < newEvents.length) {
-          if (
-            newEvents[i].data.dataType === 'avail' &&
-            newEvent.id !== newEvents[i].id &&
-            newEvent.data.start.date === newEvents[i].data.start.date &&
-            parseTime(newEvents[i].data.start) === parseTime(newEvent.data.start) + oldAvailDuration
-          ) {
-            availToUpdate = _.cloneDeep(newEvents[i])
-          }
-          i++
-        }
-        if (availToUpdate) {
-          updateMinutes(availToUpdate.data.start, mins)
-          availToUpdate.data.duration! += oldAvailDuration - newAvailDuration
-          _.remove(newEvents, (e) => e.id === availToUpdate!.id)
-          newEvents.push(availToUpdate)
-        }
-      }
-      eventsModel.value = newEvents
-    }
-    currentAvailId = -1
-  }
-}
-
-function isItOnStep(nbMinutes: number, step: number = 15): boolean {
-  return nbMinutes % step === 0
-}
-
-function closestStep(nbMinutes: number, step: number = 15): number {
-  if (!isItOnStep(nbMinutes)) {
-    let mod = nbMinutes % step
-    if (mod < step / 2) {
-      return nbMinutes - mod
-    } else {
-      return nbMinutes + (step - mod)
-    }
-  } else {
-    return nbMinutes
-  }
-}
-
-function onClickTime(e: any) {
-  if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
-  console.log('Clicked')
-  console.log('layerY:', e)
-  console.log('minutesToPixelRate:', minutesToPixelRate)
-  console.log(
-    (parseTime(e.scope.timestamp.time) + e.event.layerY * minutesToPixelRate) / 60,
-    'h',
-    (parseTime(e.scope.timestamp.time) + e.event.layerY * minutesToPixelRate) % 60,
-    'min'
-  )
-  console.log(e.event.layerY * minutesToPixelRate, 'min')
-}
-
 function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
   if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
-  //@ts-expect-error
-  if (_.includes(mouseEvent.target.className, 'avail') || _.includes(_.words(mouseEvent.target.className), 'SVG'))
-    onAvailClick(mouseEvent, eventId)
-  //@ts-expect-error
-  else if (!_.includes(mouseEvent.target.className, 'title')) {
-    if (mouseEvent.target) {
-      availResizeObs.observe(mouseEvent.target as Element)
-      currentAvailId = eventId
+  const target = mouseEvent.target
+  if (target instanceof HTMLElement) {
+    const targetChild = target.firstElementChild
+    if (mouseEvent.button === 0) {
+      if (target.classList.contains('avail')) {
+        onAvailClick(mouseEvent, eventId)
+      } else if (target.classList.contains('event') || targetChild?.classList.contains('event')) {
+        const dataId = eventsModel.value.find((ev) => ev.id === eventId)?.data.dataId
+        if (dataId) emits('event:details', dataId)
+      } else if (target.classList.contains('event-span') && targetChild?.classList.contains('avail')) {
+        currentAvailId = eventId
+        availResizeObs.observe(target as Element)
+      } else if (targetChild?.classList.contains('avail')) {
+        onAvailClick(mouseEvent, eventId)
+      }
     }
+  }
+}
+
+function onMouseUp(): void {
+  availResizeObs.disconnect()
+  if (currentAvailId !== -1) {
+    const newEvent: InputCalendarEvent = cloneDeep(
+      eventsModel.value.find((e) => currentAvailId === e.id) as InputCalendarEvent
+    )
+    if (newEvent) {
+      const newEvents: InputCalendarEvent[] = updateResizedEvent(newEvent)
+      if (
+        oldAvailDuration === newAvailDuration &&
+        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDayHours * 60
+      ) {
+        eventsModel.value = newEvents
+        currentAvailId = -1
+        return
+      }
+      if (oldAvailDuration !== newAvailDuration) {
+        const bigger: boolean = newAvailDuration - oldAvailDuration > 0
+        if (bigger) {
+          updateResizedUpEvents(newEvents, newEvent)
+          const nextAvail: InputCalendarEvent | undefined = newEvents.find((e) => {
+            return (
+              e.data.start.date === newEvent.data.start.date &&
+              parseTime(e.data.start) === parseTime(newEvent.data.start) + newEvent.data.duration &&
+              e.data.dataType === 'avail'
+            )
+          })
+          if (nextAvail && nextAvail.data.value === newEvent.data.value) {
+            newEvent.data.duration! += nextAvail.data.duration!
+            remove(newEvents, (e) => e.id === nextAvail.id)
+          }
+        } else {
+          updateResizedDownEvents(newEvents, newEvent)
+        }
+        eventsModel.value = newEvents
+      }
+    }
+    currentAvailId = -1
   }
 }
 
@@ -776,46 +620,43 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
   if (mouseEvent.button === 0) {
     if (!timeoutId) {
       timeoutId = setTimeout(() => {
-        changeAvail(eventId)
+        changeAvailValue(eventId)
         clearTimeout(timeoutId)
         timeoutId = null
       }, 200)
     } else {
+      // DoubleClick management
       clearTimeout(timeoutId)
       timeoutId = null
-      let firstAvail = _.cloneDeep(props.events.find((e) => e.id === eventId))
+      const firstAvail = cloneDeep(eventsModel.value.find((e) => e.id === eventId))
       if (firstAvail) {
-        let secondAvail = _.cloneDeep(firstAvail)
-        let allEvents = _.cloneDeep(props.events)
-        //@ts-expect-error
-        let layerY = mouseEvent.layerY
-        firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY)
-        updateMinutes(
-          secondAvail.data.start,
-          parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY)
-        )
-        secondAvail.id = nextId()
-        secondAvail.data.duration! -= firstAvail.data.duration
-        _.remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
-        allEvents.push(firstAvail, secondAvail)
-        eventsModel.value = allEvents
+        if (firstAvail.data.duration! > (props.step || STEP_DEFAULT)) {
+          const secondAvail = cloneDeep(firstAvail)
+          const allEvents = cloneDeep(eventsModel.value)
+          //@ts-expect-error
+          const layerY = mouseEvent.layerY
+          firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
+          updateMinutes(
+            secondAvail.data.start,
+            parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY, props.step)
+          )
+          secondAvail.id = nextId()
+          secondAvail.data.duration! -= firstAvail.data.duration
+          remove(allEvents, (e: InputCalendarEvent) => e.id === firstAvail!.id)
+          allEvents.push(firstAvail, secondAvail)
+          eventsModel.value = allEvents
+        }
       }
     }
   }
 }
 
-let idAvail = 900
-
-function nextId(): number {
-  return idAvail++
-}
-
-function changeAvail(eventId: number, value?: number): void {
-  let newEvent: InputCalendarEvent | undefined = _.cloneDeep(
+function changeAvailValue(eventId: number, value?: number): void {
+  const newEvent: InputCalendarEvent | undefined = cloneDeep(
     eventsModel.value.find((ev: InputCalendarEvent) => ev.id == eventId)
   )
   if (newEvent !== undefined && newEvent.data.dataType === 'avail') {
-    let newEvents: InputCalendarEvent[] = _.cloneDeep(eventsModel.value)
+    const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
     if (value || value === 0) {
       newEvent.data.value = value
     } else {
@@ -829,7 +670,7 @@ function changeAvail(eventId: number, value?: number): void {
         newEvent.data.value = 0
       }
     }
-    _.remove(newEvents, (e: InputCalendarEvent) => {
+    remove(newEvents, (e: InputCalendarEvent) => {
       return e.id === newEvent!.id
     })
     newEvents.push(newEvent)
@@ -837,13 +678,105 @@ function changeAvail(eventId: number, value?: number): void {
   }
 }
 
-function availMenuStyle(index: string): any {
-  return { 'background-color': availabilityData.color[index] }
+/**
+ * AVAIL REZISE MANAGEMENT
+ */
+const availResizeObs = new ResizeObserver((entries) => {
+  if (calendar.value?.timeDurationHeight) {
+    newAvailDuration = entries[0].contentRect.height * minutesToPixelRate
+  }
+})
+
+function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] {
+  oldAvailDuration = newEvent.data.duration as number
+  const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
+  let newEnd = parseTime(newEvent.data.start) + newAvailDuration
+  if (newEnd > props.endOfDayHours * 60) newEnd = props.endOfDayHours * 60
+  else if (
+    oldAvailDuration > newAvailDuration &&
+    parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayHours * 60
+  ) {
+    const newAvail: InputCalendarEvent = cloneDeep(newEvent)
+    updateMinutes(newAvail.data.start, closestStep(newEnd, props.step))
+    newAvail.id = nextId()
+    newAvail.data.duration = props.endOfDayHours * 60 - closestStep(newEnd, props.step)
+    if (newAvail.data.duration > 0) newEvents.push(newAvail)
+  }
+  newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
+  newAvailDuration = newEvent.data.duration
+  remove(newEvents, (e: InputCalendarEvent) => {
+    return e.id === newEvent.id
+  })
+  if (newAvailDuration !== 0) newEvents.push(newEvent)
+  return newEvents
+}
+
+function updateResizedUpEvents(newEvents: InputCalendarEvent[], newEvent: InputCalendarEvent): void {
+  const idAvailsToUpdate: number[] = []
+  let oldDurationTotal: number = 0
+  newEvents.forEach((currentEvent: InputCalendarEvent) => {
+    if (currentEvent.data.dataType === 'avail' && newEvent.id !== currentEvent.id) {
+      if (newEvent.data.start.date === currentEvent.data.start.date) {
+        const diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
+        if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration!) {
+          idAvailsToUpdate.push(currentEvent.id)
+        }
+      }
+    }
+  })
+  for (let k = 0; k < idAvailsToUpdate.length; k++) {
+    const availToUpdate = cloneDeep(newEvents.find((e: InputCalendarEvent) => e.id === idAvailsToUpdate[k]))
+    if (availToUpdate) {
+      const diffBetweenStarts = diffTimestamp(newEvent.data.start, availToUpdate!.data.start) / 60000
+      oldDurationTotal += availToUpdate.data.duration!
+      if (diffBetweenStarts + availToUpdate.data.duration! <= newEvent.data.duration!) {
+        remove(newEvents, (e: InputCalendarEvent) => {
+          return e.id === idAvailsToUpdate[k]
+        })
+      } else {
+        let oldTimeAvail = parseTime(getTime(availToUpdate.data.start))
+        updateMinutes(
+          availToUpdate?.data.start,
+          Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
+        )
+        availToUpdate.data.duration! -= parseTime(getTime(availToUpdate.data.start)) - oldTimeAvail
+        remove(newEvents, (e: InputCalendarEvent) => {
+          return e.id === availToUpdate!.id
+        })
+        newEvents.push(availToUpdate!)
+      }
+    }
+  }
+}
+
+function updateResizedDownEvents(newEvents: InputCalendarEvent[], newEvent: InputCalendarEvent) {
+  const mins = Math.round(parseTime(newEvent.data.start) + newAvailDuration)
+  let availToUpdate: InputCalendarEvent | undefined
+  let i = 0
+  while (!availToUpdate && i < newEvents.length) {
+    if (
+      newEvents[i].data.dataType === 'avail' &&
+      newEvent.id !== newEvents[i].id &&
+      newEvent.data.start.date === newEvents[i].data.start.date &&
+      parseTime(newEvents[i].data.start) === parseTime(newEvent.data.start) + oldAvailDuration
+    ) {
+      availToUpdate = cloneDeep(newEvents[i])
+    }
+    i++
+  }
+  if (availToUpdate) {
+    updateMinutes(availToUpdate.data.start, mins)
+    availToUpdate.data.duration! += oldAvailDuration - newAvailDuration
+    remove(newEvents, (e) => e.id === availToUpdate!.id)
+    newEvents.push(availToUpdate)
+  }
 }
 </script>
 
 <style lang="sass" scoped>
-.my-event
+.calendar-div
+  width: 100%
+.event-span
   position: absolute
   font-size: 12px
   justify-content: center
@@ -854,6 +787,7 @@ function availMenuStyle(index: string): any {
 .title
   position: relative
   display: flex
+  flex-direction: column
   justify-content: center
   align-items: center
   height: 100%
@@ -861,4 +795,12 @@ function availMenuStyle(index: string): any {
   border: 1px dashed grey
 .my-dropzone
   pointer-events: none
+.header
+  display: flex
+  justify-content: flex-start
+.header span
+  min-width: 40%
+.header button
+  padding: 1px
+  margin: 3px
 </style>

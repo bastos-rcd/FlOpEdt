@@ -7,24 +7,29 @@ import { api } from '@/utils/api'
 export const useRoomStore = defineStore('room', () => {
   const roomsFetched = ref<Array<Room>>([])
   const isLoading = ref<boolean>(false)
+  const isRoomFetched = ref<boolean>(false)
   const loadingError = ref<Error | null>(null)
   const getRoomById = computed(() => {
     return async (roomId: number) => {
       let room: Room | undefined = roomsFetched.value?.find((r) => r.id == roomId)
-      if (!room) {
-        try {
-          await api.getRoomById(roomId).then((result) => {
-            room = {
-              id: result.id,
-              abbrev: '',
-              name: result.name,
-              subroomIdOf: [],
-              departmentIds: [],
-            }
-            roomsFetched.value.push(room)
-          })
-        } catch (e) {
-          loadingError.value = e as Error
+      if (roomId) {
+        if (!room) {
+          try {
+            await api.getRoomById(roomId).then((result: RoomAPI | undefined) => {
+              if (result) {
+                room = {
+                  id: result.id,
+                  abbrev: '',
+                  name: result.name,
+                  subroomIdOf: [],
+                  departmentIds: [],
+                }
+                roomsFetched.value.push(room)
+              }
+            })
+          } catch (e) {
+            loadingError.value = e as Error
+          }
         }
       }
       return room
@@ -45,11 +50,12 @@ export const useRoomStore = defineStore('room', () => {
           })
         })
         isLoading.value = false
+        isRoomFetched.value = true
       })
     } catch (e) {
       loadingError.value = e as Error
     }
   }
 
-  return { fetchRooms, roomsFetched, getRoomById }
+  return { fetchRooms, roomsFetched, getRoomById, isRoomFetched }
 })

@@ -12,20 +12,24 @@ import { Group } from '../declarations'
  */
 export const useColumnStore = defineStore('column', () => {
   const groupStore = useGroupStore()
-  const { fetchedGroups } = storeToRefs(groupStore)
-
-  const columns = computed(() => {
-    //const totalWeight = groups.value.filter(g => g.columnIds.length === 1).length
-    let columns: CalendarColumn[] = []
-    console.log('groups: ', fetchedGroups.value)
-    let max: number = 0
-    fetchedGroups.value.forEach((g) => {
+  const { fetchedStructuralGroups, groups } = storeToRefs(groupStore)
+  const max = computed((): number => {
+    let currentMax: number = 0
+    fetchedStructuralGroups.value.forEach((g: Group) => {
       if (g.columnIds.length === 1) {
-        columns.push({ id: g.id, name: g.name, weight: 1 })
-        if (max < g.id) max = g.id
+        if (currentMax < g.id) currentMax = g.id
       }
     })
-    columns.push({ id: max + 1, name: 'Avail', weight: 1 })
+    return currentMax
+  })
+  const columns = computed(() => {
+    let columns: CalendarColumn[] = []
+    groups.value.forEach((g: Group) => {
+      if (g.type === 'structural' && g.columnIds.length === 1) {
+        columns.push({ id: g.id, name: g.name, weight: 1 })
+      }
+    })
+    columns.push({ id: max.value + 1, name: 'Avail', weight: 1 })
     return columns
   })
 
