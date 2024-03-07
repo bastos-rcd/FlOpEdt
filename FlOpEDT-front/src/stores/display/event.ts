@@ -15,7 +15,7 @@ export const useEventStore = defineStore('eventStore', () => {
   const columnStore = useColumnStore()
   const permanentStore = usePermanentStore()
   const groupStore = useGroupStore()
-  const { groupsSelected, groups } = storeToRefs(groupStore)
+  const { groups } = storeToRefs(groupStore)
   const { modules, moduleColor } = storeToRefs(permanentStore)
   const { columns } = storeToRefs(columnStore)
   const daysSelected: Ref<Timestamp[]> = ref<Timestamp[]>([])
@@ -66,10 +66,7 @@ export const useEventStore = defineStore('eventStore', () => {
       }
       const courseGroupIds = c.groupIds.map((id) => groupStore.collectDescendantLeafNodeIds(id)).flat()
       courseGroupIds.forEach((courseGroup: number) => {
-        let currentGroup: Group | undefined
-        if (groupsSelected.value && groupsSelected.value.length !== 0)
-          currentGroup = groupsSelected.value.find((g: Group) => g.id === courseGroup)
-        else currentGroup = groups.value.find((g) => g.id === courseGroup)
+        const currentGroup: Group | undefined = groups.value.find((g) => g.id === courseGroup)
         if (currentGroup) {
           currentGroup.columnIds.forEach((cI) => {
             currentEvent.columnIds.push(cI)
