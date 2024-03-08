@@ -33,7 +33,7 @@ export const useGroupStore = defineStore('group', () => {
           size: 0,
           trainProgId: gp.train_prog_id,
           type: 'structural',
-          parentsId: gp.parent_ids,
+          parentsId: gp.parent_groups,
           conflictingGroupIds: [],
           parallelGroupIds: [],
           columnIds: [],
@@ -53,8 +53,8 @@ export const useGroupStore = defineStore('group', () => {
           type: 'transversal',
           columnIds: [],
           parentsId: [],
-          conflictingGroupIds: gp.conflicting_group_ids,
-          parallelGroupIds: gp.parallel_group_ids,
+          conflictingGroupIds: gp.conflicting_groups,
+          parallelGroupIds: gp.parallel_groups,
         } as Group
         fetchedTransversalGroups.value.push(newGp)
       })

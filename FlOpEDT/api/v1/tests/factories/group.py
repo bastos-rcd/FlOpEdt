@@ -1,16 +1,28 @@
 import factory
 
+from base.models import Department
+
+
+class DepartmentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "base.Department"
+
+    abbrev = factory.Sequence(lambda n: f"dept{n:02d}")
+    name = factory.Sequence(lambda n: f"Department #{n:02d}")
+
+
 class TrainingProgrammeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "base.TrainingProgramme"
-    name = factory.Sequence(lambda n: f"TrainingProgramme_{n}")
-    abbrev = factory.Sequence(lambda n: f"Train_prog_{n}")
+
+    abbrev = factory.Sequence(lambda n: f"tp {n:02d}")
+    name = factory.Sequence(lambda n: f"Training Programme #{n:02d}")
+    department = factory.LazyFunction(lambda: Department.objects.first())
 
 
-class StructuralGroupFactory(factory.django.DjangoModelFactory):
+class StructuralGroupDummyFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "base.StructuralGroup"
-    name = factory.Sequence(lambda n: f"StructuralGroup_{n}")
-    train_prog = factory.SubFactory(TrainingProgrammeFactory)
-    size = 10
 
+    # missing: train_prog, name
+    size = 314

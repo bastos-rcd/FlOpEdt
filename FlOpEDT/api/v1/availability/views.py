@@ -105,6 +105,9 @@ class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
 
     def get_queryset(self):
 
+        if getattr(self, "swagger_fake_view", False):
+            return bm.RoomAvailability.objects.none()
+
         ret = super().get_queryset()
 
         room_id = self.request.query_params.get("room_id", None)
@@ -148,6 +151,10 @@ class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     serializer_class = serializers.UserAvailabilitySerializer
 
     def get_queryset(self):
+
+        if getattr(self, "swagger_fake_view", False):
+            return bm.UserAvailability.objects.none()
+
         ret = super().get_queryset()
 
         user_id = self.request.query_params.get("user_id", None)

@@ -1,8 +1,7 @@
 export interface AvailabilityBack {
-  id: number
   av_type: string
-  start_time: Date
-  end_time: Date
+  start_time: string
+  duration: string
   value: number
   dataId: number
 }
@@ -237,9 +236,9 @@ export interface GroupAPI {
   name: string
   train_prog_id: number
   type_id: number
-  parent_ids?: number[]
-  conflicting_group_ids?: number[]
-  parallel_group_ids?: number[]
+  parent_groups?: number[]
+  conflicting_groups?: number[]
+  parallel_groups?: number[]
 }
 export interface ModuleAPI {
   id: number

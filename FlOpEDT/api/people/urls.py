@@ -26,17 +26,19 @@ from api.people import views
 
 routerPeople = routers.SimpleRouter()
 
-routerPeople.register(r'users', views.UsersViewSet)
-routerPeople.register(r'userdepartmentsettings', views.UserDepartmentSettingsViewSet)
-routerPeople.register(r'tutor/username', views.TutorUsernameViewSet, basename='tutor_username')
-routerPeople.register(r'tutor', views.TutorViewSet, basename='tutor')
-routerPeople.register(r'supplystaff', views.SupplyStaffsViewSet)
-routerPeople.register(r'students', views.StudentsViewSet)
-routerPeople.register(r'studentsinfo', views.StudentInfoViewSet)
-#routerPeople.register(r'coursepreferences', views_preferences.CoursePreferencesViewSet)
+routerPeople.register(r"users", views.UsersViewSet)
+routerPeople.register(r"userdepartmentsettings", views.UserDepartmentSettingsViewSet)
+routerPeople.register(
+    r"tutor/username", views.TutorUsernameViewSet, basename="tutor_username"
+)
+routerPeople.register(r"tutor", views.TutorViewSet, basename="tutor")
+routerPeople.register(r"supplystaff", views.SupplyStaffsViewSet)
+routerPeople.register(r"students", views.StudentsViewSet)
+routerPeople.register(r"studentsinfo", views.StudentInfoViewSet)
+# routerPeople.register(r'coursepreferences', views_preferences.CoursePreferencesViewSet)
 
 url_user_patterns = [
-    path(r'getcurrentuser/', views.getCurrentUserView.as_view(), name='getuser'),
+    path(r"getcurrentuser/", views.getCurrentUserView.as_view(), name="getuser"),
 ]
 
 url_user_patterns += routerPeople.urls

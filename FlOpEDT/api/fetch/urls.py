@@ -40,10 +40,6 @@ routerFetch.register(
     views.UnscheduledCoursesViewSet,
     basename="unscheduledcourses",
 )
-# routerFetch.register(r'availabilities', views.AvailabilitiesViewSet, basename='availabilities')
-# routerFetch.register(
-#     r"dweek", views_preferences.UserAvailabilityDefaultViewSet, basename="dweek"
-# )
 # routerFetch.register(
 #     r"coursedefweek", views.CourseTypeDefaultWeekViewSet, basename="coursedefweek"
 # )

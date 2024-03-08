@@ -21,7 +21,12 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from typing import List
 from rest_framework import serializers
+
+from drf_spectacular.utils import extend_schema_field, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
+
 import people.models as pm
 import base.models as bm
 
@@ -29,6 +34,7 @@ import base.models as bm
 class UserSerializer(serializers.ModelSerializer):
     departments = serializers.SerializerMethodField()
 
+    @extend_schema_field(List[OpenApiTypes.INT])
     def get_departments(self, obj):
         if obj.is_superuser:
             for dep in bm.Department.objects.all():
@@ -56,6 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     department_ids = serializers.SerializerMethodField()
 
+    @extend_schema_field(List[OpenApiTypes.INT])
     def get_department_ids(self, obj):
         return [dep.id for dep in obj.departments.all()]
 

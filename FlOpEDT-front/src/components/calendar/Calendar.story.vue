@@ -6,6 +6,7 @@
         v-model:events="useCase2.events.value"
         @dragstart="onDragStart"
         :end-of-day-hours="19"
+        :workcopy="3"
       />
     </Variant>
     <Variant title="Use case 2">
@@ -16,6 +17,7 @@
         @dragstart="onDragStart"
         @weekdays="(wd: number[]) => (weekdays = wd)"
         :end-of-day-hours="19"
+        :workcopy="3"
       />
     </Variant>
     <Variant title="Use case 3">
@@ -24,6 +26,7 @@
         v-model:events="useCase3.events.value"
         @dragstart="onDragStart"
         :end-of-day-hours="19"
+        :workcopy="3"
       />
     </Variant>
     <Variant title="Availabilities">
@@ -34,6 +37,7 @@
         :dropzones="dzs"
         @dragstart="onDragStart"
         :end-of-day-hours="19"
+        :workcopy="3"
       />
     </Variant>
   </Story>

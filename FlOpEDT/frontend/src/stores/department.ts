@@ -27,7 +27,7 @@ export const useDepartmentStore = defineStore('department', () => {
     const departments = computed(() => depts.value)
     // Generate the default API functions
     const remote: StoreAction<Department, DepartmentAPI> = new StoreAction<Department, DepartmentAPI>(
-        'fetch/alldepts',
+        'v1/base/groups/department',
         convertToApp,
         convertToAPI,
         (value) => (depts.value = value)

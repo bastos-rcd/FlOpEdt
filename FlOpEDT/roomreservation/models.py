@@ -15,9 +15,15 @@ class RoomReservation(models.Model):
     description = models.TextField(null=True, blank=True)
     email = models.BooleanField(default=False)
     date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
     periodicity = models.ForeignKey("ReservationPeriodicity", null=True, blank=True, on_delete=models.SET_NULL)
+
+    def save(self, *args, **kwargs):
+        force_date = kwargs.pop("force_date") if "force_date" in kwargs else False
+        if force_date is False:
+            self.date = self.start_time.date()
+        super(RoomReservation, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.room}-{self.date}  {self.start_time}/{self.end_time}"
@@ -28,8 +34,19 @@ class RoomReservation(models.Model):
 
     @property
     def duration(self):
-        return (self.end_time.hour - self.start_time.hour)*60 + (self.end_time.minute - self.start_time.minute)
+        return self.end_time - self.start_time
+    
+    @property
+    def minutes(self):
+        return self.duration.seconds // 60
 
+    @property
+    def start_date(self):
+        return self.date
+
+    @property
+    def end_date(self):
+        return self.end_time.date()
 
 class RoomReservationType(models.Model):
     name = models.CharField(max_length=30)

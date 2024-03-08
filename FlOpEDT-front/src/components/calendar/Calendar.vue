@@ -1,6 +1,7 @@
 <template>
   <div class="calendar-div">
     <div class="header">
+      <span>N° de version sélectionnée: {{ workcopy === -1 ? 'default' : workcopy }}</span>
       <button @click="onPrev">&lt; Prev</button>
       <button @click="onToday">Today</button>
       <button @click="onNext">Next &gt;</button>
@@ -80,9 +81,7 @@
                 <slot name="event" :event="event" v-if="event.data.dataType !== 'avail'">
                   <edit-event :event-object-id="event.data.dataId">
                     <template v-slot:trigger>
-                      <span class="title event">
-                        {{ event.title }}
-                      </span>
+                      <CourseCard :event-id="event.data.dataId" />
                     </template>
                   </edit-event>
                 </slot>
@@ -160,6 +159,7 @@ import {
   updateEventsOverlap,
 } from './utilitary'
 import AvailibityMenu from '../AvailibityMenu.vue'
+import CourseCard from '../CourseCard.vue'
 
 const { locale } = useI18n({ useScope: 'global' })
 /**
@@ -179,6 +179,7 @@ const props = defineProps<{
   columns: CalendarColumn[]
   endOfDayHours: number
   step?: number
+  workcopy: number
 }>()
 
 const emits = defineEmits<{
@@ -786,6 +787,7 @@ function updateResizedDownEvents(newEvents: InputCalendarEvent[], newEvent: Inpu
 .title
   position: relative
   display: flex
+  flex-direction: column
   justify-content: center
   align-items: center
   height: 100%
@@ -793,7 +795,12 @@ function updateResizedDownEvents(newEvents: InputCalendarEvent[], newEvent: Inpu
   border: 1px dashed grey
 .my-dropzone
   pointer-events: none
-.header, button
+.header
+  display: flex
+  justify-content: flex-start
+.header span
+  min-width: 40%
+.header button
   padding: 1px
   margin: 3px
 </style>

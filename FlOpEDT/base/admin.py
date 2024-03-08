@@ -742,7 +742,6 @@ class CourseAdmin(DepartmentModelAdmin):
     ordering = ("-period", "module", "type", "groups", "tutor")
     list_filter = (
         ("tutor", DropdownFilterRel),
-        ("period", DropdownFilterAll),
         ("type", DropdownFilterRel),
     )
 
@@ -759,7 +758,6 @@ class ScheduledCourseAdmin(DepartmentModelAdmin):
     ordering = ("start_time", "course", "room")
     list_filter = (
         ("course__tutor", DropdownFilterRel),
-        ("course_period", DropdownFilterAll),
     )
 
 
@@ -789,7 +787,6 @@ class DependencyAdmin(DepartmentModelAdmin):
         "ND",
     )
     list_filter = (
-        ("course1_period", DropdownFilterAll),
     )
 
 
@@ -814,7 +811,6 @@ class CourseModificationAdmin(DepartmentModelAdmin):
     )
     list_filter = (
         ("initiator", DropdownFilterRel),
-        ("course_period", DropdownFilterAll),
     )
     ordering = ("-updated_at",)
 

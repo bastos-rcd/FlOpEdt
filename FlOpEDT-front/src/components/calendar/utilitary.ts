@@ -129,7 +129,7 @@ export function badgeStyles(
   }
   s['align-items'] = 'flex-start'
   if (!event.toggled && event.data.dataType === 'event') {
-    s['background-color'] = 'rgba(255,120,0,0.5)'
+    s['background-color'] = 'rgba(80,80,80,0.5)'
   }
   return s
 }

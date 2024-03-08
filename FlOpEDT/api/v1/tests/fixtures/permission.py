@@ -90,3 +90,30 @@ def make_perm_view_any_user_av(db) -> Permission:
         codename="view_any_useravailability",
     )
     return p
+
+
+@pytest.fixture
+def make_perm_add_department(db) -> Permission:
+    p, _ = Permission.objects.get_or_create(
+        content_type=ContentType.objects.get(app_label="base", model="department"),
+        codename="add_department",
+    )
+    return p
+
+
+@pytest.fixture
+def make_perm_delete_department(db) -> Permission:
+    p, _ = Permission.objects.get_or_create(
+        content_type=ContentType.objects.get(app_label="base", model="department"),
+        codename="delete_department",
+    )
+    return p
+
+
+@pytest.fixture
+def make_perm_change_department(db) -> Permission:
+    p, _ = Permission.objects.get_or_create(
+        content_type=ContentType.objects.get(app_label="base", model="department"),
+        codename="change_department",
+    )
+    return p
