@@ -21,12 +21,10 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 from django.urls import path, re_path, include
-from api.v1.base.courses.urls import routerCourses
+from api.v1.base.courses.urls import routerCourse
 from api.v1.base.groups.urls import routerGroups
 
 url_base_patterns = [
-    path('courses/',
-         include((routerCourses.urls, 'api'), namespace='course')),
-    path('groups/',
-         include((routerGroups.urls, 'api'), namespace='groups')),
+    path("courses/", include((routerCourse.urls, "api"), namespace="course")),
+    path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
 ]

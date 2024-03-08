@@ -22,7 +22,11 @@
 # without disclosing the source code of your own applications.
 
 import django_filters.rest_framework as filters
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+    PolymorphicProxySerializer,
+)
 from rest_framework import viewsets
 from rest_framework import exceptions
 from rest_framework import serializers as rfs
@@ -58,51 +62,31 @@ from base.timing import date_to_flopday, days_list, days_index
 import datetime as dt
 
 
-class ScheduledCourseQueryParamsSerializer(rfs.Serializer):
+class ScheduledCourseHumanQueryParamsSerializer(rfs.Serializer):
     from_date = rfs.DateField()
     to_date = rfs.DateField()
-    work_copy = rfs.IntegerField(required=False, default=0)
     tutor = rfs.CharField(required=False)
-    tutor_id = rfs.IntegerField(required=False)
     dept = rfs.CharField(required=False)
-    dept_id = rfs.IntegerField(required=False)
     train_prog = rfs.CharField(required=False)
-    train_prog_id = rfs.IntegerField(required=False)
     struct_group = rfs.CharField(required=False)
-    struct_group_id = rfs.IntegerField(required=False)
     and_transversal = rfs.BooleanField(required=False, default=True)
     lineage = rfs.BooleanField(required=False)
 
     def validate(self, value):
-        value = super().validate(value)
-
-        # department
         if "dept" in value:
-            if "dept_id" in value:
-                raise exceptions.ValidationError(
-                    detail={
-                        "dept": f"Please choose beetween dept_id={value['dept_id']} and dept={value['dept']}"
-                    }
-                )
             try:
                 value["dept_id"] = bm.Department.objects.get(abbrev=value["dept"]).id
+                del value["dept"]
             except bm.Department.DoesNotExist:
                 raise exceptions.ValidationError(detail={"dept": "Unknown department"})
 
-        # tutor
         if "tutor" in value:
-            if "tutor_id" in value:
-                raise exceptions.ValidationError(
-                    detail={
-                        "tutor": f"Please choose beetween tutor_id={value['tutor_id']} and tutor={value['tutor']}"
-                    }
-                )
             try:
                 value["tutor_id"] = pm.Tutor.objects.get(username=value["tutor"])
+                del value["tutor"]
             except pm.Tutor.DoesNotExist:
                 raise exceptions.ValidationError(detail={"tutor": "Unknown tutor"})
 
-        # training programme
         if "train_prog" in value:
             if "dept_id" not in value:
                 raise exceptions.ValidationError(
@@ -114,19 +98,13 @@ class ScheduledCourseQueryParamsSerializer(rfs.Serializer):
                 value["train_prog_id"] = bm.TrainingProgramme.objects.get(
                     abbrev=value["train_prog"], department=value["dept_id"]
                 )
+                del value["train_prog"]
+                del value["dept_id"]
             except bm.TrainingProgramme.DoesNotExist:
                 raise exceptions.ValidationError(
                     detail={"train_prog": "Unknown training programme"}
                 )
 
-        # group
-        if "struct_group_id" in value:
-            try:
-                groups = {bm.StructuralGroup.objects.get(id=value["struct_group_id"])}
-            except bm.StructuralGroup.DoesNotExist:
-                raise exceptions.NotAcceptable(detail={"struct_group": "Unknown group"})
-
-        groups = None
         if "struct_group" in value:
             if "train_prog_id" not in value:
                 raise exceptions.ValidationError(
@@ -135,24 +113,69 @@ class ScheduledCourseQueryParamsSerializer(rfs.Serializer):
                     }
                 )
             try:
-                groups = {
-                    bm.StructuralGroup.objects.get(
-                        name=value["struct_group_id"], train_prog=value["train_prog_id"]
-                    )
-                }
+                value["struct_group_id"] = bm.StructuralGroup.objects.get(
+                    name=value["struct_group"], train_prog=value["train_prog_id"]
+                ).id
+                del value["train_prog_id"]
             except bm.StructuralGroup.DoesNotExist:
                 raise exceptions.NotAcceptable(detail={"struct_group": "Unknown group"})
 
-        if groups is not None:
-            if value["lineage"]:
-                groups |= groups.ancestor_groups()
-            value["group_ids"] = [gp.id for gp in groups]
+        value["work_copy"] = 0
+        return value
 
-        if groups is not None and value["and_transversal"]:
-            tgroups = bm.TransversalGroup.objects.filter(
-                conflicting_groups__in=groups
-            ).distinct("id")
-            value["group_ids"].extend([gp.id for gp in tgroups])
+
+class ScheduledCourseQueryParamsSerializer(rfs.Serializer):
+    from_date = rfs.DateField(required=False)
+    to_date = rfs.DateField(required=False)
+    period_id = rfs.IntegerField(required=False)
+    work_copy = rfs.IntegerField(required=False, default=0)
+    work_copy_nb = rfs.IntegerField(required=False, default=0)
+    tutor_id = rfs.IntegerField(required=False)
+    dept_id = rfs.IntegerField(required=False)
+    train_prog_id = rfs.IntegerField(required=False)
+    struct_group_id = rfs.IntegerField(required=False)
+    and_transversal = rfs.BooleanField(required=False, default=True)
+    lineage = rfs.BooleanField(required=False)
+
+    def validate(self, value):
+        value = super().validate(value)
+
+        # period
+        if "period_id" not in value and (
+            "from_date" not in value or "to_date" not in value
+        ):
+            raise exceptions.ValidationError(
+                detail={
+                    "non_fields_error": f"No parameters on the period. Please choose a from_date and a to_date, or a preiod_id"
+                }
+            )
+
+        group_keys = [
+            k for k in value if k in ["dept_id", "train_prog_id", "struct_group_id"]
+        ]
+        if len(group_keys) > 1:
+            raise exceptions.ValidationError(
+                detail={
+                    "non_fields_error": "At most 1 group parameter id allowed (department, training programme, group)"
+                }
+            )
+
+        if "struct_group_id" in value:
+            try:
+                groups = {bm.StructuralGroup.objects.get(id=value["struct_group_id"])}
+                if groups is not None:
+                    if value["lineage"]:
+                        groups |= groups.ancestor_groups()
+                    value["group_ids"] = [gp.id for gp in groups]
+
+                if groups is not None and value["and_transversal"]:
+                    tgroups = bm.TransversalGroup.objects.filter(
+                        conflicting_groups__in=groups
+                    ).distinct("id")
+                    value["group_ids"].extend([gp.id for gp in tgroups])
+            except bm.StructuralGroup.DoesNotExist:
+                pass
+            del value["struct_group_id"]
 
         main_keys = [
             k
@@ -169,24 +192,7 @@ class ScheduledCourseQueryParamsSerializer(rfs.Serializer):
         return value
 
 
-@extend_schema(
-    parameters=[
-        from_date_param(required=True),
-        to_date_param(required=True),
-        work_copy_param(),
-        tutor_param(),
-        tutor_id_param(),
-        dept_param(),
-        dept_id_param(),
-        train_prog_param(),
-        train_prog_id_param(),
-        struct_group_param(),
-        struct_group_id_param(),
-        lineage_param(),
-        and_transversal_param(),
-    ]
-)
-class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
+class ScheduledCoursesJoinedViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Get a list of scheduled courses.
     If several parameters apply on groups of people (department, training programme, structural groups),
@@ -201,12 +207,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return bm.ScheduledCourse.objects.none()
 
-        serializer = ScheduledCourseQueryParamsSerializer(
-            data=self.request.query_params
-        )
-        serializer.is_valid(raise_exception=True)
-
-        params = serializer.validated_data
+        params = self.get_params()
 
         queryset = bm.ScheduledCourse.objects.filter(
             work_copy=params["work_copy"],
@@ -233,6 +234,29 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         return queryset
+
+    class Meta:
+        abstract = True
+
+
+@extend_schema(parameters=[ScheduledCourseQueryParamsSerializer])
+class ScheduledCoursesFullParamViewSet(ScheduledCoursesJoinedViewSet):
+    def get_params(self):
+        serializer = ScheduledCourseQueryParamsSerializer(
+            data=self.request.query_params
+        )
+        serializer.is_valid(raise_exception=True)
+        return serializer.validated_data
+
+
+@extend_schema(parameters=[ScheduledCourseHumanQueryParamsSerializer])
+class ScheduledCoursesHumanParamViewSet(ScheduledCoursesJoinedViewSet):
+    def get_params(self):
+        serializer = ScheduledCourseHumanQueryParamsSerializer(
+            data=self.request.query_params
+        )
+        serializer.is_valid(raise_exception=True)
+        return serializer.validated_data
 
 
 class RoomFilterSet(filters.FilterSet):
