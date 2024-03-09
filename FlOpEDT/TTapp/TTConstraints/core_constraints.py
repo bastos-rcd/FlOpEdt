@@ -842,6 +842,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
                     )
     
     def is_satisfied_for(self, period, work_copy):
+        considered_courses = self.get_courses_queryset_by_parameters
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         considered_tutors = set(sc.tutor for sc in considered_scheduled_courses)
         for sc in considered_scheduled_courses:

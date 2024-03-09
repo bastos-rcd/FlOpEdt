@@ -53,7 +53,8 @@ class TTConstraint(FlopConstraint):
     def get_viewmodel_prefetch_attributes(cls):
         return ['department',]
 
-    def get_courses_queryset_by_parameters(self, period, ttmodel,
+    def get_courses_queryset_by_parameters(self, period, 
+                                           ttmodel=None,
                                            train_prog=None,
                                            train_progs=None,
                                            group=None,

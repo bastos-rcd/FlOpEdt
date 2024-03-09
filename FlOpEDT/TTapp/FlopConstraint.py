@@ -123,7 +123,8 @@ class FlopConstraint(models.Model):
         else:
             return TimeGeneralSettings.objects.get(department = self.department)
 
-    def get_courses_queryset_by_parameters(self, period, flopmodel=None,
+    def get_courses_queryset_by_parameters(self, period, 
+                                           flopmodel=None,
                                            train_prog=None,
                                            train_progs=None,
                                            group=None,
