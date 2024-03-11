@@ -102,3 +102,11 @@ class ModulesFullSerializer(serializers.ModelSerializer):
             "description",
             "ppn",
         )
+
+
+class EdtVersionSerializer(serializers.ModelSerializer):
+    period = SchedulingPeriodSerializer()
+
+    class Meta:
+        model = bm.EdtVersion
+        fields = ("id", "department_id", "period", "work_copy", "version")
