@@ -412,11 +412,10 @@ class BreakAroundCourseType(TTConstraint):
                 ttmodel.add_to_group_cost(group, cost, period)
 
     def is_satisfied_for(self, period, work_copy):
-        considered_courses = self.considered_courses(period, groups = self.groups.all())
         considered_dates = period.dates()
         if self.weekdays:
             considered_dates = days_filter(considered_dates, day_in=self.weekdays)
-        all_scheduled_courses = ScheduledCourse.objects.filter(course__in=self.considered_courses(period),
+        all_scheduled_courses = ScheduledCourse.objects.filter(course__in=self.considered_courses(period, groups = self.groups.all()),
                                                                date__in=considered_dates,
                                                                work_copy=work_copy)
         course_type_scheduled_courses = all_scheduled_courses.filter(course__type=self.course_type)
