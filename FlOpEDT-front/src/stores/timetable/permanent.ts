@@ -56,9 +56,9 @@ export const usePermanentStore = defineStore('permanent', () => {
             name: mod.name,
             abbrev: mod.abbrev,
             headId: mod.head_id,
-            url: '',
+            url: mod.url,
             trainProgId: mod.train_prog_id,
-            description: mod.description,
+            trainingPeriodId: mod.training_period_id,
           })
         })
       })

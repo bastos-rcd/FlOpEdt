@@ -245,6 +245,7 @@ export interface ModuleAPI {
   abbrev: string
   name: string
   head_id: number
+  url: string
   train_prog_id: number
-  description: string
+  training_period_id: number
 }

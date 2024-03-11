@@ -52,7 +52,7 @@ export interface Module {
   headId?: number //Personne responsable du module
   url: string | null
   trainProgId: number
-  description?: string
+  trainingPeriodId?: number
 }
 
 export interface Room {

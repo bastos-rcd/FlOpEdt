@@ -45,7 +45,7 @@ const urls = {
   weeks: 'base/weeks',
   getGroups: 'v1/base/groups/structural_groups',
   getTransversalGroups: 'v1/base/groups/transversal_groups',
-  getModules: 'v1/base/courses/modules',
+  getModules: 'v1/base/courses/module',
   getTrainProgs: 'v1/base/groups/training_programmes',
   getAvailability: 'v1/availability/user',
 }
@@ -297,7 +297,7 @@ const api: FlopAPI = {
   async getModules(): Promise<Array<ModuleAPI>> {
     let modules: Array<ModuleAPI> = []
     let finalUrl: string = API_ENDPOINT + urls.getModules
-    //if (department) finalUrl += '/?dept=' + department.abbrev
+    // if (department_id) finalUrl += '/?dept_id=' + department_id
     await fetch(finalUrl, {
       method: 'GET',
       credentials: 'same-origin',
