@@ -325,7 +325,7 @@ def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeri
                     P = Dependency(
                         course1=relevant_courses[i],
                         course2=relevant_courses[i + 1],
-                        ND=True,
+                        day_gap=1,
                     )
                     P.save()
 

@@ -784,7 +784,7 @@ class DependencyAdmin(DepartmentModelAdmin):
         course1_period,
         "course2",
         "successive",
-        "ND",
+        "day_gap",
     )
     list_filter = (
     )
