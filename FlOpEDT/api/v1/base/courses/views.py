@@ -27,9 +27,11 @@ from drf_spectacular.utils import (
     OpenApiParameter,
     PolymorphicProxySerializer,
 )
+import rest_framework as rf
 from rest_framework import viewsets
 from rest_framework import exceptions
-from rest_framework import serializers as rfs
+from rest_framework import serializers as rf_s
+from rest_framework import permissions
 
 from django.utils.decorators import method_decorator
 from django.core.exceptions import MultipleObjectsReturned
@@ -48,15 +50,15 @@ from base.timing import date_to_flopday, days_list, days_index
 import datetime as dt
 
 
-class ScheduledCourseHumanQueryParamsSerializer(rfs.Serializer):
-    from_date = rfs.DateField()
-    to_date = rfs.DateField()
-    tutor = rfs.CharField(required=False)
-    dept = rfs.CharField(required=False)
-    train_prog = rfs.CharField(required=False)
-    struct_group = rfs.CharField(required=False)
-    and_transversal = rfs.BooleanField(required=False, default=True)
-    lineage = rfs.BooleanField(required=False)
+class ScheduledCourseHumanQueryParamsSerializer(rf_s.Serializer):
+    from_date = rf_s.DateField()
+    to_date = rf_s.DateField()
+    tutor = rf_s.CharField(required=False)
+    dept = rf_s.CharField(required=False)
+    train_prog = rf_s.CharField(required=False)
+    struct_group = rf_s.CharField(required=False)
+    and_transversal = rf_s.BooleanField(required=False, default=True)
+    lineage = rf_s.BooleanField(required=False)
 
     def validate(self, value):
         if "dept" in value:
@@ -110,18 +112,18 @@ class ScheduledCourseHumanQueryParamsSerializer(rfs.Serializer):
         return value
 
 
-class ScheduledCourseQueryParamsSerializer(rfs.Serializer):
-    from_date = rfs.DateField(required=False)
-    to_date = rfs.DateField(required=False)
-    period_id = rfs.IntegerField(required=False)
-    work_copy = rfs.IntegerField(required=False, default=0)
-    work_copy_nb = rfs.IntegerField(required=False, default=0)
-    tutor_id = rfs.IntegerField(required=False)
-    dept_id = rfs.IntegerField(required=False)
-    train_prog_id = rfs.IntegerField(required=False)
-    struct_group_id = rfs.IntegerField(required=False)
-    and_transversal = rfs.BooleanField(required=False, default=True)
-    lineage = rfs.BooleanField(required=False)
+class ScheduledCourseQueryParamsSerializer(rf_s.Serializer):
+    from_date = rf_s.DateField(required=False)
+    to_date = rf_s.DateField(required=False)
+    period_id = rf_s.IntegerField(required=False)
+    work_copy = rf_s.IntegerField(required=False, default=0)
+    work_copy_nb = rf_s.IntegerField(required=False, default=0)
+    tutor_id = rf_s.IntegerField(required=False)
+    dept_id = rf_s.IntegerField(required=False)
+    train_prog_id = rf_s.IntegerField(required=False)
+    struct_group_id = rf_s.IntegerField(required=False)
+    and_transversal = rf_s.BooleanField(required=False, default=True)
+    lineage = rf_s.BooleanField(required=False)
 
     def validate(self, value):
         value = super().validate(value)

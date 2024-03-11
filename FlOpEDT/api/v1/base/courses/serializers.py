@@ -20,6 +20,7 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
+import datetime as dt
 from typing import List
 from rest_framework import serializers
 from drf_spectacular.types import OpenApiTypes
@@ -27,8 +28,8 @@ from drf_spectacular.utils import extend_schema_field
 import base.models as bm
 import displayweb.models as dwm
 import people.models as pm
-from base.timing import Day, flopdate_to_datetime
-from datetime import timedelta
+
+from api.v1.base.timing.serializers import SchedulingPeriodSerializer
 
 
 #                             ------------------------------                            #
@@ -38,7 +39,7 @@ from datetime import timedelta
 
 class ScheduledCoursesSerializer(serializers.ModelSerializer):
     module_id = serializers.IntegerField(source="course.module.id")
-    course_type_id = serializers.IntegerField(source='course.type.id')
+    course_type_id = serializers.IntegerField(source="course.type.id")
     supp_tutor_ids = serializers.PrimaryKeyRelatedField(
         read_only=True, many=True, source="course.supp_tutor"
     )
@@ -52,13 +53,25 @@ class ScheduledCoursesSerializer(serializers.ModelSerializer):
     # Sructuration of the data
     class Meta:
         model = bm.ScheduledCourse
-        fields = ['id', 'course_id', 'module_id', 'course_type_id','tutor_id', 'supp_tutor_ids', 'room_id', 'start_time', 'end_time', 'train_prog_id', 'group_ids', 'number']
-        ref_name = "New api scheduled course serializer"
+        fields = [
+            "id",
+            "course_id",
+            "module_id",
+            "course_type_id",
+            "tutor_id",
+            "supp_tutor_ids",
+            "room_id",
+            "start_time",
+            "end_time",
+            "train_prog_id",
+            "group_ids",
+            "number",
+        ]
 
     def get_end_time(self, obj):
         start_time = self.get_start_time(obj)
         duration = obj.course.duration
-        return start_time + timedelta(seconds=duration * 60)
+        return start_time + dt.timedelta(seconds=duration * 60)
 
     @classmethod
     def and_related(cls):
