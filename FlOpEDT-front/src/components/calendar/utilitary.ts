@@ -1,6 +1,6 @@
-import { intersection } from 'lodash'
-import { CalendarColumn, CalendarEvent } from './declaration'
-import { TimestampOrNull } from '@quasar/quasar-ui-qcalendar'
+import { cloneDeep, intersection } from 'lodash'
+import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
+import { TimestampOrNull, copyTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { diffTimestamp } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
 export const STEP_DEFAULT: number = 15
@@ -65,24 +65,59 @@ export function updateEventsOverlap(events: CalendarEvent[]): CalendarEvent[] {
     if (newEvents[i].toggled) {
       for (let k = 0; k < newEvents.length; k++) {
         if (i !== k && (k > i || !newEvents[k].toggled)) {
-          const sameColumns = columnsInCommon(newEvents[i], newEvents[k])
-          if (newEvents[i].data.dataType === newEvents[k].data.dataType && sameColumns) {
-            const diff = Math.ceil(diffTimestamp(newEvents[i].data.start, newEvents[k].data.start) / 1000 / 60)
-            if (diff > 0) {
-              if (newEvents[i].data.duration! > diff) {
-                newEvents[i].toggled = newEvents[k].toggled = false
-              }
-            } else {
-              if (newEvents[k].data.duration! > Math.abs(diff)) {
-                newEvents[i].toggled = newEvents[k].toggled = false
-              }
-            }
+          if (
+            areEventsOverlapped(newEvents[i], newEvents[k]) &&
+            newEvents[i].data.dataType === newEvents[k].data.dataType
+          ) {
+            newEvents[i].toggled = newEvents[k].toggled = false
           }
         }
       }
     }
   }
   return newEvents
+}
+
+export function areEventsOverlapped(event1: CalendarEvent, event2: CalendarEvent): boolean {
+  const sameColumns = columnsInCommon(event1, event2)
+  let timeOverlap = false
+  if (sameColumns) {
+    const diff = Math.ceil(diffTimestamp(event1.data.start, event2.data.start) / 1000 / 60)
+    if (diff > 0) {
+      if (event1.data.duration) timeOverlap = event1.data.duration > diff
+    } else {
+      if (event2.data.duration) timeOverlap = event2.data.duration > Math.abs(diff)
+    }
+  }
+  return sameColumns && timeOverlap
+}
+
+/*
+ ** dayStartTime && dayEndTime = minutes since midnight
+ **
+ */
+export function createDropZonesOnTimes(
+  event: InputCalendarEvent,
+  dayStartTime: number,
+  dayEndTime: number,
+  newId: number
+): InputCalendarEvent[] {
+  const dropZones: InputCalendarEvent[] = []
+  let startTime = copyTimestamp(event.data.start)
+  updateMinutes(startTime, dayStartTime)
+  if (event.data.duration) {
+    while (parseTime(startTime) + event.data.duration <= dayEndTime) {
+      const newDropZone: InputCalendarEvent = cloneDeep(event)
+      newDropZone.data.dataId = event.id
+      newDropZone.id = newId++
+      newDropZone.data.dataType = 'dropzone'
+      newDropZone.data.start = startTime
+      dropZones.push(newDropZone)
+      startTime = copyTimestamp(startTime)
+      updateMinutes(startTime, parseTime(startTime) + event.data.duration + 5)
+    }
+  }
+  return dropZones
 }
 
 export function badgeStyles(

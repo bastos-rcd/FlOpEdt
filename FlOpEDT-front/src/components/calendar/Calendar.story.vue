@@ -4,6 +4,7 @@
       <Calendar
         :columns="useCase1.columns.value"
         v-model:events="useCase2.events.value"
+        :dropzones="createDropZonesOnTimes(useCase2.events.value.find(ev => ev.id === 1)!, 7*60, 19*60, 5)"
         @dragstart="onDragStart"
         :end-of-day-hours="19"
         :workcopy="3"
@@ -48,6 +49,7 @@ import type { CalendarColumn, InputCalendarEvent } from './declaration'
 import { concat, find, map, maxBy, remove } from 'lodash'
 import { Timestamp, parseDate, parseTime, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
 import { ref, Ref } from 'vue'
+import { createDropZonesOnTimes } from './utilitary'
 
 import Calendar from './Calendar.vue'
 

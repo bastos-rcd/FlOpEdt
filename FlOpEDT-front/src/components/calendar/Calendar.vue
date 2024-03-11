@@ -65,7 +65,7 @@
               event.data.duration !== undefined &&
               (event.data.dataType === 'event' ||
                 event.data.dataType === 'avail' ||
-                (isDragging && event.data.dataId === eventDragged?.data.dataId))
+                (isDragging && event.data.dataId === eventDragged?.id))
             "
           >
             <div :draggable="event.data.dataType !== 'avail'" @dragstart="onDragStart($event, event)">
@@ -277,6 +277,10 @@ const eventsByDate = computed(() => {
   allEvents.forEach((event) => {
     const newEvent = cloneDeep(event)
     let columnIds = newEvent.columnIds
+    if (newEvent.data.dataType === 'dropzone') {
+      const eventRelated = allEvents.find((ev) => ev.id === newEvent.data.dataId && ev.data.dataType === 'event')
+      if (eventRelated) columnIds = eventRelated.columnIds
+    }
 
     // availability column
     if (newEvent.data.dataType === 'avail') {
@@ -381,7 +385,7 @@ const dropZoneToDisplay = computed((): InputCalendarEvent[] | undefined => {
     (e) =>
       e.data.dataType === 'dropzone' &&
       currentTime.value?.date === e.data.start.date &&
-      eventDragged.value?.data.dataId === e.data.dataId
+      eventDragged.value?.id === e.data.dataId
   )
 })
 
