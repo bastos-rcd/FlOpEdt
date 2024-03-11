@@ -41,21 +41,7 @@ import base.models as bm
 import people.models as pm
 
 from . import serializers
-from api.shared.params import (
-    from_date_param,
-    to_date_param,
-    work_copy_param,
-    tutor_param,
-    tutor_id_param,
-    dept_id_param,
-    dept_param,
-    train_prog_param,
-    train_prog_id_param,
-    struct_group_param,
-    struct_group_id_param,
-    lineage_param,
-    and_transversal_param,
-)
+
 from api.permissions import IsAdminOrReadOnly
 
 from base.timing import date_to_flopday, days_list, days_index
@@ -233,7 +219,10 @@ class ScheduledCoursesJoinedViewSet(viewsets.ReadOnlyModelViewSet):
                 course__module__train_prog__department=params["dept_id"]
             )
 
-        return queryset
+        pull = self.serializer_class.and_related()
+        return queryset.select_related(*pull["select"].keys()).prefetch_related(
+            *pull["prefetch"].keys()
+        )
 
     class Meta:
         abstract = True

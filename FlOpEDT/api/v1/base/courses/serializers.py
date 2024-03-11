@@ -29,30 +29,23 @@ import displayweb.models as dwm
 import people.models as pm
 from base.timing import Day, flopdate_to_datetime
 from datetime import timedelta
-from api.base.courses.serializers import (
-    CoursesSerializer,
-    Group_SC_Serializer,
-    Module_SC_Serializer,
-    Department_TC_Serializer,
-)
+
 
 #                             ------------------------------                            #
 #                             ----Scheduled Courses (SC)----                            #
 #                             ------------------------------                            #
 
 
-class ScheduledCoursesSerializer(serializers.Serializer):
-    # Specification of wanted fields
-    id = serializers.IntegerField()
-    course_id = serializers.IntegerField(source="course.id")
+class ScheduledCoursesSerializer(serializers.ModelSerializer):
     module_id = serializers.IntegerField(source="course.module.id")
-    tutor_id = serializers.IntegerField(source="tutor.id", allow_null=True)
-    supp_tutor_ids = serializers.SerializerMethodField()
-    room_id = serializers.IntegerField(source="room.id", allow_null=True)
-    start_time = serializers.DateTimeField()
+    supp_tutor_ids = serializers.PrimaryKeyRelatedField(
+        read_only=True, many=True, source="course.supp_tutor"
+    )
     end_time = serializers.DateTimeField()
-    train_prog_id = serializers.SerializerMethodField()
-    group_ids = serializers.SerializerMethodField()
+    train_prog_id = serializers.IntegerField(source="course.module.train_prog.id")
+    group_ids = serializers.PrimaryKeyRelatedField(
+        read_only=True, many=True, source="course.groups"
+    )
 
     # Sructuration of the data
     class Meta:
@@ -76,17 +69,9 @@ class ScheduledCoursesSerializer(serializers.Serializer):
         duration = obj.course.duration
         return start_time + timedelta(seconds=duration * 60)
 
-    @extend_schema_field(List[OpenApiTypes.INT])
-    def get_group_ids(self, obj):
-        return list(g.id for g in obj.course.groups.all())
-
-    @extend_schema_field(List[OpenApiTypes.INT])
-    def get_supp_tutor_ids(self, obj):
-        return list(t.id for t in obj.course.supp_tutor.all())
-
-    @extend_schema_field(OpenApiTypes.INT)
-    def get_train_prog_id(self, obj):
-        return obj.course.groups.first().train_prog.id
+    @classmethod
+    def and_related(cls):
+        return {"select": {"course": ["duration"]}, "prefetch": {}}
 
 
 class RoomsSerializer(serializers.ModelSerializer):
