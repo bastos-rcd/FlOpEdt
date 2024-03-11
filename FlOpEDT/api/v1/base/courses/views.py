@@ -265,18 +265,66 @@ class RoomsViewSet(viewsets.ModelViewSet):
     Can be filtered as wanted with parameter="dept"[required] of a Room object, with the function RoomsFilterSet
     """
 
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [permissions.DjangoModelPermissions]
 
     queryset = bm.Room.objects.all()
     serializer_class = serializers.RoomsSerializer
     filterset_class = RoomFilterSet
 
 
-class ModulesViewSet(viewsets.ModelViewSet):
-    """ """
+class ModuleQueryParamSerializer(rf_s.Serializer):
+    dept_id = rf_s.IntegerField(required=False)
+    train_prog_id = rf_s.IntegerField(required=False)
+    training_period_id = rf_s.IntegerField(required=False)
 
-    permission_classes = [IsAdminOrReadOnly]
+    def validate(self, value):
+        if "dept_id" in value and "train_prog_id" in value:
+            try:
+                tp = bm.TrainingProgramme.objects.get(id=value["train_prog_id"])
+            except bm.TrainingProgramme.DoesNotExist:
+                raise exceptions.ValidationError(
+                    detail={"train_prog_id": "Unknown training programme."}
+                )
+            if tp.department.id != value["dept_id"]:
+                msg = "Unmatching department and training programme."
+                raise exceptions.ValidationError(
+                    detail={"train_prog_id": msg, "dept_id": msg}
+                )
+            del value["dept_id"]
+        return value
 
-    queryset = bm.Module.objects.all()
+
+class ModuleMixinViewSet:
+    permission_classes = [permissions.DjangoModelPermissions]
+
+    def get_queryset(self):
+        qp_serializer = ModuleQueryParamSerializer(data=self.request.query_params)
+        qp_serializer.is_valid(raise_exception=True)
+        params = qp_serializer.validated_data
+
+        if "dept_id" in params:
+            params["train_prog__department__id"] = params.pop("dept_id")
+        if "train_prog_id" in params:
+            params["train_prog__id"] = params.pop("train_prog_id")
+        if "training_period_id" in params:
+            params["training_period__id"] = params.pop("training_period_id")
+
+        return bm.Module.objects.filter(**params)
+
+
+@extend_schema(parameters=[ModuleQueryParamSerializer])
+class ModuleFullViewSet(ModuleMixinViewSet, viewsets.ModelViewSet):
+    """
+    Read modules without (potentially long) description
+    """
+
+    serializer_class = serializers.ModulesFullSerializer
+
+
+@extend_schema(parameters=[ModuleQueryParamSerializer])
+class ModuleViewSet(ModuleMixinViewSet, viewsets.ReadOnlyModelViewSet):
+    """
+    Modules
+    """
+
     serializer_class = serializers.ModulesSerializer
-    filterset_fields = "__all__"

@@ -83,9 +83,22 @@ class RoomsSerializer(serializers.ModelSerializer):
 
 
 class ModulesSerializer(serializers.ModelSerializer):
-    head_id = serializers.IntegerField(source="head.id", allow_null=True)
-    train_prog_id = serializers.IntegerField(source="train_prog.id")
-
     class Meta:
         model = bm.Module
-        fields = ("id", "name", "abbrev", "head_id", "train_prog_id", "description")
+        exclude = ("description", "ppn")
+
+
+class ModulesFullSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.Module
+        fields = (
+            "id",
+            "name",
+            "abbrev",
+            "head_id",
+            "train_prog_id",
+            "training_period",
+            "url",
+            "description",
+            "ppn",
+        )
