@@ -35,7 +35,6 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import slots_filter
 from TTapp.TTConstraints.TTConstraint import TTConstraint
-from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
 from django.utils.translation import gettext_lazy as _
 
@@ -130,7 +129,7 @@ class StabilizeGroupsCourses(TTConstraint):
         return attributes
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=5):
-        basic_groups_to_be_considered = considered_basic_groups(self, ttmodel)
+        basic_groups_to_be_considered = self.considered_basic_groups(ttmodel)
         ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
         sched_courses = ttmodel.wdb.sched_courses.filter(course__period=period)
 

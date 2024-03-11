@@ -30,7 +30,6 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TTConstraints.TTConstraint import TTConstraint
-from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from base.timing import Day, Time, min_to_str
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -53,7 +52,7 @@ class NoVisio(TTConstraint):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore NoVisio constraint")
             return
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
@@ -120,7 +119,7 @@ class VisioOnly(TTConstraint):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore VisioOnly constraint")
             return
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
@@ -244,7 +243,7 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore BoundPhysicalPresenceHalfDays constraint")
             return
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
         total_nb_half_days = len(ttmodel.wdb.days) * 2
         physical_presence_half_days_number = {}
         for g in considered_groups:

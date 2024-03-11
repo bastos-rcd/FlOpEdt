@@ -47,7 +47,6 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext
 from django.core.validators import MaxValueValidator
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
-from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 
 
 
@@ -430,7 +429,7 @@ def find_day_gap_slots(course_slots1, course_slots2, day_gap):
 
 class GlobalModuleDependency(TTConstraint):
     """
-    Creates a global dependency between courses1 and courses2
+    Creates a global dependency for each group and module between courses1 and courses2
     """
     modules = models.ManyToManyField('base.Module', related_name='global_module_dependencies', blank=True)
     train_progs = models.ManyToManyField('base.TrainingProgramme',
@@ -474,7 +473,6 @@ class GlobalModuleDependency(TTConstraint):
         if self.course2_tutor:
             text += f" du prof {self.course1_tutor}"
 
-
     def considered_courses_tuple(self, period, ttmodel=None):
         """Returns the tuple courses1, courses2 of courses that have to be considered"""
         courses1=self.get_courses_queryset_by_parameters(
@@ -499,42 +497,49 @@ class GlobalModuleDependency(TTConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         courses1, courses2 = self.considered_courses_tuple(period, ttmodel)
         a_lot = 1000000
-        for c1 in courses1:
-            for sl1 in ttmodel.wdb.compatible_slots[c1]:
-                if not self.weight:
-                    ttmodel.add_constraint(a_lot * ttmodel.TT[(sl1, c1)] +
-                                           ttmodel.sum(ttmodel.TT[(sl2, c2)] 
-                                                       for c2 in courses2.exclude(id=c1.id)
-                                                       for sl2 in ttmodel.wdb.compatible_slots[c2]
-                                                       if not sl2.is_after(sl1)
-                                                       or (sl2.day - sl1.day).days < self.day_gap),
-                                           '<=', a_lot, Constraint(constraint_type=ConstraintType.DEPENDANCE,
-                                                                   slots=sl1,
-                                                                   modules=self.modules.all(),
-                                                                   )
-                    )
-                else:
-                    for c2 in courses2:
-                        for sl2 in ttmodel.wdb.compatible_slots[c2]:
-                            if not sl2.is_after(sl1) or (sl2.day - sl1.day).days < self.day_gap:
-                                conj_var = ttmodel.add_conjunct(ttmodel.TT[(sl1, c1)],
-                                                                ttmodel.TT[(sl2, c2)])
-                                ttmodel.add_to_generic_cost(conj_var * self.local_weight() * ponderation)
+        for g in self.considered_basic_groups(ttmodel):
+            group_courses1 = courses1.filter(groups__in=g.connected_groups())
+            group_courses2 = courses2.filter(groups__in=g.connected_groups())
+            for c1 in group_courses1:
+                for sl1 in ttmodel.wdb.compatible_slots[c1]:
+                    if not self.weight:
+                        ttmodel.add_constraint(a_lot * ttmodel.TT[(sl1, c1)] +
+                                            ttmodel.sum(ttmodel.TT[(sl2, c2)] 
+                                                        for c2 in group_courses2.exclude(id=c1.id)
+                                                        for sl2 in ttmodel.wdb.compatible_slots[c2]
+                                                        if not sl2.is_after(sl1)
+                                                        or (sl2.day - sl1.day).days < self.day_gap),
+                                            '<=', a_lot, Constraint(constraint_type=ConstraintType.DEPENDANCE,
+                                                                    slots=sl1,
+                                                                    modules=self.modules.all(),
+                                                                    groups=g,
+                                                                    )
+                        )
+                    else:
+                        for c2 in group_courses2:
+                            for sl2 in ttmodel.wdb.compatible_slots[c2]:
+                                if not sl2.is_after(sl1) or (sl2.day - sl1.day).days < self.day_gap:
+                                    conj_var = ttmodel.add_conjunct(ttmodel.TT[(sl1, c1)],
+                                                                    ttmodel.TT[(sl2, c2)])
+                                    ttmodel.add_to_generic_cost(conj_var * self.local_weight() * ponderation)
     
     def is_satisfied_for(self, period, work_copy):
         courses1, courses2 = self.considered_courses_tuple(period)
         dependency_not_satisfied_for = []
-        for c1 in courses1:
-            if not c1.scheduledcourse_set.filter(work_copy=work_copy).exists():
-                continue
-            for c2 in courses2.exclude(id=c1.id):
-                if not c2.scheduledcourse_set.filter(work_copy=work_copy).exists():
+        for g in self.considered_basic_groups():
+            group_courses1 = courses1.filter(groups__in=g.connected_groups())
+            group_courses2 = courses2.filter(groups__in=g.connected_groups())
+            for c1 in group_courses1:
+                if not c1.scheduledcourse_set.filter(work_copy=work_copy).exists():
                     continue
-                sched_course1 = c1.scheduledcourse_set.get(work_copy=work_copy)
-                sched_course2 = c2.scheduledcourse_set.get(work_copy=work_copy)
-                if sched_course2.start_time <= sched_course1.start_time \
-                    or (sched_course2.start_time.date - sched_course1.start_time.date).days < self.day_gap:
-                    dependency_not_satisfied_for.append(c1)
+                for c2 in group_courses2.exclude(id=c1.id):
+                    if not c2.scheduledcourse_set.filter(work_copy=work_copy).exists():
+                        continue
+                    sched_course1 = c1.scheduledcourse_set.get(work_copy=work_copy)
+                    sched_course2 = c2.scheduledcourse_set.get(work_copy=work_copy)
+                    if sched_course2.start_time <= sched_course1.start_time \
+                        or (sched_course2.start_time.date - sched_course1.start_time.date).days < self.day_gap:
+                        dependency_not_satisfied_for.append(c1)
         assert not dependency_not_satisfied_for, f"Following courses do not respect global dependency :{dependency_not_satisfied_for}"
 
 
@@ -808,7 +813,7 @@ class AvoidBothTimesSameDay(TTConstraint):
 
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.wdb.days, period=period)
         slots1 = set([slot for slot in ttmodel.wdb.courses_slots
                       if slot.start_time.time() <= self.time1 < slot.end_time.time()])

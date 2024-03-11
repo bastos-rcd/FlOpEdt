@@ -41,7 +41,6 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TTConstraints.TTConstraint import TTConstraint
-from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from TTapp.slots import Slot
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
 from django.utils.translation import gettext_lazy as _
@@ -71,7 +70,7 @@ class GroupsLunchBreak(TTConstraint):
         return attributes
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, weekday_in=self.weekdays)
@@ -126,7 +125,7 @@ class GroupsLunchBreak(TTConstraint):
         if self.weekdays:
             considered_dates = days_filter(considered_dates, day_in=self.weekdays)
         no_lunch_dates = []
-        for basic_group in considered_basic_groups(self, period):
+        for basic_group in self.considered_basic_groups():
             group_considered_scheduled_courses = considered_scheduled_courses.filter(course__groups__in=basic_group.and_ancestors())
             for date in considered_dates:
                 is_ok = False
@@ -373,7 +372,7 @@ class BreakAroundCourseType(TTConstraint):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1000):
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)

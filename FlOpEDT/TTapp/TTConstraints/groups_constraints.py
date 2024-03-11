@@ -118,7 +118,7 @@ class MinGroupsHalfDays(TTConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         helper = MinHalfDaysHelperGroup(ttmodel, self, period, ponderation)
-        for group in considered_basic_groups(self, ttmodel):
+        for group in self.considered_basic_groups(ttmodel):
             helper.enrich_model(group=group)
 
     def get_viewmodel(self):
@@ -240,7 +240,7 @@ class GroupsMinHoursPerDay(TTConstraint):
         """
         avoid situations in which a teaching day has less hours than time
         """
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
 
         min_time = self.min_time
         if not min_time:

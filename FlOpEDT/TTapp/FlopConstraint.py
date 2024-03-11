@@ -200,9 +200,11 @@ class FlopConstraint(models.Model):
     def considered_courses(self, period, flopmodel=None):
         return self.get_courses_queryset_by_attributes(period, flopmodel)
 
-    def considered_train_progs(self, ttmodel):
-        train_progs = set(ttmodel.train_prog)
+    def considered_train_progs(self, flopmodel=None):
+        train_progs = set(flopmodel.train_prog)
         if hasattr(self, "train_progs"):
             if self.train_progs.exists():
                 train_progs &= set(self.train_progs.all())
         return train_progs
+
+

@@ -34,7 +34,6 @@ from TTapp.slots import slots_filter, days_filter
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
-from .groups_constraints import considered_basic_groups
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
@@ -100,16 +99,16 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
             ttmodel.add_constraint(self.considered_sum(ttmodel, period),
                                    '==', 0,
                                    Constraint(constraint_type=ConstraintType.NO_GROUP_COURSE_ON_WEEKDAY, periods=period,
-                                              groups=considered_basic_groups(self, ttmodel)))
+                                              groups=self.considered_basic_groups(ttmodel)))
         else:
             ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, period), period)
 
     def considered_courses(self, ttmodel):
         if self.transversal_groups_included:
-            c_c = set(c for g in considered_basic_groups(self, ttmodel)
+            c_c = set(c for g in self.considered_basic_groups(ttmodel)
                       for c in ttmodel.wdb.all_courses_for_basic_group[g])
         else:
-            c_c = set(c for g in considered_basic_groups(self, ttmodel)
+            c_c = set(c for g in self.considered_basic_groups(ttmodel)
                       for c in ttmodel.wdb.courses_for_basic_group[g])
         if self.course_types.exists():
             c_c = set(c for c in c_c

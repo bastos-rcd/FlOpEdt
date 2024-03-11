@@ -43,7 +43,6 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext
 from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import (
-    considered_basic_groups,
     pre_analysis_considered_basic_groups,
 )
 from base.models import Course, UserAvailability, Holiday
@@ -284,7 +283,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         relevant_slots = slots_filter(ttmodel.wdb.availability_slots, period=period)
-        relevant_basic_groups = considered_basic_groups(self, ttmodel)
+        relevant_basic_groups = self.considered_basic_groups(ttmodel)
         # Count the number of transversal groups
         if ttmodel.wdb.transversal_groups.exists():
             n_tg = ttmodel.wdb.transversal_groups.count()
@@ -369,7 +368,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
     
     def is_satisfied_for(self, period, work_copy):
         relevant_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
-        relevant_basic_groups = considered_basic_groups(self)
+        relevant_basic_groups = self.considered_basic_groups()
         problematic_groups = []
         for bg in relevant_basic_groups:
             bg_scheduled_courses = relevant_scheduled_courses.filter(course__groups__in=bg.and_ancestors())
@@ -474,7 +473,7 @@ class AssignAllCourses(TTConstraint):
 
     def no_tutor_courses(self, courses):
         result_courses = courses
-        relevant_basic_groups = considered_basic_groups(self)
+        relevant_basic_groups = self.considered_basic_groups()
         result_courses = set(
             c
             for bg in relevant_basic_groups
