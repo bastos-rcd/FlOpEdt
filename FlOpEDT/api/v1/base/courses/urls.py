@@ -36,8 +36,11 @@ routerCourse.register(
     basename="scheduled_courses",
 )
 
+routerCourse.register(r"module", courses_views.ModuleViewSet, basename="module")
+routerCourse.register(
+    r"module-full", courses_views.ModuleFullViewSet, basename="module-full"
+)
+routerCourse.register(
+    "version", courses_views.EdtVersionViewSet, basename="edt-version"
+)
 routerCourse.register(r"rooms", courses_views.RoomsViewSet, basename="rooms")
-routerCourse.register(r"modules", courses_views.ModulesViewSet, basename="modules")
-# routerCourse.register(
-#     "version", courses_views.EdtVersionViewSet, basename="edt-version"
-# )

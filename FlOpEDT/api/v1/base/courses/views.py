@@ -248,30 +248,6 @@ class ScheduledCoursesHumanParamViewSet(ScheduledCoursesJoinedViewSet):
         return serializer.validated_data
 
 
-class RoomFilterSet(filters.FilterSet):
-    permission_classes = [IsAdminOrReadOnly]
-
-    dept = filters.CharFilter(field_name="departments__abbrev", required=False)
-
-    class Meta:
-        model = bm.Room
-        fields = ["dept"]
-
-
-class RoomsViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet to see all the rooms.
-
-    Can be filtered as wanted with parameter="dept"[required] of a Room object, with the function RoomsFilterSet
-    """
-
-    permission_classes = [permissions.DjangoModelPermissions]
-
-    queryset = bm.Room.objects.all()
-    serializer_class = serializers.RoomsSerializer
-    filterset_class = RoomFilterSet
-
-
 class ModuleQueryParamSerializer(rf_s.Serializer):
     dept_id = rf_s.IntegerField(required=False)
     train_prog_id = rf_s.IntegerField(required=False)
@@ -328,3 +304,53 @@ class ModuleViewSet(ModuleMixinViewSet, viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = serializers.ModulesSerializer
+
+
+class EdtVersionQueryParamsSerializer(rf_s.Serializer):
+    from_date = rf_s.DateField()
+    to_date = rf_s.DateField()
+    dept_id = rf_s.IntegerField(required=False)
+    work_copy_nb = rf_s.IntegerField(required=False)
+
+
+@extend_schema(parameters=[EdtVersionQueryParamsSerializer])
+class EdtVersionViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = serializers.EdtVersionSerializer
+
+    def get_queryset(self):
+        qp_serializer = EdtVersionQueryParamsSerializer(data=self.request.query_params)
+        qp_serializer.is_valid(raise_exception=True)
+        params = qp_serializer.validated_data
+
+        params["period__start_date__gte"] = params.pop("from_date")
+        params["period__end_date__lte"] = params.pop("to_date")
+        if "dept_id" in params:
+            params["department__id"] = params.pop("dept_id")
+        if "work_copy_nb" in params:
+            params["work_copy"] = params.pop["work_copy_nb"]
+
+        return bm.EdtVersion.objects.filter(**params).select_related("period")
+
+
+class RoomFilterSet(filters.FilterSet):
+    permission_classes = [IsAdminOrReadOnly]
+
+    dept = filters.CharFilter(field_name="departments__abbrev", required=False)
+
+    class Meta:
+        model = bm.Room
+        fields = ["dept"]
+
+
+class RoomsViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the rooms.
+
+    Can be filtered as wanted with parameter="dept"[required] of a Room object, with the function RoomsFilterSet
+    """
+
+    permission_classes = [permissions.DjangoModelPermissions]
+
+    queryset = bm.Room.objects.all()
+    serializer_class = serializers.RoomsSerializer
+    filterset_class = RoomFilterSet
