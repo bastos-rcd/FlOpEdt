@@ -18,7 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 from base.models.rooms import Room
 from base.models.groups import Department
 from base.models.availability import UserAvailability
-from people.models import Tutor, User
+from people.models import Tutor, User, FullStaff
 
 
 from .factories.availability import UserIUTEveningFactory, UserIUTMorningFactory
@@ -324,6 +324,19 @@ class TestListUserAvailabilityDefault:
     def test_tutor_creation(self, client, make_default_week_user):
         user = User.objects.first()
         tutor = Tutor.objects.create(username="tutor")
+        user_av = UserAvailability.objects.filter(user=user).order_by("start_time")
+        tutor_av = UserAvailability.objects.filter(user=tutor).order_by("start_time")
+        assert len(user_av) == len(tutor_av)
+        for ua, ta in zip(user_av, tutor_av):
+            assert (
+                ua.start_time == ta.start_time
+                and ua.duration == ta.duration
+                and ua.value == ta.value
+            )
+
+    def test_tutor_subclass_creation(self, client, make_default_week_user):
+        user = User.objects.first()
+        tutor = FullStaff.objects.create(username="fs")
         user_av = UserAvailability.objects.filter(user=user).order_by("start_time")
         tutor_av = UserAvailability.objects.filter(user=tutor).order_by("start_time")
         assert len(user_av) == len(tutor_av)

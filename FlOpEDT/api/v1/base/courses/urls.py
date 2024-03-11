@@ -23,8 +23,21 @@
 from rest_framework import routers
 from api.v1.base.courses import views as courses_views
 
-routerCourses = routers.SimpleRouter()
+routerCourse = routers.SimpleRouter()
 
-routerCourses.register(r'scheduled_courses', courses_views.ScheduledCoursesViewSet, basename="scheduled_courses")
-routerCourses.register(r'rooms', courses_views.RoomsViewSet, basename="rooms")
-routerCourses.register(r'modules', courses_views.ModulesViewSet, basename="modules")
+routerCourse.register(
+    r"scheduled_courses",
+    courses_views.ScheduledCoursesFullParamViewSet,
+    basename="scheduled_courses",
+)
+routerCourse.register(
+    r"scheduled_courses__human",
+    courses_views.ScheduledCoursesHumanParamViewSet,
+    basename="scheduled_courses",
+)
+
+routerCourse.register(r"rooms", courses_views.RoomsViewSet, basename="rooms")
+routerCourse.register(r"modules", courses_views.ModulesViewSet, basename="modules")
+# routerCourse.register(
+#     "version", courses_views.EdtVersionViewSet, basename="edt-version"
+# )

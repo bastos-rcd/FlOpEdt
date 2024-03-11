@@ -32,9 +32,9 @@ from base.models import UserAvailability
 import datetime as dt
 
 
-@receiver(post_save, sender=Tutor)
+@receiver(post_save)
 def create_tutor_default_availability(sender, instance, created, **kwargs):
-    if created:
+    if isinstance(instance, Tutor) and created:
         for d in range(1, 8):
             UserAvailability.objects.create(
                 user=instance,
