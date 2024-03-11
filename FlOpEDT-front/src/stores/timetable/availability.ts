@@ -61,7 +61,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function availabilityToAvailabilityBack(availability: Availability): AvailabilityBack {
-    let startCopy = copyTimestamp(availability.start)
     let newAvailabilityBack: AvailabilityBack = {
       start_time: timestampToDate(availability.start).toISOString(),
       duration: durationMinutesToDjango(availability.duration),

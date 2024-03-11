@@ -15,7 +15,6 @@ import {
 } from '@/ts/type'
 
 import { dateToString, buildUrl } from '@/helpers'
-import { parseTimestamp } from '@quasar/quasar-ui-qcalendar'
 
 const API_ENDPOINT = '/fr/api/'
 

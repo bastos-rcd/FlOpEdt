@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { CalendarColumn } from '@/components/calendar/declaration'
 import Calendar from '@/components/calendar/Calendar.vue'
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount, onMounted, ref, watch } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
@@ -138,10 +138,16 @@ onBeforeMount(async () => {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
   }
-  fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
-  fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
   groupStore.fetchGroups(deptStore.current)
+})
+
+onBeforeMount(() => {
+  let todayDate: Timestamp = updateFormatted(parsed(today()))
+  monday.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
+  sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
+  fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
+  fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
 })
 </script>
 
