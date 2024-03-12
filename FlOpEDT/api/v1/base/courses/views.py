@@ -318,6 +318,7 @@ class EdtVersionQueryParamsSerializer(rf_s.Serializer):
 @extend_schema(parameters=[EdtVersionQueryParamsSerializer])
 class EdtVersionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.EdtVersionSerializer
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         qp_serializer = EdtVersionQueryParamsSerializer(data=self.request.query_params)
