@@ -21,7 +21,7 @@ class TestEdtVersion:
     def test_filter_dept(self):
         pass
 
-    def test_perm_everybody_allowed(self, client, make_users):
+    def test_perm_read_everybody_allowed(self, client, make_users):
         min_param = {"from_date": "2024-01-01", "to_date": "2025-01-01"}
         response = client.get(self.endpoint, min_param)
         assert is_success(response.status_code), response.content

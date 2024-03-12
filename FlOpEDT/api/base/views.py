@@ -144,18 +144,6 @@ class SchedulingPeriodsViewSet(viewsets.ModelViewSet):
 # - MODIFICATIONS -
 # -----------------
 
-class EdtVersionsViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet to see all the scheduler version.
-
-    Can be filtered as wanted with every field of a EDTVersion object.
-    """
-
-    queryset = bm.EdtVersion.objects.all()
-    serializer_class = serializers.EdtVersionSerializer
-
-    filterset_fields = '__all__'
-
 
 class CourseModificationsViewSet(viewsets.ModelViewSet):
     """

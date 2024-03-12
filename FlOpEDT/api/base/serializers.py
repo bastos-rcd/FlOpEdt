@@ -69,11 +69,6 @@ class SchedulingPeriodsSerializer(serializers.ModelSerializer):
 # - MODIFICATIONS -
 # -----------------
 
-class EdtVersionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = bm.EdtVersion
-        fields = '__all__'
-
 
 class CourseModificationsSerializer(serializers.ModelSerializer):
     class Meta:
