@@ -26,6 +26,7 @@ from django.urls import path, re_path, include
 from api.v1.base.urls import url_base_patterns
 from api.v1.people.urls import url_people_patterns
 from api.v1.availability.urls import routerAvailability
+from api.v1.constraint.urls import url_constraint_patterns
 
 url_V1_patterns = [
     path("base/", include((url_base_patterns, "api"), namespace="base")),
@@ -33,5 +34,8 @@ url_V1_patterns = [
     path(
         "availability/",
         include((routerAvailability.urls, "api"), namespace="availability"),
+    ),
+    path(
+        "constraint/", include((url_constraint_patterns, "api"), namespace="constraint")
     ),
 ]

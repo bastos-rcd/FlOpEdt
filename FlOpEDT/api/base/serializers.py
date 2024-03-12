@@ -113,13 +113,7 @@ class GroupFreeHalfDaysSerializer(serializers.ModelSerializer):
 class DependenciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Dependency
-        fields = '__all__'
-
-
-class CourseStartTimeConstraintsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = bm.CourseStartTimeConstraint
-        fields = '__all__'
+        fields = "__all__"
 
 
 class RegensSerializer(serializers.ModelSerializer):
