@@ -50,16 +50,17 @@ class DepartmentViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Department object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = bm.Department.objects.all()
     serializer_class = serializers.DepartmentSerializer
 
 
-
 # ------------
 # -- TIMING --
 # ------------
+
 
 class HolidaysViewSet(viewsets.ModelViewSet):
     """
@@ -67,9 +68,10 @@ class HolidaysViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Holidays object.
     """
+
     queryset = bm.Holiday.objects.all()
     serializer_class = serializers.HolidaysSerializer
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class TrainingHalfDaysViewSet(viewsets.ModelViewSet):
@@ -78,10 +80,11 @@ class TrainingHalfDaysViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a TrainingHalfDay object.
     """
+
     queryset = bm.TrainingHalfDay.objects.all()
     serializer_class = serializers.TrainingHalfDaysSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class PeriodsViewSet(viewsets.ModelViewSet):
@@ -98,11 +101,11 @@ class PeriodsViewSet(viewsets.ModelViewSet):
 
 
 class TimeGeneralFilter(filters.FilterSet):
-    days = filters.CharFilter(lookup_expr='icontains')
+    days = filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = bm.TimeGeneralSettings
-        fields = ('department', 'days')
+        fields = ("department", "days")
 
 
 class TimeGeneralSettingsViewSet(viewsets.ModelViewSet):
@@ -111,6 +114,7 @@ class TimeGeneralSettingsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with parameter="days" of a TimeGeneralSetting object by calling the function TimeGeneralFilter
     """
+
     queryset = bm.TimeGeneralSettings.objects.all()
     serializer_class = serializers.TimeGeneralSettingsSerializer
 
@@ -120,7 +124,7 @@ class TimeGeneralSettingsViewSet(viewsets.ModelViewSet):
 class SchedulingPeriodsFilter(filters.FilterSet):
     class Meta:
         model = bm.SchedulingPeriod
-        fields = ('start_date',)
+        fields = ("start_date",)
 
 
 class SchedulingPeriodsViewSet(viewsets.ModelViewSet):
@@ -129,6 +133,7 @@ class SchedulingPeriodsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Department object.
     """
+
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = bm.SchedulingPeriod.objects.all()
@@ -151,10 +156,11 @@ class CourseModificationsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a CourseModification object.
     """
+
     queryset = bm.CourseModification.objects.all()
     serializer_class = serializers.CourseModificationsSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
     permission_classes = [IsAdminOrReadOnly]
 
@@ -163,16 +169,18 @@ class CourseModificationsViewSet(viewsets.ModelViewSet):
 # -- COSTS --
 # -----------
 
+
 class TutorCostsViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the tutor costs.
 
     Can be filtered as wanted with every field of a TutorCost object.
     """
+
     queryset = bm.TutorCost.objects.all()
     serializer_class = serializers.TutorCostsSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class GroupCostsViewSet(viewsets.ModelViewSet):
@@ -181,10 +189,11 @@ class GroupCostsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a GroupCost object.
     """
+
     queryset = bm.GroupCost.objects.all()
     serializer_class = serializers.GroupCostsSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 class GroupFreeHalfDaysViewSet(viewsets.ModelViewSet):
@@ -193,15 +202,17 @@ class GroupFreeHalfDaysViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a GroupFreeHalfDay object.
     """
+
     queryset = bm.GroupFreeHalfDay.objects.all()
     serializer_class = serializers.GroupFreeHalfDaysSerializer
 
-    filterset_fields = '__all__'
+    filterset_fields = "__all__"
 
 
 # ----------
 # -- MISC --
 # ----------
+
 
 class DependenciesViewSet(viewsets.ModelViewSet):
     """
@@ -209,42 +220,19 @@ class DependenciesViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Dependency object.
     """
+
     queryset = bm.Dependency.objects.all()
     serializer_class = serializers.DependenciesSerializer
 
-    filterset_fields = '__all__'
-
-
-class CoureStartTimeFilter(filters.FilterSet):
-    """
-    Custom filter for ArrayField allowed_start_times
-    """
-    allowed_start_times = filters.CharFilter(lookup_expr='icontains')
-
-    class Meta:
-        model = bm.CourseStartTimeConstraint
-        fields = ('department', 'allowed_start_times')
-
-
-class CourseStartTimeConstraintsViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet to see all the courses start time constraints.
-
-    Can be filtered as wanted with "allowed_start_times"
-    of a CourseStartTime object by using the function CoureStartTimeFilter
-    """
-    queryset = bm.CourseStartTimeConstraint.objects.all()
-    serializer_class = serializers.CourseStartTimeConstraintsSerializer
-
-    filterset_class = CoureStartTimeFilter
+    filterset_fields = "__all__"
 
 
 class RegenFilterSet(filters.FilterSet):
-    dept = filters.CharFilter(field_name='department__abbrev', required=True)
+    dept = filters.CharFilter(field_name="department__abbrev", required=True)
 
     class Meta:
         model = bm.Regen
-        fields = ['dept']
+        fields = ["dept"]
 
 
 class RegensViewSet(viewsets.ModelViewSet):
@@ -254,19 +242,20 @@ class RegensViewSet(viewsets.ModelViewSet):
     Can be filtered as wanted with "year"[required] / "week"[required] / "dept"[required]
     of a Regen object by calling the function RegensFilterSet
     """
+
     queryset = bm.Regen.objects.all()
     serializer_class = serializers.RegensSerializer
     filterset_class = RegenFilterSet
 
 
 class LoginView(TemplateView):
-    template_name = 'login.html'
-    queryset = ''
+    template_name = "login.html"
+    queryset = ""
     serializer_class = serializers.LoginSerializer
 
     def post(self, request, **kwargs):
-        username = request.POST.get('username', False)
-        password = request.POST.get('password', False)
+        username = request.POST.get("username", False)
+        password = request.POST.get("password", False)
         user = authenticate(username=username, password=password)
         if user is not None and user.is_active:
             login(request, user)
@@ -279,8 +268,8 @@ class LoginView(TemplateView):
 
 
 class LogoutView(TemplateView):
-    template_name = 'login.html'
-    queryset = ''
+    template_name = "login.html"
+    queryset = ""
     serializer_class = serializers.LogoutSerializer
 
     def get(self, request, **kwargs):
@@ -296,18 +285,20 @@ class LogoutView(TemplateView):
 # --- OTHERS ----
 # ---------------
 
+
 class TrainingProgrammeFilterSet(filters.FilterSet):
-    dept = filters.CharFilter(field_name='department__abbrev', required=True)
+    dept = filters.CharFilter(field_name="department__abbrev", required=True)
 
     class Meta:
         model = bm.TrainingProgramme
-        fields = ['dept']
+        fields = ["dept"]
 
 
 class TrainingProgrammeNameViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet to see all the training programs
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = bm.TrainingProgramme.objects.all()
     serializer_class = serializers.TrainingProgrammeNameSerializer
@@ -318,6 +309,7 @@ class TrainingProgrammeViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the training programs
     """
+
     permission_classes = [IsAdminOrReadOnly]
     queryset = bm.TrainingProgramme.objects.all()
     serializer_class = serializers.TrainingProgrammeSerializer
@@ -326,11 +318,8 @@ class TrainingProgrammeViewSet(viewsets.ModelViewSet):
 
 class ContactView(APIView):
 
-    #permission_classes = [IsAuthenticated]
-    
-    def post(
-        self,
-        request
-    ):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request):
         # Need to retrieve the current department
-        return redirect('/contact/INFO')
+        return redirect("/contact/INFO")

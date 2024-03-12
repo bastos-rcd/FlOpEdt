@@ -29,23 +29,24 @@ from rest_framework import serializers
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Department
-        fields = '__all__'
+        fields = "__all__"
 
 
 # ------------
 # -- TIMING --
 # ------------
 
+
 class HolidaysSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Holiday
-        fields = '__all__'
+        fields = "__all__"
 
 
 class TrainingHalfDaysSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TrainingHalfDay
-        fields = '__all__'
+        fields = "__all__"
 
 
 class TrainingPeriodSerializer(serializers.ModelSerializer):
@@ -57,13 +58,14 @@ class TrainingPeriodSerializer(serializers.ModelSerializer):
 class TimeGeneralSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TimeGeneralSettings
-        fields = '__all__'
+        fields = "__all__"
 
 
 class SchedulingPeriodsSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.SchedulingPeriod
-        fields = '__all__'
+        fields = "__all__"
+
 
 # -----------------
 # - MODIFICATIONS -
@@ -73,29 +75,30 @@ class SchedulingPeriodsSerializer(serializers.ModelSerializer):
 class CourseModificationsSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.CourseModification
-        fields = '__all__'
+        fields = "__all__"
 
 
 # -----------
 # -- COSTS --
 # -----------
 
+
 class TutorCostsSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TutorCost
-        fields = '__all__'
+        fields = "__all__"
 
 
 class GroupCostsSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.GroupCost
-        fields = '__all__'
+        fields = "__all__"
 
 
 class GroupFreeHalfDaysSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.GroupFreeHalfDay
-        fields = '__all__'
+        fields = "__all__"
 
 
 #                                  --------------------                                 #
@@ -105,6 +108,7 @@ class GroupFreeHalfDaysSerializer(serializers.ModelSerializer):
 # ----------
 # -- MISC --
 # ----------
+
 
 class DependenciesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -121,18 +125,19 @@ class CourseStartTimeConstraintsSerializer(serializers.ModelSerializer):
 class RegensSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Regen
-        fields = '__all__'
+        fields = "__all__"
+
 
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.User
-        fields = '__all__'
+        fields = "__all__"
 
 
 class LogoutSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.User
-        fields = '__all__'
+        fields = "__all__"
 
 
 #                                -------------------------                              #
@@ -145,7 +150,7 @@ class TrainingProgrammeNameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = bm.TrainingProgramme
-        fields = ['abbrev']
+        fields = ["abbrev"]
 
 
 class TrainingProgrammeSerializer(serializers.ModelSerializer):
@@ -153,10 +158,10 @@ class TrainingProgrammeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = bm.TrainingProgramme
-        fields = ['abbrev', 'name']
+        fields = ["abbrev", "name"]
 
 
 class TrainingProgramsSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.TrainingProgramme
-        fields = '__all__'
+        fields = "__all__"

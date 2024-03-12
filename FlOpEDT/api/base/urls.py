@@ -30,26 +30,31 @@ routerBase = routers.SimpleRouter()
 # routerBase.register(r'groupspreferences', views.GroupPreferencesViewSet)
 
 # routerBase.register(r'departments', views.DepartmentViewSet)
-routerBase.register(r'trainingprogram/name', views.TrainingProgrammeNameViewSet, basename='trainingprogramme-name')
+routerBase.register(
+    r"trainingprogram/name",
+    views.TrainingProgrammeNameViewSet,
+    basename="trainingprogramme-name",
+)
 # routerBase.register(r'trainingprogram', views.TrainingProgrammeViewSet)
 # routerBase.register(r'holidays', views.HolidaysViewSet)
 # routerBase.register(r'traininghalfdays', views.TrainingHalfDaysViewSet)
 # routerBase.register(r'periods', views.PeriodsViewSet)
-routerBase.register(r'timesettings', views.TimeGeneralSettingsViewSet, basename='timesettings')
-routerBase.register(r'weeks', views.SchedulingPeriodsViewSet, basename='weeks')
-routerBase.register(r'periods', views.SchedulingPeriodsViewSet, basename='periods')
+routerBase.register(
+    r"timesettings", views.TimeGeneralSettingsViewSet, basename="timesettings"
+)
+routerBase.register(r"weeks", views.SchedulingPeriodsViewSet, basename="weeks")
+routerBase.register(r"periods", views.SchedulingPeriodsViewSet, basename="periods")
 # routerBase.register(r'edtversions', views.EdtVersionsViewSet)
 # routerBase.register(r'coursemodifications', views.CourseModificationsViewSet)
 # routerBase.register(r'tutorcosts', views.TutorCostsViewSet)
 # routerBase.register(r'groupcosts', views.GroupCostsViewSet)
 # routerBase.register(r'CourseStartTimeFilter', views.GroupFreeHalfDaysViewSet)
 # routerBase.register(r'dependencies', views.DependenciesViewSet)
-# routerBase.register(r'coursesstarttimeconstraints', views.CourseStartTimeConstraintsViewSet)
 # routerBase.register(r'regens', views.RegensViewSet)
 # routerBase.register(r'login', views.LoginView, basename="login")
 # routerBase.register(r'logout', views.LogoutView, basename="logout")
 url_base_patterns = [
-    path(r'contact', views.ContactView.as_view(), name='contactMail'),
+    path(r"contact", views.ContactView.as_view(), name="contactMail"),
 ]
 
 url_base_patterns += routerBase.urls
