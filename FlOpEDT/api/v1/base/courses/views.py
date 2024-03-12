@@ -321,6 +321,9 @@ class EdtVersionViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return bm.EdtVersion.objects.none()
+
         qp_serializer = EdtVersionQueryParamsSerializer(data=self.request.query_params)
         qp_serializer.is_valid(raise_exception=True)
         params = qp_serializer.validated_data
