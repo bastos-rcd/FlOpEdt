@@ -22,9 +22,9 @@
 # without disclosing the source code of your own applications.
 from django.urls import path, re_path, include
 from api.v1.base.courses.urls import routerCourse
-from api.v1.base.groups.urls import routerGroups
+from api.v1.base.groups.urls import routerGroup
 
 url_base_patterns = [
     path("courses/", include((routerCourse.urls, "api"), namespace="course")),
-    path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
+    path("groups/", include((routerGroup.urls, "api"), namespace="groups")),
 ]
