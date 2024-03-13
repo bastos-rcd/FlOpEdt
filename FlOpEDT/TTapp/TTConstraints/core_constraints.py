@@ -344,7 +344,7 @@ class AssignAllCourses(TTConstraint):
         verbose_name_plural = verbose_name
 
     def no_tutor_courses(self, courses):
-        result_courses = courses
+        result_courses = set(c for c in courses if c.tutor is None)
         relevant_basic_groups = considered_basic_groups(self)
         result_courses = set(c for bg in relevant_basic_groups
                              for c in result_courses if bg.and_ancestors() & set(c.groups.all()))
@@ -362,8 +362,10 @@ class AssignAllCourses(TTConstraint):
             no_tutor_courses = set(c for c in considered_courses if c.tutor is None)
             considered_courses = set(c for c in considered_courses if c.tutor is not None)
         if self.modules.exists():
+            no_tutor_courses = set(c for c in no_tutor_courses if c.module in self.modules.all())
             considered_courses = set(c for c in considered_courses if c.module in self.modules.all())
         if self.course_types.exists():
+            no_tutor_courses = set(c for c in no_tutor_courses if c.type in self.course_types.all())
             considered_courses = set(c for c in considered_courses if c.type in self.course_types.all())
         for c in considered_courses:
             for sl in ttmodel.wdb.compatible_slots[c]:
