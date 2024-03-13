@@ -358,15 +358,13 @@ class AssignAllCourses(TTConstraint):
         relevant_basic_groups = considered_basic_groups(self, ttmodel)
         considered_courses = set(c for bg in relevant_basic_groups
                                  for c in ttmodel.wdb.all_courses_for_basic_group[bg])
+        if self.modules.exists():
+            considered_courses = set(c for c in considered_courses if c.module in self.modules.all())
+        if self.course_types.exists():
+            considered_courses = set(c for c in considered_courses if c.type in self.course_types.all())
         if self.pre_assigned_only:
             no_tutor_courses = set(c for c in considered_courses if c.tutor is None)
             considered_courses = set(c for c in considered_courses if c.tutor is not None)
-        if self.modules.exists():
-            no_tutor_courses = set(c for c in no_tutor_courses if c.module in self.modules.all())
-            considered_courses = set(c for c in considered_courses if c.module in self.modules.all())
-        if self.course_types.exists():
-            no_tutor_courses = set(c for c in no_tutor_courses if c.type in self.course_types.all())
-            considered_courses = set(c for c in considered_courses if c.type in self.course_types.all())
         for c in considered_courses:
             for sl in ttmodel.wdb.compatible_slots[c]:
                 relevant_sum = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
