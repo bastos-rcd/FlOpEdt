@@ -61,7 +61,7 @@ const course = ref<Course>()
 onBeforeMount(async () => {
   // Need to fetch room, tutor, module, groups
   course.value = courseStore.getCourse(props.eventObjectId)
-  if (course) {
+  if (course.value) {
     courseModule.value = await permanentStore.getModule(course.value!.module)
     courseRoom.value = await roomStore.getRoomById(course.value!.room)
     courseTutor.value = await tutorStore.getTutorById(course.value!.tutorId)

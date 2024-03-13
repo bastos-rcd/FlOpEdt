@@ -16,7 +16,8 @@
       <Calendar
         v-model:events="calendarEvents"
         :columns="columnsToDisplay"
-        @dragstart="setCurrentScheduledCourse"
+        :dropzones="dropzonesToDisplay"
+        @dragstart="onDragStart"
         @update:week="changeDate"
         :end-of-day-hours="endOfDay"
         :workcopy="workcopySelected"
@@ -26,9 +27,9 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarColumn } from '@/components/calendar/declaration'
+import { CalendarColumn, CalendarEvent } from '@/components/calendar/declaration'
 import Calendar from '@/components/calendar/Calendar.vue'
-import { computed, onBeforeMount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
@@ -49,11 +50,11 @@ import { useRoomStore } from '@/stores/timetable/room'
 import { Group } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
-import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useAuth } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
 import { useEventStore } from '@/stores/display/event'
 import SidePanel from '@/components/SidePanel.vue'
+import { createDropzonesForEvent } from '@/components/calendar/utilitary'
 /**
  * Data translated to be passed to components
  */
@@ -78,13 +79,13 @@ const authStore = useAuth()
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const availabilityStore = useAvailabilityStore()
-const permanentStore = usePermanentStore()
 const { columns } = storeToRefs(columnStore)
 const { daysSelected, calendarEvents } = storeToRefs(eventStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const { tutors } = storeToRefs(tutorStore)
 const { fetchedStructuralGroups } = storeToRefs(groupStore)
 const selectedGroups = ref<Group[]>([])
+const dropzonesToDisplay = ref<CalendarEvent[]>([])
 const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()
 const endOfDay = 19
@@ -99,9 +100,8 @@ watch(workcopySelected, () => {
   console.log(workcopySelected.value)
 })
 
-const currentScheduledCourseId = ref<number | null>(null)
-function setCurrentScheduledCourse(scheduledCourseId: number) {
-  currentScheduledCourseId.value = scheduledCourseId
+function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
+  dropzonesToDisplay.value = createDropzonesForEvent(eventId, allEvents, 7 * 60, endOfDay * 60, 900, 6)
 }
 
 function fetchScheduledCurrentWeek(from: Date, to: Date) {

@@ -78,7 +78,11 @@
                 @mousedown="onMouseDown($event, event.id)"
                 @mouseup="onMouseUp()"
               >
-                <slot name="event" :event="event" v-if="event.data.dataType !== 'avail'">
+                <slot
+                  name="event"
+                  :event="event"
+                  v-if="event.data.dataType !== 'avail' && event.data.dataType !== 'dropzone'"
+                >
                   <edit-event :event-object-id="event.data.dataId">
                     <template v-slot:trigger>
                       <CourseCard :event-id="event.data.dataId" />
@@ -128,7 +132,7 @@ import {
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
-import { forEach, includes, concat, cloneDeep, remove, sortBy, find, sumBy, filter } from 'lodash'
+import { forEach, includes, cloneDeep, remove, sortBy, find, sumBy, filter } from 'lodash'
 
 import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 
@@ -175,7 +179,7 @@ const { locale } = useI18n({ useScope: 'global' })
  */
 const props = defineProps<{
   events: InputCalendarEvent[]
-  dropzones?: InputCalendarEvent[]
+  dropzones?: CalendarEvent[]
   columns: CalendarColumn[]
   endOfDayHours: number
   step?: number
@@ -183,7 +187,7 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  (e: 'dragstart', id: number): void
+  (e: 'dragstart', id: number, allEvents: CalendarEvent[]): void
   (e: 'update:events', value: InputCalendarEvent[]): void
   (e: 'update:week', value: Timestamp): void
   (e: 'weekdays', value: number[]): void
@@ -273,7 +277,6 @@ const eventsByDate = computed(() => {
   forEach(props.columns, (c, i) => {
     columnIndexes[c.id] = i
   })
-  if (props.dropzones) allEvents = concat(allEvents, props.dropzones)
   allEvents.forEach((event) => {
     const newEvent = cloneDeep(event)
     let columnIds = newEvent.columnIds
@@ -330,6 +333,10 @@ const eventsByDate = computed(() => {
     newEvents.push(cnewEvent as CalendarEvent)
   })
   const newEventsUpdated: CalendarEvent[] = updateEventsOverlap(newEvents)
+  if (props.dropzones)
+    props.dropzones.forEach((dz) => {
+      newEventsUpdated.push(dz)
+    })
   // sort by date
   newEventsUpdated.forEach((event) => {
     if (!map.has(event.data.start.date)) {
@@ -379,7 +386,7 @@ const eventsModel = computed({
 /**
  * Only returns the dropZone with the same ID as the event dragged
  */
-const dropZoneToDisplay = computed((): InputCalendarEvent[] | undefined => {
+const dropZoneToDisplay = computed((): CalendarEvent[] | undefined => {
   return filter(
     props.dropzones,
     (e) =>
@@ -461,11 +468,21 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
   eventDragged.value = cloneDeep(event)
-  emits('dragstart', event.data.dataId)
+  emits('dragstart', event.id, getAllEvents())
   if (!browserEvent.dataTransfer) return
   browserEvent.dataTransfer.dropEffect = 'copy'
   browserEvent.dataTransfer.effectAllowed = 'move'
   browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
+}
+
+function getAllEvents(): CalendarEvent[] {
+  const allEvents: CalendarEvent[] = []
+  eventsByDate.value.forEach((events: CalendarEvent[], date: string) => {
+    events.forEach((ev) => {
+      if (ev.data.dataType === 'event') allEvents.push(ev)
+    })
+  })
+  return allEvents
 }
 
 function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp }): boolean {

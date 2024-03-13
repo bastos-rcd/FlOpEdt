@@ -1,6 +1,14 @@
-import { cloneDeep, intersection } from 'lodash'
+import { cloneDeep, concat, drop, intersection } from 'lodash'
 import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
-import { TimestampOrNull, copyTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import {
+  TimestampOrNull,
+  copyTimestamp,
+  nextDay,
+  parseTime,
+  prevDay,
+  updateFormatted,
+  updateMinutes,
+} from '@quasar/quasar-ui-qcalendar'
 import { diffTimestamp } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
 export const STEP_DEFAULT: number = 15
@@ -92,32 +100,73 @@ export function areEventsOverlapped(event1: CalendarEvent, event2: CalendarEvent
   return sameColumns && timeOverlap
 }
 
+export function createDropzonesForEvent(
+  eventId: number,
+  allEvents: CalendarEvent[],
+  dayStartTime: number,
+  dayEndTime: number,
+  newId: number,
+  lastDayOfWeek: number = 6
+): CalendarEvent[] {
+  const dropzones: CalendarEvent[] = []
+  const event = allEvents.find((ev) => ev.id === eventId)
+  if (event) {
+    createDropzonesOnTimes(event, allEvents, dayStartTime, dayEndTime, newId, lastDayOfWeek).forEach((dz) => {
+      dropzones.push(dz)
+    })
+  }
+  return dropzones
+}
+
 /*
  ** dayStartTime && dayEndTime = minutes since midnight
  **
  */
-export function createDropZonesOnTimes(
-  event: InputCalendarEvent,
+export function createDropzonesOnTimes(
+  event: CalendarEvent,
+  allEvents: CalendarEvent[],
   dayStartTime: number,
   dayEndTime: number,
-  newId: number
-): InputCalendarEvent[] {
-  const dropZones: InputCalendarEvent[] = []
+  newId: number,
+  lastDayOfWeek: number = 6
+): CalendarEvent[] {
+  const dropZones: CalendarEvent[] = []
   let startTime = copyTimestamp(event.data.start)
-  updateMinutes(startTime, dayStartTime)
-  if (event.data.duration) {
-    while (parseTime(startTime) + event.data.duration <= dayEndTime) {
-      const newDropZone: InputCalendarEvent = cloneDeep(event)
-      newDropZone.data.dataId = event.id
-      newDropZone.id = newId++
-      newDropZone.data.dataType = 'dropzone'
-      newDropZone.data.start = startTime
-      dropZones.push(newDropZone)
-      startTime = copyTimestamp(startTime)
-      updateMinutes(startTime, parseTime(startTime) + event.data.duration + 5)
+  while (startTime.weekday !== 1) {
+    startTime = prevDay(startTime)
+    updateFormatted(startTime)
+  }
+  while (startTime.weekday !== lastDayOfWeek) {
+    updateMinutes(startTime, dayStartTime)
+    if (event.data.duration) {
+      while (parseTime(startTime) + event.data.duration <= dayEndTime) {
+        const newDropZone: CalendarEvent = cloneDeep(event)
+        newDropZone.data.dataId = event.id
+        newDropZone.id = newId++
+        newDropZone.data.dataType = 'dropzone'
+        newDropZone.data.start = startTime
+        if (isPossibleDropzone(newDropZone, allEvents)) dropZones.push(newDropZone)
+        startTime = copyTimestamp(startTime)
+        updateMinutes(startTime, parseTime(startTime) + event.data.duration + 5)
+      }
     }
+    startTime = nextDay(startTime)
+    updateFormatted(startTime)
   }
   return dropZones
+}
+
+function isPossibleDropzone(dropzone: CalendarEvent, allCalendarEvents: CalendarEvent[]): boolean {
+  let isPossible = true
+  let i = 0
+  while (i < allCalendarEvents.length && isPossible) {
+    const currentEvent = allCalendarEvents[i]
+    if (currentEvent.data.start.date === dropzone.data.start.date && areEventsOverlapped(dropzone, currentEvent)) {
+      isPossible = false
+    }
+    i++
+  }
+  return isPossible
 }
 
 export function badgeStyles(
