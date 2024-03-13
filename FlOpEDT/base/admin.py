@@ -63,6 +63,7 @@ from base.models import (
     GroupPreferredLinks,
     Mode,
     TrainingPeriod,
+    ModuleTutorRepartition
 )
 from displayweb.models import ModuleDisplay
 from displayweb.models import TutorDisplay
@@ -854,6 +855,9 @@ class GroupPreferredLinksAdmin(MyModelAdmin):
 class CourseStartTimeConstraintAdmin(MyModelAdmin):
     pass
 
+class ModuleTutorRepartitionAdmin(MyModelAdmin):
+    list_display = ('module', 'period', 'course_type', 'tutor', 'courses_nb')
+    ordering = ('module', 'period', 'course_type', 'tutor', 'courses_nb')
 
 # </editor-fold desc="ADMIN_MENU">
 
@@ -882,3 +886,4 @@ admin.site.register(CourseStartTimeConstraint, CourseStartTimeConstraintAdmin)
 admin.site.register(Mode, DepartmentModelAdmin)
 admin.site.register(CourseType, DepartmentModelAdmin)
 admin.site.register(TrainingPeriod, DepartmentModelAdmin)
+admin.site.register(ModuleTutorRepartition, ModuleTutorRepartitionAdmin)
