@@ -75,6 +75,33 @@
         item-variable-name="username"
       />
     </div>
+    <div class="courseTypeSelect">
+      <Separator class="Separator" />
+      <FilterSelector
+        :multiple="true"
+        :items="courseTypeIds"
+        filterSelectorUndefinedLabel="Course type Filter"
+        v-model:selected-items="courseTypesSelected"
+        item-variable-name="id"
+      />
+    </div>
+    <div class="ColorSelect">
+      <Separator class="Separator" />
+      <RadioGroupRoot v-model="colorSelect" class="RadioGroupRoot" default-value="module">
+        <div :style="{ display: 'flex', alignItems: 'center' }">
+          <RadioGroupItem id="r1" class="RadioGroupItem" value="module">
+            <RadioGroupIndicator class="RadioGroupIndicator" />
+          </RadioGroupItem>
+          <label class="Label" for="r1"> module </label>
+        </div>
+        <div :style="{ display: 'flex', alignItems: 'center' }">
+          <RadioGroupItem id="r2" class="RadioGroupItem" value="courseType">
+            <RadioGroupIndicator class="RadioGroupIndicator" />
+          </RadioGroupItem>
+          <label class="Label" for="r2"> Course Type </label>
+        </div>
+      </RadioGroupRoot>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -93,6 +120,9 @@ import {
   SelectItemIndicator,
   SelectItemText,
   SelectScrollDownButton,
+  RadioGroupRoot,
+  RadioGroupItem,
+  RadioGroupIndicator,
 } from 'radix-vue'
 import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
@@ -104,10 +134,12 @@ import { Group, Room, User } from '@/stores/declarations'
 import { useEventStore } from '@/stores/display/event'
 import { storeToRefs } from 'pinia'
 import { useGroupStore } from '@/stores/timetable/group'
+import { useScheduledCourseStore } from '@/stores/timetable/course'
 const { t } = useI18n()
 const authStore = useAuth()
 const eventStore = useEventStore()
 const groupStore = useGroupStore()
+const courseStore = useScheduledCourseStore()
 const availCheckBox = computed({
   get() {
     return props.availChecked
@@ -124,8 +156,9 @@ const workcopy = computed({
     emits('update:workcopy', Number(v))
   },
 })
-const { roomsSelected, tutorsSelected } = storeToRefs(eventStore)
+const { roomsSelected, tutorsSelected, colorSelect, courseTypesSelected } = storeToRefs(eventStore)
 const { groupsSelected } = storeToRefs(groupStore)
+const { courseTypeIds } = storeToRefs(courseStore)
 const props = defineProps<{
   availChecked: boolean
   workcopy: number
@@ -260,5 +293,47 @@ h3 {
   background-color: white;
   color: rgb(30, 30, 30);
   cursor: default;
+}
+.RadioGroupRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+}
+.RadioGroupItem {
+  background-color: white;
+  width: 25px;
+  height: 25px;
+  border-radius: 100%;
+  box-shadow: 0 2px 10px #222;
+  padding: 0;
+}
+.RadioGroupItem:hover {
+  background-color: #cc7;
+}
+.RadioGroupItem:focus {
+  box-shadow: 0 0 0 2px black;
+}
+.RadioGroupIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.RadioGroupIndicator::after {
+  content: '';
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background-color: #aa5;
+}
+.Label {
+  color: white;
+  font-size: 15px;
+  line-height: 1;
+  padding-left: 15px;
 }
 </style>

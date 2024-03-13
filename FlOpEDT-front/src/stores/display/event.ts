@@ -22,6 +22,8 @@ export const useEventStore = defineStore('eventStore', () => {
   const calendarEvents: Ref<InputCalendarEvent[]> = ref([])
   const roomsSelected: Ref<Room[]> = ref([])
   const tutorsSelected: Ref<User[]> = ref([])
+  const courseTypesSelected: Ref<{ id: number; name: string }[]> = ref([])
+  const colorSelect: Ref<'courseType' | 'module'> = ref('module')
   let calendarEventIds: number = 0
 
   watchEffect(() => {
@@ -51,7 +53,10 @@ export const useEventStore = defineStore('eventStore', () => {
       const currentEvent: InputCalendarEvent = {
         id: ++calendarEventIds,
         title: module ? module.abbrev : 'Cours',
-        toggled: tutorsSelected.value.length === 0 && roomsSelected.value.length === 0,
+        toggled:
+          tutorsSelected.value.length === 0 &&
+          roomsSelected.value.length === 0 &&
+          courseTypesSelected.value.length === 0,
         bgcolor: 'blue',
         columnIds: [],
         data: {
@@ -61,10 +66,19 @@ export const useEventStore = defineStore('eventStore', () => {
           duration: parseTime(c.end) - parseTime(c.start),
         },
       }
-      if (module) {
-        const eventColor = moduleColor.value.get(module.id)
-        if (eventColor) {
-          currentEvent.bgcolor = eventColor
+      if (colorSelect.value === 'module') {
+        if (module) {
+          const eventColor = moduleColor.value.get(module.id)
+          if (eventColor) {
+            currentEvent.bgcolor = eventColor
+          }
+        }
+      } else {
+        if (c.courseTypeId !== -1) {
+          const eventColor = courseStore.courseTypeColors.get(c.courseTypeId)
+          if (eventColor) {
+            currentEvent.bgcolor = eventColor
+          }
         }
       }
       const courseGroupIds = c.groupIds.map((id) => groupStore.collectDescendantLeafNodeIds(id)).flat()
@@ -85,6 +99,7 @@ export const useEventStore = defineStore('eventStore', () => {
   function isCurrentEventSelected(c: Course): boolean {
     let isTutorSelected = tutorsSelected.value.length === 0
     let isRoomSelected = roomsSelected.value.length === 0
+    let isCourseTypeSelected = courseTypesSelected.value.length === 0
     let i = 0
     while (i < tutorsSelected.value.length && !isTutorSelected) {
       if (c.tutorId === tutorsSelected.value[i].id) {
@@ -99,7 +114,14 @@ export const useEventStore = defineStore('eventStore', () => {
       }
       i++
     }
-    return isTutorSelected && isRoomSelected
+    i = 0
+    while (i < courseTypesSelected.value.length && !isCourseTypeSelected) {
+      if (c.courseTypeId === courseTypesSelected.value[i].id) {
+        isCourseTypeSelected = true
+      }
+      i++
+    }
+    return isTutorSelected && isRoomSelected && isCourseTypeSelected
   }
 
   return {
@@ -107,5 +129,7 @@ export const useEventStore = defineStore('eventStore', () => {
     calendarEvents,
     roomsSelected,
     tutorsSelected,
+    colorSelect,
+    courseTypesSelected,
   }
 })
