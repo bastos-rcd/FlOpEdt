@@ -25,7 +25,7 @@ from core.decorators import timer
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval
-from base.models import CourseStartTimeConstraint, SchedulingPeriod
+from base.models import CourseStartTimeConstraint, SchedulingPeriod, ModuleTutorRepartition
 from django.db import models
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
@@ -471,24 +471,8 @@ class AssignAllCourses(TTConstraint):
         attributes.extend(['train_progs', 'modules', 'groups', 'course_types'])
         return attributes
 
-    def no_tutor_courses(self, courses):
-        result_courses = courses
-        relevant_basic_groups = self.considered_basic_groups()
-        result_courses = set(
-            c
-            for bg in relevant_basic_groups
-            for c in result_courses
-            if bg.and_ancestors() & set(c.groups.all())
-        )
-        if self.modules.exists():
-            result_courses = set(
-                c for c in result_courses if c.module in self.modules.all()
-            )
-        if self.course_types.exists():
-            result_courses = set(
-                c for c in result_courses if c.type in self.course_types.all()
-            )
-        return result_courses
+    def no_tutor_courses(self, period, ttmodel=None):
+        return self.tutors_courses_and_no_tutor_courses(period, ttmodel)[1]
 
     def tutors_courses_and_no_tutor_courses(self, period, ttmodel=None):
         considered_courses = self.considered_courses(period, ttmodel)
@@ -501,14 +485,6 @@ class AssignAllCourses(TTConstraint):
             tutor_courses = considered_courses
             no_tutor_courses = set()
 
-        if self.modules.exists():
-            tutor_courses = set(
-                c for c in tutor_courses if c.module in self.modules.all()
-            )
-        if self.course_types.exists():
-            tutor_courses = set(
-                c for c in tutor_courses if c.type in self.course_types.all()
-            )
         return tutor_courses, no_tutor_courses
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
@@ -588,6 +564,56 @@ class AssignAllCourses(TTConstraint):
 
     def __str__(self):
         return _("Each course is assigned to one tutor (max)")
+
+
+class ConsiderModuleTutorRepartitions(TTConstraint):
+    """
+    The courses are assigned to tutors according to their ModuleTutorRepartition
+    """
+    modules = models.ManyToManyField("base.Module", blank=True)
+    course_types = models.ManyToManyField("base.CourseType", blank=True)
+
+    def one_line_description(self):
+        text = f"Considère les répartitions des cours "
+        if self.modules.exists():
+            text += " des modules " + ", ".join(
+                [module.name for module in self.modules.all()]
+            )
+        if self.course_types.exists():
+            text += f" de type" + ", ".join([t.name for t in self.course_types.all()])
+        text += f" par prof."
+        return text
+
+    def considered_module_tutor_repartitions(self, ttmodel):
+        considered_modules = set(ttmodel.wdb.modules)
+        if self.modules.exists():
+            considered_modules &= set(self.modules.all())
+        considered_course_types = set(ttmodel.wdb.course_types)
+        if self.course_types.exists():
+            considered_course_types &= set(self.course_types.all())
+        return ModuleTutorRepartition.objects.filter(
+            module__in=considered_modules, course_type__ib=considered_course_types
+        )
+
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
+        for mtr in self.considered_module_tutor_repartitions(ttmodel):
+            ttmodel.add_constraint(
+                ttmodel.sum(
+                    ttmodel.TTinstructors[sl, c, mtr.tutor]
+                    for c in set(
+                        c
+                        for c in self.wdb.courses
+                        if c.module == mtr.module
+                        and c.type == mtr.course_type
+                        and c.period == mtr.period
+                        and c.tutor is None
+                    )
+                    for sl in slots_filter(self.wdb.compatible_slots[c], period=mtr.period)
+                ),
+                "==",
+                mtr.courses_nb,
+                Constraint(constraint_type=ConstraintType.MODULETUTORREPARTITION),
+            )
 
 
 class ConsiderTutorsUnavailability(TTConstraint):

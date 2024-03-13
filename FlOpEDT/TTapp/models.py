@@ -34,7 +34,7 @@ from django.db import models
 # Import constraints from other files
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.TTConstraints.core_constraints import ScheduleAllCourses, NoSimultaneousGroupCourses, AssignAllCourses, \
-    ConsiderTutorsUnavailability
+    ConsiderTutorsUnavailability, ConsiderModuleTutorRepartitions
 from TTapp.TTConstraints.stabilization_constraints import StabilizeTutorsCourses, StabilizeGroupsCourses,\
     StabilizationThroughPeriods
 from TTapp.TTConstraints.groups_constraints import MinGroupsHalfDays, MinNonPreferedTrainProgsSlot

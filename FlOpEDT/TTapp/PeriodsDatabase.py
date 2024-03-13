@@ -705,11 +705,12 @@ class PeriodsDatabase(object):
 
         no_tutor_courses = set()
         pre_assign_only_constraints = AssignAllCourses.objects.filter(
-            department=self.department, pre_assigned_only=True
+             Q(periods__in=self.periods)|Q | Q(periods__isnull=True), department=self.department, pre_assigned_only=True,
         )
         if pre_assign_only_constraints.exists():
             for constraint in pre_assign_only_constraints:
-                no_tutor_courses |= constraint.no_tutor_courses(self.courses)
+                for period in self.periods:
+                    no_tutor_courses |= constraint.no_tutor_courses(period, self)
 
         for c in no_tutor_courses:
             possible_tutors[c] = set()
