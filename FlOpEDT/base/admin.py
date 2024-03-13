@@ -855,7 +855,7 @@ class GroupPreferredLinksAdmin(MyModelAdmin):
 class CourseStartTimeConstraintAdmin(MyModelAdmin):
     pass
 
-class ModuleTutorRepartitionAdmin(MyModelAdmin):
+class ModuleTutorRepartitionAdmin(DepartmentModelAdmin):
     list_display = ('module', 'period', 'course_type', 'tutor', 'courses_nb')
     ordering = ('module', 'period', 'course_type', 'tutor', 'courses_nb')
 
