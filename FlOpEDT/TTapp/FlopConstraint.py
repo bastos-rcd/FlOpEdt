@@ -129,6 +129,7 @@ class FlopConstraint(models.Model):
                                            train_progs=None,
                                            group=None,
                                            groups=None,
+                                           transversal_groups_included=None,
                                            module=None,
                                            modules=None,
                                            course_type=None,
@@ -158,12 +159,18 @@ class FlopConstraint(models.Model):
             courses_filter['module__in'] = modules
 
         if group is not None:
-            courses_filter['groups__in'] = group.connected_groups()
+            considered_groups = group.connected_groups()
+            if transversal_groups_included:
+                considered_groups |= group.transversal_conflicting_groups()
+            courses_filter['groups__in'] = considered_groups
 
         if groups:
             all_groups = set()
-            for g in groups:
-                all_groups |= set(g.connected_groups())
+            for group in groups:
+                considered_groups = group.connected_groups()
+                if transversal_groups_included:
+                    considered_groups |= group.transversal_conflicting_groups()
+                all_groups |= considered_groups
             courses_filter['groups__in'] = all_groups
 
         if course_type is not None:

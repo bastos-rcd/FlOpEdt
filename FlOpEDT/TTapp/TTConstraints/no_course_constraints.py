@@ -103,21 +103,10 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
         else:
             ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, period), period)
 
-    def considered_courses(self, ttmodel):
-        if self.transversal_groups_included:
-            c_c = set(c for g in self.considered_basic_groups(ttmodel)
-                      for c in ttmodel.wdb.all_courses_for_basic_group[g])
-        else:
-            c_c = set(c for g in self.considered_basic_groups(ttmodel)
-                      for c in ttmodel.wdb.courses_for_basic_group[g])
-        if self.course_types.exists():
-            c_c = set(c for c in c_c
-                      if c.type in self.course_types.all())
-        return c_c
 
     def considered_sum(self, ttmodel, period):
         return ttmodel.sum(ttmodel.TT[(sl, c)]
-                           for c in self.considered_courses(ttmodel)
+                           for c in self.considered_courses(period, ttmodel)
                            for sl in self.considered_slots(ttmodel, period) & ttmodel.wdb.compatible_slots[c])
 
     def one_line_description(self):
