@@ -129,8 +129,10 @@ class GroupsLunchBreak(TTConstraint):
             group_considered_scheduled_courses = considered_scheduled_courses.filter(course__groups__in=basic_group.and_ancestors())
             for date in considered_dates:
                 is_ok = False
-                start_time = self.start_lunch_time
-                while start_time <= self.end_lunch_time - self.lunch_length:
+                start_time = dt.datetime.combine(date, self.start_lunch_time)
+                lunch_end_time = dt.datetime.combine(date, self.end_lunch_time)
+                is_ok = False
+                while start_time <= lunch_end_time - self.lunch_length:
                     end_time = start_time + self.lunch_length
                     if not any(sc.start_time < end_time and sc.end_time > start_time for sc in group_considered_scheduled_courses):
                         is_ok = True
@@ -298,9 +300,10 @@ class TutorsLunchBreak(TTConstraint):
         for tutor in considered_tutors:
             tutor_considered_scheduled_courses = considered_scheduled_courses.filter(tutor=tutor)
             for date in considered_dates:
+                start_time = dt.datetime.combine(date, self.start_lunch_time)
+                lunch_end_time = dt.datetime.combine(date, self.end_lunch_time)
                 is_ok = False
-                start_time = self.start_lunch_time
-                while start_time <= self.end_lunch_time - self.lunch_length:
+                while start_time <= lunch_end_time - self.lunch_length:
                     end_time = start_time + self.lunch_length
                     if not any(sc.start_time < end_time and sc.end_time > start_time for sc in tutor_considered_scheduled_courses):
                         is_ok = True
