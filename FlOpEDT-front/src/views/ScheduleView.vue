@@ -80,7 +80,7 @@ const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const availabilityStore = useAvailabilityStore()
 const { columns } = storeToRefs(columnStore)
-const { daysSelected, calendarEvents, calendarEventIds } = storeToRefs(eventStore)
+const { daysSelected, calendarEvents, dropzonesIds } = storeToRefs(eventStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const { tutors } = storeToRefs(tutorStore)
 const { fetchedStructuralGroups } = storeToRefs(groupStore)
@@ -103,7 +103,8 @@ watch(workcopySelected, () => {
 function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
   const dropzones: CalendarEvent[] = createDropzonesForEvent(eventId, allEvents, 7 * 60, endOfDay * 60, 6)
   dropzones.forEach((dz) => {
-    dz.id = ++calendarEventIds.value
+    dz.id = dropzonesIds.value
+    dropzonesIds.value += 2
   })
   dropzonesToDisplay.value = dropzones
 }

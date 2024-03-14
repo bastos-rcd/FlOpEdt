@@ -68,7 +68,7 @@
                 (isDragging && event.data.dataId === eventDragged?.id))
             "
           >
-            <div :draggable="event.data.dataType !== 'avail'" @dragstart="onDragStart($event, event)">
+            <div :draggable="event.data.dataType !== 'avail'" @dragstart="onDragStart(event)">
               <div
                 v-for="span in event.spans"
                 :key="generateSpanId(event.id, span)"
@@ -459,20 +459,15 @@ function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
 
 /**
  * Function called when the drag event is triggered, set isDragging and eventDragged refs
- * @param browserEvent The HTML triggered event
  * @param event The event we are currently dragging
  */
-function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
+function onDragStart(event: CalendarEvent) {
   //@ts-expect-error
   minutesToStartEvent = browserEvent.layerY! * minutesToPixelRate
   currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
   eventDragged.value = cloneDeep(event)
   emits('dragstart', event.id, getAllEvents())
-  if (!browserEvent.dataTransfer) return
-  browserEvent.dataTransfer.dropEffect = 'copy'
-  browserEvent.dataTransfer.effectAllowed = 'move'
-  browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
 }
 
 function getAllEvents(): CalendarEvent[] {
