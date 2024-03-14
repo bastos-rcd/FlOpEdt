@@ -443,9 +443,6 @@ class ScheduleAllCourses(TTConstraint):
             text += " de " + ", ".join([tutor.username for tutor in self.tutors.all()])
         return text
 
-    def __str__(self):
-        return _("Schedule once every considered course")
-
 
 class AssignAllCourses(TTConstraint):
     """

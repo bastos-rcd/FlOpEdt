@@ -854,7 +854,7 @@ class AvoidBothTimesSameDay(TTConstraint):
         return text
 
 
-class LimitUndesiredSlotsPerPeriod(TTConstraint):
+class LimitUndesiredSlotsPerDayPeriod(TTConstraint):
     """
     Allow to limit the number of undesired slots per period
     start_time and end_time are in minuts from 0:00 AM
