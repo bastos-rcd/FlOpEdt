@@ -28,9 +28,13 @@ from TTapp.FlopConstraint import FlopConstraint, all_subclasses
 from base.models import SchedulingPeriod
 
 def are_all_flop_constraints_satisfied_for(period, work_copy=0):
+    errors = []
     for cl in all_subclasses(FlopConstraint):
         for a in cl.objects.filter(department__abbrev='INFO'):
             try:
                 a.is_satisfied_for(period,0)
             except NotImplementedError:
                 continue
+            except AssertionError as e:
+                errors.append(e)
+    return errors

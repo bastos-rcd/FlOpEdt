@@ -124,4 +124,14 @@ class TTConstraint(FlopConstraint):
                 if ttmodel.wdb.courses_for_basic_group[g]:
                     ttmodel_basic_groups_to_consider.add(g)
             return ttmodel_basic_groups_to_consider
+        
+
+    def considered_groups(self, ttmodel=None, transversal_groups_included=False):
+        basic_groups = self.considered_basic_groups(ttmodel)
+        result = set()
+        for bg in basic_groups:
+            result |= bg.and_ancestors()
+            if transversal_groups_included:
+                result |= bg.transversal_conflicting_groups()
+        return result
 

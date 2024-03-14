@@ -32,7 +32,7 @@ from base.models import ScheduledCourse
 from people.models import Tutor
 
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, F
 
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -366,6 +366,7 @@ class BreakAroundCourseType(TTConstraint):
     """
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='amphi_break_constraint')
+    train_progs = models.ManyToManyField('base.TrainingProgramme', blank=True)
     course_type = models.ForeignKey('base.CourseType', related_name='amphi_break_constraint', on_delete=models.CASCADE)
     min_break_after = models.DurationField(default=dt.timedelta(minutes=15), null=True, blank=True)
     min_break_before = models.DurationField(default=dt.timedelta(minutes=15), null=True, blank=True)
@@ -414,12 +415,15 @@ class BreakAroundCourseType(TTConstraint):
                 ttmodel.add_to_group_cost(group, cost, period)
 
     def is_satisfied_for(self, period, work_copy):
+        considered_groups = self.considered_groups(transversal_groups_included=True)
         considered_dates = period.dates()
         if self.weekdays:
             considered_dates = days_filter(considered_dates, day_in=self.weekdays)
-        all_scheduled_courses = ScheduledCourse.objects.filter(course__in=self.considered_courses(period, groups = self.groups.all()),
-                                                               date__in=considered_dates,
-                                                               work_copy=work_copy)
+        all_scheduled_courses = ScheduledCourse.objects.filter(course__type__department=self.department,
+                                                               course__period=period,
+                                                               start_time__date__in=considered_dates,
+                                                               work_copy=work_copy,
+                                                               course__groups__in=considered_groups)
         course_type_scheduled_courses = all_scheduled_courses.filter(course__type=self.course_type)
         no_break_after_courses = []
         no_break_before_courses = []
@@ -427,8 +431,8 @@ class BreakAroundCourseType(TTConstraint):
             if all_scheduled_courses.filter(start_time__lt=sched_course.end_time + self.min_break_after,
                                             start_time__gte=sched_course.end_time).exists():
                 no_break_after_courses.append(sched_course)
-            if all_scheduled_courses.filter(end_time__gt=sched_course.start_time - self.min_break_before,
-                                            end_time__lte=sched_course.start_time).exists():
+            if all_scheduled_courses.filter(start_time__gt=sched_course.start_time - self.min_break_before - F('course__duration'),
+                                            start_time__lte=sched_course.start_time - F('course__duration')).exists():
                 no_break_before_courses.append(sched_course)
         assert not no_break_after_courses, f"No break after {no_break_after_courses}"
         assert not no_break_before_courses, f"No break before {no_break_before_courses}"
