@@ -34,7 +34,7 @@ from django.contrib.postgres.fields import ArrayField
 
 from django.db import models
 from django.db.models import Q
-from base.timing import french_format, Day
+from base.timing import french_format, Day, slot_pause
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
@@ -660,9 +660,11 @@ class ConsiderDependencies(TTConstraint):
                                                             "type" : "ConsiderDependencies" })
         return jsondict
 
-    def considered_dependecies(self):
+    def considered_dependecies(self, period=None):
         """Returns the dependencies that have to be considered"""
         result=Dependency.objects.filter(course1__type__department=self.department, course2__type__department=self.department)
+        if period:
+            result = result.filter(course1__period=period, course2__period=period)
         if self.train_progs.exists():
             result = result.filter(course1__module__train_prog__in=self.train_progs.all(), course2__module__train_prog__in=self.train_progs.all())
         if self.modules.exists():
@@ -713,6 +715,22 @@ class ConsiderDependencies(TTConstraint):
                             conj_var = ttmodel.add_conjunct(ttmodel.TT[(sl1, c1)],
                                                             ttmodel.TT[(sl2, c2)])
                             ttmodel.add_to_generic_cost(conj_var * self.local_weight() * ponderation)
+
+    def is_satisfied_for(self, period, work_copy):
+        unrespected_dependencies = []
+        for dep in self.considered_dependecies(period):
+            if dep.course1.scheduledcourse_set.filter(work_copy=work_copy).exists() and dep.course2.scheduledcourse_set.filter(work_copy=work_copy).exists():
+                sched_course1 = dep.course1.scheduledcourse_set.get(work_copy=work_copy)
+                sched_course2 = dep.course2.scheduledcourse_set.get(work_copy=work_copy)
+                if sched_course2.start_time <= sched_course1.start_time:
+                    unrespected_dependencies.append(dep)
+                elif dep.day_gap > 0:
+                    if (sched_course2.start_time.date() - sched_course1.start_time.date()).days < dep.day_gap:
+                        unrespected_dependencies.append(dep)
+                elif dep.successive:
+                    if sched_course2.start_time > sched_course1.end_time + slot_pause:
+                        unrespected_dependencies.append(dep)
+        assert not unrespected_dependencies, f"Following dependencies do not respect global dependency :{unrespected_dependencies}"
 
 
 class ConsiderPivots(TTConstraint):
