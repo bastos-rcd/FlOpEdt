@@ -26,9 +26,14 @@
 from django.db.models import Q
 
 from core.decorators import timer
-from TTapp.TTModel import TTModel
 from TTapp.FlopConstraint import FlopConstraint
-from base.models import StructuralGroup, SchedulingPeriod
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from TTapp.TTModel import TTModel
+    from base.models import SchedulingPeriod
+
+from base.models import StructuralGroup
 
 class TTConstraint(FlopConstraint):
     """
@@ -46,7 +51,7 @@ class TTConstraint(FlopConstraint):
         abstract = True
 
     @timer
-    def enrich_ttmodel(self, ttmodel:TTModel, period: SchedulingPeriod, ponderation=1):
+    def enrich_ttmodel(self, ttmodel:'TTModel', period: 'SchedulingPeriod', ponderation=1):
         raise NotImplementedError
 
     @classmethod
