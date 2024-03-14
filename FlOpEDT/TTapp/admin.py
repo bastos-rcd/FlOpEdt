@@ -44,7 +44,7 @@ from TTapp.models import \
     ConsiderDependencies, Curfew, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
     ConsiderTutorsUnavailability, LimitHoles, \
     Curfew, \
-    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerPeriod, LimitSimultaneousCoursesNumber, \
+    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerDayPeriod, LimitSimultaneousCoursesNumber, \
     LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts, AvoidBothTimesSameDay, AvoidStartTimes, \
     NotAloneForTheseCouseTypes, LimitSimultaneousRoomCourses, ParallelizeCourses
 
@@ -374,7 +374,7 @@ admin.site.register(ConsiderTutorsUnavailability, BasicConstraintAdmin)
 admin.site.register(LimitHoles, BasicConstraintAdmin)
 admin.site.register(LimitTutorTimePerWeeks, BasicConstraintAdmin)
 admin.site.register(ModulesByBloc, BasicConstraintAdmin)
-admin.site.register(LimitUndesiredSlotsPerPeriod, BasicConstraintAdmin)
+admin.site.register(LimitUndesiredSlotsPerDayPeriod, BasicConstraintAdmin)
 admin.site.register(LimitSimultaneousCoursesNumber, BasicConstraintAdmin)
 admin.site.register(NotAloneForTheseCouseTypes, BasicConstraintAdmin)
 admin.site.register(ConsiderRoomSorts, BasicConstraintAdmin)

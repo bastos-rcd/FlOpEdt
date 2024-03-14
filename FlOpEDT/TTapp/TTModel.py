@@ -59,6 +59,7 @@ from TTapp.models import (
     ConsiderPivots,
     StabilizeGroupsCourses,
     RespectTutorsMinTimePerDay,
+    ConsiderModuleTutorRepartitions
 )
 
 from roomreservation.models import RoomReservation
@@ -702,6 +703,10 @@ class TTModel(FlopModel):
         ).exists():
             ConsiderTutorsUnavailability.objects.create(department=self.department)
 
+        if not ConsiderModuleTutorRepartitions.objects.filter(department=self.department).exists() \
+                and ModuleTutorRepartition.objects.filter(course_type__department=self.department).exists():
+            ConsiderModuleTutorRepartitions.objects.create(department=self.department)
+
         for i in self.wdb.instructors:
             if i.username == "---":
                 continue
@@ -728,26 +733,6 @@ class TTModel(FlopModel):
                             self.avail_at_school_instr[i][sl],
                             SlotInstructorConstraint(sl, i),
                         )
-
-        for mtr in ModuleTutorRepartition.objects.filter(
-            module__in=self.wdb.modules, period__in=self.periods
-        ):
-            self.add_constraint(
-                self.sum(
-                    self.TTinstructors[sl, c, mtr.tutor]
-                    for c in set(
-                        c
-                        for c in self.wdb.courses
-                        if c.module == mtr.module
-                        and c.type == mtr.course_type
-                        and c.tutor is None
-                    )
-                    for sl in slots_filter(self.wdb.compatible_slots[c], period=mtr.period)
-                ),
-                "==",
-                mtr.courses_nb,
-                Constraint(constraint_type=ConstraintType.MODULETUTORREPARTITION),
-            )
 
     @timer
     def add_rooms_constraints(self):

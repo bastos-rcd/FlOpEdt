@@ -28,7 +28,7 @@ from django.contrib.postgres.fields import ArrayField
 from base.timing import Day, TimeInterval, flopdate_to_datetime
 import datetime as dt
 from base.partition import Partition
-from base.models import SchedulingPeriod
+from base.models import ScheduledCourse
 from people.models import Tutor
 
 from django.db import models
@@ -37,14 +37,10 @@ from django.db.models import Q
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from base.timing import french_format
-from base.timing import Day
-
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TTConstraints.TTConstraint import TTConstraint
-from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from TTapp.slots import Slot
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
 from django.utils.translation import gettext_lazy as _
@@ -74,7 +70,7 @@ class GroupsLunchBreak(TTConstraint):
         return attributes
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, weekday_in=self.weekdays)
@@ -120,10 +116,33 @@ class GroupsLunchBreak(TTConstraint):
                     #        * self.local_weight()
                     ttmodel.add_to_group_cost(group, cost, period)
 
+    def is_satisfied_for(self, period, work_copy):
+        """
+        Check if the constraint is satisfied for a given period and work_copy.
+        """
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        considered_dates = period.dates()
+        if self.weekdays:
+            considered_dates = days_filter(considered_dates, day_in=self.weekdays)
+        no_lunch_dates = []
+        for basic_group in self.considered_basic_groups():
+            group_considered_scheduled_courses = considered_scheduled_courses.filter(course__groups__in=basic_group.and_ancestors())
+            for date in considered_dates:
+                is_ok = False
+                start_time = self.start_lunch_time
+                while start_time <= self.end_lunch_time - self.lunch_length:
+                    end_time = start_time + self.lunch_length
+                    if not any(sc.start_time < end_time and sc.end_time > start_time for sc in group_considered_scheduled_courses):
+                        is_ok = True
+                        break
+                    start_time += dt.timedelta(minutes=15)
+                if not is_ok:
+                    no_lunch_dates.append((date, basic_group))
+        assert not no_lunch_dates, f"No lunch break for groups {no_lunch_dates}"
 
     def one_line_description(self):
         text = f"Il faut une pause déjeuner d'au moins {self.lunch_length} minutes " \
-               f"entre {french_format(self.start_lunch_time)} et {french_format(self.end_lunch_time)}"
+               f"entre {self.start_lunch_time} et {self.end_lunch_time}"
         try:
             text += " les " + ', '.join([wd for wd in self.weekdays])
         except ObjectDoesNotExist:
@@ -264,6 +283,33 @@ class TutorsLunchBreak(TTConstraint):
                     #        * self.local_weight()
                     ttmodel.add_to_inst_cost(tutor, cost, period)
                     
+    def is_satisfied_for(self, period, work_copy):
+        """
+        Check if the constraint is satisfied for a given period and work_copy.
+        """
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        considered_dates = period.dates()
+        if self.weekdays:
+            considered_dates = days_filter(considered_dates, day_in=self.weekdays)
+        no_lunch_dates = []
+        considered_tutors = set(sc.tutor for sc in considered_scheduled_courses.distinct('tutor'))
+        if self.tutors.exists():
+            considered_tutors &= set(self.tutors.all())
+        for tutor in considered_tutors:
+            tutor_considered_scheduled_courses = considered_scheduled_courses.filter(tutor=tutor)
+            for date in considered_dates:
+                is_ok = False
+                start_time = self.start_lunch_time
+                while start_time <= self.end_lunch_time - self.lunch_length:
+                    end_time = start_time + self.lunch_length
+                    if not any(sc.start_time < end_time and sc.end_time > start_time for sc in tutor_considered_scheduled_courses):
+                        is_ok = True
+                        break
+                    start_time += dt.timedelta(minutes=15)
+                if not is_ok:
+                    no_lunch_dates.append((date, tutor))
+        assert not no_lunch_dates, f"No lunch break for tutors on {no_lunch_dates}"
+
     def complete_tutor_partition(self, partition, tutor, period):
         """
                 Complete the partition in parameters with informations given by this TutorsLunchBreak constraint if it
@@ -299,7 +345,7 @@ class TutorsLunchBreak(TTConstraint):
 
     def one_line_description(self):
         text = f"Il faut une pause déjeuner d'au moins {self.lunch_length} minutes " \
-               f"entre {french_format(self.start_lunch_time)} et {french_format(self.end_lunch_time)}"
+               f"entre {self.start_lunch_time} et {self.end_lunch_time}"
         try:
             text += " les " + ', '.join([wd for wd in self.weekdays])
         except ObjectDoesNotExist:
@@ -318,39 +364,43 @@ class BreakAroundCourseType(TTConstraint):
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True, related_name='amphi_break_constraint')
     course_type = models.ForeignKey('base.CourseType', related_name='amphi_break_constraint', on_delete=models.CASCADE)
-    min_break_length = models.DurationField(default=dt.timedelta(minutes=15))
+    min_break_after = models.DurationField(default=dt.timedelta(minutes=15), null=True, blank=True)
+    min_break_before = models.DurationField(default=dt.timedelta(minutes=15), null=True, blank=True)
 
     class Meta:
         verbose_name = _('A break around some type courses')
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1000):
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.wdb.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         for group in considered_groups:
             specific_courses = set(self.get_courses_queryset_by_parameters(period, ttmodel, group=group, course_type=self.course_type))
-            other_courses = set(self.get_courses_queryset_by_parameters(period, ttmodel, group=group).exclude(type=self.course_type))
+            all_courses = set(self.get_courses_queryset_by_parameters(period, ttmodel, group=group))
             broken_breaks = ttmodel.lin_expr()
             for day in days:
                 day_slots = slots_filter(ttmodel.wdb.courses_slots, day=day)
                 for slot1 in day_slots:
                     successive_slots = set(sl for sl in day_slots
-                                           if slot1.end_time <= sl.start_time < slot1.end_time + self.min_break_length)
+                                                    if slot1.end_time <= sl.start_time < slot1.end_time + self.min_break_after)
                     if not successive_slots:
                         continue
-                    amphi_slot1 = ttmodel.sum(ttmodel.TT[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
-                    other_slot1 = ttmodel.sum(ttmodel.TT[slot1, c] for c in other_courses & ttmodel.wdb.compatible_courses[slot1])
-                    other_slot2 = ttmodel.sum(ttmodel.TT[slot2, c]
+                    amphi_slot = ttmodel.sum(ttmodel.TT[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
+                    other_slot = ttmodel.sum(ttmodel.TT[slot2, c]
                                               for slot2 in successive_slots
-                                              for c in other_courses & ttmodel.wdb.compatible_courses[slot2])
-                    amphi_slot2 = ttmodel.sum(ttmodel.TT[slot2, c]
-                                              for slot2 in successive_slots
-                                              for c in specific_courses & ttmodel.wdb.compatible_courses[slot2])
-                    a1o2 = ttmodel.add_floor(expr=amphi_slot1+other_slot2, floor=2, bound=2)
-                    o1a2 = ttmodel.add_floor(expr=amphi_slot2+other_slot1, floor=2, bound=2)
-                    broken_breaks += a1o2 + o1a2
+                                              for c in all_courses & ttmodel.wdb.compatible_courses[slot2])
+                    broken_breaks += ttmodel.add_floor(expr=amphi_slot+other_slot, floor=2, bound=2)
+                for slot1 in day_slots:
+                    previous_slots = set(sl for sl in day_slots if slot1.start_time -  self.min_break_before < sl.end_time <= slot1.start_time)
+                    if not previous_slots:
+                        continue
+                    amphi_slot = ttmodel.sum(ttmodel.TT[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
+                    other_slot = ttmodel.sum(ttmodel.TT[slot2, c]
+                                              for slot2 in previous_slots
+                                              for c in all_courses & ttmodel.wdb.compatible_courses[slot2])
+                    broken_breaks += ttmodel.add_floor(expr=amphi_slot+other_slot, floor=2, bound=2)
 
             if self.weight is None:
                 ttmodel.add_constraint(broken_breaks, '==', 0,
@@ -360,6 +410,25 @@ class BreakAroundCourseType(TTConstraint):
                 cost = broken_breaks * ponderation * self.local_weight()
                 ttmodel.add_to_group_cost(group, cost, period)
 
+    def is_satisfied_for(self, period, work_copy):
+        considered_dates = period.dates()
+        if self.weekdays:
+            considered_dates = days_filter(considered_dates, day_in=self.weekdays)
+        all_scheduled_courses = ScheduledCourse.objects.filter(course__in=self.considered_courses(period, groups = self.groups.all()),
+                                                               date__in=considered_dates,
+                                                               work_copy=work_copy)
+        course_type_scheduled_courses = all_scheduled_courses.filter(course__type=self.course_type)
+        no_break_after_courses = []
+        no_break_before_courses = []
+        for sched_course in course_type_scheduled_courses:
+            if all_scheduled_courses.filter(start_time__lt=sched_course.end_time + self.min_break_after,
+                                            start_time__gte=sched_course.end_time).exists():
+                no_break_after_courses.append(sched_course)
+            if all_scheduled_courses.filter(end_time__gt=sched_course.start_time - self.min_break_before,
+                                            end_time__lte=sched_course.start_time).exists():
+                no_break_before_courses.append(sched_course)
+        assert not no_break_after_courses, f"No break after {no_break_after_courses}"
+        assert not no_break_before_courses, f"No break before {no_break_before_courses}"
 
     def one_line_description(self):
         text = f"Il faut une pause " \

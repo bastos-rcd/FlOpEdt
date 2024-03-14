@@ -91,6 +91,17 @@ class RoomConstraint(FlopConstraint):
         return courses_qs
 
 
+    def considered_basic_groups(self, room_model):
+        room_model_basic_groups = set(room_model.basic_groups)
+        if hasattr(self, 'groups'):
+            if self.groups.exists():
+                basic_groups = set()
+                for g in self.groups.all():
+                    basic_groups |= g.basic_groups()
+                room_model_basic_groups &= basic_groups
+        return room_model_basic_groups
+
+
 class LimitSimultaneousRoomCourses(RoomConstraint):
     """
     Only one course for each considered room on simultaneous slots
@@ -461,7 +472,7 @@ class LimitGroupMoves(LimitMoves):
         verbose_name_plural = verbose_name
 
     def objects_to_consider(self, room_model):
-        return considered_basic_groups(self, room_model)
+        return self.considered_basic_groups(room_model)
 
     def courses_dict(self, room_model):
         return room_model.courses_for_basic_group
@@ -515,13 +526,3 @@ def considered_tutors(tutors_room_constraint, room_model):
     if tutors_room_constraint.tutors.exists():
         tutors_to_consider &= set(tutors_room_constraint.tutors.all())
     return tutors_to_consider
-
-
-def considered_basic_groups(group_room_constraint, room_model):
-    room_model_basic_groups = set(room_model.basic_groups)
-    if group_room_constraint.groups.exists():
-        basic_groups = set()
-        for g in group_room_constraint.groups.all():
-            basic_groups |= g.basic_groups()
-        room_model_basic_groups &= basic_groups
-    return room_model_basic_groups
