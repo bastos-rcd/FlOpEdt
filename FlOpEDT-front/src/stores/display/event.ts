@@ -24,13 +24,13 @@ export const useEventStore = defineStore('eventStore', () => {
   const tutorsSelected: Ref<User[]> = ref([])
   const courseTypesSelected: Ref<{ id: number; name: string }[]> = ref([])
   const colorSelect: Ref<'courseType' | 'module'> = ref('module')
-  let calendarEventIds: number = 0
+  const calendarEventIds: Ref<number> = ref(0)
 
   watchEffect(() => {
     const eventsReturned: InputCalendarEvent[] = []
     availabilityStore.getAvailabilityFromDates(daysSelected.value).forEach((av) => {
       const currentEvent: InputCalendarEvent = {
-        id: ++calendarEventIds,
+        id: ++calendarEventIds.value,
         title: '',
         toggled: true,
         bgcolor: '',
@@ -51,7 +51,7 @@ export const useEventStore = defineStore('eventStore', () => {
     courseStore.getCoursesFromDates(daysSelected.value).forEach((c: Course) => {
       const module: Module | undefined = modules.value.find((m) => m.id === c.module)
       const currentEvent: InputCalendarEvent = {
-        id: ++calendarEventIds,
+        id: ++calendarEventIds.value,
         title: module ? module.abbrev : 'Cours',
         toggled:
           tutorsSelected.value.length === 0 &&
@@ -131,5 +131,6 @@ export const useEventStore = defineStore('eventStore', () => {
     tutorsSelected,
     colorSelect,
     courseTypesSelected,
+    calendarEventIds,
   }
 })

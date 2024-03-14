@@ -105,13 +105,12 @@ export function createDropzonesForEvent(
   allEvents: CalendarEvent[],
   dayStartTime: number,
   dayEndTime: number,
-  newId: number,
   lastDayOfWeek: number = 6
 ): CalendarEvent[] {
   const dropzones: CalendarEvent[] = []
   const event = allEvents.find((ev) => ev.id === eventId)
   if (event) {
-    createDropzonesOnTimes(event, allEvents, dayStartTime, dayEndTime, newId, lastDayOfWeek).forEach((dz) => {
+    createDropzonesOnTimes(event, allEvents, dayStartTime, dayEndTime, lastDayOfWeek).forEach((dz) => {
       dropzones.push(dz)
     })
   }
@@ -127,7 +126,6 @@ export function createDropzonesOnTimes(
   allEvents: CalendarEvent[],
   dayStartTime: number,
   dayEndTime: number,
-  newId: number,
   lastDayOfWeek: number = 6
 ): CalendarEvent[] {
   const dropZones: CalendarEvent[] = []
@@ -142,7 +140,7 @@ export function createDropzonesOnTimes(
       while (parseTime(startTime) + event.data.duration <= dayEndTime) {
         const newDropZone: CalendarEvent = cloneDeep(event)
         newDropZone.data.dataId = event.id
-        newDropZone.id = newId++
+        newDropZone.id = -1
         newDropZone.data.dataType = 'dropzone'
         newDropZone.data.start = startTime
         if (isPossibleDropzone(newDropZone, allEvents)) dropZones.push(newDropZone)

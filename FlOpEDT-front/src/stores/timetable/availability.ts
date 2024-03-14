@@ -1,13 +1,12 @@
 import { AvailabilityBack } from '@/ts/type'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { Ref, ref } from 'vue'
 import { Availability } from '../declarations'
-import { Timestamp, copyTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
 import {
   dateToTimestamp,
   getDateStringFromTimestamp,
-  getDateTimeStringFromDate,
   timestampToDate,
   datetimeStringToDate,
   durationDjangoToMinutes,
@@ -21,7 +20,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   const availabilities = ref<Map<string, Availability[]>>(new Map<string, Availability[]>())
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
-  let nextId = 0
+  const nextId: Ref<number> = ref(0)
 
   async function fetchUserAvailabilitiesBack(userId: number, from: Date, to: Date): Promise<void> {
     clearAvailabilities()
@@ -50,7 +49,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
     let start: Timestamp = dateToTimestamp(new Date(availabilityBack.start_time))
     let newAvailability: Availability = {
-      id: nextId++,
+      id: nextId.value++,
       type: availabilityBack.av_type,
       duration: durationDjangoToMinutes(availabilityBack.duration),
       start: start,
