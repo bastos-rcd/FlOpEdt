@@ -26,7 +26,9 @@
 
 from TTapp.FlopConstraint import FlopConstraint, all_subclasses
 from base.models import SchedulingPeriod
+from core.decorators import timer
 
+@timer
 def are_all_flop_constraints_satisfied_for(period, work_copy=0):
     errors = []
     for cl in all_subclasses(FlopConstraint):
