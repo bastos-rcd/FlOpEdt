@@ -34,16 +34,16 @@ from django.db import models
 # Import constraints from other files
 from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.TTConstraints.core_constraints import ScheduleAllCourses, NoSimultaneousGroupCourses, AssignAllCourses, \
-    ConsiderTutorsUnavailability
+    ConsiderTutorsUnavailability, ConsiderModuleTutorRepartitions
 from TTapp.TTConstraints.stabilization_constraints import StabilizeTutorsCourses, StabilizeGroupsCourses,\
     StabilizationThroughPeriods
-from TTapp.TTConstraints.groups_constraints import MinGroupsHalfDays, MinNonPreferedTrainProgsSlot
+from TTapp.TTConstraints.groups_constraints import MinGroupsHalfDays, MinNonPreferedTrainProgsSlot, GroupsMinHoursPerDay
 from TTapp.TTConstraints.no_course_constraints import NoGroupCourseOnWeekDay, NoTutorCourseOnWeekDay
 from TTapp.TTConstraints.tutors_constraints import MinTutorsHalfDays, MinNonPreferedTutorsSlot, \
     MinimizeTutorsBusyDays, RespectTutorsMaxTimePerDay, LowerBoundBusyDays, RespectTutorsMinTimePerDay
 from TTapp.TTConstraints.modules_constraints import MinModulesHalfDays
 from TTapp.TTConstraints.slots_constraints import SimultaneousCourses, AvoidBothTimesSameDay, LimitStartTimeChoices, \
-    ConsiderDependencies, ConsiderPivots, LimitUndesiredSlotsPerPeriod, LimitSimultaneousCoursesNumber, AvoidStartTimes
+    ConsiderDependencies, ConsiderPivots, LimitUndesiredSlotsPerDayPeriod, LimitSimultaneousCoursesNumber, AvoidStartTimes
 from TTapp.TTConstraints.limit_time_constraints import LimitModulesTimePerPeriod, \
     LimitGroupsTimePerPeriod, LimitTutorsTimePerPeriod, LimitTimePerPeriod, LimitCourseTypeTimePerPeriod
 from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak, BreakAroundCourseType, TutorsLunchBreak

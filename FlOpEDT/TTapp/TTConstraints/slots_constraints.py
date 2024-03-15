@@ -34,7 +34,7 @@ from django.contrib.postgres.fields import ArrayField
 
 from django.db import models
 from django.db.models import Q
-from base.timing import french_format, Day
+from base.timing import french_format, Day, slot_pause
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
@@ -47,7 +47,6 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext
 from django.core.validators import MaxValueValidator
 from TTapp.TTConstraints.tutors_constraints import considered_tutors
-from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 
 
 
@@ -428,6 +427,122 @@ def find_day_gap_slots(course_slots1, course_slots2, day_gap):
     return False
 
 
+class GlobalModuleDependency(TTConstraint):
+    """
+    Creates a global dependency for each group and module between courses1 and courses2
+    """
+    modules = models.ManyToManyField('base.Module', related_name='global_module_dependencies', blank=True)
+    train_progs = models.ManyToManyField('base.TrainingProgramme',
+                                         blank=True)
+    groups = models.ManyToManyField('base.StructuralGroup', related_name='global_dependency_groups', blank=True)
+    day_gap = models.PositiveSmallIntegerField(verbose_name=_('Minimal day gap between courses'), default=0)
+    course1_type = models.ForeignKey('base.CourseType', related_name='global_dependency_course1_type',
+                                     null=True,
+                                     blank=True,
+                                     default=None, on_delete=models.CASCADE)
+
+    course1_tutor = models.ForeignKey('people.Tutor', related_name='global_dependency_course1_tutor', 
+                                      null=True,
+                                      blank=True,
+                                      default=None, on_delete=models.SET_NULL)
+    course2_type = models.ForeignKey('base.CourseType', related_name='global_dependency_course2_type',
+                                     null=True,
+                                     blank=True,
+                                     default=None, on_delete=models.CASCADE)
+    course2_tutor = models.ForeignKey('people.Tutor', related_name='global_dependency_course2_tutor',
+                                      null=True,
+                                      blank=True,
+                                      default=None, on_delete=models.CASCADE)
+
+
+    def one_line_description(self):
+        if self.modules.exists():
+            text = f"Pour chacun des modules {self.modules.all()}, les cours"
+        else:
+            text = "Pour tous les modules, les cours"
+        if self.course1_type:
+            text += f" de type {self.course1_type}"
+        if self.course1_tutor:
+            text += f" du prof {self.course1_tutor}"
+        text += " doivent être faits"
+        if self.day_gap:
+            text += f" au moins {self.day_gap} jours"
+        text += " avant les autres cours"
+        if self.course2_type:
+            text += f" de type {self.course1_type}"
+        if self.course2_tutor:
+            text += f" du prof {self.course1_tutor}"
+
+    def considered_courses_tuple(self, period, ttmodel=None):
+        """Returns the tuple courses1, courses2 of courses that have to be considered"""
+        courses1=self.get_courses_queryset_by_parameters(
+            period,
+            ttmodel=ttmodel,
+            course_type=self.course1_type, 
+            modules=self.modules.all(), 
+            tutor=self.course1_tutor,
+            train_progs=self.train_progs, 
+            groups=self.groups)
+        courses2=self.get_courses_queryset_by_parameters(
+            period,
+            ttmodel=ttmodel,
+            course_type=self.course2_type, 
+            modules=self.modules.all(), 
+            tutor=self.course2_tutor,
+            train_progs=self.train_progs, 
+            groups=self.groups)
+        return courses1, courses2
+    
+
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
+        courses1, courses2 = self.considered_courses_tuple(period, ttmodel)
+        a_lot = 1000000
+        for g in self.considered_basic_groups(ttmodel):
+            group_courses1 = courses1.filter(groups__in=g.connected_groups())
+            group_courses2 = courses2.filter(groups__in=g.connected_groups())
+            for c1 in group_courses1:
+                for sl1 in ttmodel.wdb.compatible_slots[c1]:
+                    if not self.weight:
+                        ttmodel.add_constraint(a_lot * ttmodel.TT[(sl1, c1)] +
+                                            ttmodel.sum(ttmodel.TT[(sl2, c2)] 
+                                                        for c2 in group_courses2.exclude(id=c1.id)
+                                                        for sl2 in ttmodel.wdb.compatible_slots[c2]
+                                                        if not sl2.is_after(sl1)
+                                                        or (sl2.day - sl1.day).days < self.day_gap),
+                                            '<=', a_lot, Constraint(constraint_type=ConstraintType.DEPENDANCE,
+                                                                    slots=sl1,
+                                                                    modules=self.modules.all(),
+                                                                    groups=g,
+                                                                    )
+                        )
+                    else:
+                        for c2 in group_courses2:
+                            for sl2 in ttmodel.wdb.compatible_slots[c2]:
+                                if not sl2.is_after(sl1) or (sl2.day - sl1.day).days < self.day_gap:
+                                    conj_var = ttmodel.add_conjunct(ttmodel.TT[(sl1, c1)],
+                                                                    ttmodel.TT[(sl2, c2)])
+                                    ttmodel.add_to_generic_cost(conj_var * self.local_weight() * ponderation)
+    
+    def is_satisfied_for(self, period, work_copy):
+        courses1, courses2 = self.considered_courses_tuple(period)
+        dependency_not_satisfied_for = []
+        for g in self.considered_basic_groups():
+            group_courses1 = courses1.filter(groups__in=g.connected_groups())
+            group_courses2 = courses2.filter(groups__in=g.connected_groups())
+            for c1 in group_courses1:
+                if not c1.scheduledcourse_set.filter(work_copy=work_copy).exists():
+                    continue
+                for c2 in group_courses2.exclude(id=c1.id):
+                    if not c2.scheduledcourse_set.filter(work_copy=work_copy).exists():
+                        continue
+                    sched_course1 = c1.scheduledcourse_set.get(work_copy=work_copy)
+                    sched_course2 = c2.scheduledcourse_set.get(work_copy=work_copy)
+                    if sched_course2.start_time <= sched_course1.start_time \
+                        or (sched_course2.start_time.date - sched_course1.start_time.date).days < self.day_gap:
+                        dependency_not_satisfied_for.append(c1)
+        assert not dependency_not_satisfied_for, f"Following courses do not respect global dependency :{dependency_not_satisfied_for}"
+
+
 class ConsiderDependencies(TTConstraint):
     """
     Transform the constraints of dependency saved on the DB in model constraints:
@@ -545,9 +660,11 @@ class ConsiderDependencies(TTConstraint):
                                                             "type" : "ConsiderDependencies" })
         return jsondict
 
-    def considered_dependecies(self):
+    def considered_dependecies(self, period=None):
         """Returns the dependencies that have to be considered"""
         result=Dependency.objects.filter(course1__type__department=self.department, course2__type__department=self.department)
+        if period:
+            result = result.filter(course1__period=period, course2__period=period)
         if self.train_progs.exists():
             result = result.filter(course1__module__train_prog__in=self.train_progs.all(), course2__module__train_prog__in=self.train_progs.all())
         if self.modules.exists():
@@ -587,17 +704,33 @@ class ConsiderDependencies(TTConstraint):
                     ttmodel.add_constraint(1000000 * ttmodel.TT[(sl1, c1)] +
                                            ttmodel.sum(ttmodel.TT[(sl2, c2)] for sl2 in ttmodel.wdb.compatible_slots[c2]
                                                        if not sl2.is_after(sl1)
-                                                       or (p.ND and (sl2.day == sl1.day))
+                                                       or (p.day_gap > 0 and (sl2.day - sl1.day).days < p.day_gap)
                                                        or (p.successive and not sl2.is_successor_of(sl1))),
                                            '<=', 1000000, DependencyConstraint(c1, c2, sl1))
                 else:
                     for sl2 in ttmodel.wdb.compatible_slots[c2]:
                         if not sl2.is_after(sl1) \
-                                or (p.ND and (sl2.day == sl1.day)) \
+                                or (p.day_gap > 0 and (sl2.day - sl1.day).days < p.day_gap) \
                                 or (p.successive and not sl2.is_successor_of(sl1)):
                             conj_var = ttmodel.add_conjunct(ttmodel.TT[(sl1, c1)],
                                                             ttmodel.TT[(sl2, c2)])
                             ttmodel.add_to_generic_cost(conj_var * self.local_weight() * ponderation)
+
+    def is_satisfied_for(self, period, work_copy):
+        unrespected_dependencies = []
+        for dep in self.considered_dependecies(period):
+            if dep.course1.scheduledcourse_set.filter(work_copy=work_copy).exists() and dep.course2.scheduledcourse_set.filter(work_copy=work_copy).exists():
+                sched_course1 = dep.course1.scheduledcourse_set.get(work_copy=work_copy)
+                sched_course2 = dep.course2.scheduledcourse_set.get(work_copy=work_copy)
+                if sched_course2.start_time <= sched_course1.start_time:
+                    unrespected_dependencies.append(dep)
+                elif dep.day_gap > 0:
+                    if (sched_course2.start_time.date() - sched_course1.start_time.date()).days < dep.day_gap:
+                        unrespected_dependencies.append(dep)
+                elif dep.successive:
+                    if sched_course2.start_time > sched_course1.end_time + slot_pause:
+                        unrespected_dependencies.append(dep)
+        assert not unrespected_dependencies, f"Following dependencies do not respect global dependency :{unrespected_dependencies}"
 
 
 class ConsiderPivots(TTConstraint):
@@ -698,7 +831,7 @@ class AvoidBothTimesSameDay(TTConstraint):
 
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_groups = considered_basic_groups(self, ttmodel)
+        considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.wdb.days, period=period)
         slots1 = set([slot for slot in ttmodel.wdb.courses_slots
                       if slot.start_time.time() <= self.time1 < slot.end_time.time()])
@@ -739,7 +872,7 @@ class AvoidBothTimesSameDay(TTConstraint):
         return text
 
 
-class LimitUndesiredSlotsPerPeriod(TTConstraint):
+class LimitUndesiredSlotsPerDayPeriod(TTConstraint):
     """
     Allow to limit the number of undesired slots per period
     start_time and end_time are in minuts from 0:00 AM

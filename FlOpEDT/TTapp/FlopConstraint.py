@@ -59,9 +59,9 @@ class FlopConstraint(models.Model):
     is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
     modified_at = models.DateField(auto_now=True)
 
-    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+    def is_satisfied_for(self, period: SchedulingPeriod, work_copy: int):
         """
-        Test if the given work_copy satisfies the constraint for the given period
+        Test if the constraint is satisfied for the given period and work copy
         """
         raise NotImplementedError
     
@@ -123,11 +123,13 @@ class FlopConstraint(models.Model):
         else:
             return TimeGeneralSettings.objects.get(department = self.department)
 
-    def get_courses_queryset_by_parameters(self, period, flopmodel=None,
+    def get_courses_queryset_by_parameters(self, period, 
+                                           flopmodel=None,
                                            train_prog=None,
                                            train_progs=None,
                                            group=None,
                                            groups=None,
+                                           transversal_groups_included=None,
                                            module=None,
                                            modules=None,
                                            course_type=None,
@@ -157,12 +159,18 @@ class FlopConstraint(models.Model):
             courses_filter['module__in'] = modules
 
         if group is not None:
-            courses_filter['groups__in'] = group.connected_groups()
+            considered_groups = group.connected_groups()
+            if transversal_groups_included:
+                considered_groups |= group.transversal_conflicting_groups()
+            courses_filter['groups__in'] = considered_groups
 
         if groups:
             all_groups = set()
-            for g in groups:
-                all_groups |= set(g.connected_groups())
+            for group in groups:
+                considered_groups = group.connected_groups()
+                if transversal_groups_included:
+                    considered_groups |= group.transversal_conflicting_groups()
+                all_groups |= considered_groups
             courses_filter['groups__in'] = all_groups
 
         if course_type is not None:
@@ -199,9 +207,11 @@ class FlopConstraint(models.Model):
     def considered_courses(self, period, flopmodel=None):
         return self.get_courses_queryset_by_attributes(period, flopmodel)
 
-    def considered_train_progs(self, ttmodel):
-        train_progs = set(ttmodel.train_prog)
+    def considered_train_progs(self, flopmodel=None):
+        train_progs = set(flopmodel.train_prog)
         if hasattr(self, "train_progs"):
             if self.train_progs.exists():
                 train_progs &= set(self.train_progs.all())
         return train_progs
+
+

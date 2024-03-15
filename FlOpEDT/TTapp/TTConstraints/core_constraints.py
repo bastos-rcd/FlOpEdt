@@ -16,10 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public
 # License along with this program. If not, see
-# <http://www.gnu.org/licenses/>.
-#
-# You can be released from the requirements of the license by purchasing
-# a commercial license. Buying such a license is mandatory as soon as
+# <http://www.gnu.org/licenses/>.is_satisfied
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
@@ -28,7 +25,7 @@ from core.decorators import timer
 from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval
-from base.models import CourseStartTimeConstraint, SchedulingPeriod
+from base.models import CourseStartTimeConstraint, SchedulingPeriod, ModuleTutorRepartition, Module, CourseType
 from django.db import models
 
 from TTapp.TTConstraints.TTConstraint import TTConstraint
@@ -46,7 +43,6 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext
 from TTapp.slots import slots_filter
 from TTapp.TTConstraints.groups_constraints import (
-    considered_basic_groups,
     pre_analysis_considered_basic_groups,
 )
 from base.models import Course, UserAvailability, Holiday
@@ -287,7 +283,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         relevant_slots = slots_filter(ttmodel.wdb.availability_slots, period=period)
-        relevant_basic_groups = considered_basic_groups(self, ttmodel)
+        relevant_basic_groups = self.considered_basic_groups(ttmodel)
         # Count the number of transversal groups
         if ttmodel.wdb.transversal_groups.exists():
             n_tg = ttmodel.wdb.transversal_groups.count()
@@ -370,21 +366,17 @@ class NoSimultaneousGroupCourses(TTConstraint):
     def __str__(self):
         return "No simultaneous courses for one group"
     
-    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
+    def is_satisfied_for(self, period, work_copy):
         relevant_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
-        relevant_basic_groups = considered_basic_groups(self)
-        is_satisfied = True
-        result = {}
+        relevant_basic_groups = self.considered_basic_groups()
+        problematic_groups = []
         for bg in relevant_basic_groups:
             bg_scheduled_courses = relevant_scheduled_courses.filter(course__groups__in=bg.and_ancestors())
             for sched_course in bg_scheduled_courses:
                 for sched_course2 in bg_scheduled_courses.filter(id__gt=sched_course.id):
                     if sched_course.is_simultaneous_to(sched_course2):
-                        if bg not in result:
-                            result[bg] = []
-                        result[bg].append((sched_course, sched_course2))
-                        is_satisfied = False
-        return {"success": is_satisfied, "more": result}
+                        problematic_groups.append(bg)
+        assert not problematic_groups, f"{self} is not satisfied for period {period}, work_copy {work_copy} and the following groups : {problematic_groups}"
         
 
 
@@ -403,16 +395,18 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name = _("Schedule once all considered courses")
         verbose_name_plural = verbose_name
 
-    def test_period_work_copy(self, period, work_copy):
-        not_scheduled=[]
+    def is_satisfied_for(self, period, work_copy):
+        unscheduled=[]
         scheduled_more_than_once = []
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         for c in self.considered_courses(period):
             if considered_scheduled_courses.filter(course=c).count() == 0:
-                not_scheduled.append(c)
+                unscheduled.append(c)
             elif considered_scheduled_courses.filter(course=c).count() > 1:
                 scheduled_more_than_once.append(c)
-        assert len(not_scheduled) == 0 and len(scheduled_more_than_once) == 0, f"not_scheduled: {not_scheduled}, scheduled_more_than_once: {scheduled_more_than_once}"
+        not_asserted_text = f"{self} is not satisfied for period {period} and work_copy {work_copy}"
+        assert not unscheduled, not_asserted_text + f"The following courses are not scheduled : {unscheduled}"
+        assert not scheduled_more_than_once, not_asserted_text + f"The following courses are scheduled more than once : {scheduled_more_than_once}"
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         max_slots_nb = len(ttmodel.wdb.courses_slots)
@@ -449,9 +443,6 @@ class ScheduleAllCourses(TTConstraint):
             text += " de " + ", ".join([tutor.username for tutor in self.tutors.all()])
         return text
 
-    def __str__(self):
-        return _("Schedule once every considered course")
-
 
 class AssignAllCourses(TTConstraint):
     """
@@ -477,24 +468,8 @@ class AssignAllCourses(TTConstraint):
         attributes.extend(['train_progs', 'modules', 'groups', 'course_types'])
         return attributes
 
-    def no_tutor_courses(self, courses):
-        result_courses = courses
-        relevant_basic_groups = considered_basic_groups(self)
-        result_courses = set(
-            c
-            for bg in relevant_basic_groups
-            for c in result_courses
-            if bg.and_ancestors() & set(c.groups.all())
-        )
-        if self.modules.exists():
-            result_courses = set(
-                c for c in result_courses if c.module in self.modules.all()
-            )
-        if self.course_types.exists():
-            result_courses = set(
-                c for c in result_courses if c.type in self.course_types.all()
-            )
-        return result_courses
+    def no_tutor_courses(self, period, ttmodel=None):
+        return self.tutors_courses_and_no_tutor_courses(period, ttmodel)[1]
 
     def tutors_courses_and_no_tutor_courses(self, period, ttmodel=None):
         considered_courses = self.considered_courses(period, ttmodel)
@@ -507,14 +482,6 @@ class AssignAllCourses(TTConstraint):
             tutor_courses = considered_courses
             no_tutor_courses = set()
 
-        if self.modules.exists():
-            tutor_courses = set(
-                c for c in tutor_courses if c.module in self.modules.all()
-            )
-        if self.course_types.exists():
-            tutor_courses = set(
-                c for c in tutor_courses if c.type in self.course_types.all()
-            )
         return tutor_courses, no_tutor_courses
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
@@ -568,18 +535,12 @@ class AssignAllCourses(TTConstraint):
                 Constraint(constraint_type=ConstraintType.PRE_ASSIGNED_TUTORS_ONLY),
             )
     
-    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
-        is_satisfied = True
-        result = {}
+    def is_satisfied_for(self, period, work_copy):
         tutor_courses, _ = self.tutors_courses_and_no_tutor_courses(period)
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
-        not_assigned_scheduled_courses = considered_scheduled_courses.filter(course__in=tutor_courses,
+        unassigned_scheduled_courses = considered_scheduled_courses.filter(course__in=tutor_courses,
                                                                              tutor__isnull=True)
-        if not_assigned_scheduled_courses.exists():
-            is_satisfied = False
-            result["no_tutor"] = not_assigned_scheduled_courses
-        return {"success": is_satisfied, "more": result}
-
+        assert not unassigned_scheduled_courses.exists(), f"{self} is not satisfied for period {period} and work_copy {work_copy}. The following courses are not assigned to a tutor : {unassigned_scheduled_courses}"
 
     def one_line_description(self):
         text = f"Assigne tous les cours "
@@ -599,7 +560,107 @@ class AssignAllCourses(TTConstraint):
         return text
 
     def __str__(self):
-        return _("Each course is assigned to one tutor (max)")
+        return "Each course is assigned to one tutor (max)"
+
+
+class ConsiderModuleTutorRepartitions(TTConstraint):
+    """
+    The courses are assigned to tutors according to their ModuleTutorRepartition
+    Even if weight is not None, all considered courses are assigned to some tutor
+    """
+    modules = models.ManyToManyField("base.Module", blank=True)
+    course_types = models.ManyToManyField("base.CourseType", blank=True)
+
+    def one_line_description(self):
+        text = f"Considère les répartitions des cours "
+        if self.modules.exists():
+            text += " des modules " + ", ".join(
+                [module.name for module in self.modules.all()]
+            )
+        if self.course_types.exists():
+            text += f" de type" + ", ".join([t.name for t in self.course_types.all()])
+        text += f" par prof."
+        return text
+    
+    def considered_modules(self, ttmodel=None):
+        if ttmodel is not None:
+            considered_modules = set(ttmodel.wdb.modules)
+        else:
+            considered_modules = set(Module.objects.filter(train_prog__department=self.department))
+        if self.modules.exists():
+            considered_modules &= set(self.modules.all())
+        return considered_modules
+
+    def considered_course_types(self, ttmodel=None):
+        if ttmodel is not None:
+            considered_course_types = set(ttmodel.wdb.course_types)
+        else:
+            considered_course_types = set(CourseType.objects.filter(department=self.department))
+        if self.course_types.exists():
+            considered_course_types &= set(self.course_types.all())
+        return considered_course_types
+
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
+        for module in self.considered_modules(ttmodel):
+            for course_type in self.considered_course_types(ttmodel):
+                considered_mtr = ModuleTutorRepartition.objects.filter(period = period, module=module, course_type=course_type)
+                if not considered_mtr.exists():
+                    continue
+                max_mtr_nb = max(mtr.courses_nb for mtr in considered_mtr)
+                total_mtr_course_nb = sum(mtr.courses_nb for mtr in considered_mtr)
+                considered_courses = set(c for c in ttmodel.wdb.courses
+                                         if c.module == module
+                                         and c.type == course_type
+                                         and c.period == period
+                                         and c.tutor is None
+                                         )
+                for mtr in considered_mtr:
+                    considered_sum = ttmodel.sum(
+                            ttmodel.TTinstructors[sl, c, mtr.tutor]
+                            for c in considered_courses
+                            for sl in slots_filter(ttmodel.wdb.compatible_slots[c], period=mtr.period)
+                        )
+
+                    if self.weight is None:
+                        ttmodel.add_constraint(
+                            considered_sum,
+                            "==",
+                            mtr.courses_nb,
+                            Constraint(constraint_type=ConstraintType.MODULETUTORREPARTITION),
+                        )
+                    else:
+                        differences = [ttmodel.add_floor(considered_sum - mtr.courses_nb * ttmodel.one_var, i, max_mtr_nb + 2)
+                                       for i in range(1, max_mtr_nb + 1)]
+                        for diff in differences:
+                            cost = self.local_weight() * ponderation
+                            ttmodel.add_to_generic_cost(cost * diff, period)
+                            cost *= 2
+
+                if self.weight is not None:
+                    all_tutors = set(mtr.tutor for mtr in considered_mtr)
+                    ttmodel.add_constraint(ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor]
+                                                       for tutor in all_tutors
+                                                       for c in considered_courses
+                                                       for sl in slots_filter(ttmodel.wdb.compatible_slots[c], period=mtr.period)
+                                                       ),
+                                                       '==', total_mtr_course_nb, 
+                                                       Constraint(constraint_type=ConstraintType.MODULETUTORREPARTITION))
+
+    def is_satisfied_for(self, period, work_copy):
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        if not considered_scheduled_courses.exists():
+            assert True
+        for module in self.considered_modules():
+            for course_type in self.considered_course_types():
+                considered_mtr = ModuleTutorRepartition.objects.filter(period = period, module=module, course_type=course_type)
+                if not considered_mtr.exists():
+                    continue
+                total_mtr_course_nb = sum(mtr.courses_nb for mtr in considered_mtr)
+                mod_and_ct_considered_scheduled_courses = considered_scheduled_courses.filter(course__module=module, course__type=course_type)
+                assert mod_and_ct_considered_scheduled_courses.count() == total_mtr_course_nb, f" The number of scheduled courses for module {module} and course type {course_type} is {mod_and_ct_considered_scheduled_courses.count()} instead of {total_mtr_course_nb}"
+                for mtr in considered_mtr:
+                    scheduled_courses = mod_and_ct_considered_scheduled_courses.filter(tutor=mtr.tutor)
+                    assert scheduled_courses.count() == mtr.courses_nb, f" The number of scheduled courses for tutor {mtr.tutor}, module {mtr.module} and course type {mtr.course_type} is {scheduled_courses.count()} instead of {mtr.courses_nb}"
 
 
 class ConsiderTutorsUnavailability(TTConstraint):
@@ -852,24 +913,19 @@ class ConsiderTutorsUnavailability(TTConstraint):
                         period,
                     )
     
-    def test_period_work_copy(self, period: SchedulingPeriod, work_copy: int):
-        is_satisfied = True
-        result = {}
+    def is_satisfied_for(self, period, work_copy):
         considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
         considered_tutors = set(sc.tutor for sc in considered_scheduled_courses)
         for sc in considered_scheduled_courses:
             considered_tutors |= set(sc.course.supp_tutor.all())
+        unavailable_tutors = []
         for tutor in considered_tutors:
             tutor_courses = considered_scheduled_courses.filter(Q(tutor=tutor)|Q(course__supp_tutor=tutor))
             user_unavailabilities = period_actual_availabilities(tutor, period, unavail_only=True)
             for sc in tutor_courses:
                 if slots_filter(user_unavailabilities, simultaneous_to=sc):
-                    is_satisfied = False
-                    if tutor not in result:
-                        result[tutor] = []
-                    result[tutor].append(sc)
-
-        return {"success": is_satisfied, "more": {}}
+                    unavailable_tutors.append(tutor)
+        assert not unavailable_tutors, f"{self} is not satisfied for period {period} and work_copy {work_copy}. The following tutors have courses on declared unavailabilities : {unavailable_tutors}"
 
 
     def one_line_description(self):
@@ -881,7 +937,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
         return text
 
     def __str__(self):
-        return _("Consider tutors unavailability")
+        return "Consider tutors unavailability"
 
     def complete_tutor_partition(self, partition, tutor, period):
         """

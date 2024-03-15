@@ -137,14 +137,13 @@ class StructuralGroup(GenericGroup):
         """
         return {self} | self.descendants_groups() | self.ancestor_groups()
 
-    @property
     def transversal_conflicting_groups(self):
         """
         :return: the set of all TransversalGroup containing self
         """
-        return TransversalGroup.objects.filter(
+        return set(TransversalGroup.objects.filter(
             conflicting_groups__in=self.connected_groups()
-        )
+        ))
 
     class Meta:
         verbose_name = _("structural group")
