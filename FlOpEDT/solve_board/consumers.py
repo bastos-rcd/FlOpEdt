@@ -110,7 +110,7 @@ class SolverConsumer(WebsocketConsumer):
                 data['solver'],
                 data['pre_assign_rooms'],
                 data['post_assign_rooms'],
-                stabilize_work_copy=stabilize,
+                stabilize_version=stabilize,
                 all_weeks_together=data['all_weeks_together'],
                 send_log_email=data['send_log_email'],
                 user_email=data['current_user_email']
@@ -141,7 +141,7 @@ def solver_subprocess_SIGINT_handler(sig, stack):
 
 class Solve():
     def __init__(self, department_abbrev, weeks, timestamp, training_programme, chan, time_limit, solver,
-                 pre_assign_rooms, post_assign_rooms, send_log_email, user_email, stabilize_work_copy=None, all_weeks_together=True):
+                 pre_assign_rooms, post_assign_rooms, send_log_email, user_email, stabilize_version=None, all_weeks_together=True):
         super(Solve, self).__init__()
         self.department_abbrev = department_abbrev
         self.weeks = weeks
@@ -149,7 +149,7 @@ class Solve():
         self.channel = chan
         self.time_limit = time_limit
         self.solver = solver
-        self.stabilize_work_copy = stabilize_work_copy
+        self.stabilize_version = stabilize_version
         self.pre_assign_rooms = pre_assign_rooms
         self.post_assign_rooms = post_assign_rooms
         self.all_weeks_together = all_weeks_together
@@ -179,7 +179,7 @@ class Solve():
                 try:
                     if self.all_weeks_together:
                         t = MyTTModel(self.department_abbrev, weeks=self.weeks, train_prog=self.training_programme,
-                                      stabilize_work_copy=self.stabilize_work_copy,
+                                      stabilize_version_nb=self.stabilize_version,
                                       pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
                         os.setpgid(os.getpid(), os.getpid())
                         signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
@@ -187,7 +187,7 @@ class Solve():
                     else:
                         for w in self.weeks:
                             t = MyTTModel(self.department_abbrev, [w], train_prog=self.training_programme,
-                                          stabilize_work_copy = self.stabilize_work_copy,
+                                          stabilize_version_nb = self.stabilize_version,
                                           pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
                             os.setpgid(os.getpid(), os.getpid())
                             signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)

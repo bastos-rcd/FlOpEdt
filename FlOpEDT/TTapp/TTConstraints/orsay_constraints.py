@@ -116,11 +116,11 @@ class GroupsLunchBreak(TTConstraint):
                     #        * self.local_weight()
                     ttmodel.add_to_group_cost(group, cost, period)
 
-    def is_satisfied_for(self, period, work_copy):
+    def is_satisfied_for(self, period, version):
         """
-        Check if the constraint is satisfied for a given period and work_copy.
+        Check if the constraint is satisfied for a given period and version.
         """
-        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        considered_scheduled_courses = self.period_version_scheduled_courses_queryset(period, version)
         considered_dates = period.dates()
         if self.weekdays:
             considered_dates = days_filter(considered_dates, day_in=self.weekdays)
@@ -285,11 +285,11 @@ class TutorsLunchBreak(TTConstraint):
                     #        * self.local_weight()
                     ttmodel.add_to_inst_cost(tutor, cost, period)
                     
-    def is_satisfied_for(self, period, work_copy):
+    def is_satisfied_for(self, period, version):
         """
-        Check if the constraint is satisfied for a given period and work_copy.
+        Check if the constraint is satisfied for a given period and version.
         """
-        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        considered_scheduled_courses = self.period_version_scheduled_courses_queryset(period, version)
         considered_dates = period.dates()
         if self.weekdays:
             considered_dates = days_filter(considered_dates, day_in=self.weekdays)
@@ -414,7 +414,7 @@ class BreakAroundCourseType(TTConstraint):
                 cost = broken_breaks * ponderation * self.local_weight()
                 ttmodel.add_to_group_cost(group, cost, period)
 
-    def is_satisfied_for(self, period, work_copy):
+    def is_satisfied_for(self, period, version):
         considered_groups = self.considered_groups(transversal_groups_included=True)
         considered_dates = period.dates()
         if self.weekdays:
@@ -422,20 +422,19 @@ class BreakAroundCourseType(TTConstraint):
         all_scheduled_courses = ScheduledCourse.objects.filter(course__type__department=self.department,
                                                                course__period=period,
                                                                start_time__date__in=considered_dates,
-                                                               work_copy=work_copy,
+                                                               version=version,
                                                                course__groups__in=considered_groups)
         course_type_scheduled_courses = all_scheduled_courses.filter(course__type=self.course_type)
-        no_break_after_courses = []
-        no_break_before_courses = []
+        no_break_after_courses = set()
+        no_break_before_courses = set()
         for sched_course in course_type_scheduled_courses:
             if all_scheduled_courses.filter(start_time__lt=sched_course.end_time + self.min_break_after,
                                             start_time__gte=sched_course.end_time).exists():
-                no_break_after_courses.append(sched_course)
+                no_break_after_courses.add(sched_course)
             if all_scheduled_courses.filter(start_time__gt=sched_course.start_time - self.min_break_before - F('course__duration'),
                                             start_time__lte=sched_course.start_time - F('course__duration')).exists():
-                no_break_before_courses.append(sched_course)
-        assert not no_break_after_courses, f"No break after {no_break_after_courses}"
-        assert not no_break_before_courses, f"No break before {no_break_before_courses}"
+                no_break_before_courses.add(sched_course)
+        assert not no_break_after_courses and not no_break_before_courses, f"Break around course type {self.course_type} not respected for {no_break_after_courses | no_break_before_courses}."
 
     def one_line_description(self):
         text = f"Il faut une pause " \

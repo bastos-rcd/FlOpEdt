@@ -47,7 +47,7 @@ class StabilizeTutorsCourses(TTConstraint):
         - in a unused day for tutor group cost ponderation
     """
     tutors = models.ManyToManyField('people.Tutor',blank=True)
-    work_copy = models.PositiveSmallIntegerField(default=0)
+    version = models.ForeignKey('base.EdtVersion', on_delete=models.CASCADE, null=True)
     fixed_days = ArrayField(models.CharField(max_length=2,
                                              choices=Day.CHOICES), blank=True, null=True)
 
@@ -63,7 +63,7 @@ class StabilizeTutorsCourses(TTConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=5):
         tutors_to_be_considered = considered_tutors(self, ttmodel)
-        ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
+        ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(version=self.version)
         sched_courses = ttmodel.wdb.sched_courses.filter(course__period=period)
 
         for sl in slots_filter(ttmodel.wdb.courses_slots, period=period):
@@ -100,7 +100,7 @@ class StabilizeTutorsCourses(TTConstraint):
         text = "Minimiser les changements"
         if self.tutors.exists():
             text += ' de ' + ', '.join([t.username for t in self.tutors.all()])
-        text += ': copie ' + str(self.work_copy)
+        text += ': copie ' + str(self.version)
         return text
 
 
@@ -114,7 +114,7 @@ class StabilizeGroupsCourses(TTConstraint):
     train_progs = models.ManyToManyField('base.TrainingProgramme',
                                          blank=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    work_copy = models.PositiveSmallIntegerField(default=0)
+    version = models.ForeignKey('base.EdtVersion', on_delete=models.CASCADE, null=True)
     fixed_days = ArrayField(models.CharField(max_length=2,
                                              choices=Day.CHOICES), blank=True, null=True)
 
@@ -130,7 +130,7 @@ class StabilizeGroupsCourses(TTConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=5):
         basic_groups_to_be_considered = self.considered_basic_groups(ttmodel)
-        ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(work_copy=self.work_copy)
+        ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(version=self.version)
         sched_courses = ttmodel.wdb.sched_courses.filter(course__period=period)
 
         for bg in basic_groups_to_be_considered:
@@ -162,7 +162,7 @@ class StabilizeGroupsCourses(TTConstraint):
             text += ' des groupes ' + ', '.join([g.full_name for g in self.groups.all()])
         if self.train_progs.count():
             text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
-        text += ': copie ' + str(self.work_copy)
+        text += ': version ' + str(self.version)
         return text
 
 

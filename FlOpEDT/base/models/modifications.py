@@ -54,7 +54,7 @@ class CourseModification(models.Model):
         if course is None:
             course = self.course
         if sched_course is None:
-            sched_course = ScheduledCourse.objects.get(course=course, work_copy=0)
+            sched_course = ScheduledCourse.objects.get(course=course, version__major=0)
         department = course.type.department
         al = "\n  · "
         same = f"- Cours {course.module.abbrev} semaine {course.period}"

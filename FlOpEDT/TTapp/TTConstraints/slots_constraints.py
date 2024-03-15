@@ -523,20 +523,20 @@ class GlobalModuleDependency(TTConstraint):
                                                                     ttmodel.TT[(sl2, c2)])
                                     ttmodel.add_to_generic_cost(conj_var * self.local_weight() * ponderation)
     
-    def is_satisfied_for(self, period, work_copy):
+    def is_satisfied_for(self, period, version):
         courses1, courses2 = self.considered_courses_tuple(period)
         dependency_not_satisfied_for = []
         for g in self.considered_basic_groups():
             group_courses1 = courses1.filter(groups__in=g.connected_groups())
             group_courses2 = courses2.filter(groups__in=g.connected_groups())
             for c1 in group_courses1:
-                if not c1.scheduledcourse_set.filter(work_copy=work_copy).exists():
+                if not c1.scheduledcourse_set.filter(version=version).exists():
                     continue
                 for c2 in group_courses2.exclude(id=c1.id):
-                    if not c2.scheduledcourse_set.filter(work_copy=work_copy).exists():
+                    if not c2.scheduledcourse_set.filter(version=version).exists():
                         continue
-                    sched_course1 = c1.scheduledcourse_set.get(work_copy=work_copy)
-                    sched_course2 = c2.scheduledcourse_set.get(work_copy=work_copy)
+                    sched_course1 = c1.scheduledcourse_set.get(version=version)
+                    sched_course2 = c2.scheduledcourse_set.get(version=version)
                     if sched_course2.start_time <= sched_course1.start_time \
                         or (sched_course2.start_time.date - sched_course1.start_time.date).days < self.day_gap:
                         dependency_not_satisfied_for.append(c1)
@@ -716,12 +716,12 @@ class ConsiderDependencies(TTConstraint):
                                                             ttmodel.TT[(sl2, c2)])
                             ttmodel.add_to_generic_cost(conj_var * self.local_weight() * ponderation)
 
-    def is_satisfied_for(self, period, work_copy):
+    def is_satisfied_for(self, period, version):
         unrespected_dependencies = []
         for dep in self.considered_dependecies(period):
-            if dep.course1.scheduledcourse_set.filter(work_copy=work_copy).exists() and dep.course2.scheduledcourse_set.filter(work_copy=work_copy).exists():
-                sched_course1 = dep.course1.scheduledcourse_set.get(work_copy=work_copy)
-                sched_course2 = dep.course2.scheduledcourse_set.get(work_copy=work_copy)
+            if dep.course1.scheduledcourse_set.filter(version=version).exists() and dep.course2.scheduledcourse_set.filter(version=version).exists():
+                sched_course1 = dep.course1.scheduledcourse_set.get(version=version)
+                sched_course2 = dep.course2.scheduledcourse_set.get(version=version)
                 if sched_course2.start_time <= sched_course1.start_time:
                     unrespected_dependencies.append(dep)
                 elif dep.day_gap > 0:

@@ -64,8 +64,8 @@ class NoCourseOnWeekDay(TTConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         raise NotImplementedError
     
-    def is_satisfied_for(self, period, work_copy):
-        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+    def is_satisfied_for(self, period, version):
+        considered_scheduled_courses = self.period_version_scheduled_courses_queryset(period, version)
         # iso_week_day starts at 1 (for monday), so we need to add 1 to the rank
         iso_week_days_ranks = [rank + 1 for rank, day in enumerate(Day.CHOICES) if day[0] == self.weekday]
         if self.fampm_period == self.FULL_DAY:
@@ -79,7 +79,7 @@ class NoCourseOnWeekDay(TTConstraint):
             unwanted_considered_scheduled_courses = considered_scheduled_courses.filter(
                 start_time__date__iso_week_day__in=iso_week_days_ranks,
                 start_time__time__gte=self.time_settings().afternoon_start_time)
-        assert not unwanted_considered_scheduled_courses, f"Constraint {self} is not satisfied for period {period} and work_copy {work_copy} : {unwanted_considered_scheduled_courses}"
+        assert not unwanted_considered_scheduled_courses, f"Constraint {self} is not satisfied for period {period} and version {version} : {unwanted_considered_scheduled_courses}"
         
 
 

@@ -366,8 +366,8 @@ class NoSimultaneousGroupCourses(TTConstraint):
     def __str__(self):
         return "No simultaneous courses for one group"
     
-    def is_satisfied_for(self, period, work_copy):
-        relevant_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+    def is_satisfied_for(self, period, version):
+        relevant_scheduled_courses = self.period_version_scheduled_courses_queryset(period, version)
         relevant_basic_groups = self.considered_basic_groups()
         problematic_groups = []
         for bg in relevant_basic_groups:
@@ -376,8 +376,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
                 for sched_course2 in bg_scheduled_courses.filter(id__gt=sched_course.id):
                     if sched_course.is_simultaneous_to(sched_course2):
                         problematic_groups.append(bg)
-        assert not problematic_groups, f"{self} is not satisfied for period {period}, work_copy {work_copy} and the following groups : {problematic_groups}"
-        
+        assert not problematic_groups, f"{self} is not satisfied for period {period}, version {version} and the following groups : {problematic_groups}"
 
 
 class ScheduleAllCourses(TTConstraint):
@@ -395,18 +394,17 @@ class ScheduleAllCourses(TTConstraint):
         verbose_name = _("Schedule once all considered courses")
         verbose_name_plural = verbose_name
 
-    def is_satisfied_for(self, period, work_copy):
+    def is_satisfied_for(self, period, version):
         unscheduled=[]
         scheduled_more_than_once = []
-        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        considered_scheduled_courses = self.period_version_scheduled_courses_queryset(period, version)
         for c in self.considered_courses(period):
             if considered_scheduled_courses.filter(course=c).count() == 0:
                 unscheduled.append(c)
             elif considered_scheduled_courses.filter(course=c).count() > 1:
                 scheduled_more_than_once.append(c)
-        not_asserted_text = f"{self} is not satisfied for period {period} and work_copy {work_copy}"
-        assert not unscheduled, not_asserted_text + f"The following courses are not scheduled : {unscheduled}"
-        assert not scheduled_more_than_once, not_asserted_text + f"The following courses are scheduled more than once : {scheduled_more_than_once}"
+        not_asserted_text = f"{self} is not satisfied for period {period} and version {version} : "
+        assert not unscheduled and not scheduled_more_than_once, not_asserted_text + f"not scheduled : {unscheduled}, scheduled more than once : {scheduled_more_than_once}"
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         max_slots_nb = len(ttmodel.wdb.courses_slots)
@@ -535,12 +533,12 @@ class AssignAllCourses(TTConstraint):
                 Constraint(constraint_type=ConstraintType.PRE_ASSIGNED_TUTORS_ONLY),
             )
     
-    def is_satisfied_for(self, period, work_copy):
+    def is_satisfied_for(self, period, version):
         tutor_courses, _ = self.tutors_courses_and_no_tutor_courses(period)
-        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        considered_scheduled_courses = self.period_version_scheduled_courses_queryset(period, version)
         unassigned_scheduled_courses = considered_scheduled_courses.filter(course__in=tutor_courses,
                                                                              tutor__isnull=True)
-        assert not unassigned_scheduled_courses.exists(), f"{self} is not satisfied for period {period} and work_copy {work_copy}. The following courses are not assigned to a tutor : {unassigned_scheduled_courses}"
+        assert not unassigned_scheduled_courses.exists(), f"{self} is not satisfied for period {period} and version {version}. The following courses are not assigned to a tutor : {unassigned_scheduled_courses}"
 
     def one_line_description(self):
         text = f"Assigne tous les cours "
@@ -646,10 +644,11 @@ class ConsiderModuleTutorRepartitions(TTConstraint):
                                                        '==', total_mtr_course_nb, 
                                                        Constraint(constraint_type=ConstraintType.MODULETUTORREPARTITION))
 
-    def is_satisfied_for(self, period, work_copy):
-        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+    def is_satisfied_for(self, period, version):
+        considered_scheduled_courses = self.period_version_scheduled_courses_queryset(period, version)
         if not considered_scheduled_courses.exists():
-            assert True
+            return
+        unsatisfied_mtr = []
         for module in self.considered_modules():
             for course_type in self.considered_course_types():
                 considered_mtr = ModuleTutorRepartition.objects.filter(period = period, module=module, course_type=course_type)
@@ -657,10 +656,14 @@ class ConsiderModuleTutorRepartitions(TTConstraint):
                     continue
                 total_mtr_course_nb = sum(mtr.courses_nb for mtr in considered_mtr)
                 mod_and_ct_considered_scheduled_courses = considered_scheduled_courses.filter(course__module=module, course__type=course_type)
-                assert mod_and_ct_considered_scheduled_courses.count() == total_mtr_course_nb, f" The number of scheduled courses for module {module} and course type {course_type} is {mod_and_ct_considered_scheduled_courses.count()} instead of {total_mtr_course_nb}"
+                if mod_and_ct_considered_scheduled_courses.count() != total_mtr_course_nb:
+                    unsatisfied_mtr.append((module, course_type))
+                    continue
                 for mtr in considered_mtr:
                     scheduled_courses = mod_and_ct_considered_scheduled_courses.filter(tutor=mtr.tutor)
-                    assert scheduled_courses.count() == mtr.courses_nb, f" The number of scheduled courses for tutor {mtr.tutor}, module {mtr.module} and course type {mtr.course_type} is {scheduled_courses.count()} instead of {mtr.courses_nb}"
+                    if scheduled_courses.count() != mtr.courses_nb:
+                        unsatisfied_mtr.append((module, course_type, mtr.tutor))
+        assert not unsatisfied_mtr, f"The following ModuleTutorRepartitions are not satisfied for period {period} and version {version} : {unsatisfied_mtr}"
 
 
 class ConsiderTutorsUnavailability(TTConstraint):
@@ -913,8 +916,8 @@ class ConsiderTutorsUnavailability(TTConstraint):
                         period,
                     )
     
-    def is_satisfied_for(self, period, work_copy):
-        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+    def is_satisfied_for(self, period, version):
+        considered_scheduled_courses = self.period_version_scheduled_courses_queryset(period, version)
         considered_tutors = set(sc.tutor for sc in considered_scheduled_courses)
         for sc in considered_scheduled_courses:
             considered_tutors |= set(sc.course.supp_tutor.all())
@@ -925,7 +928,7 @@ class ConsiderTutorsUnavailability(TTConstraint):
             for sc in tutor_courses:
                 if slots_filter(user_unavailabilities, simultaneous_to=sc):
                     unavailable_tutors.append(tutor)
-        assert not unavailable_tutors, f"{self} is not satisfied for period {period} and work_copy {work_copy}. The following tutors have courses on declared unavailabilities : {unavailable_tutors}"
+        assert not unavailable_tutors, f"{self} is not satisfied for period {period} and version {version}. The following tutors have courses on declared unavailabilities : {unavailable_tutors}"
 
 
     def one_line_description(self):

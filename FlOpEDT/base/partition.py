@@ -887,11 +887,11 @@ class Partition(object):
             return ScheduledCourse.objects.filter(
                 Q(tutor=tutor) | Q(course__supp_tutor=tutor),
                 course__period=period,
-                work_copy=0,
+                version__major=0,
             ).exclude(course__type__department=department)
         else:
             return ScheduledCourse.objects.filter(
-                course__period=period, work_copy=0
+                course__period=period, version__major=0
             ).exclude(course__type__department=department)
 
     @staticmethod

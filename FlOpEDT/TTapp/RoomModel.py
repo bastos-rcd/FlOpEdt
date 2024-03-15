@@ -31,6 +31,7 @@ from base.models import (
     RoomSort,
     Room,
     Course,
+    EdtVersion
 )
 
 from base.timing import Day
@@ -63,7 +64,7 @@ from roomreservation.models import RoomReservation
 class RoomModel(FlopModel):
     @timer
     def __init__(
-        self, department_abbrev, periods, work_copy=0, keep_many_solution_files=False
+        self, department_abbrev, periods, version_nb=0, keep_many_solution_files=False
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
         super(RoomModel, self).__init__(
@@ -71,7 +72,7 @@ class RoomModel(FlopModel):
         )
 
         print("\nLet's start rooms affectation for periods %s" % self.periods)
-        self.work_copy = work_copy
+        self.version_nb = version_nb
         (
             self.scheduled_courses,
             self.courses,
@@ -124,7 +125,7 @@ class RoomModel(FlopModel):
     def courses_init(self):
         scheduled_courses = ScheduledCourse.objects.filter(
             course__period__in=self.periods,
-            work_copy=self.work_copy,
+            version__major=self.version_nb,
             course__type__department=self.department,
         ).select_related("course")
         courses = Course.objects.filter(
@@ -172,7 +173,7 @@ class RoomModel(FlopModel):
     @timer
     def other_departments_located_scheduled_courses_init(self):
         other_departments_located_scheduled_courses = (
-            ScheduledCourse.objects.filter(course__period__in=self.periods, work_copy=0)
+            ScheduledCourse.objects.filter(course__period__in=self.periods, version__major=0)
             .exclude(course__type__department=self.department)
             .exclude(room=None)
         )
@@ -465,23 +466,9 @@ class RoomModel(FlopModel):
         solver=GUROBI_NAME,
         threads=None,
         ignore_sigint=False,
-        create_new_work_copy=False,
+        create_new_version=False,
     ):
         """
-        Generates a schedule from the TTModel
-        The solver stops either when the best schedule is obtained or timeLimit
-        is reached.
-
-        If stabilize_work_copy is None: does not move the scheduled courses
-        whose group is not in train_prog and fetches from the remote database
-        these scheduled courses with work copy 0.
-
-        If target_work_copy is given, stores the resulting schedule under this
-        work copy number.
-        If target_work_copy is not given, stores under the lowest working copy
-        number that is greater than the maximum work copy numbers for the
-        considered period.
-        Returns the number of the work copy
         """
         print("\nLet's solve periods #%s" % self.periods)
 
@@ -492,24 +479,26 @@ class RoomModel(FlopModel):
         )
 
         if result is not None:
-            result_work_copy = self.add_rooms_in_db(create_new_work_copy)
-            return result_work_copy
+            result_version = self.add_rooms_in_db(create_new_version)
+            return result_version
 
-    def add_rooms_in_db(self, create_new_work_copy):
-        if create_new_work_copy:
-            target_work_copy = self.choose_free_work_copy()
+    def add_rooms_in_db(self, create_new_version):
+        if create_new_version:
+            target_version_nb = self.choose_free_version_nb()
         else:
-            target_work_copy = self.work_copy
-        course_location_list = []
-        for course in self.courses:
-            for room in self.course_room_compat[course]:
-                if self.get_var_value(self.TTrooms[(course, room)]) == 1:
-                    course_location_list.append((course, room))
-        for course, room in course_location_list:
-            scheduled_course = self.corresponding_scheduled_course[course]
-            if create_new_work_copy:
+            target_version_nb = self.version_nb
+        course_location_list_for_period = {}
+        for period in self.periods:
+            target_version, _ = EdtVersion.objects.get_or_create(department=self.department, period=period, major=target_version_nb)
+            course_location_list_for_period[period] = []
+            for course in self.courses_for_period[period]:
+                for room in self.course_room_compat[course]:
+                    if self.get_var_value(self.TTrooms[(course, room)]) == 1:
+                        course_location_list_for_period[period].append((course, room))
+            for course, room in course_location_list_for_period[period]:
+                scheduled_course = self.corresponding_scheduled_course[course]
                 scheduled_course.pk = None
-                scheduled_course.work_copy = target_work_copy
+                scheduled_course.version = target_version
             scheduled_course.room = room
             scheduled_course.save()
-        return target_work_copy
+        return target_version

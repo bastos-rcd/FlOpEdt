@@ -37,7 +37,8 @@ from base.models import (
     TimeGeneralSettings,
     ModuleTutorRepartition,
     ScheduledCourseAdditional,
-    period_actual_availabilities
+    period_actual_availabilities,
+    EdtVersion
 )
 
 from base.timing import Time, flopday_to_date, floptime_to_time
@@ -111,7 +112,7 @@ class TTModel(FlopModel):
         department_abbrev,
         periods,
         train_prog=None,
-        stabilize_work_copy=None,
+        stabilize_version_nb=None,
         min_nps_i=1.0,
         min_bhd_g=1.0,
         min_bd_i=1.0,
@@ -166,7 +167,7 @@ class TTModel(FlopModel):
                 train_prog = TrainingProgramme.objects.filter(id=train_prog.id)
             print(_(f"Will modify only courses of training programme(s) {train_prog}"))
         self.train_prog = train_prog
-        self.stabilize_work_copy = stabilize_work_copy
+        self.stabilize_version_nb = stabilize_version_nb
         self.wdb = self.wdb_init()
         self.courses = self.wdb.courses
         self.possible_apms = self.wdb.possible_apms
@@ -605,21 +606,21 @@ class TTModel(FlopModel):
     @timer
     def add_stabilization_constraints(self):
         # maximize stability
-        if self.stabilize_work_copy is not None:
+        if self.stabilize_version_nb is not None:
             st = StabilizeTutorsCourses.objects.create(
                 department=self.department,
-                work_copy=self.stabilize_work_copy,
+                version__major=self.stabilize_version_nb,
                 weight=max_weight,
             )
             sg = StabilizeGroupsCourses.objects.create(
                 department=self.department,
-                work_copy=self.stabilize_work_copy,
+                version__major=self.stabilize_version_nb,
                 weight=max_weight,
             )
             for period in self.periods:
                 st.enrich_ttmodel(self, period, self.max_stab)
                 sg.enrich_ttmodel(self, period, self.max_stab)
-            print("Will stabilize from remote work copy #", self.stabilize_work_copy)
+            print("Will stabilize from remote work copy #", self.stabilize_version_nb)
             st.delete()
             sg.delete()
 
@@ -1273,16 +1274,23 @@ class TTModel(FlopModel):
 
         self.add_specific_constraints()
 
-    def add_tt_to_db(self, target_work_copy):
+    def add_tt_to_db(self, target_version_nb):
 
         close_old_connections()
-        # remove target working copy
+
+        # remove target version
         ScheduledCourse.objects.filter(
             course__module__train_prog__department=self.department,
             course__period__in=self.periods,
-            work_copy=target_work_copy,
+            version__major=target_version_nb,
         ).delete()
 
+        # get or create TimetableVersions
+        versions_dict = {}
+        for period in self.periods:
+            versions_dict[period] = EdtVersion.objects.get_or_create(period=period, 
+                                                               major=target_version_nb, 
+                                                               department=self.department)[0]
         if self.department.mode.cosmo == 2:
             corresponding_group = {}
             for i in self.wdb.instructors:
@@ -1296,7 +1304,7 @@ class TTModel(FlopModel):
                     cp = ScheduledCourse(
                         course=c,
                         start_time=sl.start_time,
-                        work_copy=target_work_copy,
+                        version=versions_dict[c.period],
                     )
                     for i in self.wdb.possible_tutors[c]:
                         if self.get_var_value(self.TTinstructors[(sl, c, i)]) == 1:
@@ -1318,7 +1326,7 @@ class TTModel(FlopModel):
                 start_time=fc.start_time,
                 day=fc.day,
                 room=fc.room,
-                work_copy=target_work_copy,
+                version=versions_dict[fc.period],
                 tutor=fc.tutor,
             )
             if ScheduledCourseAdditional.objects.filter(
@@ -1331,25 +1339,25 @@ class TTModel(FlopModel):
             cp.save()
             
        # On imprime les différences si demandé
-        if self.stabilize_work_copy is not None:
-            print_differences(self.department, self.weeks,
-                              self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
+        if self.stabilize_version_nb is not None:
+            print_differences(self.department, self.periods,
+                              self.stabilize_version_nb, target_version_nb, self.wdb.instructors)
 
         # # On enregistre les coûts dans la BDD
         TutorCost.objects.filter(
             department=self.department,
             period__in=self.wdb.periods,
-            work_copy=target_work_copy,
+            version__major=target_version_nb,
         ).delete()
         GroupFreeHalfDay.objects.filter(
             group__train_prog__department=self.department,
             period__in=self.wdb.periods,
-            work_copy=target_work_copy,
+            version__major=target_version_nb,
         ).delete()
         GroupCost.objects.filter(
             group__train_prog__department=self.department,
             period__in=self.wdb.periods,
-            work_copy=target_work_copy,
+            version__major=target_version_nb,
         ).delete()
 
         for period in self.periods:
@@ -1359,7 +1367,7 @@ class TTModel(FlopModel):
                     tutor=i,
                     period=period,
                     value=self.get_expr_value(self.cost_I[i][period]),
-                    work_copy=target_work_copy,
+                    version=versions_dict[period],
                 )
                 tc.save()
 
@@ -1371,13 +1379,13 @@ class TTModel(FlopModel):
                     DJL += 0.01 * self.get_expr_value(self.FHD_G[Time.AM][g][period])
 
                 djlg = GroupFreeHalfDay(
-                    group=g, period=period, work_copy=target_work_copy, DJL=DJL
+                    group=g, period=period, version=versions_dict[period], DJL=DJL
                 )
                 djlg.save()
                 cg = GroupCost(
                     group=g,
                     period=period,
-                    work_copy=target_work_copy,
+                    version=versions_dict[period],
                     value=self.get_expr_value(self.cost_G[g][period]),
                 )
                 cg.save()
@@ -1388,20 +1396,27 @@ class TTModel(FlopModel):
             f"TTmodel_{self.department.abbrev}_{'_'.join(p.name for p in self.periods)}"
         )
 
-    def add_tt_to_db_from_file(self, filename=None, target_work_copy=None):
+    def add_tt_to_db_from_file(self, filename=None, target_version_nb=None):
         if filename is None:
             filename = self.last_counted_solution_filename()
-        if target_work_copy is None:
-            target_work_copy = self.choose_free_work_copy()
+        if target_version_nb is None:
+            target_version_nb = self.choose_free_version_nb()
         close_old_connections()
         # remove target working copy
         ScheduledCourse.objects.filter(
             course__module__train_prog__department=self.department,
             course__period__in=self.periods,
-            work_copy=target_work_copy,
+            version__major=target_version_nb,
         ).delete()
 
-        print("Added work copy #%g" % target_work_copy)
+        # get or create TimetableVersions
+        versions_dict = {}
+        for period in self.periods:
+            versions_dict[period] = EdtVersion.objects.get_or_create(period=period, 
+                                                                     major=target_version_nb, 
+                                                                     department=self.department)[0]
+
+        print("Added version #%g" % target_version_nb)
         solution_file_one_vars_set = self.read_solution_file(filename)
 
         for c in self.wdb.courses:
@@ -1416,7 +1431,7 @@ class TTModel(FlopModel):
                             tutor=i,
                             start_time=sl.start_time,
                             day=sl.day.day,
-                            work_copy=target_work_copy,
+                            version=versions_dict[c.period],
                         )
                         if self.pre_assign_rooms:
                             for rg in self.wdb.course_rg_compat[c]:
@@ -1434,7 +1449,7 @@ class TTModel(FlopModel):
                 start_time=fc.start_time,
                 day=fc.day,
                 room=fc.room,
-                work_copy=target_work_copy,
+                version=versions_dict[fc.period],
                 tutor=fc.tutor,
             )
             cp.save()
@@ -1442,7 +1457,7 @@ class TTModel(FlopModel):
     def solve(
         self,
         time_limit=None,
-        target_work_copy=None,
+        target_version_nb=None,
         solver=GUROBI_NAME,
         threads=None,
         ignore_sigint=True,
@@ -1453,16 +1468,16 @@ class TTModel(FlopModel):
         The solver stops either when the best schedule is obtained or timeLimit
         is reached.
 
-        If stabilize_work_copy is None: does not move the scheduled courses
+        If stabilize_version_nb is None: does not move the scheduled courses
         whose group is not in train_prog and fetches from the remote database
-        these scheduled courses with work copy 0.
+        these scheduled courses with version number 0.
 
-        If target_work_copy is given, stores the resulting schedule under this
-        work copy number.
-        If target_work_copy is not given, stores under the lowest working copy
-        number that is greater than the maximum work copy numbers for the
+        If target_version_nb is given, stores the resulting schedule under this
+        version number.
+        If target_version_nb is not given, stores under the lowest version
+        number that is greater than the maximum version numbers for the
         considered period.
-        Returns the number of the work copy
+        Returns the version
         """
         print("\nLet's solve periods %s" % [p.name for p in self.periods])
 
@@ -1474,16 +1489,16 @@ class TTModel(FlopModel):
 
         if result is not None:
 
-            if target_work_copy is None:
+            if target_version_nb is None:
                 if self.department.mode.cosmo == 2:
-                    target_work_copy = 0
+                    target_version_nb = 0
                 else:
-                    target_work_copy = self.choose_free_work_copy()
+                    target_version_nb = self.choose_free_version_nb()
 
-            self.add_tt_to_db(target_work_copy)
-            print("Added work copy N°%g" % target_work_copy)
+            self.add_tt_to_db(target_version_nb)
+            print("Added work copy N°%g" % target_version_nb)
             if self.post_assign_rooms:
-                RoomModel(self.department.abbrev, self.periods, target_work_copy).solve()
+                RoomModel(self.department.abbrev, self.periods, target_version_nb).solve()
                 print("Rooms assigned")
         
         if send_gurobi_logs_email_to is not None:
@@ -1492,13 +1507,13 @@ class TTModel(FlopModel):
                 subject = f"Logs {self.department.abbrev} {self.weeks} : not solved"
             else:
                 solved=True
-                subject = f"Logs {self.department.abbrev} {self.weeks} : copy {target_work_copy}"
+                subject = f"Logs {self.department.abbrev} {self.weeks} : copy {target_version_nb}"
             self.send_gurobi_log_files_email(
                 subject=subject,
                 to=[send_gurobi_logs_email_to],
                 solved=solved
             )
-        return target_work_copy
+        return target_version_nb
 
     def find_same_course_slot_in_other_period(self, slot, other_period):
         other_slots = slots_filter(self.wdb.courses_slots, period=other_period, same=slot)

@@ -23,7 +23,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import TimeGeneralSettings, SchedulingPeriod, ScheduledCourse, Course
+from base.models import TimeGeneralSettings, SchedulingPeriod, ScheduledCourse, Course, EdtVersion
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django.utils.translation import gettext_lazy as _
@@ -59,13 +59,13 @@ class FlopConstraint(models.Model):
     is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
     modified_at = models.DateField(auto_now=True)
 
-    def is_satisfied_for(self, period: SchedulingPeriod, work_copy: int):
+    def is_satisfied_for(self, period: SchedulingPeriod, version: EdtVersion):
         """
         Test if the constraint is satisfied for the given period and work copy
         """
         raise NotImplementedError
     
-    def period_work_copy_scheduled_courses_queryset(self, period: SchedulingPeriod, work_copy: int) -> models.QuerySet:
+    def period_version_scheduled_courses_queryset(self, period: SchedulingPeriod, version: EdtVersion) -> models.QuerySet:
         """
         Return all scheduled courses of the given work copy for the given period
         """

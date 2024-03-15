@@ -64,7 +64,7 @@ def backup():
     #Get week number by using isocalendar
     today = dt.date.today()
     courses = Course.objects.filter(period__start_date__gte=today)
-    scheduled_courses = ScheduledCourse.objects.filter(work_copy=0,
+    scheduled_courses = ScheduledCourse.objects.filter(version__major=0,
                                                        course__in=courses)
 
     for course in courses:

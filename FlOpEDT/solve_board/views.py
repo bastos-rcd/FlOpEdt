@@ -58,7 +58,7 @@ def get_work_copies(department, week):
                     .filter(
                         period_filter,
                         course__module__train_prog__department=department) \
-                    .values_list('work_copy', flat=True) \
+                    .values_list('version__major', flat=True) \
                     .distinct()     
     
     return list(work_copies)

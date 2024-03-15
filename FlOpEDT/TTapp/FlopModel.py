@@ -239,19 +239,19 @@ class FlopModel(object):
                     one_vars.add(r[0])
         return one_vars
 
-    def choose_free_work_copy(self):
+    def choose_free_version_nb(self):
         close_old_connections()
 
-        local_max_wc = ScheduledCourse \
+        local_max_version_nb = ScheduledCourse \
             .objects \
             .filter(course__module__train_prog__department=self.department,
                     course__period__in=self.periods) \
-            .aggregate(Max('work_copy'))['work_copy__max']
+            .aggregate(Max('version__major'))['version__major__max']
 
-        if local_max_wc is None:
-            local_max_wc = -1
+        if local_max_version_nb is None:
+            local_max_version_nb = 0
 
-        return local_max_wc + 1
+        return local_max_version_nb + 1
 
     def iis_filename_suffixe(self):
         return "_%s_%s" % (self.department.abbrev, self.periods)

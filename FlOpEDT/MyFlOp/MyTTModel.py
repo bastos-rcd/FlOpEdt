@@ -34,7 +34,7 @@ from MyFlOp.MyTTUtils import number_courses, print_differences
 class MyTTModel(TTModel):
     def __init__(self, department_abbrev, periods,
                  train_prog=None,
-                 stabilize_work_copy=None,
+                 stabilize_version_nb=None,
                  min_nps_i=1.,
                  min_bhd_g=1.,
                  min_bd_i=1.,
@@ -56,7 +56,7 @@ class MyTTModel(TTModel):
         """
         TTModel.__init__(self, department_abbrev, periods,
                          train_prog=train_prog,
-                         stabilize_work_copy=stabilize_work_copy,
+                         stabilize_version_nb=stabilize_version_nb,
                          min_nps_i=min_nps_i,
                          min_bhd_g=min_bhd_g,
                          min_bd_i=min_bd_i,
@@ -80,28 +80,28 @@ class MyTTModel(TTModel):
         """
         TTModel.add_specific_constraints(self)
 
-    def solve(self, time_limit=None, target_work_copy=None,
+    def solve(self, time_limit=None, target_version_nb=None,
               solver=GUROBI_NAME, threads=None, ignore_sigint=True, send_gurobi_logs_email_to=None,
               with_numerotation=True):
         """
         If you shall add pre (or post) processing apps, you may write them down
         here.
         """
-        result_work_copy = TTModel.solve(self,
+        result_version = TTModel.solve(self,
                                          time_limit=time_limit,
-                                         target_work_copy=target_work_copy,
+                                         target_version_nb=target_version_nb,
                                          solver=solver,
                                          threads=threads,
                                          ignore_sigint=ignore_sigint,
                                          send_gurobi_logs_email_to=send_gurobi_logs_email_to)
 
-        if result_work_copy is not None and self.stabilize_work_copy is not None:
+        if result_version is not None and self.stabilize_version_nb is not None:
             print_differences(self.department, self.periods,
-                              self.stabilize_work_copy, target_work_copy, self.wdb.instructors)
+                              self.stabilize_version_nb, target_version_nb, self.wdb.instructors)
 
         if with_numerotation:
             number_courses(self.department, periods=self.periods,
-                           work_copy=result_work_copy)
+                           version_majour=result_version)
             
-        return result_work_copy
+        return result_version
 

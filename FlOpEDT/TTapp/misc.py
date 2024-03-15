@@ -29,12 +29,12 @@ from base.models import SchedulingPeriod
 from core.decorators import timer
 
 @timer
-def are_all_flop_constraints_satisfied_for(period, work_copy=0):
+def are_all_flop_constraints_satisfied_for(period, version):
     errors = []
     for cl in all_subclasses(FlopConstraint):
         for a in cl.objects.filter(department__abbrev='INFO'):
             try:
-                a.is_satisfied_for(period,0)
+                a.is_satisfied_for(period,version)
             except NotImplementedError:
                 continue
             except AssertionError as e:

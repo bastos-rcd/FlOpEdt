@@ -316,12 +316,12 @@ class PeriodsDatabase(object):
         sched_courses = ScheduledCourse.objects.filter(course__in=courses)
 
         if self.department.mode.cosmo:
-            sched_courses = sched_courses.filter(work_copy=0)
+            sched_courses = sched_courses.filter(version__major=0)
 
         fixed_courses = ScheduledCourse.objects.filter(
             course__module__train_prog__department=self.department,
             course__period__in=self.periods,
-            work_copy=0,
+            version__major=0,
         ).exclude(course__module__train_prog__in=self.train_prog)
 
         other_departments_courses = Course.objects.filter(period__in=self.periods).exclude(
@@ -329,7 +329,7 @@ class PeriodsDatabase(object):
         )
 
         other_departments_sched_courses = ScheduledCourse.objects.filter(
-            course__in=other_departments_courses, work_copy=0
+            course__in=other_departments_courses, version__major=0
         )
 
         courses_availabilities = set()

@@ -19,7 +19,7 @@ def check_reservation(reservation_data):
     room = reservation_data["room"]
 
     # filter
-    all_room_courses = ScheduledCourse.objects.filter(work_copy=0, room__in=room.and_overrooms())
+    all_room_courses = ScheduledCourse.objects.filter(version__major=0, room__in=room.and_overrooms())
     simultaneous_room_scheduled_courses = all_room_courses.filter(start_time__lt=end_time,
                                                                   start_time__gt=start_time - F('course__duration'))
     simultaneous_reservations = RoomReservation.objects.filter(room=room,

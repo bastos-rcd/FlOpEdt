@@ -27,9 +27,9 @@
 import functools
 
 from TTapp.TTUtils import basic_reassign_rooms, basic_swap_version, \
-    basic_delete_work_copy, basic_duplicate_work_copy, basic_delete_all_unused_work_copies, \
+    basic_delete_version, basic_duplicate_version, basic_delete_all_unused_versions, \
     duplicate_what_can_be_in_other_periods, number_courses
-from base.models import ScheduledCourse, Department, SchedulingPeriod
+from base.models import ScheduledCourse, Department, SchedulingPeriod, EdtVersion
 from people.models import Tutor
 
 
@@ -48,13 +48,13 @@ def resolve_department(func):
 
     return _wraper_function
 
-def print_differences(department, periods, old_copy, new_copy, tutors=Tutor.objects.all()):
+def print_differences(department, periods, old_version, new_version, tutors=Tutor.objects.all()):
     for period in periods:
         print("For", period)
         for tutor in tutors:
-            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=old_copy, course__period=period,
+            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, version=old_version, course__period=period,
                                                  course__type__department=department)
-            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, work_copy=new_copy, course__period=period,
+            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, version=new_version, course__period=period,
                                                  course__type__department=department)
             slots_a = set([x.start_time for x in SCa])
             slots_b = set([x.start_time for x in SCb])
@@ -69,9 +69,10 @@ def print_differences(department, periods, old_copy, new_copy, tutors=Tutor.obje
 
 
 @resolve_department
-def reassign_rooms(department, period_id, work_copy, create_new_work_copy=True):
+def reassign_rooms(department, period_id, version_nb, create_new_version=True):
     period = SchedulingPeriod.objects.get(id=period_id)
-    result = basic_reassign_rooms(department, period, work_copy, create_new_work_copy=create_new_work_copy)
+    version = EdtVersion.objects.get(department=department, period=period, major=version_nb)
+    result = basic_reassign_rooms(department, period, version, create_new_version=create_new_version)
     return result
 
 
@@ -84,32 +85,35 @@ def swap_version(department, period_id, copy_a, copy_b=0):
 
 
 @resolve_department
-def delete_work_copy(department, period_id, work_copy):
+def delete_version(department, period_id, version_nb):
     period = SchedulingPeriod.objects.get(id=period_id)
-    return basic_delete_work_copy(department, period, work_copy)
+    version = EdtVersion.objects.get(department=department, period=period, major=version_nb)
+    return basic_delete_version(department, period, version)
 
 
 @resolve_department
 def delete_all_unused_work_copies(department, period_id):
     period = SchedulingPeriod.objects.get(id=period_id)
-    return basic_delete_all_unused_work_copies(department, period)
+    return basic_delete_all_unused_versions(department, period)
 
 
 @resolve_department
-def duplicate_work_copy(department, period_id, work_copy):
+def duplicate_version(department, period_id, version_nb):
     period = SchedulingPeriod.objects.get(id=period_id)
-    return basic_duplicate_work_copy(department, period, work_copy)
+    version = EdtVersion.objects.get(department=department, period=period, major=version_nb)
+    return basic_duplicate_version(department, period, version)
 
 
 @resolve_department
-def duplicate_in_other_periods(department, period_id, work_copy):
+def duplicate_in_other_periods(department, period_id, version_nb):
     period = SchedulingPeriod.objects.get(id=period_id)
-    return duplicate_what_can_be_in_other_periods(department, period, work_copy)
+    version = EdtVersion.objects.get(department=department, period=period, major=version_nb)
+    return duplicate_what_can_be_in_other_periods(department, period, version)
 
 
 @resolve_department
-def number_courses_from_this_period(department, period_id, work_copy):
-    if work_copy != 0:
+def number_courses_from_this_period(department, period_id, version_nb):
+    if version_nb != 0:
         return
     period = SchedulingPeriod.objects.get(id=period_id)
     return number_courses(department, from_period=period)
