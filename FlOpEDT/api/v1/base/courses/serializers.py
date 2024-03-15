@@ -30,6 +30,7 @@ import displayweb.models as dwm
 import people.models as pm
 
 from api.v1.base.timing.serializers import SchedulingPeriodSerializer
+from api.v1.base.modification.serializers import EdtVersionShortSerializer
 
 
 #                             ------------------------------                            #
@@ -49,6 +50,7 @@ class ScheduledCoursesSerializer(serializers.ModelSerializer):
     group_ids = serializers.PrimaryKeyRelatedField(
         read_only=True, many=True, source="course.groups"
     )
+    version = EdtVersionShortSerializer()
 
     # Sructuration of the data
     class Meta:
@@ -66,6 +68,7 @@ class ScheduledCoursesSerializer(serializers.ModelSerializer):
             "train_prog_id",
             "group_ids",
             "number",
+            "version",
         ]
 
     def get_end_time(self, obj):
@@ -75,7 +78,10 @@ class ScheduledCoursesSerializer(serializers.ModelSerializer):
 
     @classmethod
     def and_related(cls):
-        return {"select": {"course": ["duration"]}, "prefetch": {}}
+        return {
+            "select": {"course": ["duration"], "version": ["id", "minor", "major"]},
+            "prefetch": {},
+        }
 
 
 class RoomsSerializer(serializers.ModelSerializer):

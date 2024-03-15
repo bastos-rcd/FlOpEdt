@@ -108,7 +108,7 @@ class ScheduledCourseHumanQueryParamsSerializer(rf_s.Serializer):
             except bm.StructuralGroup.DoesNotExist:
                 raise exceptions.NotAcceptable(detail={"struct_group": "Unknown group"})
 
-        value["work_copy"] = 0
+        value["version__major"] = 0
         return value
 
 
@@ -116,8 +116,8 @@ class ScheduledCourseQueryParamsSerializer(rf_s.Serializer):
     from_date = rf_s.DateField(required=False)
     to_date = rf_s.DateField(required=False)
     period_id = rf_s.IntegerField(required=False)
-    work_copy = rf_s.IntegerField(required=False, default=0)
-    work_copy_nb = rf_s.IntegerField(required=False, default=0)
+    version = rf_s.CharField(required=False, default="elected")
+    major_version = rf_s.IntegerField(required=False, default=0)
     tutor_id = rf_s.IntegerField(required=False)
     dept_id = rf_s.IntegerField(required=False)
     train_prog_id = rf_s.IntegerField(required=False)
@@ -198,7 +198,7 @@ class ScheduledCoursesJoinedViewSet(viewsets.ReadOnlyModelViewSet):
         params = self.get_params()
 
         queryset = bm.ScheduledCourse.objects.filter(
-            work_copy=params["work_copy"],
+            version__major=params["major_version"],
             start_time__gte=dt.datetime.combine(params["from_date"], dt.time(0, 0, 0)),
             start_time__lte=dt.datetime.combine(
                 params["to_date"] + dt.timedelta(days=1), dt.time(0, 0, 0)
@@ -306,38 +306,6 @@ class ModuleViewSet(ModuleMixinViewSet, viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = serializers.ModulesSerializer
-
-
-class EdtVersionQueryParamsSerializer(rf_s.Serializer):
-    from_date = rf_s.DateField()
-    to_date = rf_s.DateField()
-    dept_id = rf_s.IntegerField(required=False)
-    work_copy_nb = rf_s.IntegerField(required=False)
-
-
-@extend_schema(parameters=[EdtVersionQueryParamsSerializer])
-class EdtVersionViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = serializers.EdtVersionSerializer
-    permission_classes = [permissions.AllowAny]
-
-    def get_queryset(self):
-        if getattr(self, "swagger_fake_view", False):
-            return bm.EdtVersion.objects.none()
-
-        qp_serializer = EdtVersionQueryParamsSerializer(data=self.request.query_params)
-        qp_serializer.is_valid(raise_exception=True)
-        qp_params = qp_serializer.validated_data
-
-        params = dict()
-        params["period__start_date__gte"] = qp_params.pop("from_date")
-        params["period__end_date__lte"] = qp_params.pop("to_date")
-        if "dept_id" in params:
-            params["department__id"] = qp_params.pop("dept_id")
-        if "work_copy_nb" in params:
-            params["work_copy"] = qp_params.pop["work_copy_nb"]
-
-
-        return bm.EdtVersion.objects.filter(**params).select_related("period")
 
 
 class RoomFilterSet(filters.FilterSet):

@@ -23,8 +23,13 @@
 from django.urls import path, re_path, include
 from api.v1.base.courses.urls import routerCourse
 from api.v1.base.groups.urls import routerGroup
+from api.v1.base.modification.urls import routerModification
 
 url_base_patterns = [
     path("courses/", include((routerCourse.urls, "api"), namespace="course")),
     path("groups/", include((routerGroup.urls, "api"), namespace="groups")),
+    path(
+        "modification/",
+        include((routerModification.urls, "api"), namespace="modifications"),
+    ),
 ]
