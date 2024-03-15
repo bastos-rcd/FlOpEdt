@@ -167,14 +167,14 @@ export class ScheduledCourse {
   }
 }
 
-export interface TimeSettings {
+export interface TimeSettingBack {
   id: number
-  day_start_time: number
-  day_finish_time: number
-  lunch_break_start_time: number
-  lunch_break_finish_time: number
+  day_start_time: string
+  day_end_time: string
+  morning_end_time: string
+  afternoon_start_time: string
   days: Array<string>
-  default_preference_duration: number
+  scheduling_period_mode: string
   department: number
 }
 

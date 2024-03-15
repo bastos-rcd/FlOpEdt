@@ -66,6 +66,16 @@ export interface Room {
 // Association groupe - colonnes ? NON
 // Record<number, number[]>  // groupId -> columnIds
 
+export interface TimeSetting {
+  id: number
+  dayStartTime: number
+  dayEndTime: number
+  morningEndTime: number
+  afternoonStartTime: number
+  days: string[]
+  departmentId: number
+}
+
 export interface TrainingProgramme {
   id: number
   name: string

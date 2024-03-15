@@ -6,15 +6,17 @@ import {
   CourseType,
   RoomAttribute,
   ScheduledCourse,
-  TimeSettings,
   RoomAPI,
   GroupAPI,
   ModuleAPI,
   TrainingProgrammeAPI,
   AvailabilityBack,
+  TimeSettingBack,
 } from '@/ts/type'
 
 import { dateToString, buildUrl } from '@/helpers'
+import { TimeSetting } from '@/stores/declarations'
+import { parseTime } from '@quasar/quasar-ui-qcalendar'
 
 const API_ENDPOINT = '/fr/api/'
 
@@ -24,7 +26,7 @@ const urls = {
   getScheduledcourses: 'v1/base/courses/scheduled_courses',
   getRooms: 'v1/base/courses/rooms',
   weekdays: 'fetch/weekdays',
-  timesettings: 'base/timesettings',
+  getTimeSettings: 'base/timesettings',
   roomreservation: 'roomreservations/reservation',
   roomreservationtype: 'roomreservations/reservationtype',
   reservationperiodicity: 'roomreservations/reservationperiodicity',
@@ -148,13 +150,13 @@ export interface FlopAPI {
   getAllRooms(department?: Department): Promise<Array<RoomAPI>>
   getRoomById(id: number): Promise<RoomAPI | undefined>
   getAvailabilities(userId: number, from: Date, to: Date): Promise<Array<AvailabilityBack>>
+  getTimeSettings(): Promise<any[]>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
     courseTypes(params: { department: string }): Promise<Array<CourseType>>
     numericRoomAttributes(): Promise<Array<RoomAttribute>>
     scheduledCourses(params: { week?: number; year?: number; department?: string }): Promise<Array<ScheduledCourse>>
-    timeSettings(): Promise<Array<TimeSettings>>
     users(): Promise<Array<User>>
   }
   delete: {
@@ -450,7 +452,7 @@ const api: FlopAPI = {
     return room
   },
   async getAvailabilities(userId: number, from: Date, to: Date): Promise<Array<AvailabilityBack>> {
-    let availabilities: AvailabilityBack[] = []
+    const availabilities: AvailabilityBack[] = []
     await fetch(
       API_ENDPOINT +
         urls.getAvailability +
@@ -492,6 +494,32 @@ const api: FlopAPI = {
       })
     return availabilities
   },
+  async getTimeSettings(): Promise<TimeSetting[]> {
+    const timeSettings: TimeSetting[] = []
+    await fetch(API_ENDPOINT + urls.getTimeSettings, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    }).then(async (response) => {
+      if (!response.ok) {
+        return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+      }
+      await response.json().then((data: TimeSettingBack[]) => {
+        data.forEach((timeSettingBack: TimeSettingBack) => {
+          timeSettings.push({
+            id: timeSettingBack.id,
+            dayStartTime: parseTime(timeSettingBack.day_start_time),
+            dayEndTime: parseTime(timeSettingBack.day_end_time),
+            morningEndTime: parseTime(timeSettingBack.morning_end_time),
+            afternoonStartTime: parseTime(timeSettingBack.afternoon_start_time),
+            days: timeSettingBack.days,
+            departmentId: timeSettingBack.department,
+          })
+        })
+      })
+    })
+    return timeSettings
+  },
   fetch: {
     booleanRoomAttributes() {
       return fetcher(urls.booleanroomattributes)
@@ -507,9 +535,6 @@ const api: FlopAPI = {
     },
     scheduledCourses(params: { week?: number; year?: number; department?: string }) {
       return fetcher(urls.scheduledcourses, params)
-    },
-    timeSettings() {
-      return fetcher(urls.timesettings)
     },
     users() {
       return fetcher(urls.users)
