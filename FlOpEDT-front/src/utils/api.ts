@@ -207,8 +207,8 @@ const api: FlopAPI = {
                 trainProgId: d.train_prog_id,
                 groupIds: [],
                 suppTutorsIds: [],
-                no: -1,
-                courseTypeId: -1,
+                no: d.number,
+                courseTypeId: d.course_type_id,
               }
               d.supp_tutor_ids.forEach((sti: number) => {
                 sc.suppTutorsIds.push(sti)

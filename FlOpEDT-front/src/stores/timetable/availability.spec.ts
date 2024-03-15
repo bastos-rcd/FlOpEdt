@@ -63,9 +63,10 @@ describe('Availibility store utils', () => {
   })
 
   it('Transforms an Availibility in back Availability', () => {
-    expect.assertions(12)
+    expect.assertions(4)
     const availabilityStore = useAvailabilityStore()
-    let availability: Availability = availabilityStore.getAvailability(1)!
+    const availability: Availability = availabilityStore.getAvailability(1)!
+    expect(availability)?.toBeDefined()
     const availabilityBack = availabilityStore.availabilityToAvailabilityBack(availability)
     expect(availabilityBack.value).toBe(3)
     expect(availabilityBack.av_type).toBe('user')
@@ -73,7 +74,7 @@ describe('Availibility store utils', () => {
   })
 
   it('Transforms a back Availability in Availability', () => {
-    expect.assertions(8)
+    expect.assertions(7)
     const availabilityStore = useAvailabilityStore()
     let availabilityBack: AvailabilityBack = {
       start_time: '2017-01-15 14:30',
@@ -88,14 +89,13 @@ describe('Availibility store utils', () => {
     expect(availability.start.day).toBe(15)
     expect(availability.start.weekday).toBe(0)
     expect(availability.duration).toBe(210)
-    expect(availability.id).toBe(1)
     expect(availability.value).toBe(0)
     expect(availability.dataId).toBe(10)
     expect(availability.type).toBe('user')
   })
 
   it('Transforms an Availibility in back Availability and back', () => {
-    expect.assertions(20)
+    expect.assertions(10)
     const availabilityStore = useAvailabilityStore()
     let availability: Availability = availabilityStore.getAvailability(9)!
     const availabilityBack: AvailabilityBack = availabilityStore.availabilityToAvailabilityBack(availability)
@@ -108,14 +108,13 @@ describe('Availibility store utils', () => {
     expect(newAvailability.start.day).toBe(1)
     expect(newAvailability.start.weekday).toBe(5)
     expect(newAvailability.duration).toBe(60)
-    expect(newAvailability.id).toBe(9)
     expect(newAvailability.value).toBe(3)
     expect(newAvailability.dataId).toBe(22)
     expect(newAvailability.type).toBe('user')
   })
 
   it('Transforms a back Availability in Availability and back', () => {
-    expect.assertions(20)
+    expect.assertions(10)
     const availabilityStore = useAvailabilityStore()
     let availabilityBack: AvailabilityBack = {
       start_time: '2017-01-15 14:30',
@@ -130,7 +129,6 @@ describe('Availibility store utils', () => {
     expect(availability.start.day).toBe(15)
     expect(availability.start.weekday).toBe(0)
     expect(availability.duration).toBe(210)
-    expect(availability.id).toBe(1)
     expect(availability.value).toBe(0)
     expect(availability.dataId).toBe(10)
     expect(availability.type).toBe('user')

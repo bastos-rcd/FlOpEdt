@@ -1,27 +1,27 @@
 import { AvailabilityBack } from '@/ts/type'
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore, storeToRefs } from 'pinia'
+import { Ref, ref } from 'vue'
 import { Availability } from '../declarations'
-import { Timestamp, copyTimestamp, parseTime, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp, parseTime, parseTimestamp, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
 import {
-  dateToTimestamp,
   getDateStringFromTimestamp,
-  getDateTimeStringFromDate,
-  timestampToDate,
   datetimeStringToDate,
   durationDjangoToMinutes,
   durationMinutesToDjango,
 } from '@/helpers'
 import { InputCalendarEvent } from '@/components/calendar/declaration'
-import { remove } from 'lodash'
+import { cloneDeep, remove } from 'lodash'
+import { usePermanentStore } from './permanent'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
+  const permanentStore = usePermanentStore()
   const availabilitiesBack = ref<Map<string, AvailabilityBack[]>>(new Map<string, AvailabilityBack[]>())
   const availabilities = ref<Map<string, Availability[]>>(new Map<string, Availability[]>())
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
-  let nextId = 0
+  const nextId: Ref<number> = ref(0)
+  const { dayStartTime, dayEndTime } = storeToRefs(permanentStore)
 
   async function fetchUserAvailabilitiesBack(userId: number, from: Date, to: Date): Promise<void> {
     clearAvailabilities()
@@ -34,10 +34,13 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
             availabilitiesBack.value.set(dateString, [])
           }
           availabilitiesBack.value.get(dateString)!.push(avb)
-          if (!availabilities.value.has(dateString)) {
-            availabilities.value.set(dateString, [])
-          }
-          availabilities.value.get(dateString)!.push(availabilityBackToAvailability(avb))
+          const newAvailabilities: Availability[] = formatAvailabilityWithDayTime(availabilityBackToAvailability(avb))
+          newAvailabilities.forEach((newAvailability) => {
+            if (!availabilities.value.has(dateString)) {
+              availabilities.value.set(dateString, [])
+            }
+            availabilities.value.get(dateString)!.push(newAvailability)
+          })
         })
         isLoading.value = false
       })
@@ -48,9 +51,9 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
-    let start: Timestamp = dateToTimestamp(new Date(availabilityBack.start_time))
+    let start: Timestamp = parseTimestamp(availabilityBack.start_time) as Timestamp
     let newAvailability: Availability = {
-      id: nextId++,
+      id: nextId.value++,
       type: availabilityBack.av_type,
       duration: durationDjangoToMinutes(availabilityBack.duration),
       start: start,
@@ -62,7 +65,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
 
   function availabilityToAvailabilityBack(availability: Availability): AvailabilityBack {
     let newAvailabilityBack: AvailabilityBack = {
-      start_time: timestampToDate(availability.start).toISOString(),
+      start_time: availability.start.date + ' ' + availability.start.time,
       duration: durationMinutesToDjango(availability.duration),
       value: availability.value,
       av_type: availability.type,
@@ -141,6 +144,30 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
         availabilitiesReturned.push(av)
       })
     })
+    return availabilitiesReturned
+  }
+
+  function formatAvailabilityWithDayTime(avail: Availability): Availability[] {
+    let timeStart = parseTime(avail.start)
+    const newAvail = cloneDeep(avail)
+    const availabilitiesReturned = []
+    if (timeStart < dayStartTime.value && timeStart + newAvail.duration > dayStartTime.value) {
+      newAvail.start = updateMinutes(newAvail.start, dayStartTime.value)
+      newAvail.id = nextId.value++
+      avail.duration = dayStartTime.value - timeStart
+      newAvail.duration = newAvail.duration - avail.duration
+      availabilitiesReturned.push(newAvail, avail)
+    }
+    timeStart = parseTime(newAvail.start)
+    if (timeStart < dayEndTime.value && timeStart + newAvail.duration > dayEndTime.value) {
+      const newAvailUp = cloneDeep(newAvail)
+      newAvailUp.start = updateMinutes(newAvailUp.start, dayEndTime.value)
+      newAvailUp.id = nextId.value++
+      newAvail.duration = dayEndTime.value - timeStart
+      newAvailUp.duration = newAvailUp.duration - newAvail.duration
+      if (newAvail.id !== avail.id) availabilitiesReturned.push(newAvail)
+      availabilitiesReturned.push(newAvailUp)
+    }
     return availabilitiesReturned
   }
 

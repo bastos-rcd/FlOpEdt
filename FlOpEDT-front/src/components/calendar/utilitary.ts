@@ -1,7 +1,16 @@
-import { intersection } from 'lodash'
-import { CalendarColumn, CalendarEvent } from './declaration'
-import { TimestampOrNull } from '@quasar/quasar-ui-qcalendar'
+import { cloneDeep, concat, drop, intersection } from 'lodash'
+import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
+import {
+  TimestampOrNull,
+  copyTimestamp,
+  nextDay,
+  parseTime,
+  prevDay,
+  updateFormatted,
+  updateMinutes,
+} from '@quasar/quasar-ui-qcalendar'
 import { diffTimestamp } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
+import { useScheduledCourseStore } from '@/stores/timetable/course'
 
 export const STEP_DEFAULT: number = 15
 
@@ -65,18 +74,11 @@ export function updateEventsOverlap(events: CalendarEvent[]): CalendarEvent[] {
     if (newEvents[i].toggled) {
       for (let k = 0; k < newEvents.length; k++) {
         if (i !== k && (k > i || !newEvents[k].toggled)) {
-          const sameColumns = columnsInCommon(newEvents[i], newEvents[k])
-          if (newEvents[i].data.dataType === newEvents[k].data.dataType && sameColumns) {
-            const diff = Math.ceil(diffTimestamp(newEvents[i].data.start, newEvents[k].data.start) / 1000 / 60)
-            if (diff > 0) {
-              if (newEvents[i].data.duration! > diff) {
-                newEvents[i].toggled = newEvents[k].toggled = false
-              }
-            } else {
-              if (newEvents[k].data.duration! > Math.abs(diff)) {
-                newEvents[i].toggled = newEvents[k].toggled = false
-              }
-            }
+          if (
+            areEventsOverlapped(newEvents[i], newEvents[k]) &&
+            newEvents[i].data.dataType === newEvents[k].data.dataType
+          ) {
+            newEvents[i].toggled = newEvents[k].toggled = false
           }
         }
       }
@@ -132,4 +134,121 @@ export function badgeStyles(
     s['background-color'] = 'rgba(80,80,80,0.5)'
   }
   return s
+}
+
+function isTutorInTwoCourses(event1: CalendarEvent, event2: CalendarEvent): boolean {
+  let isInBothCourses = false
+  const courseStore = useScheduledCourseStore()
+  if (event1.data.dataType === 'event' && event2.data.dataType === 'event') {
+    const course1 = courseStore.getCourse(event1.data.dataId)
+    const course2 = courseStore.getCourse(event2.data.dataId)
+    if (course1 && course2) {
+      isInBothCourses = course1.tutorId === course2.tutorId
+    }
+  }
+  return isInBothCourses
+}
+
+function areEventsOverlapped(event1: CalendarEvent, event2: CalendarEvent): boolean {
+  const sameColumns = columnsInCommon(event1, event2)
+  let timeOverlap = false
+  if (sameColumns) {
+    timeOverlap = eventsTimeOverlap(event1, event2)
+  }
+  return sameColumns && timeOverlap
+}
+
+function eventsTimeOverlap(event1: CalendarEvent, event2: CalendarEvent): boolean {
+  let timeOverlap = false
+  if (event1.data.start.date === event2.data.start.date) {
+    const diff = Math.ceil(diffTimestamp(event1.data.start, event2.data.start) / 1000 / 60)
+    if (diff > 0) {
+      if (event1.data.duration) timeOverlap = event1.data.duration > diff
+    } else {
+      if (event2.data.duration) timeOverlap = event2.data.duration > Math.abs(diff)
+    }
+  }
+  return timeOverlap
+}
+
+export function createDropzonesForEvent(
+  eventId: number,
+  allEvents: CalendarEvent[],
+  dayStartTime: number,
+  dayEndTime: number,
+  lastDayOfWeek: number = 6
+): CalendarEvent[] {
+  const dropzones: CalendarEvent[] = []
+  const event = allEvents.find((ev) => ev.id === eventId)
+  if (event) {
+    createDropzonesOnTimes(event, allEvents, dayStartTime, dayEndTime, lastDayOfWeek).forEach((dz) => {
+      dropzones.push(dz)
+    })
+  }
+  return dropzones
+}
+
+/*
+ ** dayStartTime && dayEndTime = minutes since midnight
+ ** allEvents doesn't contain dropzones
+ **
+ */
+function createDropzonesOnTimes(
+  event: CalendarEvent,
+  allEvents: CalendarEvent[],
+  dayStartTime: number,
+  dayEndTime: number,
+  lastDayOfWeek: number = 6
+): CalendarEvent[] {
+  const dropZones: CalendarEvent[] = []
+  let startTime = copyTimestamp(event.data.start)
+  while (startTime.weekday !== 1) {
+    startTime = prevDay(startTime)
+    updateFormatted(startTime)
+  }
+  while (startTime.weekday !== lastDayOfWeek) {
+    updateMinutes(startTime, dayStartTime)
+    if (event.data.duration) {
+      while (parseTime(startTime) + event.data.duration <= dayEndTime) {
+        const newDropZone: CalendarEvent = cloneDeep(event)
+        newDropZone.data.dataId = event.id
+        newDropZone.id = -1
+        newDropZone.data.dataType = 'dropzone'
+        newDropZone.data.start = startTime
+        if (isPossibleDropzone(newDropZone, allEvents, event)) dropZones.push(newDropZone)
+        startTime = copyTimestamp(startTime)
+        updateMinutes(startTime, parseTime(startTime) + event.data.duration + 5)
+      }
+    }
+    startTime = nextDay(startTime)
+    updateFormatted(startTime)
+  }
+  return dropZones
+}
+
+function isPossibleDropzone(
+  dropzone: CalendarEvent,
+  allCalendarEvents: CalendarEvent[],
+  event: CalendarEvent
+): boolean {
+  let isPossible = true
+  let i = 0
+  // Compare the dropzone to every other events
+  while (i < allCalendarEvents.length && isPossible) {
+    // Current Event overlooked
+    const currentEvent = allCalendarEvents[i]
+    // Is it just on the same column and time with the current Event
+    if (areEventsOverlapped(dropzone, currentEvent)) {
+      isPossible = false
+      //Else is it only overlapping on the time and if so does it have the same tutor
+    } else if (
+      event.id !== currentEvent.id &&
+      eventsTimeOverlap(dropzone, currentEvent) &&
+      isTutorInTwoCourses(event, currentEvent)
+    ) {
+      isPossible = false
+    }
+    i++
+  }
+  return isPossible
 }

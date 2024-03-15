@@ -4,8 +4,10 @@
       <Calendar
         :columns="useCase1.columns.value"
         v-model:events="useCase2.events.value"
+        :dropzones="dropzonesUseCase1"
         @dragstart="onDragStart"
-        :end-of-day-hours="19"
+        :end-of-day="1140"
+        :start-of-day="420"
         :workcopy="3"
       />
     </Variant>
@@ -16,7 +18,8 @@
         :dropzones="dzs"
         @dragstart="onDragStart"
         @weekdays="(wd: number[]) => (weekdays = wd)"
-        :end-of-day-hours="19"
+        :end-of-day="1140"
+        :start-of-day="420"
         :workcopy="3"
       />
     </Variant>
@@ -25,7 +28,8 @@
         :columns="useCase3.columns.value"
         v-model:events="useCase3.events.value"
         @dragstart="onDragStart"
-        :end-of-day-hours="19"
+        :end-of-day="1140"
+        :start-of-day="420"
         :workcopy="3"
       />
     </Variant>
@@ -36,7 +40,8 @@
         v-model:events="useCase4.events.value"
         :dropzones="dzs"
         @dragstart="onDragStart"
-        :end-of-day-hours="19"
+        :end-of-day="1140"
+        :start-of-day="420"
         :workcopy="3"
       />
     </Variant>
@@ -44,8 +49,8 @@
 </template>
 
 <script setup lang="ts">
-import type { CalendarColumn, InputCalendarEvent } from './declaration'
-import { concat, find, map, maxBy, remove } from 'lodash'
+import type { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
+import { concat, maxBy, remove } from 'lodash'
 import { Timestamp, parseDate, parseTime, updateMinutes, getStartOfWeek, addToDate } from '@quasar/quasar-ui-qcalendar'
 import { ref, Ref } from 'vue'
 
@@ -63,36 +68,7 @@ function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
   return tm as Timestamp
 }
 
-function createDZ(
-  eventIdStart: number,
-  dataId: number,
-  eventCollection: InputCalendarEvent[],
-  starts: Array<{ dayShift: number; hhmm: string }>
-): Array<InputCalendarEvent> {
-  const relatedEvent = find(eventCollection, (event) => event.data.dataId === dataId) as InputCalendarEvent
-  if (relatedEvent === undefined) {
-    console.log('Issue with the event')
-    console.log('Could not find the data with id', dataId)
-    return []
-  }
-  const dropzones: InputCalendarEvent[] = map(starts, (start) => {
-    const dropzone = {
-      id: eventIdStart++,
-      title: '',
-      toggled: false,
-      bgcolor: 'rgba(0,0,0,0.5)',
-      columnIds: relatedEvent.columnIds,
-      data: {
-        dataId: dataId,
-        dataType: 'dropzone',
-        start: shiftInCurrentWeek(start.dayShift, start.hhmm),
-        duration: relatedEvent.data.duration,
-      },
-    } as InputCalendarEvent
-    return dropzone
-  })
-  return dropzones
-}
+const dropzonesUseCase1 = ref<CalendarEvent[]>([])
 
 interface UseCase {
   columns: Ref<CalendarColumn[]>
@@ -184,8 +160,6 @@ const useCase2: UseCase = {
     },
   ]),
 }
-
-//useCase2.events.value = concat(useCase2.events.value, dzs)
 
 const useCase1: UseCase = {
   columns: ref([
@@ -340,33 +314,6 @@ const useCase1: UseCase = {
   ]),
 }
 
-// dzs = []
-// dzs = concat(
-//   dzs,
-//   createDZ((maxBy(useCase1.events.value, (event) => event.id)?.id as number) + 1, 6, useCase1.events.value, [
-//     { dayShift: 2, hhmm: '14:00' },
-//     { dayShift: 2, hhmm: '11:00' },
-//     { dayShift: 2, hhmm: '09:50' },
-//     { dayShift: 2, hhmm: '09:00' },
-//     { dayShift: 2, hhmm: '08:50' },
-//     { dayShift: 0, hhmm: '14:00' },
-//     { dayShift: 0, hhmm: '11:00' },
-//     { dayShift: 0, hhmm: '09:50' },
-//     { dayShift: 0, hhmm: '09:00' },
-//     { dayShift: 0, hhmm: '08:50' },
-//     { dayShift: 3, hhmm: '14:00' },
-//     { dayShift: 3, hhmm: '11:00' },
-//     { dayShift: 3, hhmm: '09:50' },
-//     { dayShift: 3, hhmm: '09:00' },
-//     { dayShift: 3, hhmm: '08:50' },
-//     { dayShift: 1, hhmm: '14:00' },
-//     { dayShift: 1, hhmm: '11:00' },
-//     { dayShift: 1, hhmm: '09:50' },
-//     { dayShift: 1, hhmm: '09:00' },
-//     { dayShift: 1, hhmm: '08:50' },
-//   ])
-// )
-
 const currentEventId = ref<number | null>(null)
 function onDragStart(eventId: number) {
   currentEventId.value = eventId
@@ -407,7 +354,6 @@ const useCase4: UseCase = {
   columns: ref(useCase2.columns.value),
   events: ref(useCase2.events.value),
 }
-// cloneDeep(useCase2)
 
 let nextEventId = (maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1
 
@@ -595,85 +541,7 @@ useCase4.events.value = concat(useCase4.events.value, [
   },
 ])
 
-let dzs: InputCalendarEvent[] = []
-dzs = concat(
-  dzs,
-  createDZ((maxBy(useCase4.events.value, (event) => event.id)?.id as number) + 1, 6, useCase2.events.value, [
-    { dayShift: 2, hhmm: '14:00' },
-    { dayShift: 2, hhmm: '11:00' },
-    { dayShift: 2, hhmm: '09:50' },
-    { dayShift: 2, hhmm: '09:00' },
-    { dayShift: 2, hhmm: '08:50' },
-    { dayShift: 0, hhmm: '14:00' },
-    { dayShift: 0, hhmm: '11:00' },
-    { dayShift: 0, hhmm: '09:50' },
-    { dayShift: 0, hhmm: '09:00' },
-    { dayShift: 0, hhmm: '08:50' },
-  ])
-)
-
-dzs = concat(
-  dzs,
-  createDZ(maxBy(dzs, (dz) => dz.id)?.id as number, 4, useCase2.events.value, [
-    { dayShift: 0, hhmm: '11:00' },
-    { dayShift: 0, hhmm: '13:30' },
-    { dayShift: 1, hhmm: '11:00' },
-    { dayShift: 1, hhmm: '13:30' },
-    { dayShift: 2, hhmm: '11:00' },
-    { dayShift: 2, hhmm: '13:30' },
-    { dayShift: 3, hhmm: '11:00' },
-    { dayShift: 3, hhmm: '13:30' },
-    { dayShift: 4, hhmm: '11:00' },
-    { dayShift: 4, hhmm: '13:30' },
-  ])
-)
-
-dzs = concat(
-  dzs,
-  createDZ(maxBy(dzs, (dz) => dz.id)?.id as number, 3, useCase2.events.value, [
-    { dayShift: 0, hhmm: '08:00' },
-    { dayShift: 0, hhmm: '10:30' },
-    { dayShift: 0, hhmm: '14:00' },
-    { dayShift: 0, hhmm: '16:30' },
-    { dayShift: 1, hhmm: '08:00' },
-    { dayShift: 1, hhmm: '10:50' },
-    { dayShift: 1, hhmm: '13:10' },
-    { dayShift: 1, hhmm: '19:10' },
-    { dayShift: 1, hhmm: '16:30' },
-    { dayShift: 2, hhmm: '08:00' },
-    { dayShift: 2, hhmm: '10:50' },
-    { dayShift: 2, hhmm: '13:10' },
-    { dayShift: 2, hhmm: '19:10' },
-    { dayShift: 2, hhmm: '16:30' },
-    { dayShift: 3, hhmm: '08:00' },
-    { dayShift: 3, hhmm: '10:50' },
-    { dayShift: 3, hhmm: '13:10' },
-    { dayShift: 3, hhmm: '19:10' },
-    { dayShift: 3, hhmm: '16:30' },
-    { dayShift: 4, hhmm: '08:00' },
-    { dayShift: 4, hhmm: '10:50' },
-    { dayShift: 4, hhmm: '13:10' },
-    { dayShift: 4, hhmm: '19:10' },
-  ])
-)
-
-dzs = concat(
-  dzs,
-  createDZ(maxBy(dzs, (dz) => dz.id)?.id as number, 5, useCase2.events.value, [
-    { dayShift: 1, hhmm: '16:30' },
-    { dayShift: 1, hhmm: '08:00' },
-    { dayShift: 1, hhmm: '10:50' },
-    { dayShift: 1, hhmm: '19:10' },
-    { dayShift: 2, hhmm: '16:30' },
-    { dayShift: 2, hhmm: '08:00' },
-    { dayShift: 2, hhmm: '10:50' },
-    { dayShift: 2, hhmm: '19:10' },
-    { dayShift: 3, hhmm: '16:30' },
-    { dayShift: 3, hhmm: '08:00' },
-    { dayShift: 3, hhmm: '10:50' },
-    { dayShift: 3, hhmm: '19:10' },
-  ])
-)
+let dzs: CalendarEvent[] = []
 </script>
 
 <docs lang="md">

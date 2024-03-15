@@ -8,6 +8,7 @@ import { useColumnStore } from './column'
 import { Course, Group, Module, Room, User } from '../declarations'
 import { usePermanentStore } from '../timetable/permanent'
 import { useGroupStore } from '../timetable/group'
+import { isTimestampInDayTime } from '@/helpers'
 
 export const useEventStore = defineStore('eventStore', () => {
   const courseStore = useScheduledCourseStore()
@@ -16,42 +17,51 @@ export const useEventStore = defineStore('eventStore', () => {
   const permanentStore = usePermanentStore()
   const groupStore = useGroupStore()
   const { groups } = storeToRefs(groupStore)
-  const { modules, moduleColor } = storeToRefs(permanentStore)
+  const { modules, moduleColor, dayStartTime, dayEndTime } = storeToRefs(permanentStore)
   const { columns } = storeToRefs(columnStore)
   const daysSelected: Ref<Timestamp[]> = ref<Timestamp[]>([])
   const calendarEvents: Ref<InputCalendarEvent[]> = ref([])
   const roomsSelected: Ref<Room[]> = ref([])
   const tutorsSelected: Ref<User[]> = ref([])
-  let calendarEventIds: number = 0
+  const courseTypesSelected: Ref<{ id: number; name: string }[]> = ref([])
+  const colorSelect: Ref<'courseType' | 'module'> = ref('module')
+  const calendarEventIds: Ref<number> = ref(2)
+  const dropzonesIds: Ref<number> = ref(1)
 
   watchEffect(() => {
     const eventsReturned: InputCalendarEvent[] = []
     availabilityStore.getAvailabilityFromDates(daysSelected.value).forEach((av) => {
-      const currentEvent: InputCalendarEvent = {
-        id: ++calendarEventIds,
-        title: '',
-        toggled: true,
-        bgcolor: '',
-        columnIds: [],
-        data: {
-          dataId: av.id,
-          dataType: 'avail',
-          start: copyTimestamp(av.start),
-          duration: av.duration,
-          value: av.value,
-        },
+      if (isTimestampInDayTime(dayStartTime.value, dayEndTime.value, av.start)) {
+        const currentEvent: InputCalendarEvent = {
+          id: calendarEventIds.value,
+          title: '',
+          toggled: true,
+          bgcolor: '',
+          columnIds: [],
+          data: {
+            dataId: av.id,
+            dataType: 'avail',
+            start: copyTimestamp(av.start),
+            duration: av.duration,
+            value: av.value,
+          },
+        }
+        calendarEventIds.value += 2
+        currentEvent.title = currentEvent.data.dataType
+        const availColumn = columns.value.find((c) => c.name === 'Avail')
+        if (availColumn) currentEvent.columnIds.push(availColumn.id)
+        eventsReturned.push(currentEvent)
       }
-      currentEvent.title = currentEvent.data.dataType
-      const availColumn = columns.value.find((c) => c.name === 'Avail')
-      if (availColumn) currentEvent.columnIds.push(availColumn.id)
-      eventsReturned.push(currentEvent)
     })
     courseStore.getCoursesFromDates(daysSelected.value).forEach((c: Course) => {
       const module: Module | undefined = modules.value.find((m) => m.id === c.module)
       const currentEvent: InputCalendarEvent = {
-        id: ++calendarEventIds,
+        id: ++calendarEventIds.value,
         title: module ? module.abbrev : 'Cours',
-        toggled: tutorsSelected.value.length === 0 && roomsSelected.value.length === 0,
+        toggled:
+          tutorsSelected.value.length === 0 &&
+          roomsSelected.value.length === 0 &&
+          courseTypesSelected.value.length === 0,
         bgcolor: 'blue',
         columnIds: [],
         data: {
@@ -61,10 +71,20 @@ export const useEventStore = defineStore('eventStore', () => {
           duration: parseTime(c.end) - parseTime(c.start),
         },
       }
-      if (module) {
-        const eventColor = moduleColor.value.get(module.id)
-        if (eventColor) {
-          currentEvent.bgcolor = eventColor
+      calendarEventIds.value += 2
+      if (colorSelect.value === 'module') {
+        if (module) {
+          const eventColor = moduleColor.value.get(module.id)
+          if (eventColor) {
+            currentEvent.bgcolor = eventColor
+          }
+        }
+      } else {
+        if (c.courseTypeId !== -1) {
+          const eventColor = courseStore.courseTypeColors.get(c.courseTypeId)
+          if (eventColor) {
+            currentEvent.bgcolor = eventColor
+          }
         }
       }
       const courseGroupIds = c.groupIds.map((id) => groupStore.collectDescendantLeafNodeIds(id)).flat()
@@ -85,6 +105,7 @@ export const useEventStore = defineStore('eventStore', () => {
   function isCurrentEventSelected(c: Course): boolean {
     let isTutorSelected = tutorsSelected.value.length === 0
     let isRoomSelected = roomsSelected.value.length === 0
+    let isCourseTypeSelected = courseTypesSelected.value.length === 0
     let i = 0
     while (i < tutorsSelected.value.length && !isTutorSelected) {
       if (c.tutorId === tutorsSelected.value[i].id) {
@@ -99,7 +120,14 @@ export const useEventStore = defineStore('eventStore', () => {
       }
       i++
     }
-    return isTutorSelected && isRoomSelected
+    i = 0
+    while (i < courseTypesSelected.value.length && !isCourseTypeSelected) {
+      if (c.courseTypeId === courseTypesSelected.value[i].id) {
+        isCourseTypeSelected = true
+      }
+      i++
+    }
+    return isTutorSelected && isRoomSelected && isCourseTypeSelected
   }
 
   return {
@@ -107,5 +135,9 @@ export const useEventStore = defineStore('eventStore', () => {
     calendarEvents,
     roomsSelected,
     tutorsSelected,
+    colorSelect,
+    courseTypesSelected,
+    calendarEventIds,
+    dropzonesIds,
   }
 })

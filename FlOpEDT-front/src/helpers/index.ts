@@ -2,7 +2,7 @@ import { Department } from '@/ts/type'
 import { Room } from '@/stores/declarations'
 import { useRoomStore } from '@/stores/timetable/room'
 import { api } from '@/utils/api'
-import { Timestamp, getDateTime, parseTimestamp, updateFormatted } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, getDateTime, parseTime, parseTimestamp, updateFormatted } from '@quasar/quasar-ui-qcalendar'
 
 export function convertDecimalTimeToHuman(time: number): string {
   const hours = Math.trunc(time)
@@ -341,4 +341,9 @@ export function buildUrl(endpoint: string, context: Map<string, any>, accept_nul
     return endpoint
   }
   return endpoint + '?' + url.substring(1)
+}
+
+export function isTimestampInDayTime(dayStartTime: number, dayEndTime: number, time: Timestamp): boolean {
+  const startTime: number = parseTime(time)
+  return startTime >= dayStartTime && startTime < dayEndTime
 }
