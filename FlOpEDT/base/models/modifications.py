@@ -11,11 +11,16 @@ class EdtVersion(models.Model):
     period = models.ForeignKey(
         "SchedulingPeriod", on_delete=models.CASCADE, null=True, blank=True
     )
-    work_copy = models.PositiveSmallIntegerField(default=0)
-    version = models.PositiveIntegerField(default=0)
+    major = models.PositiveSmallIntegerField(default=0)
+    minor = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return (
+            f"<Dept:{self.department.abbrev}>[{self.period}] {self.major}.{self.minor}"
+        )
 
     class Meta:
-        unique_together = (("department", "period", "work_copy"),)
+        unique_together = (("department", "period", "major"),)
 
 
 #    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

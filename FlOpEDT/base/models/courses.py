@@ -125,7 +125,7 @@ class ScheduledCourse(models.Model):
     room = models.ForeignKey('Room', blank=True, null=True, on_delete=models.SET_NULL)
     number = models.PositiveSmallIntegerField(null=True, blank=True)
     noprec = models.BooleanField(verbose_name='vrai si on ne veut pas garder la salle', default=True)
-    work_copy = models.PositiveSmallIntegerField(default=0)
+    version = models.ForeignKey('EdtVersion', on_delete=models.CASCADE)
     tutor = models.ForeignKey('people.Tutor', related_name='taught_scheduled_courses', 
             null=True, default=None, on_delete=models.SET_NULL)
 
