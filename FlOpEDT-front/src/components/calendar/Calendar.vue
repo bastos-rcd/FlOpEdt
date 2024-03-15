@@ -181,7 +181,8 @@ const props = defineProps<{
   events: InputCalendarEvent[]
   dropzones?: CalendarEvent[]
   columns: CalendarColumn[]
-  endOfDayHours: number
+  endOfDay: number
+  startOfDay: number
   step?: number
   workcopy: number
 }>()
@@ -602,7 +603,7 @@ function onMouseUp(): void {
       const newEvents: InputCalendarEvent[] = updateResizedEvent(newEvent)
       if (
         oldAvailDuration === newAvailDuration &&
-        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDayHours * 60
+        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDay
       ) {
         eventsModel.value = newEvents
         currentAvailId = -1
@@ -708,15 +709,15 @@ function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] 
   oldAvailDuration = newEvent.data.duration as number
   const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
   let newEnd = parseTime(newEvent.data.start) + newAvailDuration
-  if (newEnd > props.endOfDayHours * 60) newEnd = props.endOfDayHours * 60
+  if (newEnd > props.endOfDay) newEnd = props.endOfDay
   else if (
     oldAvailDuration > newAvailDuration &&
-    parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayHours * 60
+    parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDay
   ) {
     const newAvail: InputCalendarEvent = cloneDeep(newEvent)
     updateMinutes(newAvail.data.start, closestStep(newEnd, props.step))
     newAvail.id = nextId()
-    newAvail.data.duration = props.endOfDayHours * 60 - closestStep(newEnd, props.step)
+    newAvail.data.duration = props.endOfDay - closestStep(newEnd, props.step)
     if (newAvail.data.duration > 0) newEvents.push(newAvail)
   }
   newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
