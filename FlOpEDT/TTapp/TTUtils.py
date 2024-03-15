@@ -28,7 +28,7 @@
 from base.models import (
     ScheduledCourse,
     RoomAvailability,
-    EdtVersion,
+    TimetableVersion,
     Department,
     CourseStartTimeConstraint,
     TimeGeneralSettings,
@@ -270,7 +270,7 @@ def basic_delete_version(department, period, version):
 
 def basic_delete_all_unused_versions(department, period):
     result = {"status": "OK", "more": ""}
-    EdtVersion.objects.filter(department=department, period=period, version__major__gt=0).delete()
+    TimetableVersion.objects.filter(department=department, period=period, version__major__gt=0).delete()
     return result
 
 
@@ -285,7 +285,7 @@ def basic_duplicate_version(department, period, version):
         Max("version__major")
     )["version__major__max"]
     target_version_nb = local_max_version_nb + 1
-    target_version = EdtVersion.objects.create(department=department, period=period, major=target_version_nb)
+    target_version = TimetableVersion.objects.create(department=department, period=period, major=target_version_nb)
 
     try:
         sc_to_duplicate = ScheduledCourse.objects.filter(
@@ -400,7 +400,7 @@ def first_free_version(department, period):
         target_version_nb = local_max_version_nb + 1
     else:
         target_version_nb = 0
-    return EdtVersion.objects.create(department=department, period=period, major=target_version_nb)
+    return TimetableVersion.objects.create(department=department, period=period, major=target_version_nb)
 
 
 def convert_into_set(declared_object_or_iterable):

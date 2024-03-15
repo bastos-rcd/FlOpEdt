@@ -7,7 +7,7 @@ from rest_framework.status import (
 )
 from api.v1.tests.utils import retrieve_elements, add_user_permission
 
-from base.models import EdtVersion
+from base.models import TimetableVersion
 
 
 class TestEdtVersion:

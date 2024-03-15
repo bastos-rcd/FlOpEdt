@@ -47,7 +47,7 @@ class StabilizeTutorsCourses(TTConstraint):
         - in a unused day for tutor group cost ponderation
     """
     tutors = models.ManyToManyField('people.Tutor',blank=True)
-    version = models.ForeignKey('base.EdtVersion', on_delete=models.CASCADE, null=True)
+    version = models.ForeignKey('base.TimetableVersion', on_delete=models.CASCADE, null=True)
     fixed_days = ArrayField(models.CharField(max_length=2,
                                              choices=Day.CHOICES), blank=True, null=True)
 
@@ -114,7 +114,7 @@ class StabilizeGroupsCourses(TTConstraint):
     train_progs = models.ManyToManyField('base.TrainingProgramme',
                                          blank=True)
     groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    version = models.ForeignKey('base.EdtVersion', on_delete=models.CASCADE, null=True)
+    version = models.ForeignKey('base.TimetableVersion', on_delete=models.CASCADE, null=True)
     fixed_days = ArrayField(models.CharField(max_length=2,
                                              choices=Day.CHOICES), blank=True, null=True)
 

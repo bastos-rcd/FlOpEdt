@@ -10,8 +10,8 @@ class FirstDepartmentTestCase(TestCase):
     def setUpTestData(cls):
         cls.tp1 = models.TrainingProgramme.objects.create(name="TrainingProgramme1", abbrev="tp1")
         cls.tp2 = models.TrainingProgramme.objects.create(name="TrainingProgramme2", abbrev="tp2")
-        cls.edt_version_1 = models.EdtVersion.objects.create(week=1, year=2018, version=0)
-        cls.edt_version_2 = models.EdtVersion.objects.create(week=2, year=2018, version=0)
+        cls.edt_version_1 = models.TimetableVersion.objects.create(week=1, year=2018, version=0)
+        cls.edt_version_2 = models.TimetableVersion.objects.create(week=2, year=2018, version=0)
         cls.regen1 = models.Regen(week=1, year=2018)
         cls.regen2 = models.Regen(week=1, year=2018)
         
@@ -23,14 +23,14 @@ class FirstDepartmentTestCase(TestCase):
         # test if all related models have been 
         # updated with the new department reference
         department = queries.create_first_department()
-        for model in (models.TrainingProgramme, models.EdtVersion, models.Regen):
+        for model in (models.TrainingProgramme, models.TimetableVersion, models.Regen):
             nb = getattr(department, f"{model.__name__}_set".lower()).count()
             self.assertEqual(nb, model.objects.count())                        
 
-class EdtVersionTestCase(TestCase):
+class TimetableVersionTestCase(TestCase):
     def setUp(self):
         self.d1 = models.Department.objects.create(name="departement1", abbrev="d1")
-        self.edt2 = models.EdtVersion.objects.create(department=self.d1, week=40, year=2018, version=2)
+        self.edt2 = models.TimetableVersion.objects.create(department=self.d1, week=40, year=2018, version=2)
 
     def test_create_default_value(self):
         version = queries.get_edt_version(self.d1, 39, 2018, True)
@@ -41,12 +41,12 @@ class EdtVersionTestCase(TestCase):
         self.assertEqual(version, self.edt2.version)
 
     def test_get_version_not_exist(self):
-        with self.assertRaises(models.EdtVersion.DoesNotExist):     
+        with self.assertRaises(models.TimetableVersion.DoesNotExist):     
             queries.get_edt_version(self.d1, 42, 2018, False)
 
     def test_get_version_multiple_objects_exist(self):
-        self.edt3 = models.EdtVersion.objects.create(department=self.d1, week=40, year=2018, version=2)
-        with self.assertRaises(models.EdtVersion.MultipleObjectsReturned):     
+        self.edt3 = models.TimetableVersion.objects.create(department=self.d1, week=40, year=2018, version=2)
+        with self.assertRaises(models.TimetableVersion.MultipleObjectsReturned):     
             queries.get_edt_version(self.d1, 40, 2018, True)            
 
 class ScheduledCourseTestCase(TestCase):

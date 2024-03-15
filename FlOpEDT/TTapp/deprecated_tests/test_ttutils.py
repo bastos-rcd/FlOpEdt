@@ -20,7 +20,7 @@ class TTutilsTestCase(TestCase):
         cls.c1 = models.Course.objects.create(week=cls.w1, type=cls.ct1, module=cls.m1)
         cls.c1.groups.add(cls.g1)
         cls.day1 = models.Day.MONDAY
-        cls.edtv1 = models.EdtVersion.objects.create(department=cls.department1, week=cls.w1, version=3)
+        cls.edtv1 = models.TimetableVersion.objects.create(department=cls.department1, week=cls.w1, version=3)
         cls.scheduled_courses = {}
         for i in range(0,9):
             cls.scheduled_courses[i] = models.ScheduledCourse.objects.create(course=cls.c1,
@@ -30,7 +30,7 @@ class TTutilsTestCase(TestCase):
 
     def test_basic_swap_version(self):
         basic_swap_version(self.department1, self.w1, 2, 5)
-        edt_version = models.EdtVersion.objects.get(department=self.department1, week=self.w1)
+        edt_version = models.TimetableVersion.objects.get(department=self.department1, week=self.w1)
         self.assertEqual(edt_version.version, 4)
         
         for sc in self.scheduled_courses.values():

@@ -4,7 +4,7 @@ from base.models.courses import ScheduledCourse, ScheduledCourseAdditional
 from base import weeks
 
 
-class EdtVersion(models.Model):
+class TimetableVersion(models.Model):
     department = models.ForeignKey(
         "base.Department", on_delete=models.CASCADE, null=True
     )

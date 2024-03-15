@@ -398,7 +398,7 @@ class AllVersionsSerializer(serializers.ModelSerializer):
 
     # Mise en forme des données
     class Meta:
-        model = bm.EdtVersion
+        model = bm.TimetableVersion
         fields = ["year", "week", "version", "department"]
 
 

@@ -44,7 +44,7 @@ from base.models import (
     Course,
     UserAvailability,
     ScheduledCourse,
-    EdtVersion,
+    TimetableVersion,
     CourseModification,
     TrainingProgramme,
     Regen,
@@ -445,8 +445,8 @@ class RoomAvailabilityResource(resources.ModelResource):
 
 class VersionResource(resources.ModelResource):
     class Meta:
-        model = EdtVersion
-        fields = ("period", "version", "department")
+        model = TimetableVersion
+        fields = ("period", "major", "department")
 
 
 class ModuleRessource(resources.ModelResource):

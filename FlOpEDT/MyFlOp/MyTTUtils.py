@@ -29,7 +29,7 @@ import functools
 from TTapp.TTUtils import basic_reassign_rooms, basic_swap_version, \
     basic_delete_version, basic_duplicate_version, basic_delete_all_unused_versions, \
     duplicate_what_can_be_in_other_periods, number_courses
-from base.models import ScheduledCourse, Department, SchedulingPeriod, EdtVersion
+from base.models import ScheduledCourse, Department, SchedulingPeriod, TimetableVersion
 from people.models import Tutor
 
 
@@ -71,7 +71,7 @@ def print_differences(department, periods, old_version, new_version, tutors=Tuto
 @resolve_department
 def reassign_rooms(department, period_id, version_nb, create_new_version=True):
     period = SchedulingPeriod.objects.get(id=period_id)
-    version = EdtVersion.objects.get(department=department, period=period, major=version_nb)
+    version = TimetableVersion.objects.get(department=department, period=period, major=version_nb)
     result = basic_reassign_rooms(department, period, version, create_new_version=create_new_version)
     return result
 
@@ -87,7 +87,7 @@ def swap_version(department, period_id, copy_a, copy_b=0):
 @resolve_department
 def delete_version(department, period_id, version_nb):
     period = SchedulingPeriod.objects.get(id=period_id)
-    version = EdtVersion.objects.get(department=department, period=period, major=version_nb)
+    version = TimetableVersion.objects.get(department=department, period=period, major=version_nb)
     return basic_delete_version(department, period, version)
 
 
@@ -100,14 +100,14 @@ def delete_all_unused_work_copies(department, period_id):
 @resolve_department
 def duplicate_version(department, period_id, version_nb):
     period = SchedulingPeriod.objects.get(id=period_id)
-    version = EdtVersion.objects.get(department=department, period=period, major=version_nb)
+    version = TimetableVersion.objects.get(department=department, period=period, major=version_nb)
     return basic_duplicate_version(department, period, version)
 
 
 @resolve_department
 def duplicate_in_other_periods(department, period_id, version_nb):
     period = SchedulingPeriod.objects.get(id=period_id)
-    version = EdtVersion.objects.get(department=department, period=period, major=version_nb)
+    version = TimetableVersion.objects.get(department=department, period=period, major=version_nb)
     return duplicate_what_can_be_in_other_periods(department, period, version)
 
 

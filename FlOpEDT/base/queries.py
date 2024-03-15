@@ -35,7 +35,7 @@ from base.models import (
     RoomType,
     Room,
     ScheduledCourse,
-    EdtVersion,
+    TimetableVersion,
     Department,
     Regen,
     TrainingPeriod,
@@ -69,7 +69,7 @@ def create_first_department():
     # Update all existing department related models
     models = [
         TrainingProgramme,
-        EdtVersion,
+        TimetableVersion,
         Regen,
         RoomType,
         TrainingPeriod,
@@ -104,8 +104,8 @@ def get_edt_version(department, week_nb, year, create=False):
 
     if create:
         try:
-            edt_version, _ = EdtVersion.objects.get_or_create(defaults={'version': 0}, **params)
-        except EdtVersion.MultipleObjectsReturned as e:
+            edt_version, _ = TimetableVersion.objects.get_or_create(defaults={'version': 0}, **params)
+        except TimetableVersion.MultipleObjectsReturned as e:
             logger.error(f'get_edt_version: database inconsistency, multiple objects returned for {params}')
             raise (e)
         else:
@@ -116,9 +116,9 @@ def get_edt_version(department, week_nb, year, create=False):
         when no item is matching filter parameters
         """
         try:
-            version = EdtVersion.objects.filter(**params).values_list("version", flat=True)[0]
+            version = TimetableVersion.objects.filter(**params).values_list("version", flat=True)[0]
         except IndexError:
-            raise (EdtVersion.DoesNotExist)
+            raise (TimetableVersion.DoesNotExist)
     return version
 
 

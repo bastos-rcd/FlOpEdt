@@ -63,7 +63,7 @@ from base.models import (
     Course,
     UserAvailability,
     ScheduledCourse,
-    EdtVersion,
+    TimetableVersion,
     CourseModification,
     Room,
     RoomType,
@@ -773,10 +773,10 @@ def fetch_bknews(req, year, week, **kwargs):
 
 def fetch_all_versions(req, **kwargs):
     """
-    Export all EdtVersions in json
+    Export all TimetableVersions in json
     """
     dataset = VersionResource().export(
-        EdtVersion.objects.filter(department=req.department)
+        TimetableVersion.objects.filter(department=req.department)
     )
     response = HttpResponse(dataset.json, content_type="text/json")
     return response
@@ -1074,7 +1074,7 @@ def edt_changes(req, **kwargs):
     logger.info(recv_changes)
     # logger.info(req.POST)
 
-    version = EdtVersion.objects.filter(week=week).aggregate(Sum("version"))[
+    version = TimetableVersion.objects.filter(week=week).aggregate(Sum("version"))[
         "version__sum"
     ]
 
@@ -1082,7 +1082,7 @@ def edt_changes(req, **kwargs):
 
     if work_copy != 0 or old_version == version:
         if work_copy == 0:
-            edt_versions = EdtVersion.objects.select_for_update().filter(week=week)
+            edt_versions = TimetableVersion.objects.select_for_update().filter(week=week)
 
         with transaction.atomic():
             try:
@@ -1109,7 +1109,7 @@ def edt_changes(req, **kwargs):
                 return JsonResponse(bad_response)
 
             if work_copy == 0:
-                edt_version = EdtVersion.objects.get(week=week, department=department)
+                edt_version = TimetableVersion.objects.get(week=week, department=department)
                 edt_version.version += 1
                 edt_version.save()
 
@@ -1428,7 +1428,7 @@ def decale_changes(req, **kwargs):
         changing_course = Course.objects.get(id=c["i"])
         old_week = changing_course.week
 
-        edt_versions = EdtVersion.objects.select_for_update().filter(
+        edt_versions = TimetableVersion.objects.select_for_update().filter(
             Q(week=old_week) | Q(week=new_week), department=req.department
         )
 
@@ -1444,7 +1444,7 @@ def decale_changes(req, **kwargs):
                     )
                 )
                 scheduled_course.delete()
-                ev = EdtVersion.objects.get(week=old_week, department=req.department)
+                ev = TimetableVersion.objects.get(week=old_week, department=req.department)
                 ev.version += 1
                 ev.save()
                 number_courses(
@@ -1478,7 +1478,7 @@ def decale_changes(req, **kwargs):
             cache.delete(get_key_course_pp(req.department.abbrev, new_week, 0))
             cache.delete(get_key_preferences_tutor(req.department.abbrev, new_week))
             changing_course.save()
-            ev, _ = EdtVersion.objects.update_or_create(
+            ev, _ = TimetableVersion.objects.update_or_create(
                 week=new_week, department=req.department
             )
             ev.version += 1

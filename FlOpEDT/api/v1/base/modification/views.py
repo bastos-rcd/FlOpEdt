@@ -21,7 +21,7 @@ class EdtVersionViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
-            return bm.EdtVersion.objects.none()
+            return bm.TimetableVersion.objects.none()
 
         qp_serializer = EdtVersionQueryParamsSerializer(data=self.request.query_params)
         qp_serializer.is_valid(raise_exception=True)
@@ -35,4 +35,4 @@ class EdtVersionViewSet(viewsets.ReadOnlyModelViewSet):
         if "major_version" in params:
             params["version__major"] = qp_params.pop["major_version"]
 
-        return bm.EdtVersion.objects.filter(**params).select_related("period")
+        return bm.TimetableVersion.objects.filter(**params).select_related("period")

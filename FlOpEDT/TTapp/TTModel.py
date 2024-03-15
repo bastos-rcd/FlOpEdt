@@ -38,7 +38,7 @@ from base.models import (
     ModuleTutorRepartition,
     ScheduledCourseAdditional,
     period_actual_availabilities,
-    EdtVersion
+    TimetableVersion
 )
 
 from base.timing import Time, flopday_to_date, floptime_to_time
@@ -1288,7 +1288,7 @@ class TTModel(FlopModel):
         # get or create TimetableVersions
         versions_dict = {}
         for period in self.periods:
-            versions_dict[period] = EdtVersion.objects.get_or_create(period=period, 
+            versions_dict[period] = TimetableVersion.objects.get_or_create(period=period, 
                                                                major=target_version_nb, 
                                                                department=self.department)[0]
         if self.department.mode.cosmo == 2:
@@ -1412,7 +1412,7 @@ class TTModel(FlopModel):
         # get or create TimetableVersions
         versions_dict = {}
         for period in self.periods:
-            versions_dict[period] = EdtVersion.objects.get_or_create(period=period, 
+            versions_dict[period] = TimetableVersion.objects.get_or_create(period=period, 
                                                                      major=target_version_nb, 
                                                                      department=self.department)[0]
 

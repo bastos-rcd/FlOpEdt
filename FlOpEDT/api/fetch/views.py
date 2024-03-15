@@ -513,7 +513,7 @@ class AllVersionsFilterSet(filters.FilterSet):
     dept = filters.CharFilter(field_name="department__abbrev")
 
     class Meta:
-        model = bm.EdtVersion
+        model = bm.TimetableVersion
         fields = ["dept"]
 
 
@@ -527,7 +527,7 @@ class AllVersionsViewSet(viewsets.ModelViewSet):
 
     permission_classes = [IsAdminOrReadOnly]
 
-    queryset = bm.EdtVersion.objects.all()
+    queryset = bm.TimetableVersion.objects.all()
     serializer_class = serializers.AllVersionsSerializer
     filterset_class = AllVersionsFilterSet
 

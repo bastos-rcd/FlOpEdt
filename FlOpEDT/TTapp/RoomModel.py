@@ -31,7 +31,7 @@ from base.models import (
     RoomSort,
     Room,
     Course,
-    EdtVersion
+    TimetableVersion
 )
 
 from base.timing import Day
@@ -489,7 +489,7 @@ class RoomModel(FlopModel):
             target_version_nb = self.version_nb
         course_location_list_for_period = {}
         for period in self.periods:
-            target_version, _ = EdtVersion.objects.get_or_create(department=self.department, period=period, major=target_version_nb)
+            target_version, _ = TimetableVersion.objects.get_or_create(department=self.department, period=period, major=target_version_nb)
             course_location_list_for_period[period] = []
             for course in self.courses_for_period[period]:
                 for room in self.course_room_compat[course]:
