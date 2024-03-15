@@ -176,12 +176,22 @@ export function createDropzonesForEvent(
   allEvents: CalendarEvent[],
   dayStartTime: number,
   dayEndTime: number,
-  lastDayOfWeek: number = 6
+  lastDayOfWeek: number = 6,
+  lunchBreakStart?: number,
+  lunchBreakEnd?: number
 ): CalendarEvent[] {
   const dropzones: CalendarEvent[] = []
   const event = allEvents.find((ev) => ev.id === eventId)
   if (event) {
-    createDropzonesOnTimes(event, allEvents, dayStartTime, dayEndTime, lastDayOfWeek).forEach((dz) => {
+    createDropzonesOnTimes(
+      event,
+      allEvents,
+      dayStartTime,
+      dayEndTime,
+      lastDayOfWeek,
+      lunchBreakStart,
+      lunchBreakEnd
+    ).forEach((dz) => {
       dropzones.push(dz)
     })
   }
@@ -199,6 +209,8 @@ function createDropzonesOnTimes(
   dayStartTime: number,
   dayEndTime: number,
   lastDayOfWeek: number = 6,
+  lunchBreakStart?: number,
+  lunchBreakEnd?: number,
   step: number = STEP_DEFAULT
 ): CalendarEvent[] {
   const dropZones: CalendarEvent[] = []
@@ -211,12 +223,18 @@ function createDropzonesOnTimes(
     updateMinutes(startTime, dayStartTime)
     if (event.data.duration) {
       while (parseTime(startTime) + event.data.duration <= dayEndTime) {
-        const newDropZone: CalendarEvent = cloneDeep(event)
-        newDropZone.data.dataId = event.id
-        newDropZone.id = -1
-        newDropZone.data.dataType = 'dropzone'
-        newDropZone.data.start = startTime
-        if (isPossibleDropzone(newDropZone, allEvents, event)) dropZones.push(newDropZone)
+        const startTimeMinutes = parseTime(startTime)
+        let isDuringLunch = false
+        if (lunchBreakStart && lunchBreakEnd)
+          isDuringLunch = isBetween(lunchBreakStart, lunchBreakEnd, startTimeMinutes, event.data.duration)
+        if (!isDuringLunch) {
+          const newDropZone: CalendarEvent = cloneDeep(event)
+          newDropZone.data.dataId = event.id
+          newDropZone.id = -1
+          newDropZone.data.dataType = 'dropzone'
+          newDropZone.data.start = startTime
+          if (isPossibleDropzone(newDropZone, allEvents, event)) dropZones.push(newDropZone)
+        }
         startTime = copyTimestamp(startTime)
         updateMinutes(startTime, closestStep(parseTime(startTime) + event.data.duration + step, step))
       }
@@ -225,6 +243,10 @@ function createDropzonesOnTimes(
     updateFormatted(startTime)
   }
   return dropZones
+}
+
+function isBetween(lowEnd: number, highEnd: number, start: number, duration: number): boolean {
+  return lowEnd !== highEnd && ((start >= lowEnd && start < highEnd) || (start <= lowEnd && start + duration > lowEnd))
 }
 
 function isPossibleDropzone(

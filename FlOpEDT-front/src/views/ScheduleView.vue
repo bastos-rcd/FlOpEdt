@@ -106,15 +106,32 @@ watch(workcopySelected, () => {
 })
 
 function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
-  const dayStartTime = timeSettings.value.get(current.value.id)?.dayStartTime
-  const dayEndTime = timeSettings.value.get(current.value.id)?.dayEndTime
-  if (dayStartTime && dayEndTime) {
-    const dropzones: CalendarEvent[] = createDropzonesForEvent(eventId, allEvents, dayStartTime, dayEndTime, 6)
-    dropzones.forEach((dz) => {
-      dz.id = dropzonesIds.value
-      dropzonesIds.value += 2
-    })
-    dropzonesToDisplay.value = dropzones
+  const timeSetting = timeSettings.value.get(current.value.id)
+  let dayStartTime: number
+  let dayEndTime: number
+  let lunchBreakStart: number
+  let lunchBreakEnd: number
+  if (timeSetting) {
+    dayStartTime = timeSetting.dayStartTime
+    dayEndTime = timeSetting.dayEndTime
+    lunchBreakStart = timeSetting.morningEndTime
+    lunchBreakEnd = timeSetting.afternoonStartTime
+    if (dayStartTime && dayEndTime) {
+      const dropzones: CalendarEvent[] = createDropzonesForEvent(
+        eventId,
+        allEvents,
+        dayStartTime,
+        dayEndTime,
+        6,
+        lunchBreakStart,
+        lunchBreakEnd
+      )
+      dropzones.forEach((dz) => {
+        dz.id = dropzonesIds.value
+        dropzonesIds.value += 2
+      })
+      dropzonesToDisplay.value = dropzones
+    }
   }
 }
 
