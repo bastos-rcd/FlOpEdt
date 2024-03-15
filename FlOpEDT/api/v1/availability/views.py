@@ -123,17 +123,6 @@ class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
         return ret
 
 
-class RoomDatedAvailabilityUpdateViewSet(
-    mixins.CreateModelMixin, viewsets.GenericViewSet
-):
-    """
-    Update availability. Should cover the whole period between from_date and to_date
-    """
-
-    AvailabilityModel = bm.RoomAvailability
-    serializer_class = serializers.RoomAvailabilityFullDaySerializer
-
-
 @extend_schema(
     parameters=[
         from_date_param(required=True),
@@ -187,6 +176,17 @@ class UserDatedAvailabilityUpdateViewSet(
     AvailabilityModel = bm.UserAvailability
     serializer_class = serializers.UserAvailabilityFullDaySerializer
     queryset = bm.UserAvailability.objects.all()
+
+
+class RoomDatedAvailabilityUpdateViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Update availability. Should cover the whole period between from_date and to_date
+    """
+
+    AvailabilityModel = bm.RoomAvailability
+    serializer_class = serializers.RoomAvailabilityFullDaySerializer
 
 
 @extend_schema(

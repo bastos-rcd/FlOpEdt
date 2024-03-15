@@ -326,14 +326,16 @@ class EdtVersionViewSet(viewsets.ReadOnlyModelViewSet):
 
         qp_serializer = EdtVersionQueryParamsSerializer(data=self.request.query_params)
         qp_serializer.is_valid(raise_exception=True)
-        params = qp_serializer.validated_data
+        qp_params = qp_serializer.validated_data
 
-        params["period__start_date__gte"] = params.pop("from_date")
-        params["period__end_date__lte"] = params.pop("to_date")
+        params = dict()
+        params["period__start_date__gte"] = qp_params.pop("from_date")
+        params["period__end_date__lte"] = qp_params.pop("to_date")
         if "dept_id" in params:
-            params["department__id"] = params.pop("dept_id")
+            params["department__id"] = qp_params.pop("dept_id")
         if "work_copy_nb" in params:
-            params["work_copy"] = params.pop["work_copy_nb"]
+            params["work_copy"] = qp_params.pop["work_copy_nb"]
+
 
         return bm.EdtVersion.objects.filter(**params).select_related("period")
 
