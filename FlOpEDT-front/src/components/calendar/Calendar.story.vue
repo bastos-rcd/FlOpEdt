@@ -6,7 +6,8 @@
         v-model:events="useCase2.events.value"
         :dropzones="dropzonesUseCase1"
         @dragstart="onDragStart"
-        :end-of-day-hours="19"
+        :end-of-day="1140"
+        :start-of-day="420"
         :workcopy="3"
       />
     </Variant>
@@ -17,7 +18,8 @@
         :dropzones="dzs"
         @dragstart="onDragStart"
         @weekdays="(wd: number[]) => (weekdays = wd)"
-        :end-of-day-hours="19"
+        :end-of-day="1140"
+        :start-of-day="420"
         :workcopy="3"
       />
     </Variant>
@@ -26,7 +28,8 @@
         :columns="useCase3.columns.value"
         v-model:events="useCase3.events.value"
         @dragstart="onDragStart"
-        :end-of-day-hours="19"
+        :end-of-day="1140"
+        :start-of-day="420"
         :workcopy="3"
       />
     </Variant>
@@ -37,7 +40,8 @@
         v-model:events="useCase4.events.value"
         :dropzones="dzs"
         @dragstart="onDragStart"
-        :end-of-day-hours="19"
+        :end-of-day="1140"
+        :start-of-day="420"
         :workcopy="3"
       />
     </Variant>
