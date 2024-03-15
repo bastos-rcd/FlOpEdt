@@ -75,7 +75,17 @@
         item-variable-name="username"
       />
     </div>
-    <div class="courseTypeSelect">
+    <div class="ModuleSelect">
+      <Separator class="Separator" />
+      <FilterSelector
+        :multiple="true"
+        :items="modules"
+        filterSelectorUndefinedLabel="Module Filter"
+        v-model:selected-items="modulesSelected"
+        item-variable-name="abbrev"
+      />
+    </div>
+    <div class="CourseTypeSelect">
       <Separator class="Separator" />
       <FilterSelector
         :multiple="true"
@@ -135,11 +145,13 @@ import { useEventStore } from '@/stores/display/event'
 import { storeToRefs } from 'pinia'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
+import { usePermanentStore } from '@/stores/timetable/permanent'
 const { t } = useI18n()
 const authStore = useAuth()
 const eventStore = useEventStore()
 const groupStore = useGroupStore()
 const courseStore = useScheduledCourseStore()
+const permanentStore = usePermanentStore()
 const availCheckBox = computed({
   get() {
     return props.availChecked
@@ -157,6 +169,7 @@ const workcopy = computed({
   },
 })
 const { roomsSelected, tutorsSelected, colorSelect, courseTypesSelected } = storeToRefs(eventStore)
+const { modules, modulesSelected } = storeToRefs(permanentStore)
 const { groupsSelected } = storeToRefs(groupStore)
 const { courseTypeIds } = storeToRefs(courseStore)
 const props = defineProps<{

@@ -20,7 +20,7 @@ export const useEventStore = defineStore('eventStore', () => {
   const groupStore = useGroupStore()
   const { current } = storeToRefs(departmentStore)
   const { groups } = storeToRefs(groupStore)
-  const { modules, moduleColor, timeSettings } = storeToRefs(permanentStore)
+  const { modules, moduleColor, timeSettings, modulesSelected } = storeToRefs(permanentStore)
   const { columns } = storeToRefs(columnStore)
   const daysSelected: Ref<Timestamp[]> = ref<Timestamp[]>([])
   const calendarEvents: Ref<InputCalendarEvent[]> = ref([])
@@ -68,7 +68,8 @@ export const useEventStore = defineStore('eventStore', () => {
         toggled:
           tutorsSelected.value.length === 0 &&
           roomsSelected.value.length === 0 &&
-          courseTypesSelected.value.length === 0,
+          courseTypesSelected.value.length === 0 &&
+          modulesSelected.value.length === 0,
         bgcolor: 'blue',
         columnIds: [],
         data: {
@@ -113,6 +114,7 @@ export const useEventStore = defineStore('eventStore', () => {
     let isTutorSelected = tutorsSelected.value.length === 0
     let isRoomSelected = roomsSelected.value.length === 0
     let isCourseTypeSelected = courseTypesSelected.value.length === 0
+    let isModulesSelected = modulesSelected.value.length === 0
     let i = 0
     while (i < tutorsSelected.value.length && !isTutorSelected) {
       if (c.tutorId === tutorsSelected.value[i].id) {
@@ -134,7 +136,14 @@ export const useEventStore = defineStore('eventStore', () => {
       }
       i++
     }
-    return isTutorSelected && isRoomSelected && isCourseTypeSelected
+    i = 0
+    while (i < modulesSelected.value.length && !isModulesSelected) {
+      if (c.module === modulesSelected.value[i].id) {
+        isModulesSelected = true
+      }
+      i++
+    }
+    return isTutorSelected && isRoomSelected && isCourseTypeSelected && isModulesSelected
   }
 
   return {

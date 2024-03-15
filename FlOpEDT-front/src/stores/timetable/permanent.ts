@@ -16,6 +16,7 @@ export const usePermanentStore = defineStore('permanent', () => {
   const departmentStore = useDepartmentStore()
   const timeSettings: Ref<Map<Number, TimeSetting>> = ref(new Map<Number, TimeSetting>())
   const areTimeSettingsFetched = ref<boolean>(false)
+  const modulesSelected = ref<Module[]>([])
   const moduleColor = computed(() => {
     const moduleColors: Map<number, string> = new Map<number, string>()
     modules.value.forEach((mod: Module) => {
@@ -139,5 +140,6 @@ export const usePermanentStore = defineStore('permanent', () => {
     areTimeSettingsFetched,
     timeSettings,
     intervalMinutes,
+    modulesSelected,
   }
 })
