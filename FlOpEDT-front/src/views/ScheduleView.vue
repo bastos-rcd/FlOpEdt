@@ -19,7 +19,8 @@
         :dropzones="dropzonesToDisplay"
         @dragstart="onDragStart"
         @update:week="changeDate"
-        :end-of-day-hours="endOfDay"
+        :start-of-day="dayStartTime"
+        :end-of-day="dayEndTime"
         :workcopy="workcopySelected"
       />
     </div>
@@ -55,6 +56,7 @@ import { useAvailabilityStore } from '@/stores/timetable/availability'
 import { useEventStore } from '@/stores/display/event'
 import SidePanel from '@/components/SidePanel.vue'
 import { createDropzonesForEvent } from '@/components/calendar/utilitary'
+import { usePermanentStore } from '@/stores/timetable/permanent'
 /**
  * Data translated to be passed to components
  */
@@ -78,17 +80,18 @@ const roomStore = useRoomStore()
 const authStore = useAuth()
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
+const permanentStore = usePermanentStore()
 const availabilityStore = useAvailabilityStore()
 const { columns } = storeToRefs(columnStore)
 const { daysSelected, calendarEvents, dropzonesIds } = storeToRefs(eventStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const { tutors } = storeToRefs(tutorStore)
 const { fetchedStructuralGroups } = storeToRefs(groupStore)
+const { dayStartTime, dayEndTime } = storeToRefs(permanentStore)
 const selectedGroups = ref<Group[]>([])
 const dropzonesToDisplay = ref<CalendarEvent[]>([])
 const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()
-const endOfDay = 19
 const workcopySelected = ref<number>(-1)
 
 watch(selectedGroups, () => {
@@ -101,7 +104,13 @@ watch(workcopySelected, () => {
 })
 
 function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
-  const dropzones: CalendarEvent[] = createDropzonesForEvent(eventId, allEvents, 7 * 60, endOfDay * 60, 6)
+  const dropzones: CalendarEvent[] = createDropzonesForEvent(
+    eventId,
+    allEvents,
+    dayStartTime.value,
+    dayEndTime.value,
+    6
+  )
   dropzones.forEach((dz) => {
     dz.id = dropzonesIds.value
     dropzonesIds.value += 2
