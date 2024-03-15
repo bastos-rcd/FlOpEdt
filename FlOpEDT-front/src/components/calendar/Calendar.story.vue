@@ -9,6 +9,7 @@
         :end-of-day="1140"
         :start-of-day="420"
         :workcopy="3"
+        :interval-minutes="15"
       />
     </Variant>
     <Variant title="Use case 2">
@@ -21,6 +22,7 @@
         :end-of-day="1140"
         :start-of-day="420"
         :workcopy="3"
+        :interval-minutes="60"
       />
     </Variant>
     <Variant title="Use case 3">
@@ -31,6 +33,7 @@
         :end-of-day="1140"
         :start-of-day="420"
         :workcopy="3"
+        :interval-minutes="30"
       />
     </Variant>
     <Variant title="Availabilities">
@@ -43,6 +46,7 @@
         :end-of-day="1140"
         :start-of-day="420"
         :workcopy="3"
+        :interval-minutes="15"
       />
     </Variant>
   </Story>
