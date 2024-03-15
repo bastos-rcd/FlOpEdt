@@ -13,6 +13,8 @@ export const usePermanentStore = defineStore('permanent', () => {
   const isModulesFetched = ref<boolean>(false)
   const loadingError = ref<Error | null>(null)
   const departmentStore = useDepartmentStore()
+  const dayStartTime = ref<number>(420)
+  const dayEndTime = ref<number>(1140)
   const moduleColor = computed(() => {
     const moduleColors: Map<number, string> = new Map<number, string>()
     modules.value.forEach((mod: Module) => {
@@ -120,5 +122,7 @@ export const usePermanentStore = defineStore('permanent', () => {
     getTrainProgs,
     isModulesFetched,
     isTrainProgsFetched,
+    dayStartTime,
+    dayEndTime,
   }
 })

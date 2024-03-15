@@ -1,6 +1,6 @@
 import { api } from '@/utils/api'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { ScheduledCourse, Department } from '@/ts/type'
 import { Course } from '@/stores/declarations'
 import { Timestamp, copyTimestamp, makeDate, nextDay, updateFormatted } from '@quasar/quasar-ui-qcalendar'
@@ -18,6 +18,22 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   const courses = ref<Map<string, Course[]>>(new Map<string, Course[]>())
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
+  const courseTypeIds = ref<{ id: number; name: string }[]>([])
+  const courseTypeColors = computed(() => {
+    const courseTypeColors: Map<number, string> = new Map<number, string>()
+    courseTypeIds.value.forEach((ct: { id: number; name: string }) => {
+      const colorValue =
+        'rgb(' +
+        Math.ceil(Math.random() * 255) +
+        ',' +
+        Math.ceil(Math.random() * 255) +
+        ',' +
+        Math.ceil(Math.random() * 255) +
+        ')'
+      courseTypeColors.set(ct.id, colorValue)
+    })
+    return courseTypeColors
+  })
 
   async function fetchScheduledCourses(from?: Date, to?: Date, tutor?: number, department?: Department): Promise<void> {
     //gérer les cours déjà fetched précédemment pour ne pas avoir à tout récupérer à nouveau
@@ -42,9 +58,12 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
             trainProgId: r.trainProgId,
             groupIds: r.groupIds,
             suppTutorsIds: r.suppTutorsIds,
-            no: -1,
-            courseTypeId: -1,
+            no: r.no,
+            courseTypeId: r.courseTypeId,
           })
+          if (!courseTypeIds.value.map((ct) => ct.id).includes(r.courseTypeId)) {
+            courseTypeIds.value.push({ id: r.courseTypeId, name: '' })
+          }
         })
         isLoading.value = false
         scheduledCourses.value.forEach((scheduledCourses, date) => {
@@ -85,7 +104,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   function scheduledCourseToCourse(scheduledCourse: ScheduledCourse): Course {
     let course: Course = {
       id: scheduledCourse.id,
-      no: -1,
+      no: scheduledCourse.no,
       room: scheduledCourse.roomId,
       start: dateToTimestamp(scheduledCourse.start_time),
       end: dateToTimestamp(scheduledCourse.end_time),
@@ -93,7 +112,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       suppTutorIds: cloneDeep(scheduledCourse.suppTutorsIds),
       module: scheduledCourse.moduleId,
       groupIds: cloneDeep(scheduledCourse.groupIds),
-      courseTypeId: -1,
+      courseTypeId: scheduledCourse.courseTypeId,
       roomTypeId: -1,
       graded: false,
       workCopy: 0,
@@ -226,5 +245,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     addOrUpdateCourseToDate,
     courses,
     scheduledCourses,
+    courseTypeColors,
+    courseTypeIds,
   }
 })

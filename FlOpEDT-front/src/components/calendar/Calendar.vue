@@ -65,7 +65,7 @@
               event.data.duration !== undefined &&
               (event.data.dataType === 'event' ||
                 event.data.dataType === 'avail' ||
-                (isDragging && event.data.dataId === eventDragged?.data.dataId))
+                (isDragging && event.data.dataId === eventDragged?.id))
             "
           >
             <div :draggable="event.data.dataType !== 'avail'" @dragstart="onDragStart($event, event)">
@@ -78,7 +78,11 @@
                 @mousedown="onMouseDown($event, event.id)"
                 @mouseup="onMouseUp()"
               >
-                <slot name="event" :event="event" v-if="event.data.dataType !== 'avail'">
+                <slot
+                  name="event"
+                  :event="event"
+                  v-if="event.data.dataType !== 'avail' && event.data.dataType !== 'dropzone'"
+                >
                   <edit-event :event-object-id="event.data.dataId">
                     <template v-slot:trigger>
                       <CourseCard :event-id="event.data.dataId" />
@@ -128,7 +132,7 @@ import {
   updateMinutes,
 } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
-import { forEach, includes, concat, cloneDeep, remove, sortBy, find, sumBy, filter } from 'lodash'
+import { forEach, includes, cloneDeep, remove, sortBy, find, sumBy, filter } from 'lodash'
 
 import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 
@@ -175,15 +179,16 @@ const { locale } = useI18n({ useScope: 'global' })
  */
 const props = defineProps<{
   events: InputCalendarEvent[]
-  dropzones?: InputCalendarEvent[]
+  dropzones?: CalendarEvent[]
   columns: CalendarColumn[]
-  endOfDayHours: number
+  endOfDay: number
+  startOfDay: number
   step?: number
   workcopy: number
 }>()
 
 const emits = defineEmits<{
-  (e: 'dragstart', id: number): void
+  (e: 'dragstart', id: number, allEvents: CalendarEvent[]): void
   (e: 'update:events', value: InputCalendarEvent[]): void
   (e: 'update:week', value: Timestamp): void
   (e: 'weekdays', value: number[]): void
@@ -273,10 +278,13 @@ const eventsByDate = computed(() => {
   forEach(props.columns, (c, i) => {
     columnIndexes[c.id] = i
   })
-  if (props.dropzones) allEvents = concat(allEvents, props.dropzones)
   allEvents.forEach((event) => {
     const newEvent = cloneDeep(event)
     let columnIds = newEvent.columnIds
+    if (newEvent.data.dataType === 'dropzone') {
+      const eventRelated = allEvents.find((ev) => ev.id === newEvent.data.dataId && ev.data.dataType === 'event')
+      if (eventRelated) columnIds = eventRelated.columnIds
+    }
 
     // availability column
     if (newEvent.data.dataType === 'avail') {
@@ -326,6 +334,10 @@ const eventsByDate = computed(() => {
     newEvents.push(cnewEvent as CalendarEvent)
   })
   const newEventsUpdated: CalendarEvent[] = updateEventsOverlap(newEvents)
+  if (props.dropzones)
+    props.dropzones.forEach((dz) => {
+      newEventsUpdated.push(dz)
+    })
   // sort by date
   newEventsUpdated.forEach((event) => {
     if (!map.has(event.data.start.date)) {
@@ -375,13 +387,13 @@ const eventsModel = computed({
 /**
  * Only returns the dropZone with the same ID as the event dragged
  */
-const dropZoneToDisplay = computed((): InputCalendarEvent[] | undefined => {
+const dropZoneToDisplay = computed((): CalendarEvent[] | undefined => {
   return filter(
     props.dropzones,
     (e) =>
       e.data.dataType === 'dropzone' &&
       currentTime.value?.date === e.data.start.date &&
-      eventDragged.value?.data.dataId === e.data.dataId
+      eventDragged.value?.id === e.data.dataId
   )
 })
 
@@ -457,11 +469,17 @@ function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
   currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
   eventDragged.value = cloneDeep(event)
-  emits('dragstart', event.data.dataId)
-  if (!browserEvent.dataTransfer) return
-  browserEvent.dataTransfer.dropEffect = 'copy'
-  browserEvent.dataTransfer.effectAllowed = 'move'
-  browserEvent.dataTransfer.setData('ID', event.data.dataId.toString())
+  emits('dragstart', event.id, getAllEvents())
+}
+
+function getAllEvents(): CalendarEvent[] {
+  const allEvents: CalendarEvent[] = []
+  eventsByDate.value.forEach((events: CalendarEvent[], date: string) => {
+    events.forEach((ev) => {
+      if (ev.data.dataType === 'event') allEvents.push(ev)
+    })
+  })
+  return allEvents
 }
 
 function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp }): boolean {
@@ -585,7 +603,7 @@ function onMouseUp(): void {
       const newEvents: InputCalendarEvent[] = updateResizedEvent(newEvent)
       if (
         oldAvailDuration === newAvailDuration &&
-        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDayHours * 60
+        parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDay
       ) {
         eventsModel.value = newEvents
         currentAvailId = -1
@@ -691,15 +709,15 @@ function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] 
   oldAvailDuration = newEvent.data.duration as number
   const newEvents: InputCalendarEvent[] = cloneDeep(eventsModel.value)
   let newEnd = parseTime(newEvent.data.start) + newAvailDuration
-  if (newEnd > props.endOfDayHours * 60) newEnd = props.endOfDayHours * 60
+  if (newEnd > props.endOfDay) newEnd = props.endOfDay
   else if (
     oldAvailDuration > newAvailDuration &&
-    parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDayHours * 60
+    parseTime(newEvent.data.start) + oldAvailDuration === props.endOfDay
   ) {
     const newAvail: InputCalendarEvent = cloneDeep(newEvent)
     updateMinutes(newAvail.data.start, closestStep(newEnd, props.step))
     newAvail.id = nextId()
-    newAvail.data.duration = props.endOfDayHours * 60 - closestStep(newEnd, props.step)
+    newAvail.data.duration = props.endOfDay - closestStep(newEnd, props.step)
     if (newAvail.data.duration > 0) newEvents.push(newAvail)
   }
   newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
