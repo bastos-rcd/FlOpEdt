@@ -29,7 +29,7 @@ import base.models as bm
 import displayweb.models as dwm
 import people.models as pm
 
-from api.v1.base.timing.serializers import SchedulingPeriodSerializer
+
 from api.v1.base.modification.serializers import EdtVersionShortSerializer
 
 
@@ -123,9 +123,4 @@ class ModulesFullSerializer(serializers.ModelSerializer):
         )
 
 
-class EdtVersionSerializer(serializers.ModelSerializer):
-    period = SchedulingPeriodSerializer()
 
-    class Meta:
-        model = bm.EdtVersion
-        fields = ("id", "department_id", "period", "work_copy", "version")
