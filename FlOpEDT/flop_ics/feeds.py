@@ -1,7 +1,4 @@
-from datetime import datetime
-from datetime import timedelta
-from isoweek import Week
-
+import datetime as dt
 from django_ical.views import ICalFeed
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -51,24 +48,14 @@ class EventFeed(ICalFeed):
         ret += f'Salle : {location}'
         return ret
 
-    def item_location(self, scourse):
+    def item_location(self, scourse:ScheduledCourse):
          return scourse.room.name if scourse.room is not None else ''
 
-    def item_start_datetime(self, scourse):
-        course = scourse.course
-        course_week_year = course.week.year if course.week.year >= 1 else 1
-        course_week_nb = course.week.nb if course.week.nb >= 1 else 1
-        begin = datetime.combine(
-            Week(course_week_year, course_week_nb)\
-            .day(self.days.index(scourse.day)),
-            datetime.min.time()) \
-            + timedelta(minutes=scourse.start_time)
-        return begin
+    def item_start_datetime(self, scourse:ScheduledCourse):
+        return scourse.start_time
 
-    def item_end_datetime(self, scourse):
-        end = self.item_start_datetime(scourse) \
-            + timedelta(minutes=scourse.course.duration)
-        return end
+    def item_end_datetime(self, scourse:ScheduledCourse):
+        return scourse.end_time
 
     def item_link(self, s):
         return str(s.id)
@@ -79,8 +66,8 @@ class TutorEventFeed(EventFeed):
         return Tutor.objects.get(id=tutor_id)
 
     def items(self, tutor):
-        return ScheduledCourse.objects.filter(Q(tutor=tutor) | Q(course__supp_tutor=tutor), work_copy=0)\
-                                      .order_by('-course__week__year','-course__week__nb')
+        return ScheduledCourse.objects.filter(Q(tutor=tutor) | Q(course__supp_tutor=tutor), version__major=0)\
+                                      .order_by('-start_time')
 
     def item_title(self, scourse):
         course = scourse.course
@@ -97,8 +84,8 @@ class RoomEventFeed(EventFeed):
     def items(self, room_groups):
         room_scheduled_courses = \
             ScheduledCourse.objects\
-            .filter(room__in=room_groups, work_copy=0) \
-            .order_by('-course__week__year', '-course__week__nb')
+            .filter(room__in=room_groups, version__major=0) \
+            .order_by('-start_time')
         room_reservations = RoomReservation.objects.filter(room__in=room_groups).order_by('-date', '-start_time')
         return list(room_scheduled_courses) + list(room_reservations)
 
@@ -134,7 +121,7 @@ class RoomEventFeed(EventFeed):
             return super(RoomEventFeed, self).item_start_datetime(sched_course_or_reservation)
         elif type(sched_course_or_reservation) is RoomReservation:
             reservation = sched_course_or_reservation
-            return datetime.combine(reservation.date, reservation.start_time)
+            return dt.datetime.combine(reservation.date, reservation.start_time)
         else:
             raise TypeError("Has to be course or reservation")
 
@@ -143,7 +130,7 @@ class RoomEventFeed(EventFeed):
             return super(RoomEventFeed, self).item_end_datetime(sched_course_or_reservation)
         elif type(sched_course_or_reservation) is RoomReservation:
             reservation = sched_course_or_reservation
-            return datetime.combine(reservation.date, reservation.end_time)
+            return dt.datetime.combine(reservation.date, reservation.end_time)
         else:
             raise TypeError("Has to be course or reservation")
 
@@ -153,8 +140,8 @@ class GroupEventFeed(EventFeed):
 
     def items(self, groups):
         return ScheduledCourse.objects\
-                              .filter(course__groups__in=groups, work_copy=0) \
-            .order_by('-course__week__year', '-course__week__nb')
+                              .filter(course__groups__in=groups, version__major=0) \
+            .order_by('-start_time')
 
     def item_title(self, scourse):
         course = scourse.course
@@ -187,7 +174,7 @@ class RegenFeed(ICalFeed):
 
     def items(self, departments):
         return Regen.objects.filter(department__in=departments)\
-            .exclude(full=False, stabilize=False).order_by('-week__year','-week__nb')
+            .exclude(full=False, stabilize=False).order_by('-period')
 
     def item_title(self, regen):
         return f"flop!EDT - {regen.department.abbrev} : {regen.strplus()}"
@@ -196,12 +183,11 @@ class RegenFeed(ICalFeed):
         return self.item_title(regen)
 
     def item_start_datetime(self, regen):
-        begin = Week(regen.week.year, regen.week.nb).day(0)
-        return begin
+        return regen.period.start_date
 
     def item_end_datetime(self, regen):
-        end = Week(regen.week.year, regen.week.nb).day(len(regen.department.timegeneralsettings.days))
-        return end
+        return regen.period.end_date
+
 
     def item_link(self, s):
         return str(s.id)
