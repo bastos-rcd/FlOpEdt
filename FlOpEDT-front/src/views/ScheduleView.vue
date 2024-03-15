@@ -19,9 +19,10 @@
         :dropzones="dropzonesToDisplay"
         @dragstart="onDragStart"
         @update:week="changeDate"
-        :start-of-day="dayStartTime"
-        :end-of-day="dayEndTime"
+        :start-of-day="timeSettings.get(current.id)!.dayStartTime"
+        :end-of-day="timeSettings.get(current.id)!.dayEndTime"
         :workcopy="workcopySelected"
+        :interval-minutes="intervalMinutes"
       />
     </div>
   </div>
@@ -82,12 +83,13 @@ const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const permanentStore = usePermanentStore()
 const availabilityStore = useAvailabilityStore()
+const { current } = storeToRefs(deptStore)
 const { columns } = storeToRefs(columnStore)
 const { daysSelected, calendarEvents, dropzonesIds } = storeToRefs(eventStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const { tutors } = storeToRefs(tutorStore)
 const { fetchedStructuralGroups } = storeToRefs(groupStore)
-const { dayStartTime, dayEndTime } = storeToRefs(permanentStore)
+const { timeSettings, intervalMinutes } = storeToRefs(permanentStore)
 const selectedGroups = ref<Group[]>([])
 const dropzonesToDisplay = ref<CalendarEvent[]>([])
 const sunday = ref<Timestamp>()
@@ -104,18 +106,16 @@ watch(workcopySelected, () => {
 })
 
 function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
-  const dropzones: CalendarEvent[] = createDropzonesForEvent(
-    eventId,
-    allEvents,
-    dayStartTime.value,
-    dayEndTime.value,
-    6
-  )
-  dropzones.forEach((dz) => {
-    dz.id = dropzonesIds.value
-    dropzonesIds.value += 2
-  })
-  dropzonesToDisplay.value = dropzones
+  const dayStartTime = timeSettings.value.get(current.value.id)?.dayStartTime
+  const dayEndTime = timeSettings.value.get(current.value.id)?.dayEndTime
+  if (dayStartTime && dayEndTime) {
+    const dropzones: CalendarEvent[] = createDropzonesForEvent(eventId, allEvents, dayStartTime, dayEndTime, 6)
+    dropzones.forEach((dz) => {
+      dz.id = dropzonesIds.value
+      dropzonesIds.value += 2
+    })
+    dropzonesToDisplay.value = dropzones
+  }
 }
 
 function fetchScheduledCurrentWeek(from: Date, to: Date) {

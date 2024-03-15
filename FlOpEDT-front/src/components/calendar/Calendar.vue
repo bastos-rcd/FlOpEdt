@@ -18,10 +18,10 @@
       transition-next="slide-left"
       transition-prev="slide-right"
       no-active-date
-      :interval-start="26"
-      :interval-count="52"
-      :interval-minutes="15"
-      :interval-height="28"
+      :interval-start="props.startOfDay / props.intervalMinutes - 1"
+      :interval-count="(props.endOfDay - props.startOfDay) / props.intervalMinutes + 2"
+      :interval-minutes="props.intervalMinutes"
+      :interval-height="20"
       time-clicks-clamped
       :weekdays="weekdays"
       :drag-enter-func="onDragEnter"
@@ -185,6 +185,7 @@ const props = defineProps<{
   startOfDay: number
   step?: number
   workcopy: number
+  intervalMinutes: number
 }>()
 
 const emits = defineEmits<{

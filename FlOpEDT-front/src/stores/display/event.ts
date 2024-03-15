@@ -9,15 +9,18 @@ import { Course, Group, Module, Room, User } from '../declarations'
 import { usePermanentStore } from '../timetable/permanent'
 import { useGroupStore } from '../timetable/group'
 import { isTimestampInDayTime } from '@/helpers'
+import { useDepartmentStore } from '../department'
 
 export const useEventStore = defineStore('eventStore', () => {
   const courseStore = useScheduledCourseStore()
+  const departmentStore = useDepartmentStore()
   const availabilityStore = useAvailabilityStore()
   const columnStore = useColumnStore()
   const permanentStore = usePermanentStore()
   const groupStore = useGroupStore()
+  const { current } = storeToRefs(departmentStore)
   const { groups } = storeToRefs(groupStore)
-  const { modules, moduleColor, dayStartTime, dayEndTime } = storeToRefs(permanentStore)
+  const { modules, moduleColor, timeSettings } = storeToRefs(permanentStore)
   const { columns } = storeToRefs(columnStore)
   const daysSelected: Ref<Timestamp[]> = ref<Timestamp[]>([])
   const calendarEvents: Ref<InputCalendarEvent[]> = ref([])
@@ -29,30 +32,34 @@ export const useEventStore = defineStore('eventStore', () => {
   const dropzonesIds: Ref<number> = ref(1)
 
   watchEffect(() => {
+    const dayStartTime = timeSettings.value.get(current.value.id)?.dayStartTime
+    const dayEndTime = timeSettings.value.get(current.value.id)?.dayEndTime
     const eventsReturned: InputCalendarEvent[] = []
-    availabilityStore.getAvailabilityFromDates(daysSelected.value).forEach((av) => {
-      if (isTimestampInDayTime(dayStartTime.value, dayEndTime.value, av.start)) {
-        const currentEvent: InputCalendarEvent = {
-          id: calendarEventIds.value,
-          title: '',
-          toggled: true,
-          bgcolor: '',
-          columnIds: [],
-          data: {
-            dataId: av.id,
-            dataType: 'avail',
-            start: copyTimestamp(av.start),
-            duration: av.duration,
-            value: av.value,
-          },
+    if (dayStartTime && dayEndTime) {
+      availabilityStore.getAvailabilityFromDates(daysSelected.value).forEach((av) => {
+        if (isTimestampInDayTime(dayStartTime, dayEndTime, av.start)) {
+          const currentEvent: InputCalendarEvent = {
+            id: calendarEventIds.value,
+            title: '',
+            toggled: true,
+            bgcolor: '',
+            columnIds: [],
+            data: {
+              dataId: av.id,
+              dataType: 'avail',
+              start: copyTimestamp(av.start),
+              duration: av.duration,
+              value: av.value,
+            },
+          }
+          calendarEventIds.value += 2
+          currentEvent.title = currentEvent.data.dataType
+          const availColumn = columns.value.find((c) => c.name === 'Avail')
+          if (availColumn) currentEvent.columnIds.push(availColumn.id)
+          eventsReturned.push(currentEvent)
         }
-        calendarEventIds.value += 2
-        currentEvent.title = currentEvent.data.dataType
-        const availColumn = columns.value.find((c) => c.name === 'Avail')
-        if (availColumn) currentEvent.columnIds.push(availColumn.id)
-        eventsReturned.push(currentEvent)
-      }
-    })
+      })
+    }
     courseStore.getCoursesFromDates(daysSelected.value).forEach((c: Course) => {
       const module: Module | undefined = modules.value.find((m) => m.id === c.module)
       const currentEvent: InputCalendarEvent = {

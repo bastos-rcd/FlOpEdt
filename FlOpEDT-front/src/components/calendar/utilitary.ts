@@ -1,5 +1,5 @@
-import { cloneDeep, concat, drop, intersection } from 'lodash'
-import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
+import { cloneDeep, intersection } from 'lodash'
+import { CalendarColumn, CalendarEvent } from './declaration'
 import {
   TimestampOrNull,
   copyTimestamp,
@@ -198,7 +198,8 @@ function createDropzonesOnTimes(
   allEvents: CalendarEvent[],
   dayStartTime: number,
   dayEndTime: number,
-  lastDayOfWeek: number = 6
+  lastDayOfWeek: number = 6,
+  step: number = STEP_DEFAULT
 ): CalendarEvent[] {
   const dropZones: CalendarEvent[] = []
   let startTime = copyTimestamp(event.data.start)
@@ -217,7 +218,7 @@ function createDropzonesOnTimes(
         newDropZone.data.start = startTime
         if (isPossibleDropzone(newDropZone, allEvents, event)) dropZones.push(newDropZone)
         startTime = copyTimestamp(startTime)
-        updateMinutes(startTime, parseTime(startTime) + event.data.duration + 5)
+        updateMinutes(startTime, closestStep(parseTime(startTime) + event.data.duration + step, step))
       }
     }
     startTime = nextDay(startTime)

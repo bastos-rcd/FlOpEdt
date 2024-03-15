@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { Module, TrainingProgramme } from '@/stores/declarations'
-import { ref } from 'vue'
+import { Module, TimeSetting, TrainingProgramme } from '@/stores/declarations'
+import { Ref, ref } from 'vue'
 import { api } from '@/utils/api'
 import { ModuleAPI, TrainingProgrammeAPI } from '@/ts/type'
 import { useDepartmentStore } from '../department'
@@ -9,12 +9,13 @@ import { computed } from 'vue'
 export const usePermanentStore = defineStore('permanent', () => {
   const trainProgs = ref<TrainingProgramme[]>([])
   const modules = ref<Module[]>([])
+  const intervalMinutes = ref<number>(15)
   const isTrainProgsFetched = ref<boolean>(false)
   const isModulesFetched = ref<boolean>(false)
   const loadingError = ref<Error | null>(null)
   const departmentStore = useDepartmentStore()
-  const dayStartTime = ref<number>(420)
-  const dayEndTime = ref<number>(1140)
+  const timeSettings: Ref<Map<Number, TimeSetting>> = ref(new Map<Number, TimeSetting>())
+  const areTimeSettingsFetched = ref<boolean>(false)
   const moduleColor = computed(() => {
     const moduleColors: Map<number, string> = new Map<number, string>()
     modules.value.forEach((mod: Module) => {
@@ -44,6 +45,18 @@ export const usePermanentStore = defineStore('permanent', () => {
         })
       })
       isTrainProgsFetched.value = true
+    } catch (e) {
+      loadingError.value = e as Error
+    }
+  }
+
+  async function fetchTimeSettings() {
+    try {
+      await api.getTimeSettings().then((result: TimeSetting[]) => {
+        result.forEach((timeSetting: TimeSetting) => {
+          timeSettings.value.set(timeSetting.departmentId, timeSetting)
+        })
+      })
     } catch (e) {
       loadingError.value = e as Error
     }
@@ -115,6 +128,7 @@ export const usePermanentStore = defineStore('permanent', () => {
     modules,
     fetchTrainingProgrammes,
     fetchModules,
+    fetchTimeSettings,
     clearTrainProgs,
     clearModules,
     moduleColor,
@@ -122,7 +136,8 @@ export const usePermanentStore = defineStore('permanent', () => {
     getTrainProgs,
     isModulesFetched,
     isTrainProgsFetched,
-    dayStartTime,
-    dayEndTime,
+    areTimeSettingsFetched,
+    timeSettings,
+    intervalMinutes,
   }
 })
