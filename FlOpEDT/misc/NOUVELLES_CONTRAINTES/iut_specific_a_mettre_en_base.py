@@ -32,7 +32,7 @@ from TTapp.models import LimitTimePerPeriod, LimitModulesTimePerPeriod, \
     max_weight
 from base.models import TrainingProgramme, CourseType, Module, Department, StructuralGroup
 from people.models import Tutor
-from TTapp.TTUtils import add_generic_constraints_to_database
+from TTapp.TimetableUtils import add_generic_constraints_to_database
 
 def add_iut_constraints_to_database():
     for department in Department.objects.all():

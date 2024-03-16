@@ -76,7 +76,7 @@ from TTapp.slots import slots_filter, days_filter
 
 from TTapp.PeriodsDatabase import PeriodsDatabase
 
-from TTapp.TTUtils import print_differences
+from TTapp.TimetableUtils import print_differences
 
 from django.db import close_old_connections
 from django.db.models import F

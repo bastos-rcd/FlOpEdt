@@ -28,12 +28,12 @@ from django.http import HttpResponse, JsonResponse
 
 from base.models import ScheduledCourse, SchedulingPeriod
 
-from TTapp.TTUtils import get_conflicts
+from TTapp.TimetableUtils import get_conflicts
 
 from TTapp.admin import GroupsLunchBreakResource
 from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
 
-from MyFlOp import MyTTUtils
+from MyFlOp import MyTimetableUtils
 
 from django.utils.translation import gettext as _
 
@@ -66,35 +66,35 @@ def swap(req, department, year, week, work_copy):
     Swap scheduled courses with work copy work_copy
     against scheduled courses with work copy 0
     '''
-    return JsonResponse(MyTTUtils.swap_version(department, week, year, work_copy))
+    return JsonResponse(MyTimetableUtils.swap_version(department, week, year, work_copy))
 
 
 def delete_work_copy(req, department, year, week, work_copy):
     '''
     Delete scheduled courses with work copy work_copy
     '''
-    return JsonResponse(MyTTUtils.delete_work_copy(department, week, year, work_copy), safe=False)
+    return JsonResponse(MyTimetableUtils.delete_work_copy(department, week, year, work_copy), safe=False)
 
 
 def delete_all_unused_work_copies(req, department, year, week):
     '''
     Delete scheduled courses with work copy work_copy
     '''
-    return JsonResponse(MyTTUtils.delete_all_unused_work_copies(department, week, year), safe=False)
+    return JsonResponse(MyTimetableUtils.delete_all_unused_work_copies(department, week, year), safe=False)
 
 
 def duplicate_work_copy(req, department, year, week, work_copy):
     '''
     Duplicate scheduled courses with work copy work_copy in the first work_copy available
     '''
-    return JsonResponse(MyTTUtils.duplicate_work_copy(department, week, year, work_copy), safe=False)
+    return JsonResponse(MyTimetableUtils.duplicate_work_copy(department, week, year, work_copy), safe=False)
 
 
 def reassign_rooms(req, department, year, week, work_copy, create_new_work_copy=True):
     '''
     Reassign rooms of scheduled courses with work copy work_copy
     '''
-    return JsonResponse(MyTTUtils.reassign_rooms(department, week, year, work_copy,
+    return JsonResponse(MyTimetableUtils.reassign_rooms(department, week, year, work_copy,
                                                  create_new_work_copy=create_new_work_copy))
 
 
@@ -102,7 +102,7 @@ def duplicate_in_other_weeks(req, department, year, week, work_copy):
     '''
     Duplicate all scheduled courses in other weeks (for courses that are equals than this week's ones)
     '''
-    return JsonResponse(MyTTUtils.duplicate_in_other_weeks(department, week, year, work_copy))
+    return JsonResponse(MyTimetableUtils.duplicate_in_other_weeks(department, week, year, work_copy))
 
 
 def fetch_group_lunch(req, **kwargs):

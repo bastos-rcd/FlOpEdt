@@ -26,7 +26,7 @@
 # without disclosing the source code of your own applications.
 import functools
 
-from TTapp.TTUtils import basic_reassign_rooms, basic_swap_version, \
+from TTapp.TimetableUtils import basic_reassign_rooms, basic_swap_version, \
     basic_delete_version, basic_duplicate_version, basic_delete_all_unused_versions, \
     duplicate_what_can_be_in_other_periods, number_courses
 from base.models import ScheduledCourse, Department, SchedulingPeriod, TimetableVersion

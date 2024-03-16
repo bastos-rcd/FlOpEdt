@@ -28,7 +28,7 @@ import importlib
 
 from TTapp.TimetableModel import TimetableModel, GUROBI_NAME
 
-from MyFlOp.MyTTUtils import number_courses, print_differences
+from MyFlOp.MyTimetableUtils import number_courses, print_differences
 
 
 class MyTimetableModel(TimetableModel):
