@@ -6,7 +6,7 @@ django.setup()
 from unittest import skip
 from TTapp.deprecated_tests.tools_test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
-from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability, NoSimultaneousGroupCourses
+from TTapp.TimetableConstraints.core_constraints import ConsiderTutorsUnavailability, NoSimultaneousGroupCourses
 
 # In this python file we test (class by class) pre_analyse's function for constraints in core_constraints.py and assert
 # the correct result is returned

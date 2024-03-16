@@ -27,16 +27,16 @@ from django.db import models
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.FlopConstraint import max_weight
 from django.utils.translation import gettext_lazy as _
-from TTapp.TTConstraints.tutors_constraints import considered_tutors
+from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 from base.timing import french_format
 
 
-class NotAloneForTheseCouseTypes(TTConstraint):
+class NotAloneForTheseCouseTypes(TimetableConstraint):
     '''
-    TTConstraint : Guarantees that any considered tutor will not be alone to do a course of this type/module
+    TimetableConstraint : Guarantees that any considered tutor will not be alone to do a course of this type/module
     (and will be in parallel to one of the guide tutors)
     '''
 
@@ -134,9 +134,9 @@ class NotAloneForTheseCouseTypes(TTConstraint):
                             ttmodel.add_to_inst_cost(tutor, self.local_weight()*ponderation*tutor_without_a_guide)
 
 
-class ParallelizeCourses(TTConstraint):
+class ParallelizeCourses(TimetableConstraint):
     '''
-    TTConstraint : Guarantees that the total course time of certain class of courses do not exceed a certain bound
+    TimetableConstraint : Guarantees that the total course time of certain class of courses do not exceed a certain bound
     '''
 
     course_type = models.ForeignKey('base.CourseType', blank=True, null=True, on_delete=models.CASCADE, verbose_name=_('course type'))

@@ -5,17 +5,17 @@ from django.db.models import Q
 
 def getFlopConstraintsInDB(period, department):
     """
-        Returns all classes' instances that inherit from TTConstraint and exist for the given period and department in the database.
+        Returns all classes' instances that inherit from TimetableConstraint and exist for the given period and department in the database.
 
-    :param period: The scheduling period we want to search the TTConstraints that are applied on.
-    :param department: The department we want to search the TTConstraints that are applied on.
-    :return: A list of TTConstraint's instances.
+    :param period: The scheduling period we want to search the TimetableConstraints that are applied on.
+    :param department: The department we want to search the TimetableConstraints that are applied on.
+    :return: A list of TimetableConstraint's instances.
 
     """
 
     # Init
     constraints_list = []
-    # Get all the classes that inherit from TTConstraint
+    # Get all the classes that inherit from TimetableConstraint
     all_constraints_classes = all_subclasses(FlopConstraint)
 
     # Browse for each subclass if we can find an existing instance of this subclass and add it to the list

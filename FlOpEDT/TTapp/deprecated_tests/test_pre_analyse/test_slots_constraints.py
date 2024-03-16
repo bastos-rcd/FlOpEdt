@@ -4,7 +4,7 @@ django.setup()
 # end
 from TTapp.deprecated_tests.tools_test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
-from TTapp.TTConstraints.slots_constraints import ConsiderDependencies, SimultaneousCourses
+from TTapp.TimetableConstraints.slots_constraints import ConsiderDependencies, SimultaneousCourses
 from django.db.models import Q
 
 # In this python file we test (class by class) pre_analyse's function for constraints in slots_constraints.py and assert

@@ -5,7 +5,7 @@ django.setup()
 from unittest import skip
 from TTapp.deprecated_tests.tools_test_pre_analyse.constraint_test_case import ConstraintTestCase
 from base.models import Week, Department
-from TTapp.TTConstraints.slots_constraints import ConsiderDependencies
+from TTapp.TimetableConstraints.slots_constraints import ConsiderDependencies
 
 
 # In this python file we test (class by class) pre_analyse's function for constraints in slots_constraints.py and assert

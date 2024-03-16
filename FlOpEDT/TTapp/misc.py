@@ -25,11 +25,11 @@
 
 
 from TTapp.FlopConstraint import FlopConstraint, all_subclasses
-from base.models import SchedulingPeriod
+from base.models import SchedulingPeriod, TimetableVersion
 from core.decorators import timer
 
 @timer
-def are_all_flop_constraints_satisfied_for(period, version):
+def are_all_flop_constraints_satisfied_for(period:SchedulingPeriod, version:TimetableVersion):
     errors = []
     for cl in all_subclasses(FlopConstraint):
         for a in cl.objects.filter(department__abbrev='INFO'):

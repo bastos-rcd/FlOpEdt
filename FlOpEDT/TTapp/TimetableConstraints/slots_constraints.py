@@ -39,18 +39,18 @@ from base.timing import french_format, Day, slot_pause
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter, Slot
-from TTapp.TTConstraints.TTConstraint import TTConstraint
-from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.core_constraints import ConsiderTutorsUnavailability
 
 from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext
 from django.core.validators import MaxValueValidator
-from TTapp.TTConstraints.tutors_constraints import considered_tutors
+from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 
 
-class SimultaneousCourses(TTConstraint):
+class SimultaneousCourses(TimetableConstraint):
     """
     Force courses to start simultaneously
     """
@@ -219,7 +219,7 @@ class SimultaneousCourses(TTConstraint):
         verbose_name_plural = verbose_name
 
 
-class StartTimeConstraint(TTConstraint):
+class StartTimeConstraint(TimetableConstraint):
     train_progs = models.ManyToManyField('base.TrainingProgramme',
                                          blank=True)
     module = models.ForeignKey('base.Module',
@@ -427,7 +427,7 @@ def find_day_gap_slots(course_slots1, course_slots2, day_gap):
     return False
 
 
-class GlobalModuleDependency(TTConstraint):
+class GlobalModuleDependency(TimetableConstraint):
     """
     Creates a global dependency for each group and module between courses1 and courses2
     """
@@ -543,7 +543,7 @@ class GlobalModuleDependency(TTConstraint):
         assert not dependency_not_satisfied_for, f"Following courses do not respect global dependency :{dependency_not_satisfied_for}"
 
 
-class ConsiderDependencies(TTConstraint):
+class ConsiderDependencies(TimetableConstraint):
     """
     Transform the constraints of dependency saved on the DB in model constraints:
     -include dependencies and successiveness
@@ -733,7 +733,7 @@ class ConsiderDependencies(TTConstraint):
         assert not unrespected_dependencies, f"Following dependencies do not respect global dependency :{unrespected_dependencies}"
 
 
-class ConsiderPivots(TTConstraint):
+class ConsiderPivots(TimetableConstraint):
     """
     Transform the constraints of pivots saved on the DB in model constraints:
     -include non same-day constraint
@@ -803,10 +803,10 @@ class ConsiderPivots(TTConstraint):
                     ttmodel.add_to_generic_cost(undesired_situation * self.local_weight() * ponderation)
 
 
-# Ex TTConstraints that have to be re-written.....
+# Ex TimetableConstraints that have to be re-written.....
 
 
-class AvoidBothTimesSameDay(TTConstraint):
+class AvoidBothTimesSameDay(TimetableConstraint):
     """
     Avoid the use of two slots
     Idéalement, on pourrait paramétrer slot1, et slot2 à partir de slot1... Genre slot1
@@ -872,7 +872,7 @@ class AvoidBothTimesSameDay(TTConstraint):
         return text
 
 
-class LimitUndesiredSlotsPerDayPeriod(TTConstraint):
+class LimitUndesiredSlotsPerDayPeriod(TimetableConstraint):
     """
     Allow to limit the number of undesired slots per period
     start_time and end_time are in minuts from 0:00 AM
@@ -926,7 +926,7 @@ class LimitUndesiredSlotsPerDayPeriod(TTConstraint):
         return text
 
 
-class LimitSimultaneousCoursesNumber(TTConstraint):
+class LimitSimultaneousCoursesNumber(TimetableConstraint):
     """
     Limit the number of simultaneous courses inside a set of courses, and/or selecting a specific course type
     and/or a set of considered modules

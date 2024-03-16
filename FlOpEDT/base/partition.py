@@ -40,7 +40,7 @@ from base.timing import (
 )
 import datetime as dt
 from django.db.models import Q
-from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnWeekDay
+from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 import copy
 
 

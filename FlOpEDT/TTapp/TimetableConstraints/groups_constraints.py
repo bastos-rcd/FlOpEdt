@@ -28,7 +28,7 @@ from base.models import StructuralGroup
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
 from base.timing import Day
 from TTapp.slots import slots_filter, days_filter
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from people.models import GroupPreferences
 from django.contrib.postgres.fields import ArrayField
 
@@ -46,7 +46,7 @@ def pre_analysis_considered_basic_groups(group_ttconstraint):
     Returns a set of groups which are basic_group concerned by the constraint group_ttconstraint
 
     :param group_ttconstraint: A constraint we want to analyze.
-    :type group_ttconstraint: TTConstraint
+    :type group_ttconstraint: TimetableConstraint
     :return: A set of groups which are basic_group and concerned by the constraint.
     :rtype: A set of StructuralGroup
 
@@ -104,7 +104,7 @@ def considered_basic_groups(group_ttconstraint, ttmodel=None):
         return ttmodel_basic_groups_to_consider
 
 
-class MinGroupsHalfDays(TTConstraint):
+class MinGroupsHalfDays(TimetableConstraint):
     """
     All courses will fit in a minimum of half days
     """
@@ -149,7 +149,7 @@ class MinGroupsHalfDays(TTConstraint):
         return _("Minimize groups half-days")
 
 
-class MinNonPreferedTrainProgsSlot(TTConstraint):
+class MinNonPreferedTrainProgsSlot(TimetableConstraint):
     """
     Minimize the use of unprefered Slots for groups.
     Make impossible the use of forbidden slots.
@@ -222,7 +222,7 @@ class MinNonPreferedTrainProgsSlot(TTConstraint):
         return _("Minimize groups non-preferred slots")
 
 
-class GroupsMinHoursPerDay(TTConstraint):
+class GroupsMinHoursPerDay(TimetableConstraint):
     """
     Respect the min_time_per_day declared
     """

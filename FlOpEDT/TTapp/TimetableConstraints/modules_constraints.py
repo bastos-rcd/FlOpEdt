@@ -28,11 +28,11 @@ from django.db import models
 
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperModule
 
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from django.utils.translation import gettext_lazy as _
 
 
-class MinModulesHalfDays(TTConstraint):
+class MinModulesHalfDays(TimetableConstraint):
     """
     All courses will fit in a minimum of half days
     """

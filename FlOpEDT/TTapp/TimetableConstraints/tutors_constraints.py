@@ -30,7 +30,7 @@ from TTapp.helpers.minhalfdays import MinHalfDaysHelperTutor
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.FlopConstraint import max_weight
 from django.utils.translation import gettext_lazy as _
 import datetime as dt
@@ -43,7 +43,7 @@ def considered_tutors(tutors_ttconstraint, ttmodel):
     return tutors_to_consider
 
 
-class MinTutorsHalfDays(TTConstraint):
+class MinTutorsHalfDays(TimetableConstraint):
     """
     All courses will fit in a minimum of half days
     Optional: if 2 courses only, possibility to join it
@@ -83,7 +83,7 @@ class MinTutorsHalfDays(TTConstraint):
         return text
 
 
-class MinNonPreferedTutorsSlot(TTConstraint):
+class MinNonPreferedTutorsSlot(TimetableConstraint):
     """
     Minimize the use of unprefered Slots for tutors
     """
@@ -125,7 +125,7 @@ class MinNonPreferedTutorsSlot(TTConstraint):
         return text
 
 
-class MinimizeTutorsBusyDays(TTConstraint):
+class MinimizeTutorsBusyDays(TimetableConstraint):
     """
     This class is a template for writing your own custom contraint.
 
@@ -201,7 +201,7 @@ class MinimizeTutorsBusyDays(TTConstraint):
         return attributes
 
 
-class RespectTutorsMaxTimePerDay(TTConstraint):
+class RespectTutorsMaxTimePerDay(TimetableConstraint):
     """
     Respect the max_time_per_day declared
     """
@@ -254,7 +254,7 @@ class RespectTutorsMaxTimePerDay(TTConstraint):
         return "Respect max time per day"
 
 
-class RespectTutorsMinTimePerDay(TTConstraint):
+class RespectTutorsMinTimePerDay(TimetableConstraint):
     """
     Respect the min_time_per_day declared
     """
@@ -309,7 +309,7 @@ class RespectTutorsMinTimePerDay(TTConstraint):
         return "Respect tutors min time per day"
 
 
-class LowerBoundBusyDays(TTConstraint):
+class LowerBoundBusyDays(TimetableConstraint):
     """
     Impose a minimum number of days if the number of hours is higher than a lower bound
     """

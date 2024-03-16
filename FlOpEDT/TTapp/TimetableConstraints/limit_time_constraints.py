@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 from django.db import models
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.slots import days_filter, slots_filter
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -39,7 +39,7 @@ def build_fd_or_apm_period_slots(ttmodel, day, apm_period):
         return slots_filter(ttmodel.wdb.courses_slots, day=day, apm=apm_period)
 
 
-class LimitTimePerPeriod(TTConstraint):
+class LimitTimePerPeriod(TimetableConstraint):
     """
     Abstract class : Limit the number of hours (of a given course_type) in every day/half-day
     """

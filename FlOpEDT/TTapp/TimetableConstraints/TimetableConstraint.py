@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 from base.models import StructuralGroup
 
-class TTConstraint(FlopConstraint):
+class TimetableConstraint(FlopConstraint):
     """
     Abstract parent class of specific constraints that users may define
 

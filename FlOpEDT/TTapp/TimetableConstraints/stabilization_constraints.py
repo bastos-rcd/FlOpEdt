@@ -34,12 +34,12 @@ from base.timing import Day
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import slots_filter
-from TTapp.TTConstraints.TTConstraint import TTConstraint
-from TTapp.TTConstraints.tutors_constraints import considered_tutors
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 from django.utils.translation import gettext_lazy as _
 
 
-class StabilizeTutorsCourses(TTConstraint):
+class StabilizeTutorsCourses(TimetableConstraint):
     """
     Allow to really stabilize the courses of some/all tutor
     --> In this case, each course c scheduled:
@@ -104,7 +104,7 @@ class StabilizeTutorsCourses(TTConstraint):
         return text
 
 
-class StabilizeGroupsCourses(TTConstraint):
+class StabilizeGroupsCourses(TimetableConstraint):
     """
     Allow to really stabilize the courses of some/all tutor
     --> In this case, each course c scheduled:
@@ -166,7 +166,7 @@ class StabilizeGroupsCourses(TTConstraint):
         return text
 
 
-class StabilizationThroughPeriods(TTConstraint):
+class StabilizationThroughPeriods(TimetableConstraint):
     courses = models.ManyToManyField('base.Course')
 
     class Meta:

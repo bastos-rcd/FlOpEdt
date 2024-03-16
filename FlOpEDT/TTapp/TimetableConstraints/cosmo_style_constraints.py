@@ -26,7 +26,7 @@
 
 from django.db import models
 
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
@@ -53,7 +53,7 @@ def sum_of_busy_slots_just_after(ttmodel, prof, day, end_time):
     return res
 
 
-class LimitHoles(TTConstraint):
+class LimitHoles(TimetableConstraint):
     """
     Limit the total number of holes in each day, and every period
     """
@@ -154,7 +154,7 @@ class LimitHoles(TTConstraint):
                     ttmodel.add_to_inst_cost(i, unwanted * ponderation * self.local_weight(), period)
 
 
-class LimitTutorTimePerWeeks(TTConstraint):
+class LimitTutorTimePerWeeks(TimetableConstraint):
     tutors = models.ManyToManyField('people.Tutor', blank=True)
     min_time_per_period = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
     max_time_per_period = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
@@ -255,7 +255,7 @@ class LimitTutorTimePerWeeks(TTConstraint):
                     ttmodel.add_to_inst_cost(tutor, undesirable_min * local_weight * ponderation, period)
 
 
-class ModulesByBloc(TTConstraint):
+class ModulesByBloc(TimetableConstraint):
     """
     Force that same module is affected by bloc (a same tutor is affected to each bloc of same module)
     Except for suspens courses

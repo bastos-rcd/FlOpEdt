@@ -29,7 +29,7 @@ from django.db.models import Q
 from core.decorators import timer
 
 from TTapp.FlopConstraint import FlopConstraint
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.slots import slots_filter
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType

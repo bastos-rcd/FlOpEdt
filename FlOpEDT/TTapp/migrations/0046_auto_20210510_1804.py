@@ -2,12 +2,12 @@
 
 from django.db import migrations, models
 from django.db.models import Q
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.FlopConstraint import all_subclasses
 
 
 def from_week_year_to_weeks(apps, schema_editor):
-    all_ttconstraint_classes = all_subclasses(TTConstraint)
+    all_ttconstraint_classes = all_subclasses(TimetableConstraint)
     Week = apps.get_model('base', "Week")
     for ttc_c in all_ttconstraint_classes:
         class_name = ttc_c._meta.object_name

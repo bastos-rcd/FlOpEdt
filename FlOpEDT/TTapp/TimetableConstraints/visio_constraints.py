@@ -29,14 +29,14 @@ from django.db import models
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from base.timing import Day, Time, min_to_str
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
 
 
-class NoVisio(TTConstraint):
+class NoVisio(TimetableConstraint):
     train_progs = models.ManyToManyField('base.TrainingProgramme',
                                          blank=True)
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
@@ -103,7 +103,7 @@ class NoVisio(TTConstraint):
         return text
 
 
-class VisioOnly(TTConstraint):
+class VisioOnly(TimetableConstraint):
     train_progs = models.ManyToManyField('base.TrainingProgramme',
                                          blank=True)
     weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
@@ -171,7 +171,7 @@ class VisioOnly(TTConstraint):
         return text
 
 
-class LimitGroupsPhysicalPresence(TTConstraint):
+class LimitGroupsPhysicalPresence(TimetableConstraint):
     """
     at most a given proportion of basic groups are present each half-day
     """
@@ -225,7 +225,7 @@ class LimitGroupsPhysicalPresence(TTConstraint):
         return text
 
 
-class BoundPhysicalPresenceHalfDays(TTConstraint):
+class BoundPhysicalPresenceHalfDays(TimetableConstraint):
     """
     Bound the number of Half-Days of physical presence
     """
@@ -283,7 +283,7 @@ class BoundPhysicalPresenceHalfDays(TTConstraint):
         return text
 
 
-class Curfew(TTConstraint):
+class Curfew(TimetableConstraint):
     """
         Defines a curfew (after which only Visio courses are allowed)
     """

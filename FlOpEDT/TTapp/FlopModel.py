@@ -42,7 +42,7 @@ from django.db import close_old_connections
 from django.db.models import Q, Max
 from django.conf import settings
 
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
 from TTapp.FlopConstraint import all_subclasses
 
@@ -345,8 +345,8 @@ def get_ttconstraints(department, period=None, is_active=None):
 
     query &= Q(periods=period) | Q(periods__isnull=True)
 
-    # Look up the TTConstraint subclasses records to update
-    types = all_subclasses(TTConstraint)
+    # Look up the TimetableConstraint subclasses records to update
+    types = all_subclasses(TimetableConstraint)
     for t in types:
         queryset = t.objects.filter(query)
 
@@ -370,7 +370,7 @@ def get_room_constraints(department, period=None, is_active=None):
 
     query &= Q(periods=period) | Q(periods__isnull=True)
 
-    # Look up the TTConstraint subclasses records to update
+    # Look up the TimetableConstraint subclasses records to update
     types = all_subclasses(RoomConstraint)
     for t in types:
         queryset = t.objects.filter(query)

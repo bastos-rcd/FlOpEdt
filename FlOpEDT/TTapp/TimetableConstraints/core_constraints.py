@@ -22,13 +22,13 @@
 
 
 from core.decorators import timer
-from TTapp.TTConstraints.no_course_constraints import NoTutorCourseOnWeekDay
+from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 from django.http.response import JsonResponse
 from base.timing import TimeInterval
 from base.models import CourseStartTimeConstraint, SchedulingPeriod, ModuleTutorRepartition, Module, CourseType
 from django.db import models
 
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraints.instructorConstraint import InstructorConstraint
 from TTapp.ilp_constraints.constraints.slotInstructorConstraint import (
@@ -42,7 +42,7 @@ from TTapp.ilp_constraints.constraint import Constraint
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext
 from TTapp.slots import slots_filter
-from TTapp.TTConstraints.groups_constraints import (
+from TTapp.TimetableConstraints.groups_constraints import (
     pre_analysis_considered_basic_groups,
 )
 from base.models import Course, UserAvailability, Holiday
@@ -55,7 +55,7 @@ from django.db.models import Q
 import datetime as dt
 
 
-class NoSimultaneousGroupCourses(TTConstraint):
+class NoSimultaneousGroupCourses(TimetableConstraint):
     """
     Only one course for each considered group on simultaneous slots
     """
@@ -379,7 +379,7 @@ class NoSimultaneousGroupCourses(TTConstraint):
         assert not problematic_groups, f"{self} is not satisfied for period {period}, version {version} and the following groups : {problematic_groups}"
 
 
-class ScheduleAllCourses(TTConstraint):
+class ScheduleAllCourses(TimetableConstraint):
     """
     The considered courses are scheduled, and only once
     """
@@ -442,7 +442,7 @@ class ScheduleAllCourses(TTConstraint):
         return text
 
 
-class AssignAllCourses(TTConstraint):
+class AssignAllCourses(TimetableConstraint):
     """
     The considered courses are assigned to a tutor
     If pre_assigned_only, it does assign a tutor only to courses that already have one
@@ -561,7 +561,7 @@ class AssignAllCourses(TTConstraint):
         return "Each course is assigned to one tutor (max)"
 
 
-class ConsiderModuleTutorRepartitions(TTConstraint):
+class ConsiderModuleTutorRepartitions(TimetableConstraint):
     """
     The courses are assigned to tutors according to their ModuleTutorRepartition
     Even if weight is not None, all considered courses are assigned to some tutor
@@ -666,7 +666,7 @@ class ConsiderModuleTutorRepartitions(TTConstraint):
         assert not unsatisfied_mtr, f"The following ModuleTutorRepartitions are not satisfied for period {period} and version {version} : {unsatisfied_mtr}"
 
 
-class ConsiderTutorsUnavailability(TTConstraint):
+class ConsiderTutorsUnavailability(TimetableConstraint):
     tutors = models.ManyToManyField("people.Tutor", blank=True)
 
     class Meta:

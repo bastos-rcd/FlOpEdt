@@ -52,7 +52,7 @@ from base.models import (
 from displayweb.models import GroupDisplay, TrainingProgrammeDisplay, BreakingNews
 
 from people.models import Tutor, NotificationsPreferences, ThemesPreferences
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.FlopConstraint import all_subclasses
 
 logger = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ def create_first_department():
             model_class.departments.add(department)
 
     # Update existing Constraint
-    types = all_subclasses(TTConstraint)
+    types = all_subclasses(TimetableConstraint)
 
     for type in types:
         type.objects.all().update(department=department)

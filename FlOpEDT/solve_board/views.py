@@ -23,8 +23,8 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from TTapp.TTConstraints.slots_constraints import ConsiderDependencies
-from TTapp.TTConstraints.core_constraints import ConsiderTutorsUnavailability, NoSimultaneousGroupCourses
+from TTapp.TimetableConstraints.slots_constraints import ConsiderDependencies
+from TTapp.TimetableConstraints.core_constraints import ConsiderTutorsUnavailability, NoSimultaneousGroupCourses
 import json
 import pulp
 

@@ -24,8 +24,8 @@
 from django.contrib.postgres.fields.array import ArrayField
 from rest_framework.fields import empty
 from TTapp.FlopConstraint import FlopConstraint
-import TTapp.TTConstraints.tutors_constraints as ttt
-import TTapp.TTConstraints.visio_constraints as ttv
+import TTapp.TimetableConstraints.tutors_constraints as ttt
+import TTapp.TimetableConstraints.visio_constraints as ttv
 from rest_framework import serializers
 from base.timing import all_possible_start_times
 
@@ -269,7 +269,7 @@ class FlopConstraintTypeSerializer(serializers.Serializer):
         return fields
 
 
-class TTConstraintSerializer(FlopConstraintSerializer):
+class TimetableConstraintSerializer(FlopConstraintSerializer):
     class Meta:
         model = ttt.MinTutorsHalfDays
         fields = ['id', 'title', 'name', 'weight', 'is_active', 'comment', "modified_at", 'parameters']

@@ -33,10 +33,10 @@ from django.db import models
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 
-from TTapp.models import TTConstraint
+from TTapp.models import TimetableConstraint
 
 
-class ReasonableDays(TTConstraint):
+class ReasonableDays(TimetableConstraint):
     """
     Allow to limit long days (with the first and last slot of a day). For a
     given parameter,
@@ -148,7 +148,7 @@ class ReasonableDays(TTConstraint):
         return attributes
 
 
-class AvoidBothTimes(TTConstraint):
+class AvoidBothTimes(TimetableConstraint):
     """
     Avoid the use of two slots
     Idéalement, on pourrait paramétrer slot1, et slot2 à partir de slot1... Genre slot1
@@ -208,7 +208,7 @@ class AvoidBothTimes(TTConstraint):
 
 
 
-class LimitedStartTimeChoices(TTConstraint):
+class LimitedStartTimeChoices(TimetableConstraint):
     """
     Limit the possible slots for the courses
     """
@@ -270,7 +270,7 @@ class LimitedStartTimeChoices(TTConstraint):
         return text
 
 
-class LimitedRoomChoices(TTConstraint):
+class LimitedRoomChoices(TimetableConstraint):
     """
     Limit the possible rooms for the cources
     """

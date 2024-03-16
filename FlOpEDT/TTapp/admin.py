@@ -49,7 +49,7 @@ from TTapp.models import \
     NotAloneForTheseCouseTypes, LimitSimultaneousRoomCourses, ParallelizeCourses
 
 
-from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
+from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
 
 # Register your models here.
 

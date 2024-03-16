@@ -8,7 +8,7 @@ from TTapp.models import LimitTimePerPeriod, MinHalfDays, CustomConstraint
 from TTapp.TimetableModel import TimetableModel
 
 
-class TTConstraintTestCase(TestCase):
+class TimetableConstraintTestCase(TestCase):
 
     fixtures = ['dump.json']
 

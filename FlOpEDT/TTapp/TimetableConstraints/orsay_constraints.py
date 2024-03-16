@@ -40,13 +40,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.slots import Slot
-from TTapp.TTConstraints.tutors_constraints import considered_tutors
+from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 from django.utils.translation import gettext_lazy as _
 
 
-class GroupsLunchBreak(TTConstraint):
+class GroupsLunchBreak(TimetableConstraint):
     """
     Ensures time for lunch in a given interval for given groups (all if groups is Null)
     """
@@ -193,7 +193,7 @@ class GroupsLunchBreak(TTConstraint):
         return partition
 
 
-class TutorsLunchBreak(TTConstraint):
+class TutorsLunchBreak(TimetableConstraint):
     """
     Ensures time for lunch in a given interval for given tutors (all if tutors is Null)
     """
@@ -360,7 +360,7 @@ class TutorsLunchBreak(TTConstraint):
         return text
 
 
-class BreakAroundCourseType(TTConstraint):
+class BreakAroundCourseType(TimetableConstraint):
     """
     Ensures that the courses of a given course type and other types of courses cannot be consecutive for the given groups.
     """

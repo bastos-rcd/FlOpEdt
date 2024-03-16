@@ -20,7 +20,7 @@ def create_tutor_partition_from_constraints(period, department, tutor, available
     # Init partition
     partition = Partition.get_partition_of_period(period, department, True, available=available)
 
-    # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
+    # Retrieve all existing constraints (inheriting directly or not from TimetableConstraints) in the database for the given
     # period and department
     constraints_list = getFlopConstraintsInDB(period, department)
 
@@ -49,7 +49,7 @@ def complete_tutor_partition_from_constraints(partition, period, department, tut
     
     """
 
-    # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
+    # Retrieve all existing constraints (inheriting directly or not from TimetableConstraints) in the database for the given
     # period and department
     constraints_list = getFlopConstraintsInDB(period, department)
 
@@ -79,7 +79,7 @@ def create_group_partition_from_constraints(period, department, group, available
     # Init partition
     partition = Partition.get_partition_of_period(period=period, department=department, with_day_time=True, available = available)
 
-    # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
+    # Retrieve all existing constraints (inheriting directly or not from TimetableConstraints) in the database for the given
     # period and department
     constraints_list = getFlopConstraintsInDB(period, department)
     # For each constraint (period and department considered) in the database, try to find the complete_group_partition
@@ -109,7 +109,7 @@ def complete_group_partition_from_constraints(partition, period, department, gro
 
     """
 
-    # Retrieve all existing constraints (inheriting directly or not from TTConstraints) in the database for the given
+    # Retrieve all existing constraints (inheriting directly or not from TimetableConstraints) in the database for the given
     # period and department
     constraints_list = getFlopConstraintsInDB(period, department)
 

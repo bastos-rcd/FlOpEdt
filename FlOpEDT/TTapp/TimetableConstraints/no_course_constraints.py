@@ -23,7 +23,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from TTapp.TTConstraints.TTConstraint import TTConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from django.db import models
 from base.timing import Day, TimeInterval, flopdate_to_datetime
 from people.models import Tutor
@@ -38,7 +38,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 
-class NoCourseOnWeekDay(TTConstraint):
+class NoCourseOnWeekDay(TimetableConstraint):
     FULL_DAY = 'fd'
     AM = 'AM'
     PM = 'PM'

@@ -29,7 +29,7 @@ from django.http import FileResponse, HttpResponse
 from pathlib import Path
 from TTapp.FlopConstraint import FlopConstraint, all_subclasses
 from base.models import Department
-import TTapp.TTConstraints.visio_constraints as ttv
+import TTapp.TimetableConstraints.visio_constraints as ttv
 from django.contrib.postgres.fields.array import ArrayField
 from base.timing import all_possible_start_times, Day
 from MyFlOp.colors import Tcolors
@@ -48,11 +48,11 @@ import re
 import pkgutil
 
 DOC_DIR = os.path.join(
-    os.path.dirname(pkgutil.get_loader("TTapp").get_filename()), "TTConstraints/doc"
+    os.path.dirname(pkgutil.get_loader("TTapp").get_filename()), "TimetableConstraints/doc"
 )
 IMG_DIR = os.path.join(
     os.path.dirname(pkgutil.get_loader("TTapp").get_filename()),
-    "TTConstraints/doc/images",
+    "TimetableConstraints/doc/images",
 )
 CORRUPTED_JSON_PATH = os.path.join(ds.TMP_DIRECTORY, "discarded.json")
 EN_DIR_NAME = "en"
@@ -251,7 +251,7 @@ class FlopConstraintListViewSet(viewsets.ViewSet):
                     queryset = queryset.filter(department__abbrev=dept)
 
                 for object in queryset:
-                    serializer = serializers.TTConstraintSerializer(object)
+                    serializer = serializers.TimetableConstraintSerializer(object)
                     data.append(serializer.data)
 
         return Response(data)
@@ -292,7 +292,7 @@ class FlopConstraintViewSet(viewsets.ViewSet):
                 queryset = queryset.filter(department__abbrev=dept)
 
             for object in queryset:
-                serializer = serializers.TTConstraintSerializer(object)
+                serializer = serializers.TimetableConstraintSerializer(object)
                 data.append(serializer.data)
         return Response(data)
 
@@ -303,7 +303,7 @@ class FlopConstraintViewSet(viewsets.ViewSet):
         constraint = apps.get_model("TTapp", name)
 
         instance = constraint.objects.get(pk=id)
-        serializer = serializers.TTConstraintSerializer(instance)
+        serializer = serializers.TimetableConstraintSerializer(instance)
 
         return Response(serializer.data)
 

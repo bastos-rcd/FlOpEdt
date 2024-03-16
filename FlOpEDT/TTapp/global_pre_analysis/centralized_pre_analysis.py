@@ -8,10 +8,10 @@ from django.utils import translation
 
 def pre_analyse(department, period):
     """
-        A global pre_analyse function that launch all "pre_analyse" on the existing TTConstraints for the given department and period.
+        A global pre_analyse function that launch all "pre_analyse" on the existing TimetableConstraints for the given department and period.
 
-    :param department: The department we want to search the TTConstraints that are applied on.
-    :param period: The scheduling we want to search the TTConstraints that are applied on.
+    :param department: The department we want to search the TimetableConstraints that are applied on.
+    :param period: The scheduling we want to search the TimetableConstraints that are applied on.
     :return: A dictionary with an period exit status with a message that contains the reason of why it will be impossible to
     create a timetable with the given data if the status is KO. If this status is KO for one pre_analyse, the loop stops
     and the resulting status is the KO status returned by the one pre_analyse that failed.
@@ -21,7 +21,7 @@ def pre_analyse(department, period):
     # Get all the active imperative constraints in database
     all_constraints_list = getFlopConstraintsInDB(period, department)
 
-    # Search for each TTConstraint's subclass if we can find an instance of it for the given period and department
+    # Search for each TimetableConstraint's subclass if we can find an instance of it for the given period and department
     result=[]
 
     for constraint in all_constraints_list:

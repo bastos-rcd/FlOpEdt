@@ -31,7 +31,7 @@ from base.models import ScheduledCourse, SchedulingPeriod
 from TTapp.TTUtils import get_conflicts
 
 from TTapp.admin import GroupsLunchBreakResource
-from TTapp.TTConstraints.orsay_constraints import GroupsLunchBreak
+from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
 
 from MyFlOp import MyTTUtils
 
