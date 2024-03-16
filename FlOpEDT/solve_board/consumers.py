@@ -33,7 +33,7 @@ import logging
 
 from threading import Thread
 from django.core.exceptions import ObjectDoesNotExist
-from MyFlOp.MyTTModel import MyTTModel
+from MyFlOp.MyTimetableModel import MyTimetableModel
 from base.models import TrainingProgramme, Week
 import TTapp.models as TTClasses
 
@@ -178,7 +178,7 @@ class Solve():
                 os.dup2(wd,2)   # redirect stderr
                 try:
                     if self.all_weeks_together:
-                        t = MyTTModel(self.department_abbrev, weeks=self.weeks, train_prog=self.training_programme,
+                        t = MyTimetableModel(self.department_abbrev, weeks=self.weeks, train_prog=self.training_programme,
                                       stabilize_version_nb=self.stabilize_version,
                                       pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
                         os.setpgid(os.getpid(), os.getpid())
@@ -186,7 +186,7 @@ class Solve():
                         t.solve(time_limit=self.time_limit, solver=self.solver, send_gurobi_logs_email_to=self.user_email)
                     else:
                         for w in self.weeks:
-                            t = MyTTModel(self.department_abbrev, [w], train_prog=self.training_programme,
+                            t = MyTimetableModel(self.department_abbrev, [w], train_prog=self.training_programme,
                                           stabilize_version_nb = self.stabilize_version,
                                           pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
                             os.setpgid(os.getpid(), os.getpid())

@@ -45,7 +45,7 @@ if __name__ == "__main__":
                 "forget to activate a virtual environment?"
             )
         raise
-    from MyFlOp.MyTTModel import MyTTModel
+    from MyFlOp.MyTimetableModel import MyTimetableModel
     opts, args = getopt.getopt(sys.argv[1:], "d:w:y:", ["department", "weeks", "year"])
     print(opts, args)
     opts_dict = {key[1:]: value for key, value in opts}
@@ -53,5 +53,5 @@ if __name__ == "__main__":
     year = opts_dict['y']
     weeks = opts_dict['w'].split(',')
     week_year_list = [{'week': int(w), 'year': year} for w in weeks]
-    a = MyTTModel(dep, week_year_list)
+    a = MyTimetableModel(dep, week_year_list)
     a.solve()

@@ -26,12 +26,12 @@
 
 import importlib
 
-from TTapp.TTModel import TTModel, GUROBI_NAME
+TTapp.TimetableModel import TimetableModel, GUROBI_NAME
 
 from MyFlOp.MyTTUtils import number_courses, print_differences
 
 
-class MyTTModel(TTModel):
+class MyTimetableModel(TimetableModel):
     def __init__(self, department_abbrev, periods,
                  train_prog=None,
                  stabilize_version_nb=None,
@@ -51,10 +51,10 @@ class MyTTModel(TTModel):
                  post_assign_rooms=True):
         """
         If you shall change something in the database ahead of creating the
-        problem, you must write it here, before calling TTModel's constructor.
+        problem, you must write it here, before calling TimetableModel's constructor.
 
         """
-        TTModel.__init__(self, department_abbrev, periods,
+        TimetableModel.__init__(self, department_abbrev, periods,
                          train_prog=train_prog,
                          stabilize_version_nb=stabilize_version_nb,
                          min_nps_i=min_nps_i,
@@ -75,10 +75,10 @@ class MyTTModel(TTModel):
     def add_specific_constraints(self):
         """
         The speficic constraints stored in the database are added by the
-        TTModel class.
+        TimetableModel class.
         If you shall add more specific ones, you may write it down here.
         """
-        TTModel.add_specific_constraints(self)
+        TimetableModel.add_specific_constraints(self)
 
     def solve(self, time_limit=None, target_version_nb=None,
               solver=GUROBI_NAME, threads=None, ignore_sigint=True, send_gurobi_logs_email_to=None,
@@ -87,7 +87,7 @@ class MyTTModel(TTModel):
         If you shall add pre (or post) processing apps, you may write them down
         here.
         """
-        result_version = TTModel.solve(self,
+        result_version = TimetableModel.solve(self,
                                          time_limit=time_limit,
                                          target_version_nb=target_version_nb,
                                          solver=solver,

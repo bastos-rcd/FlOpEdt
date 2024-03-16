@@ -30,7 +30,7 @@ from TTapp.FlopConstraint import FlopConstraint
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from TTapp.TTModel import TTModel
+    TTapp.TimetableModel import TimetableModel
     from base.models import SchedulingPeriod
 
 from base.models import StructuralGroup
@@ -51,7 +51,7 @@ class TTConstraint(FlopConstraint):
         abstract = True
 
     @timer
-    def enrich_ttmodel(self, ttmodel:'TTModel', period: 'SchedulingPeriod', ponderation=1):
+    def enrich_ttmodel(self, ttmodel:'TimetableModel', period: 'SchedulingPeriod', ponderation=1):
         raise NotImplementedError
 
     @classmethod

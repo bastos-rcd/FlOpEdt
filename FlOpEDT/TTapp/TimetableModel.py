@@ -105,7 +105,7 @@ import datetime as dt
 from django.utils.translation import gettext
 
 
-class TTModel(FlopModel):
+class TimetableModel(FlopModel):
     @timer
     def __init__(
         self,
@@ -129,7 +129,7 @@ class TTModel(FlopModel):
         post_assign_rooms=True,
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
-        super(TTModel, self).__init__(
+        super(TimetableModel, self).__init__(
             department_abbrev, periods, keep_many_solution_files=keep_many_solution_files
         )
         # Create the PuLP model, giving the name of the lp file
@@ -1464,7 +1464,7 @@ class TTModel(FlopModel):
         send_gurobi_logs_email_to=None):
         
         """
-        Generates a schedule from the TTModel
+        Generates a schedule from the TimetableModel
         The solver stops either when the best schedule is obtained or timeLimit
         is reached.
 

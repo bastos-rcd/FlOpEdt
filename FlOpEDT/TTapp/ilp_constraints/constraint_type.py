@@ -28,7 +28,7 @@ from enum import Enum
 
 class ConstraintType(Enum):
     UNDEFINED = "Undefined"
-    # From TTModel
+    # From TimetableModel
     # TECHNICAL
     TECHNICAL = "Technical"
     IBS_SUP = "IBS supérieur"
