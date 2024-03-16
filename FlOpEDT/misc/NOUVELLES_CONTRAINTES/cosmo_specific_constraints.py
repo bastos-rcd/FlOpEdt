@@ -26,7 +26,7 @@
 
 from base.models import CourseType, Time, Day, ScheduledCourse
 from TTapp.models import slots_filter, days_filter, slot_pause, days_list
-TTapp.TimetableModel import max_weight
+from TTapp.TimetableModel import max_weight
 import random
 
 

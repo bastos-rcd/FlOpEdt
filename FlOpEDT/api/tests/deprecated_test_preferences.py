@@ -1,6 +1,6 @@
 import pytest
 from base.models.groups import Department
-base.models.availability import UserAvailability
+from base.models.availability import UserAvailability
 from base.models import Week, Day
 from people.models import Tutor
 from rest_framework.test import APIClient

@@ -5,7 +5,7 @@ from unittest.mock import patch, Mock, MagicMock, call
 from base.models import Department, TrainingProgramme, Course, CourseType, Time
 from people.models import Tutor
 from TTapp.models import LimitTimePerPeriod, MinHalfDays, CustomConstraint
-TTapp.TimetableModel import TimetableModel
+from TTapp.TimetableModel import TimetableModel
 
 
 class TTConstraintTestCase(TestCase):

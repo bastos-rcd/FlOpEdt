@@ -2,7 +2,7 @@
 import base.models as models
 
 from django.test import TestCase
-TTapp.TimetableModel import PeriodsDatabase
+from TTapp.TimetableModel import PeriodsDatabase
 
 class WeekDBTestCase(TestCase):
 

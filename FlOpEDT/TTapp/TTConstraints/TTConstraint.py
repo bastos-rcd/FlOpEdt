@@ -30,7 +30,7 @@ from TTapp.FlopConstraint import FlopConstraint
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    TTapp.TimetableModel import TimetableModel
+    from TTapp.TimetableModel import TimetableModel
     from base.models import SchedulingPeriod
 
 from base.models import StructuralGroup
