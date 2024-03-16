@@ -101,7 +101,7 @@ class MyTimetableModel(TimetableModel):
 
         if with_numerotation:
             number_courses(self.department, periods=self.periods,
-                           version_majour=result_version)
+                           version_major=result_version)
             
         return result_version
 
