@@ -87,7 +87,7 @@ class MyTimetableModel(TimetableModel):
         If you shall add pre (or post) processing apps, you may write them down
         here.
         """
-        result_version = TimetableModel.solve(self,
+        result_version_nb = TimetableModel.solve(self,
                                          time_limit=time_limit,
                                          target_version_nb=target_version_nb,
                                          solver=solver,
@@ -95,13 +95,13 @@ class MyTimetableModel(TimetableModel):
                                          ignore_sigint=ignore_sigint,
                                          send_gurobi_logs_email_to=send_gurobi_logs_email_to)
 
-        if result_version is not None and self.stabilize_version_nb is not None:
+        if result_version_nb is not None and self.stabilize_version_nb is not None:
             print_differences(self.department, self.periods,
                               self.stabilize_version_nb, target_version_nb, self.wdb.instructors)
 
         if with_numerotation:
             number_courses(self.department, periods=self.periods,
-                           version_major=result_version)
+                           version__major=result_version_nb)
             
-        return result_version
+        return result_version_nb
 
