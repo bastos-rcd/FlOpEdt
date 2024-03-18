@@ -44,7 +44,7 @@ routerBase.register(
 )
 routerBase.register(r"weeks", views.SchedulingPeriodsViewSet, basename="weeks")
 routerBase.register(r"periods", views.SchedulingPeriodsViewSet, basename="periods")
-# routerBase.register(r'edtversions', views.EdtVersionsViewSet)
+# routerBase.register(r'timetableversions', views.TimetableVersionsViewSet)
 # routerBase.register(r'coursemodifications', views.CourseModificationsViewSet)
 # routerBase.register(r'tutorcosts', views.TutorCostsViewSet)
 # routerBase.register(r'groupcosts', views.GroupCostsViewSet)

@@ -10,7 +10,7 @@ from api.v1.tests.utils import retrieve_elements, add_user_permission
 from base.models import TimetableVersion
 
 
-class TestEdtVersion:
+class TestTimetableVersion:
     endpoint = "/fr/api/v1/base/courses/version/"
 
     @pytest.mark.skip("not yet implemented")

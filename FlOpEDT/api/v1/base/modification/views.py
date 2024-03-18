@@ -7,23 +7,23 @@ from . import serializers
 import base.models as bm
 
 
-class EdtVersionQueryParamsSerializer(rf_s.Serializer):
+class TimetableVersionQueryParamsSerializer(rf_s.Serializer):
     from_date = rf_s.DateField()
     to_date = rf_s.DateField()
     dept_id = rf_s.IntegerField(required=False)
     major_version = rf_s.IntegerField(required=False)
 
 
-@extend_schema(parameters=[EdtVersionQueryParamsSerializer])
-class EdtVersionViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = serializers.EdtVersionFullSerializer
+@extend_schema(parameters=[TimetableVersionQueryParamsSerializer])
+class TimetableVersionViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = serializers.TimetableVersionFullSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return bm.TimetableVersion.objects.none()
 
-        qp_serializer = EdtVersionQueryParamsSerializer(data=self.request.query_params)
+        qp_serializer = TimetableVersionQueryParamsSerializer(data=self.request.query_params)
         qp_serializer.is_valid(raise_exception=True)
         qp_params = qp_serializer.validated_data
 

@@ -4,15 +4,15 @@ see `TODO V1-DB`
 
 ## Temps flop / temps standard
 
-### EdtVersion
+### TimetableVersion
 
 Dans v0: associé à une semaine
 
 Maintenant:
 
-- créer un EdtVersion à la génération, avec un temps début et temps fin
-- récupérer les EdtVersion en même temps que les edt
-- faire une opération atomique avec toutes les EdtVersion en jeu?
+- créer un TimetableVersion à la génération, avec un temps début et temps fin
+- récupérer les TimetableVersion en même temps que les edt
+- faire une opération atomique avec toutes les TimetableVersion en jeu?
   ?
 
 ## Minor rename

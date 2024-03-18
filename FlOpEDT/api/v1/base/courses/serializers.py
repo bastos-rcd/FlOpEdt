@@ -30,7 +30,7 @@ import displayweb.models as dwm
 import people.models as pm
 
 
-from api.v1.base.modification.serializers import EdtVersionShortSerializer
+from api.v1.base.modification.serializers import TimetableVersionShortSerializer
 
 
 #                             ------------------------------                            #
@@ -50,7 +50,7 @@ class ScheduledCoursesSerializer(serializers.ModelSerializer):
     group_ids = serializers.PrimaryKeyRelatedField(
         read_only=True, many=True, source="course.groups"
     )
-    version = EdtVersionShortSerializer()
+    version = TimetableVersionShortSerializer()
 
     # Sructuration of the data
     class Meta:
