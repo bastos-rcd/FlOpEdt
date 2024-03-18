@@ -1,11 +1,25 @@
 from django.db import models
 from base.models.courses import Course
+from base.models.timing import SchedulingPeriod
 from django.utils.translation import gettext_lazy as _
 
 
 class Department(models.Model):
     name = models.CharField(max_length=50)
     abbrev = models.CharField(max_length=7, unique=True)
+
+    @property
+    def scheduling_mode(self):
+        return self.mode.scheduling_mode
+    
+
+    @property
+    def scheduling_periods(self):
+        result = self.scheduling_periods.all()
+        if not result.exists():
+            result =  SchedulingPeriod.objects.filter(department=None, 
+                                                   mode=self.scheduling_mode)
+        return result
 
     class Meta:
         verbose_name = _("department")
