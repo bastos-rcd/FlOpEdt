@@ -122,8 +122,8 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         tutor_col += 1
 
     # get the last tutor letter for the validator
-    # (and let room for 5 more tutors....)
-    last_tutor_letter = get_column_letter(tutor_col + 5)
+    # (and let room for 50 more tutors....)
+    last_tutor_letter = get_column_letter(tutor_col + 50)
     tutor_validator = DataValidation(type="list", formula1=f"Rules!$B$7:${last_tutor_letter}$7", allow_blank=True)
     tutor_validator.error = "Ce prof n'est pas dans la liste de l'onglet Rules"
     tutor_validator.errorTitle = 'Erreur de prof'
@@ -139,8 +139,8 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         room_type_col += 1
 
     # get the last room_type letter for the validator
-    # (and let room for 5 more tutors....)
-    last_room_type_letter = get_column_letter(room_type_col + 5)
+    # (and let room for 50 more room_types....)
+    last_room_type_letter = get_column_letter(room_type_col + 50)
 
     room_type_validator = DataValidation(type="list", formula1=f"Rules!$B$12:${last_room_type_letter}$12",
                                          allow_blank=True)
