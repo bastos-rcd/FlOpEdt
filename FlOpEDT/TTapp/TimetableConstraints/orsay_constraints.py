@@ -93,7 +93,7 @@ class GroupsLunchBreak(TimetableConstraint):
                     # Je veux que slot_vars[group, local_slot] soit à 1
                     # si et seulement si undesired_scheduled_courses vaut plus que 1
                     undesired_scheduled_courses = \
-                        ttmodel.sum(ttmodel.TT[sl, c] for c in considered_courses
+                        ttmodel.sum(ttmodel.scheduled[sl, c] for c in considered_courses
                                     for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
                                                            simultaneous_to=local_slot))
                     slot_vars[group, local_slot] = ttmodel.add_floor(expr=undesired_scheduled_courses,
@@ -246,7 +246,7 @@ class TutorsLunchBreak(TimetableConstraint):
                     if not considered_sl_c:
                         continue
                     undesired_scheduled_courses = \
-                        ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor]
+                        ttmodel.sum(ttmodel.assigned[sl, c, tutor]
                                     for (sl,c) in considered_sl_c)
                     if not other_dep_scheduled_courses:
                         other_dep_undesired_sc_nb = 0
@@ -391,8 +391,8 @@ class BreakAroundCourseType(TimetableConstraint):
                                                     if slot1.end_time <= sl.start_time < slot1.end_time + self.min_break_after)
                     if not successive_slots:
                         continue
-                    amphi_slot = ttmodel.sum(ttmodel.TT[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
-                    other_slot = ttmodel.sum(ttmodel.TT[slot2, c]
+                    amphi_slot = ttmodel.sum(ttmodel.scheduled[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
+                    other_slot = ttmodel.sum(ttmodel.scheduled[slot2, c]
                                               for slot2 in successive_slots
                                               for c in all_courses & ttmodel.wdb.compatible_courses[slot2])
                     broken_breaks += ttmodel.add_floor(expr=amphi_slot+other_slot, floor=2, bound=2)
@@ -400,8 +400,8 @@ class BreakAroundCourseType(TimetableConstraint):
                     previous_slots = set(sl for sl in day_slots if slot1.start_time -  self.min_break_before < sl.end_time <= slot1.start_time)
                     if not previous_slots:
                         continue
-                    amphi_slot = ttmodel.sum(ttmodel.TT[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
-                    other_slot = ttmodel.sum(ttmodel.TT[slot2, c]
+                    amphi_slot = ttmodel.sum(ttmodel.scheduled[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
+                    other_slot = ttmodel.sum(ttmodel.scheduled[slot2, c]
                                               for slot2 in previous_slots
                                               for c in all_courses & ttmodel.wdb.compatible_courses[slot2])
                     broken_breaks += ttmodel.add_floor(expr=amphi_slot+other_slot, floor=2, bound=2)

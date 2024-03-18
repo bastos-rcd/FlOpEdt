@@ -78,7 +78,7 @@ class LimitTimePerPeriod(TimetableConstraint):
         expr = ttmodel.lin_expr()
         for slot in build_fd_or_apm_period_slots(ttmodel, day, apm_period):
             for course in considered_courses & ttmodel.wdb.compatible_courses[slot]:
-                expr += ttmodel.TT[(slot, course)] * course.minutes
+                expr += ttmodel.scheduled[(slot, course)] * course.minutes
 
         return expr
 
@@ -265,7 +265,7 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
         expr = ttmodel.lin_expr()
         for slot in build_fd_or_apm_period_slots(ttmodel, day, fd_or_apm_period):
             for course in considered_courses & ttmodel.wdb.compatible_courses[slot]:
-                expr += ttmodel.TTinstructors[(slot, course, tutor)] * course.minutes
+                expr += ttmodel.assigned[(slot, course, tutor)] * course.minutes
 
         return expr
 

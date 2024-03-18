@@ -108,7 +108,7 @@ class RoomModel(FlopModel):
             self.courses_for_basic_group,
         ) = self.users_init()
         self.cost_I, self.cost_G, self.cost_SL, self.generic_cost = self.costs_init()
-        self.TTrooms = self.TTrooms_init()
+        self.located = self.room_vars_init()
         self.avail_room = self.compute_avail_room()
         self.add_core_constraints()
         self.add_specific_constraints()
@@ -320,12 +320,12 @@ class RoomModel(FlopModel):
         )
 
     @timer
-    def TTrooms_init(self):
-        TTrooms = {}
+    def room_vars_init(self):
+        located = {}
         for course in self.courses:
             for room in self.course_room_compat[course]:
-                TTrooms[(course, room)] = self.add_var("TTroom(%s,%s)" % (course, room))
-        return TTrooms
+                located[(course, room)] = self.add_var("located(%s,%s)" % (course, room))
+        return located
 
     @timer
     def compute_avail_room(self):
@@ -493,7 +493,7 @@ class RoomModel(FlopModel):
             course_location_list_for_period[period] = []
             for course in self.courses_for_period[period]:
                 for room in self.course_room_compat[course]:
-                    if self.get_var_value(self.TTrooms[(course, room)]) == 1:
+                    if self.get_var_value(self.located[(course, room)]) == 1:
                         course_location_list_for_period[period].append((course, room))
             for course, room in course_location_list_for_period[period]:
                 scheduled_course = self.corresponding_scheduled_course[course]

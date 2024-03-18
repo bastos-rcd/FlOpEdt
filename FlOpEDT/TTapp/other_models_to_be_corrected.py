@@ -91,10 +91,10 @@ class ReasonableDays(TimetableConstraint):
         """
         for first, last in combinations:
             if self.weight is not None:
-                conj_var = ttmodel.add_conjunct(ttmodel.TT[first], ttmodel.TT[last])
+                conj_var = ttmodel.add_conjunct(ttmodel.scheduled[first], ttmodel.scheduled[last])
                 ttmodel.obj += self.local_weight() * ponderation * conj_var
             else:
-                ttmodel.add_constraint(ttmodel.TT[first] + ttmodel.TT[last], '<=', 1,
+                ttmodel.add_constraint(ttmodel.scheduled[first] + ttmodel.scheduled[last], '<=', 1,
                                        constraint_type=ConstraintType.REGISTER_EXPRESSION)
 
 
@@ -184,12 +184,12 @@ class AvoidBothTimes(TimetableConstraint):
                     for sl2 in slots2:
                         if self.weight is not None:
                             conj_var = ttmodel.add_conjunct(
-                                ttmodel.TT[(sl1, c1)],
-                                ttmodel.TT[(sl2, c2)])
+                                ttmodel.scheduled[(sl1, c1)],
+                                ttmodel.scheduled[(sl2, c2)])
                             ttmodel.obj += self.local_weight() * ponderation * conj_var
                         else:
-                            ttmodel.add_constraint(ttmodel.TT[(sl1, c1)]
-                                                   + ttmodel.TT[(sl2, c2)],
+                            ttmodel.add_constraint(ttmodel.scheduled[(sl1, c1)]
+                                                   + ttmodel.scheduled[(sl2, c2)],
                                                    '<=',
                                                    1,
                                                    constraint_type=ConstraintType.AVOID_BOTH_TIME, courses=[c1, c2],
@@ -242,9 +242,9 @@ class LimitedStartTimeChoices(TimetableConstraint):
         for c in fc:
             for sl in ttmodel.wdb.courses_slots.exclude(id__in=possible_slots_ids):
                 if self.weight is not None:
-                    ttmodel.obj += self.local_weight() * ponderation * ttmodel.TT[(sl, c)]
+                    ttmodel.obj += self.local_weight() * ponderation * ttmodel.scheduled[(sl, c)]
                 else:
-                    ttmodel.add_constraint(ttmodel.TT[(sl, c)], '==', 0, constraint_type=ConstraintType.LIMITED_START_TIME_CHOICES,
+                    ttmodel.add_constraint(ttmodel.scheduled[(sl, c)], '==', 0, constraint_type=ConstraintType.LIMITED_START_TIME_CHOICES,
                                            courses=fc, slots=sl)
 
     def one_line_description(self):
@@ -309,9 +309,9 @@ class LimitedRoomChoices(TimetableConstraint):
             for sl in ttmodel.wdb.courses_slots:
                 for rg in ttmodel.wdb.room_groups.filter(types__in=[c.room_type]).exclude(id__in = possible_rooms_ids):
                     if self.weight is not None:
-                        ttmodel.obj += self.local_weight() * ponderation * ttmodel.TTrooms[(sl, c, rg)]
+                        ttmodel.obj += self.local_weight() * ponderation * ttmodel.located[(sl, c, rg)]
                     else:
-                        ttmodel.add_constraint(ttmodel.TTrooms[(sl, c,rg)], '==', 0,
+                        ttmodel.add_constraint(ttmodel.located[(sl, c,rg)], '==', 0,
                                                constraint_type=ConstraintType.LIMITED_ROOM_CHOICES, courses=c, slots=sl, rooms=rg)
 
     def one_line_description(self):

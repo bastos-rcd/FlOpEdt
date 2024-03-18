@@ -108,9 +108,9 @@ class NotAloneForTheseCouseTypes(TimetableConstraint):
                     if not ttmodel.wdb.possible_courses[tutor] & courses:
                         continue
                     for sl in slots_filter(ttmodel.wdb.courses_slots, period=period):
-                        tutor_sum = ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor]
+                        tutor_sum = ttmodel.sum(ttmodel.assigned[sl, c, tutor]
                                                 for c in tutor_courses & ttmodel.wdb.compatible_courses[sl])
-                        guide_tutors_sum = ttmodel.sum(ttmodel.TTinstructors[sl, c, g]
+                        guide_tutors_sum = ttmodel.sum(ttmodel.assigned[sl, c, g]
                                                        for g in possible_tutor_guides
                                                        for c in courses & ttmodel.wdb.compatible_courses[sl]
                                                        & ttmodel.wdb.possible_courses[g]
@@ -181,7 +181,7 @@ class ParallelizeCourses(TimetableConstraint):
 
         total_courses_duration = ttmodel.lin_expr()
         for sl in ttmodel.wdb.availability_slots:
-            used_slot = ttmodel.add_floor(ttmodel.sum(ttmodel.TT[course_slot,course]
+            used_slot = ttmodel.add_floor(ttmodel.sum(ttmodel.scheduled[course_slot,course]
                                                         for course_slot in slots_filter(ttmodel.wdb.courses_slots,
                                                                                         simultaneous_to=sl)
                                                         for course in considered_courses &

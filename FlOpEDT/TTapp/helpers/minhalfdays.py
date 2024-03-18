@@ -115,7 +115,7 @@ class MinHalfDaysHelperModule(MinHalfDaysHelperBase):
                 for sl in halfdayslots:
                     for c in set(self.ttmodel.wdb.courses.filter(module=self.module))\
                             & self.ttmodel.wdb.compatible_courses[sl]:
-                        expr -= self.ttmodel.TT[(sl, c)]
+                        expr -= self.ttmodel.scheduled[(sl, c)]
                 self.ttmodel.add_constraint(expr, '>=', 0,
                                             Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_SUP))
                 self.ttmodel.add_constraint(expr, '<=', card - 1,
@@ -195,22 +195,22 @@ class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
                         sl17h = max(
                             slots_filter(self.ttmodel.wdb.courses_slots, day=d, apm=Time.PM) & self.ttmodel.wdb.compatible_slots[c2])
                         if self.constraint.weight:
-                            conj_var_AM = self.ttmodel.add_conjunct(self.ttmodel.TT[(sl8h, c)],
-                                                                    self.ttmodel.TT[(sl11h, c2)])
-                            conj_var_PM = self.ttmodel.add_conjunct(self.ttmodel.TT[(sl14h, c)],
-                                                                    self.ttmodel.TT[(sl17h, c2)])
+                            conj_var_AM = self.ttmodel.add_conjunct(self.ttmodel.scheduled[(sl8h, c)],
+                                                                    self.ttmodel.scheduled[(sl11h, c2)])
+                            conj_var_PM = self.ttmodel.add_conjunct(self.ttmodel.scheduled[(sl14h, c)],
+                                                                    self.ttmodel.scheduled[(sl17h, c2)])
                             self.ttmodel.add_to_inst_cost(self.tutor,
                                                           self.constraint.local_weight() * self.ponderation *
                                                           (conj_var_AM + conj_var_PM)/2,
                                                           period=self.period)
                         else:
                             self.ttmodel.add_constraint(
-                                self.ttmodel.TT[(sl8h, c)] + self.ttmodel.TT[(sl11h, c2)],
+                                self.ttmodel.scheduled[(sl8h, c)] + self.ttmodel.scheduled[(sl11h, c2)],
                                 '<=',
                                 1,
                                 Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_JOIN_AM))
                             self.ttmodel.add_constraint(
-                                self.ttmodel.TT[(sl14h, c)] + self.ttmodel.TT[(sl17h, c2)],
+                                self.ttmodel.scheduled[(sl14h, c)] + self.ttmodel.scheduled[(sl17h, c2)],
                                 '<=',
                                 1, Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_JOIN_PM))
 

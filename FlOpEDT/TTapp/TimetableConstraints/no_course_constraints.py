@@ -105,7 +105,7 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
 
 
     def considered_sum(self, ttmodel, period):
-        return ttmodel.sum(ttmodel.TT[(sl, c)]
+        return ttmodel.sum(ttmodel.scheduled[(sl, c)]
                            for c in self.considered_courses(period, ttmodel)
                            for sl in self.considered_slots(ttmodel, period) & ttmodel.wdb.compatible_slots[c])
 
@@ -225,7 +225,7 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
         return tutors
 
     def considered_sum(self, ttmodel, period):
-        return ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
+        return ttmodel.sum(ttmodel.assigned[(sl, c, i)]
                            for i in self.considered_tutors(ttmodel)
                            for c in ttmodel.wdb.possible_courses[i]
                            if c.module.train_prog in self.considered_train_progs(ttmodel)

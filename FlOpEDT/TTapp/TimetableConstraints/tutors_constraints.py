@@ -108,7 +108,7 @@ class MinNonPreferedTutorsSlot(TimetableConstraint):
             for tutor in tutors:
                 filtered_courses = set(c for c in ttmodel.wdb.possible_courses[tutor] if c.period == period)
                 for c in filtered_courses:
-                    slot_vars_sum = ttmodel.sum(ttmodel.TTinstructors[(sl2, c, tutor)]
+                    slot_vars_sum = ttmodel.sum(ttmodel.assigned[(sl2, c, tutor)]
                                                 for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
                                                                         simultaneous_to=sl))
                     cost = self.local_weight() \
@@ -342,9 +342,9 @@ class LowerBoundBusyDays(TimetableConstraint):
 
 
 def tutor_teaching_minutes_by_day_expression(ttmodel, tutor, day):
-    return ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.minutes / 60
+    return ttmodel.sum(ttmodel.assigned[sl, c, tutor] * sl.minutes / 60
                        for c in ttmodel.wdb.possible_courses[tutor]
                        for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day)) \
-           + ttmodel.sum(ttmodel.TT[sl, c] * sl.minutes / 60
+           + ttmodel.sum(ttmodel.scheduled[sl, c] * sl.minutes / 60
                          for c in ttmodel.wdb.courses_for_supp_tutor[tutor]
                          for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day))

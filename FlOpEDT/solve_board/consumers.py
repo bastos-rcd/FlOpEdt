@@ -35,7 +35,7 @@ from threading import Thread
 from django.core.exceptions import ObjectDoesNotExist
 from MyFlOp.MyTimetableModel import MyTimetableModel
 from base.models import TrainingProgramme, Week
-import TTapp.models as TTClasses
+import TTapp.models as TimetableClasses
 
 # from multiprocessing import Process
 import os
@@ -58,7 +58,7 @@ logger = logging.getLogger(__name__)
 class SolverConsumer(WebsocketConsumer):
 
     def get_constraint_class(self, str):
-        return getattr(sys.modules[TTClasses.__name__], str)
+        return getattr(sys.modules[TimetableClasses.__name__], str)
 
     def connect(self):
         # ws_message()

@@ -45,7 +45,7 @@ def nb_de_slots_simultanes(slot):
 
 
 def somme_des_cours_qui_terminent_en(ttmodel, prof, day, end_time):
-    res = ttmodel.sum(ttmodel.TTinstructors[sl, c, prof]
+    res = ttmodel.sum(ttmodel.assigned[sl, c, prof]
                       for sl in ttmodel.wdb.slots if sl.end_time == end_time and sl.day==day
                       for c in ttmodel.wdb.compatible_courses[sl] & ttmodel.wdb.possible_courses[prof])
     return res
@@ -122,7 +122,7 @@ def cours_a_suspens(ttmodel, salarie, nb_heures_par_bloc=3):
         if not cours_a_suspens.exists():
             continue
         for day in days_filter(ttmodel.wdb.days, week=week):
-            nb_h_a_suspens_du_jour = ttmodel.sum(ttmodel.TTinstructors[(sl, c, salarie)] * sl.duration / 60
+            nb_h_a_suspens_du_jour = ttmodel.sum(ttmodel.assigned[(sl, c, salarie)] * sl.duration / 60
                                                  for sl in slots_filter(ttmodel.wdb.slots, day=day)
                                                  for c in set(cours_a_suspens) & ttmodel.wdb.compatible_courses[sl])
             # si i a des heures variables à faire, suspens est_i à 1
@@ -139,10 +139,10 @@ def cours_a_suspens(ttmodel, salarie, nb_heures_par_bloc=3):
 def si_module_a_alors_pas_autres_modules(ttmodel, module_a, autres_modules, salarie):
     ttmodel.add_warning(salarie, f"Si {module_a} alors pas de {autres_modules}")
     for day in ttmodel.wdb.days:
-        heures_de_a = ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
+        heures_de_a = ttmodel.sum(ttmodel.assigned[sl, c, salarie]
                                   for c in ttmodel.wdb.possible_courses[salarie] if c.module == module_a
                                   for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day))
-        heures_de_autres = ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
+        heures_de_autres = ttmodel.sum(ttmodel.assigned[sl, c, salarie]
                                        for c in ttmodel.wdb.possible_courses[salarie] if c.module in autres_modules
                                        for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day))
         salarie_fait_du_a = ttmodel.add_floor(heures_de_a, floor=1, bound=1000)
@@ -176,29 +176,29 @@ def soirs_assez_longs(ttmodel, postes, limite=4.5):
                 # last_i = ttmodel.add_var("%s %s ferme en %s" % (day, i, poste.abbrev))
                 # ttmodel.add_constraint(last_i - ttmodel.IBS[(i, last_slot)], '==', 0,
                 #                        "Fermeture %s par %s en %s" % (day, i, poste.abbrev))
-                heures_de_soiree = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)] * sl.duration / 60
+                heures_de_soiree = ttmodel.sum(ttmodel.assigned[(sl, c, i)] * sl.duration / 60
                                                for sl in slots_filter(ttmodel.wdb.slots, day=day)
                                                if soiree_start_time < sl.end_time
                                                for c in ttmodel.wdb.compatible_courses[sl]
                                                & ttmodel.wdb.possible_courses[i] if c.module == poste
                                                )
                                                # & ttmodel.wdb.courses.filter(module=poste))
-                heures_en_tout = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)] * sl.duration / 60
+                heures_en_tout = ttmodel.sum(ttmodel.assigned[(sl, c, i)] * sl.duration / 60
                                              for sl in slots_filter(ttmodel.wdb.slots, day=day)
                                              for c in ttmodel.wdb.compatible_courses[sl]
                                              & ttmodel.wdb.possible_courses[i]
                                              )
                 card = 24
-                expr = card * ttmodel.TTinstructors[(last_slot, last_course, i)] - heures_de_soiree
+                expr = card * ttmodel.assigned[(last_slot, last_course, i)] - heures_de_soiree
                 ttmodel.add_constraint(expr, '<=', card - limite, "%s %s ferme en %s_min" % (day, i, poste.abbrev))
-                # autre = heures_en_tout + card * ttmodel.TTinstructors[(last_slot, last_course, i)]
+                # autre = heures_en_tout + card * ttmodel.assigned[(last_slot, last_course, i)]
                 # if i.username == 'Frederic':
                 #     ttmodel.add_constraint(autre, '<=', card + 8, "%s %s ferme en %s_max" % (day, i, poste.abbrev))
 
 
 def salaries_prioritaires_sur_le_poste(ttmodel, salaries_prioritaires, poste, cout=0.5):
     for salarie in salaries_prioritaires:
-        heures_hors_poste = ttmodel.sum(ttmodel.TTinstructors[(sl, c, salarie)] * c.type.duration / 60
+        heures_hors_poste = ttmodel.sum(ttmodel.assigned[(sl, c, salarie)] * c.type.duration / 60
                                              for c in set(ttmodel.wdb.courses.exclude(module=poste))
                                              & ttmodel.wdb.possible_courses[salarie]
                                              for sl in ttmodel.wdb.compatible_slots[c])
@@ -207,13 +207,13 @@ def salaries_prioritaires_sur_le_poste(ttmodel, salaries_prioritaires, poste, co
 
 def bosse_en_soiree_jourA_ou_jourB(ttmodel, salarie, jourA, semaineA, jourB=None, semaineB=None):
     name = f"{salarie.username} bosse en soirée le {jourA} semaine {semaineA}"
-    expr = ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
+    expr = ttmodel.sum(ttmodel.assigned[sl, c, salarie]
                        for sl in slots_filter(ttmodel.wdb.slots, weekday=jourA, week=semaineA,
                                               starts_after=20*60)
                        for c in ttmodel.wdb.possible_courses[salarie] & ttmodel.wdb.compatible_courses[sl])
     if jourB is not None:
         name += f"(ou le {jourB} semaine {semaineB})"
-        expr += ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
+        expr += ttmodel.sum(ttmodel.assigned[sl, c, salarie]
                             for sl in slots_filter(ttmodel.wdb.slots, weekday=jourB, week=semaineB,
                                                    starts_after=20*60)
                             for c in ttmodel.wdb.possible_courses[salarie] & ttmodel.wdb.compatible_courses[sl])
@@ -222,7 +222,7 @@ def bosse_en_soiree_jourA_ou_jourB(ttmodel, salarie, jourA, semaineA, jourB=None
 
 def au_moins_une_fois_sur_le_poste(ttmodel, salaries, poste, jour, apm):
     for salarie in salaries:
-        ttmodel.add_constraint(ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
+        ttmodel.add_constraint(ttmodel.sum(ttmodel.assigned[sl, c, salarie]
                                            for sl in slots_filter(ttmodel.wdb.slots, weekday=jour, apm=apm)
                                            for c in ttmodel.wdb.possible_courses[salarie]
                                            & ttmodel.wdb.compatible_courses[sl]
@@ -233,7 +233,7 @@ def au_moins_une_fois_sur_le_poste(ttmodel, salaries, poste, jour, apm):
 
 
 def pas_de_cours_sur_le_poste(ttmodel, salaries_interdits, poste, jour, apm):
-    ttmodel.add_constraint(ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
+    ttmodel.add_constraint(ttmodel.sum(ttmodel.assigned[sl, c, salarie]
                                        for salarie in salaries_interdits
                                        for sl in slots_filter(ttmodel.wdb.slots, weekday=jour, apm=apm)
                                        for c in ttmodel.wdb.possible_courses[salarie]
@@ -251,10 +251,10 @@ def amplitude_max_par_jour(ttmodel, salarie, heures_amplitude_max=9):
             continue
         for sl in ttmodel.wdb.slots_by_day[d]:
             ttmodel.add_constraint(
-                1000 * ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie]
+                1000 * ttmodel.sum(ttmodel.assigned[sl, c, salarie]
                          for c in ttmodel.wdb.possible_courses[salarie] & ttmodel.wdb.compatible_courses[sl])
                 +
-                ttmodel.sum(ttmodel.TTinstructors[sl2, c, salarie]
+                ttmodel.sum(ttmodel.assigned[sl2, c, salarie]
                             for sl2 in ttmodel.wdb.slots_by_day[d]
                             if sl2.end_time - sl.start_time > heures_amplitude_max * 60
                             for c in ttmodel.wdb.possible_courses[salarie] & ttmodel.wdb.compatible_courses[sl2]),
@@ -441,7 +441,7 @@ def basic_cosmo_constraints(ttmodel):
         ttmodel.nb_heures[i] = {}
         # Respecte les limites par semaine
         for week in ttmodel.wdb.weeks:
-            ttmodel.nb_heures[i][week] = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)] * sl.duration / 60
+            ttmodel.nb_heures[i][week] = ttmodel.sum(ttmodel.assigned[(sl, c, i)] * sl.duration / 60
                                          for sl in slots_filter(ttmodel.wdb.slots, week=week)
                                          for c in set(ttmodel.wdb.possible_courses[i]) & ttmodel.wdb.compatible_courses[sl])
 
@@ -455,7 +455,7 @@ def basic_cosmo_constraints(ttmodel):
                                 heures_min[week][i.username],
                                 '%s travaille assez s%s' % (i, week))
 
-        ttmodel.nb_heures[i]['total'] = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)] * sl.duration / 60
+        ttmodel.nb_heures[i]['total'] = ttmodel.sum(ttmodel.assigned[(sl, c, i)] * sl.duration / 60
                                                     for sl in ttmodel.wdb.slots
                                                     for c in set(ttmodel.wdb.possible_courses[i]) &
                                                     ttmodel.wdb.compatible_courses[sl])
@@ -475,7 +475,7 @@ def basic_cosmo_constraints(ttmodel):
                                    "Globalement, %s travaille assez" % i.username)
         # Respecte les limites par jour
         for day in ttmodel.wdb.days:
-            ttmodel.nb_heures[i][day] = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]*sl.duration/60
+            ttmodel.nb_heures[i][day] = ttmodel.sum(ttmodel.assigned[(sl, c, i)]*sl.duration/60
                                          for sl in slots_filter(ttmodel.wdb.slots, day=day)
                                          for c in set(ttmodel.wdb.possible_courses[i]) & ttmodel.wdb.compatible_courses[sl])
 
@@ -492,7 +492,7 @@ def basic_cosmo_constraints(ttmodel):
                                        '%s travaille assez %s' % (i, day))
             # else:
             #     print("réu d'équipe pour %s le %s" % (i, day))
-    ttmodel.nb_heures['total'] = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)] * sl.duration / 60
+    ttmodel.nb_heures['total'] = ttmodel.sum(ttmodel.assigned[(sl, c, i)] * sl.duration / 60
                                              for sl in ttmodel.wdb.slots
                                              for i in ttmodel.wdb.instructors if i.username in temps_partiel
                                                                                                | temps_plein
@@ -519,7 +519,7 @@ def basic_cosmo_constraints(ttmodel):
                 expr += card * ttmodel.Module_per_day[(i, m)][d]
                 for c in set(ttmodel.wdb.courses.filter(module=m)) & ttmodel.wdb.possible_courses[i]:
                     for sl in dayslots & ttmodel.wdb.compatible_slots[c]:
-                        expr -= ttmodel.TTinstructors[(sl, c, i)]
+                        expr -= ttmodel.assigned[(sl, c, i)]
                 ttmodel.add_constraint(expr, '>=', 0, "Mod_per_day(%s,%s,%s)" % (i, m, d))
 
     # Two module max per day : (1 Enlevé pour passer de la caisse au contrôle)
@@ -659,7 +659,7 @@ def basic_cosmo_constraints(ttmodel):
 
     # Ménage:
     ttmodel.add_constraint(
-        ttmodel.sum(ttmodel.TTinstructors[sl, c, i]
+        ttmodel.sum(ttmodel.assigned[sl, c, i]
                     for i in ttmodel.wdb.instructors if i.username in menage
                     for c in ttmodel.wdb.possible_courses[i] if c.tutor is None
                     for sl in ttmodel.wdb.compatible_slots[c]),
@@ -680,11 +680,11 @@ def basic_cosmo_constraints(ttmodel):
     #             for sl2 in slots_filter(ttmodel.wdb.slots, day=d, is_after=sl1):
     #                 ttmodel.add_constraint(
     #                     Caisse_et_controle -
-    #                     ttmodel.sum(ttmodel.TTinstructors[(sl1, c, i)]
+    #                     ttmodel.sum(ttmodel.assigned[(sl1, c, i)]
     #                                 for c in set(ttmodel.wdb.possible_courses[i])
     #                                 & ttmodel.wdb.compatible_courses[sl1]
     #                                 & set(ttmodel.wdb.courses.filter(module__abbrev="Ct/Mén"))) -
-    #                     ttmodel.sum(ttmodel.TTinstructors[(sl2, c, i)]
+    #                     ttmodel.sum(ttmodel.assigned[(sl2, c, i)]
     #                                 for c in set(ttmodel.wdb.possible_courses[i])
     #                                 & ttmodel.wdb.compatible_courses[sl2]
     #                                 & set(ttmodel.wdb.courses.filter(module__abbrev="Caisse"))),
@@ -695,7 +695,7 @@ def basic_cosmo_constraints(ttmodel):
     # Semaine 4, peu d'heures patrons, et au pire en proj!
     if len(ttmodel.wdb.weeks) >= 5:
         avant_derniere_semaine = ttmodel.wdb.weeks[-2]
-        ttmodel.add_constraint(ttmodel.sum(ttmodel.TTinstructors[sl, c, i]
+        ttmodel.add_constraint(ttmodel.sum(ttmodel.assigned[sl, c, i]
                                            for sl in slots_filter(ttmodel.wdb.slots,
                                                                   week=avant_derniere_semaine)
                                            for i in ttmodel.wdb.instructors if i.username in patrons
@@ -710,12 +710,12 @@ def basic_cosmo_constraints(ttmodel):
         if salarie.username not in salaries:
             continue
         for semaine in ttmodel.wdb.weeks:
-            heures = ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie] * c.type.duration / 60
+            heures = ttmodel.sum(ttmodel.assigned[sl, c, salarie] * c.type.duration / 60
                                  for c in ttmodel.wdb.possible_courses[salarie]
                                  for sl in slots_filter(ttmodel.wdb.compatible_slots[c], week=semaine))
             heures_reelles_hebdo[semaine][salarie] = heures
         for jour in ttmodel.wdb.days:
-            heures = ttmodel.sum(ttmodel.TTinstructors[sl, c, salarie] * c.type.duration / 60
+            heures = ttmodel.sum(ttmodel.assigned[sl, c, salarie] * c.type.duration / 60
                                  for c in ttmodel.wdb.possible_courses[salarie]
                                  for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=jour))
             heures_reelles_quotidiennes[jour][salarie] = heures

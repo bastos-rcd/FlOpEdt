@@ -40,7 +40,7 @@ slot_pause = 5
 # Tools for hole analysis
 ############################
 def sum_of_courses_that_end_at(ttmodel, prof, day, end_time):
-    res = ttmodel.sum(ttmodel.TTinstructors[sl, c, prof]
+    res = ttmodel.sum(ttmodel.assigned[sl, c, prof]
                       for sl in ttmodel.wdb.courses_slots if sl.end_time == end_time and sl.day == day
                       for c in ttmodel.wdb.compatible_courses[sl] & ttmodel.wdb.possible_courses[prof])
     return res
@@ -207,7 +207,7 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
         for i, in range(len(ttmodel.periods) - self.number_of_weeks + 1):
             considered_weeks = ttmodel.periods[i:i+self.number_of_weeks]
             for tutor in tutors:
-                total_tutor_time = ttmodel.sum(ttmodel.TTinstructors[sl, c, tutor] * sl.minutes
+                total_tutor_time = ttmodel.sum(ttmodel.assigned[sl, c, tutor] * sl.minutes
                                                for c in ttmodel.wdb.possible_courses[tutor]
                                                for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
                                                                       week_in = considered_weeks)
@@ -317,9 +317,9 @@ class ModulesByBloc(TimetableConstraint):
                     if slot_sched_courses.count() == next_slot_sched_courses.count():
                         for tutor in ttmodel.wdb.possible_tutors[m]:
                             ttmodel.add_constraint(
-                                ttmodel.sum(ttmodel.TTinstructors[(next_slot, sc2.course, tutor)]
+                                ttmodel.sum(ttmodel.assigned[(next_slot, sc2.course, tutor)]
                                             for sc2 in next_slot_sched_courses)
-                                - ttmodel.sum(ttmodel.TTinstructors[(slot, sc.course, tutor)]
+                                - ttmodel.sum(ttmodel.assigned[(slot, sc.course, tutor)]
                                               for sc in slot_sched_courses),
                                 '==',
                                 0,
@@ -328,9 +328,9 @@ class ModulesByBloc(TimetableConstraint):
                     elif slot_sched_courses.count() > next_slot_sched_courses.count():
                         for tutor in ttmodel.wdb.possible_tutors[m]:
                             ttmodel.add_constraint(
-                                2 * ttmodel.sum(ttmodel.TTinstructors[(next_slot, sc2.course, tutor)]
+                                2 * ttmodel.sum(ttmodel.assigned[(next_slot, sc2.course, tutor)]
                                                 for sc2 in next_slot_sched_courses)
-                                - ttmodel.sum(ttmodel.TTinstructors[(slot, sc.course, tutor)]
+                                - ttmodel.sum(ttmodel.assigned[(slot, sc.course, tutor)]
                                               for sc in slot_sched_courses),
                                 '<=',
                                 1,
@@ -339,9 +339,9 @@ class ModulesByBloc(TimetableConstraint):
                     else: # slot_sched_courses.count() < next_slot_sched_courses.count()
                         for tutor in ttmodel.wdb.possible_tutors[m]:
                             ttmodel.add_constraint(
-                                2 * ttmodel.sum(ttmodel.TTinstructors[(slot, sc.course, tutor)]
+                                2 * ttmodel.sum(ttmodel.assigned[(slot, sc.course, tutor)]
                                               for sc in slot_sched_courses)
-                                - ttmodel.sum(ttmodel.TTinstructors[(next_slot, sc2.course, tutor)]
+                                - ttmodel.sum(ttmodel.assigned[(next_slot, sc2.course, tutor)]
                                                 for sc2 in next_slot_sched_courses),
                                 '<=',
                                 1,

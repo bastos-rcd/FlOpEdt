@@ -72,7 +72,7 @@ class StabilizeTutorsCourses(TimetableConstraint):
                                             start_time__gt=sl.start_time - F('course__type__duration'),
                                             day=sl.day.day,
                                             tutor=i):
-                    relevant_sum = ttmodel.sum(ttmodel.TTinstructors[(sl, c, i)]
+                    relevant_sum = ttmodel.sum(ttmodel.assigned[(sl, c, i)]
                                                for c in ttmodel.wdb.possible_courses[i]
                                                 & ttmodel.wdb.compatible_courses[sl])
 
@@ -91,10 +91,10 @@ class StabilizeTutorsCourses(TimetableConstraint):
             # Attention, les fixed_days doivent être des couples jour-semaine!!!!
             # for day in days_filter(self.fixed_days.all(), period=period):
             #     for sc in sched_courses.filter(slot__jour=day):
-            #         ttmodel.add_constraint(ttmodel.TT[(sc.slot, sc.course)], '==', 1)
+            #         ttmodel.add_constraint(ttmodel.scheduled[(sc.slot, sc.course)], '==', 1)
             #     for sc in sched_courses.exclude(slot__day=day):
             #         for sl in ttmodel.wdb.slots.filter(day=day):
-            #             ttmodel.add_constraint(ttmodel.TT[(sl, sc.course)], '==', 0)
+            #             ttmodel.add_constraint(ttmodel.scheduled[(sl, sc.course)], '==', 0)
 
     def one_line_description(self):
         text = "Minimiser les changements"
@@ -138,7 +138,7 @@ class StabilizeGroupsCourses(TimetableConstraint):
                 if not sched_courses.filter(course__groups__in=bg.and_ancestors(),
                                             day=sl.day):
                     considered_courses = ttmodel.wdb.courses_for_basic_group[bg] & ttmodel.wdb.compatible_courses[sl]
-                    relevant_sum = ttmodel.sum(ttmodel.TT[(sl, c)] for c in considered_courses)
+                    relevant_sum = ttmodel.sum(ttmodel.scheduled[(sl, c)] for c in considered_courses)
                     if self.weight is None:
                         ttmodel.add_constraint(relevant_sum, '==', 0,
                                                Constraint(constraint_type=ConstraintType.STABILIZE_ENRICH_MODEL,
@@ -151,10 +151,10 @@ class StabilizeGroupsCourses(TimetableConstraint):
             # Attention, les fixed_days doivent être des couples jour-semaine!!!!
             # for day in days_filter(self.fixed_days.all(), period=period):
             #     for sc in sched_courses.filter(slot__jour=day):
-            #         ttmodel.add_constraint(ttmodel.TT[(sc.slot, sc.course)], '==', 1)
+            #         ttmodel.add_constraint(ttmodel.scheduled[(sc.slot, sc.course)], '==', 1)
             #     for sc in sched_courses.exclude(slot__day=day):
             #         for sl in ttmodel.wdb.slots.filter(day=day):
-            #             ttmodel.add_constraint(ttmodel.TT[(sl, sc.course)], '==', 0)
+            #             ttmodel.add_constraint(ttmodel.scheduled[(sl, sc.course)], '==', 0)
 
     def one_line_description(self):
         text = "Minimiser les changements"
@@ -186,8 +186,8 @@ class StabilizationThroughPeriods(TimetableConstraint):
             for sl0 in ttmodel.wdb.compatible_slots[courses_data[i]['courses'][0]]:
                 sl1 = ttmodel.find_same_course_slot_in_other_period(sl0, period, other_period=courses_data[i+1]['period'])
                 ttmodel.add_constraint(
-                    2 * ttmodel.sum(ttmodel.TT[sl0, c0] for c0 in courses_data[i]['courses'])
-                    - ttmodel.sum(ttmodel.TT[sl1, c1] for c1 in courses_data[i+1]['courses']),
+                    2 * ttmodel.sum(ttmodel.scheduled[sl0, c0] for c0 in courses_data[i]['courses'])
+                    - ttmodel.sum(ttmodel.scheduled[sl1, c1] for c1 in courses_data[i+1]['courses']),
                     '<=',
                     1, Constraint(constraint_type=ConstraintType.STABILIZE_THROUGH_PERIODS))
 

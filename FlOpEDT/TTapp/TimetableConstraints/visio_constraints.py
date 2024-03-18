@@ -71,7 +71,7 @@ class NoVisio(TimetableConstraint):
             if self.modules.exists():
                 considered_group_courses = set(c for c in considered_group_courses
                                                if c.module in self.modules.all())
-            relevant_sum = ttmodel.sum(ttmodel.TTrooms[sl, c, None]
+            relevant_sum = ttmodel.sum(ttmodel.located[sl, c, None]
                                        for c in considered_group_courses
                                        for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day_in=days))
             if self.weight is None:
@@ -137,7 +137,7 @@ class VisioOnly(TimetableConstraint):
             if self.modules.exists():
                 considered_group_courses = set(c for c in considered_group_courses
                                                if c.module in self.modules.all())
-            relevant_sum = ttmodel.sum(ttmodel.TTrooms[sl, c, r]
+            relevant_sum = ttmodel.sum(ttmodel.located[sl, c, r]
                                        for c in considered_group_courses
                                        for r in ttmodel.wdb.course_rg_compat[c] - {None}
                                        for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day_in=days))
@@ -305,7 +305,7 @@ class Curfew(TimetableConstraint):
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
 
-        relevant_sum = ttmodel.sum(ttmodel.TTrooms[sl, c, r]
+        relevant_sum = ttmodel.sum(ttmodel.located[sl, c, r]
                                    for c in ttmodel.wdb.courses
                                    for r in ttmodel.wdb.course_rg_compat[c] - {None}
                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
