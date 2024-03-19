@@ -281,11 +281,11 @@ def basic_duplicate_version(department, period, version):
         "course__module__train_prog__department": department,
         "course__period": period,
     }
-    local_max_version_nb = ScheduledCourse.objects.filter(**scheduled_courses_params).aggregate(
+    local_max_major = ScheduledCourse.objects.filter(**scheduled_courses_params).aggregate(
         Max("version__major")
     )["version__major__max"]
-    target_version_nb = local_max_version_nb + 1
-    target_version = TimetableVersion.objects.create(department=department, period=period, major=target_version_nb)
+    target_major = local_max_major + 1
+    target_version = TimetableVersion.objects.create(department=department, period=period, major=target_major)
 
     try:
         sc_to_duplicate = ScheduledCourse.objects.filter(
@@ -300,7 +300,7 @@ def basic_duplicate_version(department, period, version):
         sc.pk = None
         sc.version = target_version
         sc.save()
-    result["status"] = f"Duplicated to version #{target_version_nb}"
+    result["status"] = f"Duplicated to version #{target_major}"
 
     return result
 
@@ -381,7 +381,7 @@ def duplicate_what_can_be_in_other_periods(department, period:SchedulingPeriod, 
                         sc.pk = None
                         sc.course = corresponding_course
                         sc.version = target_version
-                        sc.date_time = dt.datetime.combine(other_date, sc.start_time.time())
+                        sc.start_time = dt.datetime.combine(other_date, sc.start_time.time())
                         sc.save()
                         done = True
                 if done:
@@ -393,14 +393,14 @@ def duplicate_what_can_be_in_other_periods(department, period:SchedulingPeriod, 
 
 
 def first_free_version(department, period):
-    local_max_version_nb = ScheduledCourse.objects.filter(
+    local_max_major = ScheduledCourse.objects.filter(
         course__period=period, course__type__department=department
     ).aggregate(Max("version__major"))["version__major__max"]
-    if local_max_version_nb is not None:
-        target_version_nb = local_max_version_nb + 1
+    if local_max_major is not None:
+        target_major = local_max_major + 1
     else:
-        target_version_nb = 0
-    return TimetableVersion.objects.create(department=department, period=period, major=target_version_nb)
+        target_major = 0
+    return TimetableVersion.objects.create(department=department, period=period, major=target_major)
 
 
 def convert_into_set(declared_object_or_iterable):
@@ -431,7 +431,7 @@ def number_courses(
     training_periods=None,
     train_progs=None,
     periods=None,
-    version_nb=0,
+    version_major=0,
 ):
     considered_train_progs = intersect_with_declared_objects(
         TrainingProgramme.objects.filter(department=department), train_progs
@@ -464,20 +464,20 @@ def number_courses(
                     past_courses_number = 0
                 sorted_sched_courses = sorted_by_start_time(
                     ScheduledCourse.objects.filter(
-                        course__in=group_courses, version__major=version_nb
+                        course__in=group_courses, version__major=version_major
                     )
                 )
                 for i, sc in enumerate(sorted_sched_courses):
                     sc.number = past_courses_number + i + 1
                     sc.save()
 
-def print_differences(department, periods, old_version_nb, new_version_nb, tutors=Tutor.objects.all()):
+def print_differences(department, periods, old_major, new_major, tutors=Tutor.objects.all()):
     for period in periods:
         print("For", period)
         for tutor in tutors:
-            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, version__major=old_version_nb, course__period=period,
+            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, version__major=old_major, course__period=period,
                                                  course__type__department=department)
-            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, version__major=new_version_nb, course__period=period,
+            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, version__major=new_major, course__period=period,
                                                  course__type__department=department)
             slots_a = set([x.start_time for x in SCa])
             slots_b = set([x.start_time for x in SCb])

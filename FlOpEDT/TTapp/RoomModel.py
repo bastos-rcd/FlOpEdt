@@ -64,7 +64,7 @@ from roomreservation.models import RoomReservation
 class RoomModel(FlopModel):
     @timer
     def __init__(
-        self, department_abbrev, periods, version_nb=0, keep_many_solution_files=False
+        self, department_abbrev, periods, major=0, keep_many_solution_files=False
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
         super(RoomModel, self).__init__(
@@ -72,7 +72,7 @@ class RoomModel(FlopModel):
         )
 
         print("\nLet's start rooms affectation for periods %s" % self.periods)
-        self.version_nb = version_nb
+        self.major = major
         (
             self.scheduled_courses,
             self.courses,
@@ -125,7 +125,7 @@ class RoomModel(FlopModel):
     def courses_init(self):
         scheduled_courses = ScheduledCourse.objects.filter(
             course__period__in=self.periods,
-            version__major=self.version_nb,
+            version__major=self.major,
             course__type__department=self.department,
         ).select_related("course")
         courses = Course.objects.filter(
@@ -484,12 +484,12 @@ class RoomModel(FlopModel):
 
     def add_rooms_in_db(self, create_new_version):
         if create_new_version:
-            target_version_nb = self.choose_free_version_nb()
+            target_major = self.choose_free_version_major()
         else:
-            target_version_nb = self.version_nb
+            target_major = self.major
         course_location_list_for_period = {}
         for period in self.periods:
-            target_version, _ = TimetableVersion.objects.get_or_create(department=self.department, period=period, major=target_version_nb)
+            target_version, _ = TimetableVersion.objects.get_or_create(department=self.department, period=period, major=target_major)
             course_location_list_for_period[period] = []
             for course in self.courses_for_period[period]:
                 for room in self.course_room_compat[course]:

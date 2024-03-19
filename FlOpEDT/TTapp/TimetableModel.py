@@ -76,7 +76,7 @@ from TTapp.slots import slots_filter, days_filter
 
 from TTapp.PeriodsDatabase import PeriodsDatabase
 
-from TTapp.TimetableUtils import print_differences
+from TTapp.TimetableUtils import print_differences, number_courses
 
 from django.db import close_old_connections
 from django.db.models import F
@@ -112,7 +112,7 @@ class TimetableModel(FlopModel):
         department_abbrev,
         periods,
         train_prog=None,
-        stabilize_version_nb=None,
+        major_to_stabilize=None,
         min_nps_i=1.0,
         min_bhd_g=1.0,
         min_bd_i=1.0,
@@ -167,7 +167,7 @@ class TimetableModel(FlopModel):
                 train_prog = TrainingProgramme.objects.filter(id=train_prog.id)
             print(_(f"Will modify only courses of training programme(s) {train_prog}"))
         self.train_prog = train_prog
-        self.major_to_stabilize = stabilize_version_nb
+        self.major_to_stabilize = major_to_stabilize
         self.wdb = self.wdb_init()
         self.courses = self.wdb.courses
         self.possible_apms = self.wdb.possible_apms
@@ -606,21 +606,21 @@ class TimetableModel(FlopModel):
     @timer
     def add_stabilization_constraints(self):
         # maximize stability
-        if self.stabilize_version_nb is not None:
+        if self.major_to_stabilize is not None:
             st = StabilizeTutorsCourses.objects.create(
                 department=self.department,
-                version__major=self.stabilize_version_nb,
+                version__major=self.major_to_stabilize,
                 weight=max_weight,
             )
             sg = StabilizeGroupsCourses.objects.create(
                 department=self.department,
-                version__major=self.stabilize_version_nb,
+                version__major=self.major_to_stabilize,
                 weight=max_weight,
             )
             for period in self.periods:
                 st.enrich_ttmodel(self, period, self.max_stab)
                 sg.enrich_ttmodel(self, period, self.max_stab)
-            print("Will stabilize from remote work copy #", self.stabilize_version_nb)
+            print("Will stabilize from remote version #", self.major_to_stabilize)
             st.delete()
             sg.delete()
 
@@ -1274,7 +1274,7 @@ class TimetableModel(FlopModel):
 
         self.add_specific_constraints()
 
-    def add_tt_to_db(self, target_version_nb):
+    def add_tt_to_db(self, target_major):
 
         close_old_connections()
 
@@ -1282,14 +1282,14 @@ class TimetableModel(FlopModel):
         ScheduledCourse.objects.filter(
             course__module__train_prog__department=self.department,
             course__period__in=self.periods,
-            version__major=target_version_nb,
+            version__major=target_major,
         ).delete()
 
         # get or create TimetableVersions
         versions_dict = {}
         for period in self.periods:
             versions_dict[period] = TimetableVersion.objects.get_or_create(period=period, 
-                                                               major=target_version_nb, 
+                                                               major=target_major, 
                                                                department=self.department)[0]
         if self.department.mode.cosmo == 2:
             corresponding_group = {}
@@ -1339,25 +1339,25 @@ class TimetableModel(FlopModel):
             cp.save()
             
        # On imprime les différences si demandé
-        if self.stabilize_version_nb is not None:
+        if self.major_to_stabilize is not None:
             print_differences(self.department, self.periods,
-                              self.stabilize_version_nb, target_version_nb, self.wdb.instructors)
+                              self.major_to_stabilize, target_major, self.wdb.instructors)
 
         # # On enregistre les coûts dans la BDD
         TutorCost.objects.filter(
             department=self.department,
             period__in=self.wdb.periods,
-            version__major=target_version_nb,
+            version__major=target_major,
         ).delete()
         GroupFreeHalfDay.objects.filter(
             group__train_prog__department=self.department,
             period__in=self.wdb.periods,
-            version__major=target_version_nb,
+            version__major=target_major,
         ).delete()
         GroupCost.objects.filter(
             group__train_prog__department=self.department,
             period__in=self.wdb.periods,
-            version__major=target_version_nb,
+            version__major=target_major,
         ).delete()
 
         for period in self.periods:
@@ -1396,27 +1396,27 @@ class TimetableModel(FlopModel):
             f"TimetableModel_{self.department.abbrev}_{'_'.join(p.name for p in self.periods)}"
         )
 
-    def add_tt_to_db_from_file(self, filename=None, target_version_nb=None):
+    def add_tt_to_db_from_file(self, filename=None, target_major=None):
         if filename is None:
             filename = self.last_counted_solution_filename()
-        if target_version_nb is None:
-            target_version_nb = self.choose_free_version_nb()
+        if target_major is None:
+            target_major = self.choose_free_version_major()
         close_old_connections()
         # remove target working copy
         ScheduledCourse.objects.filter(
             course__module__train_prog__department=self.department,
             course__period__in=self.periods,
-            version__major=target_version_nb,
+            version__major=target_major,
         ).delete()
 
         # get or create TimetableVersions
         versions_dict = {}
         for period in self.periods:
             versions_dict[period] = TimetableVersion.objects.get_or_create(period=period, 
-                                                                     major=target_version_nb, 
+                                                                     major=target_major, 
                                                                      department=self.department)[0]
 
-        print("Added version #%g" % target_version_nb)
+        print("Added version #%g" % target_major)
         solution_file_one_vars_set = self.read_solution_file(filename)
 
         for c in self.wdb.courses:
@@ -1457,24 +1457,25 @@ class TimetableModel(FlopModel):
     def solve(
         self,
         time_limit=None,
-        target_version_nb=None,
+        target_major=None,
         solver=GUROBI_NAME,
         threads=None,
         ignore_sigint=True,
-        send_gurobi_logs_email_to=None):
+        send_gurobi_logs_email_to=None,
+        with_numerotation=True):
         
         """
         Generates a schedule from the TimetableModel
         The solver stops either when the best schedule is obtained or timeLimit
         is reached.
 
-        If stabilize_version_nb is None: does not move the scheduled courses
+        If major_to_stabilize is None: does not move the scheduled courses
         whose group is not in train_prog and fetches from the remote database
         these scheduled courses with version number 0.
 
-        If target_version_nb is given, stores the resulting schedule under this
+        If target_major is given, stores the resulting schedule under this
         version number.
-        If target_version_nb is not given, stores under the lowest version
+        If target_major is not given, stores under the lowest version
         number that is greater than the maximum version numbers for the
         considered period.
         Returns the version
@@ -1489,17 +1490,20 @@ class TimetableModel(FlopModel):
 
         if result is not None:
 
-            if target_version_nb is None:
+            if target_major is None:
                 if self.department.mode.cosmo == 2:
-                    target_version_nb = 0
+                    target_major = 0
                 else:
-                    target_version_nb = self.choose_free_version_nb()
+                    target_major = self.choose_free_version_major()
 
-            self.add_tt_to_db(target_version_nb)
-            print("Added work copy N°%g" % target_version_nb)
+            self.add_tt_to_db(target_major)
+            print("Added work copy N°%g" % target_major)
             if self.post_assign_rooms:
-                RoomModel(self.department.abbrev, self.periods, target_version_nb).solve()
+                RoomModel(self.department.abbrev, self.periods, target_major).solve()
                 print("Rooms assigned")
+            if with_numerotation:
+                number_courses(self.department, periods=self.periods,
+                               version_major=target_major)
         
         if send_gurobi_logs_email_to is not None:
             if result is None:
@@ -1507,13 +1511,14 @@ class TimetableModel(FlopModel):
                 subject = f"Logs {self.department.abbrev} {self.weeks} : not solved"
             else:
                 solved=True
-                subject = f"Logs {self.department.abbrev} {self.weeks} : copy {target_version_nb}"
+                subject = f"Logs {self.department.abbrev} {self.weeks} : copy {target_major}"
             self.send_gurobi_log_files_email(
                 subject=subject,
                 to=[send_gurobi_logs_email_to],
                 solved=solved
             )
-        return target_version_nb
+    
+        return target_major
 
     def find_same_course_slot_in_other_period(self, slot, other_period):
         other_slots = slots_filter(self.wdb.courses_slots, period=other_period, same=slot)

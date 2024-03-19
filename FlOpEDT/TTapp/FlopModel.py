@@ -239,19 +239,19 @@ class FlopModel(object):
                     one_vars.add(r[0])
         return one_vars
 
-    def choose_free_version_nb(self):
+    def choose_free_version_major(self):
         close_old_connections()
 
-        local_max_version_nb = ScheduledCourse \
+        local_max_major = ScheduledCourse \
             .objects \
             .filter(course__module__train_prog__department=self.department,
                     course__period__in=self.periods) \
             .aggregate(Max('version__major'))['version__major__max']
 
-        if local_max_version_nb is None:
-            local_max_version_nb = 0
+        if local_max_major is None:
+            local_max_major = 0
 
-        return local_max_version_nb + 1
+        return local_max_major + 1
 
     def iis_filename_suffixe(self):
         return "_%s_%s" % (self.department.abbrev, self.periods)
