@@ -34,7 +34,7 @@ from MyFlOp.MyTimetableUtils import number_courses, print_differences
 class MyTimetableModel(TimetableModel):
     def __init__(self, department_abbrev, periods,
                  train_prog=None,
-                 stabilize_version_nb=None,
+                 major_to_stabilize=None,
                  min_nps_i=1.,
                  min_bhd_g=1.,
                  min_bd_i=1.,
@@ -56,7 +56,7 @@ class MyTimetableModel(TimetableModel):
         """
         TimetableModel.__init__(self, department_abbrev, periods,
                          train_prog=train_prog,
-                         stabilize_version_nb=stabilize_version_nb,
+                         major_to_stabilize=major_to_stabilize,
                          min_nps_i=min_nps_i,
                          min_bhd_g=min_bhd_g,
                          min_bd_i=min_bd_i,
@@ -89,19 +89,19 @@ class MyTimetableModel(TimetableModel):
         """
         result_version_nb = TimetableModel.solve(self,
                                          time_limit=time_limit,
-                                         target_version_nb=target_version_nb,
+                                         target_major=target_version_nb,
                                          solver=solver,
                                          threads=threads,
                                          ignore_sigint=ignore_sigint,
                                          send_gurobi_logs_email_to=send_gurobi_logs_email_to)
 
-        if result_version_nb is not None and self.stabilize_version_nb is not None:
+        if result_version_nb is not None and self.major_to_stabilize is not None:
             print_differences(self.department, self.periods,
-                              self.stabilize_version_nb, target_version_nb, self.wdb.instructors)
+                              self.major_to_stabilize, target_version_nb, self.wdb.instructors)
 
         if with_numerotation:
             number_courses(self.department, periods=self.periods,
-                           version_nb=result_version_nb)
+                           version_major=result_version_nb)
             
         return result_version_nb
 
