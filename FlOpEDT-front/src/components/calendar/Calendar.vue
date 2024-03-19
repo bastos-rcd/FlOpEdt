@@ -617,13 +617,22 @@ function onMouseUp(): void {
             newEventsToUpdate.push(ev)
           })
           // Checking if nextAvail has same value and then combining both if that's so
-          const nextAvail: InputCalendarEvent | undefined = newEventsToUpdate.find((e) => {
+          let nextAvail: InputCalendarEvent | undefined = newEventsToUpdate.find((e) => {
             return (
               e.data.start.date === newEvent.data.start.date &&
               parseTime(e.data.start) === parseTime(newEvent.data.start) + newEvent.data.duration &&
               e.data.dataType === 'avail'
             )
           })
+          if (!nextAvail) {
+            nextAvail = eventsModel.value.find((e) => {
+              return (
+                e.data.start.date === newEvent.data.start.date &&
+                parseTime(e.data.start) === parseTime(newEvent.data.start) + newEvent.data.duration &&
+                e.data.dataType === 'avail'
+              )
+            })
+          }
           if (nextAvail && nextAvail.data.value === newEvent.data.value) {
             newEvent.data.duration! += nextAvail.data.duration!
             remove(newEventsToUpdate, (e) => e.id === nextAvail.id)
