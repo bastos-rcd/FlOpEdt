@@ -513,7 +513,7 @@ def convert_time(value):
     return int(time_array[0]) * 60 + int(time_array[1])
 
 
-def settings_extract(department, settings):
+def settings_extract(department: Department, settings):
 
     logger.info("Settings extraction : start")
     modes = settings["mode"]
@@ -536,12 +536,7 @@ def settings_extract(department, settings):
 
 
     for id_, (start_date, end_date) in settings["training_periods"].items():
-        if mode.scheduling_mode == "c":
-            scheduling_periods = department.scheduling_periods.all()
-        else:
-            scheduling_periods = SchedulingPeriod.objects.filter(mode=mode.scheduling_mode)
-
-        considered_scheduling_periods = scheduling_periods.filter(end_date__gte=start_date, start_date__lte=end_date)
+        considered_scheduling_periods = department.scheduling_periods().filter(end_date__gte=start_date, start_date__lte=end_date)
 
         verif = TrainingPeriod.objects.filter(department=department, name=id_)
         
