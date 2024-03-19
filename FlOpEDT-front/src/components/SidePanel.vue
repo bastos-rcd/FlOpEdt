@@ -97,6 +97,7 @@
     </div>
     <div class="ColorSelect">
       <Separator class="Separator" />
+      <h3>Coloration Select</h3>
       <RadioGroupRoot v-model="colorSelect" class="RadioGroupRoot" default-value="module">
         <div :style="{ display: 'flex', alignItems: 'center' }">
           <RadioGroupItem id="r1" class="RadioGroupItem" value="module">
