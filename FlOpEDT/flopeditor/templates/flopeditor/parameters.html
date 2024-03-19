@@ -89,27 +89,20 @@
                         <div class="form-group row">
                             <label class="col-sm-8 col-form-label">Fin des cours</label>
                             <div class="col-auto col-form-label">
-                                {{ day_finish_time }}
+                                {{ day_end_time }}
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="col-sm-8 col-form-label">Début de la pause
                                 déjeuner</label>
                             <div class="col-auto col-form-label">
-                                {{ lunch_break_start_time }}
+                                {{ morning_end_time }}
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="col-sm-8 col-form-label">Fin de la pause déjeuner</label>
                             <div class="col-auto col-form-label">
-                                {{ lunch_break_finish_time }}
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label class="col-sm-8 col-form-label">Durée par défaut d'un cours</label>
-                            <div class="col-auto col-form-label">
-                                {{ default_preference_duration }}
+                                {{ afternoon_start_time }}
                             </div>
                         </div>
 
@@ -126,6 +119,12 @@
                             <label class="col-sm-8 col-form-label">Mode Educ / Coop</label>
                             <div class="col-auto col-form-label">
                                 {{ cosmo_mode }}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-8 col-form-label">Génération par </label>
+                            <div class="col-auto col-form-label">
+                                {{ scheduling_mode }}
                             </div>
                         </div>
                     </div>

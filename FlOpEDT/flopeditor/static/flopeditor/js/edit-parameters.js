@@ -40,22 +40,18 @@ $("#form-parameters").submit(function (event) {
         message_display("warning", "Veuillez cocher au moins un jour");
     } else if (!is_time($("#day_start_time").val())) {
         message_display("warning", "L'heure de début des cours est incorrecte.");
-    } else if (!is_time($("#day_finish_time").val())) {
+    } else if (!is_time($("#day_end_time").val())) {
         message_display("warning", "L'heure de fin des cours est incorrecte.");
-    } else if (!is_time($("#lunch_break_start_time").val())) {
+    } else if (!is_time($("#morning_end_time").val())) {
         message_display("warning", "L'heure de début du déjeuner est incorrecte.");
-    } else if (!is_time($("#lunch_break_finish_time").val())) {
+    } else if (!is_time($("#afternoon_start_time").val())) {
         message_display("warning", "L'heure de fin du déjeuner est incorrecte.");
-    } else if (!is_time($("#default_preference_duration").val())) {
-        message_display("warning", "La durée par défaut d'un cours est incorrecte.");
-    } else if ($("#day_start_time").val() > $("#day_finish_time").val()) {
+    } else if ($("#day_start_time").val() > $("#day_end_time").val()) {
         message_display("warning", "L'heure de début des cours doit précéder l'heure de fin des cours.");
-    } else if ($("#lunch_break_start_time").val() > $("#lunch_break_finish_time").val()) {
+    } else if ($("#lunch_break_start_time").val() > $("#afternoon_start_time").val()) {
         message_display("warning", "L'heure de début du déjeuner doit précéder l'heure de fin du déjeuner.");
-    } else if ($("#day_start_time").val()> $("#lunch_break_start_time").val() || $("#lunch_break_finish_time").val() > $("#day_finish_time").val()) {
+    } else if ($("#day_start_time").val()> $("#morning_end_time").val() || $("#afternoon_start_time").val() > $("#day_end_time").val()) {
         message_display("warning", "La période du déjeuner doit être pendant la période des cours.");
-    } else if ($("#default_preference_duration").val() === "00:00") {
-        message_display("warning", "La durée par défaut d'un cours ne peut pas être nulle.");
     }
     else {
         const button_html = $("#button-submit").html();

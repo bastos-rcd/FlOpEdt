@@ -92,8 +92,8 @@ action="{% url 'flopeditor:flopeditor-ajax-edit-department-parameters' departmen
         <label for="input2" class="col-auto pl-0 mb-0 text-muted">Fin des cours</label>
         <div class="form-group row pt-0">
             <div class="col-auto">
-                <input type="time" class="form-control pt-0" id="day_finish_time"
-                    name="day_finish_time" value="{{ day_finish_time }}">
+                <input type="time" class="form-control pt-0" id="day_end_time"
+                    name="day_end_time" value="{{ day_end_time }}">
             </div>
         </div>
 
@@ -102,8 +102,8 @@ action="{% url 'flopeditor:flopeditor-ajax-edit-department-parameters' departmen
         <div class="form-group row pt-0">
             <div class="col-auto">
                 <input type="time" class="form-control pt-0"
-                    value="{{ lunch_break_start_time }}" name="lunch_break_start_time"
-                    id="lunch_break_start_time">
+                    value="{{ morning_end_time }}" name="morning_end_time"
+                    id="morning_end_time">
             </div>
         </div>
 
@@ -112,20 +112,11 @@ action="{% url 'flopeditor:flopeditor-ajax-edit-department-parameters' departmen
         <div class="form-group row pt-0">
             <div class="col-auto">
                 <input type="time" class="form-control pt-0"
-                    value="{{lunch_break_finish_time}}" name="lunch_break_finish_time"
-                    id="lunch_break_finish_time">
+                    value="{{afternoon_start_time}}" name="afternoon_start_time"
+                    id="afternoon_start_time">
             </div>
         </div>
 
-        <label for="input5" class="col-auto pl-0 mb-0 text-muted">Durée par défaut d'un
-            cours</label>
-        <div class="form-group row pt-0">
-            <div class="col-auto">
-                <input type="time" class="form-control pt-0"
-                    value="{{ default_preference_duration }}"
-                    name="default_preference_duration" id="default_preference_duration">
-            </div>
-        </div>
         <div class="form-group ">
             <p class="h6"><u><strong>Modes</strong></u></p>
         </div>
@@ -138,6 +129,12 @@ action="{% url 'flopeditor:flopeditor-ajax-edit-department-parameters' departmen
         <select name="cosmo_mode" id="cosmo_mode" >
             {% for x, y in mode.cosmo_choices %}
                 <option value="{{ x }}"{% if mode.cosmo == x %} selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <label for="scheduling_mode" class="col-auto pl-0 mb-0 text-muted">Génération par </label>
+        <select name="scheduling_mode" id="scheduling_mode" >
+            {% for x, y in mode.scheduling_mode_choices %}
+                <option value="{{ x }}"{% if mode.scheduling_mode == x %} selected{% endif %}>{{ y }}</option>
             {% endfor %}
         </select>
 

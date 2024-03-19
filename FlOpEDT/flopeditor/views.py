@@ -163,7 +163,8 @@ def department_parameters(request, department_abbrev):
         'is_iut': get_is_iut(request),
         'has_any_dept_perm': has_any_dept_perm(request),
         'visio_mode': department.mode.visio,
-        'cosmo_mode': department.mode.get_cosmo_display()
+        'cosmo_mode': department.mode.get_cosmo_display(),
+        'scheduling_mode': department.mode.get_scheduling_mode_display(),
     })
 
 
@@ -303,10 +304,10 @@ def ajax_edit_parameters(request, department_abbrev):
         parameters = get_object_or_404(
             TimeGeneralSettings, department=department)
         parameters.days = days
-        parameters.day_start_time = str_to_time(day_start_time)
-        parameters.day_end_time = str_to_time(day_end_time)
-        parameters.morning_end_time = str_to_time(morning_end_time)
-        parameters.afternoon_start_time = str_to_time(afternoon_start_time)
+        parameters.day_start_time = day_start_time
+        parameters.day_end_time = day_end_time
+        parameters.morning_end_time = morning_end_time
+        parameters.afternoon_start_time = afternoon_start_time
         parameters.save()
         mode, created = Mode.objects.get_or_create(department=department)
         mode.cosmo = cosmo_mode

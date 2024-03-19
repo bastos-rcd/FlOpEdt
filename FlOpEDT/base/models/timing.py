@@ -160,12 +160,13 @@ class Mode(models.Model):
         (COOPERATIVE_BY_WORKPLACE, _("Coop. (workplace)")),
         (COOPERATIVE_BY_WORKER, _("Coop. (worker)")),
     )
+    scheduling_mode_choices = PeriodEnum.CHOICES
 
     department = models.OneToOneField("base.Department", on_delete=models.CASCADE)
     cosmo = models.PositiveSmallIntegerField(default=0, choices=cosmo_choices)
     visio = models.BooleanField(default=False)
     scheduling_mode =  models.CharField(
-        max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
+        max_length=1, choices=scheduling_mode_choices, default=PeriodEnum.WEEK
     )
 
     def __str__(self):
