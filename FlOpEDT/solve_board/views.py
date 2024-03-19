@@ -36,7 +36,6 @@ from django.template.response import TemplateResponse
 from core.decorators import dept_admin_required
 
 from base.models import TrainingProgramme, ScheduledCourse, SchedulingPeriod
-from base.core.period_weeks import PeriodWeeks
 from TTapp.FlopModel import get_flop_constraints
 
 from django.utils.functional import Promise
@@ -49,19 +48,17 @@ from django.core.serializers.json import DjangoJSONEncoder
 text_all='All'
 
 
-def get_work_copies(department, week):
+def get_version_majors(department, period):
     """
-    Get the list of working copies for a target week
+    Get the list of working copies for a target period
     """
-    period_filter = PeriodWeeks().get_filter(week=week)
-    work_copies = ScheduledCourse.objects \
-                    .filter(
-                        period_filter,
-                        course__module__train_prog__department=department) \
+    version_majors = ScheduledCourse.objects \
+                    .filter(course__period=period,
+                            course__module__train_prog__department=department) \
                     .values_list('version__major', flat=True) \
                     .distinct()     
     
-    return list(work_copies)
+    return list(version_majors)
 
 def get_pulp_solvers(available=True):
     def recurse_solver_hierachy(solvers):
@@ -108,40 +105,39 @@ def get_constraints_viewmodel(department, **kwargs):
     return [c.get_viewmodel() for c in constraints]
 
 
-def get_context(department, year, week):
+def get_context(department, period):
     #
     #   Get contextual datas
     #
-    week_object = Week.objects.get(nb=week, year=year)
-    params = {'week': week_object}
+    params = {'period': period}
 
     constraints = get_constraints_viewmodel(department, **params)
 
     # Get working copy list
-    work_copies = get_work_copies(department, week_object)
+    version_majors = get_version_majors(department, period)
 
     context = { 
         'constraints': constraints,
-        'work_copies': work_copies,
+        'version_majors': version_majors,
     }
 
     return context
 
 
 @dept_admin_required
-def fetch_context(req, train_prog, year, week, **kwargs):
+def fetch_context(req, train_prog, period, **kwargs):
 
-    context = get_context(req.department, year, week, train_prog)
+    context = get_context(req.department, period, train_prog)
     return HttpResponse(json.dumps(context, cls=LazyEncoder), content_type='text/json')
 
 @dept_admin_required
-def launch_pre_analyse(req, train_prog, year, week, type, **kwargs):
+def launch_pre_analyse(req, train_prog, period, type, **kwargs):
     resultat = { type: [] }
     result= dict()
     if type == "ConsiderTutorsUnavailability":
         constraints = ConsiderTutorsUnavailability.objects.filter(department = req.department)
         for constraint in constraints:
-            result = constraint.pre_analyse(week=Week.objects.get(nb= week, year =year))
+            result = constraint.pre_analyse(period=period)
             resultat[type].append(result)
 
     elif type == "NoSimultaneousGroupCourses":
@@ -150,7 +146,7 @@ def launch_pre_analyse(req, train_prog, year, week, type, **kwargs):
         else:
             constraints = NoSimultaneousGroupCourses.objects.filter(train_progs__in = TrainingProgramme.objects.filter(abbrev=train_prog).all(), department = req.department)
         for constraint in constraints:
-            result = constraint.pre_analyse(week=Week.objects.get(nb= week, year =year))
+            result = constraint.pre_analyse(period=period)
             resultat[type].append(result)
 
     elif type == "ConsiderDependencies":
@@ -159,7 +155,7 @@ def launch_pre_analyse(req, train_prog, year, week, type, **kwargs):
         else:
             constraints = ConsiderDependencies.objects.filter(train_progs__in = TrainingProgramme.objects.filter(abbrev=train_prog).all(), department = req.department)
         for constraint in constraints:
-            result = constraint.pre_analyse(week=Week.objects.get(nb= week, year =year))
+            result = constraint.pre_analyse(period=period)
             resultat[type].append(result)
     return JsonResponse(resultat)
 
@@ -169,9 +165,8 @@ def main_board(req, **kwargs):
 
     department = req.department
 
-    # Get week list
-    period = PeriodWeeks(department, exclude_empty_weeks=True)
-    week_list = period.get_weeks(format=True)
+    # Get periods names list
+    periods = [{'id':sp.id, 'name':sp.name} for sp in department.scheduling_periods(exclude_empty=True)]
 
     # Get solver list
     solvers_viewmodel = get_pulp_solvers_viewmodel()
@@ -184,15 +179,15 @@ def main_board(req, **kwargs):
     view_context = {
                    'department': department,
                    'text_all': text_all,
-                   'weeks': json.dumps(week_list),
+                   'periods': json.dumps(periods),
                    'train_progs': json.dumps(all_tps),
                    'solvers': solvers_viewmodel,
                    'email': req.user.email,
                    }
     
     # Get contextual datas (constraints, work_copies)
-    if len(week_list) > 0:
-        data_context = get_context(department, year=week_list[0][0], week=week_list[0][1])
+    if len(periods) > 0:
+        data_context = get_context(department, period=periods[0]['id'])
         view_context.update({k:json.dumps(v, cls=LazyEncoder) for k, v in data_context.items()})
     
     return TemplateResponse(req, 'solve_board/main-board.html', view_context)

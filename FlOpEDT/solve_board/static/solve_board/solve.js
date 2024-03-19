@@ -26,14 +26,16 @@ var socket;
 var opti_timestamp;
 
 var select_opti_date, select_opti_train_prog;
-var week_year_sel, train_prog_sel, txt_area;
+let periods_sel
+let train_prog_sel; 
+let txt_area;
 
 var launchButton;
 var started = false;
 let errorPreAnalyse = [];
 
 let analyseButton = document.querySelector('#analyse');
-//nb pre_analyse launch each week
+//nb pre_analyse launch each period
 let nbPreAnalyse = 3;
 let firstCourse = true;
 
@@ -131,7 +133,7 @@ function open_connection() {
         var time_limit = parseInt(time_limit_select.value);
         var pre_assign_rooms = pre_assign_rooms_checkbox.checked;
         var post_assign_rooms = post_assign_rooms_checkbox.checked;
-        var all_weeks_together = all_weeks_together_checkbox.checked;
+        var all_periods_together = all_periods_together_checkbox.checked;
         var send_log_email = send_log_email_checkbox.checked;
 
 
@@ -143,7 +145,7 @@ function open_connection() {
                 "C'est ti-par.\n" + opti_timestamp + "\nSolver ok?",
             'action': "go",
             'department': department,
-            'week_year_list': week_year_sel,
+            'periods': periods_sel,
             'train_prog': tp,
             'constraints': constraints,
             'stabilize': stabilize_working_copy,
@@ -152,7 +154,7 @@ function open_connection() {
             'solver': solver,
             'pre_assign_rooms': pre_assign_rooms,
             'post_assign_rooms': post_assign_rooms,
-            'all_weeks_together': all_weeks_together,
+            'all_periods_together': all_periods_together,
             'send_log_email': send_log_email,
             'current_user_email': current_user_email
         }))
@@ -170,15 +172,15 @@ function open_connection() {
 */
 
 function init_dropdowns() {
-    // create drop down for week selection
+    // create drop down for period selection
     select_opti_date = d3.select("#opti_date");
-    select_opti_date.on("change", function () { choose_week(); fetch_context(); });
+    select_opti_date.on("change", function () { choose_period(); fetch_context(); });
     select_opti_date
         .selectAll("option")
-        .data(week_list)
+        .data(period_list)
         .enter()
         .append("option")
-        .text(d => d[1] +' - '+ d[0])
+        .text(d => d.name)
 
     // create drop down for training programme selection
     train_prog_list.unshift(text_all);
@@ -195,16 +197,16 @@ function init_dropdowns() {
     select_solver = d3.select("#solver");
     select_solver.on("change", function () { show_hide_log_email_div(); fetch_context();});
     
-    choose_week();
+    choose_period();
     choose_train_prog();
     show_hide_log_email_div();
 }
 
-function choose_week() {
+function choose_period() {
     var di = select_opti_date.property('selectedIndex');
-    var yw = select_opti_date.selectAll("option:checked").data();
-    week_year_sel = yw.map(yw => {return { year: yw[0], week: yw[1] };});
+    periods_sel = select_opti_date.selectAll("option:checked").data();
 }
+
 function choose_train_prog() {
     var di = select_opti_train_prog.property('selectedIndex');
     var sa = select_opti_train_prog
@@ -379,31 +381,36 @@ function update_constraints_state() {
 	Get constraints async
 */
 
-function get_constraints_url(train_prog, year, week) {
+function get_constraints_url(train_prog, period) {
 
     let params = arguments;
     let regexp = /(tp)\/(1111)\/(11)/;
+    //TODO : change the regexp to match the new url without parsing week periods!!!
+    let week_year = period.name.split('-')
+    let week = week_year[0].slice(-2);
+    let year = week_year[1];
+
     let replacer = (match, train_prog, year, week, offset, string) => {
         return Object.values(params).join('/');
     }
-
     return fetch_context_url_template.replace(regexp, replacer)
 }
 
 
 /*
-  Retrieve work_copies and constraints for a specific week
-  This doesn't apply if more than one week is selected
+  Retrieve work_copies and constraints for a specific period
+  This doesn't apply if more than one period is selected
 */
 function fetch_context() {
-    all_weeks_together_div = d3.select("#all-weeks-together");
-    if (week_year_sel.length == 1) {
-      week = week_year_sel[0].week
-      year = week_year_sel[0].year
+    all_periods_together_div = d3.select("#all-periods-together");
+    console.log("fetch_context");
+    console.log(periods_sel);
+    if (periods_sel.length == 1) {
+      period = periods_sel[0]
       $.ajax({
           type: "GET",
           dataType: 'json',
-          url: get_constraints_url(train_prog_sel, year, week),
+          url: get_constraints_url(train_prog_sel, period),
           async: true,
           contentType: "application/json; charset=utf-8",
           success: function (context) {
@@ -416,12 +423,12 @@ function fetch_context() {
               console.log("complete");
           }
       });
-      all_weeks_together_div.style("display", "none");
+      all_periods_together_div.style("display", "none");
     } else {
         update_context_view();
-        if (week_year_sel.length > 1) {
-            // Display or hide all weeks together checkbox
-            all_weeks_together_div.style("display", "block");
+        if (periods_sel.length > 1) {
+            // Display or hide all periods together checkbox
+            all_periods_together_div.style("display", "block");
         }
     }
 }
@@ -476,10 +483,16 @@ function dispatchAction(token) {
         changeState('stopped');
 }
 
-function get_analyse_url(train_prog, year, week, type) {
+function get_analyse_url(train_prog, period, type) {
 
     let params = arguments;
     let regexp = /(tp)\/(1111)\/(11)\/(constraint)/;
+
+    //TODO : change the regexp to match the new url without parsing week periods!!!
+    let week_year = period.name.split('-')
+    let week = week_year[0].slice(-2);
+    let year = week_year[1];
+    
     let replacer = (match, train_prog, year, week, constraint, offset, string) => {
         return Object.values(params).join('/');
     }
@@ -489,22 +502,20 @@ function get_analyse_url(train_prog, year, week, type) {
 
 function launchPreanalyse(event) {
     hideFinishLabel();
-    let nbAnalyse = nbPreAnalyse * week_year_sel.length;
+    let nbAnalyse = nbPreAnalyse * periods_sel.length;
     let nbDone = 0;
     errorPreAnalyse = [];
     displayErrorAnalyse();
     console.log("On Analyse !");
-    if(week_year_sel.length !== 0){
+    if(periods_sel.length !== 0){
         analyseButton.disabled = true;
     }
     //console.log(week_year_sel);
     //console.log(train_prog_sel);
     let constraint_type = "";
-    week_year_sel.forEach((week_year) => {
-        week = week_year.week;
-        year=week_year.year;
+    periods_sel.forEach((period) => {
         constraint_type = "ConsiderDependencies";
-        url_get = get_analyse_url(train_prog_sel, year, week, constraint_type);
+        url_get = get_analyse_url(train_prog_sel, period, constraint_type);
         console.log(url_get);
         $.ajax({
             type: "GET",
@@ -534,7 +545,7 @@ function launchPreanalyse(event) {
             }
         });
         constraint_type = "NoSimultaneousGroupCourses";
-        url_get = get_analyse_url(train_prog_sel, year, week, constraint_type);
+        url_get = get_analyse_url(train_prog_sel, period, constraint_type);
         console.log(url_get);
         $.ajax({
             type: "GET",
@@ -564,7 +575,7 @@ function launchPreanalyse(event) {
             }
         });
         constraint_type = "ConsiderTutorsUnavailability";
-        url_get = get_analyse_url(train_prog_sel, year, week, constraint_type);
+        url_get = get_analyse_url(train_prog_sel, period, constraint_type);
         console.log(url_get);
         $.ajax({
             type: "GET",
@@ -605,7 +616,7 @@ function getTextMessage(obj) {
 }
 
 function getTextTitle(obj) {
-    return 'Pour la semaine ' + obj["period"]["week"] + " de " + obj["period"]["year"] + ":";
+    return 'Pour la période ' + obj["period"].name + ":";
 }
 
 function displayErrorAnalyse() {
@@ -623,8 +634,8 @@ function displayErrorAnalyse() {
                 .attr("class", "msg_error");
 
     enter.append("h3")
-        .attr("class", "msg_error_week")
-        .merge(messageAnalyseGroup.select(".msg_error_week"))
+        .attr("class", "msg_error_period")
+        .merge(messageAnalyseGroup.select(".msg_error_period"))
         .text(getTextTitle);
 
     console.log("this is pre analyse error", errorPreAnalyse);
@@ -711,7 +722,7 @@ var stabilize_select = document.querySelector("#stabilize select");
 document.getElementById("divAnalyse").style.overflow = "scroll";
 var pre_assign_rooms_checkbox = document.querySelector("#pre-assign-rooms");
 var post_assign_rooms_checkbox = document.querySelector("#post-assign-rooms");
-var all_weeks_together_checkbox = document.querySelector("#all-weeks-together-checkbox");
+var all_periods_together_checkbox = document.querySelector("#all-periods-together-checkbox");
 var send_log_email_checkbox = document.querySelector("#send-log-email");
 var log_email_div = document.querySelector("#divEmail");
 

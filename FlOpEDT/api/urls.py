@@ -93,8 +93,8 @@ urlpatterns = [
     # path("rest-auth/", include("dj_rest_auth.urls")),
     # path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
     path("rooms/", include((routerRooms.urls, "api"), namespace="rooms")),
-    # path("courses/", include((routerCourses.urls, "api"), namespace="course")),
-    # path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
+    path("courses/", include((routerCourses.urls, "api"), namespace="course")),
+    path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
     # path("extra/", include((routerExtra.urls, "api"), namespace="extra")),
     # path("myflop/", include((routerMyFlop.urls, "api"), namespace="myflop")),
     # path(

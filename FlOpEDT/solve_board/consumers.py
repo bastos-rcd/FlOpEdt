@@ -33,8 +33,8 @@ import logging
 
 from threading import Thread
 from django.core.exceptions import ObjectDoesNotExist
-from MyFlOp.MyTimetableModel import MyTimetableModel
-from base.models import TrainingProgramme, Week
+from TTapp.TimetableModel import TimetableModel
+from base.models import TrainingProgramme, SchedulingPeriod
 import TTapp.models as TimetableClasses
 
 # from multiprocessing import Process
@@ -97,12 +97,12 @@ class SolverConsumer(WebsocketConsumer):
 
             # Get additional informations
             time_limit = data['time_limit'] or None
-            weeks = [Week.objects.get(nb=o['week'], year=o['year']) for o in data['week_year_list']]
+            periods = [SchedulingPeriod.objects.get(name__in=data['periods_names'])]
 
             # Start solver
             Solve(
                 data['department'],
-                weeks,
+                periods,
                 data['timestamp'],
                 data['train_prog'],
                 self,
@@ -111,7 +111,7 @@ class SolverConsumer(WebsocketConsumer):
                 data['pre_assign_rooms'],
                 data['post_assign_rooms'],
                 stabilize_version=stabilize,
-                all_weeks_together=data['all_weeks_together'],
+                all_periods_together=data['all_periods_together'],
                 send_log_email=data['send_log_email'],
                 user_email=data['current_user_email']
                 ).start()
@@ -140,19 +140,19 @@ def solver_subprocess_SIGINT_handler(sig, stack):
 
 
 class Solve():
-    def __init__(self, department_abbrev, weeks, timestamp, training_programme, chan, time_limit, solver,
-                 pre_assign_rooms, post_assign_rooms, send_log_email, user_email, stabilize_version=None, all_weeks_together=True):
+    def __init__(self, department_abbrev, periods, timestamp, training_programme, chan, time_limit, solver,
+                 pre_assign_rooms, post_assign_rooms, send_log_email, user_email, major_to_stabilize=None, all_periods_together=True):
         super(Solve, self).__init__()
         self.department_abbrev = department_abbrev
-        self.weeks = weeks
+        self.periods = periods
         self.timestamp = timestamp
         self.channel = chan
         self.time_limit = time_limit
         self.solver = solver
-        self.stabilize_version = stabilize_version
+        self.major_to_stabilize = major_to_stabilize
         self.pre_assign_rooms = pre_assign_rooms
         self.post_assign_rooms = post_assign_rooms
-        self.all_weeks_together = all_weeks_together
+        self.all_periods_together = all_periods_together
         if send_log_email:
             self.user_email = user_email
         else:
@@ -177,18 +177,22 @@ class Solve():
                 os.dup2(wd,1)   # redirect stdout
                 os.dup2(wd,2)   # redirect stderr
                 try:
-                    if self.all_weeks_together:
-                        t = MyTimetableModel(self.department_abbrev, weeks=self.weeks, train_prog=self.training_programme,
-                                      stabilize_version_nb=self.stabilize_version,
-                                      pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
+                    if self.all_periods_together:
+                        t = TimetableModel(self.department_abbrev, 
+                                           periods=self.periods,
+                                           train_prog=self.training_programme,                                      major_to_stabilize=self.major_to_stabilize,                                      pre_assign_rooms=self.pre_assign_rooms, 
+                                           post_assign_rooms=self.post_assign_rooms)
                         os.setpgid(os.getpid(), os.getpid())
                         signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
                         t.solve(time_limit=self.time_limit, solver=self.solver, send_gurobi_logs_email_to=self.user_email)
                     else:
-                        for w in self.weeks:
-                            t = MyTimetableModel(self.department_abbrev, [w], train_prog=self.training_programme,
-                                          stabilize_version_nb = self.stabilize_version,
-                                          pre_assign_rooms=self.pre_assign_rooms, post_assign_rooms=self.post_assign_rooms)
+                        for period in self.periods:
+                            t = TimetableModel(self.department_abbrev, 
+                                               [period], 
+                                               train_prog=self.training_programme,
+                                               major_to_stabilize = self.major_to_stabilize,
+                                               pre_assign_rooms=self.pre_assign_rooms, 
+                                               post_assign_rooms=self.post_assign_rooms)
                             os.setpgid(os.getpid(), os.getpid())
                             signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
                             t.solve(time_limit=self.time_limit, solver=self.solver, send_gurobi_logs_email_to=self.user_email)
