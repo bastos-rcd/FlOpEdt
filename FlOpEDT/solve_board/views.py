@@ -127,11 +127,12 @@ def get_context(department, period):
 @dept_admin_required
 def fetch_context(req, train_prog, period, **kwargs):
 
-    context = get_context(req.department, period, train_prog)
+    context = get_context(req.department, period)
     return HttpResponse(json.dumps(context, cls=LazyEncoder), content_type='text/json')
 
 @dept_admin_required
 def launch_pre_analyse(req, train_prog, period, type, **kwargs):
+    period = SchedulingPeriod.objects.get(id=period)
     resultat = { type: [] }
     result= dict()
     if type == "ConsiderTutorsUnavailability":

@@ -41,8 +41,8 @@
     var period_list = {{ periods|safe }};
     var train_prog_list = {{ train_progs|safe }};
     var department = '{{ department }}';
-    var fetch_context_url_template = '{% url "solve_board:fetch_context" department 'tp' 'period' %}';
-    var analyse_url_template = '{% url "solve_board:pre_analyse" department 'tp' 'period' 'constraint'%}';
+    var fetch_context_url_template = '{% url "solve_board:fetch_context" department 'train_prog' 'period' %}';
+    var analyse_url_template = '{% url "solve_board:pre_analyse" department 'train_prog' 'period' 'type'%}';
     var courses_id_url = '{% url "api:course:id-list" %}';
     var group_id_url = '{% url "api:groups:structural-list" %}';
     var tutor_id_url = '{% url "api:people:tutor-list" %}';

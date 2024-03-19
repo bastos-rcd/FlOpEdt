@@ -236,28 +236,28 @@ function show_hide_log_email_div() {
 function update_context_view(context) {
 
     if (context) {
-        work_copies = context.work_copies;
+        version_majors = context.version_majors;
         constraints = context.constraints;
     } else {
-        work_copies = [];
+        version_majors = [];
         constraints = [];
     }
 
-    init_work_copies(work_copies);
+    init_version_majors(version_majors);
     init_constraints(constraints);
 }
 
 /* 
 	Working copies list initialization
 */
-function init_work_copies(work_copies) {
+function init_version_majors(version_majors) {
 
-    copies = work_copies.slice(0);
-    copies.unshift("-");
+    majors = version_majors.slice(0);
+    majors.unshift("-");
 
     // Display or hide working copies list
     stabilize_div = d3.select("#stabilize");
-    if (work_copies.length == 0) {
+    if (version_majors.length == 0) {
         stabilize_div.style("display", "none");
     }
     else {
@@ -270,7 +270,7 @@ function init_work_copies(work_copies) {
 
     stabilize_sel_data = stabilize_sel 
         .selectAll("option")
-        .data(copies, (x) => x);
+        .data(majors, (x) => x);
 
     stabilize_sel_data
         .enter()
@@ -382,23 +382,11 @@ function update_constraints_state() {
 */
 
 function get_constraints_url(train_prog, period) {
-
-    let params = arguments;
-    let regexp = /(tp)\/(1111)\/(11)/;
-    //TODO : change the regexp to match the new url without parsing week periods!!!
-    let week_year = period.name.split('-')
-    let week = week_year[0].slice(-2);
-    let year = week_year[1];
-
-    let replacer = (match, train_prog, year, week, offset, string) => {
-        return Object.values(params).join('/');
-    }
-    return fetch_context_url_template.replace(regexp, replacer)
+    return fetch_context_url_template.replace('train_prog', train_prog).replace('period', period.id);
 }
 
-
 /*
-  Retrieve work_copies and constraints for a specific period
+  Retrieve version_majors and constraints for a specific period
   This doesn't apply if more than one period is selected
 */
 function fetch_context() {
@@ -484,19 +472,7 @@ function dispatchAction(token) {
 }
 
 function get_analyse_url(train_prog, period, type) {
-
-    let params = arguments;
-    let regexp = /(tp)\/(1111)\/(11)\/(constraint)/;
-
-    //TODO : change the regexp to match the new url without parsing week periods!!!
-    let week_year = period.name.split('-')
-    let week = week_year[0].slice(-2);
-    let year = week_year[1];
-    
-    let replacer = (match, train_prog, year, week, constraint, offset, string) => {
-        return Object.values(params).join('/');
-    }
-    return analyse_url_template.replace(regexp, replacer)
+    return analyse_url_template.replace('train_prog', train_prog).replace('period', period.id).replace('type', type);
 }
 
 
