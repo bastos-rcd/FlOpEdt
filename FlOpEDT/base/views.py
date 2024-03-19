@@ -55,6 +55,8 @@ from people.models import (
     ThemesPreferences,
 )
 
+from base.admin import ModuleRessource, TutorRessource, CourseAvailabilityResource, VersionResource, RoomAvailabilityResource, ModuleDescriptionResource, TutorCoursesResource, MultiDepartmentTutorResource, SharedRoomsResource
+
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
 
@@ -909,8 +911,8 @@ def fetch_shared_rooms(req, year, week, **kwargs):
 
 
 def fetch_all_modules_with_desc(req, **kwargs):
-    data = Module.objects.filter(period__department=req.department).select_related(
-        "period__department"
+    data = Module.objects.filter(train_prog__department=req.department).select_related(
+        "train_prog__department"
     )
     res = ModuleDescriptionResource().export(
         data.select_related("head", "display", "train_prog")
