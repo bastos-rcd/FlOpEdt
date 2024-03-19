@@ -6,7 +6,6 @@ import {
   CourseType,
   RoomAttribute,
   ScheduledCourse,
-  TimeSettings,
   RoomAPI,
   GroupAPI,
   ModuleAPI,
@@ -151,7 +150,6 @@ export interface FlopAPI {
     courseTypes(params: { department: string }): Promise<Array<CourseType>>
     numericRoomAttributes(): Promise<Array<RoomAttribute>>
     scheduledCourses(params: { week?: number; year?: number; department?: string }): Promise<Array<ScheduledCourse>>
-    timeSettings(): Promise<Array<TimeSettings>>
     users(): Promise<Array<User>>
   }
   delete: {
@@ -475,9 +473,6 @@ const api: FlopAPI = {
     },
     scheduledCourses(params: { week?: number; year?: number; department?: string }) {
       return fetcher(urls.scheduledcourses, params)
-    },
-    timeSettings() {
-      return fetcher(urls.timesettings)
     },
     users() {
       return fetcher(urls.users)

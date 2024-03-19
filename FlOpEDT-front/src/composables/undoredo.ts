@@ -56,6 +56,7 @@ export function useUndoredo() {
       currentAvail.duration = availData.duration
       currentAvail.value = availData.value
       currentAvail.start = availData.start
+      availabilityStore.addOrUpdateAvailibility(currentAvail)
     }
   }
 

@@ -13,15 +13,18 @@ import {
 import { InputCalendarEvent } from '@/components/calendar/declaration'
 import { cloneDeep, remove } from 'lodash'
 import { usePermanentStore } from './permanent'
+import { useDepartmentStore } from '../department'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
   const permanentStore = usePermanentStore()
+  const departmentStore = useDepartmentStore()
   const availabilitiesBack = ref<Map<string, AvailabilityBack[]>>(new Map<string, AvailabilityBack[]>())
   const availabilities = ref<Map<string, Availability[]>>(new Map<string, Availability[]>())
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
   const nextId: Ref<number> = ref(0)
-  const { dayStartTime, dayEndTime } = storeToRefs(permanentStore)
+  const { current } = storeToRefs(departmentStore)
+  const { timeSettings } = storeToRefs(permanentStore)
 
   async function fetchUserAvailabilitiesBack(userId: number, from: Date, to: Date): Promise<void> {
     clearAvailabilities()
@@ -74,7 +77,28 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return newAvailabilityBack
   }
 
-  function addOrUpdateAvailibility(
+  function createAvailability(avail: InputCalendarEvent): Availability[] {
+    const newAvail: Availability = {
+      id: nextId.value++,
+      duration: avail.data.duration!,
+      start: avail.data.start,
+      value: avail.data.value!,
+      type: 'avail',
+      dataId: avail.data.dataId,
+    }
+    return addOrUpdateAvailibility(newAvail)
+  }
+
+  function addOrUpdateAvailibility(avail: Availability): Availability[] {
+    const dateString = getDateStringFromTimestamp(avail.start)
+    if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])
+    const availabilitiesOutput = availabilities.value.get(dateString)
+    remove(availabilitiesOutput!, (av) => av.id === avail.id)
+    availabilitiesOutput!.push(avail)
+    return availabilitiesOutput!
+  }
+
+  function addOrUpdateAvailibilityEvent(
     availEvent: InputCalendarEvent,
     dataId?: number,
     availType?: string
@@ -105,7 +129,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     let availabilitiesOnDate: Availability[] | undefined
     if (date) {
       availabilitiesOnDate = availabilities.value.get(getDateStringFromTimestamp(date))
-      remove(availabilitiesOnDate!, (av) => av.id === id)
+      if (availabilitiesOnDate) remove(availabilitiesOnDate, (av) => av.id === id)
     } else {
       availabilities.value.forEach((availsD, date) => {
         remove(availsD, (av) => av.id === id)
@@ -149,21 +173,23 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
 
   function formatAvailabilityWithDayTime(avail: Availability): Availability[] {
     let timeStart = parseTime(avail.start)
+    const dayStartTime = timeSettings.value.get(current.value.id)!.dayStartTime
+    const dayEndTime = timeSettings.value.get(current.value.id)!.dayEndTime
     const newAvail = cloneDeep(avail)
     const availabilitiesReturned = []
-    if (timeStart < dayStartTime.value && timeStart + newAvail.duration > dayStartTime.value) {
-      newAvail.start = updateMinutes(newAvail.start, dayStartTime.value)
+    if (timeStart < dayStartTime && timeStart + newAvail.duration > dayStartTime) {
+      newAvail.start = updateMinutes(newAvail.start, dayStartTime)
       newAvail.id = nextId.value++
-      avail.duration = dayStartTime.value - timeStart
+      avail.duration = dayStartTime - timeStart
       newAvail.duration = newAvail.duration - avail.duration
       availabilitiesReturned.push(newAvail, avail)
     }
     timeStart = parseTime(newAvail.start)
-    if (timeStart < dayEndTime.value && timeStart + newAvail.duration > dayEndTime.value) {
+    if (timeStart < dayEndTime && timeStart + newAvail.duration > dayEndTime) {
       const newAvailUp = cloneDeep(newAvail)
-      newAvailUp.start = updateMinutes(newAvailUp.start, dayEndTime.value)
+      newAvailUp.start = updateMinutes(newAvailUp.start, dayEndTime)
       newAvailUp.id = nextId.value++
-      newAvail.duration = dayEndTime.value - timeStart
+      newAvail.duration = dayEndTime - timeStart
       newAvailUp.duration = newAvailUp.duration - newAvail.duration
       if (newAvail.id !== avail.id) availabilitiesReturned.push(newAvail)
       availabilitiesReturned.push(newAvailUp)
@@ -176,9 +202,11 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     availabilityToAvailabilityBack,
     fetchUserAvailabilitiesBack,
     availabilities,
-    addOrUpdateAvailibility,
+    addOrUpdateAvailibilityEvent,
     removeAvailibility,
     getAvailability,
     getAvailabilityFromDates,
+    addOrUpdateAvailibility,
+    createAvailability,
   }
 })

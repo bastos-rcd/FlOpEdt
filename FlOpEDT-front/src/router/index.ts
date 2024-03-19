@@ -92,6 +92,7 @@ router.beforeEach(async (to, from, next) => {
   if (!tutorStore.isAllTutorsFetched) await tutorStore.fetchTutors()
   if (!deptStore.isAllDepartmentsFetched) await deptStore.fetchAllDepartments()
   if (!roomStore.isRoomFetched) await roomStore.fetchRooms()
+  if (!permanentStore.areTimeSettingsFetched) await permanentStore.fetchTimeSettings()
   availableLocales.forEach((currentLocale: 'fr' | 'en' | 'es') => {
     to.fullPath.split('/').forEach((arg) => {
       if (arg.includes(currentLocale) && arg.length === currentLocale.length) {

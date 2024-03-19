@@ -15,20 +15,24 @@
     <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
       <Calendar
         v-model:events="calendarEvents"
+        @update:event="handleUpdateEvent"
+        @remove:event="handleRemoveEvent"
+        @create:event="handleCreateEvent"
         :columns="columnsToDisplay"
         :dropzones="dropzonesToDisplay"
         @dragstart="onDragStart"
         @update:week="changeDate"
-        :start-of-day="dayStartTime"
-        :end-of-day="dayEndTime"
+        :start-of-day="timeSettings.get(current.id)!.dayStartTime"
+        :end-of-day="timeSettings.get(current.id)!.dayEndTime"
         :workcopy="workcopySelected"
+        :interval-minutes="intervalMinutes"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { CalendarColumn, CalendarEvent } from '@/components/calendar/declaration'
+import { CalendarColumn, CalendarEvent, InputCalendarEvent } from '@/components/calendar/declaration'
 import Calendar from '@/components/calendar/Calendar.vue'
 import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
@@ -43,8 +47,10 @@ import {
   getStartOfWeek,
   makeDate,
   nextDay,
+  parseTime,
   today,
   updateFormatted,
+  updateMinutes,
 } from '@quasar/quasar-ui-qcalendar'
 import { filter } from 'lodash'
 import { useRoomStore } from '@/stores/timetable/room'
@@ -57,6 +63,8 @@ import { useEventStore } from '@/stores/display/event'
 import SidePanel from '@/components/SidePanel.vue'
 import { createDropzonesForEvent } from '@/components/calendar/utilitary'
 import { usePermanentStore } from '@/stores/timetable/permanent'
+import { useUndoredo } from '@/composables/undoredo'
+import { AvailabilityData, CourseData } from '@/composables/declaration'
 /**
  * Data translated to be passed to components
  */
@@ -81,13 +89,15 @@ const authStore = useAuth()
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const permanentStore = usePermanentStore()
+const undoRedo = useUndoredo()
 const availabilityStore = useAvailabilityStore()
+const { current } = storeToRefs(deptStore)
 const { columns } = storeToRefs(columnStore)
 const { daysSelected, calendarEvents, dropzonesIds } = storeToRefs(eventStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const { tutors } = storeToRefs(tutorStore)
 const { fetchedStructuralGroups } = storeToRefs(groupStore)
-const { dayStartTime, dayEndTime } = storeToRefs(permanentStore)
+const { timeSettings, intervalMinutes } = storeToRefs(permanentStore)
 const selectedGroups = ref<Group[]>([])
 const dropzonesToDisplay = ref<CalendarEvent[]>([])
 const sunday = ref<Timestamp>()
@@ -104,18 +114,33 @@ watch(workcopySelected, () => {
 })
 
 function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
-  const dropzones: CalendarEvent[] = createDropzonesForEvent(
-    eventId,
-    allEvents,
-    dayStartTime.value,
-    dayEndTime.value,
-    6
-  )
-  dropzones.forEach((dz) => {
-    dz.id = dropzonesIds.value
-    dropzonesIds.value += 2
-  })
-  dropzonesToDisplay.value = dropzones
+  const timeSetting = timeSettings.value.get(current.value.id)
+  let dayStartTime: number
+  let dayEndTime: number
+  let lunchBreakStart: number
+  let lunchBreakEnd: number
+  if (timeSetting) {
+    dayStartTime = timeSetting.dayStartTime
+    dayEndTime = timeSetting.dayEndTime
+    lunchBreakStart = timeSetting.morningEndTime
+    lunchBreakEnd = timeSetting.afternoonStartTime
+    if (dayStartTime && dayEndTime) {
+      const dropzones: CalendarEvent[] = createDropzonesForEvent(
+        eventId,
+        allEvents,
+        dayStartTime,
+        dayEndTime,
+        6,
+        lunchBreakStart,
+        lunchBreakEnd
+      )
+      dropzones.forEach((dz) => {
+        dz.id = dropzonesIds.value
+        dropzonesIds.value += 2
+      })
+      dropzonesToDisplay.value = dropzones
+    }
+  }
 }
 
 function fetchScheduledCurrentWeek(from: Date, to: Date) {
@@ -136,6 +161,54 @@ function changeDate(newDate: Timestamp) {
   while (currentDate.weekday !== sunday.value!.weekday) {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
+  }
+}
+
+function handleCreateEvent(calendarEventToCreate: InputCalendarEvent): void {
+  if (calendarEventToCreate.data.dataType === 'event') {
+    console.log('TODO')
+  } else if (calendarEventToCreate.data.dataType === 'avail') {
+    availabilityStore.createAvailability(calendarEventToCreate)
+  }
+}
+
+function handleRemoveEvent(calendarEventToRemove: InputCalendarEvent): void {
+  if (calendarEventToRemove.data.dataType === 'event') {
+    scheduledCourseStore.removeCourse(calendarEventToRemove.id)
+  } else if (calendarEventToRemove.data.dataType === 'avail') {
+    availabilityStore.removeAvailibility(calendarEventToRemove.data.dataId)
+  }
+}
+
+function handleUpdateEvent(newCalendarEvent: InputCalendarEvent): void {
+  if (newCalendarEvent.data.dataType === 'event') {
+    const course = scheduledCourseStore.getCourse(newCalendarEvent.data.dataId)
+    if (course) {
+      const courseData: CourseData = {
+        tutorId: course.tutorId,
+        start: newCalendarEvent.data.start,
+        end: updateMinutes(
+          copyTimestamp(newCalendarEvent.data.start),
+          parseTime(newCalendarEvent.data.start) + newCalendarEvent.data.duration!
+        ),
+        roomId: course.room,
+        suppTutorIds: course.suppTutorIds,
+        graded: course.graded,
+        roomTypeId: course.roomTypeId,
+        groupIds: course.groupIds,
+      }
+      undoRedo.addUpdate(newCalendarEvent.data.dataId, courseData, 'course')
+    }
+  } else if (newCalendarEvent.data.dataType === 'avail') {
+    const avail = availabilityStore.getAvailability(newCalendarEvent.data.dataId)
+    if (avail) {
+      const availData: AvailabilityData = {
+        start: newCalendarEvent.data.start,
+        value: newCalendarEvent.data.value!,
+        duration: newCalendarEvent.data.duration!,
+      }
+      undoRedo.addUpdate(newCalendarEvent.data.dataId, availData, 'availability')
+    }
   }
 }
 
