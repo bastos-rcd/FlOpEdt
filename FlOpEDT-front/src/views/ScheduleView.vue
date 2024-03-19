@@ -15,6 +15,9 @@
     <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
       <Calendar
         v-model:events="calendarEvents"
+        @update:event="handleUpdateEvent"
+        @remove:event="handleRemoveEvent"
+        @create:event="handleCreateEvent"
         :columns="columnsToDisplay"
         :dropzones="dropzonesToDisplay"
         @dragstart="onDragStart"
@@ -29,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarColumn, CalendarEvent } from '@/components/calendar/declaration'
+import { CalendarColumn, CalendarEvent, InputCalendarEvent } from '@/components/calendar/declaration'
 import Calendar from '@/components/calendar/Calendar.vue'
 import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
@@ -44,8 +47,10 @@ import {
   getStartOfWeek,
   makeDate,
   nextDay,
+  parseTime,
   today,
   updateFormatted,
+  updateMinutes,
 } from '@quasar/quasar-ui-qcalendar'
 import { filter } from 'lodash'
 import { useRoomStore } from '@/stores/timetable/room'
@@ -58,6 +63,8 @@ import { useEventStore } from '@/stores/display/event'
 import SidePanel from '@/components/SidePanel.vue'
 import { createDropzonesForEvent } from '@/components/calendar/utilitary'
 import { usePermanentStore } from '@/stores/timetable/permanent'
+import { useUndoredo } from '@/composables/undoredo'
+import { AvailabilityData, CourseData } from '@/composables/declaration'
 /**
  * Data translated to be passed to components
  */
@@ -82,6 +89,7 @@ const authStore = useAuth()
 const tutorStore = useTutorStore()
 const deptStore = useDepartmentStore()
 const permanentStore = usePermanentStore()
+const undoRedo = useUndoredo()
 const availabilityStore = useAvailabilityStore()
 const { current } = storeToRefs(deptStore)
 const { columns } = storeToRefs(columnStore)
@@ -153,6 +161,54 @@ function changeDate(newDate: Timestamp) {
   while (currentDate.weekday !== sunday.value!.weekday) {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
+  }
+}
+
+function handleCreateEvent(calendarEventToCreate: InputCalendarEvent): void {
+  if (calendarEventToCreate.data.dataType === 'event') {
+    console.log('TODO')
+  } else if (calendarEventToCreate.data.dataType === 'avail') {
+    availabilityStore.createAvailability(calendarEventToCreate)
+  }
+}
+
+function handleRemoveEvent(calendarEventToRemove: InputCalendarEvent): void {
+  if (calendarEventToRemove.data.dataType === 'event') {
+    scheduledCourseStore.removeCourse(calendarEventToRemove.id)
+  } else if (calendarEventToRemove.data.dataType === 'avail') {
+    availabilityStore.removeAvailibility(calendarEventToRemove.data.dataId)
+  }
+}
+
+function handleUpdateEvent(newCalendarEvent: InputCalendarEvent): void {
+  if (newCalendarEvent.data.dataType === 'event') {
+    const course = scheduledCourseStore.getCourse(newCalendarEvent.data.dataId)
+    if (course) {
+      const courseData: CourseData = {
+        tutorId: course.tutorId,
+        start: newCalendarEvent.data.start,
+        end: updateMinutes(
+          copyTimestamp(newCalendarEvent.data.start),
+          parseTime(newCalendarEvent.data.start) + newCalendarEvent.data.duration!
+        ),
+        roomId: course.room,
+        suppTutorIds: course.suppTutorIds,
+        graded: course.graded,
+        roomTypeId: course.roomTypeId,
+        groupIds: course.groupIds,
+      }
+      undoRedo.addUpdate(newCalendarEvent.data.dataId, courseData, 'course')
+    }
+  } else if (newCalendarEvent.data.dataType === 'avail') {
+    const avail = availabilityStore.getAvailability(newCalendarEvent.data.dataId)
+    if (avail) {
+      const availData: AvailabilityData = {
+        start: newCalendarEvent.data.start,
+        value: newCalendarEvent.data.value!,
+        duration: newCalendarEvent.data.duration!,
+      }
+      undoRedo.addUpdate(newCalendarEvent.data.dataId, availData, 'availability')
+    }
   }
 }
 
