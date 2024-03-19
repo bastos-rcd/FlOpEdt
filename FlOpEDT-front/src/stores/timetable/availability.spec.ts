@@ -9,7 +9,7 @@ describe('Availibility store utils', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     const availabilityStore = useAvailabilityStore()
-    availabilityStore.addOrUpdateAvailibility(
+    availabilityStore.addOrUpdateAvailibilityEvent(
       {
         id: 1,
         title: '1',
@@ -31,7 +31,7 @@ describe('Availibility store utils', () => {
       'user'
     )
 
-    availabilityStore.addOrUpdateAvailibility(
+    availabilityStore.addOrUpdateAvailibilityEvent(
       {
         id: 9,
         title: '9',

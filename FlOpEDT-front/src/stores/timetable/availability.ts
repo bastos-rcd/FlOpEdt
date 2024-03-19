@@ -77,7 +77,28 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return newAvailabilityBack
   }
 
-  function addOrUpdateAvailibility(
+  function createAvailability(avail: InputCalendarEvent): Availability[] {
+    const newAvail: Availability = {
+      id: nextId.value++,
+      duration: avail.data.duration!,
+      start: avail.data.start,
+      value: avail.data.value!,
+      type: 'avail',
+      dataId: avail.data.dataId,
+    }
+    return addOrUpdateAvailibility(newAvail)
+  }
+
+  function addOrUpdateAvailibility(avail: Availability) : Availability[] {
+    const dateString = getDateStringFromTimestamp(avail.start)
+    if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])
+    const availabilitiesOutput = availabilities.value.get(dateString)
+    remove(availabilitiesOutput!, (av) => av.id === avail.id)
+    availabilitiesOutput!.push(avail)
+    return availabilitiesOutput!
+  }
+
+  function addOrUpdateAvailibilityEvent(
     availEvent: InputCalendarEvent,
     dataId?: number,
     availType?: string
@@ -108,7 +129,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     let availabilitiesOnDate: Availability[] | undefined
     if (date) {
       availabilitiesOnDate = availabilities.value.get(getDateStringFromTimestamp(date))
-      remove(availabilitiesOnDate!, (av) => av.id === id)
+      if (availabilitiesOnDate) remove(availabilitiesOnDate, (av) => av.id === id)
     } else {
       availabilities.value.forEach((availsD, date) => {
         remove(availsD, (av) => av.id === id)
@@ -181,9 +202,11 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     availabilityToAvailabilityBack,
     fetchUserAvailabilitiesBack,
     availabilities,
-    addOrUpdateAvailibility,
+    addOrUpdateAvailibilityEvent,
     removeAvailibility,
     getAvailability,
     getAvailabilityFromDates,
+    addOrUpdateAvailibility,
+    createAvailability
   }
 })
