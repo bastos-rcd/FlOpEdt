@@ -864,7 +864,7 @@ class AvoidBothTimesSameDay(TimetableConstraint):
 
 
     def one_line_description(self):
-        text = f"Pas à la fois à {french_format(self.time1)} et à {french_format(self.time2)}"
+        text = f"Pas à la fois à {self.time1} et à {self.time2}"
         if self.train_progs.exists():
             text += ' des promos ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
         else:

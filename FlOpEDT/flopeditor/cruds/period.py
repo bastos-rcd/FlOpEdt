@@ -27,11 +27,11 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
-from base.models import TrainingPeriod, PeriodEnum, SchedulingPeriod
+from base.models import TrainingPeriod, PeriodEnum, SchedulingPeriod, Department
 from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_training_period_values
 
 
-def all_scheduling_periods(department):
+def all_scheduling_periods(department:Department):
     """Return all scheduling periods for a department
     :param department: Department.
     :type department:  base.models.Department
@@ -39,15 +39,12 @@ def all_scheduling_periods(department):
     :rtype:  list(string)
     """
 
-    if department.mode == PeriodEnum.CUSTOM:
-        result = department.scheduling_periods.all()
-    else:
-        result = SchedulingPeriod.objects.filter(mode=department.mode.scheduling_mode)
+    periods = department.scheduling_periods()
 
-    result_list = list(result)
-    result_list.sort(key = lambda x:x.start_date)
+    periods_list = list(periods)
+    periods_list.sort(key = lambda x:x.start_date)
 
-    return [sp.name for sp in result_list]
+    return [sp.name for sp in periods_list]
 
 def read(department):
     """Return all training periods for a department

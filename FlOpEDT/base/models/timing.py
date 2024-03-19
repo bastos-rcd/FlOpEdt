@@ -85,7 +85,7 @@ class SchedulingPeriod(models.Model):
         max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
     )
     department = models.ForeignKey(
-        "base.department", null=True, blank=True, on_delete=models.CASCADE, default=None, related_name="scheduling_periods"
+        "base.department", null=True, blank=True, on_delete=models.CASCADE, default=None
     )
 
     def __str__(self):

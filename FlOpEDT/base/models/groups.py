@@ -13,13 +13,14 @@ class Department(models.Model):
         return self.mode.scheduling_mode
     
 
-    @property
-    def scheduling_periods(self):
-        result = self.scheduling_periods.all()
+    def scheduling_periods(self, exclude_empty=False):
+        result = SchedulingPeriod.objects.filter(department=self)
         if not result.exists():
             result =  SchedulingPeriod.objects.filter(department=None, 
-                                                   mode=self.scheduling_mode)
-        return result
+                                                      mode=self.scheduling_mode)
+        if exclude_empty:
+            result = result.filter(course__type__department__abbrev='INFO').distinct()
+        return result.order_by('start_date')
 
     class Meta:
         verbose_name = _("department")
