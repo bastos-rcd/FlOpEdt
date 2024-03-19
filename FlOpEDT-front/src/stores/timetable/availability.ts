@@ -89,7 +89,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return addOrUpdateAvailibility(newAvail)
   }
 
-  function addOrUpdateAvailibility(avail: Availability) : Availability[] {
+  function addOrUpdateAvailibility(avail: Availability): Availability[] {
     const dateString = getDateStringFromTimestamp(avail.start)
     if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])
     const availabilitiesOutput = availabilities.value.get(dateString)
@@ -207,6 +207,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     getAvailability,
     getAvailabilityFromDates,
     addOrUpdateAvailibility,
-    createAvailability
+    createAvailability,
   }
 })
