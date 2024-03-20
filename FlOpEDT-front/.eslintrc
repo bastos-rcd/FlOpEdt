@@ -1,0 +1,63 @@
+{
+  "root": true,
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    ".histoire/",
+    ".reports/"
+  ],
+  "plugins": [ "@typescript-eslint" ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:vue/vue3-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-type-checked",
+    "plugin:prettier-vue/recommended"
+  ],
+  "parser": "vue-eslint-parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "parser": "@typescript-eslint/parser",
+    "project": ["tsconfig.json", "tsconfig.node.json"],
+    "extraFileExtensions": [".vue"],
+  },
+  "rules": {
+    "prettier-vue/prettier": [ "error", {
+      "trailingComma": "es5",
+      "semi": false,
+      "singleQuote": true,
+      "printWidth": 120,
+      "useTabs": false,
+      "tabWidth": 2
+    } ],
+
+    "vue/multi-word-component-names": "off",
+    "vue/component-name-in-template-casing": "warn",
+    "vue/no-duplicate-attr-inheritance": "warn",
+    "vue/block-order": [ "warn", {
+      "order": [
+        [ "script", "template" ],
+        "style",
+        "docs"
+      ]
+    } ],
+
+    // These weaken the checking performed by eslint about the good use of TypeScript.
+    // The codebase relies a lot on `any`, which is reported as an error by the linter since it weakens type safety.
+    // To not spend a lot of time rewriting everything these rules are (hopefully temporarily) limited to warn only.
+    // Someone should definitely look at solving those warnings and dropping these overrides permanently.
+    // Note: for a minority of cases this is blocked by https://github.com/vuejs/eslint-plugin-vue/issues/2375
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unsafe-assignment": "warn",
+    "@typescript-eslint/no-unsafe-member-access": "warn",
+    "@typescript-eslint/no-unsafe-argument": "warn",
+    "@typescript-eslint/no-unsafe-return": "warn",
+    "@typescript-eslint/no-unsafe-call": "warn",
+
+    // There don't weaken the type guarantees but are code smells.
+    // The existing ones should be fixed and those overrides dropped as well.
+    "@typescript-eslint/no-floating-promises": "warn",
+    "@typescript-eslint/no-unsafe-declaration-merging": "warn",
+    "@typescript-eslint/no-redundant-type-constituents": "warn"
+  }
+}
