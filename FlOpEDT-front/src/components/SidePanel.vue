@@ -1,5 +1,10 @@
 <template>
   <div class="side-panel" :class="{ open: authStore.sidePanelToggle }">
+    <div class="RevertButton">
+      <Separator class="Separator" />
+      <span>Revert Changes </span>
+      <button :disabled="!revert" @click="handleClick"><Icon icon="iconoir:undo-circle" /></button>
+    </div>
     <div>
       <h3>{{ $t('side.availabilityTitle') }}</h3>
       <Separator class="Separator" orientation="horizontal" />
@@ -179,12 +184,18 @@ const props = defineProps<{
   rooms: Room[]
   tutors: User[]
   groups: Group[]
+  revert: boolean
 }>()
 const emits = defineEmits<{
   (e: 'update:checkbox', v: boolean): void
   (e: 'update:workcopy', v: number): void
   (e: 'update:rooms', v: Room[]): void
+  (e: 'revertUpdate'): void
 }>()
+
+function handleClick() {
+  emits('revertUpdate')
+}
 </script>
 <style>
 h3 {
@@ -349,5 +360,12 @@ h3 {
   font-size: 15px;
   line-height: 1;
   padding-left: 15px;
+}
+.RevertButton {
+  margin-bottom: 10px;
+}
+.RevertButton button {
+  padding: 0;
+  border-radius: 10%;
 }
 </style>

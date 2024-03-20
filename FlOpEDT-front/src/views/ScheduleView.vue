@@ -5,11 +5,13 @@
         v-if="authStore.sidePanelToggle"
         @update:checkbox="(v) => (availabilityToggle = v)"
         @update:workcopy="(n) => (workcopySelected = n)"
+        @revert-update="() => undoRedo.revertUpdate()"
         :avail-checked="availabilityToggle"
         v-model:workcopy="workcopySelected"
         :rooms="roomsFetched"
         :tutors="tutors"
         :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)"
+        :revert="undoRedo.hasUpdate.value"
       />
     </div>
     <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
@@ -168,7 +170,12 @@ function handleCreateEvent(calendarEventToCreate: InputCalendarEvent): void {
   if (calendarEventToCreate.data.dataType === 'event') {
     console.log('TODO')
   } else if (calendarEventToCreate.data.dataType === 'avail') {
-    availabilityStore.createAvailability(calendarEventToCreate)
+    const availData: AvailabilityData = {
+      start: calendarEventToCreate.data.start,
+      value: calendarEventToCreate.data.value!,
+      duration: calendarEventToCreate.data.duration!,
+    }
+    undoRedo.addUpdate(calendarEventToCreate.data.dataId, availData, 'availability', 'create')
   }
 }
 
@@ -200,15 +207,12 @@ function handleUpdateEvent(newCalendarEvent: InputCalendarEvent): void {
       undoRedo.addUpdate(newCalendarEvent.data.dataId, courseData, 'course')
     }
   } else if (newCalendarEvent.data.dataType === 'avail') {
-    const avail = availabilityStore.getAvailability(newCalendarEvent.data.dataId)
-    if (avail) {
-      const availData: AvailabilityData = {
-        start: newCalendarEvent.data.start,
-        value: newCalendarEvent.data.value!,
-        duration: newCalendarEvent.data.duration!,
-      }
-      undoRedo.addUpdate(newCalendarEvent.data.dataId, availData, 'availability')
+    const availData: AvailabilityData = {
+      start: newCalendarEvent.data.start,
+      value: newCalendarEvent.data.value!,
+      duration: newCalendarEvent.data.duration!,
     }
+    undoRedo.addUpdate(newCalendarEvent.data.dataId, availData, 'availability')
   }
 }
 
