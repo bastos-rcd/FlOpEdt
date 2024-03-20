@@ -16,7 +16,7 @@ import {
 
 import { dateToString, buildUrl } from '@/helpers'
 import { TimeSetting } from '@/stores/declarations'
-import { parseTime } from '@quasar/quasar-ui-qcalendar'
+import { parseTime, parseTimestamp } from '@quasar/quasar-ui-qcalendar'
 
 const API_ENDPOINT = '/fr/api/'
 
@@ -200,8 +200,8 @@ const api: FlopAPI = {
               const sc: ScheduledCourse = {
                 id: d.id,
                 roomId: d.room_id,
-                start_time: new Date(d.start_time),
-                end_time: new Date(d.end_time),
+                start_time: parseTimestamp(d.start_time),
+                end_time: parseTimestamp(d.end_time),
                 courseId: d.course_id,
                 tutor: d.tutor_id,
                 id_visio: -1,
@@ -478,7 +478,7 @@ const api: FlopAPI = {
             data.forEach((avail: any) => {
               availabilities.push({
                 av_type: avail.subject_type,
-                start_time: avail.start_time,
+                start_time: parseTimestamp(avail.start_time),
                 duration: avail.duration,
                 dataId: userId,
                 value: avail.value,

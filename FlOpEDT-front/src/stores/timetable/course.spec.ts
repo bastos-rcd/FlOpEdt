@@ -27,8 +27,8 @@ describe('Availibility store utils', () => {
     courseStore.addScheduledCourseToDate({
       id: 23,
       roomId: 123,
-      start_time: new Date('2017-01-15 14:30'),
-      end_time: new Date('2017-01-15 15:50'),
+      start_time: parseTimestamp('2017-01-15 14:30'),
+      end_time: parseTimestamp('2017-01-15 15:50'),
       courseId: 33,
       tutor: 12,
       id_visio: -1,
@@ -66,8 +66,8 @@ describe('Availibility store utils', () => {
     const scheduledCourse: ScheduledCourse = courseStore.courseToScheduledCourse(course)
     expect(scheduledCourse.id).toBe(144)
     expect(scheduledCourse.roomId).toBe(90)
-    expect(scheduledCourse.start_time).toEqual(new Date('2023-04-24 08:15'))
-    expect(scheduledCourse.end_time).toEqual(new Date('2023-04-24 12:15'))
+    expect(scheduledCourse.start_time).toEqual(parseTimestamp('2023-04-24 08:15'))
+    expect(scheduledCourse.end_time).toEqual(parseTimestamp('2023-04-24 12:15'))
     expect(scheduledCourse.courseId).toBe(-1) //not implemented
     expect(scheduledCourse.tutor).toBe(18)
     expect(scheduledCourse.id_visio).toBe(-1) //not implemented
@@ -98,8 +98,8 @@ describe('Availibility store utils', () => {
     const newScheduledCourse: ScheduledCourse = courseStore.courseToScheduledCourse(course)
     expect(newScheduledCourse.id).toBe(23)
     expect(newScheduledCourse.roomId).toBe(123)
-    expect(newScheduledCourse.start_time).toEqual(new Date('2017-01-15 14:30'))
-    expect(newScheduledCourse.end_time).toEqual(new Date('2017-01-15 15:50'))
+    expect(newScheduledCourse.start_time).toEqual(parseTimestamp('2017-01-15 14:30'))
+    expect(newScheduledCourse.end_time).toEqual(parseTimestamp('2017-01-15 15:50'))
     expect(newScheduledCourse.courseId).toBe(33) //not implemented
     expect(newScheduledCourse.tutor).toBe(12)
     expect(newScheduledCourse.id_visio).toBe(-1) //not implemented
@@ -115,8 +115,8 @@ describe('Availibility store utils', () => {
     const scheduledCourse: ScheduledCourse = courseStore.courseToScheduledCourse(course)
     expect(scheduledCourse.id).toBe(144)
     expect(scheduledCourse.roomId).toBe(90)
-    expect(scheduledCourse.start_time).toEqual(new Date('2023-04-24 08:15'))
-    expect(scheduledCourse.end_time).toEqual(new Date('2023-04-24 12:15'))
+    expect(scheduledCourse.start_time).toEqual(parseTimestamp('2023-04-24 08:15'))
+    expect(scheduledCourse.end_time).toEqual(parseTimestamp('2023-04-24 12:15'))
     expect(scheduledCourse.courseId).toBe(-1) //not implemented
     expect(scheduledCourse.tutor).toBe(18)
     expect(scheduledCourse.id_visio).toBe(-1) //not implemented
@@ -159,8 +159,8 @@ describe('Availibility store utils', () => {
     let scheduledCoursesOnDate = courseStore.addScheduledCourseToDate({
       id: 23,
       roomId: 123,
-      start_time: new Date('2018-01-16 14:30'),
-      end_time: new Date('2018-01-16 15:50'),
+      start_time: parseTimestamp('2018-01-16 14:30'),
+      end_time: parseTimestamp('2018-01-16 15:50'),
       courseId: 33,
       tutor: 12,
       id_visio: -1,
@@ -177,8 +177,8 @@ describe('Availibility store utils', () => {
     scheduledCoursesOnDate = courseStore.addScheduledCourseToDate({
       id: 246,
       roomId: 13,
-      start_time: new Date('2018-01-16 09:30'),
-      end_time: new Date('2018-01-16 11:50'),
+      start_time: parseTimestamp('2018-01-16 09:30'),
+      end_time: parseTimestamp('2018-01-16 11:50'),
       courseId: 3,
       tutor: 1,
       id_visio: -1,

@@ -2,7 +2,7 @@ import { AvailabilityBack } from '@/ts/type'
 import { defineStore, storeToRefs } from 'pinia'
 import { Ref, ref } from 'vue'
 import { Availability } from '../declarations'
-import { Timestamp, copyTimestamp, parseTime, parseTimestamp, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp, parseTime, parseTimestamp, today, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
 import {
   getDateStringFromTimestamp,
@@ -32,18 +32,20 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     try {
       await api.getAvailabilities(userId, from, to).then((result: AvailabilityBack[]) => {
         result.forEach((avb) => {
-          const dateString = datetimeStringToDate(avb.start_time)
-          if (!availabilitiesBack.value.has(dateString)) {
-            availabilitiesBack.value.set(dateString, [])
-          }
-          availabilitiesBack.value.get(dateString)!.push(avb)
-          const newAvailabilities: Availability[] = formatAvailabilityWithDayTime(availabilityBackToAvailability(avb))
-          newAvailabilities.forEach((newAvailability) => {
-            if (!availabilities.value.has(dateString)) {
-              availabilities.value.set(dateString, [])
+          if (avb.start_time) {
+            const dateString = getDateStringFromTimestamp(avb.start_time)
+            if (!availabilitiesBack.value.has(dateString)) {
+              availabilitiesBack.value.set(dateString, [])
             }
-            availabilities.value.get(dateString)!.push(newAvailability)
-          })
+            availabilitiesBack.value.get(dateString)!.push(avb)
+            const newAvailabilities: Availability[] = formatAvailabilityWithDayTime(availabilityBackToAvailability(avb))
+            newAvailabilities.forEach((newAvailability) => {
+              if (!availabilities.value.has(dateString)) {
+                availabilities.value.set(dateString, [])
+              }
+              availabilities.value.get(dateString)!.push(newAvailability)
+            })
+          }
         })
         isLoading.value = false
       })
@@ -54,21 +56,23 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
-    let start: Timestamp = parseTimestamp(availabilityBack.start_time) as Timestamp
     let newAvailability: Availability = {
       id: nextId.value++,
       type: availabilityBack.av_type,
       duration: durationDjangoToMinutes(availabilityBack.duration),
-      start: start,
+      start: parseTimestamp(today())!,
       value: availabilityBack.value,
       dataId: availabilityBack.dataId,
+    }
+    if (availabilityBack.start_time) {
+      newAvailability.start = availabilityBack.start_time
     }
     return newAvailability
   }
 
   function availabilityToAvailabilityBack(availability: Availability): AvailabilityBack {
     let newAvailabilityBack: AvailabilityBack = {
-      start_time: availability.start.date + ' ' + availability.start.time,
+      start_time: availability.start,
       duration: durationMinutesToDjango(availability.duration),
       value: availability.value,
       av_type: availability.type,

@@ -77,7 +77,7 @@ describe('Availibility store utils', () => {
     expect.assertions(7)
     const availabilityStore = useAvailabilityStore()
     let availabilityBack: AvailabilityBack = {
-      start_time: '2017-01-15 14:30',
+      start_time: parseTimestamp('2017-01-15 14:30'),
       duration: '03:30:00',
       value: 0,
       av_type: 'user',
@@ -117,7 +117,7 @@ describe('Availibility store utils', () => {
     expect.assertions(10)
     const availabilityStore = useAvailabilityStore()
     let availabilityBack: AvailabilityBack = {
-      start_time: '2017-01-15 14:30',
+      start_time: parseTimestamp('2017-01-15 14:30'),
       duration: '03:30:00',
       value: 0,
       av_type: 'user',

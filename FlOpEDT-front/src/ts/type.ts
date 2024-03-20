@@ -1,6 +1,8 @@
+import { TimestampOrNull, parseTimestamp } from '@quasar/quasar-ui-qcalendar'
+
 export interface AvailabilityBack {
   av_type: string
-  start_time: string
+  start_time: TimestampOrNull
   duration: string
   value: number
   dataId: number
@@ -124,8 +126,8 @@ export interface RoomAttributeValue {
 export class ScheduledCourse {
   id: number
   roomId: number
-  start_time: Date
-  end_time: Date
+  start_time: TimestampOrNull
+  end_time: TimestampOrNull
   courseId: number
   tutor: number
   id_visio: number
@@ -153,8 +155,8 @@ export class ScheduledCourse {
   ) {
     this.id = id
     this.roomId = room
-    this.start_time = new Date(start_time)
-    this.end_time = new Date(end_time)
+    this.start_time = parseTimestamp(start_time)
+    this.end_time = parseTimestamp(end_time)
     this.courseId = courseId
     this.tutor = tutor
     this.id_visio = id_visio

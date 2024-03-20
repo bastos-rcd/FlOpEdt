@@ -3,7 +3,15 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { ScheduledCourse, Department } from '@/ts/type'
 import { Course } from '@/stores/declarations'
-import { Timestamp, copyTimestamp, makeDate, nextDay, updateFormatted } from '@quasar/quasar-ui-qcalendar'
+import {
+  Timestamp,
+  copyTimestamp,
+  makeDate,
+  nextDay,
+  parseTimestamp,
+  today,
+  updateFormatted,
+} from '@quasar/quasar-ui-qcalendar'
 import { remove, cloneDeep } from 'lodash'
 import { dateToTimestamp, getDateStringFromTimestamp, getDateTimeStringFromDate, timestampToDate } from '@/helpers'
 
@@ -24,11 +32,11 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     courseTypeIds.value.forEach((ct: { id: number; name: string }) => {
       const colorValue =
         'rgb(' +
-        Math.ceil(Math.random() * 255) +
+        Math.ceil(Math.random() * 155) +
         ',' +
-        Math.ceil(Math.random() * 255) +
+        Math.ceil(Math.random() * 155) +
         ',' +
-        Math.ceil(Math.random() * 255) +
+        Math.ceil(Math.random() * 155) +
         ')'
       courseTypeColors.set(ct.id, colorValue)
     })
@@ -43,26 +51,28 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     try {
       await api.getScheduledCourses(from, to, department?.id, tutor).then((result: ScheduledCourse[]) => {
         result.forEach((r: ScheduledCourse) => {
-          if (!scheduledCourses.value.has(getDateTimeStringFromDate(r.start_time, false)))
-            scheduledCourses.value.set(getDateTimeStringFromDate(r.start_time, false), [])
-          remove(scheduledCourses.value.get(getDateTimeStringFromDate(r.start_time, false))!, (sc) => sc.id === r.id)
-          scheduledCourses.value.get(getDateTimeStringFromDate(r.start_time, false))?.push({
-            id: r.id,
-            roomId: r.roomId,
-            start_time: new Date(r.start_time),
-            end_time: new Date(r.end_time),
-            courseId: r.courseId,
-            tutor: r.tutor,
-            id_visio: -1,
-            moduleId: r.moduleId,
-            trainProgId: r.trainProgId,
-            groupIds: r.groupIds,
-            suppTutorsIds: r.suppTutorsIds,
-            no: r.no,
-            courseTypeId: r.courseTypeId,
-          })
-          if (!courseTypeIds.value.map((ct) => ct.id).includes(r.courseTypeId)) {
-            courseTypeIds.value.push({ id: r.courseTypeId, name: '' })
+          if (r.start_time) {
+            if (!scheduledCourses.value.has(getDateStringFromTimestamp(r.start_time)))
+              scheduledCourses.value.set(getDateStringFromTimestamp(r.start_time), [])
+            remove(scheduledCourses.value.get(getDateStringFromTimestamp(r.start_time))!, (sc) => sc.id === r.id)
+            scheduledCourses.value.get(getDateStringFromTimestamp(r.start_time))?.push({
+              id: r.id,
+              roomId: r.roomId,
+              start_time: r.start_time,
+              end_time: r.end_time,
+              courseId: r.courseId,
+              tutor: r.tutor,
+              id_visio: -1,
+              moduleId: r.moduleId,
+              trainProgId: r.trainProgId,
+              groupIds: r.groupIds,
+              suppTutorsIds: r.suppTutorsIds,
+              no: r.no,
+              courseTypeId: r.courseTypeId,
+            })
+            if (!courseTypeIds.value.map((ct) => ct.id).includes(r.courseTypeId)) {
+              courseTypeIds.value.push({ id: r.courseTypeId, name: '' })
+            }
           }
         })
         isLoading.value = false
@@ -89,8 +99,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       .find((sc) => sc.id === course.id)
     if (scheduledCourse) {
       scheduledCourse.roomId = course.room
-      scheduledCourse.start_time = makeDate(course.start)
-      scheduledCourse.end_time = makeDate(course.end)
+      scheduledCourse.start_time = course.start
+      scheduledCourse.end_time = course.end
       scheduledCourse.tutor = course.tutorId
       scheduledCourse.suppTutorsIds = course.suppTutorIds
       scheduledCourse.groupIds = course.groupIds
@@ -102,12 +112,12 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   }
 
   function scheduledCourseToCourse(scheduledCourse: ScheduledCourse): Course {
-    let course: Course = {
+    const course: Course = {
       id: scheduledCourse.id,
       no: scheduledCourse.no,
       room: scheduledCourse.roomId,
-      start: dateToTimestamp(scheduledCourse.start_time),
-      end: dateToTimestamp(scheduledCourse.end_time),
+      start: parseTimestamp(today())!,
+      end: parseTimestamp(today())!,
       tutorId: scheduledCourse.tutor,
       suppTutorIds: cloneDeep(scheduledCourse.suppTutorsIds),
       module: scheduledCourse.moduleId,
@@ -116,6 +126,10 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       roomTypeId: -1,
       graded: false,
       workCopy: 0,
+    }
+    if (scheduledCourse.start_time && scheduledCourse.end_time) {
+      course.start = scheduledCourse.start_time
+      course.end = scheduledCourse.end_time
     }
     return course
   }
@@ -128,8 +142,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     if (scheduledCourse) {
       scheduledCourse.roomId = course.room
       scheduledCourse.moduleId = course.module
-      scheduledCourse.start_time = timestampToDate(course.start)
-      scheduledCourse.end_time = timestampToDate(course.end)
+      scheduledCourse.start_time = course.start
+      scheduledCourse.end_time = course.end
       scheduledCourse.tutor = course.tutorId
       scheduledCourse.suppTutorsIds = cloneDeep(course.suppTutorIds)
       scheduledCourse.groupIds = cloneDeep(course.groupIds)
@@ -137,8 +151,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       scheduledCourse = {
         id: course.id,
         roomId: course.room,
-        start_time: timestampToDate(course.start),
-        end_time: timestampToDate(course.end),
+        start_time: course.start,
+        end_time: course.end,
         courseId: -1,
         tutor: course.tutorId,
         id_visio: -1,
@@ -225,7 +239,8 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   }
 
   function addScheduledCourseToDate(scheduledCourse: ScheduledCourse): ScheduledCourse[] {
-    const dateString = getDateTimeStringFromDate(scheduledCourse.start_time, false)
+    let dateString: string = ''
+    if (scheduledCourse.start_time) dateString = getDateStringFromTimestamp(scheduledCourse.start_time)
     if (!scheduledCourses.value.has(dateString)) scheduledCourses.value.set(dateString, [])
     const scheduledCoursesOutput = scheduledCourses.value.get(dateString)
     scheduledCoursesOutput!.push(scheduledCourse)
