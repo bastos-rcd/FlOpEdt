@@ -22,11 +22,11 @@ export const usePermanentStore = defineStore('permanent', () => {
     modules.value.forEach((mod: Module) => {
       const colorValue =
         'rgb(' +
-        Math.ceil(Math.random() * 255) +
+        Math.ceil(Math.random() * 155) +
         ',' +
-        Math.ceil(Math.random() * 255) +
+        Math.ceil(Math.random() * 155) +
         ',' +
-        Math.ceil(Math.random() * 255) +
+        Math.ceil(Math.random() * 155) +
         ')'
       moduleColors.set(mod.id, colorValue)
     })
