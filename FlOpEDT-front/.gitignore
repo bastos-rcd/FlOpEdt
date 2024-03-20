@@ -7,7 +7,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 yarn-save.lock
-yarn.lock
 
 node_modules
 dist
@@ -24,3 +23,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.histoire
+.reports
