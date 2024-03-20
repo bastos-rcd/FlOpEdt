@@ -1,7 +1,7 @@
 import { api } from '@/utils/api'
 import { defineStore } from 'pinia'
-import { Department } from '@/ts/type'
-import { computed, ref } from 'vue'
+import { Department, StartTime } from '@/ts/type'
+import { Ref, computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 export const useDepartmentStore = defineStore('dept', () => {
@@ -9,6 +9,13 @@ export const useDepartmentStore = defineStore('dept', () => {
   const current = ref(new Department())
   const isAllDepartmentsFetched = ref<boolean>(false)
   const isCurrentDepartmentSelected = computed(() => current.value.id !== -1)
+  const startTimes: Ref<StartTime[]> = ref([])
+
+  watch(current, async () => {
+    await api.getStartTimes(current.value.id).then((result: StartTime[]) => {
+      startTimes.value = result
+    })
+  })
 
   async function fetchAllDepartments(): Promise<void> {
     await api?.getAllDepartments().then((json: any) => {
@@ -46,5 +53,6 @@ export const useDepartmentStore = defineStore('dept', () => {
     isAllDepartmentsFetched,
     cleanCurrentDepartment,
     getDepartmentFromURL,
+    startTimes,
   }
 })

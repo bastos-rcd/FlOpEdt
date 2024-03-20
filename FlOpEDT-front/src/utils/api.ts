@@ -12,9 +12,10 @@ import {
   TrainingProgrammeAPI,
   AvailabilityBack,
   TimeSettingBack,
+  StartTime,
 } from '@/ts/type'
 
-import { dateToString, buildUrl } from '@/helpers'
+import { dateToString, buildUrl, durationDjangoToMinutes } from '@/helpers'
 import { TimeSetting } from '@/stores/declarations'
 import { parseTime, parseTimestamp } from '@quasar/quasar-ui-qcalendar'
 
@@ -50,6 +51,7 @@ const urls = {
   getModules: 'v1/base/courses/module',
   getTrainProgs: 'v1/base/groups/training_programmes',
   getAvailability: 'v1/availability/user',
+  getStartTimes: 'v1/constraint/base/course_start_time',
 }
 
 function getCookie(name: string) {
@@ -151,6 +153,7 @@ export interface FlopAPI {
   getRoomById(id: number): Promise<RoomAPI | undefined>
   getAvailabilities(userId: number, from: Date, to: Date): Promise<Array<AvailabilityBack>>
   getTimeSettings(): Promise<any[]>
+  getStartTimes(deptId?: number): Promise<StartTime[]>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
@@ -519,6 +522,31 @@ const api: FlopAPI = {
       })
     })
     return timeSettings
+  },
+  async getStartTimes(deptId?: number): Promise<StartTime[]> {
+    const startTimes: StartTime[] = []
+    let finalUrl = API_ENDPOINT + urls.getStartTimes
+    if (deptId) finalUrl += '/?department_id=' + deptId
+    await fetch(finalUrl, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    }).then(async (response) => {
+      if (!response.ok) {
+        return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+      }
+      await response.json().then((data: any[]) => {
+        data.forEach((allowedStartTime: any) => {
+          startTimes.push({
+            id: allowedStartTime.id,
+            departmentId: allowedStartTime.department_id,
+            duration: durationDjangoToMinutes(allowedStartTime.duration),
+            allowedStartTimes: allowedStartTime.allowed_start_times.map((ast: string) => durationDjangoToMinutes(ast)),
+          })
+        })
+      })
+    })
+    return startTimes
   },
   fetch: {
     booleanRoomAttributes() {

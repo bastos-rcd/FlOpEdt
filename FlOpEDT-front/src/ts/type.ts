@@ -169,6 +169,13 @@ export class ScheduledCourse {
   }
 }
 
+export interface StartTime {
+  id: number
+  departmentId: number
+  duration: number
+  allowedStartTimes: number[]
+}
+
 export interface TimeSettingBack {
   id: number
   day_start_time: string
