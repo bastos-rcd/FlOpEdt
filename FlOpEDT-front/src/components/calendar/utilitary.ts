@@ -11,6 +11,7 @@ import {
 } from '@quasar/quasar-ui-qcalendar'
 import { diffTimestamp } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
+import { Course } from '@/stores/declarations'
 
 export const STEP_DEFAULT: number = 15
 
@@ -136,17 +137,24 @@ export function badgeStyles(
   return s
 }
 
-function isTutorInTwoCourses(event1: CalendarEvent, event2: CalendarEvent): boolean {
-  let isInBothCourses = false
+function isTutorInTwoCourses(course1: Course, course2: Course): boolean {
+  return course1.tutorId === course2.tutorId
+}
+
+function areBothCoursesInSameRoom(course1: Course, course2: Course): boolean {
+  return course1.room === course2.room
+}
+
+function areCoursesNotPossibleAtSameTime(event1: CalendarEvent, event2: CalendarEvent): boolean {
   const courseStore = useScheduledCourseStore()
   if (event1.data.dataType === 'event' && event2.data.dataType === 'event') {
     const course1 = courseStore.getCourse(event1.data.dataId)
     const course2 = courseStore.getCourse(event2.data.dataId)
     if (course1 && course2) {
-      isInBothCourses = course1.tutorId === course2.tutorId
+      return areBothCoursesInSameRoom(course1, course2) || isTutorInTwoCourses(course1, course2)
     }
   }
-  return isInBothCourses
+  return false
 }
 
 function areEventsOverlapped(event1: CalendarEvent, event2: CalendarEvent): boolean {
@@ -267,7 +275,7 @@ function isPossibleDropzone(
     } else if (
       event.id !== currentEvent.id &&
       eventsTimeOverlap(dropzone, currentEvent) &&
-      isTutorInTwoCourses(event, currentEvent)
+      areCoursesNotPossibleAtSameTime(event, currentEvent)
     ) {
       isPossible = false
     }
