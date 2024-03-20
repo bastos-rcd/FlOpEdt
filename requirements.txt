@@ -35,3 +35,5 @@ pytest
 pytest-django
 rules
 ics
+pylint
+pylint-django
