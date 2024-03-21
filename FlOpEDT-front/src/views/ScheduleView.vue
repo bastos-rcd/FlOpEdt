@@ -5,7 +5,7 @@
         v-if="authStore.sidePanelToggle"
         @update:checkbox="(v) => (availabilityToggle = v)"
         @update:workcopy="(n) => (workcopySelected = n)"
-        @revert-update="() => undoRedo.revertUpdate()"
+        @revert-update="() => undoRedo.revertUpdateBlock()"
         :avail-checked="availabilityToggle"
         v-model:workcopy="workcopySelected"
         :rooms="roomsFetched"
@@ -17,9 +17,7 @@
     <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
       <Calendar
         v-model:events="calendarEvents"
-        @update:event="handleUpdateEvent"
-        @remove:event="handleRemoveEvent"
-        @create:event="handleCreateEvent"
+        @update:events="handleUpdateEvents"
         :columns="columnsToDisplay"
         :dropzones="dropzonesToDisplay"
         @dragstart="onDragStart"
@@ -166,54 +164,58 @@ function changeDate(newDate: Timestamp) {
   }
 }
 
-function handleCreateEvent(calendarEventToCreate: InputCalendarEvent): void {
-  if (calendarEventToCreate.data.dataType === 'event') {
-    console.log('TODO')
-  } else if (calendarEventToCreate.data.dataType === 'avail') {
-    const availData: AvailabilityData = {
-      start: calendarEventToCreate.data.start,
-      value: calendarEventToCreate.data.value!,
-      duration: calendarEventToCreate.data.duration!,
-    }
-    undoRedo.addUpdate(calendarEventToCreate.data.dataId, availData, 'availability', 'create')
-  }
-}
-
-function handleRemoveEvent(calendarEventToRemove: InputCalendarEvent): void {
-  if (calendarEventToRemove.data.dataType === 'event') {
-    scheduledCourseStore.removeCourse(calendarEventToRemove.id)
-  } else if (calendarEventToRemove.data.dataType === 'avail') {
-    availabilityStore.removeAvailibility(calendarEventToRemove.data.dataId)
-  }
-}
-
-function handleUpdateEvent(newCalendarEvent: InputCalendarEvent): void {
-  if (newCalendarEvent.data.dataType === 'event') {
-    const course = scheduledCourseStore.getCourse(newCalendarEvent.data.dataId)
-    if (course) {
-      const courseData: CourseData = {
-        tutorId: course.tutorId,
-        start: newCalendarEvent.data.start,
-        end: updateMinutes(
-          copyTimestamp(newCalendarEvent.data.start),
-          parseTime(newCalendarEvent.data.start) + newCalendarEvent.data.duration!
-        ),
-        roomId: course.room,
-        suppTutorIds: course.suppTutorIds,
-        graded: course.graded,
-        roomTypeId: course.roomTypeId,
-        groupIds: course.groupIds,
+function handleUpdateEvents(newCalendarEvents: InputCalendarEvent[]): void {
+  let updatesData: {
+    data: CourseData | AvailabilityData
+    objectId: number
+    type: 'course' | 'availability'
+    operation: 'create' | 'update' | 'remove'
+  }[] = []
+  newCalendarEvents.forEach((newCalendarEvent) => {
+    if (newCalendarEvent.data.dataType === 'event') {
+      const course = scheduledCourseStore.getCourse(newCalendarEvent.data.dataId)
+      if (course) {
+        const courseData: CourseData = {
+          tutorId: course.tutorId,
+          start: newCalendarEvent.data.start,
+          end: updateMinutes(
+            copyTimestamp(newCalendarEvent.data.start),
+            parseTime(newCalendarEvent.data.start) + newCalendarEvent.data.duration!
+          ),
+          roomId: course.room,
+          suppTutorIds: course.suppTutorIds,
+          graded: course.graded,
+          roomTypeId: course.roomTypeId,
+          groupIds: course.groupIds,
+        }
+        updatesData.push({
+          data: courseData,
+          objectId: newCalendarEvent.data.dataId,
+          type: 'course',
+          operation: 'update',
+        })
       }
-      undoRedo.addUpdate(newCalendarEvent.data.dataId, courseData, 'course')
+    } else if (newCalendarEvent.data.dataType === 'avail') {
+      const availData: AvailabilityData = {
+        start: newCalendarEvent.data.start,
+        value: newCalendarEvent.data.value!,
+        duration: newCalendarEvent.data.duration!,
+      }
+      let operation: 'create' | 'update' | 'remove' = 'update'
+      if (newCalendarEvent.id === -1) {
+        operation = 'create'
+      } else if (!newCalendarEvent.data.duration || newCalendarEvent.data.duration <= 0) {
+        operation = 'remove'
+      }
+      updatesData.push({
+        data: availData,
+        objectId: newCalendarEvent.data.dataId,
+        type: 'availability',
+        operation: operation,
+      })
     }
-  } else if (newCalendarEvent.data.dataType === 'avail') {
-    const availData: AvailabilityData = {
-      start: newCalendarEvent.data.start,
-      value: newCalendarEvent.data.value!,
-      duration: newCalendarEvent.data.duration!,
-    }
-    undoRedo.addUpdate(newCalendarEvent.data.dataId, availData, 'availability')
-  }
+  })
+  undoRedo.addUpdateBlock(updatesData)
 }
 
 /**

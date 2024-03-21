@@ -153,15 +153,7 @@ import { watch } from 'vue'
 import { availabilityData } from './declaration'
 import EditEvent from '../EditEvent.vue'
 import { useI18n } from 'vue-i18n'
-import {
-  STEP_DEFAULT,
-  badgeClasses,
-  closestStep,
-  nextId,
-  generateSpanId,
-  badgeStyles,
-  updateEventsOverlap,
-} from './utilitary'
+import { STEP_DEFAULT, badgeClasses, closestStep, generateSpanId, badgeStyles, updateEventsOverlap } from './utilitary'
 import AvailibityMenu from '../AvailibityMenu.vue'
 import CourseCard from '../CourseCard.vue'
 
@@ -195,8 +187,6 @@ const emits = defineEmits<{
   (e: 'weekdays', value: number[]): void
   (e: 'event:details', value: number): void
   (e: 'update:event', value: InputCalendarEvent): void
-  (e: 'remove:event', value: InputCalendarEvent): void
-  (e: 'create:event', value: InputCalendarEvent): void
 }>()
 
 const preWeight = computed(() => {
@@ -544,7 +534,7 @@ function updateEventDropped(): void {
   } else {
     console.log('NO DROPZONE FOR THIS EVENT OU ERREUR DE DROPZONE')
   }
-  emits('update:event', newEvent)
+  emits('update:events', [newEvent])
 }
 
 /**
@@ -640,9 +630,7 @@ function onMouseUp(): void {
         oldAvailDuration === newAvailDuration &&
         parseTime(newEvent.data.start.time) + newAvailDuration === props.endOfDay
       ) {
-        newEventsToUpdate.forEach((event) => {
-          emits('update:event', event)
-        })
+        emits('update:events', newEventsToUpdate)
         currentAvailId = -1
         return
       }
@@ -657,8 +645,7 @@ function onMouseUp(): void {
           if (nextAvails) {
             nextAvails.forEach((nextAv) => {
               newEvent.data.duration! += nextAv.data.duration!
-              emits('remove:event', nextAv)
-              remove(newEventsToUpdate, (e) => e.id === nextAv.id)
+              nextAv.data.duration = -1
             })
           }
         } else {
@@ -667,13 +654,7 @@ function onMouseUp(): void {
             newEventsToUpdate.push(updatedDownEvent)
           }
         }
-        newEventsToUpdate.forEach((ev) => {
-          if (ev.data.duration! <= 0) {
-            emits('remove:event', ev)
-          } else {
-            emits('update:event', ev)
-          }
-        })
+        emits('update:events', newEventsToUpdate)
       }
     }
     currentAvailId = -1
@@ -703,10 +684,9 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
             secondAvail.data.start,
             parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY, props.step)
           )
-          secondAvail.id = nextId()
+          secondAvail.id = -1
           secondAvail.data.duration! -= firstAvail.data.duration
-          emits('update:event', firstAvail)
-          emits('create:event', secondAvail)
+          emits('update:events', [firstAvail, secondAvail])
         }
       }
     }
@@ -731,7 +711,7 @@ function changeAvailValue(eventId: number, value?: number): void {
         newEvent.data.value = 0
       }
     }
-    emits('update:event', newEvent)
+    emits('update:events', [newEvent])
   }
 }
 
@@ -760,9 +740,9 @@ function updateResizedEvent(newEvent: InputCalendarEvent): InputCalendarEvent[] 
   ) {
     const newAvail: InputCalendarEvent = cloneDeep(newEvent)
     updateMinutes(newAvail.data.start, closestStep(newEnd, props.step))
-    newAvail.id = nextId()
+    newAvail.id = -1
     newAvail.data.duration = props.endOfDay - closestStep(newEnd, props.step)
-    if (newAvail.data.duration > 0) emits('create:event', newAvail)
+    if (newAvail.data.duration > 0) newEventsToUpdate.push(newAvail)
   }
   newEvent.data.duration = closestStep(newEnd, props.step) - parseTime(newEvent.data.start)
   newAvailDuration = newEvent.data.duration
