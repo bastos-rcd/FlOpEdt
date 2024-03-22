@@ -201,20 +201,23 @@ function handleUpdateEvents(newCalendarEvents: InputCalendarEvent[]): void {
         value: newCalendarEvent.data.value!,
         duration: newCalendarEvent.data.duration!,
       }
-      let operation: 'create' | 'update' | 'remove' = 'update'
-      if (newCalendarEvent.id === -1) {
-        operation = 'create'
-      } else if (!newCalendarEvent.data.duration || newCalendarEvent.data.duration <= 0) {
-        operation = 'remove'
-      }
       const availability = availabilityStore.getAvailability(newCalendarEvent.data.dataId)
-      if (availability)
-        updatesData.push({
-          data: availData,
-          objectId: availability.id,
-          type: 'availability',
-          operation: operation,
-        })
+      let update = {
+        data: availData,
+        objectId: availability?.id || -1,
+        type: 'availability' as 'course' | 'availability',
+        operation: 'update' as 'create' | 'update' | 'remove',
+        dataId: -1,
+        availType: 'user',
+      }
+      if (newCalendarEvent.id === -1) {
+        update.operation = 'create'
+      } else if (!newCalendarEvent.data.duration || newCalendarEvent.data.duration <= 0) {
+        update.operation = 'remove'
+        update.dataId = availability!.dataId
+        update.availType = availability!.type
+      }
+      if (availability) updatesData.push(update)
     }
   })
   undoRedo.addUpdateBlock(updatesData)

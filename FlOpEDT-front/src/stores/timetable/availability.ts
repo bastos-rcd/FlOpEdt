@@ -55,7 +55,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
     let newAvailability: Availability = {
       id: nextId.value++,
-      type: availabilityBack.av_type,
+      type: availabilityBack.av_type as 'user' | 'room',
       duration: durationDjangoToMinutes(availabilityBack.duration),
       start: parseTimestamp(today())!,
       value: availabilityBack.value,
@@ -78,13 +78,13 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return newAvailabilityBack
   }
 
-  function createNewAvailability(avail: Availability): Availability {
+  function createNewAvailability(avail: Availability, oldId?: number): Availability {
     const newAvail: Availability = {
-      id: nextId.value++,
+      id: oldId ? oldId : nextId.value++,
       duration: avail.duration,
       start: avail.start,
       value: avail.value,
-      type: 'avail',
+      type: avail.type,
       dataId: avail.dataId,
     }
     return newAvail
@@ -93,8 +93,8 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   function addOrUpdateAvailibility(avail: Availability): Availability[] {
     const dateString = getDateStringFromTimestamp(avail.start)
     if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])
+    removeAvailibility(avail.id)
     const availabilitiesOutput = availabilities.value.get(dateString)
-    remove(availabilitiesOutput!, (av) => av.id === avail.id)
     availabilitiesOutput!.push(avail)
     return availabilitiesOutput!
   }
@@ -102,7 +102,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   function addOrUpdateAvailibilityEvent(
     availEvent: InputCalendarEvent,
     dataId?: number,
-    availType?: string
+    availType?: 'user' | 'room'
   ): Availability[] {
     const dateString = getDateStringFromTimestamp(availEvent.data.start)
     if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])

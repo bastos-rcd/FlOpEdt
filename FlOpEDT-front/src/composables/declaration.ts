@@ -31,4 +31,6 @@ export interface AvailabilityData {
   start: Timestamp
   value: number
   duration: number
+  dataId?: number
+  availType?: 'user' | 'room'
 }

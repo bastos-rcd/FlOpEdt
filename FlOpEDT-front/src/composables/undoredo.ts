@@ -2,7 +2,6 @@ import { computed, ref } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { AvailabilityData, CourseData, UpdateAvailability, UpdateCourse, UpdatesHistory } from './declaration'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
-import { useEventStore } from '@/stores/display/event'
 import { Availability } from '@/stores/declarations'
 import { cloneDeep } from 'lodash'
 
@@ -66,6 +65,23 @@ export function useUndoredo() {
         const oldAvail = availabilityStore.getAvailability(objectId)
         if (oldAvail) currentAvail = availabilityStore.createNewAvailability(oldAvail)
         dataFrom.value = -1
+      } else if (operation === 'remove') {
+        currentAvail = availabilityStore.getAvailability(objectId)
+        if (currentAvail) {
+          dataFrom.start = currentAvail.start
+          dataFrom.duration = currentAvail.duration
+          dataFrom.value = currentAvail.value
+          dataFrom.availType = currentAvail.type
+          dataFrom.dataId = currentAvail.dataId
+        }
+        availabilityStore.removeAvailibility(objectId)
+        return {
+          type: type,
+          objectId: currentAvail?.id || -1,
+          from: dataFrom,
+          to: availData,
+          operation: operation,
+        } as UpdateAvailability
       }
       if (currentAvail) {
         currentAvail.duration = availData.duration
@@ -104,6 +120,18 @@ export function useUndoredo() {
         lastAvailUpdated!.duration = lastAvailUpdate.from.duration
         lastAvailUpdated!.start = lastAvailUpdate.from.start
         lastAvailUpdated!.value = lastAvailUpdate.from.value
+      } else if (lastAvailUpdate.operation === 'remove') {
+        const newAvail: Availability = {
+          id: -1,
+          duration: lastAvailUpdate.from.duration,
+          start: lastAvailUpdate.from.start,
+          value: lastAvailUpdate.from.value,
+          type: lastAvailUpdate.from.availType!,
+          dataId: lastAvailUpdate.from.dataId!,
+        }
+        availabilityStore.addOrUpdateAvailibility(
+          availabilityStore.createNewAvailability(newAvail, lastAvailUpdate.objectId)
+        )
       }
     }
   }
@@ -144,5 +172,6 @@ export function useUndoredo() {
     revertUpdateBlock,
     hasUpdate,
     addUpdateBlock,
+    updatesHistories,
   }
 }
