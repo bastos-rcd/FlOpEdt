@@ -52,7 +52,6 @@ export function useUndoredo() {
         operation: 'update',
       } as UpdateCourse
     } else if (type === 'availability') {
-      const eventStore = useEventStore()
       const availData = data as AvailabilityData
       const dataFrom = cloneDeep(data) as AvailabilityData
       let currentAvail: Availability | undefined
@@ -64,10 +63,8 @@ export function useUndoredo() {
           dataFrom.value = currentAvail.value
         }
       } else if (operation === 'create') {
-        const availabilityEventRelated = eventStore.calendarEvents.find(
-          (ev) => ev.data.dataId === objectId && ev.data.dataType === 'avail'
-        )
-        if (availabilityEventRelated) currentAvail = availabilityStore.createAvailability(availabilityEventRelated)
+        const oldAvail = availabilityStore.getAvailability(objectId)
+        if (oldAvail) currentAvail = availabilityStore.createNewAvailability(oldAvail)
         dataFrom.value = -1
       }
       if (currentAvail) {
@@ -118,7 +115,7 @@ export function useUndoredo() {
       type: 'course' | 'availability'
       operation: 'update' | 'create' | 'remove'
     }[]
-  ) {
+  ): void {
     const updates: UpdatesHistory[] = []
     updateBlock.forEach((update) => {
       const currentUpdate: UpdatesHistory | undefined = addUpdate(
@@ -132,12 +129,14 @@ export function useUndoredo() {
     updatesHistories.value.push(updates)
   }
 
-  function revertUpdateBlock() {
+  function revertUpdateBlock(): void {
     const updateBlock = updatesHistories.value.pop()
     if (updateBlock) {
-      updateBlock.forEach((update: UpdatesHistory) => {
+      let update = updateBlock.pop()
+      while (update) {
         revertUpdate(update)
-      })
+        update = updateBlock.pop()
+      }
     }
   }
 
