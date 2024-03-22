@@ -5,7 +5,7 @@ export interface Availability {
   duration: number
   start: Timestamp
   value: number
-  type: string
+  type: 'user' | 'room'
   dataId: number
 }
 

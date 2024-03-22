@@ -426,4 +426,142 @@ describe('undoredo composable', () => {
     expect(oldAvail).toBeDefined()
     expect(noAvail).toBeUndefined()
   })
+  it('historizes the creation of availabilities and revert them', () => {
+    const availabilityStore = useAvailabilityStore()
+    const { availabilities } = storeToRefs(availabilityStore)
+    const { addUpdateBlock, revertUpdateBlock } = useUndoredo()
+    addUpdateBlock([
+      {
+        objectId: 23,
+        data: {
+          start: parseTimestamp('2022-01-25 10:00') as Timestamp,
+          value: 5,
+          duration: 25,
+        },
+        type: 'availability',
+        operation: 'create',
+      },
+      {
+        objectId: 23,
+        data: {
+          start: parseTimestamp('2022-01-25 12:00') as Timestamp,
+          value: 8,
+          duration: 50,
+        },
+        type: 'availability',
+        operation: 'update',
+      },
+      {
+        objectId: 1,
+        data: {
+          start: parseTimestamp('2022-01-25 14:00') as Timestamp,
+          value: 1,
+          duration: 100,
+        },
+        type: 'availability',
+        operation: 'create',
+      },
+    ])
+    addUpdateBlock([
+      {
+        objectId: 2,
+        data: {
+          start: parseTimestamp('2022-01-26 22:00') as Timestamp,
+          value: 2,
+          duration: 75,
+        },
+        type: 'availability',
+        operation: 'create',
+      },
+    ])
+    expect(availabilities.value.get('2022-01-25')?.length).toBe(3)
+    expect(availabilities.value.get('2022-01-26')?.length).toBe(1)
+    revertUpdateBlock()
+    expect(availabilities.value.get('2022-01-26')?.length).toBe(0)
+    revertUpdateBlock()
+    expect(availabilities.value.get('2022-01-25')?.length).toBe(1)
+  })
+
+  it('historizes the deletion of an availability', () => {
+    const availabilityStore = useAvailabilityStore()
+    const { availabilities } = storeToRefs(availabilityStore)
+    const { addUpdateBlock } = useUndoredo()
+    addUpdateBlock([
+      {
+        objectId: 23,
+        data: {
+          start: parseTimestamp('2022-01-25 22:00') as Timestamp,
+          value: 2,
+          duration: 75,
+          dataId: 23,
+          availType: 'user',
+        },
+        type: 'availability',
+        operation: 'remove',
+      },
+    ])
+    expect(availabilities.value.get('2022-01-25')?.length).toBe(0)
+  })
+  it('historizes the deletion of availabilities and revert them', () => {
+    const availabilityStore = useAvailabilityStore()
+    const { availabilities } = storeToRefs(availabilityStore)
+    const { addUpdateBlock, updatesHistories, revertUpdateBlock } = useUndoredo()
+    addUpdateBlock([
+      {
+        objectId: 23,
+        data: {
+          start: parseTimestamp('2022-01-26 23:00') as Timestamp,
+          value: 2,
+          duration: 75,
+          dataId: 23,
+          availType: 'user',
+        },
+        type: 'availability',
+        operation: 'create',
+      },
+      {
+        objectId: 23,
+        data: {
+          start: parseTimestamp('2022-01-25 22:00') as Timestamp,
+          value: 2,
+          duration: 75,
+          dataId: 23,
+          availType: 'user',
+        },
+        type: 'availability',
+        operation: 'remove',
+      },
+      {
+        objectId: 1,
+        data: {
+          start: parseTimestamp('2022-01-27 22:00') as Timestamp,
+          value: 8,
+          duration: 75,
+          dataId: 23,
+          availType: 'user',
+        },
+        type: 'availability',
+        operation: 'update',
+      },
+    ])
+    addUpdateBlock([
+      {
+        objectId: 1,
+        data: {
+          start: parseTimestamp('2022-01-26 23:00') as Timestamp,
+          value: 2,
+          duration: 75,
+          dataId: 23,
+          availType: 'user',
+        },
+        type: 'availability',
+        operation: 'remove',
+      },
+    ])
+    expect(availabilities.value.get('2022-01-25')?.length).toBe(0)
+    revertUpdateBlock()
+    expect(availabilities.value.get('2022-01-27')?.length).toBe(1)
+    revertUpdateBlock()
+    expect(availabilities.value.get('2022-01-25')?.length).toBe(1)
+  })
 })
