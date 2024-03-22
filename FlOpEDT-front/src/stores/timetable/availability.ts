@@ -4,25 +4,22 @@ import { Ref, ref } from 'vue'
 import { Availability } from '../declarations'
 import { Timestamp, copyTimestamp, parseTime, parseTimestamp, today, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
-import {
-  getDateStringFromTimestamp,
-  datetimeStringToDate,
-  durationDjangoToMinutes,
-  durationMinutesToDjango,
-} from '@/helpers'
+import { getDateStringFromTimestamp, durationDjangoToMinutes, durationMinutesToDjango } from '@/helpers'
 import { InputCalendarEvent } from '@/components/calendar/declaration'
 import { cloneDeep, remove } from 'lodash'
 import { usePermanentStore } from './permanent'
 import { useDepartmentStore } from '../department'
+import { useAuth } from '../auth'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
+  const authStore = useAuth()
   const permanentStore = usePermanentStore()
   const departmentStore = useDepartmentStore()
   const availabilitiesBack = ref<Map<string, AvailabilityBack[]>>(new Map<string, AvailabilityBack[]>())
   const availabilities = ref<Map<string, Availability[]>>(new Map<string, Availability[]>())
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
-  const nextId: Ref<number> = ref(0)
+  const nextId: Ref<number> = ref(1)
   const { current } = storeToRefs(departmentStore)
   const { timeSettings } = storeToRefs(permanentStore)
 
@@ -110,12 +107,12 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     const dateString = getDateStringFromTimestamp(availEvent.data.start)
     if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])
     const newAvail: Availability = {
-      id: availEvent.id,
+      id: nextId.value++,
       duration: availEvent.data.duration!,
       start: copyTimestamp(availEvent.data.start),
       value: availEvent.data.value!,
       type: availType ? availType : 'user',
-      dataId: dataId ? dataId : availEvent.data.dataId,
+      dataId: dataId ? dataId : authStore.getUser.id,
     }
     const availabilitiesOnDate = availabilities.value.get(dateString)
     const availabilityInStore = availabilitiesOnDate!.find((av) => av.id === availEvent.id)

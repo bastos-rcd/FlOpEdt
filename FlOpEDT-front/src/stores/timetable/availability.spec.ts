@@ -11,7 +11,7 @@ describe('Availibility store utils', () => {
     const availabilityStore = useAvailabilityStore()
     availabilityStore.addOrUpdateAvailibilityEvent(
       {
-        id: 1,
+        id: -1,
         title: '1',
 
         toggled: true,
@@ -33,7 +33,7 @@ describe('Availibility store utils', () => {
 
     availabilityStore.addOrUpdateAvailibilityEvent(
       {
-        id: 9,
+        id: -1,
         title: '9',
 
         toggled: true,
@@ -57,7 +57,11 @@ describe('Availibility store utils', () => {
   it("gets an item from the store if it's presents or returns undefined value", () => {
     const availabilityStore = useAvailabilityStore()
     const availability = availabilityStore.getAvailability(1)
-    const notExistentAvailability = availabilityStore.getAvailability(12)
+    expect(availabilityStore.availabilities.size).toBe(2)
+    const notExistentAvailability = availabilityStore.getAvailability(120)
+    const availabilitiesOnDate = availabilityStore.getAvailabilityFromDates([parseTimestamp('2020-05-01')!])
+    expect(availabilitiesOnDate).toBeDefined()
+    expect(availabilitiesOnDate.length).toBe(1)
     expect(availability).toBeDefined()
     expect(notExistentAvailability).toBeUndefined()
   })
