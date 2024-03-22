@@ -78,14 +78,14 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return newAvailabilityBack
   }
 
-  function createAvailability(avail: InputCalendarEvent): Availability {
+  function createNewAvailability(avail: Availability): Availability {
     const newAvail: Availability = {
       id: nextId.value++,
-      duration: avail.data.duration!,
-      start: avail.data.start,
-      value: avail.data.value!,
+      duration: avail.duration,
+      start: avail.start,
+      value: avail.value,
       type: 'avail',
-      dataId: avail.data.dataId,
+      dataId: avail.dataId,
     }
     return newAvail
   }
@@ -208,6 +208,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     getAvailability,
     getAvailabilityFromDates,
     addOrUpdateAvailibility,
-    createAvailability,
+    createNewAvailability,
   }
 })

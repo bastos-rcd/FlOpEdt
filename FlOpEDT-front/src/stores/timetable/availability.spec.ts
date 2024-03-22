@@ -101,7 +101,7 @@ describe('Availibility store utils', () => {
   it('Transforms an Availibility in back Availability and back', () => {
     expect.assertions(10)
     const availabilityStore = useAvailabilityStore()
-    let availability: Availability = availabilityStore.getAvailability(9)!
+    let availability: Availability = availabilityStore.getAvailability(2)!
     const availabilityBack: AvailabilityBack = availabilityStore.availabilityToAvailabilityBack(availability)
     expect(availabilityBack.value).toBe(3)
     expect(availabilityBack.av_type).toBe('user')

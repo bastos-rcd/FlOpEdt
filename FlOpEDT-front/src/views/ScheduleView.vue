@@ -207,12 +207,14 @@ function handleUpdateEvents(newCalendarEvents: InputCalendarEvent[]): void {
       } else if (!newCalendarEvent.data.duration || newCalendarEvent.data.duration <= 0) {
         operation = 'remove'
       }
-      updatesData.push({
-        data: availData,
-        objectId: newCalendarEvent.data.dataId,
-        type: 'availability',
-        operation: operation,
-      })
+      const availability = availabilityStore.getAvailability(newCalendarEvent.data.dataId)
+      if (availability)
+        updatesData.push({
+          data: availData,
+          objectId: availability.id,
+          type: 'availability',
+          operation: operation,
+        })
     }
   })
   undoRedo.addUpdateBlock(updatesData)
