@@ -5,14 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "makemessages": "vue-i18n-extract report --vueFiles './src/**/*.?(js|vue)' --languageFiles './src/locales/*.?(json|yml|yaml|js)' --add --remove ",
     "story:dev": "histoire dev",
     "story:build": "histoire build",
     "story:preview": "histoire preview",
+    "typecheck": "vue-tsc --noEmit",
+    "format": "eslint '**/*.{js,ts,vue}' --fix --report-unused-disable-directives",
+    "lint": "eslint '**/*.{js,ts,vue}' --report-unused-disable-directives",
     "test": "vitest --dom",
-    "coverage": "vitest run --coverage"
+    "test-ui": "vitest --dom --ui",
+    "test-coverage": "vitest --dom --coverage",
   },
   "dependencies": {
     "@popperjs/core": "^2.11.6",
