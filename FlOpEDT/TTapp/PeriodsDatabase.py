@@ -102,7 +102,7 @@ GUROBI = "GUROBI"
 GUROBI_NAME = "GUROBI_CMD"
 
 
-class PeriodsDatabase(object):
+class PeriodsData(object):
     def __init__(self, department, periods, train_prog, slots_step=None):
         self.train_prog = train_prog
         self.department = department

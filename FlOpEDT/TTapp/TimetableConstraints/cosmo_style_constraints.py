@@ -41,14 +41,14 @@ slot_pause = 5
 ############################
 def sum_of_courses_that_end_at(ttmodel, prof, day, end_time):
     res = ttmodel.sum(ttmodel.assigned[sl, c, prof]
-                      for sl in ttmodel.wdb.courses_slots if sl.end_time == end_time and sl.day == day
-                      for c in ttmodel.wdb.compatible_courses[sl] & ttmodel.wdb.possible_courses[prof])
+                      for sl in ttmodel.data.courses_slots if sl.end_time == end_time and sl.day == day
+                      for c in ttmodel.data.compatible_courses[sl] & ttmodel.data.possible_courses[prof])
     return res
 
 
 def sum_of_busy_slots_just_after(ttmodel, prof, day, end_time):
     res = ttmodel.sum(ttmodel.IBS[prof, sl_suivant]
-                      for sl_suivant in slots_filter(ttmodel.wdb.availability_slots, starts_after=end_time,
+                      for sl_suivant in slots_filter(ttmodel.data.availability_slots, starts_after=end_time,
                                                      starts_before=end_time + slot_pause, day=day))
     return res
 
@@ -93,13 +93,13 @@ class LimitHoles(TimetableConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         end_of_block = {}
         holes_nb = {}
-        considered_tutors = set(ttmodel.wdb.instructors)
+        considered_tutors = set(ttmodel.data.instructors)
         if self.tutors.exists():
             considered_tutors &= set(self.tutors.all())
 
         for i in considered_tutors:
-            for d in ttmodel.wdb.days:
-                possible_end_times = list(set(sl.end_time for sl in slots_filter(ttmodel.wdb.courses_slots, day=d)))
+            for d in ttmodel.data.days:
+                possible_end_times = list(set(sl.end_time for sl in slots_filter(ttmodel.data.courses_slots, day=d)))
                 possible_end_times.sort()
                 for end_time in possible_end_times:
                     end_of_block[i, end_time] = ttmodel.add_var()
@@ -145,7 +145,7 @@ class LimitHoles(TimetableConstraint):
                     else:
                         ttmodel.add_to_inst_cost(i, holes_nb[i, d] * self.local_weight(), period)
             if self.max_holes_per_period:
-                total_holes = ttmodel.sum(holes_nb[i, d] for d in ttmodel.wdb.days)
+                total_holes = ttmodel.sum(holes_nb[i, d] for d in ttmodel.data.days)
                 if self.weight is None:
                     ttmodel.add_constraint(total_holes, '<=', self.max_holes_per_period,
                                            Constraint(constraint_type=ConstraintType.MAX_HOLES))
@@ -197,9 +197,9 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
         if len(ttmodel.periods) < self.number_of_weeks:
             return
         if self.tutors.exists():
-            tutors = set(t for t in ttmodel.wdb.instructors if t in self.tutors.all())
+            tutors = set(t for t in ttmodel.data.instructors if t in self.tutors.all())
         else:
-            tutors = set(ttmodel.wdb.instructors)
+            tutors = set(ttmodel.data.instructors)
         local_weight = 1
         if self.weight is not None:
             local_weight = self.local_weight()
@@ -208,12 +208,12 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
             considered_weeks = ttmodel.periods[i:i+self.number_of_weeks]
             for tutor in tutors:
                 total_tutor_time = ttmodel.sum(ttmodel.assigned[sl, c, tutor] * sl.minutes
-                                               for c in ttmodel.wdb.possible_courses[tutor]
-                                               for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                               for c in ttmodel.data.possible_courses[tutor]
+                                               for sl in slots_filter(ttmodel.data.compatible_slots[c],
                                                                       week_in = considered_weeks)
                                                ) \
                                   + sum(sc.course.minutes
-                                        for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]
+                                        for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[tutor]
                                         if sc.course.week in considered_weeks)
                 if self.max_time_per_period is not None:
                     undesirable_max = ttmodel.add_floor(total_tutor_time, self.max_time_per_period,
@@ -287,7 +287,7 @@ class ModulesByBloc(TimetableConstraint):
             print("ModulesByBloc is available only for constraint, not preference...")
             return
 
-        considered_modules = ttmodel.wdb.modules
+        considered_modules = ttmodel.data.modules
         if self.modules.exists():
             considered_modules = set(considered_modules) & set(self.modules.all())
         if self.train_progs.exists():
@@ -299,9 +299,9 @@ class ModulesByBloc(TimetableConstraint):
         possible_start_times = list(possible_start_times)
         possible_start_times.sort()
 
-        for d in days_filter(ttmodel.wdb.days, period=period):
-            day_slots = slots_filter(ttmodel.wdb.courses_slots, day=d)
-            day_sched_courses = ttmodel.wdb.sched_courses.filter(day=d.day, course__period=period, course__suspens=False)
+        for d in days_filter(ttmodel.data.days, period=period):
+            day_slots = slots_filter(ttmodel.data.courses_slots, day=d)
+            day_sched_courses = ttmodel.data.sched_courses.filter(day=d.day, course__period=period, course__suspens=False)
             for m in considered_modules:
                 module_day_sched_courses = day_sched_courses.filter(course__module=m)
                 if not module_day_sched_courses.exists():
@@ -315,7 +315,7 @@ class ModulesByBloc(TimetableConstraint):
                     next_slot = slots_filter(day_slots, start_time=possible_start_times[i+1]).pop()
                     # Choose the slot where more courses have to be assigned
                     if slot_sched_courses.count() == next_slot_sched_courses.count():
-                        for tutor in ttmodel.wdb.possible_tutors[m]:
+                        for tutor in ttmodel.data.possible_tutors[m]:
                             ttmodel.add_constraint(
                                 ttmodel.sum(ttmodel.assigned[(next_slot, sc2.course, tutor)]
                                             for sc2 in next_slot_sched_courses)
@@ -326,7 +326,7 @@ class ModulesByBloc(TimetableConstraint):
                                 Constraint(constraint_type=ConstraintType.module_by_bloc,
                                            instructors=tutor, days=d, modules=m))
                     elif slot_sched_courses.count() > next_slot_sched_courses.count():
-                        for tutor in ttmodel.wdb.possible_tutors[m]:
+                        for tutor in ttmodel.data.possible_tutors[m]:
                             ttmodel.add_constraint(
                                 2 * ttmodel.sum(ttmodel.assigned[(next_slot, sc2.course, tutor)]
                                                 for sc2 in next_slot_sched_courses)
@@ -337,7 +337,7 @@ class ModulesByBloc(TimetableConstraint):
                                 Constraint(constraint_type=ConstraintType.module_by_bloc,
                                            instructors=tutor, days=d, modules=m))
                     else: # slot_sched_courses.count() < next_slot_sched_courses.count()
-                        for tutor in ttmodel.wdb.possible_tutors[m]:
+                        for tutor in ttmodel.data.possible_tutors[m]:
                             ttmodel.add_constraint(
                                 2 * ttmodel.sum(ttmodel.assigned[(slot, sc.course, tutor)]
                                               for sc in slot_sched_courses)

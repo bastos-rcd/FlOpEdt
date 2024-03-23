@@ -180,19 +180,19 @@ class SimultaneousCourses(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         course_types = set(c.type for c in self.courses.all())
-        relevant_courses = set(self.courses.all()) & set(ttmodel.wdb.courses)
+        relevant_courses = set(self.courses.all()) & set(ttmodel.data.courses)
         nb_courses = len(relevant_courses)
         if nb_courses < 2:
             return
         possible_start_times = set()
         for t in course_types:
             possible_start_times |= set(t.coursestarttimeconstraint_set.all()[0].allowed_start_times)
-        for day in days_filter(ttmodel.wdb.days, period=period):
+        for day in days_filter(ttmodel.data.days, period=period):
             for st in possible_start_times:
                 check_var = ttmodel.add_var("check_var")
                 expr = ttmodel.lin_expr()
                 for c in relevant_courses:
-                    possible_slots = slots_filter(ttmodel.wdb.compatible_slots[c], start_time=st, day=day)
+                    possible_slots = slots_filter(ttmodel.data.compatible_slots[c], start_time=st, day=day)
                     for sl in possible_slots:
                         expr += ttmodel.scheduled[(sl, c)]
                 ttmodel.add_constraint(nb_courses * check_var - expr, '==', 0,
@@ -255,11 +255,11 @@ class StartTimeConstraint(TimetableConstraint):
         if self.tutor is None:
             relevant_sum = ttmodel.sum(ttmodel.scheduled[(sl, c)]
                                        for c in fc
-                                       for sl in ttmodel.wdb.compatible_slots[c] & excluded_slots)
+                                       for sl in ttmodel.data.compatible_slots[c] & excluded_slots)
         else:
             relevant_sum = ttmodel.sum(ttmodel.assigned[(sl, c, self.tutor)]
                                        for c in fc
-                                       for sl in ttmodel.wdb.compatible_slots[c] & excluded_slots)
+                                       for sl in ttmodel.data.compatible_slots[c] & excluded_slots)
         if self.weight is not None:
             ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum, period=period)
         else:
@@ -283,7 +283,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
     def considered_start_times(self, ttmodel):
         if self.possible_start_times:
             return self.possible_start_times
-        return set(sl.start_time.time() for sl in ttmodel.wdb.courses_slots)
+        return set(sl.start_time.time() for sl in ttmodel.data.courses_slots)
 
     def considered_week_days(self):
         if self.possible_week_days:
@@ -291,7 +291,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
         return list(c[0] for c in Day.CHOICES)
 
     def excluded_slots(self, ttmodel):
-        return set(sl for sl in ttmodel.wdb.courses_slots
+        return set(sl for sl in ttmodel.data.courses_slots
                    if (sl.start_time.time() not in self.considered_start_times(ttmodel)
                        or sl.start_time.date().day not in self.considered_week_days()))
 
@@ -340,7 +340,7 @@ class AvoidStartTimes(StartTimeConstraint):
     def considered_start_times(self, ttmodel):
         if self.forbidden_start_times:
             return self.forbidden_start_times
-        return set(sl.start_time.time() for sl in ttmodel.wdb.courses_slots)
+        return set(sl.start_time.time() for sl in ttmodel.data.courses_slots)
 
     def considered_week_days(self):
         if self.forbidden_week_days:
@@ -348,7 +348,7 @@ class AvoidStartTimes(StartTimeConstraint):
         return list(c[0] for c in Day.CHOICES)
 
     def excluded_slots(self, ttmodel):
-        return set(sl for sl in ttmodel.wdb.courses_slots
+        return set(sl for sl in ttmodel.data.courses_slots
                    if (sl.start_time.time() in self.considered_start_times(ttmodel)
                        and sl.day.day in self.considered_week_days()))
 
@@ -501,12 +501,12 @@ class GlobalModuleDependency(TimetableConstraint):
             group_courses1 = courses1.filter(groups__in=g.connected_groups())
             group_courses2 = courses2.filter(groups__in=g.connected_groups())
             for c1 in group_courses1:
-                for sl1 in ttmodel.wdb.compatible_slots[c1]:
+                for sl1 in ttmodel.data.compatible_slots[c1]:
                     if not self.weight:
                         ttmodel.add_constraint(a_lot * ttmodel.scheduled[(sl1, c1)] +
                                             ttmodel.sum(ttmodel.scheduled[(sl2, c2)] 
                                                         for c2 in group_courses2.exclude(id=c1.id)
-                                                        for sl2 in ttmodel.wdb.compatible_slots[c2]
+                                                        for sl2 in ttmodel.data.compatible_slots[c2]
                                                         if not sl2.is_after(sl1)
                                                         or (sl2.day - sl1.day).days < self.day_gap),
                                             '<=', a_lot, Constraint(constraint_type=ConstraintType.DEPENDANCE,
@@ -517,7 +517,7 @@ class GlobalModuleDependency(TimetableConstraint):
                         )
                     else:
                         for c2 in group_courses2:
-                            for sl2 in ttmodel.wdb.compatible_slots[c2]:
+                            for sl2 in ttmodel.data.compatible_slots[c2]:
                                 if not sl2.is_after(sl1) or (sl2.day - sl1.day).days < self.day_gap:
                                     conj_var = ttmodel.add_conjunct(ttmodel.scheduled[(sl1, c1)],
                                                                     ttmodel.scheduled[(sl2, c2)])
@@ -686,11 +686,11 @@ class ConsiderDependencies(TimetableConstraint):
             train_progs = set(tp for tp in self.train_progs.all() if tp in ttmodel.train_prog)
         else:
             train_progs = set(ttmodel.train_prog)
-        considered_modules = set(ttmodel.wdb.modules)
+        considered_modules = set(ttmodel.data.modules)
         if self.modules.exists():
             considered_modules &= set(self.modules.all())
 
-        for p in ttmodel.wdb.dependencies:
+        for p in ttmodel.data.dependencies:
             c1 = p.course1
             c2 = p.course2
             if (c1.module not in considered_modules and c2.module not in considered_modules) or \
@@ -699,16 +699,16 @@ class ConsiderDependencies(TimetableConstraint):
             if c1 == c2:
                 ttmodel.add_warning(None, "Warning: %s is declared depend on itself" % c1)
                 continue
-            for sl1 in ttmodel.wdb.compatible_slots[c1]:
+            for sl1 in ttmodel.data.compatible_slots[c1]:
                 if not self.weight:
                     ttmodel.add_constraint(1000000 * ttmodel.scheduled[(sl1, c1)] +
-                                           ttmodel.sum(ttmodel.scheduled[(sl2, c2)] for sl2 in ttmodel.wdb.compatible_slots[c2]
+                                           ttmodel.sum(ttmodel.scheduled[(sl2, c2)] for sl2 in ttmodel.data.compatible_slots[c2]
                                                        if not sl2.is_after(sl1)
                                                        or (p.day_gap > 0 and (sl2.day - sl1.day).days < p.day_gap)
                                                        or (p.successive and not sl2.is_successor_of(sl1))),
                                            '<=', 1000000, DependencyConstraint(c1, c2, sl1))
                 else:
-                    for sl2 in ttmodel.wdb.compatible_slots[c2]:
+                    for sl2 in ttmodel.data.compatible_slots[c2]:
                         if not sl2.is_after(sl1) \
                                 or (p.day_gap > 0 and (sl2.day - sl1.day).days < p.day_gap) \
                                 or (p.successive and not sl2.is_successor_of(sl1)):
@@ -760,11 +760,11 @@ class ConsiderPivots(TimetableConstraint):
             train_progs = set(tp for tp in self.train_progs.all() if tp in ttmodel.train_prog)
         else:
             train_progs = set(ttmodel.train_prog)
-        considered_modules = set(ttmodel.wdb.modules)
+        considered_modules = set(ttmodel.data.modules)
         if self.modules.exists():
             considered_modules &= set(self.modules.all())
 
-        for p in ttmodel.wdb.pivots:
+        for p in ttmodel.data.pivots:
             pivot = p.pivot_course
             other = p.other_courses.all()
             other_length = other.count()
@@ -776,17 +776,17 @@ class ConsiderPivots(TimetableConstraint):
             if pivot in other:
                 ttmodel.add_warning(None, f"Warning: {pivot} is declared pivoting around itself")
                 continue
-            for sl1 in ttmodel.wdb.compatible_slots[pivot]:
+            for sl1 in ttmodel.data.compatible_slots[pivot]:
                 all_after = ttmodel.add_floor(ttmodel.sum(ttmodel.scheduled[(sl2, o)]
                                                           for o in other
-                                                          for sl2 in ttmodel.wdb.compatible_slots[o]
+                                                          for sl2 in ttmodel.data.compatible_slots[o]
                                                           if (not p.ND and not sl2.is_after(sl1))
                                                           or (p.ND and (sl1.has_previous_day_than(sl2)))
                                                           ),
                                               other_length, 2 * other_length)
                 all_before = ttmodel.add_floor(ttmodel.sum(ttmodel.scheduled[(sl2, o)]
                                                            for o in other
-                                                           for sl2 in ttmodel.wdb.compatible_slots[o]
+                                                           for sl2 in ttmodel.data.compatible_slots[o]
                                                            if (not p.ND and not sl1.is_after(sl2))
                                                            or (p.ND and (sl2.has_previous_day_than(sl1)))
                                                            ),
@@ -832,10 +832,10 @@ class AvoidBothTimesSameDay(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         considered_groups = self.considered_basic_groups(ttmodel)
-        days = days_filter(ttmodel.wdb.days, period=period)
-        slots1 = set([slot for slot in ttmodel.wdb.courses_slots
+        days = days_filter(ttmodel.data.days, period=period)
+        slots1 = set([slot for slot in ttmodel.data.courses_slots
                       if slot.start_time.time() <= self.time1 < slot.end_time.time()])
-        slots2 = set([slot for slot in ttmodel.wdb.courses_slots
+        slots2 = set([slot for slot in ttmodel.data.courses_slots
                       if slot.start_time.time() <= self.time2 < slot.end_time.time()])
         if self.weekdays:
             days = days_filter(days, weekday_in=self.weekdays)
@@ -846,10 +846,10 @@ class AvoidBothTimesSameDay(TimetableConstraint):
                 considered_courses = self.get_courses_queryset_by_parameters(period, ttmodel, group=group)
                 sum1 = ttmodel.sum(ttmodel.scheduled[sl,c]
                                    for c in considered_courses
-                                   for sl in day_slots1 & ttmodel.wdb.compatible_slots[c])
+                                   for sl in day_slots1 & ttmodel.data.compatible_slots[c])
                 sum2 = ttmodel.sum(ttmodel.scheduled[sl,c]
                                    for c in considered_courses
-                                   for sl in day_slots2 & ttmodel.wdb.compatible_slots[c])
+                                   for sl in day_slots2 & ttmodel.data.compatible_slots[c])
                 BS1 = ttmodel.add_floor(sum1, 1, 100000)
                 BS2 = ttmodel.add_floor(sum2, 1, 100000)
                 both = ttmodel.add_conjunct(BS1, BS2)
@@ -889,7 +889,7 @@ class LimitUndesiredSlotsPerDayPeriod(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         tutor_to_be_considered = considered_tutors(self, ttmodel)
-        days = days_filter(ttmodel.wdb.days, period=period)
+        days = days_filter(ttmodel.data.days, period=period)
         undesired_slots = [Slot(dt.datetime.combine(day, self.slot_start_time), dt.datetime.combine(day, self.slot_end_time))
                              for day in days]
         for tutor in tutor_to_be_considered:
@@ -899,9 +899,9 @@ class LimitUndesiredSlotsPerDayPeriod(TimetableConstraint):
                 expr += ttmodel.add_floor(
                     ttmodel.sum(ttmodel.assigned[(sl, c, tutor)]
                                 for c in considered_courses
-                                for sl in slots_filter(ttmodel.wdb.courses_slots,
+                                for sl in slots_filter(ttmodel.data.courses_slots,
                                                        simultaneous_to=undesired_slot)
-                                & ttmodel.wdb.compatible_slots[c]),
+                                & ttmodel.data.compatible_slots[c]),
                     1,
                     len(considered_courses))
             if self.weight is None:
@@ -948,7 +948,7 @@ class LimitSimultaneousCoursesNumber(TimetableConstraint):
         return attributes
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        relevant_courses = ttmodel.wdb.courses
+        relevant_courses = ttmodel.data.courses
         if self.course_type is not None:
             relevant_courses = relevant_courses.filter(type=self.course_type)
         if self.modules.exists():
@@ -958,11 +958,11 @@ class LimitSimultaneousCoursesNumber(TimetableConstraint):
             return
         relevant_sum = ttmodel.lin_expr()
         if self.weight is None:
-            for a_sl in ttmodel.wdb.availability_slots:
+            for a_sl in ttmodel.data.availability_slots:
                 more_than_limit = ttmodel.add_floor(
                     ttmodel.sum(ttmodel.scheduled[sl,c]
                                 for c in relevant_courses
-                                for sl in slots_filter(ttmodel.wdb.compatible_slots[c], simultaneous_to=a_sl)),
+                                for sl in slots_filter(ttmodel.data.compatible_slots[c], simultaneous_to=a_sl)),
                     self.limit+1,
                     nb_courses)
                 relevant_sum += more_than_limit
@@ -972,11 +972,11 @@ class LimitSimultaneousCoursesNumber(TimetableConstraint):
         else:
             for bound in range(self.limit, nb_courses+1):
                 relevant_sum *= 2
-                for a_sl in ttmodel.wdb.availability_slots:
+                for a_sl in ttmodel.data.availability_slots:
                     more_than_limit = ttmodel.add_floor(
                         ttmodel.sum(ttmodel.scheduled[sl, c]
                                     for c in relevant_courses
-                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                    for sl in slots_filter(ttmodel.data.compatible_slots[c],
                                                            simultaneous_to=a_sl)),
                         bound + 1,
                         nb_courses)

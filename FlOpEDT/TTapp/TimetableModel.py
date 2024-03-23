@@ -74,7 +74,7 @@ from TTapp.FlopConstraint import max_weight
 
 from TTapp.slots import slots_filter, days_filter
 
-from TTapp.PeriodsDatabase import PeriodsDatabase
+from TTapp.PeriodsDatabase import PeriodsData
 
 from TTapp.TimetableUtils import print_differences, number_courses
 
@@ -168,9 +168,9 @@ class TimetableModel(FlopModel):
             print(_(f"Will modify only courses of training programme(s) {train_prog}"))
         self.train_prog = train_prog
         self.major_to_stabilize = major_to_stabilize
-        self.wdb = self.wdb_init()
-        self.courses = self.wdb.courses
-        self.possible_apms = self.wdb.possible_apms
+        self.data = self.data_init()
+        self.courses = self.data.courses
+        self.possible_apms = self.data.possible_apms
         self.cost_I, self.FHD_G, self.cost_G, self.cost_SL, self.generic_cost = (
             self.costs_init()
         )
@@ -198,8 +198,8 @@ class TimetableModel(FlopModel):
         self.avail_room = self.compute_avail_room()
 
         # Hack : permet que ça marche même si les dispos sur la base sont pas complètes
-        for i in self.wdb.instructors:
-            for availability_slot in self.wdb.availability_slots:
+        for i in self.data.instructors:
+            for availability_slot in self.data.availability_slots:
                 if availability_slot not in self.avail_instr[i]:
                     self.avail_instr[i][availability_slot] = 0
                 if availability_slot not in self.unp_slot_cost[i]:
@@ -215,26 +215,26 @@ class TimetableModel(FlopModel):
         if self.send_mails:
             self.send_lack_of_availability_mail()
 
-        if not self.wdb.courses.exists():
+        if not self.data.courses.exists():
             print("There are no course to be scheduled...")
             return
 
     @timer
-    def wdb_init(self):
-        wdb = PeriodsDatabase(
+    def data_init(self):
+        data = PeriodsData(
             self.department, self.periods, self.train_prog, self.slots_step
         )
-        return wdb
+        return data
 
     @timer
     def costs_init(self):
         cost_I = dict(
             list(
                 zip(
-                    self.wdb.instructors,
+                    self.data.instructors,
                     [
                         {period: self.lin_expr() for period in self.periods + [None]}
-                        for _ in self.wdb.instructors
+                        for _ in self.data.instructors
                     ],
                 )
             )
@@ -244,10 +244,10 @@ class TimetableModel(FlopModel):
             FHD_G[apm] = dict(
                 list(
                     zip(
-                        self.wdb.basic_groups,
+                        self.data.basic_groups,
                         [
                             {period: self.lin_expr() for period in self.periods}
-                            for _ in self.wdb.basic_groups
+                            for _ in self.data.basic_groups
                         ],
                     )
                 )
@@ -256,10 +256,10 @@ class TimetableModel(FlopModel):
         cost_G = dict(
             list(
                 zip(
-                    self.wdb.basic_groups,
+                    self.data.basic_groups,
                     [
                         {period: self.lin_expr() for period in self.periods + [None]}
-                        for _ in self.wdb.basic_groups
+                        for _ in self.data.basic_groups
                     ],
                 )
             )
@@ -268,8 +268,8 @@ class TimetableModel(FlopModel):
         cost_SL = dict(
             list(
                 zip(
-                    self.wdb.courses_slots,
-                    [self.lin_expr() for _ in self.wdb.courses_slots],
+                    self.data.courses_slots,
+                    [self.lin_expr() for _ in self.data.courses_slots],
                 )
             )
         )
@@ -283,10 +283,10 @@ class TimetableModel(FlopModel):
         scheduled = {}
         assigned = {}
 
-        for sl in self.wdb.courses_slots:
-            for c in self.wdb.compatible_courses[sl]:
+        for sl in self.data.courses_slots:
+            for c in self.data.compatible_courses[sl]:
                 scheduled[(sl, c)] = self.add_var("scheduled(%s,%s)" % (sl, c))
-                for i in self.wdb.possible_tutors[c]:
+                for i in self.data.possible_tutors[c]:
                     assigned[(sl, c, i)] = self.add_var(
                         "assigned(%s,%s,%s)" % (sl, c, i)
                     )
@@ -295,9 +295,9 @@ class TimetableModel(FlopModel):
     @timer
     def room_vars_init(self):
         located = {}
-        for sl in self.wdb.courses_slots:
-            for c in self.wdb.compatible_courses[sl]:
-                for rg in self.wdb.course_rg_compat[c]:
+        for sl in self.data.courses_slots:
+            for c in self.data.compatible_courses[sl]:
+                for rg in self.data.course_rg_compat[c]:
                     located[(sl, c, rg)] = self.add_var(
                         "located(%s,%s,%s)" % (sl, c, rg)
                     )
@@ -307,29 +307,29 @@ class TimetableModel(FlopModel):
     def busy_vars_init(self):
         IBS = {}
         limit = 1000
-        for i in self.wdb.instructors:
+        for i in self.data.instructors:
             other_dep_sched_courses = (
-                self.wdb.other_departments_scheduled_courses_for_tutor[i]
-                | self.wdb.other_departments_scheduled_courses_for_supp_tutor[i]
+                self.data.other_departments_scheduled_courses_for_tutor[i]
+                | self.data.other_departments_scheduled_courses_for_supp_tutor[i]
             )
-            fixed_courses = self.wdb.fixed_courses_for_tutor[i]
-            for sl in self.wdb.availability_slots:
+            fixed_courses = self.data.fixed_courses_for_tutor[i]
+            for sl in self.data.availability_slots:
                 other_dep_sched_courses_for_sl = (
                     other_dep_sched_courses
-                    & self.wdb.other_departments_sched_courses_for_avail_slot[sl]
+                    & self.data.other_departments_sched_courses_for_avail_slot[sl]
                 )
                 other_dep_nb = len(other_dep_sched_courses_for_sl)
                 fixed_courses_for_sl = (
-                    fixed_courses & self.wdb.fixed_courses_for_avail_slot[sl]
+                    fixed_courses & self.data.fixed_courses_for_avail_slot[sl]
                 )
                 fixed_courses_nb = len(fixed_courses_for_sl)
                 IBS[(i, sl)] = self.add_var("IBS(%s,%s)" % (i, sl))
                 # Linking the variable to the scheduled dict
                 expr = self.lin_expr()
                 expr += limit * IBS[(i, sl)]
-                for s_sl in slots_filter(self.wdb.courses_slots, simultaneous_to=sl):
+                for s_sl in slots_filter(self.data.courses_slots, simultaneous_to=sl):
                     for c in (
-                        self.wdb.possible_courses[i] & self.wdb.compatible_courses[s_sl]
+                        self.data.possible_courses[i] & self.data.compatible_courses[s_sl]
                     ):
                         expr -= self.assigned[(s_sl, c, i)]
                 # if assigned == 1 for some i, then IBS==1 !
@@ -366,9 +366,9 @@ class TimetableModel(FlopModel):
 
         IBD = {}
         IBHD = {}
-        for d in self.wdb.days:
-            dayslots = slots_filter(self.wdb.availability_slots, day=d)
-            for i in self.wdb.instructors:
+        for d in self.data.days:
+            dayslots = slots_filter(self.data.availability_slots, day=d)
+            for i in self.data.instructors:
                 IBD[(i, d)] = self.add_var()
                 # Linking the variable to the scheduled dict
                 card = 2 * len(dayslots)
@@ -380,9 +380,9 @@ class TimetableModel(FlopModel):
                         constraint_type=ConstraintType.IBD_INF, instructors=i, days=d
                     ),
                 )
-            for apm in self.wdb.possible_apms:
+            for apm in self.data.possible_apms:
                 halfdayslots = slots_filter(dayslots, apm=apm)
-                for i in self.wdb.instructors:
+                for i in self.data.instructors:
                     IBHD[(i, d, apm)] = self.add_var()
                     # Linking the variable to the scheduled dict
                     card = 2 * len(halfdayslots)
@@ -411,13 +411,13 @@ class TimetableModel(FlopModel):
                     )
 
         forced_IBD = {}
-        for i in self.wdb.instructors:
-            for d in self.wdb.days:
+        for i in self.data.instructors:
+            for d in self.data.days:
                 forced_IBD[(i, d)] = 0
-                if d in self.wdb.physical_presence_days_for_tutor[i]:
+                if d in self.data.physical_presence_days_for_tutor[i]:
                     forced_IBD[(i, d)] = 1
                 if self.department.mode.cosmo == 1:
-                    if self.wdb.sched_courses.filter(
+                    if self.data.sched_courses.filter(
                         start_time__date=d,
                         course__suspens=False,
                         course__tutor=i,
@@ -438,29 +438,29 @@ class TimetableModel(FlopModel):
             for j in range(max_days + 1):
                 IBD_GTE[period].append({})
 
-            for i in self.wdb.instructors:
+            for i in self.data.instructors:
                 for j in range(1, max_days + 1):
                     IBD_GTE[period][j][i] = self.add_floor(
                         self.sum(
-                            IBD[(i, d)] for d in days_filter(self.wdb.days, period=period)
+                            IBD[(i, d)] for d in days_filter(self.data.days, period=period)
                         ),
                         j,
                         max_days,
                     )
         GBD = {}
         GBHD = {}
-        for bg in self.wdb.basic_groups:
-            for d in self.wdb.days:
+        for bg in self.data.basic_groups:
+            for d in self.data.days:
                 # add constraint linking GBD to EDT
                 GBD[(bg, d)] = self.add_var()
-                dayslots = slots_filter(self.wdb.courses_slots, day=d)
+                dayslots = slots_filter(self.data.courses_slots, day=d)
                 # Linking the variable to the scheduled dict
                 card = 2 * len(dayslots)
                 expr = card * GBD[(bg, d)] - self.sum(
                     self.scheduled[(sl, c)]
                     for sl in dayslots
-                    for c in self.wdb.all_courses_for_basic_group[bg]
-                    & self.wdb.compatible_courses[sl]
+                    for c in self.data.all_courses_for_basic_group[bg]
+                    & self.data.compatible_courses[sl]
                 )
                 self.add_constraint(
                     expr,
@@ -486,8 +486,8 @@ class TimetableModel(FlopModel):
                     expr = card * GBHD[(bg, d, apm)] - self.sum(
                         self.scheduled[(sl, c)]
                         for sl in halfdayslots
-                        for c in self.wdb.all_courses_for_basic_group[bg]
-                        & self.wdb.compatible_courses[sl]
+                        for c in self.data.all_courses_for_basic_group[bg]
+                        & self.data.compatible_courses[sl]
                     )
                     self.add_constraint(
                         expr,
@@ -513,19 +513,19 @@ class TimetableModel(FlopModel):
         physical_presence = {
             g: {
                 (d, apm): self.add_var()
-                for d in self.wdb.days
+                for d in self.data.days
                 for apm in [Time.AM, Time.PM]
             }
-            for g in self.wdb.basic_groups
+            for g in self.data.basic_groups
         }
 
-        for g in self.wdb.basic_groups:
+        for g in self.data.basic_groups:
             for d, apm in physical_presence[g]:
                 expr = 1000 * physical_presence[g][d, apm] - self.sum(
                     self.located[sl, c, r]
-                    for c in self.wdb.all_courses_for_basic_group[g]
-                    for r in self.wdb.course_rg_compat[c] - {None}
-                    for sl in slots_filter(self.wdb.compatible_slots[c], day=d, apm=apm)
+                    for c in self.data.all_courses_for_basic_group[g]
+                    for r in self.data.course_rg_compat[c] - {None}
+                    for sl in slots_filter(self.data.compatible_slots[c], day=d, apm=apm)
                 )
                 self.add_constraint(
                     expr,
@@ -553,18 +553,18 @@ class TimetableModel(FlopModel):
         has_visio = {
             g: {
                 (d, apm): self.add_var()
-                for d in self.wdb.days
+                for d in self.data.days
                 for apm in [Time.AM, Time.PM]
             }
-            for g in self.wdb.basic_groups
+            for g in self.data.basic_groups
         }
 
-        for g in self.wdb.basic_groups:
+        for g in self.data.basic_groups:
             for d, apm in has_visio[g]:
                 expr = 1000 * has_visio[g][d, apm] - self.sum(
                     self.located[sl, c, None]
-                    for c in self.wdb.all_courses_for_basic_group[g]
-                    for sl in slots_filter(self.wdb.compatible_slots[c], day=d, apm=apm)
+                    for c in self.data.all_courses_for_basic_group[g]
+                    for sl in slots_filter(self.data.compatible_slots[c], day=d, apm=apm)
                 )
                 self.add_constraint(
                     expr,
@@ -644,9 +644,9 @@ class TimetableModel(FlopModel):
                 NoSimultaneousGroupCourses.objects.create(department=self.department)
 
         # a course is scheduled at most once
-        for c in self.wdb.courses:
+        for c in self.data.courses:
             self.add_constraint(
-                self.sum([self.scheduled[(sl, c)] for sl in self.wdb.compatible_slots[c]]),
+                self.sum([self.scheduled[(sl, c)] for sl in self.data.compatible_slots[c]]),
                 "<=",
                 1,
                 CourseConstraint(c),
@@ -708,16 +708,16 @@ class TimetableModel(FlopModel):
                 and ModuleTutorRepartition.objects.filter(course_type__department=self.department).exists():
             ConsiderModuleTutorRepartitions.objects.create(department=self.department)
 
-        for i in self.wdb.instructors:
+        for i in self.data.instructors:
             if i.username == "---":
                 continue
-            for sl in self.wdb.availability_slots:
+            for sl in self.data.availability_slots:
                 if self.department.mode.visio:
                     # avail_at_school_instr consideration...
                     relevant_courses = set(
                         c
-                        for c in self.wdb.possible_courses[i]
-                        if None in self.wdb.course_rg_compat[c]
+                        for c in self.data.possible_courses[i]
+                        if None in self.data.course_rg_compat[c]
                     )
                     if self.pre_assign_rooms:
                         self.add_constraint(
@@ -725,10 +725,10 @@ class TimetableModel(FlopModel):
                                 self.assigned[(sl2, c2, i)]
                                 - self.located[(sl2, c2, None)]
                                 for sl2 in slots_filter(
-                                    self.wdb.courses_slots, simultaneous_to=sl
+                                    self.data.courses_slots, simultaneous_to=sl
                                 )
                                 for c2 in relevant_courses
-                                & self.wdb.compatible_courses[sl2]
+                                & self.data.compatible_courses[sl2]
                             ),
                             "<=",
                             self.avail_at_school_instr[i][sl],
@@ -747,15 +747,15 @@ class TimetableModel(FlopModel):
         if not LocateAllCourses.objects.filter(department=self.department).exists():
             LocateAllCourses.objects.create(department=self.department)
 
-        for sl in self.wdb.availability_slots:
+        for sl in self.data.availability_slots:
             # constraint : fixed_courses rooms are not available
-            for rg in self.wdb.rooms:
+            for rg in self.data.rooms:
                 fcrg = set(
                     fc
-                    for fc in self.wdb.fixed_courses_for_avail_slot[sl]
+                    for fc in self.data.fixed_courses_for_avail_slot[sl]
                     if fc.room == rg
                 )
-                # if self.wdb.fixed_courses.filter((Q(start_time__lt=sl.start_time + sl.duration) |
+                # if self.data.fixed_courses.filter((Q(start_time__lt=sl.start_time + sl.duration) |
                 #                                   Q(start_time__gt=sl.start_time - F('course__type__duration'))),
                 #                                  room=rg, day=sl.day).exists():
                 if fcrg:
@@ -764,10 +764,10 @@ class TimetableModel(FlopModel):
                             self.sum(
                                 self.located[(s_sl, c, room)]
                                 for s_sl in slots_filter(
-                                    self.wdb.courses_slots, simultaneous_to=sl
+                                    self.data.courses_slots, simultaneous_to=sl
                                 )
-                                for c in self.wdb.compatible_courses[s_sl]
-                                for room in self.wdb.course_rg_compat[c] - {None}
+                                for c in self.data.compatible_courses[s_sl]
+                                for room in self.data.course_rg_compat[c] - {None}
                                 if r in room.and_subrooms()
                             ),
                             "==",
@@ -781,17 +781,17 @@ class TimetableModel(FlopModel):
 
     @timer
     def add_rooms_ponderations_constraints(self):
-        considered_courses = set(self.wdb.courses)
+        considered_courses = set(self.data.courses)
         if self.department.mode.visio:
-            considered_courses -= set(self.wdb.visio_courses)
+            considered_courses -= set(self.data.visio_courses)
 
-        for rooms_ponderation in self.wdb.rooms_ponderations:
+        for rooms_ponderation in self.data.rooms_ponderations:
             room_types_id_list = rooms_ponderation.room_types
             room_types_list = [RoomType.objects.get(id=id) for id in room_types_id_list]
             ponderations = rooms_ponderation.ponderations
             n = len(ponderations)
             corresponding_basic_rooms = rooms_ponderation.basic_rooms.all()
-            for sl in self.wdb.availability_slots:
+            for sl in self.data.availability_slots:
                 considered_basic_rooms = set(
                     b for b in corresponding_basic_rooms if self.avail_room[b][sl] != 0
                 )
@@ -803,11 +803,11 @@ class TimetableModel(FlopModel):
                     expr += ponderation * self.sum(
                         self.scheduled[s_sl, c]
                         for s_sl in slots_filter(
-                            self.wdb.courses_slots, simultaneous_to=sl
+                            self.data.courses_slots, simultaneous_to=sl
                         )
-                        for c in self.wdb.courses_for_room_type[room_type]
+                        for c in self.data.courses_for_room_type[room_type]
                         & considered_courses
-                        & self.wdb.compatible_courses[s_sl]
+                        & self.data.compatible_courses[s_sl]
                     )
                 self.add_constraint(
                     expr,
@@ -819,51 +819,51 @@ class TimetableModel(FlopModel):
     @timer
     def add_visio_room_constraints(self):
         # courses that are neither visio neither no-visio are preferentially not in Visio room
-        for bg in self.wdb.basic_groups:
+        for bg in self.data.basic_groups:
             group_courses_except_visio_and_no_visio_ones = (
-                self.wdb.all_courses_for_basic_group[bg]
-                - self.wdb.visio_courses
-                - self.wdb.no_visio_courses
+                self.data.all_courses_for_basic_group[bg]
+                - self.data.visio_courses
+                - self.data.no_visio_courses
             )
             self.add_to_group_cost(
                 bg,
                 self.min_visio
                 * self.sum(
-                    self.located[(sl, c, None)] * self.wdb.visio_ponderation[c]
+                    self.located[(sl, c, None)] * self.data.visio_ponderation[c]
                     for c in group_courses_except_visio_and_no_visio_ones
-                    for sl in self.wdb.compatible_slots[c]
+                    for sl in self.data.compatible_slots[c]
                 ),
             )
 
         # visio-courses are preferentially in Visio
-        for bg in self.wdb.basic_groups:
+        for bg in self.data.basic_groups:
             group_visio_courses = (
-                self.wdb.all_courses_for_basic_group[bg] & self.wdb.visio_courses
+                self.data.all_courses_for_basic_group[bg] & self.data.visio_courses
             )
             self.add_to_group_cost(
                 bg,
                 self.min_visio
                 * self.sum(
-                    self.located[(sl, c, room)] * self.wdb.visio_ponderation[c]
+                    self.located[(sl, c, room)] * self.data.visio_ponderation[c]
                     for c in group_visio_courses
-                    for room in self.wdb.course_rg_compat[c] - {None}
-                    for sl in self.wdb.compatible_slots[c]
+                    for room in self.data.course_rg_compat[c] - {None}
+                    for sl in self.data.compatible_slots[c]
                 ),
             )
 
         # No visio_course have (strongly) preferentially a room
-        for bg in self.wdb.basic_groups:
+        for bg in self.data.basic_groups:
             group_no_visio_courses = (
-                self.wdb.all_courses_for_basic_group[bg] & self.wdb.no_visio_courses
+                self.data.all_courses_for_basic_group[bg] & self.data.no_visio_courses
             )
             self.add_to_group_cost(
                 bg,
                 10
                 * self.min_visio
                 * self.sum(
-                    self.located[(sl, c, None)] * self.wdb.visio_ponderation[c]
+                    self.located[(sl, c, None)] * self.data.visio_ponderation[c]
                     for c in group_no_visio_courses
-                    for sl in self.wdb.compatible_slots[c]
+                    for sl in self.data.compatible_slots[c]
                 ),
             )
 
@@ -880,8 +880,8 @@ class TimetableModel(FlopModel):
             f"Semaine {period.name} vous ne donnez que {available_hours} heures de disponibilités, "
             f"alors que vous êtes censé⋅e assurer {teaching_hours} heures de cours...\n"
         )
-        if self.wdb.holidays:
-            message += f"(Notez qu'il y a {len(self.wdb.holidays)} jour(s) férié(s) cette semaine là...)\n"
+        if self.data.holidays:
+            message += f"(Notez qu'il y a {len(self.data.holidays)} jour(s) férié(s) cette semaine là...)\n"
         message += (
             f"Est-ce que vous avez la possibilité d'ajouter des créneaux de disponibilité ?\n"
             f"Sinon, pouvez-vous s'il vous plaît décaler des cours à une semaine précédente ou suivante ?\n"
@@ -899,7 +899,7 @@ class TimetableModel(FlopModel):
 
     def send_lack_of_availability_mail(self, prefix="[flop!EDT] "):
         for key in self.warnings:
-            if key in self.wdb.instructors:
+            if key in self.data.instructors:
                 for w in self.warnings[key]:
                     if " < " in w:
                         data = w.split(" ")
@@ -924,39 +924,39 @@ class TimetableModel(FlopModel):
         avail_at_school_instr = {}
         unp_slot_cost = {}
 
-        if self.wdb.holidays:
-            self.add_warning(None, "%s are holidays" % self.wdb.holidays)
+        if self.data.holidays:
+            self.add_warning(None, "%s are holidays" % self.data.holidays)
 
-        for i in self.wdb.instructors:
+        for i in self.data.instructors:
             avail_instr[i] = {}
             avail_at_school_instr[i] = {}
             unp_slot_cost[i] = {}
             for period in self.periods:
                 period_availability_slots = slots_filter(
-                    self.wdb.availability_slots, period=period
+                    self.data.availability_slots, period=period
                 )
                 teaching_duration = sum(
                     [c.duration
-                    for c in self.wdb.courses_for_tutor[i]
+                    for c in self.data.courses_for_tutor[i]
                     if c.period == period
                     ], dt.timedelta()
                 )
                 total_teaching_duration = teaching_duration + sum(
                     [c.duration
-                    for c in self.wdb.other_departments_courses_for_tutor[i]
+                    for c in self.data.other_departments_courses_for_tutor[i]
                     if c.period == period
                     ], dt.timedelta()
                 )
-                period_holidays = days_filter(self.wdb.holidays, period=period)
+                period_holidays = days_filter(self.data.holidays, period=period)
 
                 if self.department.mode.cosmo != 1 and period_holidays:
                     period_tutor_availabilities = set(
                         a
-                        for a in self.wdb.availabilities[i][period]
+                        for a in self.data.availabilities[i][period]
                         if a.date not in period_holidays
                     )
                 else:
-                    period_tutor_availabilities = self.wdb.availabilities[i][period]
+                    period_tutor_availabilities = self.data.availabilities[i][period]
 
                 if not period_tutor_availabilities:
                     self.add_warning(
@@ -1063,10 +1063,10 @@ class TimetableModel(FlopModel):
                                 ) / (average_value - maximum)
 
             # Add fixed_courses constraint
-            for sl in self.wdb.availability_slots:
+            for sl in self.data.availability_slots:
                 fixed_courses = (
-                    self.wdb.fixed_courses_for_tutor[i]
-                    & self.wdb.fixed_courses_for_avail_slot[sl]
+                    self.data.fixed_courses_for_tutor[i]
+                    & self.data.fixed_courses_for_avail_slot[sl]
                 )
 
                 if fixed_courses:
@@ -1086,14 +1086,14 @@ class TimetableModel(FlopModel):
 
         non_preferred_cost_course = {}
         avail_course = {}
-        for course_type in self.wdb.course_types:
+        for course_type in self.data.course_types:
             for promo in self.train_prog:
                 avail_course[(course_type, promo)] = {}
                 non_preferred_cost_course[(course_type, promo)] = {}
                 for period in self.periods:
-                    period_availability_slots = slots_filter(self.wdb.availability_slots, period=period)
+                    period_availability_slots = slots_filter(self.data.availability_slots, period=period)
                     courses_avail = set(c_avail for c_avail in 
-                        self.wdb.courses_availabilities if c_avail.course_type==course_type and c_avail.train_prog==promo and c_avail.date in period.dates())
+                        self.data.courses_availabilities if c_avail.course_type==course_type and c_avail.train_prog==promo and c_avail.date in period.dates())
                     if not courses_avail:
                         for availability_slot in period_availability_slots:
                             avail_course[(course_type, promo)][availability_slot] = 1
@@ -1137,9 +1137,9 @@ class TimetableModel(FlopModel):
 
     def compute_avail_room(self):
         avail_room = {}
-        for room in self.wdb.basic_rooms:
+        for room in self.data.basic_rooms:
             avail_room[room] = {}
-            for sl in self.wdb.availability_slots:
+            for sl in self.data.availability_slots:
                 if RoomAvailability.objects.filter(
                     start_time__lt=sl.start_time + sl.duration,
                     start_time__gt=sl.start_time - F("duration"),
@@ -1188,23 +1188,23 @@ class TimetableModel(FlopModel):
         Add the constraints imposed by other departments' scheduled courses.
         """
 
-        for sl in self.wdb.availability_slots:
+        for sl in self.data.availability_slots:
             # constraint : other_departments_sched_courses rooms are not available
-            for r in self.wdb.basic_rooms:
+            for r in self.data.basic_rooms:
                 other_dep_sched_courses = (
-                    self.wdb.other_departments_sched_courses_for_room[r]
-                    & self.wdb.other_departments_sched_courses_for_avail_slot[sl]
+                    self.data.other_departments_sched_courses_for_room[r]
+                    & self.data.other_departments_sched_courses_for_avail_slot[sl]
                 )
                 if other_dep_sched_courses:
                     self.avail_room[r][sl] = 0
 
-        for sl in self.wdb.availability_slots:
+        for sl in self.data.availability_slots:
             # constraint : other_departments_sched_courses instructors are not available
-            for i in self.wdb.instructors:
+            for i in self.data.instructors:
                 other_dep_sched_courses = (
-                    self.wdb.other_departments_scheduled_courses_for_tutor[i]
-                    | self.wdb.other_departments_scheduled_courses_for_supp_tutor[i]
-                ) & self.wdb.other_departments_sched_courses_for_avail_slot[sl]
+                    self.data.other_departments_scheduled_courses_for_tutor[i]
+                    | self.data.other_departments_scheduled_courses_for_supp_tutor[i]
+                ) & self.data.other_departments_sched_courses_for_avail_slot[sl]
 
                 if other_dep_sched_courses:
                     self.avail_instr[i][sl] = 0
@@ -1241,12 +1241,12 @@ class TimetableModel(FlopModel):
     def update_objective(self):
         self.obj = self.lin_expr()
         for period in self.periods + [None]:
-            for i in self.wdb.instructors:
+            for i in self.data.instructors:
                 self.obj += self.cost_I[i][period]
-            for g in self.wdb.basic_groups:
+            for g in self.data.basic_groups:
                 self.obj += self.cost_G[g][period]
             self.obj += self.generic_cost[period]
-        for sl in self.wdb.courses_slots:
+        for sl in self.data.courses_slots:
             self.obj += self.cost_SL[sl]
         self.set_objective(self.obj)
 
@@ -1293,20 +1293,20 @@ class TimetableModel(FlopModel):
                                                                department=self.department)[0]
         if self.department.mode.cosmo == 2:
             corresponding_group = {}
-            for i in self.wdb.instructors:
-                corresponding_group[i] = self.wdb.groups.get(name=i.username)
-            for c in self.wdb.courses:
+            for i in self.data.instructors:
+                corresponding_group[i] = self.data.groups.get(name=i.username)
+            for c in self.data.courses:
                 c.groups.clear()
 
-        for c in self.wdb.courses:
-            for sl in self.wdb.compatible_slots[c]:
+        for c in self.data.courses:
+            for sl in self.data.compatible_slots[c]:
                 if self.get_var_value(self.scheduled[(sl, c)]) == 1:
                     cp = ScheduledCourse(
                         course=c,
                         start_time=sl.start_time,
                         version=versions_dict[c.period],
                     )
-                    for i in self.wdb.possible_tutors[c]:
+                    for i in self.data.possible_tutors[c]:
                         if self.get_var_value(self.assigned[(sl, c, i)]) == 1:
                             cp.tutor = i
                             if self.department.mode.cosmo == 2:
@@ -1314,13 +1314,13 @@ class TimetableModel(FlopModel):
                             break
                     if not self.department.mode.cosmo:
                         if self.pre_assign_rooms:
-                            for rg in self.wdb.course_rg_compat[c]:
+                            for rg in self.data.course_rg_compat[c]:
                                 if self.get_var_value(self.located[(sl, c, rg)]) == 1:
                                     cp.room = rg
                                     break
                     cp.save()
 
-        for fc in self.wdb.fixed_courses:
+        for fc in self.data.fixed_courses:
             cp = ScheduledCourse(
                 course=fc.course,
                 start_time=fc.start_time,
@@ -1341,27 +1341,27 @@ class TimetableModel(FlopModel):
        # On imprime les différences si demandé
         if self.major_to_stabilize is not None:
             print_differences(self.department, self.periods,
-                              self.major_to_stabilize, target_major, self.wdb.instructors)
+                              self.major_to_stabilize, target_major, self.data.instructors)
 
         # # On enregistre les coûts dans la BDD
         TutorCost.objects.filter(
             department=self.department,
-            period__in=self.wdb.periods,
+            period__in=self.data.periods,
             version__major=target_major,
         ).delete()
         GroupFreeHalfDay.objects.filter(
             group__train_prog__department=self.department,
-            period__in=self.wdb.periods,
+            period__in=self.data.periods,
             version__major=target_major,
         ).delete()
         GroupCost.objects.filter(
             group__train_prog__department=self.department,
-            period__in=self.wdb.periods,
+            period__in=self.data.periods,
             version__major=target_major,
         ).delete()
 
         for period in self.periods:
-            for i in self.wdb.instructors:
+            for i in self.data.instructors:
                 tc = TutorCost(
                     department=self.department,
                     tutor=i,
@@ -1371,7 +1371,7 @@ class TimetableModel(FlopModel):
                 )
                 tc.save()
 
-            for g in self.wdb.basic_groups:
+            for g in self.data.basic_groups:
                 DJL = 0
                 if Time.PM in self.possible_apms:
                     DJL += self.get_expr_value(self.FHD_G[Time.PM][g][period])
@@ -1419,9 +1419,9 @@ class TimetableModel(FlopModel):
         print("Added version #%g" % target_major)
         solution_file_one_vars_set = self.read_solution_file(filename)
 
-        for c in self.wdb.courses:
-            for sl in self.wdb.compatible_slots[c]:
-                for i in self.wdb.possible_tutors[c]:
+        for c in self.data.courses:
+            for sl in self.data.compatible_slots[c]:
+                for i in self.data.possible_tutors[c]:
                     if (
                         self.assigned[(sl, c, i)].getName()
                         in solution_file_one_vars_set
@@ -1434,7 +1434,7 @@ class TimetableModel(FlopModel):
                             version=versions_dict[c.period],
                         )
                         if self.pre_assign_rooms:
-                            for rg in self.wdb.course_rg_compat[c]:
+                            for rg in self.data.course_rg_compat[c]:
                                 if (
                                     self.located[(sl, c, rg)].getName()
                                     in solution_file_one_vars_set
@@ -1443,7 +1443,7 @@ class TimetableModel(FlopModel):
                                     break
                         cp.save()
 
-        for fc in self.wdb.fixed_courses:
+        for fc in self.data.fixed_courses:
             cp = ScheduledCourse(
                 course=fc.course,
                 start_time=fc.start_time,
@@ -1521,7 +1521,7 @@ class TimetableModel(FlopModel):
         return target_major
 
     def find_same_course_slot_in_other_period(self, slot, other_period):
-        other_slots = slots_filter(self.wdb.courses_slots, period=other_period, same=slot)
+        other_slots = slots_filter(self.data.courses_slots, period=other_period, same=slot)
         if len(other_slots) != 1:
             raise Exception(
                 f"Wrong slots among periods {other_period} \n {slot} vs {other_slots}"

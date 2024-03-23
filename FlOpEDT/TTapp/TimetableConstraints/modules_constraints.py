@@ -43,7 +43,7 @@ class MinModulesHalfDays(TimetableConstraint):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_modules = set(ttmodel.wdb.modules)
+        considered_modules = set(ttmodel.data.modules)
         if self.modules.exists():
             considered_modules &= set(self.modules.all())
         helper = MinHalfDaysHelperModule(ttmodel, self, period, ponderation)

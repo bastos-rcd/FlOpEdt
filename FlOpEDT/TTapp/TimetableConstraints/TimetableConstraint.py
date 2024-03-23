@@ -86,13 +86,13 @@ class TimetableConstraint(FlopConstraint):
 
         #if tutor is not None, we have to reduce to the courses that are in possible_course[tutor]
         if tutor is not None:
-            if tutor in ttmodel.wdb.instructors:
-                return courses_qs.filter(id__in = [c.id for c in ttmodel.wdb.possible_courses[tutor]])
+            if tutor in ttmodel.data.instructors:
+                return courses_qs.filter(id__in = [c.id for c in ttmodel.data.possible_courses[tutor]])
             else:
                 return courses_qs.filter(id__in = [])
         if tutors:
-            considered_tutors = set(tutors) & set(ttmodel.wdb.instructors)
-            return courses_qs.filter(id__in = [c.id for c in ttmodel.wdb.possible_courses[tutor] for tutor in considered_tutors])
+            considered_tutors = set(tutors) & set(ttmodel.data.instructors)
+            return courses_qs.filter(id__in = [c.id for c in ttmodel.data.possible_courses[tutor] for tutor in considered_tutors])
 
         return courses_qs
     
@@ -104,7 +104,7 @@ class TimetableConstraint(FlopConstraint):
             basic_groups = StructuralGroup.objects.filter(train_prog__department=self.department,
                                                           basic=True)
         else:
-            basic_groups = ttmodel.wdb.basic_groups
+            basic_groups = ttmodel.data.basic_groups
         if hasattr(self, 'train_progs'):
             if self.train_progs.exists():
                 basic_groups = set(basic_groups.filter(train_prog__in=self.train_progs.all()))
@@ -121,7 +121,7 @@ class TimetableConstraint(FlopConstraint):
         else:
             ttmodel_basic_groups_to_consider = set()
             for g in basic_groups:
-                if ttmodel.wdb.courses_for_basic_group[g]:
+                if ttmodel.data.courses_for_basic_group[g]:
                     ttmodel_basic_groups_to_consider.add(g)
             return ttmodel_basic_groups_to_consider
         

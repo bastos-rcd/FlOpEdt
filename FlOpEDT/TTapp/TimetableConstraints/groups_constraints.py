@@ -74,7 +74,7 @@ def pre_analysis_considered_basic_groups(group_ttconstraint):
 '''
     basic_groups_to_consider = set()
     for g in basic_groups:
-        if ttmodel.wdb.courses_for_basic_group[g]:
+        if ttmodel.data.courses_for_basic_group[g]:
             basic_groups_to_consider.add(g)
 '''
 
@@ -84,7 +84,7 @@ def considered_basic_groups(group_ttconstraint, ttmodel=None):
         basic_groups = StructuralGroup.objects.filter(train_prog__department=group_ttconstraint.department,
                                                       basic=True)
     else:
-        basic_groups = ttmodel.wdb.basic_groups
+        basic_groups = ttmodel.data.basic_groups
     if group_ttconstraint.train_progs.exists():
         basic_groups = set(basic_groups.filter(train_prog__in=group_ttconstraint.train_progs.all()))
     else:
@@ -99,7 +99,7 @@ def considered_basic_groups(group_ttconstraint, ttmodel=None):
     else:
         ttmodel_basic_groups_to_consider = set()
         for g in basic_groups:
-            if ttmodel.wdb.courses_for_basic_group[g]:
+            if ttmodel.data.courses_for_basic_group[g]:
                 ttmodel_basic_groups_to_consider.add(g)
         return ttmodel_basic_groups_to_consider
 
@@ -169,23 +169,23 @@ class MinNonPreferedTrainProgsSlot(TimetableConstraint):
         else:
             train_progs = set(ttmodel.train_prog)
         for train_prog in train_progs:
-            basic_groups = ttmodel.wdb.basic_groups.filter(train_prog=train_prog)
+            basic_groups = ttmodel.data.basic_groups.filter(train_prog=train_prog)
             for g in basic_groups:
                 g_pref, created = GroupPreferences.objects.get_or_create(group=g)
                 g_pref.calculate_fields()
                 morning_weight = 2 * g_pref.get_morning_weight()
                 evening_weight = 2 * g_pref.get_evening_weight()
                 light_day_weight = 2 * g_pref.get_light_day_weight()
-                for sl in ttmodel.wdb.availability_slots:
+                for sl in ttmodel.data.availability_slots:
                     day_time_ponderation = light_day_weight
-                    if sl in ttmodel.wdb.first_hour_slots:
+                    if sl in ttmodel.data.first_hour_slots:
                         day_time_ponderation *= morning_weight
-                    elif sl in ttmodel.wdb.last_hour_slots:
+                    elif sl in ttmodel.data.last_hour_slots:
                         day_time_ponderation *= evening_weight
 
-                    for c in ttmodel.wdb.courses_for_basic_group[g]:
+                    for c in ttmodel.data.courses_for_basic_group[g]:
                         slot_vars_sum = ttmodel.sum(ttmodel.scheduled[(sl2, c)]
-                                                    for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                    for sl2 in slots_filter(ttmodel.data.compatible_slots[c],
                                                                             simultaneous_to=sl))
                         cost = self.local_weight() * ponderation * slot_vars_sum \
                             * ttmodel.unp_slot_cost_course[c.type,
@@ -194,14 +194,14 @@ class MinNonPreferedTrainProgsSlot(TimetableConstraint):
                         ttmodel.add_to_group_cost(g, cost, period=period)
 
             if self.weight is None:
-                for course_type in ttmodel.wdb.course_types:
-                    for sl in ttmodel.wdb.availability_slots:
+                for course_type in ttmodel.data.course_types:
+                    for sl in ttmodel.data.availability_slots:
                         if ttmodel.avail_course[(course_type, train_prog)][sl] == 0:
                             ttmodel.add_constraint(
                                 ttmodel.sum(ttmodel.scheduled[(sl2, c)]
                                             for g in basic_groups
-                                            for c in ttmodel.wdb.courses_for_basic_group[g]
-                                            for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                            for c in ttmodel.data.courses_for_basic_group[g]
+                                            for sl2 in slots_filter(ttmodel.data.compatible_slots[c],
                                                                     simultaneous_to=sl)),
                                 '==',
                                 0,
@@ -246,14 +246,14 @@ class GroupsMinHoursPerDay(TimetableConstraint):
         if not min_time:
             return
 
-        days = days_filter(ttmodel.wdb.days, period=period)
+        days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         for basic_group in considered_groups:
             for day in days:
                 group_day_scheduled_minutes = ttmodel.sum(ttmodel.scheduled[sl, c] * sl.minutes
-                                             for c in ttmodel.wdb.courses_for_basic_group[basic_group]
-                                             for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day))
+                                             for c in ttmodel.data.courses_for_basic_group[basic_group]
+                                             for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day))
                 has_enough_time = ttmodel.add_floor(group_day_scheduled_minutes,
                                                     min_time.seconds//60,
                                                     100000)

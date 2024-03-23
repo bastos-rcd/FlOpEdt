@@ -71,7 +71,7 @@ class GroupsLunchBreak(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         considered_groups = self.considered_basic_groups(ttmodel)
-        days = days_filter(ttmodel.wdb.days, period=period)
+        days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
             days = days_filter(days, weekday_in=self.weekdays)
         for day in days:
@@ -94,7 +94,7 @@ class GroupsLunchBreak(TimetableConstraint):
                     # si et seulement si undesired_scheduled_courses vaut plus que 1
                     undesired_scheduled_courses = \
                         ttmodel.sum(ttmodel.scheduled[sl, c] for c in considered_courses
-                                    for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                    for sl in slots_filter(ttmodel.data.compatible_slots[c],
                                                            simultaneous_to=local_slot))
                     slot_vars[group, local_slot] = ttmodel.add_floor(expr=undesired_scheduled_courses,
                                                                      floor=1,
@@ -213,7 +213,7 @@ class TutorsLunchBreak(TimetableConstraint):
         tutors_to_be_considered = considered_tutors(self, ttmodel)
         if self.tutors.exists():
             tutors_to_be_considered &= set(self.tutors.all())
-        days = days_filter(ttmodel.wdb.days, period=period)
+        days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
             days = days_filter(days, weekday_in=self.weekdays)
         for day in days:
@@ -234,14 +234,14 @@ class TutorsLunchBreak(TimetableConstraint):
                 if not considered_courses:
                     continue
                 other_dep_scheduled_courses = \
-                    set(ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor]) | \
-                    set(ttmodel.wdb.other_departments_scheduled_courses_for_supp_tutor[tutor])
+                    set(ttmodel.data.other_departments_scheduled_courses_for_tutor[tutor]) | \
+                    set(ttmodel.data.other_departments_scheduled_courses_for_supp_tutor[tutor])
                 for local_slot in local_slots:
                     # Je veux que slot_vars[tutor, local_slot] soit à 1
                     # si et seulement si
                     # undesired_scheduled_courses ou other_dep_undesired_sc_nb vaut plus que 1
                     considered_sl_c = set((sl,c) for c in considered_courses
-                                          for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                          for sl in slots_filter(ttmodel.data.compatible_slots[c],
                                                                  simultaneous_to=local_slot))
                     if not considered_sl_c:
                         continue
@@ -377,7 +377,7 @@ class BreakAroundCourseType(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1000):
         considered_groups = self.considered_basic_groups(ttmodel)
-        days = days_filter(ttmodel.wdb.days, period=period)
+        days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         for group in considered_groups:
@@ -385,25 +385,25 @@ class BreakAroundCourseType(TimetableConstraint):
             all_courses = set(self.get_courses_queryset_by_parameters(period, ttmodel, group=group))
             broken_breaks = ttmodel.lin_expr()
             for day in days:
-                day_slots = slots_filter(ttmodel.wdb.courses_slots, day=day)
+                day_slots = slots_filter(ttmodel.data.courses_slots, day=day)
                 for slot1 in day_slots:
                     successive_slots = set(sl for sl in day_slots
                                                     if slot1.end_time <= sl.start_time < slot1.end_time + self.min_break_after)
                     if not successive_slots:
                         continue
-                    amphi_slot = ttmodel.sum(ttmodel.scheduled[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
+                    amphi_slot = ttmodel.sum(ttmodel.scheduled[slot1, c] for c in specific_courses & ttmodel.data.compatible_courses[slot1])
                     other_slot = ttmodel.sum(ttmodel.scheduled[slot2, c]
                                               for slot2 in successive_slots
-                                              for c in all_courses & ttmodel.wdb.compatible_courses[slot2])
+                                              for c in all_courses & ttmodel.data.compatible_courses[slot2])
                     broken_breaks += ttmodel.add_floor(expr=amphi_slot+other_slot, floor=2, bound=2)
                 for slot1 in day_slots:
                     previous_slots = set(sl for sl in day_slots if slot1.start_time -  self.min_break_before < sl.end_time <= slot1.start_time)
                     if not previous_slots:
                         continue
-                    amphi_slot = ttmodel.sum(ttmodel.scheduled[slot1, c] for c in specific_courses & ttmodel.wdb.compatible_courses[slot1])
+                    amphi_slot = ttmodel.sum(ttmodel.scheduled[slot1, c] for c in specific_courses & ttmodel.data.compatible_courses[slot1])
                     other_slot = ttmodel.sum(ttmodel.scheduled[slot2, c]
                                               for slot2 in previous_slots
-                                              for c in all_courses & ttmodel.wdb.compatible_courses[slot2])
+                                              for c in all_courses & ttmodel.data.compatible_courses[slot2])
                     broken_breaks += ttmodel.add_floor(expr=amphi_slot+other_slot, floor=2, bound=2)
 
             if self.weight is None:
