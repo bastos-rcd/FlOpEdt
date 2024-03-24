@@ -467,9 +467,8 @@ function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
  * @param browserEvent The HTML triggered event
  * @param event The event we are currently dragging
  */
-function onDragStart(browserEvent: DragEvent, event: CalendarEvent) {
-  //@ts-expect-error
-  minutesToStartEvent = browserEvent.layerY! * minutesToPixelRate
+function onDragStart(browserEvent: DragEvent & { layerY: number }, event: CalendarEvent) {
+  minutesToStartEvent = browserEvent.layerY * minutesToPixelRate
   currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
   eventDragged.value = cloneDeep(event)
@@ -648,7 +647,7 @@ function onMouseUp(): void {
   }
 }
 
-function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
+function onAvailClick(mouseEvent: MouseEvent & { layerY: number }, eventId: number): void {
   if (mouseEvent.button === 0) {
     if (!timeoutId) {
       timeoutId = setTimeout(() => {
@@ -664,9 +663,8 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
       if (firstAvail) {
         if (firstAvail.data.duration! > (props.step || STEP_DEFAULT)) {
           const secondAvail = cloneDeep(firstAvail)
-          //@ts-expect-error
-          const layerY = mouseEvent.layerY
-          firstAvail!.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
+          const layerY: number = mouseEvent.layerY
+          firstAvail.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
           updateMinutes(
             secondAvail.data.start,
             parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY, props.step)
