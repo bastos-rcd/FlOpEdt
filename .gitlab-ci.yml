@@ -11,11 +11,12 @@ cache:
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  DJANGO_SETTINGS_MODULE: "FlOpEDT.settings.development"
+  DJANGO_SETTINGS_MODULE: "FlOpEDT.settings.base"
+  FLOP_CONFIG_FILE: "$CI_PROJECT_DIR/config_file/flopedt-ci.ini"
   POSTGRES_DB: "postgres"
-  POSTGRES_HOST: "postgres"
+  POSTGRES_HOST: "localhost"
   POSTGRES_PORT: "5432"
-  POSTGRES_USER: "postgres"
+  POSTGRES_USER: "flop_user"
   POSTGRES_HOST_AUTH_METHOD: "trust"
   REDIS_HOST: "redis"
   EMAIL_HOST: "maildev"
