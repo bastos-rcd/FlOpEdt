@@ -39,7 +39,7 @@ unit-test-webapp:
         coverage_format: cobertura
         path: FlOpEDT-front/.reports/vitest/coverage/cobertura-coverage.xml
 
-e2e-test-webapp:
+.e2e-test-webapp:
   extends: .fullstack
   stage: test
   needs:
