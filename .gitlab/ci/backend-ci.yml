@@ -6,7 +6,8 @@ pylint:
   stage: lint
   needs: []
   script:
-    - pylint FlOpEDT/**/*.py
+    - cd FlOpEDT
+    - pylint **/*.py
 
 unit-test-python:
   extends: .python-full
