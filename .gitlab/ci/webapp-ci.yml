@@ -1,0 +1,67 @@
+#$schema: https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json
+
+lint:
+  extends: .node
+  stage: lint
+  needs: []
+  variables:
+    ESLINT_CODE_QUALITY_REPORT: .reports/eslint/gitlab-codequality.json
+  script:
+    - cd FlOpEDT-front
+    - yarn run lint --format gitlab
+  artifacts:
+    reports:
+      codequality: FlOpEDT-front/.reports/eslint/gitlab-codequality.json
+
+typecheck-webapp:
+  extends: .node
+  stage: test
+  needs: []
+  script:
+    - cd FlOpEDT-front
+    - yarn run typecheck
+
+unit-test-webapp:
+  extends: .node
+  stage: test
+  needs: []
+  coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
+  script:
+    - cd FlOpEDT-front
+    - yarn run test-coverage
+  artifacts:
+    name: frontend-vitest-reports
+    paths:
+      - FlOpEDT-front/.reports/vitest
+    reports:
+      junit: FlOpEDT-front/.reports/vitest/junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: FlOpEDT-front/.reports/vitest/coverage/cobertura-coverage.xml
+
+e2e-test-webapp:
+  extends: .fullstack
+  stage: test
+  needs:
+    - job: build-webapp
+      artifacts: true
+  parallel:
+    matrix:
+      - PLAYWRIGHT_BROWSER: [chromium, firefox, webkit]
+  before_script:
+    - !reference [.fullstack, before_script]
+    - cd FlOpEDT
+    - python manage.py migrate
+    - cd ../FlOpEDT-front
+    - yarn playwright install
+    - yarn playwright install-deps
+    - cd ..
+  script:
+    - cd FlOpEDT-front
+    - yarn run e2e --browser $PLAYWRIGHT_BROWSER
+  artifacts:
+    name: frontend-playwright-report
+    paths:
+      - FlOpEDT-front/.reports/playwright
+    reports:
+      junit: FlOpEDT-front/.reports/playwright/junit.xml

@@ -1,0 +1,25 @@
+#$schema: https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json
+
+pylint:
+  extends: .python
+  allow_failure: true # TODO: make code beautiful & enforce code quality
+  stage: lint
+  needs: []
+  script:
+    - pylint FlOpEDT/**/*.py
+
+unit-test-python:
+  extends: .python-full
+  stage: test
+  needs: []
+  coverage: /(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/
+  script:
+    - cd FlOpEDT
+      # TODO: once tests are all using pytest, remove the last `api` argument to run everything
+    - pytest --cov --cov-report term:skip-covered --cov-report xml:.reports/pytest/coverage.xml --junitxml=.reports/pytest/junit.xml api
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: FlOpEDT/.reports/pytest/coverage.xml
+      junit: FlOpEDT/.reports/pytest/junit.xml

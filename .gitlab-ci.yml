@@ -1,218 +1,62 @@
-# This file is a template, and might need editing before it works on your project.
-# You can copy and paste this template into a new `.gitlab-ci.yml` file.
-# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
-#
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Nodejs.gitlab-ci.yml
-
-default:
-  image: python:3.11
-
-# Change pip's cache directory to be inside the project directory since we can
-# only cache local items.
-variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-
-# Pip's cache doesn't store the python packages
-# https://pip.pypa.io/en/stable/reference/pip_install/#caching
-cache:
-  paths:
-    - .cache/pip
-
-
 stages:
-  - quality
   - build
+  - lint
+  - test
   - deploy
 
-# This folder is cached between builds
-# https://docs.gitlab.com/ee/ci/yaml/index.html#cache
+cache:
+  paths:
+    - FlOpEDT-front/node_modules
+    - .cache/pip
 
-gate-quality:
-  image: node:latest
-  stage: quality
-  script:
-    - cd FlOpEDT-front
-    - yarn
-    - npx prettier -c .
-    - yarn test --coverage
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  DJANGO_SETTINGS_MODULE: "FlOpEDT.settings.development"
+  POSTGRES_DB: "postgres"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: "postgres"
+  POSTGRES_HOST_AUTH_METHOD: "trust"
+  REDIS_HOST: "redis"
+  EMAIL_HOST: "maildev"
+  EMAIL_PORT: "1025"
 
-build-front:
-  image: node:latest
-  stage: build
-  script:
-    - cd FlOpEDT-front
-    - yarn
-    - yarn build
-  artifacts:
-    paths:
-      - dist
-
-build_pip_artifact:
-  stage: build
-
+.python:
+  image: python:3.11-alpine
+  services:
+    - postgres:alpine
   before_script:
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
-  - apt update && apt install python3-pip -y
+    - python --version ; pip --version  # For debugging
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
 
-  script:
-    - pip3 install --upgrade build wheel
-    - python -m build
-  artifacts:
-    paths:
-      - dist/*.tar.gz
-build_deb_package:focal:
-  cache: []
-  image: ubuntu:focal
-  stage: build
-  script:
-    - apt update
-    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
-    - apt install debhelper build-essential virtualenv python3-venv python3-pip libpq-dev libpython3-dev wget -y
-    - ln -sf packaging/debian_ubuntu/debian .
-    - dpkg-buildpackage -us -uc -b
-    - mv ../*.deb .
-  artifacts:
-    paths:
-      - ./*.deb
-
-build_deb_package:jammy:
-  cache: []
-  image: ubuntu:jammy
-  stage: build
-  script:
-    - apt update
-    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
-    - apt install debhelper build-essential virtualenv python3-venv python3-pip libpq-dev libpython3-dev wget -y
-    - ln -sf packaging/debian_ubuntu/debian .
-    - dpkg-buildpackage -us -uc -b
-    - mv ../*.deb .
-  artifacts:
-    paths:
-      - ./*.deb
-
-build_deb_package:bullseye:
-  cache: []
-  image: debian:bullseye
-  stage: build
-  script:
-    - apt update
-    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
-    - apt install debhelper build-essential virtualenv python3-venv python3-pip libpq-dev libpython3-dev wget -y
-    - ln -sf packaging/debian_ubuntu/debian .
-    - dpkg-buildpackage -us -uc -b
-    - mv ../*.deb .
-  artifacts:
-    paths:
-      - ./*.deb
-
-install_deb_package:focal:
-  cache: []
-  image: ubuntu:focal
-  stage: deploy
-  needs: ["build_deb_package:focal"]
+.python-full:
+  extends: .python
   services:
-    - postgres:15-alpine
-  variables:
-    POSTGRES_DB: "flop"
-    POSTGRES_USER: "flop"
-    POSTGRES_PASSWORD: "flop"
-    POSTGRES_HOST: "postgres"
-    POSTGRES_PORT: 5432
-  script:
-    - apt update
-    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
-    - apt install ./*.deb -y
-    - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' /etc/flopedt/flopedt.ini
-    - sed -i 's/\(^tmp_directory=\).*/\1\/var\/flopedt\/tmp/' /etc/flopedt/flopedt.ini
-    - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
-    - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
-    - cat /etc/flopedt/flopedt.ini
-    - flop_admin migrate
-    - bunzip2 dump.json.bz2
-    - flop_admin loaddata dump.json
+    - postgres:alpine
+    - redis:alpine
+    - maildev/maildev:latest
 
-install_deb_package:jammy:
-  cache: []
-  image: ubuntu:jammy
-  stage: deploy
-  needs: ["build_deb_package:jammy"]
-  services:
-    - postgres:15-alpine
-  variables:
-    POSTGRES_DB: "flop"
-    POSTGRES_USER: "flop"
-    POSTGRES_PASSWORD: "flop"
-    POSTGRES_HOST: "postgres"
-    POSTGRES_PORT: 5432
-  script:
-    - apt update
-    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata bzip2
-    - apt install ./*.deb -y
-    - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' /etc/flopedt/flopedt.ini
-    - sed -i 's/\(^tmp_directory=\).*/\1\/var\/flopedt\/tmp/' /etc/flopedt/flopedt.ini
-    - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
-    - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
-    - cat /etc/flopedt/flopedt.ini
-    - flop_admin migrate
-    - bunzip2 dump.json.bz2
-    - flop_admin loaddata dump.json
-
-install_deb_package:bullseye:
-  cache: []
-  image: debian:bullseye
-  stage: deploy
-  needs: ["build_deb_package:bullseye"]
-  services:
-    - postgres:15-alpine
-  variables:
-    POSTGRES_DB: "flop"
-    POSTGRES_USER: "flop"
-    POSTGRES_PASSWORD: "flop"
-    POSTGRES_HOST: "postgres"
-    POSTGRES_PORT: 5432
-  script:
-    - apt update
-    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata bzip2
-    - apt install ./*.deb -y
-    - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' /etc/flopedt/flopedt.ini
-    - sed -i 's/\(^tmp_directory=\).*/\1\/var\/flopedt\/tmp/' /etc/flopedt/flopedt.ini
-    - sed -i 's/\(^cache_directory=\).*/\1\/var\/flopedt\/cache/' /etc/flopedt/flopedt.ini
-    - sed -i 's/\(^static_directory=\).*/\1\/var\/flopedt\/static/' /etc/flopedt/flopedt.ini
-    - cat /etc/flopedt/flopedt.ini
-    - flop_admin migrate
-    - bunzip2 dump.json.bz2
-    - flop_admin loaddata dump.json
-
-install_pip_artifact:
-  stage: deploy
-  needs: ["build_pip_artifact"]
-  services:
-    - postgres:15-alpine
-  variables:
-    POSTGRES_DB: "flop"
-    POSTGRES_USER: "flop"
-    POSTGRES_PASSWORD: "flop"
-    POSTGRES_HOST: "postgres"
-    POSTGRES_PORT: 5432
-  
+.node:
+  image: node:alpine
   before_script:
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
-  - apt update && apt install python3-pip -y
-  
-  script:
-    - pip install dist/FlOpEDT*.tar.gz
-    - mkdir -p /var/flopedt/{tmp,cache}
-    - sed -i 's/\(^postgres_hostname=\).*/\1postgres/' config_file/flopedt.ini
-    - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin migrate
-    - bunzip2 dump.json.bz2
-    - FLOP_CONFIG_FILE=config_file/flopedt.ini flop_admin loaddata dump.json
+    - node --version ; yarn --version  # For debugging
+    - cd FlOpEDT-front ; yarn --frozen-lockfile ; cd ..
 
-  dependencies:
-    - build_pip_artifact
+.fullstack:
+  extends: .python-full
+  image: python:3.11  # Alpine uses a good libc (musl), but browsers rely on glibc :pensive:
+  before_script:
+    - !reference [.python, before_script]
+    # Debian repositories are a bit of a nightmare here
+    # This works around some of the pitfalls with installing yarnpkg directly :shrug:
+    - apt -qq update ; apt -qq install -y nodejs npm ; npm i -g yarn
+    - !reference [.node, before_script]
+
+include:
+  - local: '.gitlab/ci/backend-ci.yml'
+  - local: '.gitlab/ci/webapp-ci.yml'
+  - local: '.gitlab/ci/build-ci.yml'
+  # - local: '.gitlab/ci/deploy.yml'
