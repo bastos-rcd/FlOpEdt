@@ -27,7 +27,7 @@ variables:
   services:
     - postgres:alpine
   before_script:
-    - python --version ; pip --version  # For debugging
+    - python --version ; pip --version # For debugging
     - pip install virtualenv
     - virtualenv venv
     - source venv/bin/activate
@@ -43,12 +43,12 @@ variables:
 .node:
   image: node:alpine
   before_script:
-    - node --version ; yarn --version  # For debugging
+    - node --version ; yarn --version # For debugging
     - cd FlOpEDT-front ; yarn --frozen-lockfile ; cd ..
 
 .fullstack:
   extends: .python-full
-  image: python:3.11  # Alpine uses a good libc (musl), but browsers rely on glibc :pensive:
+  image: python:3.11 # Alpine uses a good libc (musl), but browsers rely on glibc :pensive:
   before_script:
     - !reference [.python, before_script]
     # Debian repositories are a bit of a nightmare here
