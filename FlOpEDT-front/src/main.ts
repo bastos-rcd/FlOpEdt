@@ -2,7 +2,7 @@ import { createApp, readonly, ref, Ref } from 'vue'
 
 import { createPinia } from 'pinia'
 
-import '@/assets/scss/styles.scss'
+// import '@/assets/scss/styles.scss'
 import './style.css'
 
 import App from './App.vue'
