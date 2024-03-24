@@ -56,7 +56,8 @@ variables:
     - !reference [.node, before_script]
 
 include:
-  - local: '.gitlab/ci/backend-ci.yml'
-  - local: '.gitlab/ci/webapp-ci.yml'
-  - local: '.gitlab/ci/build-ci.yml'
-  # - local: '.gitlab/ci/deploy.yml'
+  - local: ".gitlab/ci/backend-ci.yml"
+  - local: ".gitlab/ci/webapp-ci.yml"
+  - local: ".gitlab/ci/build-ci.yml"
+  # TODO merge builds, adapt deploy
+  # - local: '.gitlab/ci/old-packages.yml'
