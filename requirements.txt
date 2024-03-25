@@ -33,6 +33,7 @@ django-crontab
 python-dateutil
 pytest
 pytest-django
+pytest-cov
 rules
 ics
 pylint
