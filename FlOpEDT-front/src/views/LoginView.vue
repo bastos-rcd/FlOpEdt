@@ -5,11 +5,11 @@
     <legend>Authentification</legend>
     <div class="form-row">
       <label for="username" class="form-left">Nom d'utilisat.eur.rice</label>
-      <input id="username" class="form-right" v-model="username" placeholder="JohnDoe" />
+      <input id="username" v-model="username" class="form-right" placeholder="JohnDoe" />
     </div>
     <div class="form-row">
       <label for="password" class="form-left">Mot de passe</label>
-      <input id="password" class="form-right" v-model="password" placeholder="" type="password" />
+      <input id="password" v-model="password" class="form-right" placeholder="" type="password" />
     </div>
     <div class="form-row">
       <span class="form-left">
@@ -21,9 +21,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-const t = useI18n()
 const username = ref('')
 const password = ref('')
 const route = useRoute()
