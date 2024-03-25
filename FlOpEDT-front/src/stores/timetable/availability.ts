@@ -2,27 +2,24 @@ import { AvailabilityBack } from '@/ts/type'
 import { defineStore, storeToRefs } from 'pinia'
 import { Ref, ref } from 'vue'
 import { Availability } from '../declarations'
-import { Timestamp, copyTimestamp, parseTime, parseTimestamp, updateMinutes } from '@quasar/quasar-ui-qcalendar'
+import { Timestamp, copyTimestamp, parseTime, parseTimestamp, today, updateMinutes } from '@quasar/quasar-ui-qcalendar'
 import { api } from '@/utils/api'
-import {
-  getDateStringFromTimestamp,
-  datetimeStringToDate,
-  durationDjangoToMinutes,
-  durationMinutesToDjango,
-} from '@/helpers'
+import { getDateStringFromTimestamp, durationDjangoToMinutes, durationMinutesToDjango } from '@/helpers'
 import { InputCalendarEvent } from '@/components/calendar/declaration'
 import { cloneDeep, remove } from 'lodash'
 import { usePermanentStore } from './permanent'
 import { useDepartmentStore } from '../department'
+import { useAuth } from '../auth'
 
 export const useAvailabilityStore = defineStore('availabilityStore', () => {
+  const authStore = useAuth()
   const permanentStore = usePermanentStore()
   const departmentStore = useDepartmentStore()
   const availabilitiesBack = ref<Map<string, AvailabilityBack[]>>(new Map<string, AvailabilityBack[]>())
   const availabilities = ref<Map<string, Availability[]>>(new Map<string, Availability[]>())
   const isLoading = ref(false)
   const loadingError = ref<Error | null>(null)
-  const nextId: Ref<number> = ref(0)
+  const nextId: Ref<number> = ref(1)
   const { current } = storeToRefs(departmentStore)
   const { timeSettings } = storeToRefs(permanentStore)
 
@@ -32,18 +29,20 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     try {
       await api.getAvailabilities(userId, from, to).then((result: AvailabilityBack[]) => {
         result.forEach((avb) => {
-          const dateString = datetimeStringToDate(avb.start_time)
-          if (!availabilitiesBack.value.has(dateString)) {
-            availabilitiesBack.value.set(dateString, [])
-          }
-          availabilitiesBack.value.get(dateString)!.push(avb)
-          const newAvailabilities: Availability[] = formatAvailabilityWithDayTime(availabilityBackToAvailability(avb))
-          newAvailabilities.forEach((newAvailability) => {
-            if (!availabilities.value.has(dateString)) {
-              availabilities.value.set(dateString, [])
+          if (avb.start_time) {
+            const dateString = getDateStringFromTimestamp(avb.start_time)
+            if (!availabilitiesBack.value.has(dateString)) {
+              availabilitiesBack.value.set(dateString, [])
             }
-            availabilities.value.get(dateString)!.push(newAvailability)
-          })
+            availabilitiesBack.value.get(dateString)!.push(avb)
+            const newAvailabilities: Availability[] = formatAvailabilityWithDayTime(availabilityBackToAvailability(avb))
+            newAvailabilities.forEach((newAvailability) => {
+              if (!availabilities.value.has(dateString)) {
+                availabilities.value.set(dateString, [])
+              }
+              availabilities.value.get(dateString)!.push(newAvailability)
+            })
+          }
         })
         isLoading.value = false
       })
@@ -54,21 +53,23 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
-    let start: Timestamp = parseTimestamp(availabilityBack.start_time) as Timestamp
     let newAvailability: Availability = {
       id: nextId.value++,
-      type: availabilityBack.av_type,
+      type: availabilityBack.av_type as 'user' | 'room',
       duration: durationDjangoToMinutes(availabilityBack.duration),
-      start: start,
+      start: parseTimestamp(today())!,
       value: availabilityBack.value,
       dataId: availabilityBack.dataId,
+    }
+    if (availabilityBack.start_time) {
+      newAvailability.start = availabilityBack.start_time
     }
     return newAvailability
   }
 
   function availabilityToAvailabilityBack(availability: Availability): AvailabilityBack {
     let newAvailabilityBack: AvailabilityBack = {
-      start_time: availability.start.date + ' ' + availability.start.time,
+      start_time: availability.start,
       duration: durationMinutesToDjango(availability.duration),
       value: availability.value,
       av_type: availability.type,
@@ -77,23 +78,23 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return newAvailabilityBack
   }
 
-  function createAvailability(avail: InputCalendarEvent): Availability[] {
+  function createNewAvailability(avail: Availability, oldId?: number): Availability {
     const newAvail: Availability = {
-      id: nextId.value++,
-      duration: avail.data.duration!,
-      start: avail.data.start,
-      value: avail.data.value!,
-      type: 'avail',
-      dataId: avail.data.dataId,
+      id: oldId ? oldId : nextId.value++,
+      duration: avail.duration,
+      start: avail.start,
+      value: avail.value,
+      type: avail.type,
+      dataId: avail.dataId,
     }
-    return addOrUpdateAvailibility(newAvail)
+    return newAvail
   }
 
   function addOrUpdateAvailibility(avail: Availability): Availability[] {
     const dateString = getDateStringFromTimestamp(avail.start)
     if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])
+    removeAvailibility(avail.id)
     const availabilitiesOutput = availabilities.value.get(dateString)
-    remove(availabilitiesOutput!, (av) => av.id === avail.id)
     availabilitiesOutput!.push(avail)
     return availabilitiesOutput!
   }
@@ -101,17 +102,17 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   function addOrUpdateAvailibilityEvent(
     availEvent: InputCalendarEvent,
     dataId?: number,
-    availType?: string
+    availType?: 'user' | 'room'
   ): Availability[] {
     const dateString = getDateStringFromTimestamp(availEvent.data.start)
     if (!availabilities.value.has(dateString)) availabilities.value.set(dateString, [])
     const newAvail: Availability = {
-      id: availEvent.id,
+      id: nextId.value++,
       duration: availEvent.data.duration!,
       start: copyTimestamp(availEvent.data.start),
       value: availEvent.data.value!,
       type: availType ? availType : 'user',
-      dataId: dataId ? dataId : availEvent.data.dataId,
+      dataId: dataId ? dataId : authStore.getUser.id,
     }
     const availabilitiesOnDate = availabilities.value.get(dateString)
     const availabilityInStore = availabilitiesOnDate!.find((av) => av.id === availEvent.id)
@@ -207,6 +208,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     getAvailability,
     getAvailabilityFromDates,
     addOrUpdateAvailibility,
-    createAvailability,
+    createNewAvailability,
   }
 })

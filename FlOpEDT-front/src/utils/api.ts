@@ -12,11 +12,12 @@ import {
   TrainingProgrammeAPI,
   AvailabilityBack,
   TimeSettingBack,
+  StartTime,
 } from '@/ts/type'
 
-import { dateToString, buildUrl } from '@/helpers'
+import { dateToString, buildUrl, durationDjangoToMinutes } from '@/helpers'
 import { TimeSetting } from '@/stores/declarations'
-import { parseTime } from '@quasar/quasar-ui-qcalendar'
+import { parseTime, parseTimestamp } from '@quasar/quasar-ui-qcalendar'
 
 const API_ENDPOINT = '/fr/api/'
 
@@ -50,6 +51,7 @@ const urls = {
   getModules: 'v1/base/courses/module',
   getTrainProgs: 'v1/base/groups/training_programmes',
   getAvailability: 'v1/availability/user',
+  getStartTimes: 'v1/constraint/base/course_start_time',
 }
 
 function getCookie(name: string) {
@@ -151,6 +153,7 @@ export interface FlopAPI {
   getRoomById(id: number): Promise<RoomAPI | undefined>
   getAvailabilities(userId: number, from: Date, to: Date): Promise<Array<AvailabilityBack>>
   getTimeSettings(): Promise<any[]>
+  getStartTimes(deptId?: number): Promise<StartTime[]>
   fetch: {
     booleanRoomAttributes(): Promise<Array<RoomAttribute>>
     courses(params: { week?: number; year?: number; department?: string }): Promise<Array<Course>>
@@ -200,8 +203,8 @@ const api: FlopAPI = {
               const sc: ScheduledCourse = {
                 id: d.id,
                 roomId: d.room_id,
-                start_time: new Date(d.start_time),
-                end_time: new Date(d.end_time),
+                start_time: parseTimestamp(d.start_time),
+                end_time: parseTimestamp(d.end_time),
                 courseId: d.course_id,
                 tutor: d.tutor_id,
                 id_visio: -1,
@@ -478,7 +481,7 @@ const api: FlopAPI = {
             data.forEach((avail: any) => {
               availabilities.push({
                 av_type: avail.subject_type,
-                start_time: avail.start_time,
+                start_time: parseTimestamp(avail.start_time),
                 duration: avail.duration,
                 dataId: userId,
                 value: avail.value,
@@ -519,6 +522,31 @@ const api: FlopAPI = {
       })
     })
     return timeSettings
+  },
+  async getStartTimes(deptId?: number): Promise<StartTime[]> {
+    const startTimes: StartTime[] = []
+    let finalUrl = API_ENDPOINT + urls.getStartTimes
+    if (deptId) finalUrl += '/?department_id=' + deptId
+    await fetch(finalUrl, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+    }).then(async (response) => {
+      if (!response.ok) {
+        return Promise.reject('Erreur : ' + response.status + ': ' + response.statusText)
+      }
+      await response.json().then((data: any[]) => {
+        data.forEach((allowedStartTime: any) => {
+          startTimes.push({
+            id: allowedStartTime.id,
+            departmentId: allowedStartTime.department_id,
+            duration: durationDjangoToMinutes(allowedStartTime.duration),
+            allowedStartTimes: allowedStartTime.allowed_start_times.map((ast: string) => durationDjangoToMinutes(ast)),
+          })
+        })
+      })
+    })
+    return startTimes
   },
   fetch: {
     booleanRoomAttributes() {

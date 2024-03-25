@@ -11,6 +11,8 @@ import {
 } from '@quasar/quasar-ui-qcalendar'
 import { diffTimestamp } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
+import { Course } from '@/stores/declarations'
+import { useDepartmentStore } from '@/stores/department'
 
 export const STEP_DEFAULT: number = 15
 
@@ -136,17 +138,24 @@ export function badgeStyles(
   return s
 }
 
-function isTutorInTwoCourses(event1: CalendarEvent, event2: CalendarEvent): boolean {
-  let isInBothCourses = false
+function isTutorInTwoCourses(course1: Course, course2: Course): boolean {
+  return course1.tutorId === course2.tutorId
+}
+
+function areBothCoursesInSameRoom(course1: Course, course2: Course): boolean {
+  return course1.room === course2.room
+}
+
+function areCoursesNotPossibleAtSameTime(event1: CalendarEvent, event2: CalendarEvent): boolean {
   const courseStore = useScheduledCourseStore()
   if (event1.data.dataType === 'event' && event2.data.dataType === 'event') {
     const course1 = courseStore.getCourse(event1.data.dataId)
     const course2 = courseStore.getCourse(event2.data.dataId)
     if (course1 && course2) {
-      isInBothCourses = course1.tutorId === course2.tutorId
+      return areBothCoursesInSameRoom(course1, course2) || isTutorInTwoCourses(course1, course2)
     }
   }
-  return isInBothCourses
+  return false
 }
 
 function areEventsOverlapped(event1: CalendarEvent, event2: CalendarEvent): boolean {
@@ -214,33 +223,67 @@ function createDropzonesOnTimes(
   step: number = STEP_DEFAULT
 ): CalendarEvent[] {
   const dropZones: CalendarEvent[] = []
+  const departmentStore = useDepartmentStore()
+  const startTimes = departmentStore.startTimes.find((st) => st.duration === event.data.duration)
   let startTime = copyTimestamp(event.data.start)
   while (startTime.weekday !== 1) {
     startTime = prevDay(startTime)
     updateFormatted(startTime)
   }
-  while (startTime.weekday !== lastDayOfWeek) {
-    updateMinutes(startTime, dayStartTime)
-    if (event.data.duration) {
-      while (parseTime(startTime) + event.data.duration <= dayEndTime) {
-        const startTimeMinutes = parseTime(startTime)
-        let isDuringLunch = false
-        if (lunchBreakStart && lunchBreakEnd)
-          isDuringLunch = isBetween(lunchBreakStart, lunchBreakEnd, startTimeMinutes, event.data.duration)
-        if (!isDuringLunch) {
-          const newDropZone: CalendarEvent = cloneDeep(event)
-          newDropZone.data.dataId = event.id
-          newDropZone.id = -1
-          newDropZone.data.dataType = 'dropzone'
-          newDropZone.data.start = startTime
-          if (isPossibleDropzone(newDropZone, allEvents, event)) dropZones.push(newDropZone)
+  if (!startTimes) {
+    while (startTime.weekday !== lastDayOfWeek) {
+      updateMinutes(startTime, dayStartTime)
+      if (event.data.duration) {
+        while (parseTime(startTime) + event.data.duration <= dayEndTime) {
+          const startTimeMinutes = parseTime(startTime)
+          let isDuringLunch = false
+          if (lunchBreakStart && lunchBreakEnd)
+            isDuringLunch = isBetween(lunchBreakStart, lunchBreakEnd, startTimeMinutes, event.data.duration)
+          if (!isDuringLunch) {
+            const newDropZone: CalendarEvent = cloneDeep(event)
+            newDropZone.data.dataId = event.id
+            newDropZone.id = -1
+            newDropZone.data.dataType = 'dropzone'
+            newDropZone.data.start = startTime
+            if (isPossibleDropzone(newDropZone, allEvents, event)) dropZones.push(newDropZone)
+          }
+          startTime = copyTimestamp(startTime)
+          updateMinutes(startTime, closestStep(parseTime(startTime) + event.data.duration + step, step))
         }
-        startTime = copyTimestamp(startTime)
-        updateMinutes(startTime, closestStep(parseTime(startTime) + event.data.duration + step, step))
       }
+      startTime = nextDay(startTime)
+      updateFormatted(startTime)
     }
-    startTime = nextDay(startTime)
-    updateFormatted(startTime)
+  } else {
+    while (startTime.weekday !== lastDayOfWeek) {
+      updateMinutes(startTime, startTimes.allowedStartTimes[0])
+      if (event.data.duration) {
+        let i = 0
+        while (i < startTimes.allowedStartTimes.length) {
+          let isDuringLunch = false
+          if (lunchBreakStart && lunchBreakEnd)
+            isDuringLunch = isBetween(
+              lunchBreakStart,
+              lunchBreakEnd,
+              startTimes.allowedStartTimes[i],
+              event.data.duration
+            )
+          if (!isDuringLunch) {
+            const newDropZone: CalendarEvent = cloneDeep(event)
+            newDropZone.data.dataId = event.id
+            newDropZone.id = -1
+            newDropZone.data.dataType = 'dropzone'
+            newDropZone.data.start = startTime
+            if (isPossibleDropzone(newDropZone, allEvents, event)) dropZones.push(newDropZone)
+          }
+          startTime = copyTimestamp(startTime)
+          i++
+          updateMinutes(startTime, startTimes.allowedStartTimes[i])
+        }
+      }
+      startTime = nextDay(startTime)
+      updateFormatted(startTime)
+    }
   }
   return dropZones
 }
@@ -267,7 +310,7 @@ function isPossibleDropzone(
     } else if (
       event.id !== currentEvent.id &&
       eventsTimeOverlap(dropzone, currentEvent) &&
-      isTutorInTwoCourses(event, currentEvent)
+      areCoursesNotPossibleAtSameTime(event, currentEvent)
     ) {
       isPossible = false
     }

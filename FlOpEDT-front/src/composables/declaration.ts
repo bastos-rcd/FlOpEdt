@@ -2,6 +2,7 @@ import { Timestamp } from '@quasar/quasar-ui-qcalendar'
 
 export interface UpdatesHistory {
   type: 'course' | 'availability'
+  operation: 'create' | 'update' | 'remove'
   objectId: number
 }
 
@@ -30,4 +31,6 @@ export interface AvailabilityData {
   start: Timestamp
   value: number
   duration: number
+  dataId?: number
+  availType?: 'user' | 'room'
 }
