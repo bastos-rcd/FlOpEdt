@@ -4,7 +4,7 @@ import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { storeToRefs } from 'pinia'
 import { setActivePinia, createPinia } from 'pinia'
 import { Timestamp } from '@quasar/quasar-ui-qcalendar/dist/types/types'
-import { getDateTime, parseTimestamp, parsed, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
+import { getDateTime, parseTimestamp, parsed, today, updateWorkWeek } from '@quasar/quasar-ui-qcalendar'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
 import { AvailabilityData, CourseData } from './declaration'
 
@@ -46,9 +46,9 @@ describe('undoredo composable', () => {
   })
 
   it('historizes an update of a course', () => {
-    expect.assertions(2)
+    expect.assertions(3)
     const scheduledCourseStore = useScheduledCourseStore()
-    const { addUpdateBlock } = useUndoredo()
+    const { addUpdateBlock, hasUpdate } = useUndoredo()
     const courseToUpdate = scheduledCourseStore.getCourse(65692, '2023-04-25')
     addUpdateBlock([
       {
@@ -68,6 +68,7 @@ describe('undoredo composable', () => {
       },
     ])
     expect(getDateTime(courseToUpdate!.start)).toBe('2022-01-10 08:20')
+    expect(hasUpdate.value).toBe(true)
 
     addUpdateBlock([
       {
@@ -91,7 +92,7 @@ describe('undoredo composable', () => {
 
   it('reverts an update of a course', () => {
     const scheduledCourseStore = useScheduledCourseStore()
-    const { addUpdateBlock, revertUpdateBlock } = useUndoredo()
+    const { addUpdateBlock, revertUpdateBlock, hasUpdate } = useUndoredo()
 
     const courseToUpdate = scheduledCourseStore.getCourse(65692, '2023-04-25')
 
@@ -116,11 +117,12 @@ describe('undoredo composable', () => {
     revertUpdateBlock()
 
     expect(getDateTime(courseToUpdate!.start)).toBe('2023-04-25 14:15')
+    expect(hasUpdate.value).toBe(false)
   })
 
   it('reverts several updates of a course', () => {
     const scheduledCourseStore = useScheduledCourseStore()
-    const { addUpdateBlock, revertUpdateBlock } = useUndoredo()
+    const { addUpdateBlock, revertUpdateBlock, hasUpdate } = useUndoredo()
 
     const courseToUpdate = scheduledCourseStore.getCourse(65692, '2023-04-25')
     addUpdateBlock([
@@ -164,11 +166,12 @@ describe('undoredo composable', () => {
     revertUpdateBlock()
 
     expect(getDateTime(courseToUpdate!.start)).toBe('2023-04-25 14:15')
+    expect(hasUpdate.value).toBe(false)
   })
 
   it('historizes an update of an availability', () => {
     const availabilityStore = useAvailabilityStore()
-    const { addUpdateBlock } = useUndoredo()
+    const { addUpdateBlock, hasUpdate } = useUndoredo()
     const availToUpdate = availabilityStore.getAvailability(23)
     addUpdateBlock([
       {
@@ -185,6 +188,7 @@ describe('undoredo composable', () => {
     expect(getDateTime(availToUpdate!.start)).toBe('2022-01-25 14:00')
     expect(availToUpdate!.value).toBe(1)
     expect(availToUpdate!.duration).toBe(60)
+    expect(hasUpdate.value).toBe(true)
 
     addUpdateBlock([
       {
@@ -205,7 +209,7 @@ describe('undoredo composable', () => {
 
   it('reverts an update of an availability', () => {
     const availabilityStore = useAvailabilityStore()
-    const { addUpdateBlock, revertUpdateBlock } = useUndoredo()
+    const { addUpdateBlock, revertUpdateBlock, hasUpdate } = useUndoredo()
     const availToUpdate = availabilityStore.getAvailability(23)
 
     addUpdateBlock([
@@ -224,6 +228,7 @@ describe('undoredo composable', () => {
     expect(getDateTime(availToUpdate!.start)).toBe('2022-01-25 14:10')
     expect(availToUpdate!.value).toBe(3)
     expect(availToUpdate!.duration).toBe(120)
+    expect(hasUpdate.value).toBe(false)
   })
 
   it('reverts several updates of an availability', () => {
@@ -266,7 +271,7 @@ describe('undoredo composable', () => {
 
   it('Stores Blocks of Availability updates', () => {
     const availabilityStore = useAvailabilityStore()
-    const { addUpdateBlock } = useUndoredo()
+    const { addUpdateBlock, hasUpdate } = useUndoredo()
     const availToUpdate = availabilityStore.getAvailability(23)
     addUpdateBlock([
       {
@@ -328,6 +333,7 @@ describe('undoredo composable', () => {
     expect(availToUpdate!.value).toBe(2)
     expect(getDateTime(availToUpdate!.start)).toBe('2022-01-25 07:00')
     expect(availToUpdate!.duration).toBe(100)
+    expect(hasUpdate.value).toBe(true)
   })
 
   it('reverts blocks of Availability updates', () => {
@@ -485,7 +491,7 @@ describe('undoredo composable', () => {
   it('historizes the deletion of an availability', () => {
     const availabilityStore = useAvailabilityStore()
     const { availabilities } = storeToRefs(availabilityStore)
-    const { addUpdateBlock } = useUndoredo()
+    const { addUpdateBlock, hasUpdate } = useUndoredo()
     addUpdateBlock([
       {
         objectId: 23,
@@ -501,6 +507,7 @@ describe('undoredo composable', () => {
       },
     ])
     expect(availabilities.value.get('2022-01-25')?.length).toBe(0)
+    expect(hasUpdate.value).toBe(true)
   })
   it('historizes the deletion of availabilities and revert them', () => {
     const availabilityStore = useAvailabilityStore()
@@ -563,5 +570,29 @@ describe('undoredo composable', () => {
     expect(availabilities.value.get('2022-01-27')?.length).toBe(1)
     revertUpdateBlock()
     expect(availabilities.value.get('2022-01-25')?.length).toBe(1)
+  })
+
+  it('historizes the deletion of a course', () => {
+    const courseStore = useScheduledCourseStore()
+    const { addUpdateBlock, hasUpdate } = useUndoredo()
+    addUpdateBlock([
+      {
+        objectId: 65692,
+        data: {
+          tutorId: -1,
+          start: parseTimestamp(today())!,
+          end: parseTimestamp(today())!,
+          roomId: -1,
+          suppTutorIds: [],
+          graded: false,
+          roomTypeId: -1,
+          groupIds: [],
+        },
+        type: 'course',
+        operation: 'remove',
+      },
+    ])
+    expect(courseStore.getCourse(65692)).toBeUndefined()
+    expect(hasUpdate.value).toBe(true)
   })
 })

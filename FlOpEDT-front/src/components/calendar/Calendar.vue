@@ -74,7 +74,19 @@
                 :key="generateSpanId(event.id, span)"
                 class="event-span"
                 :class="badgeClasses(event.data.dataType, event.bgcolor)"
-                :style="badgeStyles(event, span, timeStartPos, preWeight, totalWeight, props.columns, calendar!.timeDurationHeight, closestStartTime, currentTime)"
+                :style="
+                  badgeStyles(
+                    event,
+                    span,
+                    timeStartPos,
+                    preWeight,
+                    totalWeight,
+                    props.columns,
+                    calendar!.timeDurationHeight,
+                    closestStartTime,
+                    currentTime
+                  )
+                "
                 @mousedown="onMouseDown($event, event.id)"
                 @mouseup="onMouseUp()"
               >

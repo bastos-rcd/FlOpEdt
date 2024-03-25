@@ -4,6 +4,7 @@ import { AvailabilityData, CourseData, UpdateAvailability, UpdateCourse, Updates
 import { useAvailabilityStore } from '@/stores/timetable/availability'
 import { Availability } from '@/stores/declarations'
 import { cloneDeep } from 'lodash'
+import { getDate } from '@quasar/quasar-ui-qcalendar'
 
 export function useUndoredo() {
   const scheduledCourseStore = useScheduledCourseStore()
@@ -23,33 +24,49 @@ export function useUndoredo() {
     if (type === 'course') {
       const courseData = data as CourseData
       const currentCourse = scheduledCourseStore.getCourse(objectId, undefined, true)
-      if (!currentCourse) return
-      const courseDataFrom = {
-        tutorId: currentCourse.tutorId,
-        start: currentCourse.start,
-        end: currentCourse.end,
-        roomId: currentCourse.room,
-        suppTutorIds: currentCourse.suppTutorIds,
-        graded: currentCourse.graded,
-        roomTypeId: currentCourse.roomTypeId,
-        groupIds: currentCourse.groupIds,
+      if (operation === 'update') {
+        if (!currentCourse) return
+        const courseDataFrom = {
+          tutorId: currentCourse.tutorId,
+          start: currentCourse.start,
+          end: currentCourse.end,
+          roomId: currentCourse.room,
+          suppTutorIds: currentCourse.suppTutorIds,
+          graded: currentCourse.graded,
+          roomTypeId: currentCourse.roomTypeId,
+          groupIds: currentCourse.groupIds,
+        }
+        currentCourse.tutorId = courseData.tutorId
+        currentCourse.start = courseData.start
+        currentCourse.end = courseData.end
+        currentCourse.room = courseData.roomId
+        currentCourse.suppTutorIds = courseData.suppTutorIds
+        currentCourse.graded = courseData.graded
+        currentCourse.roomTypeId = courseData.roomTypeId
+        currentCourse.groupIds = courseData.groupIds
+        scheduledCourseStore.addOrUpdateCourseToDate(currentCourse)
+        return {
+          type: type,
+          objectId: currentCourse.id,
+          from: courseDataFrom,
+          to: courseData,
+          operation: operation,
+        } as UpdateCourse
+      } else if (operation === 'remove') {
+        if (!currentCourse) return
+        const dataFrom = {
+          tutorId: currentCourse.tutorId,
+          start: currentCourse.start,
+          end: currentCourse.end,
+          roomId: currentCourse.room,
+          suppTutorIds: currentCourse.suppTutorIds,
+          graded: currentCourse.graded,
+          roomTypeId: currentCourse.roomTypeId,
+          groupIds: currentCourse.groupIds,
+        }
+        scheduledCourseStore.removeCourse(currentCourse.id, getDate(currentCourse.start))
+      } else if (operation === 'create') {
       }
-      currentCourse.tutorId = courseData.tutorId
-      currentCourse.start = courseData.start
-      currentCourse.end = courseData.end
-      currentCourse.room = courseData.roomId
-      currentCourse.suppTutorIds = courseData.suppTutorIds
-      currentCourse.graded = courseData.graded
-      currentCourse.roomTypeId = courseData.roomTypeId
-      currentCourse.groupIds = courseData.groupIds
-      scheduledCourseStore.addOrUpdateCourseToDate(currentCourse)
-      return {
-        type: type,
-        objectId: currentCourse.id,
-        from: courseDataFrom,
-        to: courseData,
-        operation: 'update',
-      } as UpdateCourse
     } else if (type === 'availability') {
       const availData = data as AvailabilityData
       const dataFrom = cloneDeep(data) as AvailabilityData

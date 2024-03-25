@@ -24,7 +24,7 @@ export class Course {
       train_prog: string
       name: string
       is_structural: boolean
-    }
+    },
   ]
   no: number
   tutor: string
