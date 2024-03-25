@@ -118,7 +118,8 @@ export function badgeStyles(
     s['background-color'] = event.bgcolor
   }
   if (event.data.dataType === 'event') {
-    s['border'] = '2px solid #000000'
+    s['border'] = '1px solid #000000'
+    s['margin'] = '0px'
   } else if (event.data.dataType === 'avail') {
     s['resize'] = 'vertical'
     s['overflow'] = 'auto'

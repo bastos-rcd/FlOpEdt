@@ -39,7 +39,7 @@
               :class="badgeClasses('header')"
               style="
                 cursor: pointer;
-                height: 12px;
+                height: 100%;
                 font-size: 10px;
                 margin-bottom: 1px;
                 margin-top: 1px;

@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "//": [
-      "happy-dom: vitest --dom",
-      "sass: ?"
+    "happy-dom: vitest --dom",
+    "sass: ?"
   ],
   "scripts": {
     "dev": "vite",

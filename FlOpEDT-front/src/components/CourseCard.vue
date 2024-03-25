@@ -37,5 +37,6 @@ onBeforeMount(async () => {
 <style scoped>
 span {
   font-weight: bold;
+  color: white;
 }
 </style>
