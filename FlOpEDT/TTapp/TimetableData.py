@@ -102,7 +102,7 @@ GUROBI = "GUROBI"
 GUROBI_NAME = "GUROBI_CMD"
 
 
-class PeriodsData(object):
+class TimetableData(object):
     def __init__(self, department, periods, train_prog, slots_step=None):
         self.train_prog = train_prog
         self.department = department
@@ -193,9 +193,15 @@ class PeriodsData(object):
         all_days = set()
         for period in self.periods:
             all_days |= set(period.dates())
-        days = list(days_filter(all_days,weekday_in=TimeGeneralSettings.objects.get(department=self.department).days))
+        days = list(
+            days_filter(
+                all_days,
+                weekday_in=TimeGeneralSettings.objects.get(
+                    department=self.department
+                ).days,
+            )
+        )
         days.sort()
-
 
         training_half_days = TrainingHalfDay.objects.filter(
             date__in=days, train_prog__in=self.train_prog
@@ -231,27 +237,36 @@ class PeriodsData(object):
         print("Slot tools definition", end=", ")
         tgs = TimeGeneralSettings.objects.get(department=self.department)
         courses_slots = set()
-        filtered_cstc = CourseStartTimeConstraint.objects.filter(department=self.department)
+        filtered_cstc = CourseStartTimeConstraint.objects.filter(
+            department=self.department
+        )
         # Courses slots
         for cc in filtered_cstc:
             start_times = cc.allowed_start_times
             if self.slots_step is None:
                 courses_slots |= set(
-                    CourseSlot(dt.datetime.combine(d,start_time), cc.duration, self.department)
+                    CourseSlot(
+                        dt.datetime.combine(d, start_time), cc.duration, self.department
+                    )
                     for d in self.days
                     for start_time in start_times
                 )
             else:
                 courses_slots |= set(
-                    CourseSlot(dt.datetime.combine(d,start_time), cc.duration, self.department)
+                    CourseSlot(
+                        dt.datetime.combine(d, start_time), cc.duration, self.department
+                    )
                     for d in self.days
                     for start_time in cc.allowed_start_times
                     if start_time % self.slots_step == 0
                 )
-        # We remove the course slots that are inside the lunch break
+        # We remove the course slots that are inside the lunch break
         courses_slots_to_remove = set()
         for course_slot in courses_slots:
-            if course_slot.start_time.time() < tgs.afternoon_start_time and course_slot.end_time.time() > tgs.morning_end_time: 
+            if (
+                course_slot.start_time.time() < tgs.afternoon_start_time
+                and course_slot.end_time.time() > tgs.morning_end_time
+            ):
                 courses_slots_to_remove.add(course_slot)
         courses_slots -= courses_slots_to_remove
 
@@ -264,7 +279,9 @@ class PeriodsData(object):
         for cst in filtered_cstc:
             dayly_availability_slots |= set(cst.allowed_start_times)
 
-            dayly_availability_slots |= set(add_duration_to_time(st, cst.duration) for st in cst.allowed_start_times)
+            dayly_availability_slots |= set(
+                add_duration_to_time(st, cst.duration) for st in cst.allowed_start_times
+            )
         dayly_availability_slots.add(tgs.day_end_time)
         dayly_availability_slots = list(dayly_availability_slots)
         dayly_availability_slots.sort()
@@ -284,7 +301,10 @@ class PeriodsData(object):
                     end_times.remove(st)
 
         availability_slots = {
-            Slot(start_time=dt.datetime.combine(day, start_times[i]), end_time=dt.datetime.combine(day, end_times[i]))
+            Slot(
+                start_time=dt.datetime.combine(day, start_times[i]),
+                end_time=dt.datetime.combine(day, end_times[i]),
+            )
             for day in self.days
             for i in range(len(start_times))
         }
@@ -294,11 +314,17 @@ class PeriodsData(object):
         )
 
         first_hour_slots = {
-            slot for slot in availability_slots if slot.start_time.time() < add_duration_to_time(start_times[0], dt.timedelta(minutes=60))
+            slot
+            for slot in availability_slots
+            if slot.start_time.time()
+            < add_duration_to_time(start_times[0], dt.timedelta(minutes=60))
         }
 
         last_hour_slots = {
-            slot for slot in availability_slots if slot.end_time.time()  > add_duration_to_time(end_times[-1], dt.timedelta(minutes=60))
+            slot
+            for slot in availability_slots
+            if slot.end_time.time()
+            > add_duration_to_time(end_times[-1], dt.timedelta(minutes=60))
         }
 
         return courses_slots, availability_slots, first_hour_slots, last_hour_slots
@@ -311,7 +337,9 @@ class PeriodsData(object):
 
         course_types = set(c.type for c in courses)
 
-        courses_by_period = {period: set(courses.filter(period=period)) for period in self.periods}
+        courses_by_period = {
+            period: set(courses.filter(period=period)) for period in self.periods
+        }
 
         sched_courses = ScheduledCourse.objects.filter(course__in=courses)
 
@@ -324,9 +352,9 @@ class PeriodsData(object):
             version__major=0,
         ).exclude(course__module__train_prog__in=self.train_prog)
 
-        other_departments_courses = Course.objects.filter(period__in=self.periods).exclude(
-            type__department=self.department
-        )
+        other_departments_courses = Course.objects.filter(
+            period__in=self.periods
+        ).exclude(type__department=self.department)
 
         other_departments_sched_courses = ScheduledCourse.objects.filter(
             course__in=other_departments_courses, version__major=0
@@ -334,12 +362,18 @@ class PeriodsData(object):
 
         courses_availabilities = set()
         for date in self.days:
-            dated_availabilities = CourseAvailability.objects.filter(date=date, train_prog__department=self.department)
+            dated_availabilities = CourseAvailability.objects.filter(
+                date=date, train_prog__department=self.department
+            )
             if dated_availabilities.exists():
                 courses_availabilities |= set(dated_availabilities)
             else:
                 default_date = get_default_date(date)
-                courses_availabilities |= set(CourseAvailability.objects.filter(date=default_date, train_prog__department=self.department))
+                courses_availabilities |= set(
+                    CourseAvailability.objects.filter(
+                        date=default_date, train_prog__department=self.department
+                    )
+                )
 
         modules = Module.objects.filter(
             id__in=courses.values_list("module_id").distinct()
@@ -383,8 +417,7 @@ class PeriodsData(object):
             other_departments_sched_courses_for_avail_slot[sl] = set(
                 fc
                 for fc in self.other_departments_sched_courses
-                if fc.start_time < sl.end_time
-                and sl.start_time < fc.end_time
+                if fc.start_time < sl.end_time and sl.start_time < fc.end_time
             )
 
         return (
@@ -475,20 +508,22 @@ class PeriodsData(object):
         if not self.department.mode.cosmo:
             compatible_slots = {}
             for c in self.courses:
-                compatible_slots[c] = slots_filter(self.courses_slots,
-                                                   period=c.period,
-                                                   duration=c.duration,
-                                                   department=c.type.department
-                                                   )
+                compatible_slots[c] = slots_filter(
+                    self.courses_slots,
+                    period=c.period,
+                    duration=c.duration,
+                    department=c.type.department,
+                )
 
             compatible_courses = {}
             for sl in self.courses_slots:
                 compatible_courses[sl] = set(
-                    course for course in self.courses
+                    course
+                    for course in self.courses
                     if course.duration == sl.duration
                     and sl.date in course.period.dates()
                     and sl.department == course.type.department
-                    )
+                )
         else:
             compatible_courses = {sl: set() for sl in self.courses_slots}
             compatible_slots = {c: set() for c in self.courses}
@@ -518,8 +553,10 @@ class PeriodsData(object):
                         [
                             slot
                             for slot in slots_filter(
-                                self.courses_slots, period=c.period, duration=c.duration,
-                                department=c.type.department
+                                self.courses_slots,
+                                period=c.period,
+                                duration=c.duration,
+                                department=c.type.department,
                             )
                         ]
                     )
@@ -705,7 +742,9 @@ class PeriodsData(object):
 
         no_tutor_courses = set()
         pre_assign_only_constraints = AssignAllCourses.objects.filter(
-             Q(periods__in=self.periods) | Q(periods__isnull=True), department=self.department, pre_assigned_only=True,
+            Q(periods__in=self.periods) | Q(periods__isnull=True),
+            department=self.department,
+            pre_assigned_only=True,
         )
         if pre_assign_only_constraints.exists():
             for constraint in pre_assign_only_constraints:

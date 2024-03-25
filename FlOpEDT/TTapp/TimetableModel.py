@@ -38,7 +38,7 @@ from base.models import (
     ModuleTutorRepartition,
     ScheduledCourseAdditional,
     period_actual_availabilities,
-    TimetableVersion
+    TimetableVersion,
 )
 
 from base.timing import Time, flopday_to_date, floptime_to_time
@@ -60,7 +60,7 @@ from TTapp.models import (
     ConsiderPivots,
     StabilizeGroupsCourses,
     RespectTutorsMinTimePerDay,
-    ConsiderModuleTutorRepartitions
+    ConsiderModuleTutorRepartitions,
 )
 
 from roomreservation.models import RoomReservation
@@ -74,7 +74,7 @@ from TTapp.FlopConstraint import max_weight
 
 from TTapp.slots import slots_filter, days_filter
 
-from TTapp.PeriodsDatabase import PeriodsData
+from TTapp.TimetableData import TimetableData
 
 from TTapp.TimetableUtils import print_differences, number_courses
 
@@ -95,7 +95,10 @@ from TTapp.FlopModel import (
     FlopModel,
     GUROBI_NAME,
     get_ttconstraints,
-    get_room_constraints, solution_files_path, gurobi_log_files_path, iis_files_path,
+    get_room_constraints,
+    solution_files_path,
+    gurobi_log_files_path,
+    iis_files_path,
 )
 from TTapp.RoomModel import RoomModel
 
@@ -130,7 +133,9 @@ class TimetableModel(FlopModel):
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
         super(TimetableModel, self).__init__(
-            department_abbrev, periods, keep_many_solution_files=keep_many_solution_files
+            department_abbrev,
+            periods,
+            keep_many_solution_files=keep_many_solution_files,
         )
         # Create the PuLP model, giving the name of the lp file
         self.min_ups_i = min_nps_i
@@ -221,7 +226,7 @@ class TimetableModel(FlopModel):
 
     @timer
     def data_init(self):
-        data = PeriodsData(
+        data = TimetableData(
             self.department, self.periods, self.train_prog, self.slots_step
         )
         return data
@@ -329,7 +334,8 @@ class TimetableModel(FlopModel):
                 expr += limit * IBS[(i, sl)]
                 for s_sl in slots_filter(self.data.courses_slots, simultaneous_to=sl):
                     for c in (
-                        self.data.possible_courses[i] & self.data.compatible_courses[s_sl]
+                        self.data.possible_courses[i]
+                        & self.data.compatible_courses[s_sl]
                     ):
                         expr -= self.assigned[(s_sl, c, i)]
                 # if assigned == 1 for some i, then IBS==1 !
@@ -442,7 +448,8 @@ class TimetableModel(FlopModel):
                 for j in range(1, max_days + 1):
                     IBD_GTE[period][j][i] = self.add_floor(
                         self.sum(
-                            IBD[(i, d)] for d in days_filter(self.data.days, period=period)
+                            IBD[(i, d)]
+                            for d in days_filter(self.data.days, period=period)
                         ),
                         j,
                         max_days,
@@ -525,7 +532,9 @@ class TimetableModel(FlopModel):
                     self.located[sl, c, r]
                     for c in self.data.all_courses_for_basic_group[g]
                     for r in self.data.course_rg_compat[c] - {None}
-                    for sl in slots_filter(self.data.compatible_slots[c], day=d, apm=apm)
+                    for sl in slots_filter(
+                        self.data.compatible_slots[c], day=d, apm=apm
+                    )
                 )
                 self.add_constraint(
                     expr,
@@ -564,7 +573,9 @@ class TimetableModel(FlopModel):
                 expr = 1000 * has_visio[g][d, apm] - self.sum(
                     self.located[sl, c, None]
                     for c in self.data.all_courses_for_basic_group[g]
-                    for sl in slots_filter(self.data.compatible_slots[c], day=d, apm=apm)
+                    for sl in slots_filter(
+                        self.data.compatible_slots[c], day=d, apm=apm
+                    )
                 )
                 self.add_constraint(
                     expr,
@@ -646,7 +657,9 @@ class TimetableModel(FlopModel):
         # a course is scheduled at most once
         for c in self.data.courses:
             self.add_constraint(
-                self.sum([self.scheduled[(sl, c)] for sl in self.data.compatible_slots[c]]),
+                self.sum(
+                    [self.scheduled[(sl, c)] for sl in self.data.compatible_slots[c]]
+                ),
                 "<=",
                 1,
                 CourseConstraint(c),
@@ -669,7 +682,9 @@ class TimetableModel(FlopModel):
             RespectTutorsMinTimePerDay.objects.create(department=self.department)
 
         # Check if MinimizeBusyDays constraint is in database, and add it if not
-        if not MinimizeTutorsBusyDays.objects.filter(department=self.department).exists():
+        if not MinimizeTutorsBusyDays.objects.filter(
+            department=self.department
+        ).exists():
             MinimizeTutorsBusyDays.objects.create(
                 department=self.department, weight=max_weight
             )
@@ -704,8 +719,14 @@ class TimetableModel(FlopModel):
         ).exists():
             ConsiderTutorsUnavailability.objects.create(department=self.department)
 
-        if not ConsiderModuleTutorRepartitions.objects.filter(department=self.department).exists() \
-                and ModuleTutorRepartition.objects.filter(course_type__department=self.department).exists():
+        if (
+            not ConsiderModuleTutorRepartitions.objects.filter(
+                department=self.department
+            ).exists()
+            and ModuleTutorRepartition.objects.filter(
+                course_type__department=self.department
+            ).exists()
+        ):
             ConsiderModuleTutorRepartitions.objects.create(department=self.department)
 
         for i in self.data.instructors:
@@ -936,16 +957,20 @@ class TimetableModel(FlopModel):
                     self.data.availability_slots, period=period
                 )
                 teaching_duration = sum(
-                    [c.duration
-                    for c in self.data.courses_for_tutor[i]
-                    if c.period == period
-                    ], dt.timedelta()
+                    [
+                        c.duration
+                        for c in self.data.courses_for_tutor[i]
+                        if c.period == period
+                    ],
+                    dt.timedelta(),
                 )
                 total_teaching_duration = teaching_duration + sum(
-                    [c.duration
-                    for c in self.data.other_departments_courses_for_tutor[i]
-                    if c.period == period
-                    ], dt.timedelta()
+                    [
+                        c.duration
+                        for c in self.data.other_departments_courses_for_tutor[i]
+                        if c.period == period
+                    ],
+                    dt.timedelta(),
                 )
                 period_holidays = days_filter(self.data.holidays, period=period)
 
@@ -969,15 +994,23 @@ class TimetableModel(FlopModel):
 
                 else:
                     avail_time = sum(
-                        [a.duration for a in period_tutor_availabilities if a.value >= 1
-                        ], dt.timedelta()
+                        [
+                            a.duration
+                            for a in period_tutor_availabilities
+                            if a.value >= 1
+                        ],
+                        dt.timedelta(),
                     )
 
                     if avail_time < teaching_duration:
                         self.add_warning(
                             i,
                             "%g available hours < %g courses hours period %s"
-                            % (avail_time.seconds / 3600, teaching_duration.seconds / 3600, period.name),
+                            % (
+                                avail_time.seconds / 3600,
+                                teaching_duration.seconds / 3600,
+                                period.name,
+                            ),
                         )
                         # We used to forget tutor availabilities in this case...
                         # for availability_slot in period_availability_slots:
@@ -989,7 +1022,11 @@ class TimetableModel(FlopModel):
                         self.add_warning(
                             i,
                             "%g available hours < %g courses hours including other deps period %s"
-                            % (avail_time.seconds / 3600, total_teaching_duration.seconds / 3600, period.name),
+                            % (
+                                avail_time.seconds / 3600,
+                                total_teaching_duration.seconds / 3600,
+                                period.name,
+                            ),
                         )
                         # We used to forget tutor availabilities in this case...
                         # for availability_slot in period_availability_slots:
@@ -1004,7 +1041,11 @@ class TimetableModel(FlopModel):
                         self.add_warning(
                             i,
                             "only %g available hours for %g courses hours period %s"
-                            % (avail_time.seconds / 3600, teaching_duration.seconds / 3600, period.name),
+                            % (
+                                avail_time.seconds / 3600,
+                                teaching_duration.seconds / 3600,
+                                period.name,
+                            ),
                         )
                     maximum = max([a.value for a in period_tutor_availabilities])
                     if maximum == 0:
@@ -1016,16 +1057,20 @@ class TimetableModel(FlopModel):
 
                     non_prefered_duration_minutes = max(
                         1,
-                        sum(a.minutes
+                        sum(
+                            a.minutes
                             for a in period_tutor_availabilities
                             if 1 <= a.value <= maximum - 1
                         ),
                     )
-                    average_value = sum(a.minutes * a.value
+                    average_value = (
+                        sum(
+                            a.minutes * a.value
                             for a in period_tutor_availabilities
                             if 1 <= a.value <= maximum - 1
-                        ) / non_prefered_duration_minutes
-                    
+                        )
+                        / non_prefered_duration_minutes
+                    )
 
                     for availability_slot in period_availability_slots:
                         avail = set(
@@ -1091,13 +1136,22 @@ class TimetableModel(FlopModel):
                 avail_course[(course_type, promo)] = {}
                 non_preferred_cost_course[(course_type, promo)] = {}
                 for period in self.periods:
-                    period_availability_slots = slots_filter(self.data.availability_slots, period=period)
-                    courses_avail = set(c_avail for c_avail in 
-                        self.data.courses_availabilities if c_avail.course_type==course_type and c_avail.train_prog==promo and c_avail.date in period.dates())
+                    period_availability_slots = slots_filter(
+                        self.data.availability_slots, period=period
+                    )
+                    courses_avail = set(
+                        c_avail
+                        for c_avail in self.data.courses_availabilities
+                        if c_avail.course_type == course_type
+                        and c_avail.train_prog == promo
+                        and c_avail.date in period.dates()
+                    )
                     if not courses_avail:
                         for availability_slot in period_availability_slots:
                             avail_course[(course_type, promo)][availability_slot] = 1
-                            non_preferred_cost_course[(course_type, promo)][availability_slot] = 0
+                            non_preferred_cost_course[(course_type, promo)][
+                                availability_slot
+                            ] = 0
 
                     else:
                         for availability_slot in period_availability_slots:
@@ -1288,9 +1342,9 @@ class TimetableModel(FlopModel):
         # get or create TimetableVersions
         versions_dict = {}
         for period in self.periods:
-            versions_dict[period] = TimetableVersion.objects.get_or_create(period=period, 
-                                                               major=target_major, 
-                                                               department=self.department)[0]
+            versions_dict[period] = TimetableVersion.objects.get_or_create(
+                period=period, major=target_major, department=self.department
+            )[0]
         if self.department.mode.cosmo == 2:
             corresponding_group = {}
             for i in self.data.instructors:
@@ -1337,11 +1391,16 @@ class TimetableModel(FlopModel):
                 sca.scheduled_course = cp
                 sca.save()
             cp.save()
-            
-       # On imprime les différences si demandé
+
+        # On imprime les différences si demandé
         if self.major_to_stabilize is not None:
-            print_differences(self.department, self.periods,
-                              self.major_to_stabilize, target_major, self.data.instructors)
+            print_differences(
+                self.department,
+                self.periods,
+                self.major_to_stabilize,
+                target_major,
+                self.data.instructors,
+            )
 
         # # On enregistre les coûts dans la BDD
         TutorCost.objects.filter(
@@ -1392,9 +1451,7 @@ class TimetableModel(FlopModel):
 
     # Some extra Utils
     def log_files_prefix(self):
-        return (
-            f"TimetableModel_{self.department.abbrev}_{'_'.join(p.name for p in self.periods)}"
-        )
+        return f"TimetableModel_{self.department.abbrev}_{'_'.join(p.name for p in self.periods)}"
 
     def add_tt_to_db_from_file(self, filename=None, target_major=None):
         if filename is None:
@@ -1412,9 +1469,9 @@ class TimetableModel(FlopModel):
         # get or create TimetableVersions
         versions_dict = {}
         for period in self.periods:
-            versions_dict[period] = TimetableVersion.objects.get_or_create(period=period, 
-                                                                     major=target_major, 
-                                                                     department=self.department)[0]
+            versions_dict[period] = TimetableVersion.objects.get_or_create(
+                period=period, major=target_major, department=self.department
+            )[0]
 
         print("Added version #%g" % target_major)
         solution_file_one_vars_set = self.read_solution_file(filename)
@@ -1462,8 +1519,8 @@ class TimetableModel(FlopModel):
         threads=None,
         ignore_sigint=True,
         send_gurobi_logs_email_to=None,
-        with_numerotation=True):
-        
+        with_numerotation=True,
+    ):
         """
         Generates a schedule from the TimetableModel
         The solver stops either when the best schedule is obtained or timeLimit
@@ -1502,46 +1559,63 @@ class TimetableModel(FlopModel):
                 RoomModel(self.department.abbrev, self.periods, target_major).solve()
                 print("Rooms assigned")
             if with_numerotation:
-                number_courses(self.department, periods=self.periods,
-                               version_major=target_major)
-        
+                number_courses(
+                    self.department, periods=self.periods, version_major=target_major
+                )
+
         if send_gurobi_logs_email_to is not None:
             if result is None:
-                solved=False
+                solved = False
                 subject = f"Logs {self.department.abbrev} {self.weeks} : not solved"
             else:
-                solved=True
-                subject = f"Logs {self.department.abbrev} {self.weeks} : copy {target_major}"
+                solved = True
+                subject = (
+                    f"Logs {self.department.abbrev} {self.weeks} : copy {target_major}"
+                )
             self.send_gurobi_log_files_email(
-                subject=subject,
-                to=[send_gurobi_logs_email_to],
-                solved=solved
+                subject=subject, to=[send_gurobi_logs_email_to], solved=solved
             )
-    
+
         return target_major
 
     def find_same_course_slot_in_other_period(self, slot, other_period):
-        other_slots = slots_filter(self.data.courses_slots, period=other_period, same=slot)
+        other_slots = slots_filter(
+            self.data.courses_slots, period=other_period, same=slot
+        )
         if len(other_slots) != 1:
             raise Exception(
                 f"Wrong slots among periods {other_period} \n {slot} vs {other_slots}"
             )
         return other_slots.pop()
-    
+
     def send_gurobi_log_files_email(self, subject, to, solved):
         from django.core.mail import EmailMessage
-        message = gettext("This email was automatically sent by the flop!EDT timetable generator\n\n")
+
+        message = gettext(
+            "This email was automatically sent by the flop!EDT timetable generator\n\n"
+        )
         if solved:
             message += gettext("Here is the log of the last run of the generator:\n\n")
-            logs = open(self.gurobi_log_file(),'r').read().split('logging started')
+            logs = open(self.gurobi_log_file(), "r").read().split("logging started")
             if self.post_assign_rooms:
-                message += logs[-2] + '\n\n'
-                message += logs[-1] + '\n\n'
+                message += logs[-2] + "\n\n"
+                message += logs[-1] + "\n\n"
             else:
-                message += logs[-1] + '\n\n'
+                message += logs[-1] + "\n\n"
         else:
-            message += open("%s/constraints_summary%s.txt" % (iis_files_path, self.iis_filename_suffixe()), errors='replace').read() + '\n\n'
-            message += open("%s/constraints_factorised%s.txt" % (iis_files_path, self.iis_filename_suffixe()), errors='replace').read() 
-            
+            message += (
+                open(
+                    "%s/constraints_summary%s.txt"
+                    % (iis_files_path, self.iis_filename_suffixe()),
+                    errors="replace",
+                ).read()
+                + "\n\n"
+            )
+            message += open(
+                "%s/constraints_factorised%s.txt"
+                % (iis_files_path, self.iis_filename_suffixe()),
+                errors="replace",
+            ).read()
+
         email = EmailMessage(subject, message, to=to)
         email.send()
