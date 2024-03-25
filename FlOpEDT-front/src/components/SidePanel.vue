@@ -9,7 +9,7 @@
       <h3>{{ $t('side.availabilityTitle') }}</h3>
       <Separator class="Separator" orientation="horizontal" />
       <div class="avail-div">
-        <CheckboxRoot class="CheckboxRoot" v-model:checked="availCheckBox" :defaultChecked="availCheckBox">
+        <CheckboxRoot v-model:checked="availCheckBox" class="CheckboxRoot" :default-checked="availCheckBox">
           <CheckboxIndicator class="CheckboxIndicator">
             <Icon icon="iconoir:check"></Icon>
           </CheckboxIndicator>
@@ -34,7 +34,7 @@
               {{ $t('side.workcopyNumber') }}
             </SelectLabel>
             <SelectGroup>
-              <SelectItem v-for="n in 8" :value="n.toString()" class="SelectItem">
+              <SelectItem v-for="n in 8" :key="n" :value="n.toString()" class="SelectItem">
                 <SelectItemIndicator class="SelectItemIndicator">
                   <Icon icon="iconoir:check" />
                 </SelectItemIndicator>
@@ -53,50 +53,50 @@
     <div class="GroupSelect">
       <Separator class="Separator" />
       <FilterSelector
+        v-model:selectedItems="groupsSelected"
         :multiple="true"
         :items="props.groups"
-        filterSelectorUndefinedLabel="Groups to display"
-        v-model:selectedItems="groupsSelected"
+        filter-selector-undefined-label="Groups to display"
         item-variable-name="name"
       />
     </div>
     <div class="RoomSelect">
       <Separator class="Separator" />
       <FilterSelector
+        v-model:selectedItems="roomsSelected"
         :multiple="true"
         :items="props.rooms"
-        filterSelectorUndefinedLabel="Filter Rooms"
-        v-model:selectedItems="roomsSelected"
+        filter-selector-undefined-label="Filter Rooms"
         item-variable-name="name"
       />
     </div>
     <div class="TutorSelect">
       <Separator class="Separator" />
       <FilterSelector
+        v-model:selectedItems="tutorsSelected"
         :multiple="true"
         :items="props.tutors"
-        filterSelectorUndefinedLabel="Filter teachers"
-        v-model:selectedItems="tutorsSelected"
+        filter-selector-undefined-label="Filter teachers"
         item-variable-name="username"
       />
     </div>
     <div class="ModuleSelect">
       <Separator class="Separator" />
       <FilterSelector
+        v-model:selected-items="modulesSelected"
         :multiple="true"
         :items="modules"
-        filterSelectorUndefinedLabel="Module Filter"
-        v-model:selected-items="modulesSelected"
+        filter-selector-undefined-label="Module Filter"
         item-variable-name="abbrev"
       />
     </div>
     <div class="CourseTypeSelect">
       <Separator class="Separator" />
       <FilterSelector
+        v-model:selected-items="courseTypesSelected"
         :multiple="true"
         :items="courseTypeIds"
-        filterSelectorUndefinedLabel="Course type Filter"
-        v-model:selected-items="courseTypesSelected"
+        filter-selector-undefined-label="Course type Filter"
         item-variable-name="id"
       />
     </div>
@@ -141,7 +141,6 @@ import {
   RadioGroupIndicator,
 } from 'radix-vue'
 import { Icon } from '@iconify/vue'
-import { useI18n } from 'vue-i18n'
 import { Separator } from 'radix-vue'
 import { useAuth } from '@/stores/auth'
 import { computed } from 'vue'
@@ -152,7 +151,6 @@ import { storeToRefs } from 'pinia'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { usePermanentStore } from '@/stores/timetable/permanent'
-const { t } = useI18n()
 const authStore = useAuth()
 const eventStore = useEventStore()
 const groupStore = useGroupStore()
@@ -170,7 +168,7 @@ const workcopy = computed({
   get() {
     return props.workcopy.toString()
   },
-  set(v: any) {
+  set(v: string) {
     emits('update:workcopy', Number(v))
   },
 })

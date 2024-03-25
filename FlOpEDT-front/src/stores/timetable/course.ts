@@ -13,7 +13,7 @@ import {
   updateFormatted,
 } from '@quasar/quasar-ui-qcalendar'
 import { remove, cloneDeep } from 'lodash'
-import { dateToTimestamp, getDateStringFromTimestamp, getDateTimeStringFromDate, timestampToDate } from '@/helpers'
+import { getDateStringFromTimestamp, getDateTimeStringFromDate } from '@/helpers'
 
 /**
  * This store is a work in progress,
@@ -94,7 +94,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       await fetchScheduledCourses(makeDate(course.start), makeDate(nextDay(course.start)))
       if (!scheduledCourses.value.has(currentDate)) scheduledCourses.value.set(currentDate, [])
     }
-    let scheduledCourse: ScheduledCourse | undefined = scheduledCourses.value
+    const scheduledCourse: ScheduledCourse | undefined = scheduledCourses.value
       .get(currentDate)!
       .find((sc) => sc.id === course.id)
     if (scheduledCourse) {
@@ -173,7 +173,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       courseReturned = courses.value.get(date)?.find((c) => c.id === id)
       if (courseReturned && removed) remove(courses.value.get(date)!, (c) => c.id === id)
     } else {
-      courses.value.forEach((coursesD, date) => {
+      courses.value.forEach((coursesD) => {
         const course = coursesD.find((c) => c.id === id)
         if (course) {
           courseReturned = course
@@ -189,7 +189,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       const coursesToDate = courses.value.get(date)
       if (coursesToDate) remove(coursesToDate, (c) => c.id === id)
     } else {
-      courses.value.forEach((coursesD, date) => {
+      courses.value.forEach((coursesD) => {
         remove(coursesD, (c) => c.id === id)
       })
     }
@@ -199,7 +199,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     if (date) return scheduledCourses.value.get(date)?.find((c) => c.id === id)
     else {
       let scheduledCourse: ScheduledCourse | undefined
-      scheduledCourses.value.forEach((scheduledCoursesD, date) => {
+      scheduledCourses.value.forEach((scheduledCoursesD) => {
         scheduledCourse = scheduledCoursesD.find((c) => c.id === id)
         if (scheduledCourse) {
           return
@@ -221,7 +221,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
   }
 
   function getScheduledCoursesFromDateToDate(from: Timestamp, to?: Timestamp): ScheduledCourse[] {
-    let scheduledCoursesReturn: ScheduledCourse[] = []
+    const scheduledCoursesReturn: ScheduledCourse[] = []
     if (!to)
       scheduledCourses.value.get(getDateStringFromTimestamp(from))?.forEach((c) => {
         scheduledCoursesReturn.push(c)

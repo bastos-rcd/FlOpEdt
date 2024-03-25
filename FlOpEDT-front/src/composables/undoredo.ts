@@ -66,6 +66,7 @@ export function useUndoredo() {
         }
         scheduledCourseStore.removeCourse(currentCourse.id, getDate(currentCourse.start))
       } else if (operation === 'create') {
+
       }
     } else if (type === 'availability') {
       const availData = data as AvailabilityData
