@@ -109,7 +109,7 @@ export function badgeStyles(
   if (timeStartPos) {
     s.top = timeStartPos(event.data?.start) + 'px'
     s.left = Math.round((preceedingWeight / totalWeight) * 100) + '%'
-    s.width = Math.round((100 * span.weight) / totalWeight) + '%'
+    s.width = Math.round((100 * span.weight) / totalWeight) - 1 + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
   if (event.data.dataType === 'dropzone') {
@@ -118,8 +118,8 @@ export function badgeStyles(
     s['background-color'] = event.bgcolor
   }
   if (event.data.dataType === 'event') {
-    s['border'] = '1px solid #000000'
-    s['margin'] = '0px'
+    s['border'] = '2px solid #000000'
+    s['margin'] = '0'
   } else if (event.data.dataType === 'avail') {
     s['resize'] = 'vertical'
     s['overflow'] = 'auto'
