@@ -6,7 +6,7 @@
       <button @click="onToday">Today</button>
       <button @click="onNext">Next &gt;</button>
     </div>
-    <q-calendar-day
+    <QCalendarDay
       ref="calendar"
       v-model="selectedDate"
       :locale="locale"
@@ -29,10 +29,10 @@
       :drag-leave-func="onDragLeave"
       @dragend="onDragStop"
     >
-      <template #head-intervals="{ scope }">
+      <template #head-intervals>
         <span>{{ selectedDate.substring(5, 7) }}/{{ selectedDate.substring(0, 4) }}</span>
       </template>
-      <template #head-day-event="{ scope: { timestamp } }">
+      <template #head-day-event>
         <div style="display: flex">
           <template v-for="column in props.columns" :key="column.id">
             <div
@@ -91,17 +91,17 @@
                 @mouseup="onMouseUp()"
               >
                 <slot
+                  v-if="event.data.dataType !== 'avail' && event.data.dataType !== 'dropzone'"
                   name="event"
                   :event="event"
-                  v-if="event.data.dataType !== 'avail' && event.data.dataType !== 'dropzone'"
                 >
-                  <edit-event :event-object-id="event.data.dataId">
-                    <template v-slot:trigger>
+                  <EditEvent :event-object-id="event.data.dataId">
+                    <template #trigger>
                       <CourseCard :event-id="event.data.dataId" />
                     </template>
-                  </edit-event>
+                  </EditEvent>
                 </slot>
-                <slot name="event" :event="event" v-else>
+                <slot v-else name="event" :event="event">
                   <div
                     style="
                       width: 100%;
@@ -114,7 +114,7 @@
                     class="avail"
                   >
                     <AvailibityMenu :event="event" @update:event="changeAvailValue">
-                      <template v-slot:trigger>
+                      <template #trigger>
                         <span class="avail">
                           {{ event.data.value }}
                         </span>
@@ -127,22 +127,14 @@
           </template>
         </template>
       </template>
-    </q-calendar-day>
+    </QCalendarDay>
   </div>
 </template>
 
 <script setup lang="ts">
-import { today } from '@quasar/quasar-ui-qcalendar/src/index.js'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass'
 import '@quasar/quasar-ui-qcalendar/src/QCalendarAgenda.sass'
-import {
-  QCalendarDay,
-  copyTimestamp,
-  diffTimestamp,
-  parseTime,
-  updateMinutes,
-} from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 
 import { forEach, includes, cloneDeep, remove, sortBy, find, sumBy, filter } from 'lodash'
 
@@ -150,6 +142,12 @@ import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration
 
 import { Ref, computed, ref } from 'vue'
 import {
+  today,
+  QCalendarDay,
+  copyTimestamp,
+  diffTimestamp,
+  parseTime,
+  updateMinutes,
   TimestampOrNull,
   Timestamp,
   parsed,
@@ -253,14 +251,14 @@ watch(dayStart, () => {
 
   while (now_date!.weekday > 1) {
     now_date = prevDay(now_date as Timestamp)
-    now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
+    now_date.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}`
   }
   while (newSelectedDates.length < weekdays.value.length) {
     if (includes(weekdays.value, now_date?.weekday)) {
       newSelectedDates.push(now_date?.date)
     }
     now_date = nextDay(now_date as Timestamp)
-    now_date!.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}` as string
+    now_date.date = `${now_date?.year}-${putAZero(now_date.month)}-${putAZero(now_date.day)}`
   }
   selectedDates.value = newSelectedDates as string[]
   selectedDate.value = selectedDates.value[0]
@@ -312,7 +310,7 @@ const eventsByDate = computed(() => {
         iend: columnIndexes[columnIds[0]],
         columnIds: [] as number[],
       }
-      forEach(columnIds, (colId, i) => {
+      forEach(columnIds, (colId) => {
         const colProps = find(props.columns, (col) => col.id == colId) as CalendarColumn
         if (columnIndexes[colId] === currentSlice.iend) {
           currentSlice.weight += colProps.weight
@@ -331,13 +329,17 @@ const eventsByDate = computed(() => {
       spans.push({ istart: currentSlice.istart, weight: currentSlice.weight, columnIds: currentSlice.columnIds })
     }
 
-    // Created as InputCalendarEvent
-    const cnewEvent = newEvent as any
-    // Changing properties to convert to an CalendarEvent
-    delete cnewEvent.columnIds
-    cnewEvent.spans = spans
+    const cnewEvent: CalendarEvent = {
+      id: newEvent.id,
+      title: newEvent.title,
+      toggled: newEvent.toggled,
+      bgcolor: newEvent.bgcolor,
+      icon: newEvent.icon,
+      data: newEvent.data,
+      spans: spans,
+    }
 
-    newEvents.push(cnewEvent as CalendarEvent)
+    newEvents.push(cnewEvent)
   })
   const newEventsUpdated: CalendarEvent[] = updateEventsOverlap(newEvents)
   if (props.dropzones)
@@ -469,7 +471,8 @@ function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
  * @param browserEvent The HTML triggered event
  * @param event The event we are currently dragging
  */
-function onDragStart(browserEvent: DragEvent & { layerY: number }, event: CalendarEvent) {
+function onDragStart(browserEvent: MouseEvent, event: CalendarEvent) {
+  //@ts-expect-error LayerY supported on most browsers
   minutesToStartEvent = browserEvent.layerY * minutesToPixelRate
   currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
@@ -479,7 +482,7 @@ function onDragStart(browserEvent: DragEvent & { layerY: number }, event: Calend
 
 function getAllEvents(): CalendarEvent[] {
   const allEvents: CalendarEvent[] = []
-  eventsByDate.value.forEach((events: CalendarEvent[], date: string) => {
+  eventsByDate.value.forEach((events: CalendarEvent[]) => {
     events.forEach((ev) => {
       if (ev.data.dataType === 'event') allEvents.push(ev)
     })
@@ -487,7 +490,8 @@ function getAllEvents(): CalendarEvent[] {
   return allEvents
 }
 
-function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp }): boolean {
+function onDragEnter(e: MouseEvent, scope: { timestamp: Timestamp }): boolean {
+  //@ts-expect-error LayerY supported on most browsers
   currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return true
@@ -500,14 +504,16 @@ function onDragEnter(e: any, type: string, scope: { timestamp: Timestamp }): boo
  * @param type the type of element of the calendar
  * @param scope context containing utilitary functions
  */
-function onDragOver(e: any, type: string, scope: { timestamp: Timestamp }) {
+function onDragOver(e: MouseEvent, type: string, scope: { timestamp: Timestamp }) {
   e.preventDefault()
+  //@ts-expect-error LayerY supported on most browsers
   currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return true
 }
 
-function onDragLeave(e: any, type: string, scope: { timestamp: Timestamp }) {
+function onDragLeave(e: MouseEvent, type: string, scope: { timestamp: Timestamp }) {
+  //@ts-expect-error LayerY supported on most browsers
   currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return false
@@ -567,7 +573,7 @@ function onNext(): void {
 /**
  * Functions for onclick management
  */
-let timeoutId: any = null
+let timeoutId: number = -1
 let currentAvailId: number = -1
 let newAvailDuration: number = 0
 let oldAvailDuration: number = 0
@@ -600,7 +606,7 @@ function nextAvailInTime(
   let nextAvail = updatedEvents.find((e) => {
     return (
       e.data.start.date === avail.data.start.date &&
-      parseTime(e.data.start) === parseTime(avail.data.start) + avail.data.duration &&
+      parseTime(e.data.start) === parseTime(avail.data.start) + avail.data.duration! &&
       e.data.dataType === 'avail'
     )
   })
@@ -608,7 +614,7 @@ function nextAvailInTime(
     nextAvail = eventsModel.value.find((e) => {
       return (
         e.data.start.date === avail.data.start.date &&
-        parseTime(e.data.start) === parseTime(avail.data.start) + avail.data.duration &&
+        parseTime(e.data.start) === parseTime(avail.data.start) + avail.data.duration! &&
         e.data.dataType === 'avail'
       )
     })
@@ -672,27 +678,28 @@ function onMouseUp(): void {
   }
 }
 
-function onAvailClick(mouseEvent: MouseEvent & { layerY: number }, eventId: number): void {
+function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
   if (mouseEvent.button === 0) {
-    if (!timeoutId) {
-      timeoutId = setTimeout(() => {
+    if (timeoutId === -1) {
+      timeoutId = window.setTimeout(() => {
         changeAvailValue(eventId)
-        clearTimeout(timeoutId)
-        timeoutId = null
+        window.clearTimeout(timeoutId)
+        timeoutId = -1
       }, 200)
     } else {
       // DoubleClick management
-      clearTimeout(timeoutId)
-      timeoutId = null
+      window.clearTimeout(timeoutId)
+      timeoutId = -1
       const firstAvail = cloneDeep(eventsModel.value.find((e) => e.id === eventId))
       if (firstAvail) {
         if (firstAvail.data.duration! > (props.step || STEP_DEFAULT)) {
           const secondAvail = cloneDeep(firstAvail)
+          //@ts-expect-error LayerY supported on most browsers
           const layerY: number = mouseEvent.layerY
           firstAvail.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
           updateMinutes(
             secondAvail.data.start,
-            parseTime(firstAvail!.data.start) + closestStep(minutesToPixelRate * layerY, props.step)
+            parseTime(firstAvail.data.start) + closestStep(minutesToPixelRate * layerY, props.step)
           )
           secondAvail.id = -1
           secondAvail.data.duration! -= firstAvail.data.duration
@@ -765,7 +772,7 @@ function updateResizedUpEvents(newEvents: InputCalendarEvent[], newEvent: InputC
   newEvents.forEach((currentEvent: InputCalendarEvent) => {
     if (currentEvent.data.dataType === 'avail' && newEvent.id !== currentEvent.id) {
       if (newEvent.data.start.date === currentEvent.data.start.date) {
-        const diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start) / 60000
+        const diffBetweenStarts = diffTimestamp(newEvent.data.start, currentEvent.data.start, false) / 60000
         if (diffBetweenStarts > 0 && diffBetweenStarts < newEvent.data.duration!) {
           availsToUpdate.push(cloneDeep(currentEvent))
         }
@@ -773,14 +780,14 @@ function updateResizedUpEvents(newEvents: InputCalendarEvent[], newEvent: InputC
     }
   })
   for (let k = 0; k < availsToUpdate.length; k++) {
-    const diffBetweenStarts = diffTimestamp(newEvent.data.start, availsToUpdate[k].data.start) / 60000
+    const diffBetweenStarts = diffTimestamp(newEvent.data.start, availsToUpdate[k].data.start, false) / 60000
     if (diffBetweenStarts + availsToUpdate[k].data.duration! <= newEvent.data.duration!) {
       availsToUpdate[k].data.duration = -1
     } else {
       let oldTimeAvail = parseTime(getTime(availsToUpdate[k].data.start))
       updateMinutes(
         availsToUpdate[k].data.start,
-        Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration)
+        Math.round(parseTime(newEvent.data.start.time) + newEvent.data.duration!)
       )
       availsToUpdate[k].data.duration! -= parseTime(getTime(availsToUpdate[k].data.start)) - oldTimeAvail
     }
