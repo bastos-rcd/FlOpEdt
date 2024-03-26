@@ -14,7 +14,7 @@ export const usePermanentStore = defineStore('permanent', () => {
   const isModulesFetched = ref<boolean>(false)
   const loadingError = ref<Error | null>(null)
   const departmentStore = useDepartmentStore()
-  const timeSettings: Ref<Map<Number, TimeSetting>> = ref(new Map<Number, TimeSetting>())
+  const timeSettings: Ref<Map<number, TimeSetting>> = ref(new Map<number, TimeSetting>())
   const areTimeSettingsFetched = ref<boolean>(false)
   const modulesSelected = ref<Module[]>([])
   const moduleColor = computed(() => {
@@ -36,7 +36,7 @@ export const usePermanentStore = defineStore('permanent', () => {
   async function fetchTrainingProgrammes() {
     try {
       await api.getTrainProgs(departmentStore.current.abbrev).then((result: TrainingProgrammeAPI[]) => {
-        result.forEach((tp: any) => {
+        result.forEach((tp: TrainingProgrammeAPI) => {
           trainProgs.value.push({
             id: tp.id,
             name: tp.name,
@@ -86,7 +86,7 @@ export const usePermanentStore = defineStore('permanent', () => {
 
   async function getModule(id: number): Promise<Module | undefined> {
     let module = modules.value.find((m) => m.id === id)
-    if (!module && !isModulesFetched) {
+    if (!module && !isModulesFetched.value) {
       try {
         await fetchModules()
         module = modules.value.find((m) => m.id === id)

@@ -1,7 +1,7 @@
 <template>
   <Story>
     <Variant title="useCase1">
-      <CourseCard :eventId="1" />
+      <CourseCard :event-id="1" />
     </Variant>
   </Story>
 </template>
@@ -64,7 +64,6 @@ onBeforeMount(() => {
   console.log('BAMBINO')
   courseStore.addOrUpdateCourseToDate(course)
   console.log('courseStore', courseStore.courses)
-  // courseStore.courses.set('2024-03-12', [course])
   permanentStore.modules.push(module)
   tutorStore.tutors.push(user)
   roomStore.roomsFetched.push(room)

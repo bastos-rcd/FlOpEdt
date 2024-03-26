@@ -53,7 +53,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function availabilityBackToAvailability(availabilityBack: AvailabilityBack): Availability {
-    let newAvailability: Availability = {
+    const newAvailability: Availability = {
       id: nextId.value++,
       type: availabilityBack.av_type as 'user' | 'room',
       duration: durationDjangoToMinutes(availabilityBack.duration),
@@ -68,7 +68,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
   }
 
   function availabilityToAvailabilityBack(availability: Availability): AvailabilityBack {
-    let newAvailabilityBack: AvailabilityBack = {
+    const newAvailabilityBack: AvailabilityBack = {
       start_time: availability.start,
       duration: durationMinutesToDjango(availability.duration),
       value: availability.value,
@@ -132,7 +132,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
       availabilitiesOnDate = availabilities.value.get(getDateStringFromTimestamp(date))
       if (availabilitiesOnDate) remove(availabilitiesOnDate, (av) => av.id === id)
     } else {
-      availabilities.value.forEach((availsD, date) => {
+      availabilities.value.forEach((availsD) => {
         remove(availsD, (av) => av.id === id)
       })
     }
@@ -143,13 +143,14 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     if (date) {
       const dateString = getDateStringFromTimestamp(date)
       availabilityReturned = availabilities.value.get(dateString)?.find((c) => c.id === id)
-      if (availabilityReturned && removed) remove(availabilities.value.get(dateString)!, (c: any) => c.id === id)
+      if (availabilityReturned && removed)
+        remove(availabilities.value.get(dateString)!, (c: Availability) => c.id === id)
     } else {
-      availabilities.value.forEach((availabilitiesD, date) => {
+      availabilities.value.forEach((availabilitiesD) => {
         const availability = availabilitiesD.find((c) => c.id === id)
         if (availability) {
           availabilityReturned = availability
-          if (removed) remove(availabilitiesD, (c: any) => c.id === id)
+          if (removed) remove(availabilitiesD, (c: Availability) => c.id === id)
         }
       })
     }

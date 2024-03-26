@@ -13,7 +13,7 @@ function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
   if (tm && time) {
     updateMinutes(tm, parseTime(time))
   }
-  return tm as Timestamp
+  return tm
 }
 const weekStart = getStartOfWeek(parseDate(CURRENT_DAY) as Timestamp, [1, 2, 3, 4, 5])
 export const useCase: UseCase = {

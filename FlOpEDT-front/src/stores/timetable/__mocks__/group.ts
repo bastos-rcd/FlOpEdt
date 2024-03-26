@@ -1,4 +1,3 @@
-import { Department } from '@/ts/type'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { Group } from '@/stores/declarations'
@@ -359,7 +358,7 @@ export const useGroupStore = defineStore('group', () => {
     },
   ])
 
-  async function fetchGroups(department: Department): Promise<void> {
+  function fetchGroups(): void {
     fetchedStructuralGroups.value = populateGroupsColumnIds(fetchedStructuralGroups.value)
     populateTransversalsColumnIds(fetchedTransversalGroups.value, fetchedStructuralGroups.value)
     groups.value = concat(fetchedStructuralGroups.value, fetchedTransversalGroups.value)

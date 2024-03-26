@@ -23,7 +23,7 @@ export const useColumnStore = defineStore('column', () => {
     return currentMax
   })
   const columns = computed(() => {
-    let columns: CalendarColumn[] = []
+    const columns: CalendarColumn[] = []
     groups.value.forEach((g: Group) => {
       if (g.type === 'structural' && g.columnIds.length === 1) {
         columns.push({ id: g.id, name: g.name, weight: 1 })

@@ -22,7 +22,7 @@ describe('Group store', () => {
     expect(fetchedStructuralGroups.value.length).toBe(12)
     expect(fetchedStructuralGroups.value.find((gp) => gp.id === 1)?.columnIds.length).toBe(0)
 
-    groupStore.fetchGroups(new Department())
+    void groupStore.fetchGroups(new Department())
     const CE = fetchedStructuralGroups.value.find((gp) => gp.id === 1)
     expect(fetchedStructuralGroups.value.length).toBe(12)
     expect(CE?.id).toBe(1)
@@ -39,7 +39,7 @@ describe('Group store', () => {
   it('Populates columIds of Transversal Groups', () => {
     const groupStore = useGroupStore()
     const { fetchedTransversalGroups } = storeToRefs(groupStore)
-    groupStore.fetchGroups(new Department())
+    void groupStore.fetchGroups(new Department())
     expect(fetchedTransversalGroups.value.length).toBe(6)
     const all1 = fetchedTransversalGroups.value.find((gp) => gp.id === 16)
     const all2 = fetchedTransversalGroups.value.find((gp) => gp.id === 17)

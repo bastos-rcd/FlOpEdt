@@ -2,8 +2,8 @@
   <nav id="menu-links">
     <ul>
       <li v-if="authStore.isUserAuthenticated">
-        <button @click="toggleSideBar()" class="sidebar-button">
-          <icon icon="iconoir:menu" class="IconMenu"></icon>
+        <button class="sidebar-button" @click="toggleSideBar()">
+          <Icon icon="iconoir:menu" class="IconMenu"></Icon>
         </button>
       </li>
       <li>
@@ -86,7 +86,7 @@ import { Icon } from '@iconify/vue'
 
 const authStore = useAuth()
 const deptStore = useDepartmentStore()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 onMounted(() => {
   if (!deptStore.isCurrentDepartmentSelected) {
     deptStore.getDepartmentFromURL()

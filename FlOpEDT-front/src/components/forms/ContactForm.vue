@@ -5,46 +5,46 @@
       <legend>{{ $t('contact.infos-title') }}</legend>
       <label for="email">{{ $t('contact.email-label') }}</label>
       <input
-        v-model="emailadress"
         id="email"
+        v-model="emailadress"
         type="email"
-        @input="updateEmail()"
         :placeholder="$t('contact.email-placeholder')"
         required
+        @input="updateEmail()"
       />
       <label for="recipient">{{ $t('contact.recipient-label') }}</label>
       <input
-        v-model="recipient"
         id="recipient"
+        v-model="recipient"
         maxlength="20"
-        @input="updateRecipient()"
         :placeholder="$t('contact.recipient-placeholder')"
         required
+        @input="updateRecipient()"
       />
     </fieldset>
     <fieldset>
       <legend>{{ $t('contact.message-title') }}</legend>
       <label for="subject">{{ $t('contact.object-label') }}</label>
       <input
+        id="subject"
         v-model="subject"
         type="text"
         maxlength="100"
-        id="subject"
-        @input="updateSubject()"
         :placeholder="$t('contact.object-placeholder')"
         required
+        @input="updateSubject()"
       />
 
       <label for="message">{{ $t('contact.message-label') }}</label>
       <textarea
-        v-model="message"
         id="message"
+        v-model="message"
         cols="50"
         rows="10"
         maxlength="2000"
-        @input="updateMessage()"
         :placeholder="$t('contact.message-placeholder')"
         required
+        @input="updateMessage()"
       >
       </textarea>
     </fieldset>
@@ -54,12 +54,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 const emailadress = ref('')
 const recipient = ref('')
 const subject = ref('')
 const message = ref('')
-const t = useI18n()
 
 function updateEmail() {
   console.log(emailadress.value)

@@ -1,7 +1,6 @@
 import { Department } from '@/ts/type'
 import { Room } from '@/stores/declarations'
 import { useRoomStore } from '@/stores/timetable/room'
-import { api } from '@/utils/api'
 import { Timestamp, getDateTime, parseTime, parseTimestamp, updateFormatted } from '@quasar/quasar-ui-qcalendar'
 
 export function convertDecimalTimeToHuman(time: number): string {
@@ -24,19 +23,6 @@ export function toStringAtLeastTwoDigits(element: number | string) {
     }
   }
   return `${element < 10 ? `0${element}` : element}`
-}
-
-export function parseReason(reason: unknown, onAlert?: (level: string, message: string) => void) {
-  // Reason can be either a response body or a thrown error
-  if (reason instanceof Object && !(reason instanceof Error)) {
-    // Reason is a response body, display each message separately
-    const reasonObj = reason as { [key: string]: string }
-    Object.keys(reasonObj).forEach((key) => {
-      onAlert?.('danger', `${key}: ${reasonObj[key]}`)
-    })
-  } else {
-    onAlert?.('danger', `${reason}.`)
-  }
 }
 
 /**
@@ -125,15 +111,6 @@ export function addTo<T>(collection: { [p: string]: Array<T> }, id: string | num
  */
 export function createDateId(day: string | number, month: string | number): string {
   return `${toStringAtLeastTwoDigits(day)}/${toStringAtLeastTwoDigits(month)}`
-}
-
-/**
- * Explain
- * @param periodicityId
- * @returns Nothing ?
- */
-export function deleteReservationPeriodicity(periodicityId: number): Promise<unknown> {
-  return api.delete.reservationPeriodicity(periodicityId)
 }
 
 /**
@@ -251,7 +228,7 @@ export function getDateStringFromTimestamp(date: Timestamp): string {
 }
 
 export function dateToTimestamp(date: Date): Timestamp {
-  let dateString: string = getDateTimeStringFromDate(date, true)
+  const dateString: string = getDateTimeStringFromDate(date, true)
   return parseTimestamp(dateString) as Timestamp
 }
 
@@ -261,7 +238,7 @@ export function timestampToDate(ts: Timestamp): Date {
 
 const DURATION_ISO_REGEX = /P?(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/
 const DURATION_DJANGO_REGEX =
-  /^(?:(?<days>-?\d+) (days?, )?)?(?<sign>-?)((?:(?<hours>\d+):)(?=\d+:\d+))?(?:(?<minutes>\d+):)?(?<seconds>\d+)(?:[\.,](?<microseconds>\d{1,6})\d{0,6})?$/
+  /^(?:(?<days>-?\d+) (days?, )?)?(?<sign>-?)((?:(?<hours>\d+):)(?=\d+:\d+))?(?:(?<minutes>\d+):)?(?<seconds>\d+)(?:[.,](?<microseconds>\d{1,6})\d{0,6})?$/
 
 export function dateToString(date: Date): string {
   return date.toISOString().split('T')[0]
@@ -289,7 +266,7 @@ export function durationISOToMinutes(duration: string): number {
 }
 
 export function durationDjangoToMinutes(duration: string): number {
-  const { days, sign, hours, minutes, seconds, microseconds } = DURATION_DJANGO_REGEX.exec(duration)?.groups as {
+  const { days, sign, hours, minutes, seconds } = DURATION_DJANGO_REGEX.exec(duration)?.groups as {
     days: string
     sign: string
     hours: string
@@ -330,7 +307,11 @@ export function durationMinutesToDjango(duration: number): string {
   return ret
 }
 
-export function buildUrl(endpoint: string, context: Map<string, any>, accept_null: boolean = false) {
+export function buildUrl(
+  endpoint: string,
+  context: Map<string, string | number | null | undefined>,
+  accept_null: boolean = false
+) {
   let url = ''
   for (const [k, v] of context) {
     if (accept_null || v) {

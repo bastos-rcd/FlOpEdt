@@ -13,7 +13,7 @@ export const useAuth = defineStore('auth', () => {
   const isUserFetchTried = computed(() => fetchTried.value)
 
   async function fetchAuthUser(): Promise<void> {
-    await api?.getCurrentUser().then((json: any) => (user.value = json))
+    await api?.getCurrentUser().then((json: User) => (user.value = json))
     fetchTried.value = true
   }
 

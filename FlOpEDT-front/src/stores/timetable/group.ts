@@ -30,7 +30,7 @@ export const useGroupStore = defineStore('group', () => {
     clearGroups()
     await api.getStructuralGroups(department.abbrev).then((result: GroupAPI[]) => {
       result.forEach((gp: GroupAPI) => {
-        let newGp = {
+        const newGp = {
           id: gp.id,
           name: gp.name,
           size: 0,
@@ -48,7 +48,7 @@ export const useGroupStore = defineStore('group', () => {
 
     await api.getTransversalGroups(department.abbrev).then((result: GroupAPI[]) => {
       result.forEach((gp: GroupAPI) => {
-        let newGp = {
+        const newGp = {
           id: gp.id,
           name: gp.name,
           size: 0,

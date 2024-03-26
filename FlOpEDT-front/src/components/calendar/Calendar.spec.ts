@@ -7,7 +7,7 @@ describe('Calendar component', () => {
   it.skip('render correctly', () => {
     expect.assertions(3)
     expect(Calendar).toBeTruthy()
-    const wrapper = shallowMount(Calendar as any)
+    const wrapper = shallowMount(Calendar as unknown)
 
     expect(wrapper).toBeDefined()
     expect(wrapper.html()).toMatchSnapshot()
@@ -16,7 +16,7 @@ describe('Calendar component', () => {
   it.skip('displays columns', async () => {
     expect.assertions(3)
     expect(Calendar).toBeTruthy()
-    const wrapper: VueWrapper = shallowMount(Calendar as any, {
+    const wrapper: VueWrapper = shallowMount(Calendar as unknown, {
       props: {
         columns: [
           {
@@ -44,13 +44,13 @@ describe('Calendar component', () => {
     expect(wrapper.html()).toMatchSnapshot()
 
     const event65992 = wrapper.find('')
-    event65992.trigger('drag')
+    void event65992.trigger('drag')
   })
 
-  it.skip('renders with formated data', async () => {
+  it.skip('renders with formated data', () => {
     expect.assertions(2)
     expect(Calendar).toBeTruthy()
-    const wrapper: VueWrapper = shallowMount(Calendar as any, {
+    const wrapper: VueWrapper = shallowMount(Calendar as unknown, {
       props: {
         columns: useCase.columns,
         events: useCase.events.value,

@@ -18,7 +18,7 @@ export const useDepartmentStore = defineStore('dept', () => {
   })
 
   async function fetchAllDepartments(): Promise<void> {
-    await api?.getAllDepartments().then((json: any) => {
+    await api.getAllDepartments().then((json: Department[]) => {
       all.value = json
     })
     isAllDepartmentsFetched.value = true

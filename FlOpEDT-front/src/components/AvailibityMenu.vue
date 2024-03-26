@@ -12,8 +12,8 @@
             v-for="n in 8"
             :key="n"
             :value="n.toString()"
-            @select="handleSelection(n)"
             class="ContextMenuRadioItem"
+            @select="handleSelection(n)"
           >
             {{ n }}
           </ContextMenuRadioItem>
@@ -33,14 +33,12 @@ import {
   ContextMenuTrigger,
 } from 'radix-vue'
 import { CalendarEvent } from './calendar/declaration'
-import { useI18n } from 'vue-i18n'
 const props = defineProps<{
   event: CalendarEvent
 }>()
 const emits = defineEmits<{
   (e: 'update:event', id: number, value: number): void
 }>()
-const { t } = useI18n()
 
 function handleSelection(n: number) {
   emits('update:event', props.event.id, n)

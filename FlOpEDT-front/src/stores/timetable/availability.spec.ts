@@ -80,7 +80,7 @@ describe('Availibility store utils', () => {
   it('Transforms a back Availability in Availability', () => {
     expect.assertions(7)
     const availabilityStore = useAvailabilityStore()
-    let availabilityBack: AvailabilityBack = {
+    const availabilityBack: AvailabilityBack = {
       start_time: parseTimestamp('2017-01-15 14:30'),
       duration: '03:30:00',
       value: 0,
@@ -101,7 +101,7 @@ describe('Availibility store utils', () => {
   it('Transforms an Availibility in back Availability and back', () => {
     expect.assertions(10)
     const availabilityStore = useAvailabilityStore()
-    let availability: Availability = availabilityStore.getAvailability(2)!
+    const availability: Availability = availabilityStore.getAvailability(2)!
     const availabilityBack: AvailabilityBack = availabilityStore.availabilityToAvailabilityBack(availability)
     expect(availabilityBack.value).toBe(3)
     expect(availabilityBack.av_type).toBe('user')
@@ -120,7 +120,7 @@ describe('Availibility store utils', () => {
   it('Transforms a back Availability in Availability and back', () => {
     expect.assertions(10)
     const availabilityStore = useAvailabilityStore()
-    let availabilityBack: AvailabilityBack = {
+    const availabilityBack: AvailabilityBack = {
       start_time: parseTimestamp('2017-01-15 14:30'),
       duration: '03:30:00',
       value: 0,

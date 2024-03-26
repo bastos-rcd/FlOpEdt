@@ -62,7 +62,7 @@ describe('undoredo composable', () => {
           roomTypeId: courseToUpdate!.roomTypeId,
           groupIds: courseToUpdate!.groupIds,
         },
-        objectId: courseToUpdate!.id as number,
+        objectId: courseToUpdate!.id,
         type: 'course',
         operation: 'update',
       },
@@ -82,7 +82,7 @@ describe('undoredo composable', () => {
           roomTypeId: 3,
           groupIds: [422, 623, 552],
         },
-        objectId: courseToUpdate!.id as number,
+        objectId: courseToUpdate!.id,
         type: 'course',
         operation: 'update',
       },
@@ -108,7 +108,7 @@ describe('undoredo composable', () => {
           roomTypeId: courseToUpdate!.roomTypeId,
           groupIds: courseToUpdate!.groupIds,
         },
-        objectId: courseToUpdate!.id as number,
+        objectId: courseToUpdate!.id,
         type: 'course',
         operation: 'update',
       },
@@ -137,7 +137,7 @@ describe('undoredo composable', () => {
           roomTypeId: courseToUpdate!.roomTypeId,
           groupIds: courseToUpdate!.groupIds,
         },
-        objectId: courseToUpdate!.id as number,
+        objectId: courseToUpdate!.id,
         type: 'course',
         operation: 'update',
       },
@@ -154,7 +154,7 @@ describe('undoredo composable', () => {
           roomTypeId: -1,
           groupIds: [],
         },
-        objectId: courseToUpdate!.id as number,
+        objectId: courseToUpdate!.id,
         type: 'course',
         operation: 'update',
       },
@@ -180,7 +180,7 @@ describe('undoredo composable', () => {
           value: 1,
           duration: 60,
         },
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         type: 'availability',
         operation: 'update',
       },
@@ -192,7 +192,7 @@ describe('undoredo composable', () => {
 
     addUpdateBlock([
       {
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         data: {
           start: parseTimestamp('2023-04-22 16:00') as Timestamp,
           value: 7,
@@ -214,7 +214,7 @@ describe('undoredo composable', () => {
 
     addUpdateBlock([
       {
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         data: {
           start: parseTimestamp('2022-01-25 14:00') as Timestamp,
           value: 1,
@@ -242,7 +242,7 @@ describe('undoredo composable', () => {
           value: 1,
           duration: 60,
         },
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         type: 'availability',
         operation: 'update',
       },
@@ -254,7 +254,7 @@ describe('undoredo composable', () => {
           value: 0,
           duration: 90,
         },
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         type: 'availability',
         operation: 'update',
       },
@@ -275,7 +275,7 @@ describe('undoredo composable', () => {
     const availToUpdate = availabilityStore.getAvailability(23)
     addUpdateBlock([
       {
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         data: {
           start: parseTimestamp('2022-01-25 14:00') as Timestamp,
           value: 1,
@@ -290,7 +290,7 @@ describe('undoredo composable', () => {
           value: 8,
           duration: 30,
         },
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         type: 'availability',
         operation: 'update',
       },
@@ -300,7 +300,7 @@ describe('undoredo composable', () => {
     expect(availToUpdate!.duration).toBe(30)
     addUpdateBlock([
       {
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         data: {
           start: parseTimestamp('2022-01-25 10:00') as Timestamp,
           value: 5,
@@ -315,7 +315,7 @@ describe('undoredo composable', () => {
           value: 6,
           duration: 200,
         },
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         type: 'availability',
         operation: 'update',
       },
@@ -325,7 +325,7 @@ describe('undoredo composable', () => {
           value: 2,
           duration: 100,
         },
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         type: 'availability',
         operation: 'update',
       },
@@ -347,7 +347,7 @@ describe('undoredo composable', () => {
       operation: 'update' | 'create' | 'remove'
     }[] = []
     updates.push({
-      objectId: availToUpdate!.id as number,
+      objectId: availToUpdate!.id,
       data: {
         start: parseTimestamp('2022-01-25 14:00') as Timestamp,
         value: 1,
@@ -362,14 +362,14 @@ describe('undoredo composable', () => {
         value: 8,
         duration: 30,
       },
-      objectId: availToUpdate!.id as number,
+      objectId: availToUpdate!.id,
       type: 'availability',
       operation: 'update',
     })
     addUpdateBlock(updates)
     addUpdateBlock([
       {
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         data: {
           start: parseTimestamp('2022-01-25 10:00') as Timestamp,
           value: 5,
@@ -384,7 +384,7 @@ describe('undoredo composable', () => {
           value: 6,
           duration: 200,
         },
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         type: 'availability',
         operation: 'update',
       },
@@ -394,7 +394,7 @@ describe('undoredo composable', () => {
           value: 2,
           duration: 100,
         },
-        objectId: availToUpdate!.id as number,
+        objectId: availToUpdate!.id,
         type: 'availability',
         operation: 'update',
       },
@@ -512,7 +512,7 @@ describe('undoredo composable', () => {
   it('historizes the deletion of availabilities and revert them', () => {
     const availabilityStore = useAvailabilityStore()
     const { availabilities } = storeToRefs(availabilityStore)
-    const { addUpdateBlock, updatesHistories, revertUpdateBlock } = useUndoredo()
+    const { addUpdateBlock, revertUpdateBlock } = useUndoredo()
     addUpdateBlock([
       {
         objectId: 23,

@@ -81,13 +81,13 @@ export interface CourseType {
   duration: number
 }
 
-export interface Department {
+export interface DepartmentI {
   id: number
   name: string
   abbrev: string
 }
 
-export class Department implements Department {
+export class Department implements DepartmentI {
   id = -1
   abbrev = 'NF'
   name = 'not found'
@@ -204,7 +204,7 @@ export interface UserAPI {
   departments: Array<{ department_id: number; is_admin: string }>
 }
 
-export interface User {
+export interface UserI {
   username: string
   firstname: string
   lastname: string
@@ -212,7 +212,7 @@ export interface User {
   id: number
 }
 
-export class User implements User {
+export class User implements UserI {
   username = ''
   firstname = ''
   lastname = 'AnonymousUser'

@@ -94,7 +94,7 @@ export const api: FlopAPI = {
     tutor?: number
   ): Promise<Array<ScheduledCourse>> {
     const scheduledCourses: Array<ScheduledCourse> = []
-    const context = new Map<string, string | number | undefined>([['dept_id', department_id]])
+    const context = new Map<string, string | number | undefined | null>([['dept_id', department_id]])
     if (from) {
       context.set('from_date', dateToString(from))
     }

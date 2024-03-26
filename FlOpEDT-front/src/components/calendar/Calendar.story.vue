@@ -2,51 +2,51 @@
   <Story>
     <Variant title="Use case 1">
       <Calendar
-        :columns="useCase1.columns.value"
         v-model:events="useCase2.events.value"
+        :columns="useCase1.columns.value"
         :dropzones="dropzonesUseCase1"
-        @dragstart="onDragStart"
         :end-of-day="1140"
         :start-of-day="420"
         :workcopy="3"
         :interval-minutes="15"
+        @dragstart="onDragStart"
       />
     </Variant>
     <Variant title="Use case 2">
       <Calendar
-        :columns="useCase2.columns.value"
         v-model:events="useCase2.events.value"
+        :columns="useCase2.columns.value"
         :dropzones="dzs"
-        @dragstart="onDragStart"
-        @weekdays="(wd: number[]) => (weekdays = wd)"
         :end-of-day="1140"
         :start-of-day="420"
         :workcopy="3"
         :interval-minutes="60"
+        @dragstart="onDragStart"
+        @weekdays="(wd: number[]) => (weekdays = wd)"
       />
     </Variant>
     <Variant title="Use case 3">
       <Calendar
-        :columns="useCase3.columns.value"
         v-model:events="useCase3.events.value"
-        @dragstart="onDragStart"
+        :columns="useCase3.columns.value"
         :end-of-day="1140"
         :start-of-day="420"
         :workcopy="3"
         :interval-minutes="30"
+        @dragstart="onDragStart"
       />
     </Variant>
     <Variant title="Availabilities">
       <button color="orange" style="margin: 2px" @click="toggleAvailabilities()">Show Availabilities</button>
       <Calendar
-        :columns="useCase4.columns.value"
         v-model:events="useCase4.events.value"
+        :columns="useCase4.columns.value"
         :dropzones="dzs"
-        @dragstart="onDragStart"
         :end-of-day="1140"
         :start-of-day="420"
         :workcopy="3"
         :interval-minutes="15"
+        @dragstart="onDragStart"
       />
     </Variant>
   </Story>
@@ -69,7 +69,7 @@ function shiftInCurrentWeek(relativeDay: number, time?: string): Timestamp {
   if (tm && time) {
     updateMinutes(tm, parseTime(time))
   }
-  return tm as Timestamp
+  return tm
 }
 
 const dropzonesUseCase1 = ref<CalendarEvent[]>([])

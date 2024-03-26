@@ -9,8 +9,8 @@
               name: routeNames.home,
               params: { dept: department.abbrev },
             }"
-            @click.native="deptStore.current = new Department(department.id, department.abbrev)"
             class="choices"
+            @click="deptStore.current = new Department(department.id, department.abbrev)"
           >
             {{ department.abbrev }}
           </router-link>
@@ -24,10 +24,8 @@
 import { routeNames } from '@/router'
 import { useDepartmentStore } from '@/stores/department'
 import { Department } from '@/ts/type'
-import { useI18n } from 'vue-i18n'
 
 const deptStore = useDepartmentStore()
-const t = useI18n()
 </script>
 
 <style scoped>

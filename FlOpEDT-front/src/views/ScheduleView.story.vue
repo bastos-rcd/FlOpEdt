@@ -4,13 +4,13 @@
       <div>
         <div class="filters">
           <FilterSelector
-            :items="rooms"
-            filterSelectorUndefinedLabel="Select a room"
             v-model:selectedItems="roomsSelected"
-            itemVariableName="name"
+            :items="rooms"
+            filter-selector-undefined-label="Select a room"
+            item-variable-name="name"
             :multiple="true"
           />
-          <p><q-badge v-for="r in roomsSelected" rounded color="red" :label="r.name" /></p>
+          <p><q-badge v-for="r in roomsSelected" :key="r.id" rounded color="red" :label="r.name" /></p>
         </div>
       </div>
       <ScheduleView />

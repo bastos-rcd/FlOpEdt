@@ -218,7 +218,7 @@ describe('Tree utils', () => {
       [131, 121]
     )
 
-    let actives = tree.getActiveIds()
+    const actives = tree.getActiveIds()
     expect(actives.length).toBe(5)
     expect(actives).toEqual(expect.arrayContaining([1, 12, 13, 121, 131]))
   })

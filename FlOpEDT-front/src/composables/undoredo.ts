@@ -65,8 +65,15 @@ export function useUndoredo() {
           groupIds: currentCourse.groupIds,
         }
         scheduledCourseStore.removeCourse(currentCourse.id, getDate(currentCourse.start))
+        return {
+          objectId: objectId,
+          operation: operation,
+          type: type,
+          to: courseData,
+          from: dataFrom,
+        } as UpdatesHistory
       } else if (operation === 'create') {
-
+        console.log('TODO')
       }
     } else if (type === 'availability') {
       const availData = data as AvailabilityData

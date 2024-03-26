@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createPinia, setActivePinia, storeToRefs } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
 import { useScheduledCourseStore } from './course'
 import { ScheduledCourse } from '@/ts/type'
 import { Course } from '../declarations'

@@ -8,8 +8,9 @@ import {
   prevDay,
   updateFormatted,
   updateMinutes,
+  diffTimestamp,
+  Timestamp,
 } from '@quasar/quasar-ui-qcalendar'
-import { diffTimestamp } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { Course } from '@/stores/declarations'
 import { useDepartmentStore } from '@/stores/department'
@@ -56,7 +57,14 @@ export function closestStep(nbMinutes: number, step: number = STEP_DEFAULT): num
   }
 }
 
-export function generateSpanId(eventId: number, spans: any): string {
+export function generateSpanId(
+  eventId: number,
+  spans: {
+    istart: number
+    weight: number
+    columnIds: number[]
+  }
+): string {
   let colIds = ''
   spans.columnIds.forEach((cl: number) => {
     colIds += cl.toString()
@@ -92,11 +100,11 @@ export function updateEventsOverlap(events: CalendarEvent[]): CalendarEvent[] {
 export function badgeStyles(
   event: CalendarEvent,
   span: { istart: number; weight: number; columnIds: number[] },
-  timeStartPos: any = undefined,
+  timeStartPos: (arg0: Timestamp) => number,
   preWeight: Record<number, number>,
   totalWeight: number,
   columns: CalendarColumn[],
-  timeDurationHeight: Function,
+  timeDurationHeight: (arg0: number | undefined) => number,
   closestStartTime: string,
   currentTime: TimestampOrNull
 ) {
@@ -171,7 +179,7 @@ function areEventsOverlapped(event1: CalendarEvent, event2: CalendarEvent): bool
 function eventsTimeOverlap(event1: CalendarEvent, event2: CalendarEvent): boolean {
   let timeOverlap = false
   if (event1.data.start.date === event2.data.start.date) {
-    const diff = Math.ceil(diffTimestamp(event1.data.start, event2.data.start) / 1000 / 60)
+    const diff = Math.ceil(diffTimestamp(event1.data.start, event2.data.start, false) / 1000 / 60)
     if (diff > 0) {
       if (event1.data.duration) timeOverlap = event1.data.duration > diff
     } else {

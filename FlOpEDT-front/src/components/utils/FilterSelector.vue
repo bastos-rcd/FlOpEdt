@@ -1,28 +1,31 @@
 <template>
   <div class="content">
     <div style="display: flex; justify-content: center; flex-direction: column">
-      <CancelButton @cancel-click="clearSelect" style="align-self: flex-end" />
+      <CancelButton style="align-self: flex-end" @cancel-click="clearSelect" />
       <label>{{ props.filterSelectorUndefinedLabel }}</label>
     </div>
-    <div class="simple-select" v-if="!multiple">
+    <div v-if="!multiple" class="simple-select">
       <select
-        name="select"
         id="select"
+        v-model="selectionModel"
+        name="select"
         :multiple="props.multiple"
         class="select-content select"
-        v-model="selectionModel"
       >
-        <option v-for="item in items" :value="item">{{ item[itemVariableName] }}</option>
+        <option v-for="(item, i) in itemsTyped" :key="i" :value="item">{{ item[itemVariableName] }}</option>
       </select>
     </div>
-    <div class="custom-dropdown select" v-else>
-      <button class="selected-items select" @click="toggleDropdown">
-        <span v-if="selectionModel.length === 0">Select items...</span>
-        <span v-else>{{ selectionModel.map((el: any) => el[itemVariableName]).join(', ') }}</span>
+    <div v-else class="custom-dropdown select">
+      <button class="selected-items select" :disabled="itemsTyped.length === 0" @click="toggleDropdown">
+        <span v-if="Array.isArray(selectionModel) && selectionModel.length === 0">Select items...</span>
+        <span
+          v-if="Array.isArray(selectionModel)"
+          >{{ selectionModel.map((el: any) => el[itemVariableName]).join(', ') }}</span
+        >
       </button>
       <div class="dropdown-menu" :class="{ show: isDropdownOpen }">
-        <label v-for="item in items" :key="item.id">
-          <input type="checkbox" :value="item" v-model="selectionModel" /> {{ item[itemVariableName] }}
+        <label v-for="(item, i) in itemsTyped" :key="i">
+          <input v-model="selectionModel" type="checkbox" :value="item" /> {{ item[itemVariableName] }}
         </label>
       </div>
     </div>
@@ -43,22 +46,30 @@ import CancelButton from './CancelButton.vue'
  *  itemVariableName: attribute name of the objects.
  **/
 interface Props {
-  items: any[]
+  items: unknown[]
   filterSelectorUndefinedLabel: string
-  selectedItems: any | null
+  selectedItems: unknown
   multiple: boolean
   itemVariableName: string
 }
 
+type DynamicPropertyType = {
+  [key in typeof props.itemVariableName]: unknown
+}
+
+const itemsTyped = computed(() => {
+  return props.items as DynamicPropertyType[]
+})
+
 const emit = defineEmits<{
-  (e: 'update:selectedItems', item: any): void
+  (e: 'update:selectedItems', item: unknown): void
 }>()
 const props = defineProps<Props>()
 const selectionModel = computed({
   get() {
     return props.selectedItems
   },
-  set(value: any) {
+  set(value: unknown) {
     emit('update:selectedItems', value)
   },
 })
@@ -97,6 +108,7 @@ label {
 }
 .dropdown-menu {
   background-color: #fff;
+  color: rgb(120, 120, 50);
   border: 1px solid #ccc;
   border-top: none;
   border-radius: 4px;

@@ -1,31 +1,31 @@
 <template>
   <div class="content">
-    <div class="side-panel" :class="{ open: authStore.sidePanelToggle }" v-if="authStore.sidePanelToggle">
+    <div v-if="authStore.sidePanelToggle" class="side-panel" :class="{ open: authStore.sidePanelToggle }">
       <SidePanel
         v-if="authStore.sidePanelToggle"
-        @update:checkbox="(v) => (availabilityToggle = v)"
-        @update:workcopy="(n) => (workcopySelected = n)"
-        @revert-update="() => undoRedo.revertUpdateBlock()"
-        :avail-checked="availabilityToggle"
         v-model:workcopy="workcopySelected"
+        :avail-checked="availabilityToggle"
         :rooms="roomsFetched"
         :tutors="tutors"
         :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)"
         :revert="undoRedo.hasUpdate.value"
+        @update:checkbox="(v) => (availabilityToggle = v)"
+        @update:workcopy="(n) => (workcopySelected = n)"
+        @revert-update="() => undoRedo.revertUpdateBlock()"
       />
     </div>
     <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
       <Calendar
         v-model:events="calendarEvents"
-        @update:events="handleUpdateEvents"
         :columns="columnsToDisplay"
         :dropzones="dropzonesToDisplay"
-        @dragstart="onDragStart"
-        @update:week="changeDate"
         :start-of-day="timeSettings.get(current.id)!.dayStartTime"
         :end-of-day="timeSettings.get(current.id)!.dayEndTime"
         :workcopy="workcopySelected"
         :interval-minutes="intervalMinutes"
+        @update:events="handleUpdateEvents"
+        @dragstart="onDragStart"
+        @update:week="changeDate"
       />
     </div>
   </div>
@@ -39,7 +39,6 @@ import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useColumnStore } from '@/stores/display/column'
 import { storeToRefs } from 'pinia'
-import { parsed } from '@quasar/quasar-ui-qcalendar/src/QCalendarDay.js'
 import {
   Timestamp,
   copyTimestamp,
@@ -51,6 +50,7 @@ import {
   today,
   updateFormatted,
   updateMinutes,
+  parsed,
 } from '@quasar/quasar-ui-qcalendar'
 import { filter } from 'lodash'
 import { useRoomStore } from '@/stores/timetable/room'
@@ -144,11 +144,11 @@ function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
 }
 
 function fetchScheduledCurrentWeek(from: Date, to: Date) {
-  scheduledCourseStore.fetchScheduledCourses((from = from), (to = to), -1, deptStore.current)
+  void scheduledCourseStore.fetchScheduledCourses(from, to, -1, deptStore.current)
 }
 
 function fetchAvailCurrentWeek(from: Date, to: Date) {
-  availabilityStore.fetchUserAvailabilitiesBack(authStore.getUser.id, from, to)
+  void availabilityStore.fetchUserAvailabilitiesBack(authStore.getUser.id, from, to)
 }
 
 function changeDate(newDate: Timestamp) {
@@ -156,9 +156,9 @@ function changeDate(newDate: Timestamp) {
   sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
   fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
-  let currentDate = copyTimestamp(monday.value!)
+  let currentDate = copyTimestamp(monday.value)
   daysSelected.value = []
-  while (currentDate.weekday !== sunday.value!.weekday) {
+  while (currentDate.weekday !== sunday.value.weekday) {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
   }
@@ -226,22 +226,22 @@ function handleUpdateEvents(newCalendarEvents: InputCalendarEvent[]): void {
 /**
  * Fetching data required on mount
  */
-onBeforeMount(async () => {
-  let todayDate: Timestamp = updateFormatted(parsed(today()))
+onBeforeMount(() => {
+  let todayDate: Timestamp = updateFormatted(parsed(today()) as Timestamp)
   monday.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
   sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
-  let currentDate = copyTimestamp(monday.value!)
+  let currentDate = copyTimestamp(monday.value)
   daysSelected.value = []
-  while (currentDate.weekday !== sunday.value!.weekday) {
+  while (currentDate.weekday !== sunday.value.weekday) {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
   }
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
-  groupStore.fetchGroups(deptStore.current)
+  void groupStore.fetchGroups(deptStore.current)
 })
 
 onBeforeMount(() => {
-  let todayDate: Timestamp = updateFormatted(parsed(today()))
+  let todayDate: Timestamp = updateFormatted(parsed(today()) as Timestamp)
   monday.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
   sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
   fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
