@@ -88,14 +88,14 @@ class NotAloneForTheseCouseTypes(TimetableConstraint):
         return text
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=10):
-        considered_course_types = ttmodel.wdb.course_types
+        considered_course_types = ttmodel.data.course_types
         if self.course_types.exists():
             considered_course_types &= set(self.course_types.all())
-        considered_modules = set(ttmodel.wdb.modules)
+        considered_modules = set(ttmodel.data.modules)
         if self.modules.exists():
             considered_modules &= set(self.modules.all())
         tutors_to_consider = considered_tutors(self, ttmodel)
-        guides_to_consider = set(ttmodel.wdb.instructors)
+        guides_to_consider = set(ttmodel.data.instructors)
         if self.guide_tutors.exists():
             guides_to_consider &= set(self.guide_tutors.all())
 
@@ -103,17 +103,17 @@ class NotAloneForTheseCouseTypes(TimetableConstraint):
             possible_tutor_guides = guides_to_consider - {tutor}
             for ct in considered_course_types:
                 for m in considered_modules:
-                    courses = set(ttmodel.wdb.courses.filter(module=m, type=ct, period=period))
-                    tutor_courses = courses & ttmodel.wdb.possible_courses[tutor]
-                    if not ttmodel.wdb.possible_courses[tutor] & courses:
+                    courses = set(ttmodel.data.courses.filter(module=m, type=ct, period=period))
+                    tutor_courses = courses & ttmodel.data.possible_courses[tutor]
+                    if not ttmodel.data.possible_courses[tutor] & courses:
                         continue
-                    for sl in slots_filter(ttmodel.wdb.courses_slots, period=period):
+                    for sl in slots_filter(ttmodel.data.courses_slots, period=period):
                         tutor_sum = ttmodel.sum(ttmodel.assigned[sl, c, tutor]
-                                                for c in tutor_courses & ttmodel.wdb.compatible_courses[sl])
+                                                for c in tutor_courses & ttmodel.data.compatible_courses[sl])
                         guide_tutors_sum = ttmodel.sum(ttmodel.assigned[sl, c, g]
                                                        for g in possible_tutor_guides
-                                                       for c in courses & ttmodel.wdb.compatible_courses[sl]
-                                                       & ttmodel.wdb.possible_courses[g]
+                                                       for c in courses & ttmodel.data.compatible_courses[sl]
+                                                       & ttmodel.data.possible_courses[g]
                                                        )
                         if self.weight is None:
                             ttmodel.add_constraint(tutor_sum - guide_tutors_sum, '<=', 0,
@@ -173,19 +173,19 @@ class ParallelizeCourses(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=10):
 
-        considered_courses = set(ttmodel.wdb.courses.filter(period=period))
+        considered_courses = set(ttmodel.data.courses.filter(period=period))
         if self.course_type is not None:
             considered_courses = considered_courses.filter(type=self.course_type)
         if self.module is not None:
             considered_courses = considered_courses.filter(module=self.module)
 
         total_courses_duration = ttmodel.lin_expr()
-        for sl in ttmodel.wdb.availability_slots:
+        for sl in ttmodel.data.availability_slots:
             used_slot = ttmodel.add_floor(ttmodel.sum(ttmodel.scheduled[course_slot,course]
-                                                        for course_slot in slots_filter(ttmodel.wdb.courses_slots,
+                                                        for course_slot in slots_filter(ttmodel.data.courses_slots,
                                                                                         simultaneous_to=sl)
                                                         for course in considered_courses &
-                                                        ttmodel.wdb.compatible_courses[course_slot]),
+                                                        ttmodel.data.compatible_courses[course_slot]),
                                             1,
                                             1000)
             total_courses_duration += sl.duration * used_slot

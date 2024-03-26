@@ -51,10 +51,10 @@ class NoCourseOnWeekDay(TimetableConstraint):
 
     def considered_slots(self, ttmodel, period):
         if self.fampm_period == self.FULL_DAY:
-            considered_slots = slots_filter(ttmodel.wdb.courses_slots,
+            considered_slots = slots_filter(ttmodel.data.courses_slots,
                                             weekday=self.weekday, period=period)
         else:
-            considered_slots = slots_filter(ttmodel.wdb.courses_slots,
+            considered_slots = slots_filter(ttmodel.data.courses_slots,
                                             weekday=self.weekday, apm=self.fampm_period, period=period)
         return considered_slots
 
@@ -107,7 +107,7 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
     def considered_sum(self, ttmodel, period):
         return ttmodel.sum(ttmodel.scheduled[(sl, c)]
                            for c in self.considered_courses(period, ttmodel)
-                           for sl in self.considered_slots(ttmodel, period) & ttmodel.wdb.compatible_slots[c])
+                           for sl in self.considered_slots(ttmodel, period) & ttmodel.data.compatible_slots[c])
 
     def one_line_description(self):
         text = f"Aucun cours les {self.weekday}"
@@ -217,9 +217,9 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
 
     def considered_tutors(self, ttmodel):
         if self.tutors.exists():
-            tutors = set(t for t in ttmodel.wdb.instructors if t in self.tutors.all())
+            tutors = set(t for t in ttmodel.data.instructors if t in self.tutors.all())
         else:
-            tutors = set(ttmodel.wdb.instructors)
+            tutors = set(ttmodel.data.instructors)
         if self.tutor_status is not None:
             tutors = set(t for t in tutors if t.status == self.tutor_status)
         return tutors
@@ -227,9 +227,9 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
     def considered_sum(self, ttmodel, period):
         return ttmodel.sum(ttmodel.assigned[(sl, c, i)]
                            for i in self.considered_tutors(ttmodel)
-                           for c in ttmodel.wdb.possible_courses[i]
+                           for c in ttmodel.data.possible_courses[i]
                            if c.module.train_prog in self.considered_train_progs(ttmodel)
-                           for sl in self.considered_slots(ttmodel, period) & ttmodel.wdb.compatible_slots[c])
+                           for sl in self.considered_slots(ttmodel, period) & ttmodel.data.compatible_slots[c])
 
     def one_line_description(self):
         text = f"Aucun cours les {self.weekday}"

@@ -126,29 +126,29 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
         return text
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_rooms = set(ttmodel.wdb.basic_rooms)
+        considered_rooms = set(ttmodel.data.basic_rooms)
         if self.rooms.exists():
             considered_rooms = considered_rooms & set(self.rooms.all())
-        relevant_slots = slots_filter(ttmodel.wdb.availability_slots, period=period)
+        relevant_slots = slots_filter(ttmodel.data.availability_slots, period=period)
 
         for r in considered_rooms:
             for sl in relevant_slots:
                 all_courses_sum = ttmodel.sum(ttmodel.located[(sl2, c, rg)]
-                                              for (c, rg) in ttmodel.wdb.room_course_compat[r]
-                                              for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c], simultaneous_to=sl)
+                                              for (c, rg) in ttmodel.data.room_course_compat[r]
+                                              for sl2 in slots_filter(ttmodel.data.compatible_slots[c], simultaneous_to=sl)
                                               )
                 if self.can_combine_two_groups_if_no_tutor:
                     no_tutor_courses_sum = ttmodel.sum(ttmodel.located[(sl2, c, rg)]
-                                                       for (c, rg) in ttmodel.wdb.room_course_compat[r]
+                                                       for (c, rg) in ttmodel.data.room_course_compat[r]
                                                        if c.tutor is None
-                                                       for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                       for sl2 in slots_filter(ttmodel.data.compatible_slots[c],
                                                                                simultaneous_to=sl)
                                                        )
 
                     tutor_courses_sum = ttmodel.sum(ttmodel.located[(sl2, c, rg)]
-                                                    for (c, rg) in ttmodel.wdb.room_course_compat[r]
+                                                    for (c, rg) in ttmodel.data.room_course_compat[r]
                                                     if c.tutor is not None
-                                                    for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                    for sl2 in slots_filter(ttmodel.data.compatible_slots[c],
                                                                             simultaneous_to=sl)
                                                     )
                     if self.weight is None:
@@ -300,12 +300,12 @@ class LimitedRoomChoices(RoomConstraint):
             relevant_var_dic = {(sl, c, rg): ttmodel.add_conjunct(ttmodel.located[(sl, c, rg)],
                                                                   ttmodel.assigned[sl, c, self.tutor])
                                 for c in fc
-                                for sl in ttmodel.wdb.compatible_slots[c]
-                                for rg in ttmodel.wdb.course_rg_compat[c] if rg not in possible_rooms }
+                                for sl in ttmodel.data.compatible_slots[c]
+                                for rg in ttmodel.data.course_rg_compat[c] if rg not in possible_rooms }
         relevant_sum = ttmodel.sum(relevant_var_dic[(sl, c, rg)]
                                    for c in fc
-                                   for sl in ttmodel.wdb.compatible_slots[c]
-                                   for rg in ttmodel.wdb.course_rg_compat[c] if rg not in possible_rooms)
+                                   for sl in ttmodel.data.compatible_slots[c]
+                                   for rg in ttmodel.data.course_rg_compat[c] if rg not in possible_rooms)
         if self.weight is not None:
             ttmodel.add_to_generic_cost(self.local_weight() * ponderation * relevant_sum, period=period)
         else:
@@ -392,11 +392,11 @@ class LocateAllCourses(RoomConstraint):
         return courses_to_consider
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_courses = self.considered_courses(ttmodel.wdb.courses_by_period[period])
+        considered_courses = self.considered_courses(ttmodel.data.courses_by_period[period])
         for c in considered_courses:
-            for sl in ttmodel.wdb.compatible_slots[c]:
+            for sl in ttmodel.data.compatible_slots[c]:
                 undesired_situation = ttmodel.scheduled[(sl, c)] - \
-                                      ttmodel.sum(ttmodel.located[(sl, c, r)] for r in ttmodel.wdb.course_rg_compat[c])
+                                      ttmodel.sum(ttmodel.located[(sl, c, r)] for r in ttmodel.data.course_rg_compat[c])
                 if self.weight is None:
                     ttmodel.add_constraint(undesired_situation,
                                            '==', 0,

@@ -282,11 +282,11 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
         return jsondict
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        relevant_slots = slots_filter(ttmodel.wdb.availability_slots, period=period)
+        relevant_slots = slots_filter(ttmodel.data.availability_slots, period=period)
         relevant_basic_groups = self.considered_basic_groups(ttmodel)
         # Count the number of transversal groups
-        if ttmodel.wdb.transversal_groups.exists():
-            n_tg = ttmodel.wdb.transversal_groups.count()
+        if ttmodel.data.transversal_groups.exists():
+            n_tg = ttmodel.data.transversal_groups.count()
         else:
             n_tg = 1
         for sl in relevant_slots:
@@ -294,18 +294,18 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                 relevant_sum = n_tg * ttmodel.sum(
                     ttmodel.scheduled[(sl2, c2)]
                     for sl2 in slots_filter(
-                        ttmodel.wdb.courses_slots, simultaneous_to=sl
+                        ttmodel.data.courses_slots, simultaneous_to=sl
                     )
-                    for c2 in ttmodel.wdb.courses_for_basic_group[bg]
-                    & ttmodel.wdb.compatible_courses[sl2]
+                    for c2 in ttmodel.data.courses_for_basic_group[bg]
+                    & ttmodel.data.compatible_courses[sl2]
                 ) + ttmodel.sum(
                     ttmodel.scheduled[(sl2, c2)]
-                    for tg in ttmodel.wdb.transversal_groups_of[bg]
+                    for tg in ttmodel.data.transversal_groups_of[bg]
                     for sl2 in slots_filter(
-                        ttmodel.wdb.courses_slots, simultaneous_to=sl
+                        ttmodel.data.courses_slots, simultaneous_to=sl
                     )
-                    for c2 in ttmodel.wdb.courses_for_group[tg]
-                    & ttmodel.wdb.compatible_courses[sl2]
+                    for c2 in ttmodel.data.courses_for_group[tg]
+                    & ttmodel.data.compatible_courses[sl2]
                 )
                 if self.weight is None:
                     ttmodel.add_constraint(
@@ -319,20 +319,20 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                         bg, self.local_weight() * ponderation * two_courses, period
                     )
 
-            for tg in ttmodel.wdb.transversal_groups:
+            for tg in ttmodel.data.transversal_groups:
                 # The "+1" is for the case where all transversal groups are parallel
-                not_parallel_nb_bound = len(ttmodel.wdb.not_parallel_transversal_groups[tg]) + 1
+                not_parallel_nb_bound = len(ttmodel.data.not_parallel_transversal_groups[tg]) + 1
                 relevant_sum_for_tg = not_parallel_nb_bound * ttmodel.sum(ttmodel.scheduled[(sl2, c2)]
-                                                                    for sl2 in slots_filter(ttmodel.wdb.courses_slots,
+                                                                    for sl2 in slots_filter(ttmodel.data.courses_slots,
                                                                                             simultaneous_to=sl)
-                                                                    for c2 in ttmodel.wdb.courses_for_group[tg]
-                                                                    & ttmodel.wdb.compatible_courses[sl2]) \
+                                                                    for c2 in ttmodel.data.courses_for_group[tg]
+                                                                    & ttmodel.data.compatible_courses[sl2]) \
                                       + ttmodel.sum(ttmodel.scheduled[(sl2, c2)]
-                                                    for tg2 in ttmodel.wdb.not_parallel_transversal_groups[tg]
-                                                    for sl2 in slots_filter(ttmodel.wdb.courses_slots,
+                                                    for tg2 in ttmodel.data.not_parallel_transversal_groups[tg]
+                                                    for sl2 in slots_filter(ttmodel.data.courses_slots,
                                                                             simultaneous_to=sl)
-                                                    for c2 in ttmodel.wdb.courses_for_group[tg2]
-                                                    & ttmodel.wdb.compatible_courses[sl2])
+                                                    for c2 in ttmodel.data.courses_for_group[tg2]
+                                                    & ttmodel.data.compatible_courses[sl2])
                 if self.weight is None:
                     ttmodel.add_constraint(
                         relevant_sum_for_tg,
@@ -407,10 +407,10 @@ class ScheduleAllCourses(TimetableConstraint):
         assert not unscheduled and not scheduled_more_than_once, not_asserted_text + f"not scheduled : {unscheduled}, scheduled more than once : {scheduled_more_than_once}"
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
-        max_slots_nb = len(ttmodel.wdb.courses_slots)
+        max_slots_nb = len(ttmodel.data.courses_slots)
         for c in self.considered_courses(period, ttmodel):
             relevant_sum = ttmodel.sum(
-                [ttmodel.scheduled[(sl, c)] for sl in ttmodel.wdb.compatible_slots[c]]
+                [ttmodel.scheduled[(sl, c)] for sl in ttmodel.data.compatible_slots[c]]
             )
             if self.weight is None:
                 ttmodel.add_constraint(relevant_sum, "==", 1, CourseConstraint(c))
@@ -485,11 +485,11 @@ class AssignAllCourses(TimetableConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
         tutor_courses, no_tutor_courses = self.tutors_courses_and_no_tutor_courses(period, ttmodel)
         for c in tutor_courses:
-            for sl in ttmodel.wdb.compatible_slots[c]:
+            for sl in ttmodel.data.compatible_slots[c]:
                 relevant_sum = (
                     ttmodel.sum(
                         ttmodel.assigned[(sl, c, i)]
-                        for i in ttmodel.wdb.possible_tutors[c]
+                        for i in ttmodel.data.possible_tutors[c]
                     )
                     - ttmodel.scheduled[sl, c]
                 )
@@ -523,8 +523,8 @@ class AssignAllCourses(TimetableConstraint):
             possible_useless_assignations_sum = ttmodel.sum(
                 ttmodel.assigned[(sl, c, i)]
                 for c in no_tutor_courses
-                for sl in ttmodel.wdb.compatible_slots[c]
-                for i in ttmodel.wdb.possible_tutors[c]
+                for sl in ttmodel.data.compatible_slots[c]
+                for i in ttmodel.data.possible_tutors[c]
             )
             ttmodel.add_constraint(
                 possible_useless_assignations_sum,
@@ -582,7 +582,7 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
     
     def considered_modules(self, ttmodel=None):
         if ttmodel is not None:
-            considered_modules = set(ttmodel.wdb.modules)
+            considered_modules = set(ttmodel.data.modules)
         else:
             considered_modules = set(Module.objects.filter(train_prog__department=self.department))
         if self.modules.exists():
@@ -591,7 +591,7 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
 
     def considered_course_types(self, ttmodel=None):
         if ttmodel is not None:
-            considered_course_types = set(ttmodel.wdb.course_types)
+            considered_course_types = set(ttmodel.data.course_types)
         else:
             considered_course_types = set(CourseType.objects.filter(department=self.department))
         if self.course_types.exists():
@@ -606,7 +606,7 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
                     continue
                 max_mtr_nb = max(mtr.courses_nb for mtr in considered_mtr)
                 total_mtr_course_nb = sum(mtr.courses_nb for mtr in considered_mtr)
-                considered_courses = set(c for c in ttmodel.wdb.courses
+                considered_courses = set(c for c in ttmodel.data.courses
                                          if c.module == module
                                          and c.type == course_type
                                          and c.period == period
@@ -616,7 +616,7 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
                     considered_sum = ttmodel.sum(
                             ttmodel.assigned[sl, c, mtr.tutor]
                             for c in considered_courses
-                            for sl in slots_filter(ttmodel.wdb.compatible_slots[c], period=mtr.period)
+                            for sl in slots_filter(ttmodel.data.compatible_slots[c], period=mtr.period)
                         )
 
                     if self.weight is None:
@@ -639,7 +639,7 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
                     ttmodel.add_constraint(ttmodel.sum(ttmodel.assigned[sl, c, tutor]
                                                        for tutor in all_tutors
                                                        for c in considered_courses
-                                                       for sl in slots_filter(ttmodel.wdb.compatible_slots[c], period=mtr.period)
+                                                       for sl in slots_filter(ttmodel.data.compatible_slots[c], period=mtr.period)
                                                        ),
                                                        '==', total_mtr_course_nb, 
                                                        Constraint(constraint_type=ConstraintType.MODULETUTORREPARTITION))
@@ -867,28 +867,28 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
         return jsondict
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_tutors = set(ttmodel.wdb.instructors)
+        considered_tutors = set(ttmodel.data.instructors)
         if self.tutors.exists():
             considered_tutors &= set(self.tutors.all())
         for tutor in considered_tutors:
             if tutor.username == "---":
                 continue
-            for sl in ttmodel.wdb.availability_slots:
+            for sl in ttmodel.data.availability_slots:
                 tutor_relevant_sum = ttmodel.sum(
                     ttmodel.assigned[(sl2, c2, tutor)]
                     for sl2 in slots_filter(
-                        ttmodel.wdb.courses_slots, simultaneous_to=sl
+                        ttmodel.data.courses_slots, simultaneous_to=sl
                     )
-                    for c2 in ttmodel.wdb.possible_courses[tutor]
-                    & ttmodel.wdb.compatible_courses[sl2]
+                    for c2 in ttmodel.data.possible_courses[tutor]
+                    & ttmodel.data.compatible_courses[sl2]
                 )
                 supp_tutor_relevant_sum = ttmodel.sum(
                     ttmodel.scheduled[(sl2, c2)]
                     for sl2 in slots_filter(
-                        ttmodel.wdb.courses_slots, simultaneous_to=sl
+                        ttmodel.data.courses_slots, simultaneous_to=sl
                     )
-                    for c2 in ttmodel.wdb.courses_for_supp_tutor[tutor]
-                    & ttmodel.wdb.compatible_courses[sl2]
+                    for c2 in ttmodel.data.courses_for_supp_tutor[tutor]
+                    & ttmodel.data.compatible_courses[sl2]
                 )
                 if self.weight is None:
                     ttmodel.add_constraint(

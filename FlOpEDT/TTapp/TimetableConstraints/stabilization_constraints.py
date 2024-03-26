@@ -63,18 +63,18 @@ class StabilizeTutorsCourses(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=5):
         tutors_to_be_considered = considered_tutors(self, ttmodel)
-        ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(version=self.version)
-        sched_courses = ttmodel.wdb.sched_courses.filter(course__period=period)
+        ttmodel.data.sched_courses = ttmodel.data.sched_courses.filter(version=self.version)
+        sched_courses = ttmodel.data.sched_courses.filter(course__period=period)
 
-        for sl in slots_filter(ttmodel.wdb.courses_slots, period=period):
+        for sl in slots_filter(ttmodel.data.courses_slots, period=period):
             for i in tutors_to_be_considered:
                 if not sched_courses.filter(start_time__lt=sl.end_time,
                                             start_time__gt=sl.start_time - F('course__type__duration'),
                                             day=sl.day.day,
                                             tutor=i):
                     relevant_sum = ttmodel.sum(ttmodel.assigned[(sl, c, i)]
-                                               for c in ttmodel.wdb.possible_courses[i]
-                                                & ttmodel.wdb.compatible_courses[sl])
+                                               for c in ttmodel.data.possible_courses[i]
+                                                & ttmodel.data.compatible_courses[sl])
 
                     if self.weight is None:
                         ttmodel.add_constraint(relevant_sum, '==', 0,
@@ -93,7 +93,7 @@ class StabilizeTutorsCourses(TimetableConstraint):
             #     for sc in sched_courses.filter(slot__jour=day):
             #         ttmodel.add_constraint(ttmodel.scheduled[(sc.slot, sc.course)], '==', 1)
             #     for sc in sched_courses.exclude(slot__day=day):
-            #         for sl in ttmodel.wdb.slots.filter(day=day):
+            #         for sl in ttmodel.data.slots.filter(day=day):
             #             ttmodel.add_constraint(ttmodel.scheduled[(sl, sc.course)], '==', 0)
 
     def one_line_description(self):
@@ -130,14 +130,14 @@ class StabilizeGroupsCourses(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=5):
         basic_groups_to_be_considered = self.considered_basic_groups(ttmodel)
-        ttmodel.wdb.sched_courses = ttmodel.wdb.sched_courses.filter(version=self.version)
-        sched_courses = ttmodel.wdb.sched_courses.filter(course__period=period)
+        ttmodel.data.sched_courses = ttmodel.data.sched_courses.filter(version=self.version)
+        sched_courses = ttmodel.data.sched_courses.filter(course__period=period)
 
         for bg in basic_groups_to_be_considered:
-            for sl in slots_filter(ttmodel.wdb.courses_slots, period=period):
+            for sl in slots_filter(ttmodel.data.courses_slots, period=period):
                 if not sched_courses.filter(course__groups__in=bg.and_ancestors(),
                                             day=sl.day):
-                    considered_courses = ttmodel.wdb.courses_for_basic_group[bg] & ttmodel.wdb.compatible_courses[sl]
+                    considered_courses = ttmodel.data.courses_for_basic_group[bg] & ttmodel.data.compatible_courses[sl]
                     relevant_sum = ttmodel.sum(ttmodel.scheduled[(sl, c)] for c in considered_courses)
                     if self.weight is None:
                         ttmodel.add_constraint(relevant_sum, '==', 0,
@@ -153,7 +153,7 @@ class StabilizeGroupsCourses(TimetableConstraint):
             #     for sc in sched_courses.filter(slot__jour=day):
             #         ttmodel.add_constraint(ttmodel.scheduled[(sc.slot, sc.course)], '==', 1)
             #     for sc in sched_courses.exclude(slot__day=day):
-            #         for sl in ttmodel.wdb.slots.filter(day=day):
+            #         for sl in ttmodel.data.slots.filter(day=day):
             #             ttmodel.add_constraint(ttmodel.scheduled[(sl, sc.course)], '==', 0)
 
     def one_line_description(self):
@@ -176,14 +176,14 @@ class StabilizationThroughPeriods(TimetableConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         if period != ttmodel.periods[0]:
             return
-        ttmodel_courses_id = [c.id for c in ttmodel.wdb.courses]
+        ttmodel_courses_id = [c.id for c in ttmodel.data.courses]
         courses = self.courses.filter(id__in=ttmodel_courses_id)
         periods = [c.period for c in courses.distinct('period')]
         courses_data = [{'period': p, 'courses': courses.filter(period=p)} for p in periods]
         courses_data = [c for c in courses_data if len(c['courses']) != 0]
         courses_data.sort(key=lambda c: len(c['courses']))
         for i in range(len(courses_data)-1):
-            for sl0 in ttmodel.wdb.compatible_slots[courses_data[i]['courses'][0]]:
+            for sl0 in ttmodel.data.compatible_slots[courses_data[i]['courses'][0]]:
                 sl1 = ttmodel.find_same_course_slot_in_other_period(sl0, period, other_period=courses_data[i+1]['period'])
                 ttmodel.add_constraint(
                     2 * ttmodel.sum(ttmodel.scheduled[sl0, c0] for c0 in courses_data[i]['courses'])
