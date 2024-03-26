@@ -55,7 +55,7 @@ function fetch_work_copy_numbers(fetch_all_callback, fetch_all_callback_arg) {
   $.ajax({
     type: "GET",
     dataType: 'json',
-    url: url_work_copies + cur_week.url(),
+    url: url_major_versions + cur_week.url(),
     async: true,
     contentType: "application/json; charset=utf-8",
     success: function (msg) {
@@ -167,7 +167,7 @@ function check_swap_with_copy_0() {
 }
 
 // delete work_copy and reload
-function delete_work_copy() {
+function delete_version() {
   var cur_week = wdw_weeks.get_selected();
   let ok = true;
 
@@ -180,7 +180,7 @@ function delete_work_copy() {
     $.ajax({
       type: "GET",
       dataType: 'json',
-      url: url_delete_work_copy + cur_week.url() + '/' + num_copie,
+      url: url_delete_version + cur_week.url() + '/' + num_copie,
       async: true,
       success: function (msg) {
         format_acks(msg, 'delete');
@@ -197,7 +197,7 @@ function delete_work_copy() {
 }
 
 // duplicate work_copy and reload
-function duplicate_work_copy() {
+function duplicate_version() {
   var cur_week = wdw_weeks.get_selected();
   let ok = true;
 
@@ -206,7 +206,7 @@ function duplicate_work_copy() {
     $.ajax({
       type: "GET",
       dataType: 'json',
-      url: url_duplicate_work_copy + cur_week.url() + '/' + num_copie,
+      url: url_duplicate_version + cur_week.url() + '/' + num_copie,
       async: true,
       success: function (msg) {
         format_acks(msg, 'duplicate');
@@ -223,7 +223,7 @@ function duplicate_work_copy() {
 }
 
 // delete all unused work_copies and reload
-function delete_all_unused_work_copies() {
+function delete_all_unused_versions() {
   var cur_week = wdw_weeks.get_selected();
   let ok = true;
   ok = confirm("Êtes-vous sûr de vouloir supprimer toutes les copies sauf la 0?");
@@ -233,7 +233,7 @@ function delete_all_unused_work_copies() {
     $.ajax({
       type: "GET",
       dataType: 'json',
-      url: url_delete_all_unused_work_copies + cur_week.url(),
+      url: url_delete_all_unused_versions + cur_week.url(),
       async: true,
       success: function (msg) {
         format_acks(msg, 'delete_all_unused');
@@ -276,24 +276,24 @@ function reassign_rooms() {
 }
 
 // reassign rooms and reload
-function duplicate_in_other_weeks() {
+function duplicate_in_other_periods() {
   var cur_week = wdw_weeks.get_selected();
 
   show_loader(true);
   $.ajax({
     type: "GET",
     dataType: 'json',
-    url: url_duplicate_in_other_weeks + cur_week.url() + '/' + num_copie,
+    url: url_duplicate_in_other_periods + cur_week.url() + '/' + num_copie,
     async: true,
     contentType: "application/json; charset=utf-8",
     success: function (msg) {
       console.log(msg);
-      format_acks(msg, 'duplicate_in_other_weeks');
+      format_acks(msg, 'duplicate_in_other_periods');
       fetch_all(false, true);
       show_loader(false);
     },
     error: function (msg) {
-      ack_side_panel['duplicate_in_other_weeks'].txt = 'Problème côté serveur';
+      ack_side_panel['duplicate_in_other_periods'].txt = 'Problème côté serveur';
       console.log("error");
       show_loader(false);
     }
@@ -309,7 +309,7 @@ var ack_side_panel = {
   'delete_all_unused':{id: 'delete_all_unused'},
   'duplicate': {id: 'duplicate'},
   'reassign_rooms': {id: 'reassign_rooms'},
-  'duplicate_in_other_weeks': {id: 'duplicate_in_other_weeks'}
+  'duplicate_in_other_periods': {id: 'duplicate_in_other_periods'}
 };
 for (key in ack_side_panel) {
   ack_side_panel[key].id = '#ack-' + ack_side_panel[key].id;

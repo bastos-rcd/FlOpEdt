@@ -599,7 +599,7 @@ class TimetableModel(FlopModel):
 
         return physical_presence, has_visio
 
-    def add_to_slot_cost(self, slot, cost, period=None):
+    def add_to_slot_cost(self, slot, cost):
         self.slot_cost[slot] += cost
 
     def add_to_inst_cost(self, instructor, cost, period=None):
@@ -896,16 +896,22 @@ class TimetableModel(FlopModel):
             f"alors que vous êtes censé⋅e assurer {teaching_hours} heures de cours...\n"
         )
         if self.data.holidays:
-            message += f"(Notez qu'il y a {len(self.data.holidays)} jour(s) férié(s) cette semaine là...)\n"
+            message += (
+                f"(Notez qu'il y a {len(self.data.holidays)} jour(s) férié(s)"
+                "cette semaine là...)\n"
+            )
         message += (
-            f"Est-ce que vous avez la possibilité d'ajouter des créneaux de disponibilité ?\n"
-            f"Sinon, pouvez-vous s'il vous plaît décaler des cours à une semaine précédente ou suivante ?\n"
-            f"Merci d'avance.\n"
-            f"Les gestionnaires d'emploi du temps."
+            "Est-ce que vous avez la possibilité d'ajouter des créneaux"
+            " de disponibilité ?\n"
+            "Sinon, pouvez-vous s'il vous plaît décaler des cours "
+            "à une semaine précédente ou suivante ?\n"
+            "Merci d'avance.\n"
+            "Les gestionnaires d'emploi du temps."
         )
 
         message += (
-            "\n\nPS: Attention, cet email risque de vous être renvoyé à chaque prochaine génération "
+            "\n\nPS: Attention, cet email risque de vous être renvoyé "
+            "à chaque prochaine génération "
             "d'emploi du temps si vous n'avez pas fait les modifications attendues...\n"
             "N'hésitez pas à nous contacter en cas de souci."
         )
@@ -913,9 +919,9 @@ class TimetableModel(FlopModel):
         email.send()
 
     def send_lack_of_availability_mail(self, prefix="[flop!EDT] "):
-        for key in self.warnings:
+        for key, warnings in self.warnings.items():
             if key in self.data.instructors:
-                for w in self.warnings[key]:
+                for w in warnings:
                     if " < " in w:
                         data = w.split(" ")
                         self.send_unitary_lack_of_availability_mail(
@@ -979,7 +985,7 @@ class TimetableModel(FlopModel):
 
                 if not period_tutor_availabilities:
                     self.add_warning(
-                        i, "no availability information given period %s" % period.name
+                        i, f"no availability information given period {period.name}"
                     )
                     for availability_slot in period_availability_slots:
                         unp_slot_cost[i][availability_slot] = 0
@@ -999,34 +1005,16 @@ class TimetableModel(FlopModel):
                     if avail_time < teaching_duration:
                         self.add_warning(
                             i,
-                            "%g available hours < %g courses hours period %s"
-                            % (
-                                avail_time.seconds / 3600,
-                                teaching_duration.seconds / 3600,
-                                period.name,
-                            ),
+                            f"{avail_time.seconds / 3600} available hours < {teaching_duration.seconds / 3600}"
+                            / f"courses hours period {period.name}",
                         )
-                        # We used to forget tutor availabilities in this case...
-                        # for availability_slot in period_availability_slots:
-                        #     unp_slot_cost[i][availability_slot] = 0
-                        #     avail_at_school_instr[i][availability_slot] = 1
-                        #     avail_instr[i][availability_slot] = 1
 
                     elif avail_time < total_teaching_duration:
                         self.add_warning(
                             i,
-                            "%g available hours < %g courses hours including other deps period %s"
-                            % (
-                                avail_time.seconds / 3600,
-                                total_teaching_duration.seconds / 3600,
-                                period.name,
-                            ),
+                            f"{avail_time.seconds / 3600} available hours < {total_teaching_duration.seconds / 3600} "
+                            / f"courses hours including other deps period {period.name}",
                         )
-                        # We used to forget tutor availabilities in this case...
-                        # for availability_slot in period_availability_slots:
-                        #     unp_slot_cost[i][availability_slot] = 0
-                        #     avail_at_school_instr[i][availability_slot] = 1
-                        #     avail_instr[i][availability_slot] = 1
 
                     elif (
                         avail_time < 2 * teaching_duration
@@ -1034,12 +1022,7 @@ class TimetableModel(FlopModel):
                     ):
                         self.add_warning(
                             i,
-                            "only %g available hours for %g courses hours period %s"
-                            % (
-                                avail_time.seconds / 3600,
-                                teaching_duration.seconds / 3600,
-                                period.name,
-                            ),
+                            f"only {avail_time.seconds / 3600} available hours for {teaching_duration.seconds / 3600} courses hours period {period.name}",
                         )
                     maximum = max(a.value for a in period_tutor_availabilities)
                     if maximum == 0:
@@ -1424,18 +1407,18 @@ class TimetableModel(FlopModel):
                 tc.save()
 
             for g in self.data.basic_groups:
-                DJL = 0
+                number = 0
                 if Time.PM in self.possible_apms:
-                    DJL += self.get_expr_value(
+                    number += self.get_expr_value(
                         self.group_free_halfday[Time.PM][g][period]
                     )
                 if Time.AM in self.possible_apms:
-                    DJL += 0.01 * self.get_expr_value(
+                    number += 0.01 * self.get_expr_value(
                         self.group_free_halfday[Time.AM][g][period]
                     )
 
                 djlg = GroupFreeHalfDay(
-                    group=g, period=period, version=versions_dict[period], DJL=DJL
+                    group=g, period=period, version=versions_dict[period], number=number
                 )
                 djlg.save()
                 cg = GroupCost(
@@ -1470,7 +1453,7 @@ class TimetableModel(FlopModel):
                 period=period, major=target_major, department=self.department
             )[0]
 
-        print("Added version #%g" % target_major)
+        print(f"Added version #{target_major}")
         solution_file_one_vars_set = self.read_solution_file(filename)
 
         for c in self.data.courses:
@@ -1589,30 +1572,28 @@ class TimetableModel(FlopModel):
         )
         if solved:
             message += gettext("Here is the log of the last run of the generator:\n\n")
-            logs = open(self.gurobi_log_file(), "r").read().split("logging started")
+            with open(self.gurobi_log_file(), "r",encoding="utf-8", errors="replace") as file:
+                logs = file.read().split("logging started")
             if self.post_assign_rooms:
                 message += logs[-2] + "\n\n"
                 message += logs[-1] + "\n\n"
             else:
                 message += logs[-1] + "\n\n"
         else:
-            message += (
-                open(
-                    "%s/constraints_summary%s.txt"
-                    % (iis_files_path, self.iis_filename_suffixe()),
-                    mode="r",
-                    encoding="utf-8",
-                    errors="replace",
-                ).read()
-                + "\n\n"
-            )
-            message += open(
-                "%s/constraints_factorised%s.txt"
-                % (iis_files_path, self.iis_filename_suffixe()),
-                mode="r",
+            with open(
+                f"{iis_files_path}/constraints_summary.txt",
+                "r",
                 encoding="utf-8",
                 errors="replace",
-            ).read()
+            ) as file:
+                message += file.read() + "\n\n"
+            with open(
+                f"{iis_files_path}/constraints_factorised.txt",
+                "r",
+                encoding="utf-8",
+                errors="replace",
+            ) as file:
+                message += file.read()
 
         email = EmailMessage(subject, message, to=to)
         email.send()

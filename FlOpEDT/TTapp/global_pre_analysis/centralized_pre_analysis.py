@@ -12,17 +12,18 @@ from TTapp.global_pre_analysis.tools_centralized_preanalysis import (
 
 def pre_analyse(department, period):
     """
-        A global pre_analyse function that launch all "pre_analyse" on the existing TimetableConstraints for the given department and period.
+    A global pre_analyse function that launches all "pre_analyse" on
+    the existing TimetableConstraints.
 
-    :param department: The department we want to search the TimetableConstraints that are applied on.
-    :param period: The scheduling we want to search the TimetableConstraints that are applied on.
-    :return: A dictionary with an period exit status with a message that contains the reason of why it will be impossible to
-    create a timetable with the given data if the status is KO. If this status is KO for one pre_analyse, the loop stops
-    and the resulting status is the KO status returned by the one pre_analyse that failed.
-
+    :param department: The department to search the TimetableConstraints applied on.
+    :param period: The scheduling period to search the TimetableConstraints applied on.
+    :return: A dictionary with the period exit status and a message explaining
+    why it is impossible to create a timetable with the given data if the status is KO.
+    If the status is KO for one pre_analyse, the loop stops and the resulting
+    status is the KO status returned by the failed pre_analyse.
     """
 
-    # Get all the active imperative constraints in database
+    # Get all the active imperative constraints in the database
     all_constraints_list = getFlopConstraintsInDB(period, department)
 
     # Search for each TimetableConstraint's subclass if we can find an instance of it for the given period and department
@@ -68,16 +69,20 @@ def pre_analyse_next_periods(department, nb_of_weeks):
 def send_pre_analyse_email(department_abbrev, email_adress, nb_of_weeks=10):
     try:
         nb_of_weeks = int(nb_of_weeks)
-    except:
+    except ValueError:
         nb_of_weeks = 10
     translation.activate("fr")
     department = Department.objects.get(abbrev=department_abbrev)
-    result = pre_analyse_next_periods(nb_of_weeks, department)
+    result = pre_analyse_next_periods(department, nb_of_weeks)
     if result:
-        html_message = f"Voici les pré-analyses des prochaines semaines pour le département {department.abbrev} :  <br />"
-        for period in result:
+        html_message = (
+            "Voici les pré-analyses des prochaines semaines"
+            f"pour le département {department.abbrev} :  <br />"
+        )
+
+        for period, dicts in result.items():
             html_message += f"&emsp; Période {period.name} : <br />"
-            for json_dict in result[period]:
+            for json_dict in dicts:
                 for message in json_dict["messages"]:
                     html_message += f"&emsp;&emsp; - {message['str']} <br />"
             html_message += "<br />"

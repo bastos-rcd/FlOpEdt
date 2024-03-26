@@ -304,10 +304,13 @@ class FlopModel:
         close_old_connections()
         iis_filename = self.iis_filename()
         if write_iis:
+            # pylint: disable=import-outside-toplevel, no-name-in-module
             from gurobipy import (
                 GurobiError,
                 read,
-            )  # pylint: disable=import-outside-toplevel,no-name-in-module
+            )
+
+            # pylint: enable=import-outside-toplevel, no-name-in-module
 
             lp = f"{self.solution_files_prefix()}-pulp.lp"
             m = read(lp)

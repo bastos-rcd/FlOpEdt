@@ -63,7 +63,7 @@ GUROBI = "GUROBI"
 GUROBI_NAME = "GUROBI_CMD"
 
 
-class TimetableData(object):
+class TimetableData:
     def __init__(self, department, periods, train_prog, slots_step=None):
         self.train_prog = train_prog
         self.department = department
@@ -496,15 +496,12 @@ class TimetableData(object):
             for c in self.courses:
                 sc = self.sched_courses.get(course=c)
                 if not c.suspens:
-                    slots = {
-                        slot
-                        for slot in slots_filter(
-                            self.courses_slots,
-                            start_time=sc.start_time,
-                            duration=c.duration,
-                            department=c.type.department,
-                        )
-                    }
+                    slots = slots_filter(
+                        self.courses_slots,
+                        start_time=sc.start_time,
+                        duration=c.duration,
+                        department=c.type.department,
+                    )
                     if len(slots) == 1:
                         sl = slots.pop()
                     else:

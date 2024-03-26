@@ -37,10 +37,10 @@ class GroupFreeHalfDay(models.Model):
         "SchedulingPeriod", on_delete=models.CASCADE, null=True, blank=True
     )
     group = models.ForeignKey("StructuralGroup", on_delete=models.CASCADE)
-    DJL = models.PositiveSmallIntegerField()
+    number = models.PositiveSmallIntegerField()
     version = models.ForeignKey(
         "base.TimetableVersion", on_delete=models.CASCADE, null=True, blank=True
     )
 
     def __str__(self):
-        return f"sem{self.period}-{self.group}:{self.DJL}"
+        return f"sem{self.period}-{self.group}:{self.number}"

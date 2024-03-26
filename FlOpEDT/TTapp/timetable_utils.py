@@ -52,13 +52,13 @@ from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
 from TTapp.room_model import RoomModel
 
 
-def basic_reassign_rooms(department, period, version, create_new_version):
+def basic_reassign_rooms(department, period, version, create_new_major):
     msg = {"status": "OK", "more": _("Reload...")}
     result_version = RoomModel(department.abbrev, [period], version).solve(
-        create_new_version=create_new_version
+        create_new_version=create_new_major
     )
     if result_version is not None:
-        if create_new_version:
+        if create_new_major:
             msg["more"] = _(f"Saved in copy {result_version}")
         else:
             cache.delete(
@@ -70,9 +70,9 @@ def basic_reassign_rooms(department, period, version, create_new_version):
     return msg
 
 
-def get_shared_tutors(department, period, version):
+def get_shared_tutors(department, period, major):
     """
-    Returns tutors that are busy both in the department for the given period (version version)
+    Returns tutors that are busy both in the department for the given period (version major)
     and in another department (version 0)
     """
     busy_tutors_in_dept = [
@@ -83,7 +83,7 @@ def get_shared_tutors(department, period, version):
         .filter(
             course__module__train_prog__department__abbrev=department,
             course__period=period,
-            version=version,
+            version__major=major,
         )
         .distinct("tutor")
     ]
@@ -122,23 +122,23 @@ def compute_conflicts_helper(dic):
     return conflicts
 
 
-def compute_conflicts(department, period, version):
+def compute_conflicts(department, period, major):
     """
     Computes the conflicts (tutor giving several courses at the same time or
-    room used in parallel) in period between the work copy copy_a
-    of department department, and work copy 0 of the other departments.
+    room used in parallel) in period between the version major
+    of department department, and version 0 of the other departments.
     """
     conflicts = {}
 
     # tutors with overlapping courses
     dic_by_tutor = {}
-    tutors_username_list = get_shared_tutors(department, period, version)
+    tutors_username_list = get_shared_tutors(department, period, major)
     courses_list = (
         ScheduledCourse.objects.select_related(
             "course__module__train_prog__department", "course__duration", "tutor"
         )
         .filter(
-            Q(version=version)
+            Q(version__major=major)
             & Q(course__module__train_prog__department__abbrev=department)
             | Q(version__major=0)
             & ~Q(course__module__train_prog__department__abbrev=department),
@@ -155,7 +155,6 @@ def compute_conflicts(department, period, version):
     conflicts["tutor"] = compute_conflicts_helper(dic_by_tutor)
 
     # rooms that are used in parallel
-    tmp_conflicts = []
     dic_by_room = {}
     dic_subrooms = {}
     conflict_room_list = get_shared_rooms()
@@ -168,7 +167,7 @@ def compute_conflicts(department, period, version):
         .filter(
             Q(course__module__train_prog__department__abbrev=department),
             course__period=period,
-            version=version,
+            version__major=major,
             room__in=conflict_room_list,
         )
         .annotate(duration=F("course__duration"), period=F("course__period"))
@@ -191,16 +190,16 @@ def compute_conflicts(department, period, version):
     return conflicts
 
 
-def get_conflicts(department, period, copy_a):
+def get_conflicts(department, period, major):
     """
-    Checks whether the work copy copy_a of department department is compatible
-    with the work copies 0 of the other departments.
+    Checks whether the version major of department department is compatible
+    with the versions 0 of the other departments.
     Returns a result {'status':'blabla', 'more':'explanation'}
     """
     result = {"status": "OK"}
     more = ""
 
-    conflicts = compute_conflicts(department, period, copy_a)
+    conflicts = compute_conflicts(department, period, major)
 
     if len(conflicts["tutor"]) + len(conflicts["room"]) == 0:
         return result
@@ -243,14 +242,20 @@ def get_conflicts(department, period, copy_a):
     return result
 
 
-def basic_swap_version(department, period, version_a, version_b):
-    version_a.major, version_b.major = version_b.major, version_a.major
+def basic_swap_version(department, period, major_a, major_b):
+    version_a = TimetableVersion.objects.get(
+        department=department, period=period, major=major_a
+    )
+    version_b = TimetableVersion.objects.get(
+        department=department, period=period, major=major_b
+    )
+    version_a.major, version_b.major = major_b, major_a
     version_a.save()
     version_b.save()
-    cache.delete(base_views.get_key_course_pl(department.abbrev, period, version_a))
-    cache.delete(base_views.get_key_course_pl(department.abbrev, period, version_b))
-    cache.delete(base_views.get_key_course_pp(department.abbrev, period, version_a))
-    cache.delete(base_views.get_key_course_pp(department.abbrev, period, version_b))
+    cache.delete(base_views.get_key_course_pl(department.abbrev, period, major_a))
+    cache.delete(base_views.get_key_course_pl(department.abbrev, period, major_b))
+    cache.delete(base_views.get_key_course_pp(department.abbrev, period, major_a))
+    cache.delete(base_views.get_key_course_pp(department.abbrev, period, major_b))
 
 
 def basic_delete_version(department, period, version):
@@ -315,7 +320,7 @@ def add_generic_constraints_to_database(department):
     # second objective  => minimise use of unpreferred slots for courses
     # ponderation MIN_UPS_C
 
-    m, created = MinNonPreferedTrainProgsSlot.objects.get_or_create(
+    m, _ = MinNonPreferedTrainProgsSlot.objects.get_or_create(
         weight=MAX_WEIGHT, department=department
     )
     m.save()

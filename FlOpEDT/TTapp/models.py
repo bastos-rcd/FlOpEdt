@@ -196,7 +196,7 @@ class CustomConstraint(TimetableConstraint):
         return _wrapper
 
     @inject_method
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1, injected_method=None):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1, injected_method=None):
         """
         Call custom constraint method
         """

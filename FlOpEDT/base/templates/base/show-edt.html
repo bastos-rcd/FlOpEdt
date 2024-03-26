@@ -53,15 +53,15 @@
       {% trans "Elect this copy" %}
     </p>
     <p id="ack-swap"></p>
-    <p onclick="duplicate_work_copy()" class="btn_panel">
+    <p onclick="duplicate_version()" class="btn_panel">
         {% trans "Duplicate this copy" %}
     </p>
     <p id="ack-duplicate"></p>
-    <p onclick="delete_work_copy()" class="btn_panel">
+    <p onclick="delete_version()" class="btn_panel">
       {% trans "Delete this copy" %}
     </p>
     <p id="ack-delete"></p>
-    <p onclick="delete_all_unused_work_copies()" class="btn_panel">
+    <p onclick="delete_all_unused_versions()" class="btn_panel">
         {% trans "Delete all copies except the 0" %}
     </p>
     <p id="ack-delete_all_unused"></p>
@@ -69,10 +69,10 @@
         {% trans "Reassign rooms" %}
     </p>
     <p id="ack-reassign_rooms"></p>
-    <p onclick="duplicate_in_other_weeks()" class="btn_panel">
+    <p onclick="duplicate_in_other_periods()" class="btn_panel">
         {% trans "Duplicate (what can be) in other weeks" %}
     </p>
-    <p id="ack-duplicate_in_other_weeks"></p>
+    <p id="ack-duplicate_in_other_periods"></p>
 
 
 {% endblock%}

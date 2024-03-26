@@ -1735,7 +1735,7 @@ def filt_m(r, module):
 
 
 def filt_p(r, prof):
-    if prof != None:
+    if prof is not None:
         if prof == "":
             r = r.filter(tutor=None)
         else:
@@ -1755,28 +1755,28 @@ def filt_sa(department, week, year):
     )
 
 
-def get_key_course_pl(department_abbrev, week, num_copy):
-    if week is None or num_copy is None:
+def get_key_course_pl(department_abbrev, period, major):
+    if period is None or major is None:
         return ""
-    return f"CPL-D{department_abbrev}-W{week}-C{num_copy}"
+    return f"CPL-D{department_abbrev}-W{period}-C{major}"
 
 
-def get_key_course_pp(department_abbrev, week, num_copy):
-    if week is None or num_copy is None:
+def get_key_course_pp(department_abbrev, period, major):
+    if period is None or major is None:
         return ""
-    return f"CPP-D{department_abbrev}-W{week}-C{num_copy}"
+    return f"CPP-D{department_abbrev}-W{period}-C{major}"
 
 
-def get_key_preferences_tutor(department_abbrev, week):
-    if week is None:
+def get_key_preferences_tutor(department_abbrev, period):
+    if period is None:
         return ""
-    return f"PREFT-D{department_abbrev}-W{week}"
+    return f"PREFT-D{department_abbrev}-W{period}"
 
 
-def get_key_unavailable_rooms(department_abbrev, week):
-    if week is None:
+def get_key_unavailable_rooms(department_abbrev, period):
+    if period is None:
         return ""
-    return f"UNAVR-D{department_abbrev}-W{week}"
+    return f"UNAVR-D{department_abbrev}-W{period}"
 
 
 def get_key_all_tutors(department_abbrev):

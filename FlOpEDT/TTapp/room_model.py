@@ -475,8 +475,7 @@ class RoomModel(FlopModel):
         ignore_sigint=False,
         create_new_version=False,
     ):
-        """ """
-        print("\nLet's solve periods #%s" % self.periods)
+        print(f"\nLet's solve periods {self.periods}")
 
         self.update_objective()
 
@@ -487,6 +486,7 @@ class RoomModel(FlopModel):
         if result is not None:
             result_version = self.add_rooms_in_db(create_new_version)
             return result_version
+        return None
 
     def add_rooms_in_db(self, create_new_version):
         if create_new_version:
