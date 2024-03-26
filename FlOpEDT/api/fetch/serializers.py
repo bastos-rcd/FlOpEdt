@@ -34,7 +34,7 @@ from api.base.courses.serializers import (
     Group_SC_Serializer,
     Module_SC_Serializer,
 )
-from base.timing import Day, flopdate_to_datetime
+from base.timing import Day
 
 #    --------------------------------------------------------------------------------
 #   |                                                                                |
@@ -131,20 +131,6 @@ class NewApiScheduledCoursesSerializer(serializers.Serializer):
             "id_visio",
             "number",
         ]
-
-    def get_start_time(self, obj):
-        flop_week, flop_weekday, flop_start_time = (
-            obj.course.week,
-            obj.day,
-            obj.start_time,
-        )
-        flop_day = Day(flop_weekday, flop_week)
-        return flopdate_to_datetime(flop_day, flop_start_time)
-
-    def get_end_time(self, obj):
-        start_time = self.get_start_time(obj)
-        duration = obj.course.type.duration
-        return start_time + timedelta(seconds=duration * 60)
 
 
 class ModuleCosmo_SC_Serializer(serializers.Serializer):

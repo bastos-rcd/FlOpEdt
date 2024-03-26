@@ -58,19 +58,20 @@ def convert_to_list(dimension):
 
 
 class Constraint:
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         constraint_type=ConstraintType.UNDEFINED,
-        instructors=[],
-        slots=[],
-        courses=[],
-        periods=[],
-        rooms=[],
-        groups=[],
-        days=[],
-        departments=[],
-        modules=[],
-        apm=[],
+        instructors=None,
+        slots=None,
+        courses=None,
+        periods=None,
+        rooms=None,
+        groups=None,
+        days=None,
+        departments=None,
+        modules=None,
+        apm=None,
         name=None,
     ):
         (
@@ -194,11 +195,10 @@ class Constraint:
         def f(x):
             if x == [] or x is None:
                 return ""
-            elif type(x) is list:
+            if isinstance(x, list):
                 return " ".join([str(elem) for elem in x])
                 # return ' '.join(';'.join(x))
-            else:
-                return str(x)
+            return str(x)
 
         res = [self.id, self.constraint_type.value]
         for dimension in self.dimensions:

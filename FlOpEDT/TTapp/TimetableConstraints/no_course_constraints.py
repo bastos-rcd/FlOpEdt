@@ -30,7 +30,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from base.models import SchedulingPeriod
-from base.timing import Day, TimeInterval, flopdate_to_datetime
+from base.timing import Day, TimeInterval
 from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType

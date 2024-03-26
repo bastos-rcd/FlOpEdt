@@ -38,7 +38,6 @@ import people.models as pm
 from api.permissions import IsAdminOrReadOnly, IsTutor, IsTutorOrReadOnly
 from api.shared.params import (
     dept_id_param,
-    dept_param,
     from_date_param,
     room_id_param,
     to_date_param,
@@ -46,7 +45,6 @@ from api.shared.params import (
 )
 from api.v1.availability import serializers
 from base.rules import can_view_user_availability
-from base.timing import Day, date_to_flopday
 
 
 class DatedAvailabilityListViewSet(

@@ -50,7 +50,7 @@ from api.shared.params import (
     year_param,
 )
 from base import queries, weeks
-from base.timing import Day, days_list, flopday_to_date, time_to_floptime
+from base.timing import Day, days_list, flopday_to_date
 
 
 class ScheduledCourseFilterSet(filters.FilterSet):
@@ -647,83 +647,6 @@ class BKNewsViewSet(viewsets.ModelViewSet):
     queryset = dwm.BreakingNews.objects.all()
     serializer_class = serializers.BKNewsSerializer
     filterset_class = BKNewsFilterSet
-
-
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        manual_parameters=[
-            week_param(required=True),
-            year_param(required=True),
-            dept_param(required=True),
-        ]
-    ),
-)
-class UnavailableRoomViewSet(viewsets.ViewSet):
-    """
-    Allow user to search for unavailable rooms for a given year, week and department
-
-    Each result contains room name, day, start_time, duration, and value (unavailable => 0)
-    """
-
-    permission_classes = [IsAdminOrReadOnly]
-
-    def list(self, req, format=None):
-        try:
-            week = int(req.query_params.get("week"))
-            year = int(req.query_params.get("year"))
-            department = req.query_params.get("dept")
-            if department == "None":
-                department = None
-        except ValueError:
-            return HttpResponse("KO")
-
-        # ----------------
-        # To be done later
-        # ----------------
-        #
-        # cache_key = get_key_unavailable_rooms(department.abbrev, week)
-        # cached = cache.get(cache_key)
-        # if cached is not None:
-        #     return cached
-
-        dataset_room_availability = bm.RoomAvailability.objects.filter(
-            room__departments__abbrev=department,
-            week__nb=week,
-            week__year=year,
-            value=0,
-        )
-        flop_week = bm.Week.objects.get(nb=week, year=year)
-        date_of_the_week = [
-            flopday_to_date(Day(week=flop_week, day=d)) for d in days_list
-        ]
-        dataset_room_reservations = rrm.RoomReservation.objects.filter(
-            room__departments__abbrev=department, date__in=date_of_the_week
-        )
-
-        # cache.set(cache_key, response)7
-        res_pref = [
-            {
-                "room": d.room.name,
-                "day": d.day,
-                "start_time": d.start_time,
-                "duration": d.duration,
-                "value": d.value,
-            }
-            for d in dataset_room_availability
-        ]
-        res_reservations = [
-            {
-                "room": d.room.name,
-                "day": days_list[d.date.isocalendar()[2] - 1],
-                "start_time": time_to_floptime(d.start_time),
-                "duration": d.duration,
-                "value": 0,
-            }
-            for d in dataset_room_reservations
-        ]
-
-        return Response(res_pref + res_reservations)
 
 
 @method_decorator(

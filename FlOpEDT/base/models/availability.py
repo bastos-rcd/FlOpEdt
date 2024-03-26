@@ -2,10 +2,7 @@ import datetime as dt
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from rules import always_allow, always_deny
-from rules.contrib.models import RulesModel
 
-from base.rules import can_push_user_availability, can_view_user_availability
 from base.timing import days_list, get_default_date
 
 
@@ -62,14 +59,12 @@ class Availability(models.Model):
     def __lt__(self, other):
         if isinstance(other, Availability):
             return self.end_time < other.start_time
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     def __gt__(self, other):
         if isinstance(other, Availability):
             return self.start_time > other.end_time
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     def weekday_is(self, weekday):
         return days_list[self.date.weekday()] == weekday

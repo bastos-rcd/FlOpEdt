@@ -25,6 +25,7 @@
  helpers for time management
  ---------------------------
 """
+
 import datetime as dt
 from datetime import date, datetime, time
 
@@ -178,14 +179,6 @@ def first_day_first_week(day):
     return i - 1
 
 
-# Takes a day (with week and year) and a starting time
-# and returns the datetime object corresponding
-def flopdate_to_datetime(day: Day, time):
-    day_date = flopday_to_date(day)
-    time_day = floptime_to_time(time)
-    return datetime.combine(day_date, time_day)
-
-
 ##Takes a day (with week and year)
 # and returns the date object corresponding
 def flopday_to_date(day):
@@ -198,31 +191,6 @@ def flopday_to_date(day):
             four_digit_year = (4 - len(four_digit_year)) * "0" + four_digit_year
         day_string = f"{four_digit_year}-{day.week.nb}-{us_day_index}"
     return datetime.strptime(day_string, "%Y-%W-%w").date()
-
-
-# Takes a starting time and returns the time object corresponding
-# TODO: The result does not work if time is 24:00 .....
-def floptime_to_time(time_minutes):
-    if time_minutes == 24 * 60:
-        return time(0, 0)
-    return time(time_minutes // 60, time_minutes % 60)
-
-
-def time_to_floptime(time_data):
-    return time_data.hour * 60 + time_data.minute
-
-
-def date_to_flopday(date) -> Day:
-    isocalendar = date.isocalendar()
-    flop_week = bm.Week.objects.get(nb=isocalendar[1], year=isocalendar[0])
-    flop_day = Day.CHOICES[isocalendar[2] - 1][0]
-    return Day(week=flop_week, day=flop_day)
-
-
-def datetime_to_floptime(datetime):
-    flopday = date_to_flopday(datetime.date())
-    floptime = time_to_floptime(datetime.time())
-    return flopday, floptime
 
 
 ###TRANSLATION FUNCTIONS BETWEEN FLOPDATES AND PYTHON'S DATES###
@@ -292,17 +260,6 @@ class TimeInterval(object):
     def duration(self):
         # datetime1 - datetime2 = timedelta
         return abs(self.start - self.end)
-
-    # Build a TimeInterval from a Flop-based day date type
-    @staticmethod
-    def from_flop_date(day, start_time, duration=None, end_time=None):
-        if not duration and not end_time:
-            return None
-        if not end_time:
-            end_time = start_time + duration
-        return TimeInterval(
-            flopdate_to_datetime(day, start_time), flopdate_to_datetime(day, end_time)
-        )
 
 
 def all_possible_start_times(department):

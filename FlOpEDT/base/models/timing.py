@@ -2,13 +2,12 @@ import datetime as dt
 
 from django.apps import apps
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
-from base.timing import Day, Time, days_list, min_to_str
+from base.timing import Day, Time, days_list
 
 
 class Holiday(models.Model):
@@ -96,28 +95,32 @@ class SchedulingPeriod(models.Model):
         return self.name
 
     def __lte__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.start_date <= other.start_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.start_date <= other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def __lt__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.end_date < other.start_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.end_date < other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def __gt__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.start_date > other.end_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.start_date > other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def __gte__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.end_date >= other.end_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.end_date >= other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def dates(self):
         return [
@@ -131,11 +134,8 @@ class SchedulingPeriod(models.Model):
     def related_departments(self):
         if self.department:
             return [self.department]
-        else:
-            department_model = apps.get_model("base.Department")
-            return list(
-                department_model.objects.filter(mode__scheduling_mode=self.mode)
-            )
+        department_model = apps.get_model("base.Department")
+        return list(department_model.objects.filter(mode__scheduling_mode=self.mode))
 
 
 class TimeGeneralSettings(models.Model):

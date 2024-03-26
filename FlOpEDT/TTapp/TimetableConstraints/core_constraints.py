@@ -42,7 +42,7 @@ from base.models import (
 )
 from base.models.availability import period_actual_availabilities
 from base.partition import Partition
-from base.timing import Day, TimeInterval, flopdate_to_datetime
+from base.timing import Day, TimeInterval
 from core.decorators import timer
 from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint
@@ -56,9 +56,6 @@ from TTapp.ilp_constraints.constraints.slotInstructorConstraint import (
     SlotInstructorConstraint,
 )
 from TTapp.slots import slots_filter
-from TTapp.TimetableConstraints.groups_constraints import (
-    pre_analysis_considered_basic_groups,
-)
 from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 
@@ -100,7 +97,7 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
             "period": {"id": period.id, "name": period.name},
         }
 
-        considered_basic_groups = pre_analysis_considered_basic_groups(self)
+        considered_basic_groups = self.considered_basic_groups()
         no_user_pref = not ConsiderTutorsUnavailability.objects.filter(
             periods=period
         ).exists()
