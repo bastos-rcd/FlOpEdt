@@ -1,3 +1,4 @@
+from typing import Iterable
 from django.apps import apps
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -59,7 +60,6 @@ class GroupType(models.Model):
 
 
 class GenericGroup(models.Model):
-    # TODO : should not include "-" nor "|"
     name = models.CharField(max_length=100)
     train_prog = models.ForeignKey("TrainingProgramme", on_delete=models.CASCADE)
     type = models.ForeignKey("GroupType", on_delete=models.CASCADE, null=True)
@@ -69,6 +69,11 @@ class GenericGroup(models.Model):
         unique_together = (("name", "train_prog"),)
         verbose_name = _("generic group")
         verbose_name_plural = _("generic groups")
+
+    def save(self,args, **kwargs) -> None:
+        if '-' or '|' in self.name:
+            raise ValueError("The name of a group cannot contain '-' or '|'")
+        return super().save(args, **kwargs)
 
     @property
     def full_name(self):
@@ -141,7 +146,8 @@ class StructuralGroup(GenericGroup):
 
     def connected_groups(self):
         """
-        :return: the set of all StructuralGroup that have a non empty intersection with self (self included)
+        :return: the set of all StructuralGroup
+        that have a non empty intersection with self (self included)
         """
         return {self} | self.descendants_groups() | self.ancestor_groups()
 

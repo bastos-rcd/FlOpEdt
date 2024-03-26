@@ -24,7 +24,7 @@ class Availability(models.Model):
             self.date = self.start_time.date()
         if self.date <= dt.date(1, 1, 7):
             self.is_default = True
-        super(Availability, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     @property
     def in_day_start_time(self):
@@ -121,28 +121,27 @@ def default_availabilities(user, date: dt.date, avail_only=False, unavail_only=F
 def actual_availabilities(user, date: dt.date, avail_only=False, unavail_only=False):
     if dated_availabilities(user, date):
         return dated_availabilities(user, date, avail_only, unavail_only)
-    else:
-        result = set()
-        for defaut_availability in default_availabilities(
-            user, date, avail_only, unavail_only
-        ):
-            defaut_availability.start_time = dt.datetime.combine(
-                date, defaut_availability.in_day_start_time
-            )
-            defaut_availability.date = date
-            result.add(defaut_availability)
-        return result
+    result = set()
+    for defaut_availability in default_availabilities(
+        user, date, avail_only, unavail_only
+    ):
+        defaut_availability.start_time = dt.datetime.combine(
+            date, defaut_availability.in_day_start_time
+        )
+        defaut_availability.date = date
+        result.add(defaut_availability)
+    return result
 
 
 def period_actual_availabilities(users, periods, avail_only=False, unavail_only=False):
     result = set()
     try:
         iter(users)
-    except:
+    except TypeError:
         users = [users]
     try:
         iter(periods)
-    except:
+    except TypeError:
         periods = [periods]
     for user in users:
         for period in periods:

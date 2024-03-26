@@ -54,7 +54,10 @@ class TrainingPeriod(models.Model):
     def __str__(self):
         result = f"Period {self.name}: {self.department}"
         if self.periods.exists():
-            result += f", {min(sp.start_date for sp in self.periods.all())} -> {max(sp.end_date for sp in self.periods.all())}"
+            result += (
+                f", {min(sp.start_date for sp in self.periods.all())}"
+                "-> {max(sp.end_date for sp in self.periods.all())}"
+            )
         else:
             result += ", no period"
         return result

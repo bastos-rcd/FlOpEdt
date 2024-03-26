@@ -27,7 +27,6 @@
 """
 
 import datetime as dt
-from datetime import date, datetime, time
 
 from django.utils.translation import gettext_lazy as _
 
@@ -36,7 +35,7 @@ import base.models as bm
 slot_pause = dt.timedelta(minutes=30)
 
 
-class Day(object):
+class Day:
     MONDAY = "m"
     TUESDAY = "tu"
     WEDNESDAY = "w"
@@ -69,20 +68,17 @@ class Day(object):
     def equals(self, other):
         if isinstance(other, Day):
             return self.week == other.week and self.day == other.day
-        else:
-            return False
+        return False
 
     def __lt__(self, other):
         if isinstance(other, Day):
             return days_index[self.day] < days_index[other.day]
-        else:
-            return False
+        return False
 
     def __gt__(self, other):
         if isinstance(other, Day):
             return days_index[self.day] > days_index[other.day]
-        else:
-            return False
+        return False
 
     def __le__(self, other):
         return self.equals(other) or self < other
@@ -172,10 +168,10 @@ def first_day_first_week(day):
     if year == 0:
         year = 1
     i = 1
-    first = datetime(year, 1, i)
+    first = dt.datetime(year, 1, i)
     while first.weekday() != 0:
         i += 1
-        first = datetime(year, 1, i)
+        first = dt.datetime(year, 1, i)
     return i - 1
 
 
@@ -190,7 +186,7 @@ def flopday_to_date(day):
         if len(four_digit_year) < 4:
             four_digit_year = (4 - len(four_digit_year)) * "0" + four_digit_year
         day_string = f"{four_digit_year}-{day.week.nb}-{us_day_index}"
-    return datetime.strptime(day_string, "%Y-%W-%w").date()
+    return dt.datetime.strptime(day_string, "%Y-%W-%w").date()
 
 
 ###TRANSLATION FUNCTIONS BETWEEN FLOPDATES AND PYTHON'S DATES###
@@ -205,8 +201,8 @@ class Time:
     HALF_DAY_CHOICES = ((AM, _("AM")), (PM, _("PM")))
 
 
-class TimeInterval(object):
-    # date_start, date_end : datetime
+class TimeInterval:
+    # date_start, date_end : dt.datetime
     def __init__(self, date_start, date_end):
         if date_start > date_end:
             self.start = date_end
@@ -283,9 +279,8 @@ def add_duration_to_time(time: dt.time, duration: dt.timedelta):
 def get_all_scheduling_periods(department):
     if department is None:
         return bm.SchedulingPeriod.objects.all()
-    elif department.timegeneralsettings.scheduling_period_mode == bm.PeriodEnum.CUSTOM:
+    if department.timegeneralsettings.scheduling_period_mode == bm.PeriodEnum.CUSTOM:
         return department.schedulingperiod_set.all()
-    else:
-        return bm.SchedulingPeriod.objects.filter(
-            mode=department.timegeneralsettings.scheduling_period_mode
-        )
+    return bm.SchedulingPeriod.objects.filter(
+        mode=department.timegeneralsettings.scheduling_period_mode
+    )

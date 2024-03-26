@@ -77,7 +77,7 @@ from base.models import (
     TrainingProgramme,
     UserAvailability,
 )
-from base.weeks import *
+from base.weeks import current_week, num_all_days, week_list, current_year
 from core.decorators import dept_admin_required, tutor_required
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
@@ -103,7 +103,7 @@ logger = logging.getLogger(__name__)
 # ----------
 
 
-fav_regexp = (
+FAV_REGEXP = (
     r"^(?P<fav>(favicon.ico)|(site\.webmanifest)"
     r"|(browserconfig\.xml)|(safari-pinned-tab.svg)"
     r"|(mstile.*\.png)|(favicon.*\.png)|(android-chrome.*\.png)"

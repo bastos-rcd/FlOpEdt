@@ -38,7 +38,6 @@ class Pivot(models.Model):
 
 class CourseStartTimeConstraint(models.Model):
     # foreignkey instead of onetoone to leave room for a day attribute
-    # course_type = models.ForeignKey('CourseType', null=True, default=None, blank=True, on_delete=models.CASCADE)
     department = models.ForeignKey("base.Department", on_delete=models.CASCADE)
     duration = models.DurationField(
         verbose_name=_("Duration"), default=dt.timedelta(minutes=60)
@@ -80,15 +79,9 @@ class Regen(models.Model):
     def strplus(self):
         ret = ""
         if self.full:
-            ret += (
-                f"Re-génération complète prévue le "
-                + f'{self.fdate.strftime("%d/%m/%y")}'
-            )
+            ret += f"Re-génération complète prévue le {self.fdate.strftime('%d/%m/%y')}"
         elif self.stabilize:
-            ret += (
-                "Génération stabilisée prévue le "
-                + f'{self.sdate.strftime("%d/%m/%y")}'
-            )
+            ret += f"Génération stabilisée prévue le {self.sdate.strftime('%d/%m/%y')}"
         else:
             ret += "Pas de (re-)génération prévue"
 
