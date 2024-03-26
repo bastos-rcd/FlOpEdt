@@ -50,10 +50,12 @@ def set_rooms(room_type, new_rooms, entries):
     for room_name in new_rooms:
         room = Room.objects.filter(name=room_name)
         if not room:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Une salle n'a pas été trouvée dans la base de données."
-            ])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Une salle n'a pas été trouvée dans la base de données.",
+                ]
+            )
             return False
         members.append(room[0])
     room_type.members.set(members)
@@ -83,28 +85,28 @@ def read(department):
             members.append(member.name)
         values.append((room_type.name, members))
 
-    return JsonResponse({
-        "columns" :  [{
-            'name': 'Catégories',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Groupes et salles concernées',
-            "type": "select-chips",
+    return JsonResponse(
+        {
+            "columns": [
+                {"name": "Catégories", "type": "text", "options": {}},
+                {
+                    "name": "Groupes et salles concernées",
+                    "type": "select-chips",
+                    "options": {"values": choices},
+                },
+            ],
+            "values": values,
             "options": {
-                "values": choices
-            }
-        }],
-        "values" : values,
-        "options": {
-            "examples": [
-                ["TP", []],
-                ["TD", []],
-                ["Amphi", ["Amphi 1", "Amphi 2", "Amphi 3"]],
-                ["Exam", []]
-            ]
+                "examples": [
+                    ["TP", []],
+                    ["TD", []],
+                    ["Amphi", ["Amphi 1", "Amphi 2", "Amphi 3"]],
+                    ["Exam", []],
+                ]
+            },
         }
-        })
+    )
+
 
 def create(entries, department):
     """Create values for room types
@@ -116,31 +118,32 @@ def create(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    for i in range(len(entries['new_values'])):
-        new_name = entries['new_values'][i][0]
-        new_rooms = entries['new_values'][i][1]
+    entries["result"] = []
+    for i in range(len(entries["new_values"])):
+        new_name = entries["new_values"][i][0]
+        new_rooms = entries["new_values"][i][1]
         if not new_name:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Le nom du type de salle à ajouter est vide."
-            ])
+            entries["result"].append(
+                [ERROR_RESPONSE, "Le nom du type de salle à ajouter est vide."]
+            )
         elif len(new_name) > 20:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Le nom du type de salle à ajouter est trop long."
-            ])
+            entries["result"].append(
+                [ERROR_RESPONSE, "Le nom du type de salle à ajouter est trop long."]
+            )
         elif RoomType.objects.filter(name=new_name, department=department):
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Le type de salle à ajouter est déjà présent dans la base de données."
-            ])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Le type de salle à ajouter est déjà présent dans la base de données.",
+                ]
+            )
         else:
             room_type = RoomType.objects.create(name=new_name, department=department)
             if set_rooms(room_type, new_rooms, entries):
                 room_type.save()
-                entries['result'].append([OK_RESPONSE])
+                entries["result"].append([OK_RESPONSE])
     return entries
+
 
 def update(entries, department):
     """Update values for room types
@@ -152,41 +155,47 @@ def update(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    if len(entries['old_values']) != len(entries['new_values']):
+    entries["result"] = []
+    if len(entries["old_values"]) != len(entries["new_values"]):
         # old and new values must have same size
         return entries
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
-        new_name = entries['new_values'][i][0]
-        new_rooms = entries['new_values'][i][1]
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
+        new_name = entries["new_values"][i][0]
+        new_rooms = entries["new_values"][i][1]
         if not new_name:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Le nom du type de salle à modifier est vide."
-            ])
+            entries["result"].append(
+                [ERROR_RESPONSE, "Le nom du type de salle à modifier est vide."]
+            )
         elif len(new_name) > 20:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Le nom du type de salle à modifier est trop long."
-            ])
-        elif old_name != new_name and RoomType.objects.filter(name=new_name, department=department):
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "L'abbréviation de ce type de salle est déjà utilisé."])
+            entries["result"].append(
+                [ERROR_RESPONSE, "Le nom du type de salle à modifier est trop long."]
+            )
+        elif old_name != new_name and RoomType.objects.filter(
+            name=new_name, department=department
+        ):
+            entries["result"].append(
+                [ERROR_RESPONSE, "L'abbréviation de ce type de salle est déjà utilisé."]
+            )
         else:
             try:
-                rt_to_update = RoomType.objects.get(name=old_name, department=department)
+                rt_to_update = RoomType.objects.get(
+                    name=old_name, department=department
+                )
                 rt_to_update.name = new_name
                 if set_rooms(rt_to_update, new_rooms, entries):
                     rt_to_update.save()
-                    entries['result'].append([OK_RESPONSE])
+                    entries["result"].append([OK_RESPONSE])
             except RoomType.DoesNotExist:
-                entries['result'].append(
-                    [ERROR_RESPONSE,
-                     "Un type de salle à modifier n'a pas été trouvé dans la base de données."])
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "Un type de salle à modifier n'a pas été trouvé dans la base de données.",
+                    ]
+                )
 
     return entries
+
 
 def delete(entries, department):
     """Delete values for room types
@@ -197,14 +206,17 @@ def delete(entries, department):
     :return: Server response for the request.
     :rtype:  django.http.JsonResponse
     """
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
         try:
             RoomType.objects.get(name=old_name, department=department).delete()
-            entries['result'].append([OK_RESPONSE])
+            entries["result"].append([OK_RESPONSE])
         except RoomType.DoesNotExist:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Un type de salle à supprimer n'a pas été trouvé dans la base de données."])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Un type de salle à supprimer n'a pas été trouvé dans la base de données.",
+                ]
+            )
     return entries

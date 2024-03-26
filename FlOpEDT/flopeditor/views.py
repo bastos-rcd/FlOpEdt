@@ -35,21 +35,30 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from base.models import Day, Department, Mode, TimeGeneralSettings
 from base.timing import min_to_str, str_to_min, str_to_time, time_to_str
-from core.decorators import (superuser_required, tutor_or_superuser_required,
-                             tutor_required)
-from flopeditor.db_requests import (create_departments_in_database, get_is_iut,
-                                    get_status_of_user,
-                                    update_departments_in_database,
-                                    update_user_in_database)
-from flopeditor.validator import (OK_RESPONSE, validate_department_creation,
-                                  validate_department_update,
-                                  validate_parameters_edit,
-                                  validate_profil_update)
+from core.decorators import (
+    superuser_required,
+    tutor_or_superuser_required,
+    tutor_required,
+)
+from flopeditor.db_requests import (
+    create_departments_in_database,
+    get_is_iut,
+    get_status_of_user,
+    update_departments_in_database,
+    update_user_in_database,
+)
+from flopeditor.validator import (
+    OK_RESPONSE,
+    validate_department_creation,
+    validate_department_update,
+    validate_parameters_edit,
+    validate_profil_update,
+)
 from people.models import Tutor
 
 
 def has_any_dept_perm(request):
-    """ rights verification
+    """rights verification
     :param request: Client request.
     :type request:  django.http.HttpRequest
 
@@ -83,17 +92,21 @@ def home(request):
         dict_depts[dept] = list(uds)
     tutors = Tutor.objects.all()
     status, position, employer = get_status_of_user(request)
-    return render(request,
-                  'flopeditor/home.html',
-                  {'dict_depts': dict_depts,
-                   'title': 'Choix du département',
-                   'admins': tutors,
-                   'status':status,
-                   'status_vacataire':position,
-                   'employer':employer,
-                   'is_iut': get_is_iut(request),
-                   'has_any_dept_perm': has_any_dept_perm(request),
-                  })
+    return render(
+        request,
+        "flopeditor/home.html",
+        {
+            "dict_depts": dict_depts,
+            "title": "Choix du département",
+            "admins": tutors,
+            "status": status,
+            "status_vacataire": position,
+            "employer": employer,
+            "is_iut": get_is_iut(request),
+            "has_any_dept_perm": has_any_dept_perm(request),
+        },
+    )
+
 
 def flopeditor_help(request):
     """Shows the help page.
@@ -113,10 +126,15 @@ def flopeditor_help(request):
     else:
         is_admin = has_any_dept_perm(request)
 
-    return render(request, "flopeditor/help.html", {
-        'title': 'Aide',
-        'is_admin': is_admin,
-        })
+    return render(
+        request,
+        "flopeditor/help.html",
+        {
+            "title": "Aide",
+            "is_admin": is_admin,
+        },
+    )
+
 
 @tutor_or_superuser_required
 def department_default(request, department_abbrev):
@@ -130,8 +148,10 @@ def department_default(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return redirect('flopeditor:flopeditor-department-parameters',
-                    department_abbrev=department_abbrev)
+    return redirect(
+        "flopeditor:flopeditor-department-parameters",
+        department_abbrev=department_abbrev,
+    )
 
 
 @tutor_or_superuser_required
@@ -150,26 +170,32 @@ def department_parameters(request, department_abbrev):
     departments = Department.objects.exclude(abbrev=department_abbrev)
     parameters = get_object_or_404(TimeGeneralSettings, department=department)
     status, position, employer = get_status_of_user(request)
-    return render(request, "flopeditor/parameters.html", {
-        'title': 'Paramètres',
-        'department': department,
-        'day_start_time': time_to_str(parameters.day_start_time),
-        'day_end_time': time_to_str(parameters.day_end_time),
-        'morning_end_time': time_to_str(parameters.morning_end_time),
-        'afternoon_start_time': time_to_str(parameters.afternoon_start_time),
-        'days': parameters.days,
-        'day_choices': Day.CHOICES,
-        'list_departments': departments,
-        'has_department_perm': request.user.has_department_perm(department=department, admin=True),
-        'status':status,
-        'status_vacataire':position,
-        'employer':employer,
-        'is_iut': get_is_iut(request),
-        'has_any_dept_perm': has_any_dept_perm(request),
-        'visio_mode': department.mode.visio,
-        'cosmo_mode': department.mode.get_cosmo_display(),
-        'scheduling_mode': department.mode.get_scheduling_mode_display(),
-    })
+    return render(
+        request,
+        "flopeditor/parameters.html",
+        {
+            "title": "Paramètres",
+            "department": department,
+            "day_start_time": time_to_str(parameters.day_start_time),
+            "day_end_time": time_to_str(parameters.day_end_time),
+            "morning_end_time": time_to_str(parameters.morning_end_time),
+            "afternoon_start_time": time_to_str(parameters.afternoon_start_time),
+            "days": parameters.days,
+            "day_choices": Day.CHOICES,
+            "list_departments": departments,
+            "has_department_perm": request.user.has_department_perm(
+                department=department, admin=True
+            ),
+            "status": status,
+            "status_vacataire": position,
+            "employer": employer,
+            "is_iut": get_is_iut(request),
+            "has_any_dept_perm": has_any_dept_perm(request),
+            "visio_mode": department.mode.visio,
+            "cosmo_mode": department.mode.get_cosmo_display(),
+            "scheduling_mode": department.mode.get_scheduling_mode_display(),
+        },
+    )
 
 
 @tutor_or_superuser_required
@@ -188,24 +214,30 @@ def department_parameters_edit(request, department_abbrev):
     departments = Department.objects.exclude(abbrev=department_abbrev)
     parameters = get_object_or_404(TimeGeneralSettings, department=department)
     status, position, employer = get_status_of_user(request)
-    return render(request, "flopeditor/parameters_edit.html", {
-        'title': 'Paramètres',
-        'department': department,
-        'list_departments': departments,
-        'day_start_time': time_to_str(parameters.day_start_time),
-        'day_end_time': time_to_str(parameters.day_end_time),
-        'morning_end_time': time_to_str(parameters.morning_end_time),
-        'afternoon_start_time': time_to_str(parameters.afternoon_start_time),
-        'days': parameters.days,
-        'day_choices': Day.CHOICES,
-        'has_department_perm': request.user.has_department_perm(department=department, admin=True),
-        'status':status,
-        'status_vacataire':position,
-        'employer':employer,
-        'is_iut': get_is_iut(request),
-        'has_any_dept_perm': has_any_dept_perm(request),
-        'mode': department.mode
-    })
+    return render(
+        request,
+        "flopeditor/parameters_edit.html",
+        {
+            "title": "Paramètres",
+            "department": department,
+            "list_departments": departments,
+            "day_start_time": time_to_str(parameters.day_start_time),
+            "day_end_time": time_to_str(parameters.day_end_time),
+            "morning_end_time": time_to_str(parameters.morning_end_time),
+            "afternoon_start_time": time_to_str(parameters.afternoon_start_time),
+            "days": parameters.days,
+            "day_choices": Day.CHOICES,
+            "has_department_perm": request.user.has_department_perm(
+                department=department, admin=True
+            ),
+            "status": status,
+            "status_vacataire": position,
+            "employer": employer,
+            "is_iut": get_is_iut(request),
+            "has_any_dept_perm": has_any_dept_perm(request),
+            "mode": department.mode,
+        },
+    )
 
 
 @superuser_required
@@ -222,7 +254,7 @@ def department_delete(request, department_abbrev):
     """
     department = get_object_or_404(Department, abbrev=department_abbrev)
     department.delete()
-    return redirect('flopeditor:flopeditor-home')
+    return redirect("flopeditor:flopeditor-home")
 
 
 @superuser_required
@@ -235,13 +267,15 @@ def ajax_create_department(request):
     :rtype:  django.http.JsonResponse
 
     """
-    if (request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
-        and request.method == "POST"):
-        name = request.POST['nomDep']
-        abbrev = request.POST['abbrevDep']
-        tutors_id = request.POST.getlist('respsDep')
+    if (
+        request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+        and request.method == "POST"
+    ):
+        name = request.POST["nomDep"]
+        abbrev = request.POST["abbrevDep"]
+        tutors_id = request.POST.getlist("respsDep")
         response = validate_department_creation(name, abbrev, tutors_id)
-        if response['status'] == OK_RESPONSE:
+        if response["status"] == OK_RESPONSE:
             create_departments_in_database(name, abbrev, tutors_id)
         return JsonResponse(response)
     return HttpResponseForbidden()
@@ -257,18 +291,22 @@ def ajax_update_department(request):
     :rtype:  django.http.JsonResponse
 
     """
-    if (request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
-        and request.method == "POST"):
-        old_name = request.POST['oldNomDep']
-        new_name = request.POST['newNomDep']
-        old_abbrev = request.POST['oldAbbrevDep']
-        new_abbrev = request.POST['newAbbrevDep']
-        tutors_id = request.POST.getlist('respsDep-' + old_abbrev)
+    if (
+        request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+        and request.method == "POST"
+    ):
+        old_name = request.POST["oldNomDep"]
+        new_name = request.POST["newNomDep"]
+        old_abbrev = request.POST["oldAbbrevDep"]
+        new_abbrev = request.POST["newAbbrevDep"]
+        tutors_id = request.POST.getlist("respsDep-" + old_abbrev)
         response = validate_department_update(
-            old_name, new_name, old_abbrev, new_abbrev, tutors_id)
-        if response['status'] == OK_RESPONSE:
+            old_name, new_name, old_abbrev, new_abbrev, tutors_id
+        )
+        if response["status"] == OK_RESPONSE:
             update_departments_in_database(
-                old_name, new_name, old_abbrev, new_abbrev, tutors_id)
+                old_name, new_name, old_abbrev, new_abbrev, tutors_id
+            )
         return JsonResponse(response)
     return HttpResponseForbidden()
 
@@ -284,29 +322,27 @@ def ajax_edit_parameters(request, department_abbrev):
 
     """
     department = get_object_or_404(Department, abbrev=department_abbrev)
-    if (request.META.get('HTTP_X_REQUESTED_WITH') != 'XMLHttpRequest'
-        or not request.method == "POST"):
+    if (
+        request.META.get("HTTP_X_REQUESTED_WITH") != "XMLHttpRequest"
+        or not request.method == "POST"
+    ):
         return HttpResponseForbidden()
-    days = request.POST.getlist('days')
-    day_start_time = request.POST['day_start_time']
-    day_end_time = request.POST['day_end_time']
-    morning_end_time = request.POST['morning_end_time']
-    afternoon_start_time = request.POST['afternoon_start_time']
-    visio_mode = request.POST['visio_mode']
+    days = request.POST.getlist("days")
+    day_start_time = request.POST["day_start_time"]
+    day_end_time = request.POST["day_end_time"]
+    morning_end_time = request.POST["morning_end_time"]
+    afternoon_start_time = request.POST["afternoon_start_time"]
+    visio_mode = request.POST["visio_mode"]
     if visio_mode == "True":
         visio_mode = True
     else:
         visio_mode = False
-    cosmo_mode = request.POST['cosmo_mode']
+    cosmo_mode = request.POST["cosmo_mode"]
     response = validate_parameters_edit(
-        days,
-        day_start_time,
-        day_end_time,
-        morning_end_time,
-        afternoon_start_time)
-    if response['status'] == OK_RESPONSE:
-        parameters = get_object_or_404(
-            TimeGeneralSettings, department=department)
+        days, day_start_time, day_end_time, morning_end_time, afternoon_start_time
+    )
+    if response["status"] == OK_RESPONSE:
+        parameters = get_object_or_404(TimeGeneralSettings, department=department)
         parameters.days = days
         parameters.day_start_time = day_start_time
         parameters.day_end_time = day_end_time
@@ -317,8 +353,9 @@ def ajax_edit_parameters(request, department_abbrev):
         mode.cosmo = cosmo_mode
         mode.visio = visio_mode
         mode.save()
-        response['message'] = "Les modifications ont bien été enregistrées."
+        response["message"] = "Les modifications ont bien été enregistrées."
     return JsonResponse(response)
+
 
 # Crud views
 # --------------------------------
@@ -344,17 +381,23 @@ def crud_view(request, department_abbrev, view_name, title):
     department = get_object_or_404(Department, abbrev=department_abbrev)
     departments = Department.objects.exclude(abbrev=department_abbrev)
     status, position, employer = get_status_of_user(request)
-    return render(request, view_name, {
-        'title': title,
-        'department': department,
-        'list_departments': departments,
-        'has_dept_perm': request.user.has_department_perm(department=department, admin=True),
-        'status':status,
-        'status_vacataire':position,
-        'employer':employer,
-        'is_iut': get_is_iut(request),
-        'has_any_dept_perm': has_any_dept_perm(request),
-    })
+    return render(
+        request,
+        view_name,
+        {
+            "title": title,
+            "department": department,
+            "list_departments": departments,
+            "has_dept_perm": request.user.has_department_perm(
+                department=department, admin=True
+            ),
+            "status": status,
+            "status_vacataire": position,
+            "employer": employer,
+            "is_iut": get_is_iut(request),
+            "has_any_dept_perm": has_any_dept_perm(request),
+        },
+    )
 
 
 @tutor_or_superuser_required
@@ -370,7 +413,9 @@ def department_tutors(request, department_abbrev):
 
     """
     if has_any_dept_perm(request):
-        return crud_view(request, department_abbrev, "flopeditor/tutors.html", "Intervenants")
+        return crud_view(
+            request, department_abbrev, "flopeditor/tutors.html", "Intervenants"
+        )
 
     return HttpResponseForbidden()
 
@@ -402,10 +447,9 @@ def department_room_types(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request,
-                     department_abbrev,
-                     "flopeditor/room_types.html",
-                     "Catégories de salles")
+    return crud_view(
+        request, department_abbrev, "flopeditor/room_types.html", "Catégories de salles"
+    )
 
 
 @tutor_or_superuser_required
@@ -420,10 +464,12 @@ def department_room_attributes(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request,
-                     department_abbrev,
-                     "flopeditor/room_attributes.html",
-                     "Attributs de salles")
+    return crud_view(
+        request,
+        department_abbrev,
+        "flopeditor/room_attributes.html",
+        "Attributs de salles",
+    )
 
 
 @tutor_or_superuser_required
@@ -437,10 +483,12 @@ def department_student_structural_groups(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request,
-                     department_abbrev,
-                     "flopeditor/student_structural_groups.html",
-                     "Groupes structuraux")
+    return crud_view(
+        request,
+        department_abbrev,
+        "flopeditor/student_structural_groups.html",
+        "Groupes structuraux",
+    )
 
 
 @tutor_or_superuser_required
@@ -455,10 +503,12 @@ def department_student_transversal_groups(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request,
-                     department_abbrev,
-                     "flopeditor/student_transversal_groups.html",
-                     "Groupes transversaux")
+    return crud_view(
+        request,
+        department_abbrev,
+        "flopeditor/student_transversal_groups.html",
+        "Groupes transversaux",
+    )
 
 
 @tutor_or_superuser_required
@@ -473,10 +523,12 @@ def department_student_group_types(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request,
-                     department_abbrev,
-                     "flopeditor/student_group_types.html",
-                     "Natures de groupes d'élèves")
+    return crud_view(
+        request,
+        department_abbrev,
+        "flopeditor/student_group_types.html",
+        "Natures de groupes d'élèves",
+    )
 
 
 @tutor_or_superuser_required
@@ -491,7 +543,10 @@ def department_course_types(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request, department_abbrev, "flopeditor/course_types.html", "Types de cours")
+    return crud_view(
+        request, department_abbrev, "flopeditor/course_types.html", "Types de cours"
+    )
+
 
 @tutor_or_superuser_required
 def department_course_start_times_constraints(request, department_abbrev):
@@ -505,7 +560,12 @@ def department_course_start_times_constraints(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request, department_abbrev, "flopeditor/course_start_times_constraints.html", "Heures de début")
+    return crud_view(
+        request,
+        department_abbrev,
+        "flopeditor/course_start_times_constraints.html",
+        "Heures de début",
+    )
 
 
 @tutor_or_superuser_required
@@ -520,7 +580,9 @@ def department_students(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request, department_abbrev, "flopeditor/students.html", "Etudiant⋅e⋅s")
+    return crud_view(
+        request, department_abbrev, "flopeditor/students.html", "Etudiant⋅e⋅s"
+    )
 
 
 @tutor_or_superuser_required
@@ -535,7 +597,7 @@ def department_modules(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request, department_abbrev, "flopeditor/modules.html", 'Modules')
+    return crud_view(request, department_abbrev, "flopeditor/modules.html", "Modules")
 
 
 @tutor_or_superuser_required
@@ -550,7 +612,7 @@ def department_periods(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request, department_abbrev, "flopeditor/periods.html", 'Semestres')
+    return crud_view(request, department_abbrev, "flopeditor/periods.html", "Semestres")
 
 
 @tutor_or_superuser_required
@@ -565,7 +627,10 @@ def department_training_programmes(request, department_abbrev):
     :rtype:  django.http.HttpResponse
 
     """
-    return crud_view(request, department_abbrev, 'flopeditor/training_programmes.html', 'Promos')
+    return crud_view(
+        request, department_abbrev, "flopeditor/training_programmes.html", "Promos"
+    )
+
 
 @tutor_required
 def ajax_update_profil(request):
@@ -580,10 +645,12 @@ def ajax_update_profil(request):
 
     """
 
-    if (request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
-        and request.method == "POST"):
+    if (
+        request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+        and request.method == "POST"
+    ):
         response = validate_profil_update(request)
-        if response['status'] == OK_RESPONSE:
+        if response["status"] == OK_RESPONSE:
             update_user_in_database(request)
         return JsonResponse(response)
     return HttpResponseForbidden()

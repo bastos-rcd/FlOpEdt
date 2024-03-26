@@ -53,66 +53,88 @@ class TimetableConstraint(FlopConstraint):
         abstract = True
 
     @timer
-    def enrich_ttmodel(self, ttmodel:'TimetableModel', period: 'SchedulingPeriod', ponderation=1):
+    def enrich_ttmodel(
+        self, ttmodel: "TimetableModel", period: "SchedulingPeriod", ponderation=1
+    ):
         raise NotImplementedError
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
-        return ['department',]
+        return [
+            "department",
+        ]
 
-    def get_courses_queryset_by_parameters(self, period, 
-                                           ttmodel=None,
-                                           train_prog=None,
-                                           train_progs=None,
-                                           group=None,
-                                           groups=None,
-                                           module=None,
-                                           modules=None,
-                                           course_type=None,
-                                           course_types=None,
-                                           room_type=None,
-                                           room_types=None,
-                                           tutor=None,
-                                           tutors=None):
-        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(self, period, ttmodel,
-                                                                       train_prog=train_prog,
-                                                                       train_progs=train_progs,
-                                                                       group=group,
-                                                                       groups=groups,
-                                                                       module=module,
-                                                                       modules=modules,
-                                                                       course_type=course_type,
-                                                                       course_types=course_types,
-                                                                       room_type=room_type,
-                                                                       room_types=room_types)
+    def get_courses_queryset_by_parameters(
+        self,
+        period,
+        ttmodel=None,
+        train_prog=None,
+        train_progs=None,
+        group=None,
+        groups=None,
+        module=None,
+        modules=None,
+        course_type=None,
+        course_types=None,
+        room_type=None,
+        room_types=None,
+        tutor=None,
+        tutors=None,
+    ):
+        courses_qs = FlopConstraint.get_courses_queryset_by_parameters(
+            self,
+            period,
+            ttmodel,
+            train_prog=train_prog,
+            train_progs=train_progs,
+            group=group,
+            groups=groups,
+            module=module,
+            modules=modules,
+            course_type=course_type,
+            course_types=course_types,
+            room_type=room_type,
+            room_types=room_types,
+        )
 
-        #if tutor is not None, we have to reduce to the courses that are in possible_course[tutor]
+        # if tutor is not None, we have to reduce to the courses that are in possible_course[tutor]
         if tutor is not None:
             if tutor in ttmodel.data.instructors:
-                return courses_qs.filter(id__in = [c.id for c in ttmodel.data.possible_courses[tutor]])
+                return courses_qs.filter(
+                    id__in=[c.id for c in ttmodel.data.possible_courses[tutor]]
+                )
             else:
-                return courses_qs.filter(id__in = [])
+                return courses_qs.filter(id__in=[])
         if tutors:
             considered_tutors = set(tutors) & set(ttmodel.data.instructors)
-            return courses_qs.filter(id__in = [c.id for c in ttmodel.data.possible_courses[tutor] for tutor in considered_tutors])
+            return courses_qs.filter(
+                id__in=[
+                    c.id
+                    for c in ttmodel.data.possible_courses[tutor]
+                    for tutor in considered_tutors
+                ]
+            )
 
         return courses_qs
-    
+
     def considered_train_progs(self, ttmodel=None):
         return super().considered_train_progs(ttmodel)
-    
+
     def considered_basic_groups(self, ttmodel=None):
         if ttmodel is None:
-            basic_groups = StructuralGroup.objects.filter(train_prog__department=self.department,
-                                                          basic=True)
+            basic_groups = StructuralGroup.objects.filter(
+                train_prog__department=self.department, basic=True
+            )
         else:
             basic_groups = ttmodel.data.basic_groups
-        if hasattr(self, 'train_progs'):
+        if hasattr(self, "train_progs"):
             if self.train_progs.exists():
-                basic_groups = set(basic_groups.filter(train_prog__in=self.train_progs.all()))
+                basic_groups = set(
+                    basic_groups.filter(train_prog__in=self.train_progs.all())
+                )
             else:
                 basic_groups = set(basic_groups)
-        if hasattr(self, 'groups'):
+        if hasattr(self, "groups"):
             if self.groups.exists():
                 constraint_basic_groups = set()
                 for g in self.groups.all():
@@ -126,7 +148,6 @@ class TimetableConstraint(FlopConstraint):
                 if ttmodel.data.courses_for_basic_group[g]:
                     ttmodel_basic_groups_to_consider.add(g)
             return ttmodel_basic_groups_to_consider
-        
 
     def considered_groups(self, ttmodel=None, transversal_groups_included=False):
         basic_groups = self.considered_basic_groups(ttmodel)
@@ -136,4 +157,3 @@ class TimetableConstraint(FlopConstraint):
             if transversal_groups_included:
                 result |= bg.transversal_conflicting_groups()
         return result
-

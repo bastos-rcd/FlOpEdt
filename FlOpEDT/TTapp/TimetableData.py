@@ -8,23 +8,56 @@ import pulp
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.db.models import F, Max, Q
-from pulp import (GUROBI_CMD, LpAffineExpression, LpBinary, LpConstraint,
-                  LpConstraintEQ, LpConstraintGE, LpConstraintLE, LpMinimize,
-                  LpProblem, LpStatus, LpStatusNotSolved, LpStatusOptimal,
-                  LpVariable, lpSum)
+from pulp import (
+    GUROBI_CMD,
+    LpAffineExpression,
+    LpBinary,
+    LpConstraint,
+    LpConstraintEQ,
+    LpConstraintGE,
+    LpConstraintLE,
+    LpMinimize,
+    LpProblem,
+    LpStatus,
+    LpStatusNotSolved,
+    LpStatusOptimal,
+    LpVariable,
+    lpSum,
+)
 
 import base.queries as queries
-from base.models import (Course, CourseAdditional, CourseAvailability,
-                         CoursePossibleTutors, CourseStartTimeConstraint,
-                         CourseType, Department, Dependency, GroupCost,
-                         GroupFreeHalfDay, Holiday, Module,
-                         ModulePossibleTutors, ModuleTutorRepartition, Pivot,
-                         Room, RoomAvailability, RoomPonderation, RoomSort,
-                         RoomType, ScheduledCourse, StructuralGroup,
-                         TimeGeneralSettings, TrainingHalfDay,
-                         TrainingProgramme, TransversalGroup, TutorCost,
-                         UserAvailability)
+from base.models import (
+    Course,
+    CourseAdditional,
+    CourseAvailability,
+    CoursePossibleTutors,
+    CourseStartTimeConstraint,
+    CourseType,
+    Department,
+    Dependency,
+    GroupCost,
+    GroupFreeHalfDay,
+    Holiday,
+    Module,
+    ModulePossibleTutors,
+    ModuleTutorRepartition,
+    Pivot,
+    Room,
+    RoomAvailability,
+    RoomPonderation,
+    RoomSort,
+    RoomType,
+    ScheduledCourse,
+    StructuralGroup,
+    TimeGeneralSettings,
+    TrainingHalfDay,
+    TrainingProgramme,
+    TransversalGroup,
+    TutorCost,
+    UserAvailability,
+)
 from base.models.availability import period_actual_availabilities
+
 # This file is part of the FlOpEDT/FlOpScheduler project.
 # Copyright (c) 2017
 # Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.
@@ -98,9 +131,11 @@ class TimetableData(object):
             self.other_departments_sched_courses_for_avail_slot,
         ) = self.courses_for_avail_slot_init()
         if self.department.mode.visio:
-            self.visio_courses, self.no_visio_courses, self.visio_ponderation = (
-                self.visio_init()
-            )
+            (
+                self.visio_courses,
+                self.no_visio_courses,
+                self.visio_ponderation,
+            ) = self.visio_init()
         (
             self.room_types,
             self.used_room_types,
@@ -141,12 +176,13 @@ class TimetableData(object):
             self.other_departments_scheduled_courses_for_tutor,
             self.physical_presence_days_for_tutor,
         ) = self.users_init()
-        self.possible_tutors, self.possible_modules, self.possible_courses = (
-            self.possible_courses_tutor_init()
-        )
+        (
+            self.possible_tutors,
+            self.possible_modules,
+            self.possible_courses,
+        ) = self.possible_courses_tutor_init()
 
     def days_init(self):
-
         all_days = set()
         for period in self.periods:
             all_days |= set(period.dates())
@@ -746,7 +782,6 @@ class TimetableData(object):
         return possible_tutors, possible_modules, possible_courses
 
     def visio_init(self):
-
         visio_courses = set()
         no_visio_courses = set()
         visio_ponderation = {c: 1 for c in self.courses}

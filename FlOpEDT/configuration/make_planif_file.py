@@ -36,9 +36,16 @@ from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from base.models import (Course, CourseType, Module, RoomType,
-                         SchedulingPeriod, StructuralGroup, TrainingPeriod,
-                         TransversalGroup)
+from base.models import (
+    Course,
+    CourseType,
+    Module,
+    RoomType,
+    SchedulingPeriod,
+    StructuralGroup,
+    TrainingPeriod,
+    TransversalGroup,
+)
 from people.models import Tutor
 
 logger = logging.getLogger(__name__)
@@ -72,18 +79,27 @@ def append_row(work_sheet, rows_to_append, row_number, rank, until):
             new_cell.protection = copy(cell.protection)
             new_cell.alignment = copy(cell.alignment)
 
+
 def order_CT(department):
     CT = []
-    CT += list(CourseType.objects.filter(department=department, name__contains='CM'))
-    CT += list(CourseType.objects.filter(department=department, name__contains='A'))
-    CT += list(CourseType.objects.filter(department=department, name__contains='TD'))
-    CT += list(CourseType.objects.filter(department=department, name__contains='TP'))
-    CT += CourseType.objects.filter(department=department).exclude(name__contains='TP')\
-        .exclude(name__contains='A').exclude(name__contains='TD').exclude(name__contains='CM')
+    CT += list(CourseType.objects.filter(department=department, name__contains="CM"))
+    CT += list(CourseType.objects.filter(department=department, name__contains="A"))
+    CT += list(CourseType.objects.filter(department=department, name__contains="TD"))
+    CT += list(CourseType.objects.filter(department=department, name__contains="TP"))
+    CT += (
+        CourseType.objects.filter(department=department)
+        .exclude(name__contains="TP")
+        .exclude(name__contains="A")
+        .exclude(name__contains="TD")
+        .exclude(name__contains="CM")
+    )
     return CT
 
 
-default_empty_bookname = os.path.join(os.path.dirname(__file__),'xls/empty_planif_file.xlsx')
+default_empty_bookname = os.path.join(
+    os.path.dirname(__file__), "xls/empty_planif_file.xlsx"
+)
+
 
 def adjust_column_length(sheet):
     for i, col in enumerate(sheet.columns):
@@ -94,13 +110,17 @@ def adjust_column_length(sheet):
         sheet.column_dimensions[get_column_letter(i + 1)].width = adjusted_length
 
 
-def make_planif_file(department, empty_bookname=default_empty_bookname, target_repo=ds.CONF_XLS_DIR,
-                     with_courses=False):
+def make_planif_file(
+    department,
+    empty_bookname=default_empty_bookname,
+    target_repo=ds.CONF_XLS_DIR,
+    with_courses=False,
+):
     print(empty_bookname)
     new_book = load_workbook(filename=empty_bookname)
 
     # Define the list of possible tutors and possible room_types
-    rules = new_book['Rules']
+    rules = new_book["Rules"]
     tutor_row = 7
     tutor_col = 2
     tutor_list = list(t.username for t in Tutor.objects.filter(departments=department))
@@ -112,15 +132,19 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
     # get the last tutor letter for the validator
     # (and let room for 50 more tutors....)
     last_tutor_letter = get_column_letter(tutor_col + 50)
-    tutor_validator = DataValidation(type="list", formula1=f"Rules!$B$7:${last_tutor_letter}$7", allow_blank=True)
+    tutor_validator = DataValidation(
+        type="list", formula1=f"Rules!$B$7:${last_tutor_letter}$7", allow_blank=True
+    )
     tutor_validator.error = "Ce prof n'est pas dans la liste de l'onglet Rules"
-    tutor_validator.errorTitle = 'Erreur de prof'
-    tutor_validator.prompt = 'Choisir un prof dans la liste'
-    tutor_validator.promptTitle = 'Prof possibles'
+    tutor_validator.errorTitle = "Erreur de prof"
+    tutor_validator.prompt = "Choisir un prof dans la liste"
+    tutor_validator.promptTitle = "Prof possibles"
 
     room_type_row = 12
     room_type_col = 2
-    room_type_list = list(rt.name for rt in RoomType.objects.filter(department=department))
+    room_type_list = list(
+        rt.name for rt in RoomType.objects.filter(department=department)
+    )
     room_type_list.sort()
     for rt in room_type_list:
         rules.cell(row=room_type_row, column=room_type_col).value = rt
@@ -130,17 +154,21 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
     # (and let room for 50 more room_types....)
     last_room_type_letter = get_column_letter(room_type_col + 50)
 
-    room_type_validator = DataValidation(type="list", formula1=f"Rules!$B$12:${last_room_type_letter}$12",
-                                         allow_blank=True)
-    room_type_validator.error = "Ce type de salle n'est pas dans la liste de l'onglet Rules"
-    room_type_validator.errorTitle = 'Erreur de type de salle'
-    room_type_validator.prompt = 'Choisir un type de salle dans la liste'
-    room_type_validator.promptTitle = 'Type de salles possibles'
+    room_type_validator = DataValidation(
+        type="list",
+        formula1=f"Rules!$B$12:${last_room_type_letter}$12",
+        allow_blank=True,
+    )
+    room_type_validator.error = (
+        "Ce type de salle n'est pas dans la liste de l'onglet Rules"
+    )
+    room_type_validator.errorTitle = "Erreur de type de salle"
+    room_type_validator.prompt = "Choisir un type de salle dans la liste"
+    room_type_validator.promptTitle = "Type de salles possibles"
 
-
-    empty_rows = list(new_book['empty'].rows)
-    recap_rows = list(new_book['empty_recap'].rows)
-    new_book.create_sheet('Recap')
+    empty_rows = list(new_book["empty"].rows)
+    recap_rows = list(new_book["empty_recap"].rows)
+    new_book.create_sheet("Recap")
     last_row = {}
     last_column_letter = {}
     first_column_letter = {}
@@ -164,7 +192,9 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         append_row(sheet, empty_rows, 1, rank, cols)
         for scheduling_period in scheduling_periods:
             period_col_dict[scheduling_period] = period_col
-            sheet.cell(row=rank, column=period_col).value = scheduling_period.name.split('-')[0]
+            sheet.cell(
+                row=rank, column=period_col
+            ).value = scheduling_period.name.split("-")[0]
             period_col += 1
             VERIF_COL = period_col
         sheet.cell(row=rank, column=period_col).value = "VERIF"
@@ -176,7 +206,7 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         rank += 1
         c = sheet.cell(row=rank, column=8)
         sheet.freeze_panes = c
-        last_column_letter[training_period] = column_letter(cols-1)
+        last_column_letter[training_period] = column_letter(cols - 1)
         append_row(sheet, empty_rows, 4, rank, cols)
         rank += 1
         first_line = rank
@@ -187,32 +217,51 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
             logger.info(f"Module {mod}")
             for ct in CT:
                 type_courses = courses.filter(type=ct)
-                durations = ['']
-                if type_courses.distinct('duration').exists():
-                    durations = [c.minutes for c in type_courses.distinct('duration')]
+                durations = [""]
+                if type_courses.distinct("duration").exists():
+                    durations = [c.minutes for c in type_courses.distinct("duration")]
                 for duration_minutes in durations:
                     if duration_minutes == "":
                         duration_type_courses = type_courses
                     else:
-                        duration_type_courses = type_courses.filter(duration=dt.timedelta(minutes=duration_minutes))
+                        duration_type_courses = type_courses.filter(
+                            duration=dt.timedelta(minutes=duration_minutes)
+                        )
                     dark_green_line_rank = rank
                     append_row(sheet, empty_rows, 2, rank, cols)
                     sheet.cell(row=dark_green_line_rank, column=1).value = mod.abbrev
-                    sheet.cell(row=dark_green_line_rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
+                    sheet.cell(
+                        row=dark_green_line_rank, column=2
+                    ).value = '=$C%d&"_"&$E%d' % (rank, rank)
                     sheet.cell(row=dark_green_line_rank, column=3).value = ct.name
-                    sheet.cell(row=dark_green_line_rank, column=4).value = duration_minutes
-                    sheet.cell(row=dark_green_line_rank, column=5).value = 'Prof'
-                    sheet.cell(row=dark_green_line_rank, column=6).value = 'Type de Salle'
-                    sheet.cell(row=dark_green_line_rank, column=7).value = 'Groupes'
-                    sheet.cell(row=dark_green_line_rank, column=VERIF_COL).value = '=SUM(%s%d:%s%d)' % (first_column_letter[training_period], dark_green_line_rank,
-                                                                                        last_column_letter[training_period], dark_green_line_rank)
+                    sheet.cell(
+                        row=dark_green_line_rank, column=4
+                    ).value = duration_minutes
+                    sheet.cell(row=dark_green_line_rank, column=5).value = "Prof"
+                    sheet.cell(
+                        row=dark_green_line_rank, column=6
+                    ).value = "Type de Salle"
+                    sheet.cell(row=dark_green_line_rank, column=7).value = "Groupes"
+                    sheet.cell(
+                        row=dark_green_line_rank, column=VERIF_COL
+                    ).value = "=SUM(%s%d:%s%d)" % (
+                        first_column_letter[training_period],
+                        dark_green_line_rank,
+                        last_column_letter[training_period],
+                        dark_green_line_rank,
+                    )
                     rank += 1
-                    groups = set(StructuralGroup.objects.filter(train_prog=mod.train_prog,
-                                                                type__in=ct.group_types.all())) \
-                            | set(TransversalGroup.objects.filter(train_prog=mod.train_prog,
-                                                                type__in=ct.group_types.all()))
+                    groups = set(
+                        StructuralGroup.objects.filter(
+                            train_prog=mod.train_prog, type__in=ct.group_types.all()
+                        )
+                    ) | set(
+                        TransversalGroup.objects.filter(
+                            train_prog=mod.train_prog, type__in=ct.group_types.all()
+                        )
+                    )
                     if with_courses:
-                        for c in duration_type_courses.distinct('groups'):
+                        for c in duration_type_courses.distinct("groups"):
                             groups |= set(c.groups.all())
 
                     nb_groups = len(groups)
@@ -221,34 +270,48 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                             relevant_groups_dict = {}
                             for c in duration_type_courses:
                                 relevant_groups = c.groups.all()
-                                group_to_be_written = ';'.join(g.name for g in relevant_groups)
-                                relevant_groups_dict[group_to_be_written] = c.groups.all()
+                                group_to_be_written = ";".join(
+                                    g.name for g in relevant_groups
+                                )
+                                relevant_groups_dict[
+                                    group_to_be_written
+                                ] = c.groups.all()
                             if not relevant_groups_dict:
                                 append_row(sheet, empty_rows, 3, rank, cols)
                                 sheet.cell(row=rank, column=1).value = mod.abbrev
-                                sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
+                                sheet.cell(
+                                    row=rank, column=2
+                                ).value = '=$C%d&"_"&$E%d' % (rank, rank)
                                 sheet.cell(row=rank, column=3).value = ct.name
-                                sheet.cell(row=rank, column=4).value = f'=IF($D${dark_green_line_rank}="","",$D${dark_green_line_rank})'
+                                sheet.cell(
+                                    row=rank, column=4
+                                ).value = f'=IF($D${dark_green_line_rank}="","",$D${dark_green_line_rank})'
                                 room_type_validator.add(sheet.cell(row=rank, column=6))
-                                rank+=1
+                                rank += 1
                             for groups_name, groups in relevant_groups_dict.items():
                                 # This 3 lines code allow to limit the courses to those which have
                                 # exactly groups as groups...
-                                coures_room_types = duration_type_courses.distinct('room_type')
+                                coures_room_types = duration_type_courses.distinct(
+                                    "room_type"
+                                )
                                 if coures_room_types.count() == 1:
                                     room_type_name = coures_room_types[0].room_type.name
                                 else:
-                                    room_type_name = "" # "Plusieurs types de salles"
-                                group_courses = duration_type_courses.annotate(count=Count('groups')).filter(count=groups.count())
+                                    room_type_name = ""  # "Plusieurs types de salles"
+                                group_courses = duration_type_courses.annotate(
+                                    count=Count("groups")
+                                ).filter(count=groups.count())
                                 for gp in groups:
                                     group_courses = group_courses.filter(groups=gp)
                                 if not group_courses.exists():
                                     continue
-                                courses_tutors = duration_type_courses.distinct('tutor')
+                                courses_tutors = duration_type_courses.distinct("tutor")
 
                                 for course_tutor in courses_tutors:
                                     local_tutor = course_tutor.tutor
-                                    tutor_group_courses = group_courses.filter(tutor=local_tutor)
+                                    tutor_group_courses = group_courses.filter(
+                                        tutor=local_tutor
+                                    )
                                     if not tutor_group_courses.exists():
                                         continue
                                     if local_tutor is None:
@@ -257,55 +320,86 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
                                         username = local_tutor.username
                                     append_row(sheet, empty_rows, 3, rank, cols)
                                     sheet.cell(row=rank, column=1).value = mod.abbrev
-                                    sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
+                                    sheet.cell(
+                                        row=rank, column=2
+                                    ).value = '=$C%d&"_"&$E%d' % (rank, rank)
                                     sheet.cell(row=rank, column=3).value = ct.name
-                                    sheet.cell(row=rank, column=4).value = f'=IF($D${dark_green_line_rank}="","",$D${dark_green_line_rank})'
+                                    sheet.cell(
+                                        row=rank, column=4
+                                    ).value = f'=IF($D${dark_green_line_rank}="","",$D${dark_green_line_rank})'
                                     sheet.cell(row=rank, column=5).value = username
-                                    sheet.cell(row=rank, column=6).value = room_type_name
-                                    room_type_validator.add(sheet.cell(row=rank, column=6))
+                                    sheet.cell(
+                                        row=rank, column=6
+                                    ).value = room_type_name
+                                    room_type_validator.add(
+                                        sheet.cell(row=rank, column=6)
+                                    )
                                     sheet.cell(row=rank, column=7).value = groups_name
 
-                                    courses_periods = duration_type_courses.distinct('period').exclude(period__isnull=True)
+                                    courses_periods = duration_type_courses.distinct(
+                                        "period"
+                                    ).exclude(period__isnull=True)
                                     for course_period in courses_periods:
                                         local_period = course_period.period
                                         try:
                                             period_col = period_col_dict[local_period]
                                         except KeyError:
                                             continue
-                                        period_tutor_group_courses_nb = tutor_group_courses.filter(period=local_period).count()
-                                        sheet.cell(row=rank, column=period_col).value = period_tutor_group_courses_nb
+                                        period_tutor_group_courses_nb = (
+                                            tutor_group_courses.filter(
+                                                period=local_period
+                                            ).count()
+                                        )
+                                        sheet.cell(
+                                            row=rank, column=period_col
+                                        ).value = period_tutor_group_courses_nb
                                     rank += 1
 
                         else:
                             for g in groups:
                                 append_row(sheet, empty_rows, 3, rank, cols)
                                 sheet.cell(row=rank, column=1).value = mod.abbrev
-                                sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
+                                sheet.cell(
+                                    row=rank, column=2
+                                ).value = '=$C%d&"_"&$E%d' % (rank, rank)
                                 sheet.cell(row=rank, column=3).value = ct.name
-                                sheet.cell(row=rank, column=4).value = f'=IF($D${dark_green_line_rank}="","",$D${dark_green_line_rank})'
+                                sheet.cell(
+                                    row=rank, column=4
+                                ).value = f'=IF($D${dark_green_line_rank}="","",$D${dark_green_line_rank})'
                                 tutor_validator.add(sheet.cell(row=rank, column=5))
                                 room_type_validator.add(sheet.cell(row=rank, column=6))
                                 sheet.cell(row=rank, column=7).value = g.name
                                 rank += 1
-                            sheet.cell(row=rank - nb_groups, column=VERIF_COL).value = '' \
-                            '=IF(SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d=0,"OK","/!\\ -> ' \
-                            '"&SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d)' % \
-                                (
-                                    first_column_letter[training_period], rank - nb_groups,
-                                    rank - nb_groups, rank - nb_groups + 10,
+                            sheet.cell(row=rank - nb_groups, column=VERIF_COL).value = (
+                                ""
+                                '=IF(SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d=0,"OK","/!\\ -> '
+                                '"&SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d)'
+                                % (
+                                    first_column_letter[training_period],
+                                    rank - nb_groups,
+                                    rank - nb_groups,
+                                    rank - nb_groups + 10,
                                     VERIF_COL - 1,
                                     column_letter(VERIF_COL),
-                                    rank - nb_groups - 1, nb_groups,
-                                    first_column_letter[training_period], rank - nb_groups,
-                                    rank - nb_groups, rank - nb_groups + 10,
+                                    rank - nb_groups - 1,
+                                    nb_groups,
+                                    first_column_letter[training_period],
+                                    rank - nb_groups,
+                                    rank - nb_groups,
+                                    rank - nb_groups + 10,
                                     VERIF_COL - 1,
                                     column_letter(VERIF_COL),
-                                    rank - nb_groups - 1, nb_groups,
+                                    rank - nb_groups - 1,
+                                    nb_groups,
                                 )
+                            )
                     else:
                         append_row(sheet, empty_rows, 3, rank, cols)
                         sheet.cell(row=rank, column=1).value = mod.abbrev
-                        sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (rank, rank)
+                        sheet.cell(row=rank, column=2).value = '=$C%d&"_"&$E%d' % (
+                            rank,
+                            rank,
+                        )
                         sheet.cell(row=rank, column=3).value = ct.name
                         sheet.cell(row=rank, column=4).value = duration_minutes
                         tutor_validator.add(sheet.cell(row=rank, column=5))
@@ -318,17 +412,36 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
 
         ############ TOTAL line ############
         ligne_finale = rank - 2
-        sheet.cell(row=rank-1, column=VERIF_COL).value = 'TOTAL'
+        sheet.cell(row=rank - 1, column=VERIF_COL).value = "TOTAL"
         append_row(sheet, empty_rows, 5, rank, cols)
         for period_col in range(FIRST_PERIOD_COL, cols):
             cl = column_letter(period_col)
-            sheet.cell(row=rank, column=period_col).value = \
-                '=SUMPRODUCT(N(D$%d:D$%d)*(%s$%d:%s$%d)*(G$%d:G$%d="Groupes"))/60' \
-                % (first_line, ligne_finale, cl, first_line, cl, ligne_finale, first_line, ligne_finale)
-            sheet.cell(row=first_line-2, column=period_col).value = '=%s%d' % (cl, rank)
-        sheet.cell(row=rank, column=VERIF_COL).value = '=SUM(%s%d:%s%d)' % (first_column_letter[training_period], rank,
-                                                                            last_column_letter[training_period], rank)
-        sheet.cell(row=first_line-2, column=VERIF_COL).value = '=%s%d' % (column_letter(VERIF_COL), rank)
+            sheet.cell(
+                row=rank, column=period_col
+            ).value = '=SUMPRODUCT(N(D$%d:D$%d)*(%s$%d:%s$%d)*(G$%d:G$%d="Groupes"))/60' % (
+                first_line,
+                ligne_finale,
+                cl,
+                first_line,
+                cl,
+                ligne_finale,
+                first_line,
+                ligne_finale,
+            )
+            sheet.cell(row=first_line - 2, column=period_col).value = "=%s%d" % (
+                cl,
+                rank,
+            )
+        sheet.cell(row=rank, column=VERIF_COL).value = "=SUM(%s%d:%s%d)" % (
+            first_column_letter[training_period],
+            rank,
+            last_column_letter[training_period],
+            rank,
+        )
+        sheet.cell(row=first_line - 2, column=VERIF_COL).value = "=%s%d" % (
+            column_letter(VERIF_COL),
+            rank,
+        )
         rank += 1
 
         ############ Other TOTAL lines ############
@@ -339,42 +452,67 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         prof_row = rank
         for period_col in range(FIRST_PERIOD_COL, cols):
             cl = column_letter(period_col)
-            sheet.cell(row=rank, column=period_col).value = '=%s1' % cl
-        sheet.cell(row=rank, column=VERIF_COL).value = 'TOTAL'
-        #sheet.row_dimensions[rank].hidden = True
+            sheet.cell(row=rank, column=period_col).value = "=%s1" % cl
+        sheet.cell(row=rank, column=VERIF_COL).value = "TOTAL"
+        # sheet.row_dimensions[rank].hidden = True
         rank += 1
         for ct in CT:
             append_row(sheet, empty_rows, 7, rank, cols)
             sheet.cell(row=rank, column=2).value = '=$F%d&"_"&$B$%d' % (rank, prof_row)
             sheet.cell(row=rank, column=6).value = ct.name
-            sheet.cell(row=rank, column=7).value = '=SUM(H%d:%s%d)' % (rank, last_column_letter[training_period], rank)
+            sheet.cell(row=rank, column=7).value = "=SUM(H%d:%s%d)" % (
+                rank,
+                last_column_letter[training_period],
+                rank,
+            )
             for period_col in range(FIRST_PERIOD_COL, cols):
                 cl = column_letter(period_col)
-                sheet.cell(row=rank, column=period_col).value =\
-                    '=SUMPRODUCT(N(D$%d:D$%d)*(%s$%d:%s$%d)*($B$%d:$B$%d=$B%d))/60' \
-                    % (first_line, ligne_finale, cl, first_line, cl, ligne_finale, first_line, ligne_finale, rank)
-            sheet.cell(row=rank, column=VERIF_COL).value = '=SUM(%s%d:%s%d)' % (first_column_letter[training_period], rank,
-                                                                                last_column_letter[training_period], rank)
-            #sheet.row_dimensions[rank].hidden = True
+                sheet.cell(
+                    row=rank, column=period_col
+                ).value = "=SUMPRODUCT(N(D$%d:D$%d)*(%s$%d:%s$%d)*($B$%d:$B$%d=$B%d))/60" % (
+                    first_line,
+                    ligne_finale,
+                    cl,
+                    first_line,
+                    cl,
+                    ligne_finale,
+                    first_line,
+                    ligne_finale,
+                    rank,
+                )
+            sheet.cell(row=rank, column=VERIF_COL).value = "=SUM(%s%d:%s%d)" % (
+                first_column_letter[training_period],
+                rank,
+                last_column_letter[training_period],
+                rank,
+            )
+            # sheet.row_dimensions[rank].hidden = True
             rank += 1
         append_row(sheet, empty_rows, 8, rank, cols)
-        nb_ct = len(CT) #CourseType.objects.filter(department=department).count()
-        for period_col in range(FIRST_PERIOD_COL-1, cols):
+        nb_ct = len(CT)  # CourseType.objects.filter(department=department).count()
+        for period_col in range(FIRST_PERIOD_COL - 1, cols):
             cl = column_letter(period_col)
-            sheet.cell(row=rank, column=period_col).value = \
-                '=SUM(%s%d:%s%d)' % (cl, rank - nb_ct, cl, rank - 1)
-        sheet.cell(row=rank, column=VERIF_COL).value = '=SUM(%s%d:%s%d)' % (first_column_letter[training_period], rank,
-                                                                            last_column_letter[training_period], rank)
+            sheet.cell(row=rank, column=period_col).value = "=SUM(%s%d:%s%d)" % (
+                cl,
+                rank - nb_ct,
+                cl,
+                rank - 1,
+            )
+        sheet.cell(row=rank, column=VERIF_COL).value = "=SUM(%s%d:%s%d)" % (
+            first_column_letter[training_period],
+            rank,
+            last_column_letter[training_period],
+            rank,
+        )
         last_row[training_period.name] = rank
         rank += 1
 
         ############ Adapting column widths ############
         adjust_column_length(sheet)
-        sheet.column_dimensions['B'].hidden = True
-
+        sheet.column_dimensions["B"].hidden = True
 
     ############ Make recap sheet ############
-    sheet = new_book['Recap']
+    sheet = new_book["Recap"]
     rank = 1
     considered_scheduling_periods = set()
     for tp in TrainingPeriod.objects.filter(department=department):
@@ -385,46 +523,61 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
     nb_per = TrainingPeriod.objects.filter(department=department).count()
     append_row(sheet, recap_rows, 1, rank, recap_col_nb)
     for i, scheduling_period in enumerate(considered_scheduling_periods):
-        sheet.cell(row=rank, column=i+3).value = scheduling_period.name.split('-')[0]
+        sheet.cell(row=rank, column=i + 3).value = scheduling_period.name.split("-")[0]
     rank += 1
     for training_period in TrainingPeriod.objects.filter(department=department):
         append_row(sheet, recap_rows, 2, rank, recap_col_nb)
         sheet.cell(row=rank, column=1).value = training_period.name
-        sheet.cell(row=rank, column=2).value = f'=SUM($C{rank}:{column_letter(recap_col_nb)}{rank})'
+        sheet.cell(
+            row=rank, column=2
+        ).value = f"=SUM($C{rank}:{column_letter(recap_col_nb)}{rank})"
         for period_col in range(3, recap_col_nb + 1):
             cl = column_letter(period_col)
-            sheet.cell(row=rank, column=period_col).value = \
-                '=SUMPRODUCT((%s!$H$%d:$%s$%d)*(%s!$H$1:$%s$1=%s$1))' % \
-                (training_period.name, last_row[training_period.name], last_column_letter[training_period], last_row[training_period.name], training_period.name,  last_column_letter[training_period], cl)
+            sheet.cell(
+                row=rank, column=period_col
+            ).value = "=SUMPRODUCT((%s!$H$%d:$%s$%d)*(%s!$H$1:$%s$1=%s$1))" % (
+                training_period.name,
+                last_row[training_period.name],
+                last_column_letter[training_period],
+                last_row[training_period.name],
+                training_period.name,
+                last_column_letter[training_period],
+                cl,
+            )
             # '=SUMIF(%s!$H$1:$%s$1;%s$1;%s!$H$%d:$%s$%d)' (p.name, last_column_letter[p], cl, p.name, last_row[p.name], last_column_letter[p], last_row[p.name])
 
         rank += 1
     append_row(sheet, recap_rows, 3, rank, recap_col_nb)
-    for period_col in range(2, recap_col_nb+1):
+    for period_col in range(2, recap_col_nb + 1):
         cl = column_letter(period_col)
-        sheet.cell(row=rank, column=period_col).value = \
-            '=SUM(%s%d:%s%d)' % (cl, rank - nb_per, cl, rank - 1)
+        sheet.cell(row=rank, column=period_col).value = "=SUM(%s%d:%s%d)" % (
+            cl,
+            rank - nb_per,
+            cl,
+            rank - 1,
+        )
     rank += 1
-
 
     ############ Adapting column widths ############
     adjust_column_length(sheet)
 
-
     ############ Make Assignation sheet ############
-    sheet = new_book['ModuleTutorsAssignation']
-    tutor_assignation_validator = DataValidation(type="list", formula1="Rules!$B$7:$EE$7", allow_blank=True)
-    tutor_assignation_validator.error = "Ce prof n'est pas dans la liste de l'onglet Rules"
-    tutor_assignation_validator.errorTitle = 'Erreur de prof'
-    tutor_assignation_validator.prompt = 'Choisir un prof dans la liste'
-    tutor_assignation_validator.promptTitle = 'Prof possibles'
+    sheet = new_book["ModuleTutorsAssignation"]
+    tutor_assignation_validator = DataValidation(
+        type="list", formula1="Rules!$B$7:$EE$7", allow_blank=True
+    )
+    tutor_assignation_validator.error = (
+        "Ce prof n'est pas dans la liste de l'onglet Rules"
+    )
+    tutor_assignation_validator.errorTitle = "Erreur de prof"
+    tutor_assignation_validator.prompt = "Choisir un prof dans la liste"
+    tutor_assignation_validator.promptTitle = "Prof possibles"
 
     sheet.add_data_validation(tutor_assignation_validator)
 
     module_validator = DataValidation(type="custom", allow_blank=True)
     module_validator.prompt = "Choisir un module existant"
     sheet.add_data_validation(module_validator)
-
 
     course_type_validator = DataValidation(type="custom", allow_blank=True)
     course_type_validator.prompt = "Choisir un type de cours existant"
@@ -436,12 +589,12 @@ def make_planif_file(department, empty_bookname=default_empty_bookname, target_r
         for col in range(3, 16):
             tutor_assignation_validator.add(sheet.cell(row=row, column=col))
 
-    new_book.remove(new_book['empty_recap'])
-    new_book.remove(new_book['empty'])
+    new_book.remove(new_book["empty_recap"])
+    new_book.remove(new_book["empty"])
 
-    filename = f'{target_repo}/planif_file_' + department.abbrev
+    filename = f"{target_repo}/planif_file_" + department.abbrev
     if with_courses:
-        filename += '_with_courses'
-    filename += '.xlsx'
+        filename += "_with_courses"
+    filename += ".xlsx"
 
     new_book.save(filename=filename)

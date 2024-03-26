@@ -31,6 +31,7 @@
 import io
 import json
 import logging
+
 # from multiprocessing import Process
 import os
 import signal
@@ -52,18 +53,22 @@ _solver_child_process = 0
 
 logger = logging.getLogger(__name__)
 
-class SolverConsumer(WebsocketConsumer):
 
+class SolverConsumer(WebsocketConsumer):
     def get_constraint_class(self, str):
         return getattr(sys.modules[TimetableClasses.__name__], str)
 
     def connect(self):
         # ws_message()
         self.accept()
-        self.send(text_data=json.dumps({
-            'message': 'hello',
-            'action': 'info',
-        }))
+        self.send(
+            text_data=json.dumps(
+                {
+                    "message": "hello",
+                    "action": "info",
+                }
+            )
+        )
 
     def disconnect(self, close_code):
         pass
@@ -72,62 +77,69 @@ class SolverConsumer(WebsocketConsumer):
         data = json.loads(text_data)
         logger.debug(f" WebSocket receive data : {data}")
 
-        if data['action'] == 'go':
-
+        if data["action"] == "go":
             # Save constraints state
-            for constraint in data['constraints']:
+            for constraint in data["constraints"]:
                 try:
-                    type = self.get_constraint_class(constraint['model'])
-                    instance = type.objects.get(pk=constraint['pk'])
-                    instance.is_active = constraint['is_active']
+                    type = self.get_constraint_class(constraint["model"])
+                    instance = type.objects.get(pk=constraint["pk"])
+                    instance.is_active = constraint["is_active"]
                     instance.save()
                 except ObjectDoesNotExist:
-                    print(f"unable to find {constraint['model']} for id {constraint['pk']}")    
+                    print(
+                        f"unable to find {constraint['model']} for id {constraint['pk']}"
+                    )
                 except AttributeError:
-                    print(f"error while importing {constraint['model']} model")    
+                    print(f"error while importing {constraint['model']} model")
 
             # Get work copy as stabilization base
             try:
-                stabilize = int(data['stabilize'])
+                stabilize = int(data["stabilize"])
             except:
                 stabilize = None
 
             # Get additional informations
-            time_limit = data['time_limit'] or None
-            periods = [SchedulingPeriod.objects.get(name__in=data['periods_names'])]
+            time_limit = data["time_limit"] or None
+            periods = [SchedulingPeriod.objects.get(name__in=data["periods_names"])]
 
             # Start solver
             Solve(
-                data['department'],
+                data["department"],
                 periods,
-                data['timestamp'],
-                data['train_prog'],
+                data["timestamp"],
+                data["train_prog"],
                 self,
                 time_limit,
-                data['solver'],
-                data['pre_assign_rooms'],
-                data['post_assign_rooms'],
+                data["solver"],
+                data["pre_assign_rooms"],
+                data["post_assign_rooms"],
                 stabilize_version=stabilize,
-                all_periods_together=data['all_periods_together'],
-                send_log_email=data['send_log_email'],
-                user_email=data['current_user_email']
-                ).start()
+                all_periods_together=data["all_periods_together"],
+                send_log_email=data["send_log_email"],
+                user_email=data["current_user_email"],
+            ).start()
 
-        elif data['action'] == 'stop':
+        elif data["action"] == "stop":
             solver_child_process = cache.get("solver_child_process")
             if solver_child_process:
-                self.send(text_data=json.dumps({
-                    'message': 'sending SIGINT to solver (PID:'+str(solver_child_process)+')...',
-                    'action': 'aborted'
-                }))
+                self.send(
+                    text_data=json.dumps(
+                        {
+                            "message": "sending SIGINT to solver (PID:"
+                            + str(solver_child_process)
+                            + ")...",
+                            "action": "aborted",
+                        }
+                    )
+                )
                 os.kill(solver_child_process, signal.SIGINT)
-                cache.delete('solver_child_process')
+                cache.delete("solver_child_process")
             else:
-                self.send(text_data=json.dumps({
-                    'message': 'there is no running solver!',
-                    'action': 'aborted'
-                }))
-
+                self.send(
+                    text_data=json.dumps(
+                        {"message": "there is no running solver!", "action": "aborted"}
+                    )
+                )
 
 
 def solver_subprocess_SIGINT_handler(sig, stack):
@@ -136,9 +148,23 @@ def solver_subprocess_SIGINT_handler(sig, stack):
     os.kill(0, signal.SIGINT)
 
 
-class Solve():
-    def __init__(self, department_abbrev, periods, timestamp, training_programme, chan, time_limit, solver,
-                 pre_assign_rooms, post_assign_rooms, send_log_email, user_email, major_to_stabilize=None, all_periods_together=True):
+class Solve:
+    def __init__(
+        self,
+        department_abbrev,
+        periods,
+        timestamp,
+        training_programme,
+        chan,
+        time_limit,
+        solver,
+        pre_assign_rooms,
+        post_assign_rooms,
+        send_log_email,
+        user_email,
+        major_to_stabilize=None,
+        all_periods_together=True,
+    ):
         super(Solve, self).__init__()
         self.department_abbrev = department_abbrev
         self.periods = periods
@@ -157,42 +183,67 @@ class Solve():
 
         # if all train progs are called, training_programme=''
         try:
-            self.training_programme = TrainingProgramme.objects.get(abbrev=training_programme,
-                                                                    department__abbrev=department_abbrev)
+            self.training_programme = TrainingProgramme.objects.get(
+                abbrev=training_programme, department__abbrev=department_abbrev
+            )
         except ObjectDoesNotExist:
             self.training_programme = None
-    
+
     def start(self):
         solver_child_process = cache.get("solver_child_process")
         if solver_child_process:
-            self.channel.send(text_data=json.dumps({'message': "another solver is currently running (PID:"+str(solver_child_process)+"), let's wait"}))
+            self.channel.send(
+                text_data=json.dumps(
+                    {
+                        "message": "another solver is currently running (PID:"
+                        + str(solver_child_process)
+                        + "), let's wait"
+                    }
+                )
+            )
             return
         try:
-            (rd,wd) = os.pipe()
+            (rd, wd) = os.pipe()
             solver_child_process = os.fork()
             if solver_child_process == 0:
-                os.dup2(wd,1)   # redirect stdout
-                os.dup2(wd,2)   # redirect stderr
+                os.dup2(wd, 1)  # redirect stdout
+                os.dup2(wd, 2)  # redirect stderr
                 try:
                     if self.all_periods_together:
-                        t = TimetableModel(self.department_abbrev, 
-                                           periods=self.periods,
-                                           train_prog=self.training_programme,                                      major_to_stabilize=self.major_to_stabilize,                                      pre_assign_rooms=self.pre_assign_rooms, 
-                                           post_assign_rooms=self.post_assign_rooms)
+                        t = TimetableModel(
+                            self.department_abbrev,
+                            periods=self.periods,
+                            train_prog=self.training_programme,
+                            major_to_stabilize=self.major_to_stabilize,
+                            pre_assign_rooms=self.pre_assign_rooms,
+                            post_assign_rooms=self.post_assign_rooms,
+                        )
                         os.setpgid(os.getpid(), os.getpid())
                         signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
-                        t.solve(time_limit=self.time_limit, solver=self.solver, send_gurobi_logs_email_to=self.user_email)
+                        t.solve(
+                            time_limit=self.time_limit,
+                            solver=self.solver,
+                            send_gurobi_logs_email_to=self.user_email,
+                        )
                     else:
                         for period in self.periods:
-                            t = TimetableModel(self.department_abbrev, 
-                                               [period], 
-                                               train_prog=self.training_programme,
-                                               major_to_stabilize = self.major_to_stabilize,
-                                               pre_assign_rooms=self.pre_assign_rooms, 
-                                               post_assign_rooms=self.post_assign_rooms)
+                            t = TimetableModel(
+                                self.department_abbrev,
+                                [period],
+                                train_prog=self.training_programme,
+                                major_to_stabilize=self.major_to_stabilize,
+                                pre_assign_rooms=self.pre_assign_rooms,
+                                post_assign_rooms=self.post_assign_rooms,
+                            )
                             os.setpgid(os.getpid(), os.getpid())
-                            signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
-                            t.solve(time_limit=self.time_limit, solver=self.solver, send_gurobi_logs_email_to=self.user_email)
+                            signal.signal(
+                                signal.SIGINT, solver_subprocess_SIGINT_handler
+                            )
+                            t.solve(
+                                time_limit=self.time_limit,
+                                solver=self.solver,
+                                send_gurobi_logs_email_to=self.user_email,
+                            )
                 except:
                     traceback.print_exc()
                     print("solver aborting...")
@@ -204,36 +255,59 @@ class Solve():
                 cache.set("solver_child_process", solver_child_process, None)
                 print("starting solver sub-process " + str(solver_child_process))
                 if solver_child_process != cache.get("solver_child_process"):
-                    print("unable to store solver_child_process PID, cache not working?")
-                    self.channel.send(text_data=json.dumps(
-                        {'message': "unable to store solver_child_process PID, you won't be able to stop it via the browser! Is Django cache not working?", 'action': 'error'}))
+                    print(
+                        "unable to store solver_child_process PID, cache not working?"
+                    )
+                    self.channel.send(
+                        text_data=json.dumps(
+                            {
+                                "message": "unable to store solver_child_process PID, you won't be able to stop it via the browser! Is Django cache not working?",
+                                "action": "error",
+                            }
+                        )
+                    )
                 os.close(wd)
-                
+
                 with io.TextIOWrapper(io.FileIO(rd)) as tube:
                     for line in tube:
-                        self.channel.send(text_data=json.dumps({'message': line, 'action': 'info'}))
-                
+                        self.channel.send(
+                            text_data=json.dumps({"message": line, "action": "info"})
+                        )
+
                 while 1:
-                    (child,status) = os.wait()
+                    (child, status) = os.wait()
                     if child == solver_child_process and os.WIFEXITED(status):
                         break
-                
-                cache.delete('solver_child_process')
+
+                cache.delete("solver_child_process")
                 if os.WEXITSTATUS(status) != 0:
-                    self.channel.send(text_data=json.dumps({'message': f'solver process has aborted with a {os.WEXITSTATUS(status)} error code', 'action': 'error'}))
+                    self.channel.send(
+                        text_data=json.dumps(
+                            {
+                                "message": f"solver process has aborted with a {os.WEXITSTATUS(status)} error code",
+                                "action": "error",
+                            }
+                        )
+                    )
                 else:
-                    self.channel.send(text_data=json.dumps({'message': 'solver process has finished', 'action': 'finished'}))
+                    self.channel.send(
+                        text_data=json.dumps(
+                            {
+                                "message": "solver process has finished",
+                                "action": "finished",
+                            }
+                        )
+                    )
 
         except OSError as e:
             print("Exception while launching a solver sub-process:")
             traceback.print_exc()
             print("Continuing business as usual...")
 
-    
+
 # https://vincenttide.com/blog/1/django-channels-and-celery-example/
 # http://docs.celeryproject.org/en/master/django/first-steps-with-django.html#django-first-steps
 # http://docs.celeryproject.org/en/master/getting-started/next-steps.html#next-steps
-
 
 
 # send a signal
@@ -247,7 +321,6 @@ class Solve():
 # generate uuid: import uuid ; uuid.uuid4()
 
 
-
 # channel init
 # https://blog.heroku.com/in_deep_with_django_channels_the_future_of_real_time_apps_in_django
 
@@ -255,10 +328,6 @@ class Solve():
 # moving to production
 # https://channels.readthedocs.io/en/1.x/backends.html
 # port 6379?
-
-
-
-
 
 
 # docker image

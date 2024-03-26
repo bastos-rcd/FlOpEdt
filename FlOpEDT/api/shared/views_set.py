@@ -31,6 +31,7 @@ class ListGenericViewSet(GenericViewSet, ListModelMixin):
     """
     Abstract GenericViewSet who implement the action List.
     """
+
     pass
 
 

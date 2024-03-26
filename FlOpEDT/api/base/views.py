@@ -316,7 +316,6 @@ class TrainingProgrammeViewSet(viewsets.ModelViewSet):
 
 
 class ContactView(APIView):
-
     # permission_classes = [IsAuthenticated]
 
     def post(self, request):

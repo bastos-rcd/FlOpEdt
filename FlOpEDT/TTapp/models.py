@@ -31,45 +31,85 @@ from django.conf import settings
 from django.db import models
 from django.utils.functional import lazy
 
-from TTapp.RoomConstraints.RoomConstraint import (ConsiderRoomSorts,
-                                                  LimitedRoomChoices,
-                                                  LimitGroupMoves,
-                                                  LimitSimultaneousRoomCourses,
-                                                  LimitTutorMoves,
-                                                  LocateAllCourses)
+from TTapp.RoomConstraints.RoomConstraint import (
+    ConsiderRoomSorts,
+    LimitedRoomChoices,
+    LimitGroupMoves,
+    LimitSimultaneousRoomCourses,
+    LimitTutorMoves,
+    LocateAllCourses,
+)
 from TTapp.TimetableConstraints.core_constraints import (
-    AssignAllCourses, ConsiderModuleTutorRepartitions,
-    ConsiderTutorsUnavailability, NoSimultaneousGroupCourses,
-    ScheduleAllCourses)
+    AssignAllCourses,
+    ConsiderModuleTutorRepartitions,
+    ConsiderTutorsUnavailability,
+    NoSimultaneousGroupCourses,
+    ScheduleAllCourses,
+)
 from TTapp.TimetableConstraints.cosmo_style_constraints import (
-    LimitHoles, LimitTutorTimePerWeeks, ModulesByBloc)
+    LimitHoles,
+    LimitTutorTimePerWeeks,
+    ModulesByBloc,
+)
 from TTapp.TimetableConstraints.groups_constraints import (
-    GroupsMinHoursPerDay, MinGroupsHalfDays, MinNonPreferedTrainProgsSlot)
+    GroupsMinHoursPerDay,
+    MinGroupsHalfDays,
+    MinNonPreferedTrainProgsSlot,
+)
 from TTapp.TimetableConstraints.limit_time_constraints import (
-    LimitCourseTypeTimePerPeriod, LimitGroupsTimePerPeriod,
-    LimitModulesTimePerPeriod, LimitTimePerPeriod, LimitTutorsTimePerPeriod)
+    LimitCourseTypeTimePerPeriod,
+    LimitGroupsTimePerPeriod,
+    LimitModulesTimePerPeriod,
+    LimitTimePerPeriod,
+    LimitTutorsTimePerPeriod,
+)
 from TTapp.TimetableConstraints.modules_constraints import MinModulesHalfDays
 from TTapp.TimetableConstraints.no_course_constraints import (
-    NoGroupCourseOnWeekDay, NoTutorCourseOnWeekDay)
+    NoGroupCourseOnWeekDay,
+    NoTutorCourseOnWeekDay,
+)
 from TTapp.TimetableConstraints.orsay_constraints import (
-    BreakAroundCourseType, GroupsLunchBreak, TutorsLunchBreak)
+    BreakAroundCourseType,
+    GroupsLunchBreak,
+    TutorsLunchBreak,
+)
 from TTapp.TimetableConstraints.simultaneity_constraints import (
-    NotAloneForTheseCouseTypes, ParallelizeCourses)
+    NotAloneForTheseCouseTypes,
+    ParallelizeCourses,
+)
 from TTapp.TimetableConstraints.slots_constraints import (
-    AvoidBothTimesSameDay, AvoidStartTimes, ConsiderDependencies,
-    ConsiderPivots, LimitSimultaneousCoursesNumber, LimitStartTimeChoices,
-    LimitUndesiredSlotsPerDayPeriod, SimultaneousCourses)
+    AvoidBothTimesSameDay,
+    AvoidStartTimes,
+    ConsiderDependencies,
+    ConsiderPivots,
+    LimitSimultaneousCoursesNumber,
+    LimitStartTimeChoices,
+    LimitUndesiredSlotsPerDayPeriod,
+    SimultaneousCourses,
+)
 from TTapp.TimetableConstraints.stabilization_constraints import (
-    StabilizationThroughPeriods, StabilizeGroupsCourses,
-    StabilizeTutorsCourses)
+    StabilizationThroughPeriods,
+    StabilizeGroupsCourses,
+    StabilizeTutorsCourses,
+)
+
 # Import constraints from other files
 from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.TimetableConstraints.tutors_constraints import (
-    LowerBoundBusyDays, MinimizeTutorsBusyDays, MinNonPreferedTutorsSlot,
-    MinTutorsHalfDays, RespectTutorsMaxTimePerDay, RespectTutorsMinTimePerDay)
+    LowerBoundBusyDays,
+    MinimizeTutorsBusyDays,
+    MinNonPreferedTutorsSlot,
+    MinTutorsHalfDays,
+    RespectTutorsMaxTimePerDay,
+    RespectTutorsMinTimePerDay,
+)
 from TTapp.TimetableConstraints.visio_constraints import (
-    BoundPhysicalPresenceHalfDays, Curfew, LimitGroupsPhysicalPresence,
-    NoVisio, VisioOnly)
+    BoundPhysicalPresenceHalfDays,
+    Curfew,
+    LimitGroupsPhysicalPresence,
+    NoVisio,
+    VisioOnly,
+)
 
 #
 #   CustomConstraint
@@ -86,7 +126,7 @@ def get_constraint_list():
 
         constraints = []
         for class_name, _ in classes:
-            fully_qualified_name = f'{module.__name__}.{class_name}'
+            fully_qualified_name = f"{module.__name__}.{class_name}"
             constraints.append((fully_qualified_name, fully_qualified_name))
 
         return constraints
@@ -99,18 +139,15 @@ class CustomConstraint(TimetableConstraint):
     Call a custom constraint implementation.
     """
 
-    class_name = models.CharField(
-                    max_length=200,
-                    null=False,
-                    blank=False)
-    groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    tutors = models.ManyToManyField('people.Tutor', blank=True)
-    modules = models.ManyToManyField('base.Module', blank=True)
+    class_name = models.CharField(max_length=200, null=False, blank=False)
+    groups = models.ManyToManyField("base.StructuralGroup", blank=True)
+    tutors = models.ManyToManyField("people.Tutor", blank=True)
+    modules = models.ManyToManyField("base.Module", blank=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Delay class_name field choices loading
-        self._meta.get_field('class_name').choices = lazy(get_constraint_list, list)()
+        self._meta.get_field("class_name").choices = lazy(get_constraint_list, list)()
         self.constraint = None
 
     def get_constraint(self, class_name):
@@ -118,7 +155,7 @@ class CustomConstraint(TimetableConstraint):
         Return class_method located in the targeted constraint class instance
         """
         if self.constraint is None:
-            module_name, class_name = class_name.rsplit('.', 1)
+            module_name, class_name = class_name.rsplit(".", 1)
             try:
                 # Get class instance
                 module = importlib.import_module(module_name)
@@ -146,6 +183,7 @@ class CustomConstraint(TimetableConstraint):
         class_name attribute, with the same name as the decorated method.
         Once retrieve the method is then injected as a method keyword parameter.
         """
+
         @wraps(func)
         def _wrapper(self, *args, **kwargs):
             method = self.get_method(func.__name__)
@@ -161,26 +199,23 @@ class CustomConstraint(TimetableConstraint):
         args = {}
 
         if self.groups.count():
-            args.update({'groups': list(self.groups.all())})
-
+            args.update({"groups": list(self.groups.all())})
 
         if self.tutors.count():
-            args.update({'tutors': list(self.tutors.all())})
-
+            args.update({"tutors": list(self.tutors.all())})
 
         if self.modules.count():
-            args.update({'modules': list(self.modules.all())})
-
+            args.update({"modules": list(self.modules.all())})
 
         if self.train_progs.count():
-            args.update({'train_progs': list(self.train_progs.all())})
+            args.update({"train_progs": list(self.train_progs.all())})
 
         if injected_method:
             injected_method(ttmodel, ponderation, **args)
 
     @inject_method
     def one_line_description(self, injected_method=None):
-        description = ''
+        description = ""
         if injected_method:
             description = injected_method()
             if not description:
@@ -190,11 +225,11 @@ class CustomConstraint(TimetableConstraint):
     @inject_method
     def get_viewmodel(self, injected_method=None):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
         if injected_method:
-            details.update({'class': self.class_name})
+            details.update({"class": self.class_name})
             details.update(injected_method())
         else:
-            details.update({'class': f'{self.class_name} class not found'})
+            details.update({"class": f"{self.class_name} class not found"})
 
         return view_model

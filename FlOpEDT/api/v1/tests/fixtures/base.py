@@ -1,8 +1,15 @@
 import pytest
 
-from base.models import (Course, CourseType, Department, Module,
-                         ScheduledCourse, StructuralGroup, TrainingPeriod,
-                         TrainingProgramme)
+from base.models import (
+    Course,
+    CourseType,
+    Department,
+    Module,
+    ScheduledCourse,
+    StructuralGroup,
+    TrainingPeriod,
+    TrainingProgramme,
+)
 from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
 
 from ..factories.group import DepartmentFactory

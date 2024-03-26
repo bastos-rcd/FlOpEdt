@@ -30,8 +30,7 @@ from rest_framework import serializers
 import base.models as bm
 import displayweb.models as dwm
 import people.models as pm
-from api.v1.base.modification.serializers import \
-    TimetableVersionShortSerializer
+from api.v1.base.modification.serializers import TimetableVersionShortSerializer
 
 #                             ------------------------------                            #
 #                             ----Scheduled Courses (SC)----                            #
@@ -121,6 +120,3 @@ class ModulesFullSerializer(serializers.ModelSerializer):
             "description",
             "ppn",
         )
-
-
-

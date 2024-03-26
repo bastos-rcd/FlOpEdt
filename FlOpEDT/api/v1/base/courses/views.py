@@ -29,8 +29,11 @@ from django.apps import apps
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
 from django.utils.decorators import method_decorator
-from drf_spectacular.utils import (OpenApiParameter,
-                                   PolymorphicProxySerializer, extend_schema)
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    PolymorphicProxySerializer,
+    extend_schema,
+)
 from rest_framework import exceptions, permissions
 from rest_framework import serializers as rf_s
 from rest_framework import viewsets
@@ -184,7 +187,6 @@ class ScheduledCoursesJoinedViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.ScheduledCoursesSerializer
 
     def get_queryset(self):
-
         if getattr(self, "swagger_fake_view", False):
             return bm.ScheduledCourse.objects.none()
 

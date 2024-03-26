@@ -42,10 +42,7 @@ def inc_with_type(occurs_dimension, dimension, constraint_type):
                 if constraint_type not in occurs_dimension[elt]["types"]:
                     occurs_dimension[elt]["types"].append(constraint_type)
             else:
-                occurs_dimension[elt] = {
-                    "occurences": 1,
-                    "types": [constraint_type]
-                }
+                occurs_dimension[elt] = {"occurences": 1, "types": [constraint_type]}
 
 
 class ConstraintManager:
@@ -84,8 +81,11 @@ class ConstraintManager:
             except ValueError:
                 return None
 
-        id_constraints = [try_to_convert_to_number_else_none(string_id) for string_id in id_constraints
-                          if try_to_convert_to_number_else_none(string_id) is not None]
+        id_constraints = [
+            try_to_convert_to_number_else_none(string_id)
+            for string_id in id_constraints
+            if try_to_convert_to_number_else_none(string_id) is not None
+        ]
         return self.get_constraints(id_constraints)
 
     def get_occurs(self):
@@ -97,11 +97,21 @@ class ConstraintManager:
             constraint_type = constraint.constraint_type.value
             inc(occurs["types"], constraint_type)
             for dimension in constraint.dimensions.keys():
-                inc_with_type(occurs[dimension], constraint.dimensions[dimension]["value"], constraint_type)
+                inc_with_type(
+                    occurs[dimension],
+                    constraint.dimensions[dimension]["value"],
+                    constraint_type,
+                )
 
         for dimension in occurs.keys():
-            occurs[dimension] = {k: v for k, v in
-                                 sorted(occurs[dimension].items(), key=lambda elt: elt[1]["occurences"], reverse=True)}
+            occurs[dimension] = {
+                k: v
+                for k, v in sorted(
+                    occurs[dimension].items(),
+                    key=lambda elt: elt[1]["occurences"],
+                    reverse=True,
+                )
+            }
         return occurs
 
     def set_index_courses(self):
@@ -113,9 +123,18 @@ class ConstraintManager:
                     courses[index_course1].show_id = True
                     courses[index_course2].show_id = True
 
-    def handle_reduced_result(self, iis_file_name, file_path, filename_suffixe, write_csv_file=False):
+    def handle_reduced_result(
+        self, iis_file_name, file_path, filename_suffixe, write_csv_file=False
+    ):
         self.infeasible_constraints = self.parse_iis(iis_file_name)
         self.occurs = self.get_occurs()
         self.set_index_courses()
-        print_all(self.infeasible_constraints, self.occurs, self.threshold_type, self.threshold_attr,
-                  file_path, filename_suffixe, write_csv_file=write_csv_file)
+        print_all(
+            self.infeasible_constraints,
+            self.occurs,
+            self.threshold_type,
+            self.threshold_attr,
+            file_path,
+            filename_suffixe,
+            write_csv_file=write_csv_file,
+        )

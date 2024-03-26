@@ -47,52 +47,50 @@ from django.views.i18n import JavaScriptCatalog
 from base import views
 from FlOpEDT.converters import FourDigitYearConverter
 
-js_info_dict = {
-    'packages': ('languages', )
-}
+js_info_dict = {"packages": ("languages",)}
 
-register_converter(FourDigitYearConverter, 'yyyy')
+register_converter(FourDigitYearConverter, "yyyy")
 
 urlpatterns = [
-
     # favicon
     # ----------------------------
-    re_path(views.fav_regexp,
-            views.favicon,
-            name="favicon"),
-    path('', views.index, name='index')
+    re_path(views.fav_regexp, views.favicon, name="favicon"),
+    path("", views.index, name="index"),
 ]
 
-if 'rosetta' in settings.INSTALLED_APPS:
-    urlpatterns += [
-        re_path(r'^backend/rosetta/', include('rosetta.urls'))
-    ]
+if "rosetta" in settings.INSTALLED_APPS:
+    urlpatterns += [re_path(r"^backend/rosetta/", include("rosetta.urls"))]
 
 
 urlpatterns += i18n_patterns(
-    re_path(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
-    path('admin/', admin.site.urls),
-    path('accounts/', include('people.urls')),
-    path('citations/', include('quote.urls')),
-    re_path(r'^edt/(?P<department>[a-zA-Z]\w{0,6})/', include('base.urls')),
-    re_path(r'^solve-board/(?P<department>[a-zA-Z]\w{0,6})/',
-            include('solve_board.urls')),
-    re_path(r'^ics/(?P<department>[a-zA-Z]\w{0,6})/', include('flop_ics.urls')),
-    path('configuration/', include('configuration.urls')),
-    re_path(r'^ttapp/(?P<department>[a-zA-Z]\w{0,6})/', include('TTapp.urls')),
-    path('game/', include('easter_egg.urls')),
-    path('flopeditor/', include('flopeditor.urls')),
-    re_path(r'^display/(?P<department>[a-zA-Z]\w{0,6})/',
-            include('displayweb.urls')),
-    re_path(r'^cstmanager/(?P<department>[a-zA-Z]\w{0,6})/', include('cstmanager.urls')),
-    path('api/', include('api.urls')),
-    re_path(r'^roomreservation/(?P<department>[a-zA-Z]\w{0,6})/',
-            include('roomreservation.urls')),
-    re_path(r'^.well-known/acme-challenge/', include('acme_challenge.urls')),
+    re_path(r"^jsi18n/$", JavaScriptCatalog.as_view(), name="javascript-catalog"),
+    path("admin/", admin.site.urls),
+    path("accounts/", include("people.urls")),
+    path("citations/", include("quote.urls")),
+    re_path(r"^edt/(?P<department>[a-zA-Z]\w{0,6})/", include("base.urls")),
+    re_path(
+        r"^solve-board/(?P<department>[a-zA-Z]\w{0,6})/", include("solve_board.urls")
+    ),
+    re_path(r"^ics/(?P<department>[a-zA-Z]\w{0,6})/", include("flop_ics.urls")),
+    path("configuration/", include("configuration.urls")),
+    re_path(r"^ttapp/(?P<department>[a-zA-Z]\w{0,6})/", include("TTapp.urls")),
+    path("game/", include("easter_egg.urls")),
+    path("flopeditor/", include("flopeditor.urls")),
+    re_path(r"^display/(?P<department>[a-zA-Z]\w{0,6})/", include("displayweb.urls")),
+    re_path(
+        r"^cstmanager/(?P<department>[a-zA-Z]\w{0,6})/", include("cstmanager.urls")
+    ),
+    path("api/", include("api.urls")),
+    re_path(
+        r"^roomreservation/(?P<department>[a-zA-Z]\w{0,6})/",
+        include("roomreservation.urls"),
+    ),
+    re_path(r"^.well-known/acme-challenge/", include("acme_challenge.urls")),
 )
 
 if settings.DEBUG:
     import debug_toolbar
+
     urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
+        path("__debug__/", include(debug_toolbar.urls)),
     ] + urlpatterns

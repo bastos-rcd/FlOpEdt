@@ -48,27 +48,31 @@ class MinTutorsHalfDays(TimetableConstraint):
     All courses will fit in a minimum of half days
     Optional: if 2 courses only, possibility to join it
     """
-    tutors = models.ManyToManyField('people.Tutor', blank=True, verbose_name=_('tutors'))
+
+    tutors = models.ManyToManyField(
+        "people.Tutor", blank=True, verbose_name=_("tutors")
+    )
     join2courses = models.BooleanField(
-        verbose_name=_('If a tutor has 2 or 4 courses only, join it?'),
-        default=False)
+        verbose_name=_("If a tutor has 2 or 4 courses only, join it?"), default=False
+    )
 
     class Meta:
-        verbose_name = _('Minimize busy half days for tutors')
+        verbose_name = _("Minimize busy half days for tutors")
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=5):
-
         helper = MinHalfDaysHelperTutor(ttmodel, self, period, ponderation)
         for tutor in considered_tutors(self, ttmodel):
             helper.enrich_model(tutor=tutor)
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.tutors.exists():
-            details.update({'tutors': ', '.join([tutor.username for tutor in self.tutors.all()])})
+            details.update(
+                {"tutors": ", ".join([tutor.username for tutor in self.tutors.all()])}
+            )
 
         return view_model
 
@@ -76,7 +80,9 @@ class MinTutorsHalfDays(TimetableConstraint):
         text = "Minimise les demie-journées"
 
         if self.tutors.exists():
-            text += ' de : ' + ', '.join([tutor.username for tutor in self.tutors.all()])
+            text += " de : " + ", ".join(
+                [tutor.username for tutor in self.tutors.all()]
+            )
         else:
             text += " de tous les profs"
 
@@ -87,17 +93,21 @@ class MinNonPreferedTutorsSlot(TimetableConstraint):
     """
     Minimize the use of unprefered Slots for tutors
     """
-    tutors = models.ManyToManyField('people.Tutor', blank=True,
-                                    related_name='min_non_prefered_tutors_slots_constraints')
+
+    tutors = models.ManyToManyField(
+        "people.Tutor",
+        blank=True,
+        related_name="min_non_prefered_tutors_slots_constraints",
+    )
 
     class Meta:
-        verbose_name = _('Minimize undesired slots for tutors')
+        verbose_name = _("Minimize undesired slots for tutors")
         verbose_name_plural = verbose_name
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['tutors'])
+        attributes.extend(["tutors"])
         return attributes
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=None):
@@ -106,22 +116,32 @@ class MinNonPreferedTutorsSlot(TimetableConstraint):
         tutors = considered_tutors(self, ttmodel)
         for sl in ttmodel.data.availability_slots:
             for tutor in tutors:
-                filtered_courses = set(c for c in ttmodel.data.possible_courses[tutor] if c.period == period)
+                filtered_courses = set(
+                    c
+                    for c in ttmodel.data.possible_courses[tutor]
+                    if c.period == period
+                )
                 for c in filtered_courses:
-                    slot_vars_sum = ttmodel.sum(ttmodel.assigned[(sl2, c, tutor)]
-                                                for sl2 in slots_filter(ttmodel.data.compatible_slots[c],
-                                                                        simultaneous_to=sl))
-                    cost = self.local_weight() \
-                        * ponderation * slot_vars_sum \
+                    slot_vars_sum = ttmodel.sum(
+                        ttmodel.assigned[(sl2, c, tutor)]
+                        for sl2 in slots_filter(
+                            ttmodel.data.compatible_slots[c], simultaneous_to=sl
+                        )
+                    )
+                    cost = (
+                        self.local_weight()
+                        * ponderation
+                        * slot_vars_sum
                         * ttmodel.unp_slot_cost[tutor][sl]
+                    )
                     ttmodel.add_to_inst_cost(tutor, cost, period=period)
 
     def one_line_description(self):
         text = "Respecte les préférences"
         if self.tutors.exists():
-            text += ' de ' + ', '.join([tutor.username for tutor in self.tutors.all()])
+            text += " de " + ", ".join([tutor.username for tutor in self.tutors.all()])
         else:
-            text += ' de tous les profs.'
+            text += " de tous les profs."
         return text
 
 
@@ -131,10 +151,11 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
 
     The module can contains several custom constraints.
     """
-    tutors = models.ManyToManyField('people.Tutor', blank=True)
+
+    tutors = models.ManyToManyField("people.Tutor", blank=True)
 
     class Meta:
-        verbose_name = _('Minimize tutors busy days')
+        verbose_name = _("Minimize tutors busy days")
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=None):
@@ -150,18 +171,23 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
         for tutor in tutors:
             slot_by_day_cost = ttmodel.lin_expr()
             # need to be sorted
-            teaching_time = sum([c.duration
-                                for c in (ttmodel.data.courses_for_tutor[tutor]
-                                          | ttmodel.data.courses_for_supp_tutor[tutor])
-                                & ttmodel.data.courses_by_period[period]
-                                ], dt.timedelta()
-                            )
+            teaching_time = sum(
+                [
+                    c.duration
+                    for c in (
+                        ttmodel.data.courses_for_tutor[tutor]
+                        | ttmodel.data.courses_for_supp_tutor[tutor]
+                    )
+                    & ttmodel.data.courses_by_period[period]
+                ],
+                dt.timedelta(),
+            )
             nb_days = len(days_filter(ttmodel.data.days, period=period))
             minimal_number_of_days = nb_days
             # for any number of days inferior to nb_days
             for d in range(nb_days, 0, -1):
                 # if courses fit in d-1 days
-                if teaching_time <= tutor.preferences.pref_time_per_day * (d-1):
+                if teaching_time <= tutor.preferences.pref_time_per_day * (d - 1):
                     # multiply the previous cost by 2
                     slot_by_day_cost *= 2
                     # add a cost for having d busy days
@@ -171,20 +197,33 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
                     break
             if self.weight is None:
                 if minimal_number_of_days < nb_days:
-                    ttmodel.add_constraint(ttmodel.IBD_GTE[period][minimal_number_of_days + 1][tutor], '==', 0,
-                                           Constraint(constraint_type=ConstraintType.MinimizeBusyDays,
-                                                      instructors=tutor, periods=period))
+                    ttmodel.add_constraint(
+                        ttmodel.IBD_GTE[period][minimal_number_of_days + 1][tutor],
+                        "==",
+                        0,
+                        Constraint(
+                            constraint_type=ConstraintType.MinimizeBusyDays,
+                            instructors=tutor,
+                            periods=period,
+                        ),
+                    )
             else:
-                ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * slot_by_day_cost, period=period)
+                ttmodel.add_to_inst_cost(
+                    tutor,
+                    self.local_weight() * ponderation * slot_by_day_cost,
+                    period=period,
+                )
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.tutors.exists():
-            details.update({'tutors': ', '.join([tutor.username for tutor in self.tutors.all()])})
+            details.update(
+                {"tutors": ", ".join([tutor.username for tutor in self.tutors.all()])}
+            )
         else:
-            details.update({'tutors': 'All'})
+            details.update({"tutors": "All"})
 
         return view_model
 
@@ -193,11 +232,11 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
         You can give a contextual explanation about what this constraint doesnt
         """
         return "MinimizeTutorsBusyDays online description"
-    
+
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
         attributes = super().get_viewmodel_prefetch_attributes()
-        attributes.extend(['tutors'])
+        attributes.extend(["tutors"])
         return attributes
 
 
@@ -205,10 +244,11 @@ class RespectTutorsMaxTimePerDay(TimetableConstraint):
     """
     Respect the max_time_per_day declared
     """
-    tutors = models.ManyToManyField('people.Tutor', blank=True)
+
+    tutors = models.ManyToManyField("people.Tutor", blank=True)
 
     class Meta:
-        verbose_name = _('Respect max time per days bounds')
+        verbose_name = _("Respect max time per days bounds")
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
@@ -220,31 +260,51 @@ class RespectTutorsMaxTimePerDay(TimetableConstraint):
 
         for tutor in tutors:
             for d in days_filter(ttmodel.data.days, period=period):
-                other_departments_teaching_minutes = sum(sc.minutes
-                                                 for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[tutor] if sc.date == d)
-                max_teaching_minutes = max(tutor.preferences.max_time_per_day.seconds//60 - other_departments_teaching_minutes, 0)
+                other_departments_teaching_minutes = sum(
+                    sc.minutes
+                    for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[
+                        tutor
+                    ]
+                    if sc.date == d
+                )
+                max_teaching_minutes = max(
+                    tutor.preferences.max_time_per_day.seconds // 60
+                    - other_departments_teaching_minutes,
+                    0,
+                )
                 if self.weight is None:
-                    ttmodel.add_constraint(tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
-                                           '<=',
-                                           max_teaching_minutes,
-                                           Constraint(constraint_type=ConstraintType.MAX_HOURS_PER_DAY,
-                                                      instructors=tutor,
-                                                      days=d))
+                    ttmodel.add_constraint(
+                        tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
+                        "<=",
+                        max_teaching_minutes,
+                        Constraint(
+                            constraint_type=ConstraintType.MAX_HOURS_PER_DAY,
+                            instructors=tutor,
+                            days=d,
+                        ),
+                    )
                 else:
-                    undesired_situation = ttmodel.add_floor(tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
-                                                            max_teaching_minutes,
-                                                            100000)
-                    ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * undesired_situation,
-                                             period=period)
+                    undesired_situation = ttmodel.add_floor(
+                        tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
+                        max_teaching_minutes,
+                        100000,
+                    )
+                    ttmodel.add_to_inst_cost(
+                        tutor,
+                        self.local_weight() * ponderation * undesired_situation,
+                        period=period,
+                    )
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.tutors.exists():
-            details.update({'tutors': ', '.join([tutor.username for tutor in self.tutors.all()])})
+            details.update(
+                {"tutors": ", ".join([tutor.username for tutor in self.tutors.all()])}
+            )
         else:
-            details.update({'tutors': 'All'})
+            details.update({"tutors": "All"})
         return view_model
 
     def one_line_description(self):
@@ -258,10 +318,11 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
     """
     Respect the min_time_per_day declared
     """
-    tutors = models.ManyToManyField('people.Tutor', blank=True)
+
+    tutors = models.ManyToManyField("people.Tutor", blank=True)
 
     class Meta:
-        verbose_name = _('Respect tutors min time per day bounds')
+        verbose_name = _("Respect tutors min time per day bounds")
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
@@ -272,34 +333,54 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
 
         for tutor in tutors:
             for d in days_filter(ttmodel.data.days, period=period):
-                other_departments_teaching_minutes = sum(sc.course.minutes
-                                                 for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[tutor] if sc.date == d)
-                min_teaching_minutes = max(tutor.preferences.min_time_per_day.seconds//60 - other_departments_teaching_minutes, 0)
+                other_departments_teaching_minutes = sum(
+                    sc.course.minutes
+                    for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[
+                        tutor
+                    ]
+                    if sc.date == d
+                )
+                min_teaching_minutes = max(
+                    tutor.preferences.min_time_per_day.seconds // 60
+                    - other_departments_teaching_minutes,
+                    0,
+                )
                 if min_teaching_minutes == 0:
                     continue
-                has_enough_time = ttmodel.add_floor(tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
-                                                    min_teaching_minutes,
-                                                    100000)
+                has_enough_time = ttmodel.add_floor(
+                    tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
+                    min_teaching_minutes,
+                    100000,
+                )
                 undesired_situation = ttmodel.IBD[(tutor, d)] - has_enough_time
                 if self.weight is None:
-                    ttmodel.add_constraint(undesired_situation,
-                                           '==',
-                                           0,
-                                           Constraint(constraint_type=ConstraintType.MIN_HOURS_PER_DAY,
-                                                      instructors=tutor,
-                                                      days=d))
+                    ttmodel.add_constraint(
+                        undesired_situation,
+                        "==",
+                        0,
+                        Constraint(
+                            constraint_type=ConstraintType.MIN_HOURS_PER_DAY,
+                            instructors=tutor,
+                            days=d,
+                        ),
+                    )
                 else:
-                    ttmodel.add_to_inst_cost(tutor, self.local_weight() * ponderation * undesired_situation,
-                                             period=period)
+                    ttmodel.add_to_inst_cost(
+                        tutor,
+                        self.local_weight() * ponderation * undesired_situation,
+                        period=period,
+                    )
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.tutors.exists():
-            details.update({'tutors': ', '.join([tutor.username for tutor in self.tutors.all()])})
+            details.update(
+                {"tutors": ", ".join([tutor.username for tutor in self.tutors.all()])}
+            )
         else:
-            details.update({'tutors': 'All'})
+            details.update({"tutors": "All"})
         return view_model
 
     def one_line_description(self):
@@ -313,20 +394,30 @@ class LowerBoundBusyDays(TimetableConstraint):
     """
     Impose a minimum number of days if the number of hours is higher than a lower bound
     """
-    tutor = models.ForeignKey('people.Tutor', on_delete=models.CASCADE)
+
+    tutor = models.ForeignKey("people.Tutor", on_delete=models.CASCADE)
     min_days_nb = models.PositiveSmallIntegerField()
-    lower_bound_hours = models.PositiveSmallIntegerField()  # FIXME : time with TimeField or DurationField
+    lower_bound_hours = (
+        models.PositiveSmallIntegerField()
+    )  # FIXME : time with TimeField or DurationField
 
     class Meta:
-        verbose_name = _('Lower bound tutor busy days')
+        verbose_name = _("Lower bound tutor busy days")
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         relevant_courses = self.get_courses_queryset_by_attributes(period, ttmodel)
 
         if sum(c.duration for c in relevant_courses) > self.lower_bound_hours:
-            ttmodel.add_constraint(ttmodel.IBD_GTE[self.min_days_nb][self.tutor], '==', 1,
-                                   Constraint(constraint_type=ConstraintType.LowerBoundBusyDays, instructors=self.tutor))
+            ttmodel.add_constraint(
+                ttmodel.IBD_GTE[self.min_days_nb][self.tutor],
+                "==",
+                1,
+                Constraint(
+                    constraint_type=ConstraintType.LowerBoundBusyDays,
+                    instructors=self.tutor,
+                ),
+            )
 
     def one_line_description(self):
         return f"Si plus de {self.lower_bound_hours} heures pour {self.tutor}  alors au moins {self.min_days_nb} jours"
@@ -334,17 +425,22 @@ class LowerBoundBusyDays(TimetableConstraint):
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
 
-        view_model['details'].update({
-            'tutor': self.tutor.username,
-        })
+        view_model["details"].update(
+            {
+                "tutor": self.tutor.username,
+            }
+        )
 
         return view_model
 
 
 def tutor_teaching_minutes_by_day_expression(ttmodel, tutor, day):
-    return ttmodel.sum(ttmodel.assigned[sl, c, tutor] * sl.minutes / 60
-                       for c in ttmodel.data.possible_courses[tutor]
-                       for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day)) \
-           + ttmodel.sum(ttmodel.scheduled[sl, c] * sl.minutes / 60
-                         for c in ttmodel.data.courses_for_supp_tutor[tutor]
-                         for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day))
+    return ttmodel.sum(
+        ttmodel.assigned[sl, c, tutor] * sl.minutes / 60
+        for c in ttmodel.data.possible_courses[tutor]
+        for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day)
+    ) + ttmodel.sum(
+        ttmodel.scheduled[sl, c] * sl.minutes / 60
+        for c in ttmodel.data.courses_for_supp_tutor[tutor]
+        for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day)
+    )

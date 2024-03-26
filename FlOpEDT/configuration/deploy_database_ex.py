@@ -31,10 +31,23 @@ from random import choice
 from django.db import IntegrityError, transaction
 from openpyxl import load_workbook
 
-from base.models import (CourseAvailability, CourseStartTimeConstraint,
-                         CourseType, Day, Department, GroupType, Module, Room,
-                         RoomType, StructuralGroup, Time, TimeGeneralSettings,
-                         TrainingPeriod, TrainingProgramme, UserAvailability)
+from base.models import (
+    CourseAvailability,
+    CourseStartTimeConstraint,
+    CourseType,
+    Day,
+    Department,
+    GroupType,
+    Module,
+    Room,
+    RoomType,
+    StructuralGroup,
+    Time,
+    TimeGeneralSettings,
+    TrainingPeriod,
+    TrainingProgramme,
+    UserAvailability,
+)
 from displayweb.models import TrainingProgrammeDisplay
 from misc.assign_colors import assign_module_color
 from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
@@ -45,7 +58,6 @@ logger = logging.getLogger("base")
 
 @transaction.atomic
 def extract_database_file(department_name=None, department_abbrev=None, bookname=None):
-
     # Test department existence
     department, created = Department.objects.get_or_create(
         name=department_name, abbrev=department_abbrev
@@ -72,14 +84,12 @@ def extract_database_file(department_name=None, department_abbrev=None, bookname
 
 
 def tutors_extract(department, book):
-
     sheet = book["Intervenants"]
 
     INTER_ID_ROW = 3
     id = sheet.cell(row=INTER_ID_ROW, column=1).value
 
     while id is not None:
-
         name = sheet.cell(row=INTER_ID_ROW, column=2).value
         last_name = sheet.cell(row=INTER_ID_ROW, column=3).value
         status = sheet.cell(row=INTER_ID_ROW, column=4).value
@@ -90,7 +100,6 @@ def tutors_extract(department, book):
             logger.debug(f"update tutor : [{id}]")
 
         except Tutor.DoesNotExist:
-
             try:
                 params = {
                     "username": id,
@@ -143,7 +152,6 @@ def tutors_extract(department, book):
 
 
 def rooms_extract(department, book):
-
     sheet = book["Salles"]
     ######################## Creating RoomTypes ####################################
 
@@ -196,7 +204,6 @@ def rooms_extract(department, book):
     idRoom = sheet.cell(row=row, column=col).value
 
     while idRoom is not None:
-
         try:
             room, _ = Room.objects.get_or_create(name=idRoom)
 
@@ -225,7 +232,6 @@ def rooms_extract(department, book):
     room_id = sheet.cell(row=row, column=col).value
 
     while room_id is not None:
-
         try:
             room_group, _ = Room.objects.get_or_create(name=room_id)
             room_group.types.add(temporary_room_type)
@@ -250,12 +256,10 @@ def rooms_extract(department, book):
     idGroup = sheet.cell(row=row, column=col).value
 
     while idGroup is not None:
-
         col = ROOMGROUP_DEFINITION_START_COL + 1
         idRoom = sheet.cell(row=row, column=col).value
 
         while idRoom is not None:
-
             logger.info(f"Add room [{idRoom}] to group : {idGroup}")
 
             try:
@@ -289,7 +293,6 @@ def rooms_extract(department, book):
     idCat = sheet.cell(row=row, column=col).value
 
     while idCat is not None:
-
         col = ROOM_CATEGORY_START_COL + 1
         room_id = sheet.cell(row=row, column=col).value
 
@@ -328,7 +331,6 @@ def rooms_extract(department, book):
 
 
 def groups_extract(department, book):
-
     sheet = book["Groupes"]
 
     ######################## Creating the TrainingPrograms ####################################
@@ -339,11 +341,9 @@ def groups_extract(department, book):
     idTP = sheet.cell(row=TP_ROW, column=TP_COL).value
 
     while idTP is not None:
-
         verif = TrainingProgramme.objects.filter(abbrev=idTP, department=department)
 
         if not verif.exists():
-
             nameTP = sheet.cell(row=TP_ROW, column=TP_COL + 1).value
 
             try:
@@ -369,13 +369,10 @@ def groups_extract(department, book):
     idGroupType = sheet.cell(row=GT_ROW, column=TP_COL).value
 
     while idGroupType is not None:
-
         verif = GroupType.objects.filter(name=idGroupType, department=department)
 
         if not verif.exists():
-
             try:
-
                 gt = GroupType(name=idGroupType, department=department)
                 gt.save()
 
@@ -397,16 +394,13 @@ def groups_extract(department, book):
     idGroup = sheet.cell(row=GROUP_ROW, column=1).value
 
     while idGroup is not None:
-
         tpGr = sheet.cell(row=GROUP_ROW, column=2).value
         verif = StructuralGroup.objects.filter(
             name=idGroup, train_prog__abbrev=tpGr, train_prog__department=department
         )
 
         if not verif.exists():
-
             try:
-
                 tpGr = sheet.cell(row=GROUP_ROW, column=2).value
                 tpGroup = TrainingProgramme.objects.get(
                     abbrev=tpGr, department=department
@@ -438,12 +432,10 @@ def groups_extract(department, book):
     idGroup = sheet.cell(row=GROUP_ROW, column=1).value
 
     while idGroup is not None:
-
         tpGr = sheet.cell(row=GROUP_ROW, column=2).value
         p_group = sheet.cell(row=GROUP_ROW, column=3).value
 
         if p_group is not None:
-
             parent_group = StructuralGroup.objects.get(
                 name=p_group, train_prog__abbrev=tpGr, train_prog__department=department
             )
@@ -462,13 +454,10 @@ def groups_extract(department, book):
     ######################## Defining basic groups ####################################
 
     for g in StructuralGroup.objects.all():
-
         isbasic = True
 
         for g1 in StructuralGroup.objects.all():
-
             if g in g1.parent_groups.all():
-
                 isbasic = False
 
         g.basic = isbasic
@@ -481,7 +470,6 @@ def groups_extract(department, book):
     id_per = sheet.cell(row=PERIOD_ROW, column=id_per_col).value
 
     while id_per is not None:
-
         verif = TrainingPeriod.objects.filter(department=department, name=id_per)
         s_week = int(sheet.cell(row=PERIOD_ROW, column=id_per_col + 1).value)
         e_week = int(sheet.cell(row=PERIOD_ROW, column=id_per_col + 2).value)
@@ -495,9 +483,7 @@ def groups_extract(department, book):
                 logger.info(f" Period {id_per}' extreme weeks have been updated")
 
         else:
-
             try:
-
                 TrainingPeriod.objects.create(
                     name=id_per,
                     department=department,
@@ -533,7 +519,6 @@ def groups_extract(department, book):
 
 
 def modules_extract(department, book):
-
     sheet = book["Modules"]
 
     MODULE_ROW = 3
@@ -552,7 +537,6 @@ def modules_extract(department, book):
         )
 
         if not verif.exists():
-
             codeMod = sheet.cell(row=MODULE_ROW, column=2).value
             # codeMod = codeMod.replace(' ','')
             nameMod = sheet.cell(row=MODULE_ROW, column=3).value
@@ -568,7 +552,6 @@ def modules_extract(department, book):
             periodMod = TrainingPeriod.objects.get(name=period, department=department)
 
             try:
-
                 module = Module(
                     name=nameMod,
                     abbrev=idMod,
@@ -595,7 +578,6 @@ def modules_extract(department, book):
 
 
 def coursetypes_extract(department, book):
-
     sheet = book["Cours"]
 
     type_row = 2
@@ -603,7 +585,6 @@ def coursetypes_extract(department, book):
     idType = sheet.cell(row=type_row, column=1).value
 
     while idType is not None:
-
         duration_col = 2
         duration = sheet.cell(row=type_row, column=duration_col).value
 
@@ -650,7 +631,6 @@ def coursetypes_extract(department, book):
                     idGroup = sheet.cell(row=type_row, column=grouptype_col).value
 
             except IntegrityError as ie:
-
                 logger.warning(
                     "A constraint has not been respected creating the CourseType %s : \n"
                     % idType,

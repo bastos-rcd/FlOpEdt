@@ -7,7 +7,6 @@ from base.models.timing import PeriodEnum
 def generate_scheduling_periods(
     from_date: dt.datetime, to_date: dt.datetime, SchedulingPeriodModel
 ):
-
     objects = []
 
     current = from_date

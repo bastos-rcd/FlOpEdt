@@ -5,6 +5,9 @@ from django.urls import reverse
 
 @login_required
 def RoomReservationsView(request, **kwargs):
-    db_data = {'dept': request.department.abbrev, 'api': reverse('api:api_root'),
-               'user_id': request.user.id}
-    return render(request, 'roomreservation/index.html', {'json_data': db_data})
+    db_data = {
+        "dept": request.department.abbrev,
+        "api": reverse("api:api_root"),
+        "user_id": request.user.id,
+    }
+    return render(request, "roomreservation/index.html", {"json_data": db_data})

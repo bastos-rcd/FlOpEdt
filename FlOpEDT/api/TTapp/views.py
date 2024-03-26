@@ -49,7 +49,8 @@ from MyFlOp.colors import Tcolors
 from TTapp.FlopConstraint import FlopConstraint, all_subclasses
 
 DOC_DIR = os.path.join(
-    os.path.dirname(pkgutil.get_loader("TTapp").get_filename()), "TimetableConstraints/doc"
+    os.path.dirname(pkgutil.get_loader("TTapp").get_filename()),
+    "TimetableConstraints/doc",
 )
 IMG_DIR = os.path.join(
     os.path.dirname(pkgutil.get_loader("TTapp").get_filename()),
@@ -238,7 +239,6 @@ class FlopConstraintListViewSet(viewsets.ViewSet):
         constraintlist = all_subclasses(FlopConstraint)
 
         for constraint in constraintlist:
-
             if constraint._meta.abstract == False:
                 queryset = constraint.objects.all().select_related("department")
 
@@ -478,15 +478,15 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                             ]
                         else:
                             acceptable = [c[0] for c in choices]
-                
-                elif typename == 'TimeField':
+
+                elif typename == "TimeField":
                     acceptable = all_possible_start_times(department)
 
                 elif type(field) is ArrayField:
                     typename = type(field.base_field).__name__
                     # Récupère les choices de l'arrayfield dans acceptable
                     choices = field.base_field.choices
-                    # Si c'est des timme, on récupère les start times possibles
+                    # Si c'est des timme, on récupère les start times possibles
                     if "time" in field.name:
                         acceptable = all_possible_start_times(department)
                     elif "day" in field.name:
@@ -534,7 +534,9 @@ class FlopConstraintFieldViewSet(viewsets.ViewSet):
                 # Accept only periods that are in the current year, and on the week mode
                 # FIXME accept other modes!
                 elif field.name == "periods":
-                    acceptablelist = acceptablelist.filter(mode="w", start_date__year__in=[current_year, current_year + 1])
+                    acceptablelist = acceptablelist.filter(
+                        mode="w", start_date__year__in=[current_year, current_year + 1]
+                    )
 
                 for element in acceptablelist:
                     acceptable.append(element["id"])

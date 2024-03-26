@@ -17,19 +17,22 @@ from importation.translate_to_csv import convert_xlsx2csv
 @superuser_required
 def importation_dispo(req, **kwargs):
     try:
-        department = Department.objects.get(abbrev=kwargs['department'])
+        department = Department.objects.get(abbrev=kwargs["department"])
     except:
         return "Erreur departement"
     periods = [p.name for p in TrainingPeriod.objects.filter(department=department)]
     form = ImportFile()
-    if req.method == 'POST':
+    if req.method == "POST":
         form = ImportFile(req.POST, req.FILES)
         if form.is_valid():
-            if check_ext_file(req.FILES['file'], ['.xlsx', '.xls']):
-                path = upload_file(req.FILES['file'], "importation/dispo_.xlsx")
-                csv_path = convert_xlsx2csv(path, target_path=f"{settings.MEDIA_ROOT}/importation/dispo_file_.csv")
-            elif check_ext_file(req.FILES['file'], ['.csv']):
-                csv_path = upload_file(req.FILES['file'], "importation/dispo_file_.csv")
+            if check_ext_file(req.FILES["file"], [".xlsx", ".xls"]):
+                path = upload_file(req.FILES["file"], "importation/dispo_.xlsx")
+                csv_path = convert_xlsx2csv(
+                    path,
+                    target_path=f"{settings.MEDIA_ROOT}/importation/dispo_file_.csv",
+                )
+            elif check_ext_file(req.FILES["file"], [".csv"]):
+                csv_path = upload_file(req.FILES["file"], "importation/dispo_file_.csv")
             else:
                 error = "pas .xlsx"
             if csv_path:
@@ -44,8 +47,14 @@ def importation_dispo(req, **kwargs):
                 print("Removing OK")
         else:
             error = "formulaire non valide"
-        return render(req, 'importation/importation.html', {'form': form, 'periods': periods, 'ERROR': error})
-    return render(req, 'importation/importation.html', {'form': form, 'periods': periods})
+        return render(
+            req,
+            "importation/importation.html",
+            {"form": form, "periods": periods, "ERROR": error},
+        )
+    return render(
+        req, "importation/importation.html", {"form": form, "periods": periods}
+    )
 
 
 @superuser_required
@@ -56,15 +65,20 @@ def get_dispo_file(req, period, **kwargs):
         period = TrainingPeriod.objects.get(name=period, department=department)
     except:
         return "Erreur nom du departement ou periode"
-    path = f"{settings.MEDIA_ROOT}/importation/periods_dispo/dispo_file_{period.name}.xlsx"
+    path = (
+        f"{settings.MEDIA_ROOT}/importation/periods_dispo/dispo_file_{period.name}.xlsx"
+    )
     if not os.path.exists(path):
         print("OK")
-        path = make_dispo_file(period,
-                               empty_bookname=f"{settings.MEDIA_ROOT}/importation/base/empty_dispo_file.xlsx",
-                               target_bookname=path)
+        path = make_dispo_file(
+            period,
+            empty_bookname=f"{settings.MEDIA_ROOT}/importation/base/empty_dispo_file.xlsx",
+            target_bookname=path,
+        )
     f = open(path, "rb")
-    response = HttpResponse(f, content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = f"attachment; filename=\"dispo_file_{period.name}.xlsx\""
+    response = HttpResponse(f, content_type="application/vnd.ms-excel")
+    response[
+        "Content-Disposition"
+    ] = f'attachment; filename="dispo_file_{period.name}.xlsx"'
     f.close()
     return response
-

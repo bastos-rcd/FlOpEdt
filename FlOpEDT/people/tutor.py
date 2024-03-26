@@ -32,9 +32,14 @@ from django.views.generic import CreateView, UpdateView
 
 from base.models import Day, Department, TimeGeneralSettings, UserAvailability
 
-from .forms import (AddBIATOSTutorForm, AddFullStaffTutorForm,
-                    AddSupplyStaffTutorForm, ChangeBIATOSTutorForm,
-                    ChangeFullStaffTutorForm, ChangeSupplyStaffTutorForm)
+from .forms import (
+    AddBIATOSTutorForm,
+    AddFullStaffTutorForm,
+    AddSupplyStaffTutorForm,
+    ChangeBIATOSTutorForm,
+    ChangeFullStaffTutorForm,
+    ChangeSupplyStaffTutorForm,
+)
 from .models import BIATOS, FullStaff, SupplyStaff, TutorPreference, User
 
 logger = logging.getLogger(__name__)
