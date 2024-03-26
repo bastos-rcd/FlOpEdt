@@ -23,7 +23,9 @@ class TimetableVersionViewSet(viewsets.ReadOnlyModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return bm.TimetableVersion.objects.none()
 
-        qp_serializer = TimetableVersionQueryParamsSerializer(data=self.request.query_params)
+        qp_serializer = TimetableVersionQueryParamsSerializer(
+            data=self.request.query_params
+        )
         qp_serializer.is_valid(raise_exception=True)
         qp_params = qp_serializer.validated_data
 

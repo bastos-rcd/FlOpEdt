@@ -22,18 +22,18 @@
 # without disclosing the source code of your own applications.
 
 
-SECRET_KEY = 'your_secret_key'
+SECRET_KEY = "your_secret_key"
 
 DEBUG = True
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'flop_database',
-        'USER': 'flop_user',
-        'PASSWORD': 'your_password',
-        'HOST': 'address_of_your_remote_server',
-        'PORT': '5432',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "flop_database",
+        "USER": "flop_user",
+        "PASSWORD": "your_password",
+        "HOST": "address_of_your_remote_server",
+        "PORT": "5432",
     }
 }
 
@@ -41,7 +41,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [("127.0.0.1", 6379)],
         },
     },
     # "default": {
@@ -49,5 +49,3 @@ CHANNEL_LAYERS = {
     #     "ROUTING": "solve_board.routing.channel_routing",
     # },
 }
-
-

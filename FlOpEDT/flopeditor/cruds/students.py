@@ -31,10 +31,13 @@ This module is used to create, read, update and/or delete a group type
 
 from django.http import JsonResponse
 
-from base.models import (GenericGroup, TrainingProgramme)
-from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE,
-                                  student_groups_from_full_names,
-                                  validate_student_values)
+from base.models import GenericGroup, TrainingProgramme
+from flopeditor.validator import (
+    ERROR_RESPONSE,
+    OK_RESPONSE,
+    student_groups_from_full_names,
+    validate_student_values,
+)
 from people.models import Student, User, UserDepartmentSettings
 
 
@@ -56,40 +59,33 @@ def read(department):
     for student in students:
         groups_list = [g.full_name for g in student.generic_groups.all()]
 
-        values.append((student.username,
-                       student.first_name,
-                       student.last_name,
-                       student.email,
-                       groups_list))
-		
-    return JsonResponse({
-        "columns":  [{
-            'name': 'Login',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Prénom',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Nom',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Email',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Groupes',
-            "type": "select-chips",
-            "options": {
-                "values": generic_group_choices
-            }
-        }],
-        "values": values,
-        "options": {
+        values.append(
+            (
+                student.username,
+                student.first_name,
+                student.last_name,
+                student.email,
+                groups_list,
+            )
+        )
+
+    return JsonResponse(
+        {
+            "columns": [
+                {"name": "Login", "type": "text", "options": {}},
+                {"name": "Prénom", "type": "text", "options": {}},
+                {"name": "Nom", "type": "text", "options": {}},
+                {"name": "Email", "type": "text", "options": {}},
+                {
+                    "name": "Groupes",
+                    "type": "select-chips",
+                    "options": {"values": generic_group_choices},
+                },
+            ],
+            "values": values,
+            "options": {},
         }
-    })
+    )
 
 
 def create(entries, department):
@@ -102,24 +98,26 @@ def create(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
+    entries["result"] = []
 
-    for i in range(len(entries['new_values'])):
-        if not validate_student_values(entries['new_values'][i], entries):
+    for i in range(len(entries["new_values"])):
+        if not validate_student_values(entries["new_values"][i], entries):
             pass
         else:
-            if User.objects.filter(username=entries['new_values'][i][0]).exists():
-                entries['result'].append([
-                    ERROR_RESPONSE,
-                    "username déjà utilisé par quelqu'un·e d'autre."
-                ])
+            if User.objects.filter(username=entries["new_values"][i][0]).exists():
+                entries["result"].append(
+                    [ERROR_RESPONSE, "username déjà utilisé par quelqu'un·e d'autre."]
+                )
             else:
                 student = Student.objects.create(
-                    username=entries['new_values'][i][0],
-                    first_name=entries['new_values'][i][1],
-                    last_name=entries['new_values'][i][2],
-                    email=entries['new_values'][i][3])
-                gp_to_be_set = student_groups_from_full_names(entries['new_values'][i][4], department)
+                    username=entries["new_values"][i][0],
+                    first_name=entries["new_values"][i][1],
+                    last_name=entries["new_values"][i][2],
+                    email=entries["new_values"][i][3],
+                )
+                gp_to_be_set = student_groups_from_full_names(
+                    entries["new_values"][i][4], department
+                )
                 student.generic_groups.set(gp_to_be_set)
                 student.is_student = True
                 student.save()
@@ -137,37 +135,44 @@ def update(entries, department):
     :return: Server response for the request.
     :rtype:  django.http.JsonResponse
     """
-    entries['result'] = []
-    if len(entries['old_values']) != len(entries['new_values']):
+    entries["result"] = []
+    if len(entries["old_values"]) != len(entries["new_values"]):
         return entries
 
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        if not validate_student_values(entries['new_values'][i], entries):
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        if not validate_student_values(entries["new_values"][i], entries):
             pass
-        elif User.objects.filter(username=entries['new_values'][i][0]) and \
-                entries['old_values'][i][0] != entries['new_values'][i][0]:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Login déjà utilisé par quelqu'un·e d'autre."
-            ])
+        elif (
+            User.objects.filter(username=entries["new_values"][i][0])
+            and entries["old_values"][i][0] != entries["new_values"][i][0]
+        ):
+            entries["result"].append(
+                [ERROR_RESPONSE, "Login déjà utilisé par quelqu'un·e d'autre."]
+            )
         else:
             try:
                 student_to_update = Student.objects.get(
-                    username=entries['old_values'][i][0])
-                student_to_update.username = entries['new_values'][i][0]
-                student_to_update.first_name = entries['new_values'][i][1]
-                student_to_update.last_name = entries['new_values'][i][2]
-                student_to_update.email = entries['new_values'][i][3]
-                new_groups = student_groups_from_full_names(entries['new_values'][i][4], department)
+                    username=entries["old_values"][i][0]
+                )
+                student_to_update.username = entries["new_values"][i][0]
+                student_to_update.first_name = entries["new_values"][i][1]
+                student_to_update.last_name = entries["new_values"][i][2]
+                student_to_update.email = entries["new_values"][i][3]
+                new_groups = student_groups_from_full_names(
+                    entries["new_values"][i][4], department
+                )
                 student_to_update.generic_groups.set(new_groups)
                 student_to_update.save()
 
-                entries['result'].append([OK_RESPONSE])
+                entries["result"].append([OK_RESPONSE])
             except Student.DoesNotExist:
-                entries['result'].append(
-                    [ERROR_RESPONSE,
-                     "Un⋅e étudiant⋅e à modifier n'a pas été trouvé⋅e dans la base de données."])
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "Un⋅e étudiant⋅e à modifier n'a pas été trouvé⋅e dans la base de données.",
+                    ]
+                )
     return entries
 
 
@@ -181,16 +186,19 @@ def delete(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        username = entries['old_values'][i][0]
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        username = entries["old_values"][i][0]
         try:
             student = Student.objects.get(username=username)
             student.delete()
-            entries['result'].append([OK_RESPONSE])
+            entries["result"].append([OK_RESPONSE])
 
         except Student.DoesNotExist:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Un⋅e étudiant⋅e à supprimer n'a pas été trouvé⋅e dans la base de données."])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Un⋅e étudiant⋅e à supprimer n'a pas été trouvé⋅e dans la base de données.",
+                ]
+            )
     return entries

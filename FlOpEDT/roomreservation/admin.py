@@ -5,8 +5,8 @@ from roomreservation.models import RoomReservationType
 
 
 class RoomReservationTypeAdmin(MyModelAdmin):
-    list_display = ('name', 'bg_color')
-    ordering = ('name',)
+    list_display = ("name", "bg_color")
+    ordering = ("name",)
 
 
 admin.site.register(RoomReservationType, RoomReservationTypeAdmin)

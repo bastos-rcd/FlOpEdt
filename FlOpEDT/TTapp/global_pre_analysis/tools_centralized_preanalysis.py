@@ -20,12 +20,14 @@ def getFlopConstraintsInDB(period, department):
 
     # Browse for each subclass if we can find an existing instance of this subclass and add it to the list
     for constraint_class in all_constraints_classes:
-            if constraint_class.objects.all().exists():
-                all_this_type_constraints = constraint_class.objects.filter(Q(periods=period)|Q(periods__isnull=True),
-                                                                            department=department,
-                                                                            weight=None,
-                                                                            is_active=True)
-                for constraint in all_this_type_constraints:
-                    constraints_list.append(constraint)
+        if constraint_class.objects.all().exists():
+            all_this_type_constraints = constraint_class.objects.filter(
+                Q(periods=period) | Q(periods__isnull=True),
+                department=department,
+                weight=None,
+                is_active=True,
+            )
+            for constraint in all_this_type_constraints:
+                constraints_list.append(constraint)
 
     return constraints_list

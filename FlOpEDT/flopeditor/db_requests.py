@@ -32,16 +32,23 @@ to manage a department statistics for FlOpEDT.
 
 
 from base.models import Day, Department, TimeGeneralSettings
-from people.models import (BIATOS, FullStaff, SupplyStaff, Tutor, User,
-                           UserDepartmentSettings)
+from people.models import (
+    BIATOS,
+    FullStaff,
+    SupplyStaff,
+    Tutor,
+    User,
+    UserDepartmentSettings,
+)
 
 TUTOR_CHOICES_LIST = ["Permanent", "Vacataire", "Biatos"]
 
 TUTOR_CHOICES_DICT = {
     Tutor.FULL_STAFF: TUTOR_CHOICES_LIST[0],
     Tutor.SUPP_STAFF: TUTOR_CHOICES_LIST[1],
-    Tutor.BIATOS: TUTOR_CHOICES_LIST[2]
+    Tutor.BIATOS: TUTOR_CHOICES_LIST[2],
 }
+
 
 def create_departments_in_database(dept_name, dept_abbrev, tutors_id):
     """Create department with admin and default settings in database
@@ -59,25 +66,29 @@ def create_departments_in_database(dept_name, dept_abbrev, tutors_id):
     dept.save()
     for tutor_id in tutors_id:
         tutor = Tutor.objects.get(id=tutor_id)
-        UserDepartmentSettings(user=tutor, department=dept,
-                               is_main=False, is_admin=True).save()
+        UserDepartmentSettings(
+            user=tutor, department=dept, is_main=False, is_admin=True
+        ).save()
 
     TimeGeneralSettings(
         department=dept,
-        day_start_time=8*60,
-        day_end_time=18*60+45,
-        morning_end_time=12*60+30,
-        afternoon_start_time=14*60,
+        day_start_time=8 * 60,
+        day_end_time=18 * 60 + 45,
+        morning_end_time=12 * 60 + 30,
+        afternoon_start_time=14 * 60,
         days=[
             Day.MONDAY,
             Day.TUESDAY,
             Day.WEDNESDAY,
             Day.THURSDAY,
             Day.FRIDAY,
-        ]).save()
+        ],
+    ).save()
 
-def update_departments_in_database(old_dept_name, new_dept_name,
-                                   old_dept_abbrev, new_dept_abbrev, admins_id):
+
+def update_departments_in_database(
+    old_dept_name, new_dept_name, old_dept_abbrev, new_dept_abbrev, admins_id
+):
     """Update department with admin and default settings in database
 
     :param dept_name: Department name
@@ -102,11 +113,12 @@ def update_departments_in_database(old_dept_name, new_dept_name,
     # We add admins rights to each admin selected
     for admin_id in admins_id:
         admin = Tutor.objects.get(id=admin_id)
-        admin_dept_settings = UserDepartmentSettings.objects.get(user=admin, department=dept)
+        admin_dept_settings = UserDepartmentSettings.objects.get(
+            user=admin, department=dept
+        )
         admin_dept_settings.is_admin = True
         admin_dept_settings.save()
     dept.save()
-
 
 
 def get_status_of_user(request):
@@ -151,8 +163,6 @@ def get_status_of_tutor(tutor):
     return status, None, None
 
 
-
-
 def get_is_iut(request):
     """
 
@@ -185,17 +195,16 @@ def update_user_in_database(request):
 
     """
     old_username = request.user.username
-    new_username = request.POST['newIdProfil']
-    new_first_name = request.POST['newFirtNameProfil']
-    new_last_name = request.POST['newLastNameProfil']
-    new_email = request.POST['newEmailProfil']
-    new_status = request.POST['newInputStatus']
-    old_status = request.POST['oldStatus']
-    new_status_vacataire = request.POST['newstatusVacataire']
-    new_employer = request.POST['newEmployer']
-    new_is_iut = 'iut' in request.POST
+    new_username = request.POST["newIdProfil"]
+    new_first_name = request.POST["newFirtNameProfil"]
+    new_last_name = request.POST["newLastNameProfil"]
+    new_email = request.POST["newEmailProfil"]
+    new_status = request.POST["newInputStatus"]
+    old_status = request.POST["oldStatus"]
+    new_status_vacataire = request.POST["newstatusVacataire"]
+    new_employer = request.POST["newEmployer"]
+    new_is_iut = "iut" in request.POST
     tutor = Tutor.objects.get(username=old_username)
-
 
     if old_status == TUTOR_CHOICES_DICT[Tutor.FULL_STAFF]:
         user = FullStaff.objects.get(id=tutor.id)
@@ -203,8 +212,6 @@ def update_user_in_database(request):
         user = SupplyStaff.objects.get(id=tutor.id)
     else:
         user = BIATOS.objects.get(id=tutor.id)
-
-
 
     if old_status != new_status and new_status == TUTOR_CHOICES_DICT[Tutor.FULL_STAFF]:
         user_update = FullStaff(tutor_ptr_id=tutor.id)
@@ -217,7 +224,9 @@ def update_user_in_database(request):
         user_update.is_iut = new_is_iut
         user_update.save()
         user.delete(keep_parents=True)
-    elif old_status != new_status and new_status == TUTOR_CHOICES_DICT[Tutor.SUPP_STAFF]:
+    elif (
+        old_status != new_status and new_status == TUTOR_CHOICES_DICT[Tutor.SUPP_STAFF]
+    ):
         user_update = SupplyStaff(tutor_ptr_id=tutor.id)
         user_update.__dict__.update(tutor.__dict__)
         user_update.username = new_username

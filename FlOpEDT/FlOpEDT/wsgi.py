@@ -34,6 +34,8 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "FlOpEDT.settings.dockerless-production")
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE", "FlOpEDT.settings.dockerless-production"
+)
 
 application = get_wsgi_application()

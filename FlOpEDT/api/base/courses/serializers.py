@@ -35,7 +35,8 @@ class Department_TC_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.Department
-        fields = ['name', 'abbrev', 'id']
+        fields = ["name", "abbrev", "id"]
+
 
 class CourseTypeSimpleSerializer(serializers.Serializer):
     department = Department_TC_Serializer()
@@ -44,7 +45,8 @@ class CourseTypeSimpleSerializer(serializers.Serializer):
 
     class Meta:
         model = bm.CourseType
-        fields = ['name', 'department', 'duration']
+        fields = ["name", "department", "duration"]
+
 
 class ModuleDisplay_SC_Serializer(serializers.Serializer):
     color_bg = serializers.CharField()
@@ -52,7 +54,8 @@ class ModuleDisplay_SC_Serializer(serializers.Serializer):
 
     class Meta:
         model = dwm.ModuleDisplay
-        fields = ['color_bg', 'color_txt']
+        fields = ["color_bg", "color_txt"]
+
 
 class Module_SC_Serializer(serializers.Serializer):
     name = serializers.CharField()
@@ -61,7 +64,8 @@ class Module_SC_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.Module
-        fields = ['name', 'abbrev', 'display']
+        fields = ["name", "abbrev", "display"]
+
 
 class Group_SC_Serializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -71,14 +75,17 @@ class Group_SC_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.GenericGroup
-        fields = ['id', 'name', 'train_prog', 'is_structural']
+        fields = ["id", "name", "train_prog", "is_structural"]
+
 
 class TrainingPrograms_M_Serializer(serializers.Serializer):
     abbrev = serializers.CharField()
 
     class Meta:
         model = bm.TrainingProgramme
-        fields = ['abbrev', ]
+        fields = [
+            "abbrev",
+        ]
 
 
 class Period_M_Serializer(serializers.ModelSerializer):
@@ -93,13 +100,13 @@ class ModuleFullSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = bm.Module
-        fields = ['name', 'abbrev', 'head', 'ppn', 'url', 'train_prog', 'period']
+        fields = ["name", "abbrev", "head", "ppn", "url", "train_prog", "period"]
 
 
 class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = bm.Module
-        fields = ['name', 'abbrev', 'url']
+        fields = ["name", "abbrev", "url"]
 
 
 class Department_Name_Serializer(serializers.Serializer):
@@ -107,7 +114,7 @@ class Department_Name_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.Department
-        fields = ['name']
+        fields = ["name"]
 
 
 class CourseType_C_Serializer(serializers.Serializer):
@@ -116,21 +123,23 @@ class CourseType_C_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.CourseType
-        fields = ['name', 'department']
+        fields = ["name", "department"]
+
 
 class RoomType_SC_Serializer(serializers.Serializer):
     name = serializers.CharField()
 
     class Meta:
         model = bm.RoomType
-        fields = ['name']
+        fields = ["name"]
+
 
 class RoomType_C_Serializer(serializers.Serializer):
     name = serializers.CharField()
 
     class Meta:
         model = bm.RoomType
-        fields = ['name']
+        fields = ["name"]
 
 
 class Group_C_Serializer(serializers.Serializer):
@@ -138,7 +147,7 @@ class Group_C_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.StructuralGroup
-        fields = ['name']
+        fields = ["name"]
 
 
 class Module_C_Serializer(serializers.Serializer):
@@ -146,14 +155,14 @@ class Module_C_Serializer(serializers.Serializer):
 
     class Meta:
         model = bm.Module
-        fields = ['abbrev']
+        fields = ["abbrev"]
 
 
 class CoursesSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     type = CourseTypeSimpleSerializer()
     room_type = RoomType_SC_Serializer()
-    period_id = serializers.IntegerField(source='period.id')
+    period_id = serializers.IntegerField(source="period.id")
     groups = Group_SC_Serializer(many=True)
     tutor = serializers.CharField()
     supp_tutor = serializers.CharField()
@@ -164,9 +173,19 @@ class CoursesSerializer(serializers.Serializer):
 
     class Meta:
         model = bm.Course
-        fields = ['id', 'period_id', 'department', 'type',
-                  'room_type', 'tutor', 'supp_tutor', 'groups', 'module', 'modulesupp', 'pay_module']
-
+        fields = [
+            "id",
+            "period_id",
+            "department",
+            "type",
+            "room_type",
+            "tutor",
+            "supp_tutor",
+            "groups",
+            "module",
+            "modulesupp",
+            "pay_module",
+        ]
 
 
 class CourseTypeSerializer(serializers.ModelSerializer):
@@ -174,7 +193,7 @@ class CourseTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = bm.CourseType
-        fields = ['name', 'department']
+        fields = ["name", "department"]
 
 
 class CourseTypeNameSerializer(serializers.ModelSerializer):
@@ -182,5 +201,4 @@ class CourseTypeNameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = bm.CourseType
-        fields = ['name']
-
+        fields = ["name"]

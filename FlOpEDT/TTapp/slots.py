@@ -25,8 +25,12 @@
 
 import datetime as dt
 
-from base.models import (CourseAvailability, ScheduledCourse,
-                         TimeGeneralSettings, UserAvailability)
+from base.models import (
+    CourseAvailability,
+    ScheduledCourse,
+    TimeGeneralSettings,
+    UserAvailability,
+)
 from base.timing import Time, days_list, slot_pause
 
 midday = dt.time(12, 0, 0)
@@ -38,12 +42,12 @@ class Slot:
     def __init__(self, start_time: dt.datetime, end_time: dt.datetime, department=None):
         self.start_time = start_time
         self.end_time = end_time
-        self.department=department
+        self.department = department
 
     @property
     def date(self):
         return self.start_time.date()
-    
+
     @property
     def day(self):
         return self.date
@@ -51,7 +55,7 @@ class Slot:
     @property
     def duration(self):
         return self.end_time - self.start_time
-    
+
     @property
     def minutes(self):
         return self.duration.seconds // 60
@@ -65,10 +69,13 @@ class Slot:
             return Time.AM
 
     def __str__(self):
-        return (f"{self.date} de {self.start_time.time()} à {self.end_time.time()}")
+        return f"{self.date} de {self.start_time.time()} à {self.end_time.time()}"
 
     def has_same_day(self, other):
-        if isinstance(other, (Slot, CourseSlot, ScheduledCourse, UserAvailability, CourseAvailability)):         
+        if isinstance(
+            other,
+            (Slot, CourseSlot, ScheduledCourse, UserAvailability, CourseAvailability),
+        ):
             return self.date == other.date
 
         else:
@@ -78,7 +85,10 @@ class Slot:
             )
 
     def has_previous_day_than(self, other):
-        if isinstance(other, (Slot, CourseSlot, ScheduledCourse, UserAvailability, CourseAvailability)):
+        if isinstance(
+            other,
+            (Slot, CourseSlot, ScheduledCourse, UserAvailability, CourseAvailability),
+        ):
             return self.date < other.date
         else:
             raise TypeError(
@@ -103,23 +113,28 @@ class Slot:
 
     def get_day(self):
         return self.date
-    
+
     def same_through_periods(self, other):
         if isinstance(other, (Slot, ScheduledCourse)):
-            return self.date.weekday == other.date.weekday and self.start_time.time() == other.start_time.time() and self.duration == other.duration
+            return (
+                self.date.weekday == other.date.weekday
+                and self.start_time.time() == other.start_time.time()
+                and self.duration == other.duration
+            )
         else:
             raise TypeError(
                 "A slot can only be compared to another slot or a ScheduledCourse"
             )
-    
+
     def get_periods(self):
         raise NotImplementedError
 
 
 class CourseSlot(Slot):
-    def __init__(self, start_time: dt.datetime, duration:dt.timedelta, department=None):
+    def __init__(
+        self, start_time: dt.datetime, duration: dt.timedelta, department=None
+    ):
         Slot.__init__(self, start_time, start_time + duration, department)
-
 
     @property
     def apm(self):
@@ -133,18 +148,13 @@ class CourseSlot(Slot):
         else:
             return Time.AM
 
-
     def __str__(self):
         hours = self.start_time.hour
         minuts = self.start_time.minute
         if minuts == 0:
             minuts = ""
-        return (
-            str(self.department)
-            + "_"
-            + str(self.start_time)
-        )
-    
+        return str(self.department) + "_" + str(self.start_time)
+
     def get_periods(self):
         return self.department.periods()
 
@@ -169,13 +179,21 @@ def slots_filter(
     period__in=None,
     department=None,
     date=None,
-    date_in=None
+    date_in=None,
 ):
     slots = slot_set
     if period is not None:
-        slots = set(sl for sl in slots if period.start_date <= sl.date <= period.end_date)
+        slots = set(
+            sl for sl in slots if period.start_date <= sl.date <= period.end_date
+        )
     if period__in is not None:
-        slots = set(sl for sl in slots if any(period.start_date <= sl.date <= period.end_date for period in period__in))
+        slots = set(
+            sl
+            for sl in slots
+            if any(
+                period.start_date <= sl.date <= period.end_date for period in period__in
+            )
+        )
     if day is not None:
         slots = set(sl for sl in slots if sl.date == day)
     if day_in is not None:
@@ -214,13 +232,23 @@ def slots_filter(
 
 
 def days_filter(
-    days_set, index=None, index_in=None, period=None, period_in=None, weekday=None, weekday_in=None
+    days_set,
+    index=None,
+    index_in=None,
+    period=None,
+    period_in=None,
+    weekday=None,
+    weekday_in=None,
 ):
     days = days_set
     if period is not None:
         days = set(d for d in days if period.start_date <= d <= period.end_date)
     if period_in is not None:
-        days = set(d for d in days if any(period.start_date <= d <= period.end_date for period in period_in))
+        days = set(
+            d
+            for d in days
+            if any(period.start_date <= d <= period.end_date for period in period_in)
+        )
     if index is not None:
         days = set(d for d in days if d.weekday() == index)
     if index_in is not None:

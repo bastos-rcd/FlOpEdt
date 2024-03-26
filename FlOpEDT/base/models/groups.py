@@ -10,17 +10,17 @@ class Department(models.Model):
     @property
     def scheduling_mode(self):
         return self.mode.scheduling_mode
-    
 
     def scheduling_periods(self, exclude_empty=False):
-        scheduling_period_model = apps.get_model('base', 'SchedulingPeriod')
+        scheduling_period_model = apps.get_model("base", "SchedulingPeriod")
         result = scheduling_period_model.objects.filter(department=self)
         if not result.exists():
-            result =  scheduling_period_model.objects.filter(department=None, 
-                                                      mode=self.scheduling_mode)
+            result = scheduling_period_model.objects.filter(
+                department=None, mode=self.scheduling_mode
+            )
         if exclude_empty:
-            result = result.filter(course__type__department__abbrev='INFO').distinct()
-        return result.order_by('start_date')
+            result = result.filter(course__type__department__abbrev="INFO").distinct()
+        return result.order_by("start_date")
 
     class Meta:
         verbose_name = _("department")
@@ -118,7 +118,6 @@ class StructuralGroup(GenericGroup):
         ancestors = set(self.parent_groups.all())
 
         for gp in self.parent_groups.all():
-
             for new_gp in gp.ancestor_groups():
                 ancestors.add(new_gp)
 
@@ -156,9 +155,11 @@ class StructuralGroup(GenericGroup):
         """
         :return: the set of all TransversalGroup containing self
         """
-        return set(TransversalGroup.objects.filter(
-            conflicting_groups__in=self.connected_groups()
-        ))
+        return set(
+            TransversalGroup.objects.filter(
+                conflicting_groups__in=self.connected_groups()
+            )
+        )
 
     class Meta:
         verbose_name = _("structural group")
@@ -177,11 +178,11 @@ class TransversalGroup(GenericGroup):
         verbose_name_plural = _("transversal groups")
 
     def nb_of_courses(self, period):
-        course_model = apps.get_model('base', 'Course')
+        course_model = apps.get_model("base", "Course")
         return len(course_model.objects.filter(period=period, groups=self))
 
     def time_of_courses(self, period):
-        course_model = apps.get_model('base', 'Course')
+        course_model = apps.get_model("base", "Course")
         t = 0
         for c in course_model.objects.filter(period=period, groups=self):
             t += c.duration

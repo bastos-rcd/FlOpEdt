@@ -30,45 +30,53 @@ from TTapp.TimetableModel import GUROBI_NAME, TimetableModel
 
 
 class MyTimetableModel(TimetableModel):
-    def __init__(self, department_abbrev, periods,
-                 train_prog=None,
-                 major_to_stabilize=None,
-                 min_nps_i=1.,
-                 min_bhd_g=1.,
-                 min_bd_i=1.,
-                 min_bhd_i=1.,
-                 min_nps_c=1.,
-                 max_stab=5.,
-                 lim_ld=1.,
-                 core_only=False,
-                 send_mails=False,
-                 slots_step=None,
-                 keep_many_solution_files=False,
-                 min_visio=0.5,
-                 pre_assign_rooms=False,
-                 post_assign_rooms=True):
+    def __init__(
+        self,
+        department_abbrev,
+        periods,
+        train_prog=None,
+        major_to_stabilize=None,
+        min_nps_i=1.0,
+        min_bhd_g=1.0,
+        min_bd_i=1.0,
+        min_bhd_i=1.0,
+        min_nps_c=1.0,
+        max_stab=5.0,
+        lim_ld=1.0,
+        core_only=False,
+        send_mails=False,
+        slots_step=None,
+        keep_many_solution_files=False,
+        min_visio=0.5,
+        pre_assign_rooms=False,
+        post_assign_rooms=True,
+    ):
         """
         If you shall change something in the database ahead of creating the
         problem, you must write it here, before calling TimetableModel's constructor.
 
         """
-        TimetableModel.__init__(self, department_abbrev, periods,
-                         train_prog=train_prog,
-                         major_to_stabilize=major_to_stabilize,
-                         min_nps_i=min_nps_i,
-                         min_bhd_g=min_bhd_g,
-                         min_bd_i=min_bd_i,
-                         min_bhd_i=min_bhd_i,
-                         min_nps_c=min_nps_c,
-                         max_stab=max_stab,
-                         lim_ld=lim_ld,
-                         core_only=core_only,
-                         send_mails=send_mails,
-                         slots_step=slots_step,
-                         keep_many_solution_files=keep_many_solution_files,
-                         min_visio=min_visio,
-                         pre_assign_rooms=pre_assign_rooms,
-                         post_assign_rooms=post_assign_rooms)
+        TimetableModel.__init__(
+            self,
+            department_abbrev,
+            periods,
+            train_prog=train_prog,
+            major_to_stabilize=major_to_stabilize,
+            min_nps_i=min_nps_i,
+            min_bhd_g=min_bhd_g,
+            min_bd_i=min_bd_i,
+            min_bhd_i=min_bhd_i,
+            min_nps_c=min_nps_c,
+            max_stab=max_stab,
+            lim_ld=lim_ld,
+            core_only=core_only,
+            send_mails=send_mails,
+            slots_step=slots_step,
+            keep_many_solution_files=keep_many_solution_files,
+            min_visio=min_visio,
+            pre_assign_rooms=pre_assign_rooms,
+            post_assign_rooms=post_assign_rooms,
+        )
 
     def add_specific_constraints(self):
         """
@@ -78,28 +86,42 @@ class MyTimetableModel(TimetableModel):
         """
         TimetableModel.add_specific_constraints(self)
 
-    def solve(self, time_limit=None, target_version_nb=None,
-              solver=GUROBI_NAME, threads=None, ignore_sigint=True, send_gurobi_logs_email_to=None,
-              with_numerotation=True):
+    def solve(
+        self,
+        time_limit=None,
+        target_version_nb=None,
+        solver=GUROBI_NAME,
+        threads=None,
+        ignore_sigint=True,
+        send_gurobi_logs_email_to=None,
+        with_numerotation=True,
+    ):
         """
         If you shall add pre (or post) processing apps, you may write them down
         here.
         """
-        result_version_nb = TimetableModel.solve(self,
-                                         time_limit=time_limit,
-                                         target_major=target_version_nb,
-                                         solver=solver,
-                                         threads=threads,
-                                         ignore_sigint=ignore_sigint,
-                                         send_gurobi_logs_email_to=send_gurobi_logs_email_to)
+        result_version_nb = TimetableModel.solve(
+            self,
+            time_limit=time_limit,
+            target_major=target_version_nb,
+            solver=solver,
+            threads=threads,
+            ignore_sigint=ignore_sigint,
+            send_gurobi_logs_email_to=send_gurobi_logs_email_to,
+        )
 
         if result_version_nb is not None and self.major_to_stabilize is not None:
-            print_differences(self.department, self.periods,
-                              self.major_to_stabilize, target_version_nb, self.data.instructors)
+            print_differences(
+                self.department,
+                self.periods,
+                self.major_to_stabilize,
+                target_version_nb,
+                self.data.instructors,
+            )
 
         if with_numerotation:
-            number_courses(self.department, periods=self.periods,
-                           version_major=result_version_nb)
-            
-        return result_version_nb
+            number_courses(
+                self.department, periods=self.periods, version_major=result_version_nb
+            )
 
+        return result_version_nb

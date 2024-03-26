@@ -6,8 +6,7 @@ import base.models as bm
 import roomreservation.models as rm
 from api.fetch.serializers import IDRoomSerializer
 from api.people.serializers import ShortUsersSerializer
-from roomreservation.check_periodicity import (check_periodicity,
-                                               check_reservation)
+from roomreservation.check_periodicity import check_periodicity, check_reservation
 
 
 class PeriodicityField(serializers.Field):
@@ -15,8 +14,10 @@ class PeriodicityField(serializers.Field):
         return ReservationPeriodicitySerializer.get_data(value)
 
     def to_internal_value(self, data):
-        periodicity = data['periodicity']
-        serialized = ReservationPeriodicitySerializer.get_serializer(periodicity)(data=periodicity)
+        periodicity = data["periodicity"]
+        serialized = ReservationPeriodicitySerializer.get_serializer(periodicity)(
+            data=periodicity
+        )
         if serialized.is_valid():
             return serialized.validated_data
         raise ValidationError(serialized.errors)
@@ -33,49 +34,51 @@ class ReservationPeriodicitySerializer(serializers.Serializer):
 
     class Meta:
         model = rm.ReservationPeriodicity
-        fields = ['periodicity']
+        fields = ["periodicity"]
 
     @staticmethod
     def get_model(arg):
         if isinstance(arg, rm.ReservationPeriodicity):
             periodicity_type = arg.periodicity_type
-            if periodicity_type == 'BW':
+            if periodicity_type == "BW":
                 return rm.ReservationPeriodicityByWeek
-            if periodicity_type == 'BM':
+            if periodicity_type == "BM":
                 return rm.ReservationPeriodicityByMonth
-            if periodicity_type == 'EM':
+            if periodicity_type == "EM":
                 return rm.ReservationPeriodicityEachMonthSameDate
         if isinstance(arg, dict):
-            periodicity_type = arg['periodicity_type']
-            if periodicity_type == 'BW':
+            periodicity_type = arg["periodicity_type"]
+            if periodicity_type == "BW":
                 return rm.ReservationPeriodicityByWeek
-            if periodicity_type == 'BM':
+            if periodicity_type == "BM":
                 return rm.ReservationPeriodicityByMonth
-            if periodicity_type == 'EM':
+            if periodicity_type == "EM":
                 return rm.ReservationPeriodicityEachMonthSameDate
 
     @staticmethod
     def get_serializer(arg):
         if isinstance(arg, rm.ReservationPeriodicity):
             periodicity_type = arg.periodicity_type
-            if periodicity_type == 'BW':
+            if periodicity_type == "BW":
                 return ReservationPeriodicityByWeekSerializer
-            if periodicity_type == 'BM':
+            if periodicity_type == "BM":
                 return ReservationPeriodicityByMonthSerializer
-            if periodicity_type == 'EM':
+            if periodicity_type == "EM":
                 return ReservationPeriodicityEachMonthSameDateSerializer
         if isinstance(arg, dict):
-            periodicity_type = arg['periodicity_type']
-            if periodicity_type == 'BW':
+            periodicity_type = arg["periodicity_type"]
+            if periodicity_type == "BW":
                 return ReservationPeriodicityByWeekSerializer
-            if periodicity_type == 'BM':
+            if periodicity_type == "BM":
                 return ReservationPeriodicityByMonthSerializer
-            if periodicity_type == 'EM':
+            if periodicity_type == "EM":
                 return ReservationPeriodicityEachMonthSameDateSerializer
 
     @staticmethod
     def get_data(obj):
-        values = ReservationPeriodicitySerializer.get_model(obj).objects.filter(id=obj.id)
+        values = ReservationPeriodicitySerializer.get_model(obj).objects.filter(
+            id=obj.id
+        )
         if len(values) == 0:
             return {}
         return ReservationPeriodicitySerializer.get_serializer(obj)(values[0]).data
@@ -85,15 +88,17 @@ class ConflictError(ValidationError):
     status_code = status.HTTP_409_CONFLICT
 
 
-def create_reservations_if_possible(periodicity, original_reservation, create_repetitions: bool = False):
+def create_reservations_if_possible(
+    periodicity, original_reservation, create_repetitions: bool = False
+):
     # Run the verification
     check = check_periodicity(periodicity, original_reservation)
     # Get the reservations which do not conflict
-    ok_reservations = check['ok_reservations']
+    ok_reservations = check["ok_reservations"]
     # Get the reservations which conflict
-    nok_reservations = check['nok_reservations']
+    nok_reservations = check["nok_reservations"]
     # Get the verification status
-    are_reservations_all_possible = check['status'] == 'OK'
+    are_reservations_all_possible = check["status"] == "OK"
     if not are_reservations_all_possible:
         # There are conflicts
         if not create_repetitions:
@@ -110,33 +115,37 @@ def create_reservations_if_possible(periodicity, original_reservation, create_re
     # Get the corresponding periodicity model
     model = ReservationPeriodicitySerializer.get_model(periodicity)
     # Create a new periodicity instance
-    
-    
-    if periodicity['id'] < 0:
+
+    if periodicity["id"] < 0:
         # Generate a new ID if negative
-        periodicity.pop('id')
+        periodicity.pop("id")
         periodicity_instance = model.objects.create(**periodicity)
     else:
-        periodicity_instance = model.objects.get(id=periodicity['id'])
+        periodicity_instance = model.objects.get(id=periodicity["id"])
 
     # Create the future reservations
     for reservation in ok_reservations:
         # Ignore the current reservation in the list
-        if reservation['start_time'].date() != original_reservation['start_time'].date():
-            reservation['periodicity'] = periodicity_instance
+        if (
+            reservation["start_time"].date()
+            != original_reservation["start_time"].date()
+        ):
+            reservation["periodicity"] = periodicity_instance
             rm.RoomReservation.objects.create(**reservation)
     return periodicity_instance
 
 
 def check_reservation_possible(reservation):
     check = check_reservation(reservation)
-    if check['status'] == 'NOK':
+    if check["status"] == "NOK":
         # There are conflicts
-        raise ConflictError({
-            "periodicity": {
-                "nok_reservations": check['more'],
+        raise ConflictError(
+            {
+                "periodicity": {
+                    "nok_reservations": check["more"],
+                }
             }
-        })
+        )
 
 
 class RoomReservationSerializer(serializers.ModelSerializer):
@@ -145,37 +154,41 @@ class RoomReservationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         check_reservation_possible(validated_data)
-        periodicity = validated_data.pop('periodicity')
+        periodicity = validated_data.pop("periodicity")
         # Check if we should create repeated reservations
         create_repetitions = False
-        if 'create_repetitions' in validated_data:
-            create_repetitions = validated_data.pop('create_repetitions')
+        if "create_repetitions" in validated_data:
+            create_repetitions = validated_data.pop("create_repetitions")
 
         if periodicity:
             # Multiple reservations, try to create them
             # Get the internal periodicity data
-            periodicity = periodicity['periodicity']
+            periodicity = periodicity["periodicity"]
 
             # Create the reservations or inform the client
-            periodicity_instance = create_reservations_if_possible(periodicity, validated_data, create_repetitions)
+            periodicity_instance = create_reservations_if_possible(
+                periodicity, validated_data, create_repetitions
+            )
             # Store the instance to the reservation
-            validated_data['periodicity'] = periodicity_instance
-        room = validated_data['room']
+            validated_data["periodicity"] = periodicity_instance
+        room = validated_data["room"]
         reservation = rm.RoomReservation.objects.create(**validated_data)
         if rm.RoomReservationValidationEmail.objects.filter(room=room).exists():
-            validators = rm.RoomReservationValidationEmail.objects.get(room=room).validators.all()
-            responsible = validated_data['responsible']
-            date_str = validated_data['start_time'].date().strftime("%d/%m/%Y")
-            start_time_str = validated_data['start_time'].time().strftime("%Hh%m")
-            end_time_str = validated_data['end_time'].time().strftime("%Hh%m")
-            title = validated_data['title']
+            validators = rm.RoomReservationValidationEmail.objects.get(
+                room=room
+            ).validators.all()
+            responsible = validated_data["responsible"]
+            date_str = validated_data["start_time"].date().strftime("%d/%m/%Y")
+            start_time_str = validated_data["start_time"].time().strftime("%Hh%m")
+            end_time_str = validated_data["end_time"].time().strftime("%Hh%m")
+            title = validated_data["title"]
             url = ""
             subject = f"{room.name} réservée par {responsible.username} le {date_str}"
             message = f"{responsible.first_name} {responsible.last_name} a réservé la {room.name}"
             message += f" le {date_str} de {start_time_str} à {end_time_str} "
             if periodicity:
                 message += f"(et plusieurs autres jours aux mêmes horaires) "
-            message += f"en indiquant \"{title}\".\n\n"
+            message += f'en indiquant "{title}".\n\n'
             # TODO : tester le lien de suppression!
             if url:
                 if responsible.departments.exists():
@@ -185,23 +198,29 @@ class RoomReservationSerializer(serializers.ModelSerializer):
                 else:
                     department = bm.Department.objects.first()
                 if not periodicity:
-                    message += "Vous pouvez la supprimer en cliquant ici: " \
-                               f"{url}/fr/api/roomreservations/reservation/{reservation.id}/\n\n" \
-                               "Vous pouvez aussi la modifier/supprimer via l'interface de réservation : "\
-                               f"{url}/fr/roomreservation/{department.abbrev}/\n\n"
+                    message += (
+                        "Vous pouvez la supprimer en cliquant ici: "
+                        f"{url}/fr/api/roomreservations/reservation/{reservation.id}/\n\n"
+                        "Vous pouvez aussi la modifier/supprimer via l'interface de réservation : "
+                        f"{url}/fr/roomreservation/{department.abbrev}/\n\n"
+                    )
                 else:
-                    message += "Vous pouvez la modifier/supprimer via l'interface de réservation : "\
-                               f"{url}/fr/roomreservation/{department.abbrev}/\n\n"
-                    message += "NB : Dans la mesure où il s'agit d'une réservation sur plusieurs jours, il n'est pas " \
-                               "possible -pour l'instant- de les supprimer toutes par un lien cliquable. " \
-                               "Sur l'interface, par contre, vous pourrez les supprimez toutes d'un coup.\n\n"
+                    message += (
+                        "Vous pouvez la modifier/supprimer via l'interface de réservation : "
+                        f"{url}/fr/roomreservation/{department.abbrev}/\n\n"
+                    )
+                    message += (
+                        "NB : Dans la mesure où il s'agit d'une réservation sur plusieurs jours, il n'est pas "
+                        "possible -pour l'instant- de les supprimer toutes par un lien cliquable. "
+                        "Sur l'interface, par contre, vous pourrez les supprimez toutes d'un coup.\n\n"
+                    )
             message += "Message envoyé automatiquement par flop!EDT."
             for validator in validators:
                 email = EmailMessage(
                     subject=subject,
                     body=f"Bonjour {validator.first_name}\n \n" + message,
                     to=[validator.email],
-                    bcc=[]
+                    bcc=[],
                 )
                 email.send()
         return reservation
@@ -211,38 +230,42 @@ class RoomReservationSerializer(serializers.ModelSerializer):
         Updates the values of given RoomReservation.
         Cannot alter an existing periodicity, only add a new one or unlink it.
         """
-        instance.responsible = validated_data.get('responsible', instance.responsible)
-        instance.room = validated_data.get('room', instance.room)
-        instance.reservation_type = validated_data.get('reservation_type', instance.reservation_type)
-        instance.title = validated_data.get('title', instance.title)
-        instance.description = validated_data.get('description', instance.description)
-        instance.email = validated_data.get('email', instance.email)
-        instance.start_time = validated_data.get('start_time', instance.start_time)
-        instance.end_time = validated_data.get('end_time', instance.end_time)
+        instance.responsible = validated_data.get("responsible", instance.responsible)
+        instance.room = validated_data.get("room", instance.room)
+        instance.reservation_type = validated_data.get(
+            "reservation_type", instance.reservation_type
+        )
+        instance.title = validated_data.get("title", instance.title)
+        instance.description = validated_data.get("description", instance.description)
+        instance.email = validated_data.get("email", instance.email)
+        instance.start_time = validated_data.get("start_time", instance.start_time)
+        instance.end_time = validated_data.get("end_time", instance.end_time)
 
         # Periodicity process
         # Add the reservation id to ignore conflicts with its previous date
         reservation_data = validated_data
-        reservation_data['id'] = instance.id
+        reservation_data["id"] = instance.id
 
         # Check if we should create repeated reservations
         create_repetitions = False
-        if 'create_repetitions' in validated_data:
-            create_repetitions = validated_data.pop('create_repetitions')
+        if "create_repetitions" in validated_data:
+            create_repetitions = validated_data.pop("create_repetitions")
 
         # Get the periodicity
-        periodicity = validated_data.pop('periodicity', instance.periodicity)
+        periodicity = validated_data.pop("periodicity", instance.periodicity)
         if periodicity:
             # Has a periodicity
             # Get its data
-            periodicity = periodicity['periodicity']
-            if 'id' in periodicity and periodicity['id'] > 0:
+            periodicity = periodicity["periodicity"]
+            if "id" in periodicity and periodicity["id"] > 0:
                 # The changes do not concern the periodicity, check if they can be applied
                 check_reservation_possible(reservation_data)
             else:
                 # If 'id' is not in the periodicity or the id is present and negative that means a new periodicity
                 # for the reservation
-                periodicity_instance = create_reservations_if_possible(periodicity, reservation_data, create_repetitions)
+                periodicity_instance = create_reservations_if_possible(
+                    periodicity, reservation_data, create_repetitions
+                )
                 instance.periodicity = periodicity_instance
         else:
             # Does not have a periodicity, check if the reservation is possible
@@ -253,7 +276,7 @@ class RoomReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = rm.RoomReservation
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ShortRoomReservationSerializer(serializers.ModelSerializer):
@@ -262,13 +285,13 @@ class ShortRoomReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = rm.RoomReservation
-        fields = ('date', 'start_time', 'end_time', 'title', 'room', 'responsible')
+        fields = ("date", "start_time", "end_time", "title", "room", "responsible")
 
 
 class RoomReservationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = rm.RoomReservationType
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ReservationPeriodicityByWeekSerializer(serializers.ModelSerializer):
@@ -276,7 +299,7 @@ class ReservationPeriodicityByWeekSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = rm.ReservationPeriodicityByWeek
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ReservationPeriodicityEachMonthSameDateSerializer(serializers.ModelSerializer):
@@ -284,7 +307,7 @@ class ReservationPeriodicityEachMonthSameDateSerializer(serializers.ModelSeriali
 
     class Meta:
         model = rm.ReservationPeriodicityEachMonthSameDate
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ReservationPeriodicityByMonthSerializer(serializers.ModelSerializer):
@@ -292,4 +315,4 @@ class ReservationPeriodicityByMonthSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = rm.ReservationPeriodicityByMonth
-        fields = '__all__'
+        fields = "__all__"

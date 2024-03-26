@@ -27,9 +27,8 @@ from api.base.courses import views
 
 routerCourses = routers.SimpleRouter()
 
-routerCourses.register(r'module-full', views.ModuleFullViewSet)
-routerCourses.register(r'module', views.ModuleViewSet)
-routerCourses.register(r'type/name', views.CourseTypeNameViewSet, basename='type-name')
-routerCourses.register(r'type', views.CourseTypeViewSet, basename='type')
-routerCourses.register(r'courses', views.CoursesViewSet, basename="id")
-
+routerCourses.register(r"module-full", views.ModuleFullViewSet)
+routerCourses.register(r"module", views.ModuleViewSet)
+routerCourses.register(r"type/name", views.CourseTypeNameViewSet, basename="type-name")
+routerCourses.register(r"type", views.CourseTypeViewSet, basename="type")
+routerCourses.register(r"courses", views.CoursesViewSet, basename="id")

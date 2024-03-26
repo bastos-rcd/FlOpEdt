@@ -45,8 +45,8 @@ flop_config.read(os.environ.get("FLOP_CONFIG_FILE"))
 if "send_room_changes_to" not in flop_config:
     flop_config["send_room_changes_to"] = []
 else:
-    send_room_changes_to_str = flop_config['send_room_changes_to']
-    send_room_changes_to = send_room_changes_to_str.replace(' ', '').split(',')
+    send_room_changes_to_str = flop_config["send_room_changes_to"]
+    send_room_changes_to = send_room_changes_to_str.replace(" ", "").split(",")
 
 
 def backup():
@@ -60,33 +60,40 @@ def backup():
         b.save()
     print("Old backup conversion done")
     print("New backup started")
-    #Get week number by using isocalendar
+    # Get week number by using isocalendar
     today = dt.date.today()
     courses = Course.objects.filter(period__start_date__gte=today)
-    scheduled_courses = ScheduledCourse.objects.filter(version__major=0,
-                                                       course__in=courses)
+    scheduled_courses = ScheduledCourse.objects.filter(
+        version__major=0, course__in=courses
+    )
 
     for course in courses:
-        #Get all fields necessary for modification check
-        #A course can not be in ScheduledCourse
-        scheduled_course=scheduled_courses.filter(course=course)
+        # Get all fields necessary for modification check
+        # A course can not be in ScheduledCourse
+        scheduled_course = scheduled_courses.filter(course=course)
         if scheduled_course.exists():
             scheduled_course = scheduled_course[0]
             module = course.module.abbrev
             course_type = course.type
-            #Can have no tutor
-            tutor = scheduled_course.tutor.username if scheduled_course.tutor != None else None
-            #Can have no supp_tutors
-            supp_tutors = list(course.supp_tutor.all()) if course.supp_tutor != None else None
+            # Can have no tutor
+            tutor = (
+                scheduled_course.tutor.username
+                if scheduled_course.tutor != None
+                else None
+            )
+            # Can have no supp_tutors
+            supp_tutors = (
+                list(course.supp_tutor.all()) if course.supp_tutor != None else None
+            )
             start_time = scheduled_course.start_time
-            #Can have no room
+            # Can have no room
             room = scheduled_course.room.name if scheduled_course.room != None else None
-            #Multiple groups are possible for a single course
+            # Multiple groups are possible for a single course
             groups = list(course.groups.all())
             for group in groups:
                 train_prog = group.train_prog.abbrev
                 department = group.train_prog.department.abbrev
-                #Create a new BackUpModif object which represent the table used for backup, fill it and then save it
+                # Create a new BackUpModif object which represent the table used for backup, fill it and then save it
                 line = BackUpModif()
                 line.new = True
                 line.module_abbrev = module
@@ -100,7 +107,9 @@ def backup():
                 line.course_type_name = course_type
                 line.save()
     print("Backup done")
-    print("Number of courses saved : " + str(BackUpModif.objects.filter(new=True).count()))
+    print(
+        "Number of courses saved : " + str(BackUpModif.objects.filter(new=True).count())
+    )
 
 
 def check_changes(save_json_files=False):
@@ -109,8 +118,12 @@ def check_changes(save_json_files=False):
     news = new_backup - old_backup
     olds = old_backup - new_backup
     changes = olds | news
-    except_rooms_news = set(new for new in news if all([hash(new)!=hash(old) for old in olds]))
-    except_rooms_olds = set(old for old in olds if all([hash(old)!=hash(new) for new in news]))
+    except_rooms_news = set(
+        new for new in news if all([hash(new) != hash(old) for old in olds])
+    )
+    except_rooms_olds = set(
+        old for old in olds if all([hash(old) != hash(new) for new in news])
+    )
     except_rooms_changes = except_rooms_olds | except_rooms_news
 
     # Create two dict that will be save as JSON at the end
@@ -127,11 +140,11 @@ def check_changes(save_json_files=False):
     for change in except_rooms_changes:
         if change in olds:
             mode = "Deleted"
-            #Useful for translation
+            # Useful for translation
             gettext("Deleted")
         else:
             mode = "Created"
-            #Useful for translation
+            # Useful for translation
             gettext("Created")
         group = change.group_name
         department = change.department_abbrev
@@ -147,13 +160,15 @@ def check_changes(save_json_files=False):
             student_changes_dict[department][train_prog] = {}
         if group not in student_changes_dict[department][train_prog]:
             student_changes_dict[department][train_prog][group] = []
-        student_object = {gettext('Mode'): mode,
-                          gettext('Date'): start_time.date().strftime('%d/%m/%Y'),
-                          gettext('Start time'): start_time.time().strftime('%H:%M'),
-                          gettext('Course Type'): course_type,
-                          gettext('Module'): module,
-                          gettext('Tutor'): tutor_username,
-                          gettext('Room'): room}
+        student_object = {
+            gettext("Mode"): mode,
+            gettext("Date"): start_time.date().strftime("%d/%m/%Y"),
+            gettext("Start time"): start_time.time().strftime("%H:%M"),
+            gettext("Course Type"): course_type,
+            gettext("Module"): module,
+            gettext("Tutor"): tutor_username,
+            gettext("Room"): room,
+        }
         student_changes_dict[department][train_prog][group].append(student_object)
 
         # Store all changes for tutors
@@ -161,30 +176,33 @@ def check_changes(save_json_files=False):
             tutor_changes_dict[tutor_username] = {}
         if department not in tutor_changes_dict[tutor_username]:
             tutor_changes_dict[tutor_username][department] = []
-        tutor_object = {gettext('Mode'): mode,
-                        gettext('Date'): start_time.date().strftime('%d/%m/%Y'),
-                        gettext('Start time'): start_time.time().strftime('%H:%M'),
-                        gettext('Course Type'): course_type,
-                        gettext('Module'): module,
-                        gettext('Train_prog'): train_prog,
-                        gettext('Group'): group,
-                        gettext('Room'): room}
+        tutor_object = {
+            gettext("Mode"): mode,
+            gettext("Date"): start_time.date().strftime("%d/%m/%Y"),
+            gettext("Start time"): start_time.time().strftime("%H:%M"),
+            gettext("Course Type"): course_type,
+            gettext("Module"): module,
+            gettext("Train_prog"): train_prog,
+            gettext("Group"): group,
+            gettext("Room"): room,
+        }
         tutor_changes_dict[tutor_username][department].append(tutor_object)
 
     for change in changes:
         # Store all changes for rooms
         if room not in room_changes_dict:
             room_changes_dict[room] = []
-        room_object = {gettext('Mode'): mode,
-                       gettext('Date'): start_time.date().strftime('%d/%m/%Y'),
-                       gettext('Start time'): start_time.time().strftime('%H:%M'),
-                       gettext('Course Type'): course_type,
-                       gettext('Module'): module,
-                       gettext('Train_prog'): train_prog,
-                       gettext('Group'): group,
-                       gettext('Tutor'): tutor_username}
+        room_object = {
+            gettext("Mode"): mode,
+            gettext("Date"): start_time.date().strftime("%d/%m/%Y"),
+            gettext("Start time"): start_time.time().strftime("%H:%M"),
+            gettext("Course Type"): course_type,
+            gettext("Module"): module,
+            gettext("Train_prog"): train_prog,
+            gettext("Group"): group,
+            gettext("Tutor"): tutor_username,
+        }
         room_changes_dict[room].append(room_object)
-
 
         if save_json_files:
             # Save users changes as JSON
@@ -203,7 +221,7 @@ def check_changes(save_json_files=False):
 
 
 def days_nb_from_today(change):
-    string_date = change[gettext('Date')]
+    string_date = change[gettext("Date")]
     datetime_date = dt.datetime.strptime(string_date, "%d/%m/%Y").date()
     return (datetime_date - dt.date.today()).days
 
@@ -224,8 +242,8 @@ def send_notifications(send_rooms_changes_to=send_room_changes_to):
 
     outro_text = _(
         "This email is automatically generated by flop!Scheduler. To manage your notifications settings, "
-        "please <a href='%(url)s/edt/%(dept)s/semaine-type'> click here <a/>.") % {'url': 'url_of_your_website',
-                                                                                   'dept': department}
+        "please <a href='%(url)s/edt/%(dept)s/semaine-type'> click here <a/>."
+    ) % {"url": "url_of_your_website", "dept": department}
 
     for tutor_username, tutor_dic in tutor_changes_dict.items():
         if tutor_username is None:
@@ -239,31 +257,44 @@ def send_notifications(send_rooms_changes_to=send_room_changes_to):
         filtered_changes = {}
         total_filtered_changes = []
         for department, changes in tutor_dic.items():
-            filtered_changes[department] = [change for change in changes
-                                            if 0 <= days_nb_from_today(change) <= nb_of_notified_days]
+            filtered_changes[department] = [
+                change
+                for change in changes
+                if 0 <= days_nb_from_today(change) <= nb_of_notified_days
+            ]
             total_filtered_changes += filtered_changes[department]
         if not total_filtered_changes:
             continue
         intro_text = _("Hi ") + tutor.first_name + ",<br /> <br />"
-        intro_text += _("Here are the changes of your planning for the %g following days :") % nb_of_notified_days
+        intro_text += (
+            _("Here are the changes of your planning for the %g following days :")
+            % nb_of_notified_days
+        )
         intro_text += "<br /> <br />"
         html_msg = ""
         for department in tutor_dic:
             dept_changes = filtered_changes[department]
             if not dept_changes:
                 continue
-            dept_changes.sort(key=lambda x: (x[gettext('Date')], x[gettext('Start time')]))
+            dept_changes.sort(
+                key=lambda x: (x[gettext("Date")], x[gettext("Start time")])
+            )
             html_msg += _("For the department %s :") % department + "<br />"
             html_msg += html_table_with_changes(dept_changes)
-        send_changes_email(subject, intro_text, html_msg, outro_text, to_email=tutor.email)
+        send_changes_email(
+            subject, intro_text, html_msg, outro_text, to_email=tutor.email
+        )
 
     students = set()
 
     for dept_abbrev in student_changes_dict:
         for train_prog in student_changes_dict[dept_abbrev]:
             for group_name in student_changes_dict[dept_abbrev][train_prog]:
-                group = GenericGroup.objects.get(name=group_name, train_prog__abbrev=train_prog,
-                                                 train_prog__department__abbrev=dept_abbrev)
+                group = GenericGroup.objects.get(
+                    name=group_name,
+                    train_prog__abbrev=train_prog,
+                    train_prog__department__abbrev=dept_abbrev,
+                )
                 students |= set(group.student_set.all())
 
     for student in students:
@@ -275,22 +306,39 @@ def send_notifications(send_rooms_changes_to=send_room_changes_to):
             continue
         nb_of_notified_days = 7 * nb_of_notified_weeks
         intro_text = _("Hi ") + student.first_name + ",<br /> <br />"
-        intro_text += _("Here are the changes of your planning for the %g following days :") % nb_of_notified_days
+        intro_text += (
+            _("Here are the changes of your planning for the %g following days :")
+            % nb_of_notified_days
+        )
         intro_text += "<br /> <br />"
         groups = student.generic_groups.all()
         department = groups[0].train_prog.department.abbrev
         student_changes = []
         for group in groups:
-            if group.name in student_changes_dict[group.train_prog.department.abbrev][group.train_prog.abbrev]:
-                student_changes += student_changes_dict[group.train_prog.department.abbrev][group.train_prog.abbrev][group.name]
+            if (
+                group.name
+                in student_changes_dict[group.train_prog.department.abbrev][
+                    group.train_prog.abbrev
+                ]
+            ):
+                student_changes += student_changes_dict[
+                    group.train_prog.department.abbrev
+                ][group.train_prog.abbrev][group.name]
 
-        filtered_changes = [change for change in student_changes
-                            if 0 <= days_nb_from_today(change) <= nb_of_notified_days]
+        filtered_changes = [
+            change
+            for change in student_changes
+            if 0 <= days_nb_from_today(change) <= nb_of_notified_days
+        ]
         if not filtered_changes:
             continue
-        filtered_changes.sort(key=lambda x: (x[gettext('Date')], x[gettext('Start time')]))
+        filtered_changes.sort(
+            key=lambda x: (x[gettext("Date")], x[gettext("Start time")])
+        )
         html_msg = html_table_with_changes(filtered_changes)
-        send_changes_email(subject, intro_text, html_msg, outro_text, to_email=student.email)
+        send_changes_email(
+            subject, intro_text, html_msg, outro_text, to_email=student.email
+        )
 
     # Send changes for rooms
     subject = "[flop!Scheduler] Changes on rooms planning"
@@ -301,7 +349,15 @@ def send_notifications(send_rooms_changes_to=send_room_changes_to):
     for room_name, room_dic in room_changes_dict.items():
         html_msg += "For the room %s :" % room_name + "<br />"
         html_msg += html_table_with_changes(room_dic)
-    send_changes_email(subject, intro_text, html_msg, outro_text, to_email=send_rooms_changes_to, fail_silently=True)
+    send_changes_email(
+        subject,
+        intro_text,
+        html_msg,
+        outro_text,
+        to_email=send_rooms_changes_to,
+        fail_silently=True,
+    )
+
 
 def html_table_with_changes(filtered_changes):
     msg = "<table>"
@@ -309,7 +365,7 @@ def html_table_with_changes(filtered_changes):
     msg += f"<tr> "
     for title in list(titles):
         msg += f"<th> {_(title)} </th>"
-    msg+= "</tr>\n"
+    msg += "</tr>\n"
     for fc in filtered_changes:
         values = list(fc.values())
         mode = values[0]
@@ -322,7 +378,15 @@ def html_table_with_changes(filtered_changes):
     return msg
 
 
-def send_changes_email(subject, intro_text, html_msg, outro_text, to_email, from_email="", fail_silently=False):
+def send_changes_email(
+    subject,
+    intro_text,
+    html_msg,
+    outro_text,
+    to_email,
+    from_email="",
+    fail_silently=False,
+):
     if type(to_email) == str:
         to_email_list = [to_email]
     if type(to_email) == list:
@@ -350,4 +414,11 @@ def send_changes_email(subject, intro_text, html_msg, outro_text, to_email, from
          </html>
          """
     plain_message = strip_tags(html_message)
-    send_mail(subject, plain_message, from_email, to_email_list, html_message=html_message, fail_silently=fail_silently)
+    send_mail(
+        subject,
+        plain_message,
+        from_email,
+        to_email_list,
+        html_message=html_message,
+        fail_silently=fail_silently,
+    )

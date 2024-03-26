@@ -5,19 +5,24 @@ django.setup()
 from django.db.models import Q
 
 from base.models import Department, Week
+
 # end
-from TTapp.deprecated_tests.tools_test_pre_analyse.constraint_test_case import \
-    ConstraintTestCase
-from TTapp.TimetableConstraints.slots_constraints import (ConsiderDependencies,
-                                                          SimultaneousCourses)
+from TTapp.deprecated_tests.tools_test_pre_analyse.constraint_test_case import (
+    ConstraintTestCase,
+)
+from TTapp.TimetableConstraints.slots_constraints import (
+    ConsiderDependencies,
+    SimultaneousCourses,
+)
 
 # In this python file we test (class by class) pre_analyse's function for constraints in slots_constraints.py and assert
 # the correct result is returned
 
+
 class ConsiderDependenciesTestCase(ConstraintTestCase):
     # In this class, we consider the relation between TD and TP as TD has to be given before TP
 
-    fixtures = ['data_test_constraints.json']
+    fixtures = ["data_test_constraints.json"]
 
     def setUp(self):
         # Set constraint's type
@@ -29,7 +34,9 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
         self.dep_2 = Department.objects.get(abbrev="Dept2")
 
         # Constraints by departments
-        self.constraint_default_dep = ConsiderDependencies.objects.get(department=self.default_dep)
+        self.constraint_default_dep = ConsiderDependencies.objects.get(
+            department=self.default_dep
+        )
         self.constraint_dep_2 = ConsiderDependencies.objects.get(department=self.dep_2)
 
         # Weeks
@@ -42,24 +49,29 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
         self.week_19_2022 = Week.objects.get(year=2022, nb=19)
         self.week_20_2022 = Week.objects.get(year=2022, nb=20)
 
-
     def test_OK_case(self):
         # Test 1 : OK case : "bibiTU" has one TD and one TP to do (which last 2 hours and 1h30), they must be successive
         #          and "bibiTU" is only available on wednesday between 6 and 10 o'clock am,
         #          TD must start at 6 am and TP must start at 8 am, it is OK.
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_13_2022)
+        json_response_dict = self.constraint_default_dep.pre_analyse(
+            week=self.week_13_2022
+        )
         self.assertJsonResponseIsOK("1", json_response_dict)
 
         # Test 2 : OK case : "bibiTU" has one TD and one TP to do (which last 2 hours and 1h30), they must be done in the same day
         #          and "bibiTU" is only available on wednesday between 8 and 10 o'clock am and between 2 and 4 o'clock pm,
         #          TD must start at 8 am and TP must start at 2 pm, it is OK.
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_14_2022)
+        json_response_dict = self.constraint_default_dep.pre_analyse(
+            week=self.week_14_2022
+        )
         self.assertJsonResponseIsOK("2", json_response_dict)
 
         # Test 3 : OK case : "bibiTU" has one TD and one TP to do (which last 2 hours and 1h30), they must be done on different days
         #          and "bibiTU" is only available on wednesday between 8 and 10 o'clock am and thursday between 2 and 4 o'clock pm,
         #          TD must start at 8 am and TP must start at 2 pm, it is OK.
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_15_2022)
+        json_response_dict = self.constraint_default_dep.pre_analyse(
+            week=self.week_15_2022
+        )
         self.assertJsonResponseIsOK("3", json_response_dict)
 
     def test_consider_tutors_unavailabilities(self):
@@ -74,7 +86,9 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
         #          on monday afternoon and on tuesday, wednesday, thursday, friday mornings,
         #          TD must start at 8 am and TP must start at 2 pm,
         #          so "bibiTU" can not assure TD before TP.
-        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_16_2022)
+        json_response_dict = self.constraint_default_dep.pre_analyse(
+            week=self.week_16_2022
+        )
         self.assertJsonResponseIsKO("5", json_response_dict)
 
     def test_consider_supp_tutors_unavailabilities(self):
@@ -91,7 +105,6 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
         json_response_dict = self.constraint_dep_2.pre_analyse(week=self.week_20_2022)
         self.assertJsonResponseIsKO("7", json_response_dict)
 
-
     def test_consider_NoTutorCourseOnDay_constraints(self):
         # Test 8 : KO case : TD6 has to be done before TD7, "bibiTU" and "Prof1" are the supp tutors for TD6,
         #          "bibiTU" and "Prof2" are the supp tutors for TD7, "bibiTU" can handle the 2 courses
@@ -101,9 +114,9 @@ class ConsiderDependenciesTestCase(ConstraintTestCase):
         json_response_dict = self.constraint_dep_2.pre_analyse(week=self.week_19_2022)
         self.assertJsonResponseIsKO("8", json_response_dict)
 
-class SimultaneousCoursesTestCase(ConstraintTestCase):
 
-    fixtures = ['data_test_constraints_SimultaneousCourses.json']
+class SimultaneousCoursesTestCase(ConstraintTestCase):
+    fixtures = ["data_test_constraints_SimultaneousCourses.json"]
 
     def setUp(self):
         # Set constraint's type
@@ -119,19 +132,21 @@ class SimultaneousCoursesTestCase(ConstraintTestCase):
         self.week_3_2022 = Week.objects.get(year=2022, nb=3)
 
         # Constraints by departments
-        self.constraint_default_dep1 = SimultaneousCourses.objects.filter(Q(weeks=self.week_1_2022)& Q(department=self.default_dep))
-        self.constraint_default_dep2 = SimultaneousCourses.objects.filter(Q(weeks=self.week_2_2022)& Q(department=self.default_dep))
-        self.constraint_default_dep3 = SimultaneousCourses.objects.filter(Q(weeks=self.week_3_2022)& Q(department=self.default_dep))
-
-
-
-
+        self.constraint_default_dep1 = SimultaneousCourses.objects.filter(
+            Q(weeks=self.week_1_2022) & Q(department=self.default_dep)
+        )
+        self.constraint_default_dep2 = SimultaneousCourses.objects.filter(
+            Q(weeks=self.week_2_2022) & Q(department=self.default_dep)
+        )
+        self.constraint_default_dep3 = SimultaneousCourses.objects.filter(
+            Q(weeks=self.week_3_2022) & Q(department=self.default_dep)
+        )
 
     def test_OK_case(self):
         # Test 1 : OK case : Many groups/tutors doing courses simultaneously :
         #                    01-2022 TD1/TD2
         #                    01-2022 TD2/TP11/TP12
-        for c in self.constraint_default_dep1 :
+        for c in self.constraint_default_dep1:
             json_response_dict = c.pre_analyse(week=self.week_1_2022)
             self.assertJsonResponseIsOK("1", json_response_dict)
 

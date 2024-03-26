@@ -18,7 +18,6 @@ def mock_add_tt_to_db(target_work_copy):
 
 
 class TimetableModelTestCase(TestCase):
-
     fixtures = ["dump.json"]
 
     @property

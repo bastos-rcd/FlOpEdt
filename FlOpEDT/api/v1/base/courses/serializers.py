@@ -28,8 +28,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 import base.models as bm
-from api.v1.base.modification.serializers import \
-    TimetableVersionShortSerializer
+from api.v1.base.modification.serializers import TimetableVersionShortSerializer
 
 #                             ------------------------------                            #
 #                             ----Scheduled Courses (SC)----                            #
@@ -119,6 +118,3 @@ class ModulesFullSerializer(serializers.ModelSerializer):
             "description",
             "ppn",
         )
-
-
-

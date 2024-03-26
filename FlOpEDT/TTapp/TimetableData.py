@@ -7,14 +7,30 @@ import logging
 from django.db.models import Q
 
 import base.queries as queries
-from base.models import (Course, CourseAdditional, CourseAvailability,
-                         CoursePossibleTutors, CourseStartTimeConstraint,
-                         Dependency, Holiday, Module, ModulePossibleTutors,
-                         ModuleTutorRepartition, Pivot, Room,
-                         RoomPonderation, RoomSort, RoomType,
-                         ScheduledCourse, StructuralGroup, TimeGeneralSettings, TrainingHalfDay,
-                         TransversalGroup)
+from base.models import (
+    Course,
+    CourseAdditional,
+    CourseAvailability,
+    CoursePossibleTutors,
+    CourseStartTimeConstraint,
+    Dependency,
+    Holiday,
+    Module,
+    ModulePossibleTutors,
+    ModuleTutorRepartition,
+    Pivot,
+    Room,
+    RoomPonderation,
+    RoomSort,
+    RoomType,
+    ScheduledCourse,
+    StructuralGroup,
+    TimeGeneralSettings,
+    TrainingHalfDay,
+    TransversalGroup,
+)
 from base.models.availability import period_actual_availabilities
+
 # This file is part of the FlOpEDT/FlOpScheduler project.
 # Copyright (c) 2017
 # Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.
@@ -88,9 +104,11 @@ class TimetableData(object):
             self.other_departments_sched_courses_for_avail_slot,
         ) = self.courses_for_avail_slot_init()
         if self.department.mode.visio:
-            self.visio_courses, self.no_visio_courses, self.visio_ponderation = (
-                self.visio_init()
-            )
+            (
+                self.visio_courses,
+                self.no_visio_courses,
+                self.visio_ponderation,
+            ) = self.visio_init()
         (
             self.room_types,
             self.used_room_types,
@@ -131,12 +149,13 @@ class TimetableData(object):
             self.other_departments_scheduled_courses_for_tutor,
             self.physical_presence_days_for_tutor,
         ) = self.users_init()
-        self.possible_tutors, self.possible_modules, self.possible_courses = (
-            self.possible_courses_tutor_init()
-        )
+        (
+            self.possible_tutors,
+            self.possible_modules,
+            self.possible_courses,
+        ) = self.possible_courses_tutor_init()
 
     def days_init(self):
-
         all_days = set()
         for period in self.periods:
             all_days |= set(period.dates())
@@ -736,7 +755,6 @@ class TimetableData(object):
         return possible_tutors, possible_modules, possible_courses
 
     def visio_init(self):
-
         visio_courses = set()
         no_visio_courses = set()
         visio_ponderation = {c: 1 for c in self.courses}

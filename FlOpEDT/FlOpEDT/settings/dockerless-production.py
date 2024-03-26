@@ -22,32 +22,30 @@
 # without disclosing the source code of your own applications.
 
 
-STATIC_ROOT = '/var/www/edt/static/'
+STATIC_ROOT = "/var/www/edt/static/"
 
-SECRET_KEY = 'your_secret_key'
+SECRET_KEY = "your_secret_key"
 
 DEBUG = False
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'flop_database',
-        'USER': 'flop_user',
-        'PASSWORD': 'your_password',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "flop_database",
+        "USER": "flop_user",
+        "PASSWORD": "your_password",
+        "HOST": "127.0.0.1",
+        "PORT": "5432",
     }
 }
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
+    "default": {
+        "BACKEND": "django.core.cache.backends.memcached.MemcachedCache",
+        "LOCATION": "127.0.0.1:11211",
     }
 }
 
 SECURE_SSL_REDIRECT = True
 
-CRONJOBS = [
-    ('0 4 * * *', 'notifications.cron.backup_and_notify')
-]
+CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]

@@ -54,7 +54,9 @@ class ConstraintType(Enum):
     COURS_DOIT_ETRE_PLACE = "Le cours doit être placé"
     COURS_DOIT_AVOIR_PROFESSEUR = "Le cours doit avoir un professeur"
     PRE_ASSIGNED_TUTORS_ONLY = "PRE_ASSIGNED_TUTORS_ONLY"
-    PROFESSEUR_NE_PEUT_DONNER_2_COURS_EN_MEME_TEMPS = "Le professeur ne peut pas donner 2 cours en même temps"
+    PROFESSEUR_NE_PEUT_DONNER_2_COURS_EN_MEME_TEMPS = (
+        "Le professeur ne peut pas donner 2 cours en même temps"
+    )
     CORE_ROOMS = "Core rooms"
     SUPP_TUTOR = "Supp tutor"
 
@@ -68,8 +70,12 @@ class ConstraintType(Enum):
     PIVOT = "Pivot"
     DEPENDANCE_SALLE = "Problème de dépendance entre les salles"
     DEPARTEMENT_BLOQUE_SLOT = "Les autres départements bloquent le slot"
-    PROFESSEUR_A_DEJA_COURS_EN_AUTRE_DEPARTEMENT = "Le professeur a déjà un cours dans un autre département"
-    PROFESSEUR_A_DEJA_COURS_EN_AUTRE_DEPARTEMENT_IBD = "Le professeur a déjà un cours dans un autre département IBD"
+    PROFESSEUR_A_DEJA_COURS_EN_AUTRE_DEPARTEMENT = (
+        "Le professeur a déjà un cours dans un autre département"
+    )
+    PROFESSEUR_A_DEJA_COURS_EN_AUTRE_DEPARTEMENT_IBD = (
+        "Le professeur a déjà un cours dans un autre département IBD"
+    )
     MODULETUTORREPARTITION = "Module Tutor Repartition"
     ROOMTYPE_BOUND = "ROOMTYPE_BOUND"
 
@@ -87,7 +93,6 @@ class ConstraintType(Enum):
     HAS_VISIO = "HAS_VISIO"
     CURFEW = "CURFEW"
 
-
     # From iut
     MAX_HOURS_PER_DAY = "Max hours per day"
     MIN_HOURS_PER_DAY = "Min hours per day"
@@ -99,11 +104,19 @@ class ConstraintType(Enum):
     QUATRE_JOURS_AU_MOINS_POUR_IC = "4 jours au moins pour IC"
     SPECIFICITE_PDU = "spécificites PDU"
     REU_PEDA = "reu peda"
-    SI_AJ_A_PLUS_DE_3_CRENEAUX_IL_PREFERE_VENIR_2_JOURS_DIFFERENT = "Si AJ a plus de 3 creneaux, il préfère venir 2 jours differents"
-    VG_ET_AO_SONT_TOUJOURS_DANS_LA_MEME_SALLE = "VG et AO sont toujours dans la même salle"
+    SI_AJ_A_PLUS_DE_3_CRENEAUX_IL_PREFERE_VENIR_2_JOURS_DIFFERENT = (
+        "Si AJ a plus de 3 creneaux, il préfère venir 2 jours differents"
+    )
+    VG_ET_AO_SONT_TOUJOURS_DANS_LA_MEME_SALLE = (
+        "VG et AO sont toujours dans la même salle"
+    )
     SEMAINE_REU_PEDAGOGIQUE_OU_EQUIPE = "Semaine de réunion pédagogique ou d'équipe"
-    CDU_VEUT_VENIR_1_JOUR_ENTIER_QUAND_6_CRENEAUX = "CDU veut venir une journée entière quand il a 6 créneaux"
-    CDU_VEUT_VENIR_1_JOUR_ENTIER_QUAND_7_CRENEAUX = "CDU veut venir une journée entière quand il a 7 créneaux"
+    CDU_VEUT_VENIR_1_JOUR_ENTIER_QUAND_6_CRENEAUX = (
+        "CDU veut venir une journée entière quand il a 6 créneaux"
+    )
+    CDU_VEUT_VENIR_1_JOUR_ENTIER_QUAND_7_CRENEAUX = (
+        "CDU veut venir une journée entière quand il a 7 créneaux"
+    )
     SEMAINE_3_EXAM_ISI = "Semaine 3 exam d'ISI"
     SEMAINE_5_MODULE_PR_GROUPE_1_4 = "Semaine 5 module PR groupe 1 et 4"
     PTUT_NO_COURSES = "PTUT_no_Courses"
@@ -119,11 +132,21 @@ class ConstraintType(Enum):
     SIMUL_FAKE = "Simul fake"
     PAS_COURS_LUNDI_8H_GIM2 = "pas de cours lundi 8h pour GIM2"
     PAS_PLUS_SEANCE_MEME_MODULE_PAR_JOUR = "Pas plus de seance du meme module par jour"
-    SEMAINE_2_COURS_NBE_PPP3_VENDREDI = "semaine 2 Les cours de NBE de PPP3 sont le vendredi"
-    SEMAINE_6_COURS_DBE_PPP2_LUNDI_MATIN = "semaine 6 Les cours de DBE et PPP2 sont le lundi matin"
-    SEMAINE_6_COURS_CPR_PPP2_LUNDI_MATIN = "semaine 6 Les cours de CPR et PPP2 sont le lundi matin"
-    SEMAINE_6_COURS_MPH_PPP2_JEUDI_APRES_MIDI = "semaine 6 Les cours de MPH et PPP2 sont le jeudi après-midi"
-    SEMAINE_6_COURS_EPI_PPP2_MARDI_MATIN = "semaine 6 Les cours de EPI et PPP2 sont le mardi matin"
+    SEMAINE_2_COURS_NBE_PPP3_VENDREDI = (
+        "semaine 2 Les cours de NBE de PPP3 sont le vendredi"
+    )
+    SEMAINE_6_COURS_DBE_PPP2_LUNDI_MATIN = (
+        "semaine 6 Les cours de DBE et PPP2 sont le lundi matin"
+    )
+    SEMAINE_6_COURS_CPR_PPP2_LUNDI_MATIN = (
+        "semaine 6 Les cours de CPR et PPP2 sont le lundi matin"
+    )
+    SEMAINE_6_COURS_MPH_PPP2_JEUDI_APRES_MIDI = (
+        "semaine 6 Les cours de MPH et PPP2 sont le jeudi après-midi"
+    )
+    SEMAINE_6_COURS_EPI_PPP2_MARDI_MATIN = (
+        "semaine 6 Les cours de EPI et PPP2 sont le mardi matin"
+    )
     TECH_MARDI_APREM = "Tech le mardi aprem"
     PAS_PLUS_5_CRENEAU = "Pas_plus_de_5_creneau"
     G1_G2_COURS_MEME_JOUR = "G1 et G2 ont cours le meme jour"
@@ -194,16 +217,16 @@ class ConstraintType(Enum):
     PAUSE_APRES_NUIT = "PAUSE_APRES_NUIT"
     PAS_TROP_D_HEURES = "Pas trop d'heures par jours glissants"
     PAS_TROP_DE_NUITS = "Pas trop de nuits par jours glissants"
-    TECHNICAL_WE = 'TECHNICAL_WE'
-    ASSEZ_DE_WE = 'ASSEZ_DE_WE libres'
-    ASSEZ_DE_quasiWE = 'ASSEZ_DE_quasiWE libres '
-    ASSEZ_DE_WE_OU_QUASI = 'ASSEZ_DE_WE_OU_QUASI libres'
-    ASSEZ_DE_dimanches = 'Assez dimanches travaillés'
-    PAS_TROP_DE_dimanches = 'Pas trop de dimanches travaillés'
-    ASSEZ_DE_SAMEDIS = 'Assez de samedis travaillés'
-    PAS_TROP_DE_SAMEDIS = 'Pas trop de samedis travaillés'
-    ASSEZ_DE_SAMEDIS_ET_DIM = 'Assez de samedis/dimanches travaillés'
-    PAS_TROP_DE_SAMEDIS_ET_DIM = 'Pas trop de samedis/dimanches travaillés'
+    TECHNICAL_WE = "TECHNICAL_WE"
+    ASSEZ_DE_WE = "ASSEZ_DE_WE libres"
+    ASSEZ_DE_quasiWE = "ASSEZ_DE_quasiWE libres "
+    ASSEZ_DE_WE_OU_QUASI = "ASSEZ_DE_WE_OU_QUASI libres"
+    ASSEZ_DE_dimanches = "Assez dimanches travaillés"
+    PAS_TROP_DE_dimanches = "Pas trop de dimanches travaillés"
+    ASSEZ_DE_SAMEDIS = "Assez de samedis travaillés"
+    PAS_TROP_DE_SAMEDIS = "Pas trop de samedis travaillés"
+    ASSEZ_DE_SAMEDIS_ET_DIM = "Assez de samedis/dimanches travaillés"
+    PAS_TROP_DE_SAMEDIS_ET_DIM = "Pas trop de samedis/dimanches travaillés"
     GARDES_DE_24H = "GARDES_DE_24H"
     AU_MOINS_UNE_GARDE = "AU_MOINS_UNE_GARDE"
     AU_PLUS_DEUX_GARDES = "AU_PLUS_DEUX_GARDES"

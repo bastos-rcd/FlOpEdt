@@ -35,10 +35,11 @@ class MinModulesHalfDays(TimetableConstraint):
     """
     All courses will fit in a minimum of half days
     """
-    modules = models.ManyToManyField('base.Module', blank=True)
+
+    modules = models.ManyToManyField("base.Module", blank=True)
 
     class Meta:
-        verbose_name = _('Minimize used half-days for modules')
+        verbose_name = _("Minimize used half-days for modules")
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
@@ -51,10 +52,12 @@ class MinModulesHalfDays(TimetableConstraint):
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.modules.exists():
-            details.update({'modules': ', '.join([module.abbrev for module in self.modules.all()])})
+            details.update(
+                {"modules": ", ".join([module.abbrev for module in self.modules.all()])}
+            )
 
         return view_model
 
@@ -62,13 +65,15 @@ class MinModulesHalfDays(TimetableConstraint):
         text = "Minimise les demie-journées"
 
         if self.modules.exists():
-            text += ' de : ' + ', '.join([str(module) for module in self.modules.all()])
+            text += " de : " + ", ".join([str(module) for module in self.modules.all()])
         else:
             text += "de chaque module"
 
         if self.train_progs.exists():
-            text += ' de ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+            text += " de " + ", ".join(
+                [train_prog.abbrev for train_prog in self.train_progs.all()]
+            )
         else:
-            text += ' pour toutes les promos.'
+            text += " pour toutes les promos."
 
         return text

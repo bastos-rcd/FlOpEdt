@@ -2,7 +2,6 @@ import pytest
 from rest_framework.status import is_success
 
 
-
 class TestTimetableVersion:
     endpoint = "/fr/api/v1/base/courses/version/"
 

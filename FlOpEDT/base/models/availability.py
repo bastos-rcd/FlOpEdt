@@ -45,12 +45,9 @@ class Availability(models.Model):
     @property
     def start_date(self):
         return self.start_time.date()
-    
 
     def is_simultaneous_to(self, other):
         return self.start_time < other.end_time and self.end_time > other.start_time
-      
-
 
     def __str__(self):
         return (

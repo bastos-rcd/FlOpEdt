@@ -30,10 +30,19 @@ from import_export import fields, resources
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
 from base.admin import DepartmentModelAdminMixin
-from people.models import (BIATOS, FullStaff, GroupPreferences,
-                           PhysicalPresence, Student, StudentPreferences,
-                           SupplyStaff, Tutor, User, UserDepartmentSettings,
-                           UserPreferredLinks)
+from people.models import (
+    BIATOS,
+    FullStaff,
+    GroupPreferences,
+    PhysicalPresence,
+    Student,
+    StudentPreferences,
+    SupplyStaff,
+    Tutor,
+    User,
+    UserDepartmentSettings,
+    UserPreferredLinks,
+)
 
 
 class UserDepartmentInline(admin.TabularInline):
@@ -41,30 +50,34 @@ class UserDepartmentInline(admin.TabularInline):
 
 
 class UserModelAdmin(DepartmentModelAdminMixin, UserAdmin):
-
     inlines = [
         UserDepartmentInline,
     ]
 
-    readonly_fields= ('last_login', 'date_joined',)
+    readonly_fields = (
+        "last_login",
+        "date_joined",
+    )
 
     def get_inline_instances(self, request, obj=None):
         """
-        This hooks is used to hide department edition 
+        This hooks is used to hide department edition
         when a department admin session is active
         """
         instances = super().get_inline_instances(request, obj)
 
-        if hasattr(request, 'department'):
-            instances = [i for i in instances if not isinstance(i, UserDepartmentInline)]
-                
+        if hasattr(request, "department"):
+            instances = [
+                i for i in instances if not isinstance(i, UserDepartmentInline)
+            ]
+
         return instances
 
     def get_department_lookup(self, department):
         """
         Hook for overriding default department lookup research
         """
-        return {'departments': department}
+        return {"departments": department}
 
     def save_model(self, request, obj, form, change):
         #
@@ -72,9 +85,10 @@ class UserModelAdmin(DepartmentModelAdminMixin, UserAdmin):
         #
         super().save_model(request, obj, form, change)
 
-        if hasattr(request, 'department') and not change:
+        if hasattr(request, "department") and not change:
             UserDepartmentSettings.objects.create(
-                department=request.department, user=obj, is_main=True)
+                department=request.department, user=obj, is_main=True
+            )
 
     def get_fieldsets(self, request, obj=None):
         """
@@ -85,67 +99,80 @@ class UserModelAdmin(DepartmentModelAdminMixin, UserAdmin):
         # Remove Permissions fieldsets for non superuser
         if not request.user.is_superuser:
             for fs in fieldsets:
-                if not fs[0] == 'Permissions':
+                if not fs[0] == "Permissions":
                     updated_fieldsets.append(fs)
 
             fieldsets = list(updated_fieldsets)
         return tuple(fieldsets)
 
     class Meta:
-        app_label = 'auth'
+        app_label = "auth"
 
 
 class TutorResource(resources.ModelResource):
-
     class Meta:
         model = Tutor
         fields = ("username", "first_name", "last_name", "email")
 
 
 class StudentPreferencesResource(resources.ModelResource):
+    student_username = fields.Field(
+        column_name="student_username",
+        attribute="student",
+        widget=ForeignKeyWidget("Student", "username"),
+    )
 
-    student_username = fields.Field(column_name='student_username',
-                                    attribute='student',
-                                    widget=ForeignKeyWidget('Student', 'username'))
-
-    student_group = fields.Field(column_name='student_group',
-                                 attribute='student',
-                                 widget=ForeignKeyWidget('Student', 'generic_groups'))
+    student_group = fields.Field(
+        column_name="student_group",
+        attribute="student",
+        widget=ForeignKeyWidget("Student", "generic_groups"),
+    )
 
     class Meta:
         model = StudentPreferences
-        fields = ("student_username", "student_group",
-                  "morning_weight", "free_half_day_weight")
+        fields = (
+            "student_username",
+            "student_group",
+            "morning_weight",
+            "free_half_day_weight",
+        )
 
 
 class GroupPreferencesResource(resources.ModelResource):
+    train_prog = fields.Field(
+        column_name="train_prog",
+        attribute="group",
+        widget=ForeignKeyWidget("Group", "train_prog"),
+    )
 
-    train_prog = fields.Field(column_name='train_prog',
-                              attribute='group',
-                              widget=ForeignKeyWidget('Group', 'train_prog'))
-
-    group = fields.Field(column_name='group_name',
-                         attribute='group',
-                         widget=ForeignKeyWidget('Group', 'name'))
+    group = fields.Field(
+        column_name="group_name",
+        attribute="group",
+        widget=ForeignKeyWidget("Group", "name"),
+    )
 
     class Meta:
         model = GroupPreferences
-        fields = ("train_prog", "group", "morning_weight",
-                  "free_half_day_weight")
+        fields = ("train_prog", "group", "morning_weight", "free_half_day_weight")
 
 
 class UserPreferredLinksResource(resources.ModelResource):
-    links = fields.Field(column_name='links',
-                         attribute='links',
-                         widget=ManyToManyWidget('base.Enrichedlink',
-                                                 field='concatenated',
-                                                 separator='|'))
-    user = fields.Field(column_name='user',
-                        attribute='user',
-                        widget=ForeignKeyWidget('people.User', 'username'))
+    links = fields.Field(
+        column_name="links",
+        attribute="links",
+        widget=ManyToManyWidget(
+            "base.Enrichedlink", field="concatenated", separator="|"
+        ),
+    )
+    user = fields.Field(
+        column_name="user",
+        attribute="user",
+        widget=ForeignKeyWidget("people.User", "username"),
+    )
+
     class Meta:
         model = UserPreferredLinks
-        fields = ('user', 'links')
+        fields = ("user", "links")
 
 
 class UserPreferredLinksAdmin(admin.ModelAdmin):
@@ -153,14 +180,15 @@ class UserPreferredLinksAdmin(admin.ModelAdmin):
 
 
 class PhysicalPresenceResource(resources.ModelResource):
-    user = fields.Field(column_name='user',
-                        attribute='user',
-                        widget=ForeignKeyWidget('people.User', 'username'))
+    user = fields.Field(
+        column_name="user",
+        attribute="user",
+        widget=ForeignKeyWidget("people.User", "username"),
+    )
 
     class Meta:
         model = PhysicalPresence
-        fields = ('user', 'day', 'week', 'year')
-    
+        fields = ("user", "day", "week", "year")
 
 
 admin.site.register(FullStaff, UserModelAdmin)

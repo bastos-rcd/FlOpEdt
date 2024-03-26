@@ -33,19 +33,35 @@ from random import choice
 from django.conf import settings as ds
 from django.db import IntegrityError, transaction
 
-from base.models import (CourseStartTimeConstraint, CourseType,
-                         Department, GenericGroup, GroupType, Mode, Module,
-                         Room, RoomType, StructuralGroup, TimeGeneralSettings,
-                         TrainingPeriod, TrainingProgramme, TransversalGroup)
-from configuration.database_description_checker import \
-    database_description_check
-from configuration.database_description_xlsx import \
-    database_description_load_xlsx_file
+from base.models import (
+    CourseStartTimeConstraint,
+    CourseType,
+    Department,
+    GenericGroup,
+    GroupType,
+    Mode,
+    Module,
+    Room,
+    RoomType,
+    StructuralGroup,
+    TimeGeneralSettings,
+    TrainingPeriod,
+    TrainingProgramme,
+    TransversalGroup,
+)
+from configuration.database_description_checker import database_description_check
+from configuration.database_description_xlsx import database_description_load_xlsx_file
 from displayweb.models import TrainingProgrammeDisplay
-from people.models import (FullStaff, SupplyStaff, Tutor, TutorPreference,
-                           UserDepartmentSettings)
+from people.models import (
+    FullStaff,
+    SupplyStaff,
+    Tutor,
+    TutorPreference,
+    UserDepartmentSettings,
+)
 
-logger = logging.getLogger('base')
+logger = logging.getLogger("base")
+
 
 @transaction.atomic
 def extract_database_file(
@@ -53,9 +69,8 @@ def extract_database_file(
     department_abbrev=None,
     bookname=None,
     book=None,
-    fill_default_availabilities=True
+    fill_default_availabilities=True,
 ):
-
     # Test department existence
     department, created = Department.objects.get_or_create(
         name=department_name, abbrev=department_abbrev
@@ -85,35 +100,43 @@ def extract_database_file(
     if len(check) > 0:
         raise Exception("\n".join(check))
 
-    settings_extract(department, book['settings'])
-    rooms_extract(department, book['room_groups'], book['room_categories'], book['rooms'])
-    groups_extract(department, book['promotions'], book['group_types'], book['groups'], book['transversal_groups'])
-    people_extract(department, book['people'], fill_default_availabilities)
-    modules_extract(department, book['modules'])
-    course_types_extract(department, book['course_types'])
-    course_start_time_constraints_extract(department, book['course_start_time_constraints'])
+    settings_extract(department, book["settings"])
+    rooms_extract(
+        department, book["room_groups"], book["room_categories"], book["rooms"]
+    )
+    groups_extract(
+        department,
+        book["promotions"],
+        book["group_types"],
+        book["groups"],
+        book["transversal_groups"],
+    )
+    people_extract(department, book["people"], fill_default_availabilities)
+    modules_extract(department, book["modules"])
+    course_types_extract(department, book["course_types"])
+    course_start_time_constraints_extract(
+        department, book["course_start_time_constraints"]
+    )
 
 
 def people_extract(department, people, fill_default_availabilities=True):
-
     logger.info("People extraction : start")
     for id_, person in people.items():
-
         tutor = Tutor.objects.filter(username=id_)
         if tutor.exists():
-            del person['status']
+            del person["status"]
             del person["employer"]
             tutor.update(**person)
-            tutor=tutor.get()
-            UserDepartmentSettings.objects.get_or_create(department=department, user=tutor)
+            tutor = tutor.get()
+            UserDepartmentSettings.objects.get_or_create(
+                department=department, user=tutor
+            )
             if fill_default_availabilities:
-                pass # FIXME : we should split user availabilities in here!
+                pass  # FIXME : we should split user availabilities in here!
             logger.debug(f"update tutor : '{id_}'")
 
         else:
-
             try:
-
                 if person["status"] == "Permanent":
                     del person["employer"]
                     tutor = FullStaff(username=id_, **person)
@@ -134,13 +157,12 @@ def people_extract(department, people, fill_default_availabilities=True):
                     ie,
                 )
             else:
-                logger.info(f'create tutor with id:{id_}')
+                logger.info(f"create tutor with id:{id_}")
 
     logger.info("People extraction : finish")
 
 
 def rooms_extract(department, room_groups, room_categories, rooms):
-
     logger.info("Room extraction : start")
 
     # Create temporary RoomType for import purposes. This type
@@ -154,7 +176,6 @@ def rooms_extract(department, room_groups, room_categories, rooms):
     )
 
     for cat_id in room_categories.keys():
-
         try:
             RoomType.objects.get_or_create(department=department, name=cat_id)
         except IntegrityError as ie:
@@ -163,7 +184,6 @@ def rooms_extract(department, room_groups, room_categories, rooms):
             )
 
     for id_ in rooms:
-
         try:
             room, _ = Room.objects.get_or_create(name=id_)
             room.types.add(temporary_room_type)
@@ -175,7 +195,6 @@ def rooms_extract(department, room_groups, room_categories, rooms):
             )
 
     for group_id, members in room_groups.items():
-
         try:
             room_group, _ = Room.objects.get_or_create(name=group_id)
             room_group.types.add(temporary_room_type)
@@ -201,7 +220,6 @@ def rooms_extract(department, room_groups, room_categories, rooms):
                 logger.warning(f"Unable to find room '{room_id}'")
 
     for cat_id, members in room_categories.items():
-
         room_type = RoomType.objects.get(department=department, name=cat_id)
         for member in members:
             try:
@@ -224,11 +242,9 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
 
     logger.info("Groups extraction : start")
     for id_, name in promotions.items():
-
         verif = TrainingProgramme.objects.filter(abbrev=id_, department=department)
 
         if not verif.exists():
-
             try:
                 promotion = TrainingProgramme(
                     department=department, name=name, abbrev=id_
@@ -242,11 +258,9 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
                 pass  # FIXME: continue?
 
     for id_ in group_types:
-
         verif = GroupType.objects.filter(name=id_, department=department)
 
         if not verif.exists():
-
             try:
                 group_type = GroupType(name=id_, department=department)
                 group_type.save()
@@ -259,15 +273,12 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
 
     # first loop on groups just to create them - it's too early to set the parents
     for (promotion_id, id_), group in groups.items():
-
         verif = StructuralGroup.objects.filter(
             name=id_, train_prog__abbrev=promotion_id, train_prog__department=department
         )
 
         if not verif.exists():
-
             try:
-
                 promotion = TrainingProgramme.objects.get(
                     abbrev=promotion_id, department=department
                 )
@@ -293,9 +304,7 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
     # second loop, set the parents
 
     for (promotion_id, id_), group in groups.items():
-
         for parent in group["parent"]:
-
             parent_group = StructuralGroup.objects.get(
                 name=parent,
                 train_prog__abbrev=promotion_id,
@@ -310,7 +319,6 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
             group.save()
 
     for g in StructuralGroup.objects.all():
-
         isbasic = True
 
         for g1 in StructuralGroup.objects.all():
@@ -323,15 +331,12 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
 
     # first loop on transversal groups just to create them - it's too early to set relatives
     for (promotion_id, id_), transversal_group in transversal_groups.items():
-
         verif = TransversalGroup.objects.filter(
             name=id_, train_prog__abbrev=promotion_id, train_prog__department=department
         )
 
         if not verif.exists():
-
             try:
-
                 promotion = TrainingProgramme.objects.get(
                     abbrev=promotion_id, department=department
                 )
@@ -367,7 +372,6 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
             t_g.save()
 
         for group in transversal_group["parallel_to"]:
-
             parallel_group = TransversalGroup.objects.get(
                 name=group,
                 train_prog__abbrev=promotion_id,
@@ -380,10 +384,8 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
 
 
 def modules_extract(department, modules):
-
     logger.info("Modules extraction : start")
     for id_, module in modules.items():
-
         verif = Module.objects.filter(
             abbrev=id_,
             train_prog__abbrev=module["promotion"],
@@ -392,7 +394,6 @@ def modules_extract(department, modules):
         )
 
         if not verif.exists():
-
             promotion = TrainingProgramme.objects.get(
                 abbrev=module["promotion"], department=department
             )
@@ -402,7 +403,6 @@ def modules_extract(department, modules):
             )
 
             try:
-
                 module = Module(
                     name=module["name"],
                     abbrev=id_,
@@ -425,18 +425,14 @@ def modules_extract(department, modules):
 def course_types_extract(department, course_types):
     logger.info("Courses extraction : start")
     for id_, cours in course_types.items():
-        verif = CourseType.objects.filter(
-            name=id_, department=department
-        )
+        verif = CourseType.objects.filter(name=id_, department=department)
 
         if not verif.exists():
             try:
                 graded = False
                 if cours["graded"] == "Oui":
                     graded = True
-                course_type = CourseType(
-                    name=id_, department=department, graded=graded
-                )
+                course_type = CourseType(name=id_, department=department, graded=graded)
                 course_type.save()
 
                 for id_group in cours["group_types"]:
@@ -445,7 +441,6 @@ def course_types_extract(department, course_types):
                     course_type.save()
 
             except IntegrityError as ie:
-
                 logger.warning(
                     f"A constraint has not been respected creating the course type {id_} : {ie}"
                 )
@@ -464,17 +459,19 @@ def course_start_time_constraints_extract(department, course_start_time_constrai
         if not verif.exists():
             try:
                 time_constraint = CourseStartTimeConstraint(
-                    allowed_start_times=list(cstc['start_times']),department=department, duration=duration
+                    allowed_start_times=list(cstc["start_times"]),
+                    department=department,
+                    duration=duration,
                 )
                 time_constraint.save()
 
             except IntegrityError as ie:
-
                 logger.warning(
                     f"A constraint has not been respected creating the constraint of duration {duration_str} : {ie}"
                 )
     logger.info("Courses extraction : finish")
-    
+
+
 def convert_time(value):
     """
     Return an integer value from a time (hh:mm:ss) formated value
@@ -485,7 +482,6 @@ def convert_time(value):
 
 
 def settings_extract(department: Department, settings):
-
     logger.info("Settings extraction : start")
     modes = settings["mode"]
     verif = Mode.objects.filter(department=department)
@@ -505,24 +501,26 @@ def settings_extract(department: Department, settings):
         )
         logger.info("Mode has been created")
 
-
     for id_, (start_date, end_date) in settings["training_periods"].items():
-        considered_scheduling_periods = department.scheduling_periods().filter(end_date__gte=start_date, start_date__lte=end_date)
+        considered_scheduling_periods = department.scheduling_periods().filter(
+            end_date__gte=start_date, start_date__lte=end_date
+        )
 
         verif = TrainingPeriod.objects.filter(department=department, name=id_)
-        
+
         if verif.exists():
             training_period = verif[0]
             if set(training_period.periods.all()) != set(considered_scheduling_periods):
                 training_period.periods.set(considered_scheduling_periods)
-                logger.info(f" Training_period {id_}' scheduling periods have been updated")
+                logger.info(
+                    f" Training_period {id_}' scheduling periods have been updated"
+                )
         else:
             try:
-                training_period = TrainingPeriod.objects.create(name=id_,
-                                                                department=department
-                                                                )
+                training_period = TrainingPeriod.objects.create(
+                    name=id_, department=department
+                )
                 training_period.periods.set(considered_scheduling_periods)
-
 
             except IntegrityError as ie:
                 logger.warning(

@@ -28,12 +28,15 @@ import datetime as dt
 
 from django.db.models import Q
 
-from base.models import (ModulePossibleTutors, ScheduledCourse,
-                         SchedulingPeriod, TimeGeneralSettings)
+from base.models import (
+    ModulePossibleTutors,
+    ScheduledCourse,
+    SchedulingPeriod,
+    TimeGeneralSettings,
+)
 from base.models.availability import period_actual_availabilities
-from base.timing import (Day, TimeInterval, days_index, time_to_floptime)
-from TTapp.TimetableConstraints.no_course_constraints import \
-    NoTutorCourseOnWeekDay
+from base.timing import Day, TimeInterval, days_index, time_to_floptime
+from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 
 
 class Partition(object):
@@ -147,7 +150,9 @@ class Partition(object):
                     dt.datetime(
                         day.year, day.month, day.day, start_hours, start_minutes, 0
                     ),
-                    dt.datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
+                    dt.datetime(
+                        day.year, day.month, day.day, end_hours, end_minutes, 0
+                    ),
                 ),
                 "lunch_break",
                 {"forbidden": True, "lunch_break": True},
@@ -159,7 +164,9 @@ class Partition(object):
                     dt.datetime(
                         day.year, day.month, day.day, start_hours, start_minutes, 0
                     ),
-                    dt.datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
+                    dt.datetime(
+                        day.year, day.month, day.day, end_hours, end_minutes, 0
+                    ),
                 ),
                 "lunch_break",
                 {"forbidden": True, "lunch_break": True},
@@ -260,7 +267,9 @@ class Partition(object):
             self.add_slot(
                 TimeInterval(
                     dt.datetime(day.year, day.month, day.day, 0, 0, 0),
-                    dt.datetime(day.year, day.month, day.day, start_hours, start_minutes),
+                    dt.datetime(
+                        day.year, day.month, day.day, start_hours, start_minutes
+                    ),
                 ),
                 "night_time",
                 {"forbidden": True, "night_time": True},
@@ -268,7 +277,9 @@ class Partition(object):
         while day < self.intervals[len(self.intervals) - 1][0].end:
             self.add_slot(
                 TimeInterval(
-                    dt.datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
+                    dt.datetime(
+                        day.year, day.month, day.day, end_hours, end_minutes, 0
+                    ),
                     dt.datetime(
                         (day + dt.timedelta(days=1)).year,
                         (day + dt.timedelta(days=1)).month,
@@ -323,7 +334,6 @@ class Partition(object):
         nb_slots = 0
 
         for interval in self.intervals:
-
             # For each start time we look for a slot
 
             if interval[1]["available"] and not interval[1]["forbidden"]:
@@ -336,7 +346,6 @@ class Partition(object):
 
                 if slot_duration == 0:
                     for st in start_times:
-
                         # We look if the current start time is not in a slot already computed
 
                         if start + st > time_already_use:
@@ -409,7 +418,6 @@ class Partition(object):
         nb_slots = 0
 
         for interval in self.intervals:
-
             # For each start time we look for a slot
 
             if not interval[1]["forbidden"]:
@@ -422,7 +430,6 @@ class Partition(object):
 
                 if slot_duration == 0:
                     for st in start_times:
-
                         # We look if the current start time is not in a slot already computed
 
                         if start + st > time_already_use:
@@ -809,7 +816,9 @@ class Partition(object):
                     self.intervals[interval_index][1][key] = value
 
     @staticmethod
-    def get_partition_of_period(period:SchedulingPeriod, department, with_day_time=False, available=False):
+    def get_partition_of_period(
+        period: SchedulingPeriod, department, with_day_time=False, available=False
+    ):
         """Considering a period and a department we built and return a partition with minimum data in it
         Complexity on O(1)
 
@@ -864,7 +873,9 @@ class Partition(object):
             )
 
     @staticmethod
-    def get_other_department_scheduled_courses(period:SchedulingPeriod, department, tutor=None, room=None):
+    def get_other_department_scheduled_courses(
+        period: SchedulingPeriod, department, tutor=None, room=None
+    ):
         """Retrieve all scheduled courses for the other departments
         Complexity on O(1)
 
@@ -887,7 +898,9 @@ class Partition(object):
             ).exclude(course__type__department=department)
 
     @staticmethod
-    def get_available_partition_for_course(course, period:SchedulingPeriod, department):
+    def get_available_partition_for_course(
+        course, period: SchedulingPeriod, department
+    ):
         """Build and returns a partition with all available intervals and data for a specific course.
         Complexity on O(i) with i being the size of the partition.
 
@@ -922,7 +935,13 @@ class Partition(object):
         if course.supp_tutor is not None:
             required_supp_1 = set(course.supp_tutor.all())
 
-        D1 = set(ua for possible_tutor in possible_tutors_1 for ua in period_actual_availabilities(period, possible_tutor, avail_only=True) )
+        D1 = set(
+            ua
+            for possible_tutor in possible_tutors_1
+            for ua in period_actual_availabilities(
+                period, possible_tutor, avail_only=True
+            )
+        )
 
         if D1:
             # Retrieving constraints for days were tutors shouldn't be working
@@ -949,7 +968,7 @@ class Partition(object):
             # Adding all user preferences to the partition
             for up in D1:
                 period_partition.add_slot(
-                    TimeInterval(up.start_time,up.end_time),
+                    TimeInterval(up.start_time, up.end_time),
                     "user_preference",
                     {"value": up.value, "available": True, "tutor": up.user},
                 )
@@ -969,7 +988,9 @@ class Partition(object):
 
             if required_supp_1:
                 # Retrieving and adding user preferences for the required tutors
-                RUS1 = period_actual_availabilities(period, required_supp_1, avail_only=True)
+                RUS1 = period_actual_availabilities(
+                    period, required_supp_1, avail_only=True
+                )
 
                 for up in RUS1:
                     period_partition.add_slot(

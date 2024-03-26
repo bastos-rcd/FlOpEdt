@@ -27,16 +27,14 @@ SECRET_KEY = "your_secret_key"
 DEBUG = True
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'flop_database_apiv1',
-        'USER': 'flop_user',
-        'PASSWORD': 'your_password',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-        'TEST': {
-            'NAME': 'flop_pytest'
-        }
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "flop_database_apiv1",
+        "USER": "flop_user",
+        "PASSWORD": "your_password",
+        "HOST": "127.0.0.1",
+        "PORT": "5432",
+        "TEST": {"NAME": "flop_pytest"},
     }
 }
 

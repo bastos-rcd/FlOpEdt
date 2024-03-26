@@ -7,18 +7,18 @@ from core.decorators import timer
 @timer
 def all_room_types_subsets_with_corresponding_basic_rooms(room_types_query_set):
     RT = room_types_query_set
-    result = {'new': {}, 'old': {}}
+    result = {"new": {}, "old": {}}
 
     # Initialization: for each room_type, create a rt_tuple that unites all room_types
     # that have basic_rooms included in rt.basic_rooms()
     for rt in RT:
         basic_rooms = rt.basic_rooms()
         rt_set = {rt}
-        for rt2 in set(RT)-{rt}:
+        for rt2 in set(RT) - {rt}:
             if rt2.basic_rooms().issubset(basic_rooms):
                 rt_set.add(rt2)
         rt_tuple = convert_rt_set_to_sorted_tuple(rt_set)
-        result['new'][rt_tuple] = basic_rooms
+        result["new"][rt_tuple] = basic_rooms
 
     # Then unit tuples that have common AND distinct rooms in a new tuple
     again = True
@@ -33,22 +33,30 @@ def all_room_types_subsets_with_corresponding_basic_rooms(room_types_query_set):
                 basic_rooms_rt_tuple2 = result["new"][rt_tuple2]
                 intersection = basic_rooms_rt_tuple1 & basic_rooms_rt_tuple2
                 # if basic_rooms are included one in one_other, or disjoints : do nothing
-                if intersection in [basic_rooms_rt_tuple1, basic_rooms_rt_tuple2, set()]:
+                if intersection in [
+                    basic_rooms_rt_tuple1,
+                    basic_rooms_rt_tuple2,
+                    set(),
+                ]:
                     continue
                 # else, create a new rt_tuple that unite previous ones, and unite basic_rooms
                 else:
                     new_rt_tuple = unite_two_rt_tuples(rt_tuple1, rt_tuple2)
-                    result["new"][new_rt_tuple] = basic_rooms_rt_tuple1 | basic_rooms_rt_tuple2
+                    result["new"][new_rt_tuple] = (
+                        basic_rooms_rt_tuple1 | basic_rooms_rt_tuple2
+                    )
                     again = True
 
     # Finally, join tuples that have same basic rooms
-    final_result = join_rt_tuples_in_dict_if_same_rooms(result['old'])
+    final_result = join_rt_tuples_in_dict_if_same_rooms(result["old"])
 
     return final_result
 
 
 @timer
-def room_types_subsets_with_ponderations_for_constraints(room_types_subsets_with_corresponding_basic_rooms):
+def room_types_subsets_with_ponderations_for_constraints(
+    room_types_subsets_with_corresponding_basic_rooms,
+):
     RTS = room_types_subsets_with_corresponding_basic_rooms
     result = {}
     for room_types_tuple in RTS:
@@ -56,17 +64,18 @@ def room_types_subsets_with_ponderations_for_constraints(room_types_subsets_with
         if not basic_rooms:
             result[room_types_tuple] = list(1 for _ in room_types_tuple)
         else:
-            result[room_types_tuple] = list(max(len(room.basic_rooms() & basic_rooms)
-                                                for room in rt.members.all())
-                                            for rt in room_types_tuple)
+            result[room_types_tuple] = list(
+                max(len(room.basic_rooms() & basic_rooms) for room in rt.members.all())
+                for rt in room_types_tuple
+            )
     return result
 
 
 @transaction.atomic
 @timer
-def register_ponderations_in_database(department,
-                                      only_used_room_types=True,
-                                      delete_unused_room_types=False):
+def register_ponderations_in_database(
+    department, only_used_room_types=True, delete_unused_room_types=False
+):
     RoomPonderation.objects.filter(department=department).delete()
     room_types_query_set = RoomType.objects.filter(department=department)
     room_types_to_update = room_types_query_set
@@ -76,7 +85,9 @@ def register_ponderations_in_database(department,
     ARTS = all_room_types_subsets_with_corresponding_basic_rooms(room_types_to_update)
     RTSWP = room_types_subsets_with_ponderations_for_constraints(ARTS)
     for rtswp in RTSWP:
-        RP = RoomPonderation.objects.create(department=department, room_types=[rt.id for rt in rtswp])
+        RP = RoomPonderation.objects.create(
+            department=department, room_types=[rt.id for rt in rtswp]
+        )
         RP.ponderations = RTSWP[rtswp]
         RP.save()
     print(f"{len(RTSWP)} rooms ponderations created in database")

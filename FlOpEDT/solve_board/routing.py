@@ -28,6 +28,6 @@ from django.conf.urls import url
 from . import consumers
 
 websocket_urlpatterns = [
-    url(r'^solver/$', consumers.SolverConsumer),
-#(?P<timestamp>[0-9-]+)?
+    url(r"^solver/$", consumers.SolverConsumer),
+    # (?P<timestamp>[0-9-]+)?
 ]

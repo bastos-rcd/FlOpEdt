@@ -27,8 +27,13 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import exceptions, mixins, viewsets
 
 import base.models as bm
-from api.shared.params import (dept_id_param, from_date_param, room_id_param,
-                               to_date_param, user_id_param)
+from api.shared.params import (
+    dept_id_param,
+    from_date_param,
+    room_id_param,
+    to_date_param,
+    user_id_param,
+)
 from api.v1.availability import serializers
 from base.rules import can_view_user_availability
 
@@ -37,7 +42,6 @@ class DatedAvailabilityListViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-
     class Meta:
         abstract = True
 
@@ -82,7 +86,6 @@ class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     serializer_class = serializers.RoomAvailabilitySerializer
 
     def get_queryset(self):
-
         if getattr(self, "swagger_fake_view", False):
             return bm.RoomAvailability.objects.none()
 
@@ -118,7 +121,6 @@ class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     serializer_class = serializers.UserAvailabilitySerializer
 
     def get_queryset(self):
-
         if getattr(self, "swagger_fake_view", False):
             return bm.UserAvailability.objects.none()
 
