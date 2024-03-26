@@ -1,8 +1,11 @@
 import datetime
+from unittest.mock import Mock, patch
+
 from django.test import TestCase
-from unittest.mock import patch, Mock
+
 from base.core.period_weeks import PeriodWeeks
 from base.models import Department
+
 
 class PeriodWeeksTestCase(TestCase):   
    

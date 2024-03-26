@@ -24,39 +24,20 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import string, logging
-
-from django.db import transaction
-from openpyxl import load_workbook
-
+import logging
+import string
 from random import choice
 
+from django.db import IntegrityError, transaction
+from openpyxl import load_workbook
+
+from base.models import (CourseAvailability, CourseStartTimeConstraint,
+                         CourseType, Day, Department, GroupType, Module, Room,
+                         RoomType, StructuralGroup, Time, TimeGeneralSettings,
+                         TrainingPeriod, TrainingProgramme, UserAvailability)
 from displayweb.models import TrainingProgrammeDisplay
-
-from base.models import (
-    RoomType,
-    Room,
-    TrainingProgramme,
-    StructuralGroup,
-    Module,
-    GroupType,
-    TrainingPeriod,
-    Time,
-    Day,
-    CourseType,
-    Department,
-    CourseStartTimeConstraint,
-    TimeGeneralSettings,
-    UserAvailability,
-    CourseAvailability,
-)
-
-from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
-
-from django.db import IntegrityError
-
 from misc.assign_colors import assign_module_color
-
+from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
 
 media_dir = "media/configuration"
 logger = logging.getLogger("base")

@@ -22,37 +22,25 @@
 # without disclosing the source code of your own applications.
 
 import datetime as dt
-
 from distutils.util import strtobool
-
-from rules.contrib.rest_framework import AutoPermissionViewSetMixin
-from rules.contrib.views import PermissionRequiredMixin
-
-from rest_framework import viewsets, exceptions, mixins, parsers
-from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
-from rest_framework.decorators import action
-
-from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 import django_filters.rest_framework as filters
 from django.utils.decorators import method_decorator
-
-from base.timing import date_to_flopday, Day
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import exceptions, mixins, parsers, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
+from rules.contrib.rest_framework import AutoPermissionViewSetMixin
+from rules.contrib.views import PermissionRequiredMixin
 
 import base.models as bm
 import people.models as pm
-
+from api.permissions import IsAdminOrReadOnly, IsTutor, IsTutorOrReadOnly
+from api.shared.params import (dept_id_param, dept_param, from_date_param,
+                               room_id_param, to_date_param, user_id_param)
 from api.v1.availability import serializers
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly, IsTutor
 from base.rules import can_view_user_availability
-from api.shared.params import (
-    user_id_param,
-    room_id_param,
-    dept_param,
-    dept_id_param,
-    from_date_param,
-    to_date_param,
-)
+from base.timing import Day, date_to_flopday
 
 
 class DatedAvailabilityListViewSet(

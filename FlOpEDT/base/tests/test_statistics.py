@@ -1,12 +1,10 @@
-from django.test import TestCase
 from django.core.management import call_command
+from django.test import TestCase
 
 import base.models as models
-from base.core.statistics import    get_room_activity_by_day, \
-                                    get_holidays_weeks, \
-                                    get_holiday_list
-
 from base.core.period_weeks import PeriodWeeks
+from base.core.statistics import (get_holiday_list, get_holidays_weeks,
+                                  get_room_activity_by_day)
 
 
 class StatisticsRoomTestCase(TestCase):

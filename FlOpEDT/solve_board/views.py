@@ -23,24 +23,23 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from TTapp.TimetableConstraints.slots_constraints import ConsiderDependencies
-from TTapp.TimetableConstraints.core_constraints import ConsiderTutorsUnavailability, NoSimultaneousGroupCourses
 import json
-import pulp
 
-from django.http import JsonResponse, HttpResponse
+import pulp
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse, JsonResponse
 # from channels import Group
 from django.template.response import TemplateResponse
-
-from core.decorators import dept_admin_required
-
-from base.models import TrainingProgramme, ScheduledCourse, SchedulingPeriod
-from TTapp.FlopModel import get_flop_constraints
-
-from django.utils.functional import Promise
 from django.utils.encoding import force_str
-from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.functional import Promise
+
+from base.models import ScheduledCourse, SchedulingPeriod, TrainingProgramme
+from core.decorators import dept_admin_required
+from TTapp.FlopModel import get_flop_constraints
+from TTapp.TimetableConstraints.core_constraints import (
+    ConsiderTutorsUnavailability, NoSimultaneousGroupCourses)
+from TTapp.TimetableConstraints.slots_constraints import ConsiderDependencies
 
 # from solve_board.consumers import ws_add
 

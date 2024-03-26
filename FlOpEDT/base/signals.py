@@ -23,13 +23,13 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import datetime as dt
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from people.models import Tutor
 from base.models import UserAvailability
-
-import datetime as dt
+from people.models import Tutor
 
 
 @receiver(post_save)

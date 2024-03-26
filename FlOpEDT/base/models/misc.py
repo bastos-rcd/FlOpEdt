@@ -1,7 +1,8 @@
+import datetime as dt
+
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.contrib.postgres.fields import ArrayField
-import datetime as dt
 
 
 class Dependency(models.Model):

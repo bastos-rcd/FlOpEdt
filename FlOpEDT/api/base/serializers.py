@@ -21,9 +21,10 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from rest_framework import serializers
+
 import base.models as bm
 import people.models as pm
-from rest_framework import serializers
 
 
 class DepartmentSerializer(serializers.ModelSerializer):

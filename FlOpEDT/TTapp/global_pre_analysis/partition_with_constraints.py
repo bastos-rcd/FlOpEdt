@@ -1,6 +1,8 @@
-from TTapp.global_pre_analysis.tools_centralized_preanalysis import getFlopConstraintsInDB
-from base.partition import Partition
 from base.models import ModulePossibleTutors
+from base.partition import Partition
+from TTapp.global_pre_analysis.tools_centralized_preanalysis import \
+    getFlopConstraintsInDB
+
 
 def create_tutor_partition_from_constraints(period, department, tutor, available = False):
     """

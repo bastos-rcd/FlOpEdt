@@ -21,38 +21,38 @@
 # without disclosing the source code of your own applications.
 
 
-from core.decorators import timer
-from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
-from django.http.response import JsonResponse
-from base.timing import TimeInterval
-from base.models import CourseStartTimeConstraint, SchedulingPeriod, ModuleTutorRepartition, Module, CourseType
-from django.db import models
+import datetime as dt
 
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
-from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraints.instructorConstraint import InstructorConstraint
-from TTapp.ilp_constraints.constraints.slotInstructorConstraint import (
-    SlotInstructorConstraint,
-)
-from TTapp.ilp_constraints.constraints.simulSlotGroupConstraint import (
-    SimulSlotGroupConstraint,
-)
-from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
-from TTapp.ilp_constraints.constraint import Constraint
-from django.utils.translation import gettext_lazy as _
+from django.db import models
+from django.db.models import Q
+from django.http.response import JsonResponse
 from django.utils.translation import gettext
-from TTapp.slots import slots_filter
-from TTapp.TimetableConstraints.groups_constraints import (
-    pre_analysis_considered_basic_groups,
-)
-from base.models import Course, UserAvailability, Holiday
+from django.utils.translation import gettext_lazy as _
+
+import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
+from base.models import (Course, CourseStartTimeConstraint, CourseType,
+                         Holiday, Module, ModuleTutorRepartition,
+                         SchedulingPeriod, UserAvailability)
 from base.models.availability import period_actual_availabilities
 from base.partition import Partition
-import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
-from base.timing import Day, flopdate_to_datetime
+from base.timing import Day, TimeInterval, flopdate_to_datetime
+from core.decorators import timer
 from people.models import Tutor
-from django.db.models import Q
-import datetime as dt
+from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
+from TTapp.ilp_constraints.constraints.instructorConstraint import \
+    InstructorConstraint
+from TTapp.ilp_constraints.constraints.simulSlotGroupConstraint import \
+    SimulSlotGroupConstraint
+from TTapp.ilp_constraints.constraints.slotInstructorConstraint import \
+    SlotInstructorConstraint
+from TTapp.slots import slots_filter
+from TTapp.TimetableConstraints.groups_constraints import \
+    pre_analysis_considered_basic_groups
+from TTapp.TimetableConstraints.no_course_constraints import \
+    NoTutorCourseOnWeekDay
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 
 
 class NoSimultaneousGroupCourses(TimetableConstraint):

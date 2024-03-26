@@ -1,5 +1,7 @@
-from django.apps import AppConfig
 import os
+
+from django.apps import AppConfig
+
 
 class MyflopConfig(AppConfig):
     name = 'MyFlOp'

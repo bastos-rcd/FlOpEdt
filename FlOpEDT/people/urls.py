@@ -23,12 +23,14 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.urls import path, re_path, include
 from django.contrib.auth import views as auth_views
-from django.urls import reverse_lazy
+from django.urls import include, path, re_path, reverse_lazy
 from django.views.generic.base import RedirectView
+
 from people.student import ChangeStudent
-from people.tutor import ChangeFullStaffTutor, ChangeSupplyStaffTutor, ChangeBIATOSTutor
+from people.tutor import (ChangeBIATOSTutor, ChangeFullStaffTutor,
+                          ChangeSupplyStaffTutor)
+
 from . import views
 
 app_name="people"

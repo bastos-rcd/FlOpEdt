@@ -30,8 +30,9 @@ This module is used to create, read, update and/or delete a group type
 """
 
 from django.http import JsonResponse
+
 from base.models import GroupType
-from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE
+from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE
 
 
 def read(department):

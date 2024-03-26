@@ -24,19 +24,18 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.weeks import week_list
-from base.models import Course, TrainingProgramme, Module
-from people.models import Tutor
-from displayweb.models import ModuleDisplay, TutorDisplay
-
-from django.core.exceptions import ObjectDoesNotExist
-from django.conf import settings
-
-from pyclustering.gcolor.dsatur import dsatur
-from numpy import diag, eye
-
 import json
 import os
+
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from numpy import diag, eye
+from pyclustering.gcolor.dsatur import dsatur
+
+from base.models import Course, Module, TrainingProgramme
+from base.weeks import week_list
+from displayweb.models import ModuleDisplay, TutorDisplay
+from people.models import Tutor
 
 
 def assign_tutor_color(department=None):

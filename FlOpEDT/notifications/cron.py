@@ -25,6 +25,7 @@
 
 
 import django
+
 from notifications.notifications import backup, send_notifications
 
 

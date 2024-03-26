@@ -24,16 +24,16 @@
 # without disclosing the source code of your own applications.
 
 from django.contrib.postgres.fields import ArrayField
-
 from django.db import models
+
+from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.models import TimetableConstraint
 
 # from django.contrib.auth.models import User
 
 # from caching.base import CachingManager, CachingMixin
 
-from TTapp.ilp_constraints.constraint_type import ConstraintType
 
-from TTapp.models import TimetableConstraint
 
 
 class ReasonableDays(TimetableConstraint):

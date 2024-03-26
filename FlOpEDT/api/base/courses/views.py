@@ -21,18 +21,17 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from drf_yasg.utils import swagger_auto_schema
-
-from api.base.courses import serializers
-from rest_framework import viewsets
 import django_filters.rest_framework as filters
-import base.models as bm
-
 from django.utils.decorators import method_decorator
-from api.shared.params import week_param, year_param, dept_param
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import viewsets
+
+import base.models as bm
+from api.base.courses import serializers
+from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
+from api.shared.params import dept_param, week_param, year_param
 from api.shared.views_set import ListGenericViewSet
 
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
 
 @method_decorator(
     name='list',

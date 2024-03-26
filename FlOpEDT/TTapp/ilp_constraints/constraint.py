@@ -24,8 +24,10 @@
 # without disclosing the source code of your own applications.
 
 from collections.abc import Iterable
-from TTapp.ilp_constraints.constraint_type import ConstraintType
+
 from base.timing import get_all_scheduling_periods
+from TTapp.ilp_constraints.constraint_type import ConstraintType
+
 
 def sing_or_plural(dimension):
     plurial = ""

@@ -24,9 +24,10 @@
 # without disclosing the source code of your own applications.
 
 from django import forms
-from people.models import Tutor, FullStaff
-from base.models import Module, EnrichedLink
 from django.utils.translation import gettext as _
+
+from base.models import EnrichedLink, Module
+from people.models import FullStaff, Tutor
 
 
 class ContactForm(forms.Form):

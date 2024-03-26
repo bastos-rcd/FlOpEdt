@@ -1,8 +1,8 @@
-from base.models import UserAvailability, Day, Slot
-from people.models import User, Tutor
-
 from csv import DictReader
 from datetime import datetime
+
+from base.models import Day, Slot, UserAvailability
+from people.models import Tutor, User
 
 
 def translate_day_label(label):

@@ -1,25 +1,12 @@
 import pytest
-from base.models import (
-    Department,
-    Course,
-    ScheduledCourse,
-    Week,
-    Module,
-    StructuralGroup,
-    TrainingProgramme,
-    CourseType,
-)
 from rest_framework.test import APIClient
-from api.tests.fixtures import (
-    department_a,
-    week_2021_11,
-    period_a,
-    module_a,
-    train_prog_a,
-    basic_group_a,
-    parent_group_a,
-    course_type_a,
-)
+
+from api.tests.fixtures import (basic_group_a, course_type_a, department_a,
+                                module_a, parent_group_a, period_a,
+                                train_prog_a, week_2021_11)
+from base.models import (Course, CourseType, Department, Module,
+                         ScheduledCourse, StructuralGroup, TrainingProgramme,
+                         Week)
 
 
 @pytest.fixture

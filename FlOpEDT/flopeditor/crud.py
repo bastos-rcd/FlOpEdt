@@ -30,12 +30,17 @@ This module is used to establish the crud back-end interface.
 """
 
 import json
-from django.http import JsonResponse, HttpResponseForbidden
+
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
+
 from base.models import Department
-from flopeditor.cruds import training_programmes, student_group_type,\
-    rooms, room_types, student_structural_group, course_type, period, module, tutors, student_transversal_group, \
-    students, room_attributes, course_start_times_constraints
+from flopeditor.cruds import (course_start_times_constraints, course_type,
+                              module, period, room_attributes, room_types,
+                              rooms, student_group_type,
+                              student_structural_group,
+                              student_transversal_group, students,
+                              training_programmes, tutors)
 
 
 def good_request(request, department):

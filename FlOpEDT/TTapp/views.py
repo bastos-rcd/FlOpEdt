@@ -23,21 +23,17 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-
-from base.models import ScheduledCourse, SchedulingPeriod
-
-from TTapp.TimetableUtils import get_conflicts
-
-from TTapp.admin import GroupsLunchBreakResource
-from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
-
-from MyFlOp import MyTimetableUtils
-
+from django.shortcuts import render
 from django.utils.translation import gettext as _
 
-            
+from base.models import ScheduledCourse, SchedulingPeriod
+from MyFlOp import MyTimetableUtils
+from TTapp.admin import GroupsLunchBreakResource
+from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
+from TTapp.TimetableUtils import get_conflicts
+
+
 def available_work_copies(req, department, year, week):
     '''
     Send the content of the side panel.

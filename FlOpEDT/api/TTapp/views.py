@@ -21,31 +21,32 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from api.shared.params import dept_param, week_param, year_param
-from django.utils.decorators import method_decorator
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-from django.apps import apps
-from django.http import FileResponse, HttpResponse
-from pathlib import Path
-from TTapp.FlopConstraint import FlopConstraint, all_subclasses
-from base.models import Department
-import TTapp.TimetableConstraints.visio_constraints as ttv
-from django.contrib.postgres.fields.array import ArrayField
-from base.timing import all_possible_start_times, Day
-from MyFlOp.colors import Tcolors
-
-from drf_yasg import openapi
-from rest_framework import viewsets, generics
-from rest_framework.response import Response
-from rest_framework.exceptions import APIException
-from api.TTapp import serializers
-from api.permissions import IsAdminOrReadOnly
-from base.weeks import current_year
-from django.conf import settings as ds
-import os
 import json
-import re
+import os
 import pkgutil
+import re
+from pathlib import Path
+
+from django.apps import apps
+from django.conf import settings as ds
+from django.contrib.postgres.fields.array import ArrayField
+from django.http import FileResponse, HttpResponse
+from django.utils.decorators import method_decorator
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_yasg import openapi
+from rest_framework import generics, viewsets
+from rest_framework.exceptions import APIException
+from rest_framework.response import Response
+
+import TTapp.TimetableConstraints.visio_constraints as ttv
+from api.permissions import IsAdminOrReadOnly
+from api.shared.params import dept_param, week_param, year_param
+from api.TTapp import serializers
+from base.models import Department
+from base.timing import Day, all_possible_start_times
+from base.weeks import current_year
+from MyFlOp.colors import Tcolors
+from TTapp.FlopConstraint import FlopConstraint, all_subclasses
 
 DOC_DIR = os.path.join(
     os.path.dirname(pkgutil.get_loader("TTapp").get_filename()), "TimetableConstraints/doc"

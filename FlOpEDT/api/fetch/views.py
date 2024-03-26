@@ -22,39 +22,27 @@
 # without disclosing the source code of your own applications.
 
 import django_filters.rest_framework as filters
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets
-from rest_framework import exceptions
-from rest_framework.response import Response
-
-from django.http import HttpResponse, JsonResponse
-from django.utils.decorators import method_decorator
+from django.apps import apps
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
-
-from django.apps import apps
+from django.http import HttpResponse, JsonResponse
+from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import exceptions, viewsets
+from rest_framework.response import Response
 
 import base.models as bm
-from base import queries, weeks
-import people.models as pm
 import displayweb.models as dwm
+import people.models as pm
 import roomreservation.models as rrm
-
 from api.fetch import serializers
-from api.shared.params import (
-    dept_param,
-    week_param,
-    year_param,
-    user_param,
-    work_copy_param,
-    group_param,
-    train_prog_param,
-    lineage_param,
-    tutor_param,
-)
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
-from base.timing import flopday_to_date, Day, days_list, time_to_floptime
+from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
+from api.shared.params import (dept_param, group_param, lineage_param,
+                               train_prog_param, tutor_param, user_param,
+                               week_param, work_copy_param, year_param)
+from base import queries, weeks
+from base.timing import Day, days_list, flopday_to_date, time_to_floptime
 
 
 class ScheduledCourseFilterSet(filters.FilterSet):

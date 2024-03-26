@@ -28,8 +28,10 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
-from base.models import Room, Department, RoomAttribute, BooleanRoomAttributeValue, NumericRoomAttributeValue
-from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE
+
+from base.models import (BooleanRoomAttributeValue, Department,
+                         NumericRoomAttributeValue, Room, RoomAttribute)
+from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE
 
 attributes_list = [] # list(RoomAttribute.objects.all())
 

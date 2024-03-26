@@ -26,11 +26,15 @@
 # without disclosing the source code of your own applications.
 import functools
 
-from TTapp.TimetableUtils import basic_reassign_rooms, basic_swap_version, \
-    basic_delete_version, basic_duplicate_version, basic_delete_all_unused_versions, \
-    duplicate_what_can_be_in_other_periods, number_courses
-from base.models import ScheduledCourse, Department, SchedulingPeriod, TimetableVersion
+from base.models import (Department, ScheduledCourse, SchedulingPeriod,
+                         TimetableVersion)
 from people.models import Tutor
+from TTapp.TimetableUtils import (basic_delete_all_unused_versions,
+                                  basic_delete_version,
+                                  basic_duplicate_version,
+                                  basic_reassign_rooms, basic_swap_version,
+                                  duplicate_what_can_be_in_other_periods,
+                                  number_courses)
 
 
 def resolve_department(func):

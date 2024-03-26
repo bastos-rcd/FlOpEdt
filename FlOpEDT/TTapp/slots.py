@@ -23,15 +23,11 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import UserAvailability, CourseAvailability
-
-from base.models import TimeGeneralSettings
-from base.timing import Time, days_index, Day, days_list
-from base.models import ScheduledCourse
-
 import datetime as dt
 
-from base.timing import slot_pause
+from base.models import (CourseAvailability, ScheduledCourse,
+                         TimeGeneralSettings, UserAvailability)
+from base.timing import Day, Time, days_index, days_list, slot_pause
 
 midday = dt.time(12, 0, 0)
 

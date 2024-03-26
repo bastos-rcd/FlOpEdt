@@ -24,10 +24,12 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import csv
+
 from django.db import transaction
+
 from base.models import StructuralGroup
 from people.models import Student, UserDepartmentSettings
-import csv
 
 
 @transaction.atomic

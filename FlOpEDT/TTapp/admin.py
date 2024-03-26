@@ -27,33 +27,42 @@
 
 
 from django.contrib import admin
-from base.admin import DepartmentModelAdmin
-
-from import_export import resources, fields
+from import_export import fields, resources
 from import_export.widgets import ManyToManyWidget
 
-from TTapp.models import \
-    LimitModulesTimePerPeriod, StabilizeTutorsCourses, StabilizeGroupsCourses, \
-    MinModulesHalfDays, MinTutorsHalfDays, MinGroupsHalfDays,\
-    MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot, \
-    CustomConstraint, SimultaneousCourses, MinimizeTutorsBusyDays, RespectTutorsMaxTimePerDay, RespectTutorsMinTimePerDay, \
-    LimitedRoomChoices, LimitStartTimeChoices, LimitCourseTypeTimePerPeriod, \
-    LimitTutorsTimePerPeriod, LimitGroupsTimePerPeriod, LowerBoundBusyDays, BreakAroundCourseType, \
-    NoVisio, LimitGroupsPhysicalPresence, BoundPhysicalPresenceHalfDays, TutorsLunchBreak, VisioOnly, \
-    NoTutorCourseOnWeekDay, NoGroupCourseOnWeekDay, \
-    ConsiderDependencies, Curfew, ConsiderPivots, NoSimultaneousGroupCourses, ScheduleAllCourses, AssignAllCourses, \
-    ConsiderTutorsUnavailability, LimitHoles, \
-    Curfew, \
-    ModulesByBloc, LimitTutorTimePerWeeks, LimitUndesiredSlotsPerDayPeriod, LimitSimultaneousCoursesNumber, \
-    LocateAllCourses, LimitGroupMoves, LimitTutorMoves, ConsiderRoomSorts, AvoidBothTimesSameDay, AvoidStartTimes, \
-    NotAloneForTheseCouseTypes, LimitSimultaneousRoomCourses, ParallelizeCourses
-
-
+from base.admin import DepartmentModelAdmin
+from core.filters import DropdownFilterAll, DropdownFilterRel
+from TTapp.models import (AssignAllCourses, AvoidBothTimesSameDay,
+                          AvoidStartTimes, BoundPhysicalPresenceHalfDays,
+                          BreakAroundCourseType, ConsiderDependencies,
+                          ConsiderPivots, ConsiderRoomSorts,
+                          ConsiderTutorsUnavailability, Curfew,
+                          CustomConstraint, LimitCourseTypeTimePerPeriod,
+                          LimitedRoomChoices, LimitGroupMoves,
+                          LimitGroupsPhysicalPresence,
+                          LimitGroupsTimePerPeriod, LimitHoles,
+                          LimitModulesTimePerPeriod,
+                          LimitSimultaneousCoursesNumber,
+                          LimitSimultaneousRoomCourses, LimitStartTimeChoices,
+                          LimitTutorMoves, LimitTutorsTimePerPeriod,
+                          LimitTutorTimePerWeeks,
+                          LimitUndesiredSlotsPerDayPeriod, LocateAllCourses,
+                          LowerBoundBusyDays, MinGroupsHalfDays,
+                          MinimizeTutorsBusyDays, MinModulesHalfDays,
+                          MinNonPreferedTrainProgsSlot,
+                          MinNonPreferedTutorsSlot, MinTutorsHalfDays,
+                          ModulesByBloc, NoGroupCourseOnWeekDay,
+                          NoSimultaneousGroupCourses,
+                          NotAloneForTheseCouseTypes, NoTutorCourseOnWeekDay,
+                          NoVisio, ParallelizeCourses,
+                          RespectTutorsMaxTimePerDay,
+                          RespectTutorsMinTimePerDay, ScheduleAllCourses,
+                          SimultaneousCourses, StabilizeGroupsCourses,
+                          StabilizeTutorsCourses, TutorsLunchBreak, VisioOnly)
 from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
 
 # Register your models here.
 
-from core.filters import DropdownFilterAll, DropdownFilterRel
 
 
 class RoomConstraintAdmin(DepartmentModelAdmin):

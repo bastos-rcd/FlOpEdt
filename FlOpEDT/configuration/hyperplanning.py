@@ -1,16 +1,18 @@
 # Imports des modules
-from requests import Session # API HP
-from requests.auth import HTTPBasicAuth # API HP
-from zeep import Client # API HP
-from zeep.transports import Transport # API HP
-from math import gcd # PGCD
-from functools import reduce # Pour le pgcd d'une liste
-from tqdm import tqdm # Affichage de la barre sympa
+from functools import reduce  # Pour le pgcd d'une liste
+from math import gcd  # PGCD
 
 from django.db import transaction
-from base.models import CourseType, RoomType, StructuralGroup, TransversalGroup, Module, Course, GenericGroup, Week
-from people.models import Tutor
+from requests import Session  # API HP
+from requests.auth import HTTPBasicAuth  # API HP
+from tqdm import tqdm  # Affichage de la barre sympa
+from zeep import Client  # API HP
+from zeep.transports import Transport  # API HP
+
+from base.models import (Course, CourseType, GenericGroup, Module, RoomType,
+                         StructuralGroup, TransversalGroup, Week)
 from misc.assign_colors import assign_module_color
+from people.models import Tutor
 
 
 #Functions used to check book content (dictionary extracted from hyperplanning)

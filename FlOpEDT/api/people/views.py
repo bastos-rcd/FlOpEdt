@@ -20,20 +20,19 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-from django.utils.decorators import method_decorator
 import django_filters.rest_framework as filters
+from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-import people.models as pm
 import base.models as bm
+import people.models as pm
 from api.people import serializers
+from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
 from api.shared.params import week_param, year_param
-
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
 
 
 class UsersViewSet(viewsets.ModelViewSet):

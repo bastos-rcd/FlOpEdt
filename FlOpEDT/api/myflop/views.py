@@ -21,26 +21,25 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.exceptions import NotAcceptable, APIException
+import datetime
 
+from django.db.models import Case, Count, F, Q, Sum, When
+from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import viewsets
+from rest_framework.exceptions import APIException, NotAcceptable
+from rest_framework.response import Response
 
-from django.utils.decorators import method_decorator
-from django.db.models import Count, F, Sum, Q, Case, When
-
-from people.models import Tutor
-from base.models import ScheduledCourse, Department, TrainingProgramme, SchedulingPeriod, Room
-
+from api.myflop.serializers import (DailyVolumeSerializer, DuplicateSerializer,
+                                    RoomDailyVolumeSerializer,
+                                    ScheduledCoursePaySerializer, VolumeAgrege)
 from api.permissions import IsTutorOrReadOnly
 from api.shared.params import dept_param
-from api.myflop.serializers import VolumeAgrege, ScheduledCoursePaySerializer, DailyVolumeSerializer, \
-    RoomDailyVolumeSerializer, DuplicateSerializer
-
-import datetime
-from base.timing import days_list, flopday_to_date, Day, french_format
+from base.models import (Department, Room, ScheduledCourse, SchedulingPeriod,
+                         TrainingProgramme)
+from base.timing import Day, days_list, flopday_to_date, french_format
+from people.models import Tutor
 
 
 @method_decorator(name='list',

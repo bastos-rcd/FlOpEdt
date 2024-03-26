@@ -1,8 +1,11 @@
+import datetime as dt
+
 import factory
 import pytest
+
 from base.models import Course, ScheduledCourse
 from TTapp.models import ScheduleAllCourses
-import datetime as dt
+
 
 def test_test(create_typical_situation):
     courses = Course.objects.all()

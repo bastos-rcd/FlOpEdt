@@ -26,13 +26,14 @@
 # without disclosing the source code of your own applications.
 
 
-from TTapp.models import LimitTimePerPeriod, LimitModulesTimePerPeriod, \
-    LimitGroupsTimePerPeriod,\
-    MinGroupsHalfDays, MinTutorsHalfDays, MinModulesHalfDays,\
-    max_weight
-from base.models import TrainingProgramme, CourseType, Module, Department, StructuralGroup
+from base.models import (CourseType, Department, Module, StructuralGroup,
+                         TrainingProgramme)
 from people.models import Tutor
+from TTapp.models import (LimitGroupsTimePerPeriod, LimitModulesTimePerPeriod,
+                          LimitTimePerPeriod, MinGroupsHalfDays,
+                          MinModulesHalfDays, MinTutorsHalfDays, max_weight)
 from TTapp.TimetableUtils import add_generic_constraints_to_database
+
 
 def add_iut_constraints_to_database():
     for department in Department.objects.all():

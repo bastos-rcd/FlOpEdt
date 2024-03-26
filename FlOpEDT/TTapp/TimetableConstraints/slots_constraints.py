@@ -24,30 +24,29 @@
 # without disclosing the source code of your own applications.
 
 
-from core.decorators import timer
-import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
 import datetime as dt
 
-from django.http.response import JsonResponse
-from base.models import CourseStartTimeConstraint, Dependency
 from django.contrib.postgres.fields import ArrayField
-
+from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models import Q
-from base.timing import french_format, Day, slot_pause
-
-from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraint import Constraint
-from TTapp.slots import days_filter, slots_filter, Slot
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
-from TTapp.TimetableConstraints.core_constraints import ConsiderTutorsUnavailability
-
-from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
-from django.utils.translation import gettext_lazy as _
+from django.http.response import JsonResponse
 from django.utils.translation import gettext
-from django.core.validators import MaxValueValidator
-from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
+from django.utils.translation import gettext_lazy as _
 
+import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
+from base.models import CourseStartTimeConstraint, Dependency
+from base.timing import Day, french_format, slot_pause
+from core.decorators import timer
+from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.ilp_constraints.constraints.dependencyConstraint import \
+    DependencyConstraint
+from TTapp.slots import Slot, days_filter, slots_filter
+from TTapp.TimetableConstraints.core_constraints import \
+    ConsiderTutorsUnavailability
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 
 class SimultaneousCourses(TimetableConstraint):

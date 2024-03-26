@@ -24,53 +24,28 @@
 # without disclosing the source code of your own applications.
 import logging
 
-from core.department import get_model_department_lookup
-
+import django.contrib.auth as auth
+from django.contrib import admin
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models.fields import related as related_fields
-
-from django.contrib import admin
-import django.contrib.auth as auth
-
 from django.utils.translation import gettext_lazy as _
-
-from people.models import Tutor, User
-from base.models import (
-    CourseStartTimeConstraint,
-    StructuralGroup,
-    TransversalGroup,
-    Room,
-    Module,
-    Course,
-    UserAvailability,
-    ScheduledCourse,
-    TimetableVersion,
-    CourseModification,
-    TrainingProgramme,
-    Regen,
-    Holiday,
-    TrainingHalfDay,
-    CourseAvailability,
-    Dependency,
-    Department,
-    CourseType,
-    ScheduledCourseAdditional,
-    CourseAdditional,
-    RoomAvailability,
-    RoomSort,
-    RoomType,
-    EnrichedLink,
-    GroupPreferredLinks,
-    Mode,
-    TrainingPeriod,
-    ModuleTutorRepartition
-)
-from displayweb.models import ModuleDisplay
-from displayweb.models import TutorDisplay
-from import_export import resources, fields
+from import_export import fields, resources
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
-from core.filters import DropdownFilterAll, DropdownFilterRel, DropdownFilterSimple
+from base.models import (Course, CourseAdditional, CourseAvailability,
+                         CourseModification, CourseStartTimeConstraint,
+                         CourseType, Department, Dependency, EnrichedLink,
+                         GroupPreferredLinks, Holiday, Mode, Module,
+                         ModuleTutorRepartition, Regen, Room, RoomAvailability,
+                         RoomSort, RoomType, ScheduledCourse,
+                         ScheduledCourseAdditional, StructuralGroup,
+                         TimetableVersion, TrainingHalfDay, TrainingPeriod,
+                         TrainingProgramme, TransversalGroup, UserAvailability)
+from core.department import get_model_department_lookup
+from core.filters import (DropdownFilterAll, DropdownFilterRel,
+                          DropdownFilterSimple)
+from displayweb.models import ModuleDisplay, TutorDisplay
+from people.models import Tutor, User
 
 logger = logging.getLogger("admin")
 

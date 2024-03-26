@@ -1,10 +1,10 @@
 import rest_framework.serializers as rf_s
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, viewsets
 
-from drf_spectacular.utils import extend_schema
+import base.models as bm
 
 from . import serializers
-import base.models as bm
 
 
 class TimetableVersionQueryParamsSerializer(rf_s.Serializer):

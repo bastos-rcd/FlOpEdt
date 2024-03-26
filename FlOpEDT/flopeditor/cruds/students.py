@@ -30,9 +30,12 @@ This module is used to create, read, update and/or delete a group type
 """
 
 from django.http import JsonResponse
-from base.models import StructuralGroup, TrainingProgramme, GroupType, TransversalGroup, GenericGroup
-from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, \
-    validate_student_values, student_groups_from_full_names
+
+from base.models import (GenericGroup, GroupType, StructuralGroup,
+                         TrainingProgramme, TransversalGroup)
+from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE,
+                                  student_groups_from_full_names,
+                                  validate_student_values)
 from people.models import Student, User, UserDepartmentSettings
 
 

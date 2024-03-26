@@ -26,11 +26,13 @@
 # without disclosing the source code of your own applications.
 
 
-from TTapp.models import MinTutorsHalfDays, max_weight,  slots_filter, days_filter
-from base.models import Time, Day, TrainingProgramme, CourseType, Module, Room, Department, ScheduledCourse
+from base.models import (CourseType, Day, Department, Module, Room,
+                         ScheduledCourse, Time, TrainingProgramme)
 from people.models import Tutor
-from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.models import (MinTutorsHalfDays, days_filter, max_weight,
+                          slots_filter)
 
 
 def add_iut_specific_constraints(ttmodel):

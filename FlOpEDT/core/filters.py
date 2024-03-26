@@ -44,10 +44,14 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.contrib.admin.filters import AllValuesFieldListFilter, RelatedFieldListFilter, \
-                                        ChoicesFieldListFilter, RelatedOnlyFieldListFilter
-from core.department import get_model_department_lookup
+from django.contrib.admin.filters import (AllValuesFieldListFilter,
+                                          ChoicesFieldListFilter,
+                                          RelatedFieldListFilter,
+                                          RelatedOnlyFieldListFilter)
 from django.db.models.fields import BLANK_CHOICE_DASH
+
+from core.department import get_model_department_lookup
+
 
 class DropdownFilterDepartmentMixin():
     def field_choices(self, field, request, model_admin, blank_choice=BLANK_CHOICE_DASH):

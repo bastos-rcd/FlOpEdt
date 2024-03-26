@@ -28,8 +28,11 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
+
 from base.models import TrainingProgramme
-from flopeditor.validator import validate_training_programme_values, OK_RESPONSE, ERROR_RESPONSE
+from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE,
+                                  validate_training_programme_values)
+
 
 def read(department):
     """Return all rooms for a department

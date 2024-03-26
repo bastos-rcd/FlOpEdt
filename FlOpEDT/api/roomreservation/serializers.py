@@ -1,15 +1,14 @@
+from django.core.mail import EmailMessage
 from django.db.models import Max
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 
-from api.people.serializers import ShortUsersSerializer
-from api.fetch.serializers import IDRoomSerializer
-
-import roomreservation.models as rm
-from roomreservation.check_periodicity import check_periodicity, check_reservation
-
-from django.core.mail import EmailMessage
 import base.models as bm
+import roomreservation.models as rm
+from api.fetch.serializers import IDRoomSerializer
+from api.people.serializers import ShortUsersSerializer
+from roomreservation.check_periodicity import (check_periodicity,
+                                               check_reservation)
 
 
 class PeriodicityField(serializers.Field):

@@ -30,11 +30,13 @@
 # database_description_checker.py.
 #
 
-from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
-from django.conf import settings as ds
 import datetime as dt
 import logging
+
+from django.conf import settings as ds
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+
 logger = logging.getLogger(__name__)
 
 people_sheet = 'Intervenants'

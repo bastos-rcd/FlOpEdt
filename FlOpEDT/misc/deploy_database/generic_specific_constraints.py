@@ -26,10 +26,11 @@
 # without disclosing the source code of your own applications.
 
 
-from TTapp.models import LimitTimePerPeriod, ReasonableDays, MinHalfDays, max_weight, \
-    SimultaneousCourses, LimitedSlotChoices
-from base.models import Time, Day, TrainingProgramme, CourseType, Module, Room, Slot, StructuralGroup, Course, Department
+from base.models import (Course, CourseType, Day, Department, Module, Room,
+                         Slot, StructuralGroup, Time, TrainingProgramme)
 from people.models import Tutor
+from TTapp.models import (LimitedSlotChoices, LimitTimePerPeriod, MinHalfDays,
+                          ReasonableDays, SimultaneousCourses, max_weight)
 
 info=Department.objects.get(abbrev='info')
 

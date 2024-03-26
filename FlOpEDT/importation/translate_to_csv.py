@@ -1,8 +1,8 @@
 from csv import DictWriter, writer
-from openpyxl import load_workbook
-from openpyxl.cell.cell import MergedCell
 
 from django.conf import settings
+from openpyxl import load_workbook
+from openpyxl.cell.cell import MergedCell
 
 from base.weeks import year_by_week
 

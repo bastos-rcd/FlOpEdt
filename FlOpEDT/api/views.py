@@ -23,9 +23,9 @@
 
 from random import randint
 
-from django.db.models import Q
 import django_filters.rest_framework as filters
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from django.db.models import Q
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
@@ -34,11 +34,10 @@ import base.models as bm
 import base.queries as queries
 import displayweb.models as dwm
 import quote.models as qm
-from api import serializers
-from api.shared.params import week_param, year_param, dept_param
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
-
 import TTapp.models as tm
+from api import serializers
+from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
+from api.shared.params import dept_param, week_param, year_param
 
 # ----------
 # -- QUOTE -

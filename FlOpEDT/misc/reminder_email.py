@@ -25,9 +25,11 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from django.core.mail import EmailMessage
+
 from base.models import Course, Department
 from people.models import Tutor
-from django.core.mail import EmailMessage
+
 
 def concerned_tutors(week_list, department):
     liste = []

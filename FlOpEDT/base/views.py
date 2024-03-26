@@ -23,69 +23,45 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.db.models import Q
 import json
 import logging
 
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMessage
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.translation import gettext as _
 from django.utils.translation import get_language
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_page
 from django.views.generic import RedirectView
 
+import base.queries as queries
+from base.admin import (CourseAvailabilityResource, ModuleDescriptionResource,
+                        ModuleRessource, MultiDepartmentTutorResource,
+                        RoomAvailabilityResource, SharedRoomsResource,
+                        TutorCoursesResource, TutorRessource, VersionResource)
+from base.forms import ContactForm, EnrichedLinkForm, ModuleDescriptionForm
+from base.models import (Course, CourseAdditional, CourseAvailability,
+                         CourseModification, CourseType, Department,
+                         EnrichedLink, GroupPreferredLinks, Module, Room,
+                         RoomAvailability, RoomSort, RoomType, ScheduledCourse,
+                         ScheduledCourseAdditional, SchedulingPeriod,
+                         StructuralGroup, Theme, TimetableVersion,
+                         TrainingProgramme, UserAvailability)
+from base.weeks import *
 from core.decorators import dept_admin_required, tutor_required
-
-from people.models import (
-    Tutor,
-    UserDepartmentSettings,
-    User,
-    NotificationsPreferences,
-    UserPreferredLinks,
-    TutorPreference,
-    ThemesPreferences,
-)
-
-from base.admin import ModuleRessource, TutorRessource, CourseAvailabilityResource, VersionResource, RoomAvailabilityResource, ModuleDescriptionResource, TutorCoursesResource, MultiDepartmentTutorResource, SharedRoomsResource
-
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
-
-from base.forms import ContactForm, ModuleDescriptionForm, EnrichedLinkForm
-from base.models import (
-    Course,
-    UserAvailability,
-    ScheduledCourse,
-    TimetableVersion,
-    CourseModification,
-    Room,
-    RoomType,
-    RoomSort,
-    RoomAvailability,
-    Department,
-    CourseAvailability,
-    TrainingProgramme,
-    CourseType,
-    Module,
-    StructuralGroup,
-    EnrichedLink,
-    ScheduledCourseAdditional,
-    GroupPreferredLinks,
-    SchedulingPeriod,
-    Theme,
-    CourseAdditional,
-)
-import base.queries as queries
-from base.weeks import *
+from people.models import (NotificationsPreferences, ThemesPreferences, Tutor,
+                           TutorPreference, User, UserDepartmentSettings,
+                           UserPreferredLinks)
 
 logger = logging.getLogger(__name__)
 

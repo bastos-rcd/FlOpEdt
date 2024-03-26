@@ -24,17 +24,20 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import configparser
 import csv
 import datetime
-from base.models import Room
-from roomreservation.models import RoomReservation, RoomReservationType
-from django.db import transaction
-from people.models import User
-from ics import Calendar
-import requests
-from pytz import timezone
-import configparser, os
 import logging
+import os
+
+import requests
+from django.db import transaction
+from pytz import timezone
+
+from base.models import Room
+from ics import Calendar
+from people.models import User
+from roomreservation.models import RoomReservation, RoomReservationType
 
 logger = logging.getLogger("base")
 # Let's parse the configuration file

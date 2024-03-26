@@ -26,10 +26,11 @@
 import datetime
 
 from django.db.models import Count
-from base.models import ScheduledCourse, Room, Holiday, Day
-from base.core.period_weeks import PeriodWeeks
 
+from base.core.period_weeks import PeriodWeeks
+from base.models import Day, Holiday, Room, ScheduledCourse
 from people.models import Tutor
+
 
 def get_holiday_list(period):
     for year, _ in period:

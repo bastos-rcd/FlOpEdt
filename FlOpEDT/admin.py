@@ -25,6 +25,7 @@
 
 from django.contrib import admin
 
+
 class FlOpEDTAdminSite(admin.AdminSite):
 
     site_header = 'FlOpEDTAdmin...'

@@ -31,8 +31,9 @@ to manage a department statistics for FlOpEDT.
 """
 
 
-from base.models import Department, TimeGeneralSettings, Day
-from people.models import User, Tutor, UserDepartmentSettings, SupplyStaff, FullStaff, BIATOS
+from base.models import Day, Department, TimeGeneralSettings
+from people.models import (BIATOS, FullStaff, SupplyStaff, Tutor, User,
+                           UserDepartmentSettings)
 
 TUTOR_CHOICES_LIST = ["Permanent", "Vacataire", "Biatos"]
 

@@ -21,15 +21,18 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.apps import AppConfig
 import os
+
+from django.apps import AppConfig
+
 
 class BaseConfig(AppConfig):
     name = 'base'
 
     def ready(self):
-        import base.signals
         from django.conf import settings as ds
+
+        import base.signals
 
         # STARTUP code
         # Create directory for serving static content in production

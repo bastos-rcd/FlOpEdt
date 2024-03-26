@@ -1,9 +1,11 @@
 import os
-from  django.conf import settings as ds
+import shutil
 from pathlib import Path
+
+from django.conf import settings as ds
+
 from MyFlOp.colors import Tcolors
 from TTapp.onLaunch.settings import settings
-import shutil
 
 TEMP_DIR = os.path.join(ds.TMP_DIRECTORY,'constraints')
 CLEAR_TEMP_FILES = settings()["clearTempFile"]

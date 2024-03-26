@@ -26,34 +26,20 @@
 
 import logging
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Count
-from django.core.exceptions import ObjectDoesNotExist
 
-from base.models import (
-    StructuralGroup,
-    RoomType,
-    Room,
-    ScheduledCourse,
-    TimetableVersion,
-    Department,
-    Regen,
-    TrainingPeriod,
-    TutorCost,
-    CourseStartTimeConstraint,
-    TimeGeneralSettings,
-    GroupType,
-    CourseType,
-    TrainingProgramme,
-    Course,
-    SchedulingPeriod,
-)
-
-from displayweb.models import GroupDisplay, TrainingProgrammeDisplay, BreakingNews
-
-from people.models import Tutor, NotificationsPreferences, ThemesPreferences
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from base.models import (Course, CourseStartTimeConstraint, CourseType,
+                         Department, GroupType, Regen, Room, RoomType,
+                         ScheduledCourse, SchedulingPeriod, StructuralGroup,
+                         TimeGeneralSettings, TimetableVersion, TrainingPeriod,
+                         TrainingProgramme, TutorCost)
+from displayweb.models import (BreakingNews, GroupDisplay,
+                               TrainingProgrammeDisplay)
+from people.models import NotificationsPreferences, ThemesPreferences, Tutor
 from TTapp.FlopConstraint import all_subclasses
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 
 logger = logging.getLogger(__name__)
 

@@ -24,88 +24,46 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import datetime as dt
+
 from django.core.mail import EmailMessage
-
-from base.models import (
-    RoomType,
-    RoomAvailability,
-    ScheduledCourse,
-    TrainingProgramme,
-    TutorCost,
-    GroupFreeHalfDay,
-    GroupCost,
-    TimeGeneralSettings,
-    ModuleTutorRepartition,
-    ScheduledCourseAdditional,
-    period_actual_availabilities,
-    TimetableVersion,
-)
-
-from base.timing import Time, flopday_to_date, floptime_to_time
-
-from people.models import Tutor
-
-from TTapp.models import (
-    MinNonPreferedTutorsSlot,
-    StabilizeTutorsCourses,
-    MinNonPreferedTrainProgsSlot,
-    NoSimultaneousGroupCourses,
-    ScheduleAllCourses,
-    AssignAllCourses,
-    ConsiderTutorsUnavailability,
-    MinimizeTutorsBusyDays,
-    MinGroupsHalfDays,
-    RespectTutorsMaxTimePerDay,
-    ConsiderDependencies,
-    ConsiderPivots,
-    StabilizeGroupsCourses,
-    RespectTutorsMinTimePerDay,
-    ConsiderModuleTutorRepartitions,
-)
-
-from roomreservation.models import RoomReservation
-
-from TTapp.RoomConstraints.RoomConstraint import (
-    LocateAllCourses,
-    LimitSimultaneousRoomCourses,
-)
-
-from TTapp.FlopConstraint import max_weight
-
-from TTapp.slots import slots_filter, days_filter
-
-from TTapp.TimetableData import TimetableData
-
-from TTapp.TimetableUtils import print_differences, number_courses
-
 from django.db import close_old_connections
 from django.db.models import F
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 
+from base.models import (GroupCost, GroupFreeHalfDay, ModuleTutorRepartition,
+                         RoomAvailability, RoomType, ScheduledCourse,
+                         ScheduledCourseAdditional, TimeGeneralSettings,
+                         TimetableVersion, TrainingProgramme, TutorCost,
+                         period_actual_availabilities)
+from base.timing import Time, flopday_to_date, floptime_to_time
+from core.decorators import timer
+from people.models import Tutor
+from roomreservation.models import RoomReservation
+from TTapp.FlopConstraint import max_weight
+from TTapp.FlopModel import (GUROBI_NAME, FlopModel, get_room_constraints,
+                             get_ttconstraints, gurobi_log_files_path,
+                             iis_files_path, solution_files_path)
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
-
-from TTapp.ilp_constraints.constraints.slotInstructorConstraint import (
-    SlotInstructorConstraint,
-)
-
-from core.decorators import timer
-
-from TTapp.FlopModel import (
-    FlopModel,
-    GUROBI_NAME,
-    get_ttconstraints,
-    get_room_constraints,
-    solution_files_path,
-    gurobi_log_files_path,
-    iis_files_path,
-)
+from TTapp.ilp_constraints.constraints.slotInstructorConstraint import \
+    SlotInstructorConstraint
+from TTapp.models import (AssignAllCourses, ConsiderDependencies,
+                          ConsiderModuleTutorRepartitions, ConsiderPivots,
+                          ConsiderTutorsUnavailability, MinGroupsHalfDays,
+                          MinimizeTutorsBusyDays, MinNonPreferedTrainProgsSlot,
+                          MinNonPreferedTutorsSlot, NoSimultaneousGroupCourses,
+                          RespectTutorsMaxTimePerDay,
+                          RespectTutorsMinTimePerDay, ScheduleAllCourses,
+                          StabilizeGroupsCourses, StabilizeTutorsCourses)
+from TTapp.RoomConstraints.RoomConstraint import (LimitSimultaneousRoomCourses,
+                                                  LocateAllCourses)
 from TTapp.RoomModel import RoomModel
-
-from django.utils.translation import gettext_lazy as _
-
-import datetime as dt
-from django.utils.translation import gettext
+from TTapp.slots import days_filter, slots_filter
+from TTapp.TimetableData import TimetableData
+from TTapp.TimetableUtils import number_courses, print_differences
 
 
 class TimetableModel(FlopModel):

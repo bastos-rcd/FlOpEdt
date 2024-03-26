@@ -27,10 +27,12 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
-from base.models import CourseType, CourseStartTimeConstraint, GroupType, TimeGeneralSettings
-from base.timing import min_to_str, str_to_min
-from flopeditor.validator import validate_course_values, OK_RESPONSE, ERROR_RESPONSE
 
+from base.models import (CourseStartTimeConstraint, CourseType, GroupType,
+                         TimeGeneralSettings)
+from base.timing import min_to_str, str_to_min
+from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE,
+                                  validate_course_values)
 
 
 def groups_types(department):

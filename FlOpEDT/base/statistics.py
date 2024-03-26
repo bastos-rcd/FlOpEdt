@@ -24,9 +24,12 @@
 # without disclosing the source code of your own applications.
 
 from datetime import datetime
+
 from django.http import JsonResponse
-from django.template.response import TemplateResponse 
+from django.template.response import TemplateResponse
+
 from base.core.statistics import get_room_activity_by_day, get_tutor_hours
+
 
 #@login_required
 def fetch_room_activity(req, **kwargs):

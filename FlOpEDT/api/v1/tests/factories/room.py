@@ -2,6 +2,7 @@ import factory
 
 from .availability import RoomDailyAvailabilityFactory
 
+
 class RoomTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "base.RoomType"

@@ -1,5 +1,6 @@
 import datetime as dt
-from calendar import monthrange, isleap
+from calendar import isleap, monthrange
+
 from base.models.timing import PeriodEnum
 
 

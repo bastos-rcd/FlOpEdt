@@ -24,10 +24,11 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import CourseType, Time, Day, ScheduledCourse
-from TTapp.models import slots_filter, days_filter, slot_pause, days_list
-from TTapp.TimetableModel import max_weight
 import random
+
+from base.models import CourseType, Day, ScheduledCourse, Time
+from TTapp.models import days_filter, days_list, slot_pause, slots_filter
+from TTapp.TimetableModel import max_weight
 
 
 def previous_week(week):

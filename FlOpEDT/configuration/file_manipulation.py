@@ -24,8 +24,10 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.conf import settings
 import os
+
+from django.conf import settings
+
 
 def upload_file(file, file_name):
     """

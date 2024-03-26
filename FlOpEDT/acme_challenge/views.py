@@ -1,8 +1,8 @@
 import os
 
-from django.views.static import serve
-from django.views import View
 from django.http import Http404
+from django.views import View
+from django.views.static import serve
 
 
 class ACMEChallengeView(View):

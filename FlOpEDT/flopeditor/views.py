@@ -30,18 +30,22 @@ This module is used to declare the views related to flop!EDITOR, an app used
 to manage a department statistics for FlOpEDT.
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponseForbidden
-from base.models import Department, TimeGeneralSettings, Day, Mode
-from base.timing import str_to_min, min_to_str, str_to_time, time_to_str
-from core.decorators import superuser_required, \
-    tutor_or_superuser_required, tutor_required
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 
+from base.models import Day, Department, Mode, TimeGeneralSettings
+from base.timing import min_to_str, str_to_min, str_to_time, time_to_str
+from core.decorators import (superuser_required, tutor_or_superuser_required,
+                             tutor_required)
+from flopeditor.db_requests import (create_departments_in_database, get_is_iut,
+                                    get_status_of_user,
+                                    update_departments_in_database,
+                                    update_user_in_database)
+from flopeditor.validator import (OK_RESPONSE, validate_department_creation,
+                                  validate_department_update,
+                                  validate_parameters_edit,
+                                  validate_profil_update)
 from people.models import Tutor
-from flopeditor.db_requests import create_departments_in_database, \
-    update_departments_in_database, get_status_of_user, update_user_in_database, get_is_iut
-from flopeditor.validator import validate_department_creation,\
-    validate_department_update, validate_parameters_edit, validate_profil_update, OK_RESPONSE
 
 
 def has_any_dept_perm(request):

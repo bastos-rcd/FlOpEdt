@@ -1,5 +1,6 @@
 from TTapp.FlopModel import iis_files_path
 
+
 def analyse_contraintes(ttmodel):
 
     ilp_bookname = ttmodel.iis_filename()

@@ -1,20 +1,16 @@
-from openpyxl import load_workbook
 from copy import copy
 
+from django.conf import settings
+from django.db.models import Count
+from exportation.layout_calendar import get_date_start
+from openpyxl import load_workbook
 from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from configuration.make_planif_file import append_row
-from django.db.models import Count
-
-from django.conf import settings
-
 from base.models import Course
-from people.models import User
-
-from exportation.layout_calendar import get_date_start
 from base.weeks import year_by_week
-
+from configuration.make_planif_file import append_row
+from people.models import User
 
 # def copy_cell(source_cell, coord, tgt):
 #     tgt[coord].value = source_cell.value

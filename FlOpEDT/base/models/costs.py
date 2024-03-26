@@ -1,6 +1,7 @@
 
 from django.db import models
 
+
 class TutorCost(models.Model):
     department = models.ForeignKey('base.Department', on_delete=models.CASCADE, null=True)
     period = models.ForeignKey('SchedulingPeriod', on_delete=models.CASCADE, null=True, blank=True)

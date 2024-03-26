@@ -1,9 +1,9 @@
 import logging
 
-from django.shortcuts import render, redirect
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseForbidden
+from django.shortcuts import redirect, render
 
 from base.models import Department
 

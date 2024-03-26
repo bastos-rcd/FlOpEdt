@@ -25,35 +25,25 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import (
-    ScheduledCourse,
-    RoomAvailability,
-    TimetableVersion,
-    Department,
-    CourseStartTimeConstraint,
-    TimeGeneralSettings,
-    Room,
-    CourseModification,
-    UserAvailability,
-    SchedulingPeriod,
-    Course,
-    Module,
-    CourseType,
-    TrainingProgramme,
-    TrainingPeriod,
-)
-from base.timing import str_slot, days_index
-from django.db.models import Count, Max, Q, F
-from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
-from TTapp.FlopConstraint import max_weight
-from TTapp.slots import slot_pause
-from TTapp.RoomModel import RoomModel
-import base.views as base_views
-from django.core.cache import cache
-from people.models import Tutor
-import json
-from django.utils.translation import gettext_lazy as _
 import datetime as dt
+import json
+
+from django.core.cache import cache
+from django.db.models import Count, F, Max, Q
+from django.utils.translation import gettext_lazy as _
+
+import base.views as base_views
+from base.models import (Course, CourseModification, CourseStartTimeConstraint,
+                         CourseType, Department, Module, Room,
+                         RoomAvailability, ScheduledCourse, SchedulingPeriod,
+                         TimeGeneralSettings, TimetableVersion, TrainingPeriod,
+                         TrainingProgramme, UserAvailability)
+from base.timing import days_index, str_slot
+from people.models import Tutor
+from TTapp.FlopConstraint import max_weight
+from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
+from TTapp.RoomModel import RoomModel
+from TTapp.slots import slot_pause
 
 
 def basic_reassign_rooms(department, period, version, create_new_version):

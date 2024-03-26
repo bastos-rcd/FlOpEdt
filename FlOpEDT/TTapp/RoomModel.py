@@ -24,41 +24,26 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import (
-    RoomAvailability,
-    ScheduledCourse,
-    TimeGeneralSettings,
-    RoomSort,
-    Room,
-    Course,
-    TimetableVersion
-)
-
-from base.timing import Day
-import base.queries as queries
-
-from TTapp.slots import Slot, days_filter
-
 from django.db.models import F, Q
 
+import base.queries as queries
+from base.models import (Course, Room, RoomAvailability, RoomSort,
+                         ScheduledCourse, TimeGeneralSettings,
+                         TimetableVersion)
+from base.timing import Day, flopday_to_date, floptime_to_time
+from core.decorators import timer
+from roomreservation.models import RoomReservation
+from TTapp.FlopConstraint import max_weight
+from TTapp.FlopModel import (GUROBI_NAME, FlopModel, get_room_constraints,
+                             solution_files_path)
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-
-from core.decorators import timer
-
-from TTapp.FlopModel import FlopModel, GUROBI_NAME, get_room_constraints, solution_files_path
-from TTapp.RoomConstraints.RoomConstraint import (
-    LocateAllCourses,
-    LimitGroupMoves,
-    LimitTutorMoves,
-    ConsiderRoomSorts,
-    LimitSimultaneousRoomCourses,
-)
-from TTapp.FlopConstraint import max_weight
-
-from base.timing import flopday_to_date, floptime_to_time
-
-from roomreservation.models import RoomReservation
+from TTapp.RoomConstraints.RoomConstraint import (ConsiderRoomSorts,
+                                                  LimitGroupMoves,
+                                                  LimitSimultaneousRoomCourses,
+                                                  LimitTutorMoves,
+                                                  LocateAllCourses)
+from TTapp.slots import Slot, days_filter
 
 
 class RoomModel(FlopModel):

@@ -1,8 +1,9 @@
 import unittest
-import base.models as models
 
 from django.test import Client, SimpleTestCase
 from django.urls import reverse
+
+import base.models as models
 
 
 class IndexViewTest(unittest.TestCase):

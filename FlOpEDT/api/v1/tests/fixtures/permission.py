@@ -1,10 +1,8 @@
 import pytest
-
-from api.v1.tests.utils import add_user_permission
-
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
+from api.v1.tests.utils import add_user_permission
 from people.models import User
 
 

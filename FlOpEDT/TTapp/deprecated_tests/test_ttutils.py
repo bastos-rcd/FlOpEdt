@@ -1,6 +1,8 @@
 from django.test import TestCase
-from TTapp.TimetableUtils import basic_swap_version, basic_reassign_rooms
+
 import base.models as models
+from TTapp.TimetableUtils import basic_reassign_rooms, basic_swap_version
+
 
 class TimetableUtilsTestCase(TestCase):
     @classmethod

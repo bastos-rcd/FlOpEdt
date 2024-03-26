@@ -1,5 +1,6 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
+
 
 class GameScore(models.Model):
     score = models.PositiveIntegerField()

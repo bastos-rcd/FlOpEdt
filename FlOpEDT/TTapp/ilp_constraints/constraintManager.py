@@ -25,6 +25,7 @@
 
 from TTapp.ilp_constraints.print_infaisibility import print_all
 
+
 def inc(occurs_types, constraint_type):
     if constraint_type is not None:
         if constraint_type in occurs_types.keys():

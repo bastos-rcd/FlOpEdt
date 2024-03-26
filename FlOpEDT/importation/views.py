@@ -1,17 +1,14 @@
-from django.shortcuts import render
-from django.conf import settings
-from django.http import HttpResponse
-from django.db import transaction
-
 import os
 
-from core.decorators import superuser_required
+from django.conf import settings
+from django.db import transaction
+from django.http import HttpResponse
+from django.shortcuts import render
 
-from base.models import TrainingPeriod, Department
-
-from configuration.forms import ImportFile
+from base.models import Department, TrainingPeriod
 from configuration.file_manipulation import check_ext_file, upload_file
-
+from configuration.forms import ImportFile
+from core.decorators import superuser_required
 from importation.csv_reader import csv_reader
 from importation.make_dispo_file import make_dispo_file
 from importation.translate_to_csv import convert_xlsx2csv

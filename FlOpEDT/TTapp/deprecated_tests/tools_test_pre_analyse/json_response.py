@@ -1,5 +1,6 @@
 import json
 
+
 def loadJsonDict(filename):
     f = open(filename)
     # returns JSON object as a dictionary

@@ -24,9 +24,10 @@
 # without disclosing the source code of your own applications.
 
 
-from TTapp.FlopConstraint import FlopConstraint, all_subclasses
 from base.models import SchedulingPeriod, TimetableVersion
 from core.decorators import timer
+from TTapp.FlopConstraint import FlopConstraint, all_subclasses
+
 
 @timer
 def are_all_flop_constraints_satisfied_for(period:SchedulingPeriod, version:TimetableVersion):

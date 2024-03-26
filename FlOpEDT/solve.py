@@ -25,6 +25,7 @@
 import getopt
 import os
 import sys
+
 import django
 
 if __name__ == "__main__":

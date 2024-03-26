@@ -1,10 +1,13 @@
 import json
-import re
 import os
+import re
 from pathlib import Path
+
+from django.conf import settings as ds
+
 from MyFlOp.colors import Tcolors
 from TTapp.onLaunch.settings import settings
-from django.conf import settings as ds
+
 LANG_LIST = settings()["langs"]
 
 

@@ -27,6 +27,7 @@
 
 
 from django.apps import AppConfig
+
 # from TTapp.onLaunch.discarded import createDiscardFile
 # from TTapp.onLaunch.file import initTemp
 

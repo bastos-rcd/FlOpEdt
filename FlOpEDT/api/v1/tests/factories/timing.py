@@ -1,5 +1,6 @@
 import factory
 
+
 class SchedulingPeriodFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "base.SchedulingPeriod"

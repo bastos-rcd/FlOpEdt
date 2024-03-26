@@ -26,14 +26,14 @@
 
 
 from django.contrib import admin
+from django.db.models import Max
+from import_export import fields, resources
+
+from base.admin import MyModelAdmin
+from core.filters import DropdownFilterCho, DropdownFilterRel
 
 from .models import Quote, QuoteType
 
-from django.db.models import Max
-from core.filters import DropdownFilterRel, DropdownFilterCho
-
-from import_export import resources, fields
-from base.admin import MyModelAdmin
 
 class QuoteResource(resources.ModelResource):
     txt = fields.Field()

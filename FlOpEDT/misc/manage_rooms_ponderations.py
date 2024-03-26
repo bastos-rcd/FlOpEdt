@@ -1,6 +1,8 @@
-from core.decorators import timer
-from base.models import RoomPonderation, RoomType
 from django.db import transaction
+
+from base.models import RoomPonderation, RoomType
+from core.decorators import timer
+
 
 @timer
 def all_room_types_subsets_with_corresponding_basic_rooms(room_types_query_set):

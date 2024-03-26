@@ -25,12 +25,11 @@
 
 
 
+from django.forms import ModelForm, Textarea
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from django.forms import ModelForm, Textarea
 from .models import Quote
-
-from django.utils.safestring import mark_safe
 
 
 class QuoteForm(ModelForm):

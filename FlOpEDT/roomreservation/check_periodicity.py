@@ -1,8 +1,8 @@
-from dateutil.rrule import rrule, MONTHLY, WEEKLY, MO, TU, WE, TH, FR, SA, SU
+from dateutil.rrule import FR, MO, MONTHLY, SA, SU, TH, TU, WE, WEEKLY, rrule
 from django.db.models import F
 
 from base.models import ScheduledCourse, SchedulingPeriod
-from base.timing import days_list, time_to_floptime, days_index
+from base.timing import days_index, days_list, time_to_floptime
 from roomreservation.models import ReservationPeriodicity, RoomReservation
 
 rrule_days = [MO, TU, WE, TH, FR, SA, SU]

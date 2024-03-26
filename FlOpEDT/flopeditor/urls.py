@@ -31,7 +31,8 @@ to manage a department statistics for FlOpEDT.
 """
 
 from django.urls import path
-from . import views, crud
+
+from . import crud, views
 
 app_name = "flopeditor"
 

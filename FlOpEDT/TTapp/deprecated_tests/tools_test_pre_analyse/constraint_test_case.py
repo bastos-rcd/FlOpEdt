@@ -1,4 +1,5 @@
 from django.test import TestCase
+
 import TTapp.deprecated_tests.tools_test_pre_analyse.json_response as json_response_module
 
 

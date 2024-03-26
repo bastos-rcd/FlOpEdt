@@ -24,6 +24,7 @@
 # without disclosing the source code of your own applications.
 
 import csv
+
 from TTapp.ilp_constraints.constraint import Constraint
 
 

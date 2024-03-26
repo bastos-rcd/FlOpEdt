@@ -23,12 +23,12 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import TimeGeneralSettings, SchedulingPeriod, ScheduledCourse, Course, TimetableVersion
-from django.core.validators import MinValueValidator, MaxValueValidator
-
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from django.db import models
+from base.models import (Course, ScheduledCourse, SchedulingPeriod,
+                         TimeGeneralSettings, TimetableVersion)
 
 max_weight = 8
 

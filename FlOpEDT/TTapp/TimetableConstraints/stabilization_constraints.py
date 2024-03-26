@@ -24,19 +24,16 @@
 # without disclosing the source code of your own applications.
 
 from django.contrib.postgres.fields import ArrayField
-
 from django.db import models
-
 from django.db.models import F
+from django.utils.translation import gettext_lazy as _
 
 from base.timing import Day
-
-from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import slots_filter
 from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
-from django.utils.translation import gettext_lazy as _
 
 
 class StabilizeTutorsCourses(TimetableConstraint):

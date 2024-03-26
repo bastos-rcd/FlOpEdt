@@ -26,6 +26,7 @@
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 
+
 class CourseConstraint(Constraint):
     def __init__(self, course):
         self.course = course

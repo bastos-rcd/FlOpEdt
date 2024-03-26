@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 
-from django.test import TestCase
-from solve_board.views import get_ttconstraints, get_pulp_solvers, get_pulp_solvers_viewmodel
-from base import models as base
 import pulp
+from django.test import TestCase
 
-
+from base import models as base
+from solve_board.views import (get_pulp_solvers, get_pulp_solvers_viewmodel,
+                               get_ttconstraints)
 from TTapp.models import *
+
 
 def funcname(self, parameter_list):
     raise NotImplementedError

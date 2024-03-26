@@ -21,7 +21,9 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 from rest_framework import routers
+
 from api.TTapp import views
+
 # from api.TTapp import views
 
 routerTTapp = routers.SimpleRouter()

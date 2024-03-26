@@ -21,16 +21,16 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from rest_framework import serializers, exceptions, status
-import base.models as bm
-from people.models import User
-from base.timing import Day, flopdate_to_datetime
 import datetime as dt
 
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import exceptions, serializers, status
 
+import base.models as bm
 from base.rules import can_push_user_availability
+from base.timing import Day, flopdate_to_datetime
+from people.models import User
 
 
 # -----------------

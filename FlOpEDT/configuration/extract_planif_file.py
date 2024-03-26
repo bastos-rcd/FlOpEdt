@@ -24,34 +24,23 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import datetime as dt
 import os
 import sys
-from openpyxl import *
 
-from base.models import (
-    GenericGroup,
-    Module,
-    Course,
-    CourseType,
-    RoomType,
-    TrainingProgramme,
-    Dependency,
-    TrainingPeriod,
-    Department,
-    CoursePossibleTutors,
-    ModuleTutorRepartition,
-    CourseAdditional,
-    SchedulingPeriod,
-)
-from people.models import Tutor, UserDepartmentSettings
-from misc.assign_colors import assign_module_color
-from TTapp.models import StabilizationThroughPeriods
-
+from django.conf import settings as ds
 from django.db import transaction
 from django.db.models import Q
-from django.conf import settings as ds
+from openpyxl import *
 
-import datetime as dt
+from base.models import (Course, CourseAdditional, CoursePossibleTutors,
+                         CourseType, Department, Dependency, GenericGroup,
+                         Module, ModuleTutorRepartition, RoomType,
+                         SchedulingPeriod, TrainingPeriod, TrainingProgramme)
+from misc.assign_colors import assign_module_color
+from people.models import Tutor, UserDepartmentSettings
+from TTapp.models import StabilizationThroughPeriods
+
 
 def do_assign(module, course_type, period, book):
     already_done = ModuleTutorRepartition.objects.filter(

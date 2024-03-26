@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, response, status
+from rest_framework import response, status, viewsets
 
 import roomreservation.models as rm
 from api.permissions import IsAdminOrReadOnly

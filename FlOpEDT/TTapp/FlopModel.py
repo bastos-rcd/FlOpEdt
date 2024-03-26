@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import fnmatch
+import logging
 # This file is part of the FlOpEDT/FlOpScheduler project.
 # Copyright (c) 2017
 # Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.
@@ -23,28 +25,26 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-import os, fnmatch
-
-from pulp import LpVariable, LpConstraint, LpBinary, LpConstraintEQ, \
-    LpConstraintGE, LpConstraintLE, LpAffineExpression, LpProblem, LpStatus, \
-    LpMinimize, lpSum, LpStatusOptimal, LpStatusNotSolved
-import pulp
-from pulp import GUROBI_CMD
+import os
 import signal
-import logging
-from TTapp.ilp_constraints.constraintManager import ConstraintManager
+
+import pulp
+from django.conf import settings
+from django.db import close_old_connections
+from django.db.models import Max, Q
+from pulp import (GUROBI_CMD, LpAffineExpression, LpBinary, LpConstraint,
+                  LpConstraintEQ, LpConstraintGE, LpConstraintLE, LpMinimize,
+                  LpProblem, LpStatus, LpStatusNotSolved, LpStatusOptimal,
+                  LpVariable, lpSum)
+
+from base.models import Department, ScheduledCourse
+from core.decorators import timer
+from TTapp.FlopConstraint import all_subclasses
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from base.models import Department, ScheduledCourse
-
-from core.decorators import timer
-from django.db import close_old_connections
-from django.db.models import Q, Max
-from django.conf import settings
-
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.ilp_constraints.constraintManager import ConstraintManager
 from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
-from TTapp.FlopConstraint import all_subclasses
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 
 logger = logging.getLogger(__name__)
 pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
@@ -263,7 +263,7 @@ class FlopModel(object):
         close_old_connections()
         iis_filename = self.iis_filename()
         if write_iis:
-            from gurobipy import read, GurobiError
+            from gurobipy import GurobiError, read
             lp = f"{self.solution_files_prefix()}-pulp.lp"
             m = read(lp)
             if presolve:

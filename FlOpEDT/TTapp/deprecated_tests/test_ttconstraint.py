@@ -1,10 +1,11 @@
 
-from django.test import TestCase
-from unittest.mock import patch, Mock, MagicMock, call
+from unittest.mock import MagicMock, Mock, call, patch
 
-from base.models import Department, TrainingProgramme, Course, CourseType, Time
+from django.test import TestCase
+
+from base.models import Course, CourseType, Department, Time, TrainingProgramme
 from people.models import Tutor
-from TTapp.models import LimitTimePerPeriod, MinHalfDays, CustomConstraint
+from TTapp.models import CustomConstraint, LimitTimePerPeriod, MinHalfDays
 from TTapp.TimetableModel import TimetableModel
 
 

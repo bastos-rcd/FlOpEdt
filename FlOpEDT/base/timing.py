@@ -26,9 +26,11 @@
  ---------------------------
 """
 import datetime as dt
-from datetime import date, time, datetime
-import base.models as bm
+from datetime import date, datetime, time
+
 from django.utils.translation import gettext_lazy as _
+
+import base.models as bm
 
 slot_pause = dt.timedelta(minutes=30)
 

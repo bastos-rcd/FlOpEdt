@@ -1,9 +1,10 @@
-from django.test import TestCase
-from unittest.mock import patch
 from unittest import skip
+from unittest.mock import patch
 
-from TTapp.TimetableModel import TimetableModel
+from django.test import TestCase
+
 import base.models as models
+from TTapp.TimetableModel import TimetableModel
 
 
 def mock_optimize(self, time_limit=300, solver="CBC", presolve=2):

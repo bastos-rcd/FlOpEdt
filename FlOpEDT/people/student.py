@@ -28,7 +28,7 @@ from django.shortcuts import redirect
 from django.views.generic import CreateView, UpdateView
 
 from .forms import AddStudentForm, ChangeStudentForm
-from .models import User, Student
+from .models import Student, User
 
 
 class ChangeStudent(UpdateView):

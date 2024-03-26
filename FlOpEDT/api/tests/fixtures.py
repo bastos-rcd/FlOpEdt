@@ -1,16 +1,9 @@
 import pytest
-from base.models import (
-    Department,
-    Course,
-    ScheduledCourse,
-    Week,
-    Module,
-    StructuralGroup,
-    TrainingProgramme,
-    TrainingPeriod,
-    CourseType,
-)
-from people.models import Tutor, UserDepartmentSettings, FullStaff, SupplyStaff
+
+from base.models import (Course, CourseType, Department, Module,
+                         ScheduledCourse, StructuralGroup, TrainingPeriod,
+                         TrainingProgramme, Week)
+from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
 
 
 @pytest.fixture

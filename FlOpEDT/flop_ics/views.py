@@ -1,9 +1,9 @@
+from django.db.models import Q
 from django.shortcuts import render
 
-from people.models import Tutor
-from base.models import StructuralGroup, TransversalGroup, Department
 import base.queries as queries
-from django.db.models import Q
+from base.models import Department, StructuralGroup, TransversalGroup
+from people.models import Tutor
 
 
 def index(request, **kwargs):

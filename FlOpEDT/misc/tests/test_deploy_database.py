@@ -2,8 +2,9 @@ import os
 
 from django.test import TestCase
 from openpyxl import load_workbook
-from configuration.deploy_database import settings_extract, convert_time
-from base.models import TimeGeneralSettings, Department
+
+from base.models import Department, TimeGeneralSettings
+from configuration.deploy_database import convert_time, settings_extract
 
 
 class ExtractGeneralSettingsTestCase(TestCase):

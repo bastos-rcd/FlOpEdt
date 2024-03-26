@@ -21,8 +21,9 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import base.models as bm
 from rest_framework import serializers
+
+import base.models as bm
 
 
 class GroupTypesSerializer(serializers.ModelSerializer):

@@ -22,9 +22,9 @@
 # without disclosing the source code of your own applications.
 
 from rest_framework import serializers
-import people.models as pm
-import base.models as bm
 
+import base.models as bm
+import people.models as pm
 from api.fetch.serializers import DepartmentAbbrevSerializer
 
 

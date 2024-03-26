@@ -28,28 +28,25 @@
 # from channels import Group, Channel
 # from tasks import run
 
+import io
 import json
 import logging
-
-from threading import Thread
-from django.core.exceptions import ObjectDoesNotExist
-from TTapp.TimetableModel import TimetableModel
-from base.models import TrainingProgramme, SchedulingPeriod
-import TTapp.models as TimetableClasses
-
 # from multiprocessing import Process
 import os
-import io
-import traceback
 import signal
+import sys
 import time
-
-from django.core.cache import cache
-from django.conf import settings
-
+import traceback
+from threading import Thread
 
 from channels.generic.websocket import WebsocketConsumer
-import json, sys
+from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
+
+import TTapp.models as TimetableClasses
+from base.models import SchedulingPeriod, TrainingProgramme
+from TTapp.TimetableModel import TimetableModel
 
 _solver_child_process = 0
 

@@ -1,10 +1,11 @@
-from django.conf import settings
-from base.models import UserAvailability, Time, Day, Slot
-from people.models import User
-import os
 import csv
+import os
 
 import xlrd
+from django.conf import settings
+
+from base.models import Day, Slot, Time, UserAvailability
+from people.models import User
 
 
 def handle_uploaded_file_xlsx(file):

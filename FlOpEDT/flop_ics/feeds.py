@@ -1,16 +1,17 @@
 import datetime as dt
-from django_ical.views import ICalFeed
+from calendar import timegm
 
 from django.core.exceptions import ObjectDoesNotExist
-
-from base.models import ScheduledCourse, Room, StructuralGroup, TransversalGroup, Day, Department, Regen
-from people.models import Tutor
 from django.db.models import Q
+from django.http import Http404, HttpResponse
+from django.utils.http import http_date
+from django_ical.views import ICalFeed
+
+from base.models import (Day, Department, Regen, Room, ScheduledCourse,
+                         StructuralGroup, TransversalGroup)
+from people.models import Tutor
 from roomreservation.models import RoomReservation
 
-from django.http import HttpResponse, Http404
-from django.utils.http import http_date
-from calendar import timegm
 
 def str_groups(c):
     groups = c.groups.all()

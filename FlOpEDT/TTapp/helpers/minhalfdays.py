@@ -23,14 +23,14 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import datetime as dt
 import logging
 
 from base.models import Time, TimeGeneralSettings
 from people.models import GroupPreferences
-from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
-from TTapp.slots import slots_filter, days_filter
-import datetime as dt
+from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.slots import days_filter, slots_filter
 
 logger = logging.Logger(__name__)
 

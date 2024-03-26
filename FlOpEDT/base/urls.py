@@ -21,9 +21,9 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.urls import path, re_path, include
-from . import views
-from . import statistics
+from django.urls import include, path, re_path
+
+from . import statistics, views
 
 app_name="base"
 

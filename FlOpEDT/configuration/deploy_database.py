@@ -24,54 +24,28 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import string, logging
+import datetime as dt
+import logging
+import string
 from copy import copy
-
-from django.db import transaction
-
 from random import choice
 
-from displayweb.models import TrainingProgrammeDisplay
-
-from base.models import (
-    RoomType,
-    Room,
-    TrainingProgramme,
-    StructuralGroup,
-    TransversalGroup,
-    Module,
-    GroupType,
-    TrainingPeriod,
-    CourseType,
-    Department,
-    CourseStartTimeConstraint,
-    TimeGeneralSettings,
-    UserAvailability,
-    CourseAvailability,
-    GenericGroup,
-    Mode,
-    SchedulingPeriod
-)
-
-from people.models import (
-    FullStaff,
-    SupplyStaff,
-    Tutor,
-    UserDepartmentSettings,
-    TutorPreference,
-)
-
-from configuration.database_description_xlsx import database_description_load_xlsx_file
-
-from django.db import IntegrityError
-
-from misc.assign_colors import assign_module_color
-
-from configuration.database_description_checker import database_description_check
-
 from django.conf import settings as ds
+from django.db import IntegrityError, transaction
 
-import datetime as dt
+from base.models import (CourseAvailability, CourseStartTimeConstraint,
+                         CourseType, Department, GenericGroup, GroupType, Mode,
+                         Module, Room, RoomType, SchedulingPeriod,
+                         StructuralGroup, TimeGeneralSettings, TrainingPeriod,
+                         TrainingProgramme, TransversalGroup, UserAvailability)
+from configuration.database_description_checker import \
+    database_description_check
+from configuration.database_description_xlsx import \
+    database_description_load_xlsx_file
+from displayweb.models import TrainingProgrammeDisplay
+from misc.assign_colors import assign_module_color
+from people.models import (FullStaff, SupplyStaff, Tutor, TutorPreference,
+                           UserDepartmentSettings)
 
 logger = logging.getLogger('base')
 

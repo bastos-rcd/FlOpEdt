@@ -24,11 +24,12 @@
 # without disclosing the source code of your own applications.
 
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.db import transaction
 
-from .models import Student, User, FullStaff, SupplyStaff, BIATOS, Tutor
 from base.models import StructuralGroup
+
+from .models import BIATOS, FullStaff, Student, SupplyStaff, Tutor, User
 
 
 class GroupChoiceField(forms.ModelMultipleChoiceField):

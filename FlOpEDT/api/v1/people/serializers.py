@@ -22,13 +22,13 @@
 # without disclosing the source code of your own applications.
 
 from typing import List
+
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema_field
 from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema_field, OpenApiParameter
-from drf_spectacular.types import OpenApiTypes
-
-import people.models as pm
 import base.models as bm
+import people.models as pm
 
 
 class UserSerializer(serializers.ModelSerializer):

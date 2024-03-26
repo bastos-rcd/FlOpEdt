@@ -24,34 +24,22 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import datetime as dt
 import logging
 import os
+from copy import copy
 
+from django.conf import settings as ds
+from django.db.models import Count
+from django.utils.translation import gettext_lazy as _
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from base.models import (
-    StructuralGroup,
-    Module,
-    TrainingPeriod,
-    CourseType,
-    RoomType,
-    Course,
-    TransversalGroup,
-    SchedulingPeriod
-)
+from base.models import (Course, CourseType, Module, RoomType,
+                         SchedulingPeriod, StructuralGroup, TrainingPeriod,
+                         TransversalGroup)
 from people.models import Tutor
-
-from copy import copy
-
-from django.db.models import Count
-
-from django.utils.translation import gettext_lazy as _
-
-from django.conf import settings as ds
-
-import datetime as dt
 
 logger = logging.getLogger(__name__)
 

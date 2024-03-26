@@ -23,17 +23,17 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import datetime as dt
+
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
+from TTapp.FlopConstraint import max_weight
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperTutor
-
-from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
-from TTapp.FlopConstraint import max_weight
-from django.utils.translation import gettext_lazy as _
-import datetime as dt
 
 
 def considered_tutors(tutors_ttconstraint, ttmodel):

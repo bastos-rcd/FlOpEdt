@@ -24,16 +24,16 @@
 # without disclosing the source code of your own applications.
 
 
+from django.contrib.postgres.fields import ArrayField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-from TTapp.ilp_constraints.constraint_type import ConstraintType
+from base.timing import Day, Time, min_to_str
 from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
-from base.timing import Day, Time, min_to_str
-from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.utils.translation import gettext_lazy as _
 
 
 class NoVisio(TimetableConstraint):

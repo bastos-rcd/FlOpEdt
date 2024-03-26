@@ -1,9 +1,11 @@
 
-from django.test import TestCase
 from unittest import mock
 
-from MyFlOp.MyTimetableUtils import reassign_rooms, swap_version
+from django.test import TestCase
+
 from base.models import Department
+from MyFlOp.MyTimetableUtils import reassign_rooms, swap_version
+
 
 def mock_tt_method(self, *args, **kwargs):
     pass

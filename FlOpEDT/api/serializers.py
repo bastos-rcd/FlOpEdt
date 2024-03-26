@@ -27,7 +27,6 @@ import base.models as bm
 import displayweb.models as dwm
 import quote.models as q
 
-
 # ----------
 # -- QUOTE -
 # ----------

@@ -24,26 +24,23 @@
 # without disclosing the source code of your own applications.
 
 
-from django.contrib.postgres.fields import ArrayField
-from base.timing import Day, TimeInterval, flopdate_to_datetime
 import datetime as dt
-from base.partition import Partition
-from base.models import ScheduledCourse
-from people.models import Tutor
 
-from django.db import models
-from django.db.models import Q, F
-
-
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
-
-from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraint import Constraint
-from TTapp.slots import days_filter, slots_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
-from TTapp.slots import Slot
-from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
+from django.db import models
+from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
+
+from base.models import ScheduledCourse
+from base.partition import Partition
+from base.timing import Day, TimeInterval, flopdate_to_datetime
+from people.models import Tutor
+from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.slots import Slot, days_filter, slots_filter
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 
 class GroupsLunchBreak(TimetableConstraint):

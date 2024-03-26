@@ -26,13 +26,13 @@
 
 from random import randint
 
-from django.shortcuts import render
 from django.http import HttpResponse
+from django.shortcuts import render
 
 from base.views import edt
+from quote.admin import QuoteResource
 from quote.forms import QuoteForm  # ProfForm, UserForm
 from quote.models import Quote
-from quote.admin import QuoteResource
 
 
 def submit(req):

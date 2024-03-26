@@ -33,15 +33,14 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext as _
 
-from core.decorators import tutor_or_superuser_required
-
 import base.queries as queries
-
-from people.models import Tutor, GroupPreferences, StudentPreferences, Student, \
-    UserPreferredLinks, PhysicalPresence, User
-from people.admin import TutorResource, GroupPreferencesResource, \
-    StudentPreferencesResource, UserPreferredLinksResource, PhysicalPresenceResource
 from base.models import Department, SchedulingPeriod, Theme
+from core.decorators import tutor_or_superuser_required
+from people.admin import (GroupPreferencesResource, PhysicalPresenceResource,
+                          StudentPreferencesResource, TutorResource,
+                          UserPreferredLinksResource)
+from people.models import (GroupPreferences, PhysicalPresence, Student,
+                           StudentPreferences, Tutor, User, UserPreferredLinks)
 
 logger = logging.getLogger(__name__)
 

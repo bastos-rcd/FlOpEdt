@@ -24,15 +24,15 @@
 # without disclosing the source code of your own applications.
 
 
+from django.core.validators import MaxValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from base.models import CourseStartTimeConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
-from django.core.validators import MaxValueValidator
-from django.utils.translation import gettext_lazy as _
-from base.models import CourseStartTimeConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 
 slot_pause = 5
 

@@ -23,25 +23,19 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import (
-    ModulePossibleTutors,
-    ScheduledCourse,
-    TimeGeneralSettings,
-    UserAvailability,
-    SchedulingPeriod
-)
-from base.models.availability import period_actual_availabilities
-from base.timing import (
-    TimeInterval,
-    Day,
-    days_index,
-    flopdate_to_datetime,
-    time_to_floptime,
-)
-import datetime as dt
-from django.db.models import Q
-from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 import copy
+import datetime as dt
+
+from django.db.models import Q
+
+from base.models import (ModulePossibleTutors, ScheduledCourse,
+                         SchedulingPeriod, TimeGeneralSettings,
+                         UserAvailability)
+from base.models.availability import period_actual_availabilities
+from base.timing import (Day, TimeInterval, days_index, flopdate_to_datetime,
+                         time_to_floptime)
+from TTapp.TimetableConstraints.no_course_constraints import \
+    NoTutorCourseOnWeekDay
 
 
 class Partition(object):

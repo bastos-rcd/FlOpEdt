@@ -23,17 +23,19 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from typing import TYPE_CHECKING
+
 from django.db.models import Q
 
 from core.decorators import timer
 from TTapp.FlopConstraint import FlopConstraint
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from TTapp.TimetableModel import TimetableModel
     from base.models import SchedulingPeriod
 
 from base.models import StructuralGroup
+
 
 class TimetableConstraint(FlopConstraint):
     """

@@ -21,19 +21,19 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from collections import OrderedDict
+
 from django.contrib.postgres.fields.array import ArrayField
-from rest_framework.fields import empty
-from TTapp.FlopConstraint import FlopConstraint
+from django.db import models
+from rest_framework import serializers
+from rest_framework.fields import Field, empty
+from rest_framework.serializers import ModelSerializer
+
 import TTapp.TimetableConstraints.tutors_constraints as ttt
 import TTapp.TimetableConstraints.visio_constraints as ttv
-from rest_framework import serializers
-from base.timing import all_possible_start_times
-
-from collections import OrderedDict
-from rest_framework.serializers import ModelSerializer
-from rest_framework.fields import Field
-from django.db import models
 from base.models import Department
+from base.timing import all_possible_start_times
+from TTapp.FlopConstraint import FlopConstraint
 
 # ---------------
 # ---- TTAPP ----

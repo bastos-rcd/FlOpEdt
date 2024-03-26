@@ -30,11 +30,12 @@ This module is used to declare the form validations related to flop!EDITOR, an a
 to manage a department statistics for FlOpEDT.
 """
 import re
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
-from base.models import Department, GenericGroup
-from people.models import Tutor, SupplyStaff, FullStaff, BIATOS
 
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+
+from base.models import Department, GenericGroup
+from people.models import BIATOS, FullStaff, SupplyStaff, Tutor
 
 OK_RESPONSE = 'OK'
 ERROR_RESPONSE = 'ERROR'

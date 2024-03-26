@@ -23,22 +23,21 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.db import models
-from base.models import StructuralGroup
-from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
-from base.timing import Day
-from TTapp.slots import slots_filter, days_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
-from people.models import GroupPreferences
+import datetime as dt
+
 from django.contrib.postgres.fields import ArrayField
-
-
-from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraint import Constraint
-
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-import datetime as dt
+from base.models import StructuralGroup
+from base.timing import Day
+from people.models import GroupPreferences
+from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
+from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.slots import days_filter, slots_filter
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+
 
 def pre_analysis_considered_basic_groups(group_ttconstraint):
     

@@ -23,21 +23,21 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import Course, ScheduledCourse, GenericGroup
-from notifications.models import BackUpModif
-from people.models import Tutor, NotificationsPreferences
-import json
+import configparser
 import datetime as dt
-from django.utils.translation import gettext_lazy as _
-from django.utils.translation import gettext
-
-from django.core.mail import send_mail
-from django.utils.html import strip_tags
+import json
+import logging
+import os
 
 from django.conf import settings as ds
+from django.core.mail import send_mail
+from django.utils.html import strip_tags
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 
-import configparser, os
-import logging
+from base.models import Course, GenericGroup, ScheduledCourse
+from notifications.models import BackUpModif
+from people.models import NotificationsPreferences, Tutor
 
 logger = logging.getLogger("base")
 # Let's parse the configuration file

@@ -1,7 +1,8 @@
 from django.urls import path
-from flop_ics.feeds import TutorEventFeed, RoomEventFeed, StructuralGroupEventFeed, TransversalGroupEventFeed, RegenFeed
 
 from flop_ics import views
+from flop_ics.feeds import (RegenFeed, RoomEventFeed, StructuralGroupEventFeed,
+                            TransversalGroupEventFeed, TutorEventFeed)
 
 app_name = 'flop_ics'
 

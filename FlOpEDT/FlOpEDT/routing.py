@@ -24,8 +24,8 @@
 # without disclosing the source code of your own applications.
 
 
-from channels.routing import ChannelNameRouter, ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
+from channels.routing import ChannelNameRouter, ProtocolTypeRouter, URLRouter
 
 import solve_board.routing
 

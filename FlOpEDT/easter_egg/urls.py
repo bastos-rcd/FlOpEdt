@@ -1,4 +1,5 @@
 from django.urls import path
+
 import easter_egg.views as views
 
 app_name = "easter_egg"

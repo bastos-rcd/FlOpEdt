@@ -22,7 +22,9 @@
 # without disclosing the source code of your own applications.
 
 from rest_framework import serializers
+
 from base.models import CourseType
+
 
 class VolumeAgrege:
     conditions_pour_continue = []

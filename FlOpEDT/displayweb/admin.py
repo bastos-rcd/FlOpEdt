@@ -1,12 +1,12 @@
-from import_export import resources, fields
-from import_export.widgets import ForeignKeyWidget
-
 from django.contrib import admin
+from import_export import fields, resources
+from import_export.widgets import ForeignKeyWidget
 
 from base.admin import DepartmentModelAdmin
 from base.models import Module
+from displayweb.models import BreakingNews, ModuleDisplay, TutorDisplay
 from people.models import Tutor
-from displayweb.models import BreakingNews, TutorDisplay, ModuleDisplay
+
 
 class BreakingNewsResource(resources.ModelResource):
     class Meta:

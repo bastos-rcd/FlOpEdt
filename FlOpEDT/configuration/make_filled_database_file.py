@@ -31,21 +31,29 @@
 # database_description_checker.py.
 #
 
-from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
-from copy import copy
-
 import logging
 import os
+from copy import copy
+
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+
 logger = logging.getLogger(__name__)
-from configuration.database_description_xlsx import \
-    people_sheet, rooms_sheet, groups_sheet, modules_sheet, courses_sheet, settings_sheet, REASONABLE, \
-    find_marker_cell, time_from_integer, strftime_from_time
-
-
-from base.models import Room, RoomType, TrainingPeriod, TransversalGroup, StructuralGroup, TrainingProgramme, GroupType, Module, CourseType, CourseStartTimeConstraint
-from people.models import Tutor
 from django.conf import settings as ds
+
+from base.models import (CourseStartTimeConstraint, CourseType, GroupType,
+                         Module, Room, RoomType, StructuralGroup,
+                         TrainingPeriod, TrainingProgramme, TransversalGroup)
+from configuration.database_description_xlsx import (REASONABLE, courses_sheet,
+                                                     find_marker_cell,
+                                                     groups_sheet,
+                                                     modules_sheet,
+                                                     people_sheet, rooms_sheet,
+                                                     settings_sheet,
+                                                     strftime_from_time,
+                                                     time_from_integer)
+from people.models import Tutor
+
 #################################################
 #                                               #
 #   Filler functions for the different pages    #

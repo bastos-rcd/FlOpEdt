@@ -1,12 +1,10 @@
+import datetime as dt
+
 import pytest
 
+from api.v1.tests.factories.availability import (UserAvailabilityFactory,
+                                                 UserHourlyAvailabilityFactory)
 from api.v1.tests.factories.people import UserFactory
-from api.v1.tests.factories.availability import (
-    UserAvailabilityFactory,
-    UserHourlyAvailabilityFactory,
-)
-
-import datetime as dt
 
 
 @pytest.fixture

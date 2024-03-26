@@ -24,26 +24,24 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import os
 import json
 import logging
+import os
 
+from django.conf import settings as ds
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.db import transaction
-from django.conf import settings as ds
 
-from core.decorators import dept_admin_required
-
-from base.models import Department, TrainingPeriod, SchedulingPeriod
-
-from configuration.make_planif_file import make_planif_file
-from configuration.make_filled_database_file import make_filled_database_file
-from configuration.extract_planif_file import extract_planif
-from configuration.deploy_database import extract_database_file
-from configuration.file_manipulation import upload_file, check_ext_file
-from configuration.forms import ImportPlanif, ImportConfig
+from base.models import Department, SchedulingPeriod, TrainingPeriod
 from base.weeks import current_year
+from configuration.deploy_database import extract_database_file
+from configuration.extract_planif_file import extract_planif
+from configuration.file_manipulation import check_ext_file, upload_file
+from configuration.forms import ImportConfig, ImportPlanif
+from configuration.make_filled_database_file import make_filled_database_file
+from configuration.make_planif_file import make_planif_file
+from core.decorators import dept_admin_required
 
 logger = logging.getLogger(__name__)
 

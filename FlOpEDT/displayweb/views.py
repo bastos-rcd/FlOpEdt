@@ -1,12 +1,12 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 
-from django.http import HttpResponse
-
-from people.models import Tutor
-from base.models import Module, ScheduledCourse
 import base.queries as queries
-from displayweb.models import TutorDisplay, ModuleDisplay
-from displayweb.admin import TutorDisplayResource, ModuleDisplayResource
+from base.models import Module, ScheduledCourse
+from displayweb.admin import ModuleDisplayResource, TutorDisplayResource
+from displayweb.models import ModuleDisplay, TutorDisplay
+from people.models import Tutor
+
 
 # Create your views here.
 def fetch_rectangle_colors(req, **kwargs):

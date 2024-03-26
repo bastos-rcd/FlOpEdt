@@ -21,18 +21,14 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import django_filters.rest_framework as filters
+from django.http import HttpResponse, JsonResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-import django_filters.rest_framework as filters
-
-from django.http import HttpResponse, JsonResponse
-
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
-from api.base.groups import serializers
-
 import base.models as bm
-
+from api.base.groups import serializers
+from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
 from base import queries
 
 

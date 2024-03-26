@@ -26,16 +26,14 @@
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-
+from import_export import fields, resources
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
-from import_export import resources, fields
 
 from base.admin import DepartmentModelAdminMixin
-
-from people.models import User, Tutor, FullStaff, SupplyStaff, BIATOS, Student,\
-    UserDepartmentSettings, StudentPreferences, GroupPreferences, UserPreferredLinks,\
-    PhysicalPresence
-
+from people.models import (BIATOS, FullStaff, GroupPreferences,
+                           PhysicalPresence, Student, StudentPreferences,
+                           SupplyStaff, Tutor, User, UserDepartmentSettings,
+                           UserPreferredLinks)
 
 
 class UserDepartmentInline(admin.TabularInline):

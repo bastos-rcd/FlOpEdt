@@ -21,11 +21,12 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from rest_framework import serializers
+
 import base.models as bm
 import displayweb.models as dwm
 from api.base.serializers import TrainingProgramsSerializer
 
-from rest_framework import serializers
 
 class Department_TC_Serializer(serializers.Serializer):
     name = serializers.CharField()
