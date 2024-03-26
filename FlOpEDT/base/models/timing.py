@@ -96,28 +96,32 @@ class SchedulingPeriod(models.Model):
         return self.name
 
     def __lte__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.start_date <= other.start_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.start_date <= other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def __lt__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.end_date < other.start_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.end_date < other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def __gt__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.start_date > other.end_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.start_date > other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def __gte__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.end_date >= other.end_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.end_date >= other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def dates(self):
         return [
@@ -131,11 +135,8 @@ class SchedulingPeriod(models.Model):
     def related_departments(self):
         if self.department:
             return [self.department]
-        else:
-            department_model = apps.get_model("base.Department")
-            return list(
-                department_model.objects.filter(mode__scheduling_mode=self.mode)
-            )
+        department_model = apps.get_model("base.Department")
+        return list(department_model.objects.filter(mode__scheduling_mode=self.mode))
 
 
 class TimeGeneralSettings(models.Model):

@@ -142,12 +142,11 @@ def index(req):
         # Create first department
         department = queries.create_first_department()
         return redirect(redirect_to_edt(department))
-    elif len(departments) == 1:
+    if len(departments) == 1:
         return redirect(redirect_to_edt(departments[0]))
-    else:
-        return TemplateResponse(
-            req, "base/departments.html", {"departments": departments}
-        )
+    return TemplateResponse(
+        req, "base/departments.html", {"departments": departments}
+    )
 
 
 def edt(req, year=None, week=None, splash_id=0, **kwargs):

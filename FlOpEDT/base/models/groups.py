@@ -9,7 +9,8 @@ class Department(models.Model):
 
     @property
     def scheduling_mode(self):
-        return self.mode.scheduling_mode
+        if hasattr(self, "mode"):
+            return self.mode.scheduling_mode
 
     def scheduling_periods(self, exclude_empty=False):
         scheduling_period_model = apps.get_model("base", "SchedulingPeriod")

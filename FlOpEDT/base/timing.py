@@ -25,6 +25,7 @@
  helpers for time management
  ---------------------------
 """
+
 import datetime as dt
 from datetime import date, datetime, time
 
@@ -178,14 +179,6 @@ def first_day_first_week(day):
     return i - 1
 
 
-# Takes a day (with week and year) and a starting time
-# and returns the datetime object corresponding
-def flopdate_to_datetime(day: Day, time):
-    day_date = flopday_to_date(day)
-    time_day = floptime_to_time(time)
-    return datetime.combine(day_date, time_day)
-
-
 ##Takes a day (with week and year)
 # and returns the date object corresponding
 def flopday_to_date(day):
@@ -198,14 +191,6 @@ def flopday_to_date(day):
             four_digit_year = (4 - len(four_digit_year)) * "0" + four_digit_year
         day_string = f"{four_digit_year}-{day.week.nb}-{us_day_index}"
     return datetime.strptime(day_string, "%Y-%W-%w").date()
-
-
-# Takes a starting time and returns the time object corresponding
-# TODO: The result does not work if time is 24:00 .....
-def floptime_to_time(time_minutes):
-    if time_minutes == 24 * 60:
-        return time(0, 0)
-    return time(time_minutes // 60, time_minutes % 60)
 
 
 def time_to_floptime(time_data):

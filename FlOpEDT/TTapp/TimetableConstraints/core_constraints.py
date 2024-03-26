@@ -42,7 +42,7 @@ from base.models import (
 )
 from base.models.availability import period_actual_availabilities
 from base.partition import Partition
-from base.timing import Day, TimeInterval, flopdate_to_datetime
+from base.timing import Day, TimeInterval
 from core.decorators import timer
 from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint

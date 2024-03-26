@@ -53,7 +53,7 @@ class ContactForm(forms.Form):
 
 class PerfectDayForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        super(PerfectDayForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["pref_time_per_day"] = forms.IntegerField(
             label=_("Ideally"), min_value=1, max_value=9, required=False, initial=4
         )
@@ -65,7 +65,7 @@ class PerfectDayForm(forms.Form):
 class ModuleDescriptionForm(forms.ModelForm):
     def __init__(self, module, dept, *args, **kwargs):
         # first call parent's constructor
-        super(ModuleDescriptionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         m = Module.objects.get(train_prog__department=dept, abbrev=module)
         self.fields["description"].initial = m.description
 

@@ -46,7 +46,6 @@ from base.models import (
     TutorCost,
     period_actual_availabilities,
 )
-from base.timing import Time, flopday_to_date, floptime_to_time
 from core.decorators import timer
 from people.models import Tutor
 from roomreservation.models import RoomReservation

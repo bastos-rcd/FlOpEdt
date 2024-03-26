@@ -36,7 +36,6 @@ from base.models import (
     TimeGeneralSettings,
     TimetableVersion,
 )
-from base.timing import Day, flopday_to_date, floptime_to_time
 from core.decorators import timer
 from roomreservation.models import RoomReservation
 from TTapp.FlopConstraint import max_weight

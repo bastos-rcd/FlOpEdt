@@ -2,7 +2,7 @@ from dateutil.rrule import FR, MO, MONTHLY, SA, SU, TH, TU, WE, WEEKLY, rrule
 from django.db.models import F
 
 from base.models import ScheduledCourse, SchedulingPeriod
-from base.timing import days_index, days_list, time_to_floptime
+from base.timing import days_index
 from roomreservation.models import ReservationPeriodicity, RoomReservation
 
 rrule_days = [MO, TU, WE, TH, FR, SA, SU]
@@ -99,7 +99,7 @@ def check_periodicity(periodicity_data, reservation_data):
             result["ok_reservations"].append(considered_reservation)
         else:
             result["status"] = "NOK"
-            result["nok_reservations"][
-                considered_reservation["start_time"].date()
-            ] = check["more"]
+            result["nok_reservations"][considered_reservation["start_time"].date()] = (
+                check["more"]
+            )
     return result
