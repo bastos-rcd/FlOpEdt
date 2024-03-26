@@ -933,7 +933,8 @@ class TimetableModel(FlopModel):
         Returns:
             - unp_slot_cost : a 2 level-dictionary
                             { teacher => availability_slot => cost (float in [0,1])}}
-            - avail_instr : a 2 level-dictionary { teacher => availability_slot => 0/1 } including availability to home-teaching
+            - avail_instr : a 2 level-dictionary { teacher => availability_slot => 0/1 }
+            including availability to home-teaching
             - avail_at_school_instr : idem, excluding home-teaching (usefull only in visio_mode)
 
         The slot cost will be:
@@ -1012,7 +1013,8 @@ class TimetableModel(FlopModel):
                     elif avail_time < total_teaching_duration:
                         self.add_warning(
                             i,
-                            f"{avail_time.seconds / 3600} available hours < {total_teaching_duration.seconds / 3600} "
+                            f"{avail_time.seconds / 3600} available hours < "
+                            / f"{total_teaching_duration.seconds / 3600} "
                             / f"courses hours including other deps period {period.name}",
                         )
 
@@ -1022,7 +1024,8 @@ class TimetableModel(FlopModel):
                     ):
                         self.add_warning(
                             i,
-                            f"only {avail_time.seconds / 3600} available hours for {teaching_duration.seconds / 3600} courses hours period {period.name}",
+                            f"only {avail_time.seconds / 3600} available hours for "
+                            / f"{teaching_duration.seconds / 3600} courses hours period {period.name}",
                         )
                     maximum = max(a.value for a in period_tutor_availabilities)
                     if maximum == 0:
@@ -1560,7 +1563,7 @@ class TimetableModel(FlopModel):
             self.data.courses_slots, period=other_period, same=slot
         )
         if len(other_slots) != 1:
-            raise Exception(
+            raise ValueError(
                 f"Wrong slots among periods {other_period} \n {slot} vs {other_slots}"
             )
         return other_slots.pop()
@@ -1572,7 +1575,9 @@ class TimetableModel(FlopModel):
         )
         if solved:
             message += gettext("Here is the log of the last run of the generator:\n\n")
-            with open(self.gurobi_log_file(), "r",encoding="utf-8", errors="replace") as file:
+            with open(
+                self.gurobi_log_file(), "r", encoding="utf-8", errors="replace"
+            ) as file:
                 logs = file.read().split("logging started")
             if self.post_assign_rooms:
                 message += logs[-2] + "\n\n"

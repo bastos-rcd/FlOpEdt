@@ -215,7 +215,7 @@ class RoomModel(FlopModel):
                 for_type__department=self.department, tutor=tutor
             )
             declared_types = set(
-                [rs.for_type for rs in declared_room_sorts.distinct("for_type")]
+                rs.for_type for rs in declared_room_sorts.distinct("for_type")
             )
             tutor_room_sorts[tutor] = set(declared_room_sorts) | set(
                 common_room_sorts.exclude(for_type__in=declared_types)

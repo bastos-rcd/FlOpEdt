@@ -87,7 +87,7 @@ class TimetableConstraint(FlopConstraint):
             ttmodel,
             train_prog=train_prog,
             train_progs=train_progs,
-            group=group,
+            g=group,
             groups=groups,
             module=module,
             modules=modules,

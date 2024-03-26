@@ -35,7 +35,7 @@ def inc(occurs_types, constraint_type):
 
 
 def inc_with_type(occurs_dimension, dimension, constraint_type):
-    if dimension is not []:
+    if dimension != []:
         for elt in dimension:
             if elt in occurs_dimension.keys():
                 occurs_dimension[elt]["occurences"] += 1
@@ -65,8 +65,8 @@ class ConstraintManager:
         return [self.constraints[id_constraint] for id_constraint in id_constraints]
 
     def parse_iis(self, iis_filename):
-        f = open(iis_filename, "r")
-        data = f.read().split("Subject To\n")[1]
+        with open(iis_filename, "r", encoding="utf-8") as f:
+            data = f.read().split("Subject To\n")[1]
         constraints_declarations = data.split("Bounds")
         constraints_text = constraints_declarations[0]
 
@@ -103,24 +103,21 @@ class ConstraintManager:
                     constraint_type,
                 )
 
-        for dimension in occurs.keys():
-            occurs[dimension] = {
-                k: v
-                for k, v in sorted(
-                    occurs[dimension].items(),
-                    key=lambda elt: elt[1]["occurences"],
-                    reverse=True,
-                )
-            }
+        for dimension in occurs:
+            occurs[dimension] = sorted(
+                occurs[dimension].items(),
+                key=lambda elt: elt[1]["occurences"],
+                reverse=True,
+            )
         return occurs
 
     def set_index_courses(self):
         courses = list(self.occurs["courses"].keys())
 
-        for index_course1 in range(len(courses)):
+        for index_course1, course1 in enumerate(courses):
             for index_course2 in range(index_course1 + 1, len(courses)):
-                if courses[index_course1].equals(courses[index_course2]):
-                    courses[index_course1].show_id = True
+                if course1.equals(courses[index_course2]):
+                    course1.show_id = True
                     courses[index_course2].show_id = True
 
     def handle_reduced_result(
