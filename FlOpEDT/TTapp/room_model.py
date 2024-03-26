@@ -112,7 +112,7 @@ class RoomModel(FlopModel):
         if self.warnings:
             print("Relevant warnings :")
             for key, key_warnings in self.warnings.items():
-                print("%s : %s" % (key, ", ".join([str(x) for x in key_warnings])))
+                print(f"{key} : {', '.join([str(x) for x in key_warnings])}")
 
     # Some extra Utils
     def log_files_prefix(self):
@@ -329,9 +329,7 @@ class RoomModel(FlopModel):
         located = {}
         for course in self.courses:
             for room in self.course_room_compat[course]:
-                located[(course, room)] = self.add_var(
-                    "located(%s,%s)" % (course, room)
-                )
+                located[(course, room)] = self.add_var(f"located({course},{room})")
         return located
 
     @timer

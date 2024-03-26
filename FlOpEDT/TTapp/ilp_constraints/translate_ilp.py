@@ -6,7 +6,7 @@ def analyse_contraintes(ttmodel):
 
     d = {}
 
-    with open(ilp_bookname) as file:
+    with open(ilp_bookname, "r", encoding="utf-8") as file:
         for s in file:
             is_a_line = len(s.split(":")) == 2
             if is_a_line:
@@ -60,7 +60,7 @@ def convert_coeff_vars_list_in_couples_list(coef_vars_list, ttmodel):
 
 
 def write_translated_file(dico, filename):
-    with open(filename, "w") as file:
+    with open(filename, "w", encoding="utf-8") as file:
         for key, value in dico.items():
             row = f"{key}: \n"
             positifs, negatifs, operateur, valeur = value
@@ -85,8 +85,7 @@ def write_translated_file(dico, filename):
 def translate_ilp_file(ttmodel, filename=None):
     dico = analyse_contraintes(ttmodel)
     if filename is None:
-        filename = "%s/translated_IIS%s.ilp" % (
-            iis_files_path,
-            ttmodel.iis_filename_suffixe(),
+        filename = (
+            f"{iis_files_path}/translated_IIS{ttmodel.iis_filename_suffixe()}.ilp"
         )
     write_translated_file(dico, filename)

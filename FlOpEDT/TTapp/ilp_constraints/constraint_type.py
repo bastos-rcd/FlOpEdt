@@ -123,7 +123,10 @@ class ConstraintType(Enum):
     SEMAINE_6_JURY_VENDREDI = "Semaine 6, Jury le vendredi"
     JURY = "Jury"
     SEMAINE_FLOP = "Semaine FLOP"
-    VACATAIRE_FAIT_TP240_ALORS_TITULAIRE_FAIT_TP_EN_MEME_TEMPS_MEME_MATIERE = "Si un vacataire fait un TP240, un titulaire fait un TP en même temps de la même matière"
+    VACATAIRE_FAIT_TP240_ALORS_TITULAIRE_FAIT_TP_EN_MEME_TEMPS_MEME_MATIERE = (
+        "Si un vacataire fait un TP240,"
+        "un titulaire fait un TP en même temps de la même matière"
+    )
     VACATAIRE_SANS_PERMANENTS = "Vacataires_sans_permanents"
     PAS_PLUS_1_TD_PAR_DEMI_JOURNEE = "Pas plus d'un TD par demie-journee"
     MIN_HALF_DAYS = "Min half days"

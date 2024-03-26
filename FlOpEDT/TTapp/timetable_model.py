@@ -1006,7 +1006,8 @@ class TimetableModel(FlopModel):
                     if avail_time < teaching_duration:
                         self.add_warning(
                             i,
-                            f"{avail_time.seconds / 3600} available hours < {teaching_duration.seconds / 3600}"
+                            f"{avail_time.seconds / 3600} available hours "
+                            / "< {teaching_duration.seconds / 3600}"
                             / f"courses hours period {period.name}",
                         )
 
@@ -1025,7 +1026,8 @@ class TimetableModel(FlopModel):
                         self.add_warning(
                             i,
                             f"only {avail_time.seconds / 3600} available hours for "
-                            / f"{teaching_duration.seconds / 3600} courses hours period {period.name}",
+                            / f"{teaching_duration.seconds / 3600} courses hours "
+                            / "period {period.name}",
                         )
                     maximum = max(a.value for a in period_tutor_availabilities)
                     if maximum == 0:
@@ -1103,7 +1105,8 @@ class TimetableModel(FlopModel):
         """
         :returns
         non_preferred_cost_course :a 2 level dictionary
-        { (CourseType, TrainingProgram)=> { Non-prefered availability_slot => cost (float in [0,1])}}
+        { (CourseType, TrainingProgram) =>
+        { Non-prefered availability_slot => cost (float in [0,1])}}
 
         avail_course : a 2 level-dictionary
         { (CourseType, TrainingProgram) => availability_slot => availability (0/1) }

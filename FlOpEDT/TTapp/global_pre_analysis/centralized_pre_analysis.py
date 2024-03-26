@@ -6,7 +6,7 @@ from django.utils.html import strip_tags
 
 from base.models import Course, Department, SchedulingPeriod
 from TTapp.global_pre_analysis.tools_centralized_preanalysis import (
-    getFlopConstraintsInDB,
+    get_flop_constraints_in_db,
 )
 
 
@@ -24,9 +24,10 @@ def pre_analyse(department, period):
     """
 
     # Get all the active imperative constraints in the database
-    all_constraints_list = getFlopConstraintsInDB(period, department)
+    all_constraints_list = get_flop_constraints_in_db(period, department)
 
-    # Search for each TimetableConstraint's subclass if we can find an instance of it for the given period and department
+    # Search for each TimetableConstraint's subclass
+    # if we can find an instance of it for the given period and department
     result = []
 
     for constraint in all_constraints_list:
@@ -54,11 +55,11 @@ def pre_analyse_next_periods(department, nb_of_weeks):
         start_date__lte=(now + dt.timedelta(days=7 * nb_of_weeks)).date(),
         mode=department.mode.scheduling_mode,
     )
-    C = Course.objects.filter(
+    courses = Course.objects.filter(
         periods__in=considered_periods, type__department=department
     )
     result = {}
-    considered_periods = list(c.period for c in C.distinct("period"))
+    considered_periods = list(c.period for c in courses.distinct("period"))
     for period in considered_periods:
         result[period] = pre_analyse(department=department, period=period)
         if not result[period]:

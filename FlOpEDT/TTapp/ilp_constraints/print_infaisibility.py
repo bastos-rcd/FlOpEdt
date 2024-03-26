@@ -134,7 +134,7 @@ def get_str_attr(dico, threshold, constraint_type):
     """
     output = ""
     for attr in get_most_important(dico, threshold, constraint_type):
-        output += "\t\t%s\n" % str(attr)
+        output += f"\t\t{attr}\n"
     return output
 
 
@@ -176,7 +176,7 @@ def print_summary_from_types_with_threshold(
 
 def write_csv(constraints, file_path, filename_suffixe):
     filename = f"{file_path}/graph{filename_suffixe}.csv"
-    print("writing %s..." % filename)
+    print(f"writing {filename}...")
     with open(filename, "w+", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(

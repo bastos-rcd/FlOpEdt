@@ -1,7 +1,7 @@
 from base.models import ModulePossibleTutors
 from base.partition import Partition
 from TTapp.global_pre_analysis.tools_centralized_preanalysis import (
-    getFlopConstraintsInDB,
+    get_flop_constraints_in_db,
 )
 
 # pylint: disable=line-too-long
@@ -29,7 +29,7 @@ def create_tutor_partition_from_constraints(period, department, tutor, available
 
     # Retrieve all existing constraints (inheriting directly or not from TimetableConstraints) in the database for the given
     # period and department
-    constraints_list = getFlopConstraintsInDB(period, department)
+    constraints_list = get_flop_constraints_in_db(period, department)
 
     for constraint in constraints_list:
         try:
@@ -58,7 +58,7 @@ def complete_tutor_partition_from_constraints(partition, period, department, tut
 
     # Retrieve all existing constraints (inheriting directly or not from TimetableConstraints) in the database for the given
     # period and department
-    constraints_list = getFlopConstraintsInDB(period, department)
+    constraints_list = get_flop_constraints_in_db(period, department)
 
     for constraint in constraints_list:
         try:
@@ -90,7 +90,7 @@ def create_group_partition_from_constraints(period, department, group, available
 
     # Retrieve all existing constraints (inheriting directly or not from TimetableConstraints) in the database for the given
     # period and department
-    constraints_list = getFlopConstraintsInDB(period, department)
+    constraints_list = get_flop_constraints_in_db(period, department)
     # For each constraint (period and department considered) in the database, try to find the complete_group_partition
     # method and add information in the partition if found
     for constraint in constraints_list:
@@ -120,7 +120,7 @@ def complete_group_partition_from_constraints(partition, period, department, gro
 
     # Retrieve all existing constraints (inheriting directly or not from TimetableConstraints) in the database for the given
     # period and department
-    constraints_list = getFlopConstraintsInDB(period, department)
+    constraints_list = get_flop_constraints_in_db(period, department)
 
     for constraint in constraints_list:
         try:

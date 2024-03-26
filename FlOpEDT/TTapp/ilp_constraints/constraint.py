@@ -51,10 +51,9 @@ def get_readable_day(day):
 def convert_to_list(dimension):
     if dimension is None:
         return []
-    elif isinstance(dimension, Iterable):
+    if isinstance(dimension, Iterable):
         return list(dimension)
-    else:
-        return [dimension]
+    return [dimension]
 
 
 class Constraint:
@@ -186,8 +185,8 @@ class Constraint:
     # generic method
     def get_summary_format(self):
         output = (
-            "\tDes contraintes de type '%s' posent problème dans la résolution\n"
-            % self.constraint_type.value
+            f"\tDes contraintes de type '{self.constraint_type.value}' "
+            "posent problème dans la résolution\n"
         )
         return output, []
 
