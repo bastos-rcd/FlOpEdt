@@ -108,6 +108,7 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       remove(scheduledCourses.value.get(currentDate)!, (sc) => sc.id === course.id)
       scheduledCourses.value.get(currentDate)!.push(scheduledCourse)
     }
+    console.log('TODO UPDATE BACK')
     // TODO UPDATE BACK
   }
 
@@ -182,6 +183,18 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
       })
     }
     return courseReturned
+  }
+
+  function createCourse(id?: number): Course | undefined {
+    let scheduledCourse: ScheduledCourse | undefined
+    if (id) {
+      scheduledCourse = getScheduldedCourse(id)
+      if (scheduledCourse) {
+        return scheduledCourseToCourse(scheduledCourse)
+      }
+    } else {
+      console.log('Call to API to create a scheduled course in Back and then formatting it')
+    }
   }
 
   function removeCourse(id: number, date?: string): void {
@@ -274,5 +287,6 @@ export const useScheduledCourseStore = defineStore('scheduledCourse', () => {
     courseTypeColors,
     courseTypeIds,
     removeCourse,
+    createCourse,
   }
 })

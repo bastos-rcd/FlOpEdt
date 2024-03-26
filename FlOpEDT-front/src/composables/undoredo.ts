@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { AvailabilityData, CourseData, UpdateAvailability, UpdateCourse, UpdatesHistory } from './declaration'
 import { useAvailabilityStore } from '@/stores/timetable/availability'
-import { Availability } from '@/stores/declarations'
+import { Availability, Course } from '@/stores/declarations'
 import { cloneDeep } from 'lodash'
 import { getDate } from '@quasar/quasar-ui-qcalendar'
 
@@ -127,15 +127,42 @@ export function useUndoredo() {
   function revertUpdate(update: UpdatesHistory) {
     if (update.type === 'course') {
       const lastCourseUpdate = update as UpdateCourse
-      const lastScheduledCourseUpdated = scheduledCourseStore.getCourse(lastCourseUpdate.objectId, undefined, true)
-      lastScheduledCourseUpdated!.start = lastCourseUpdate.from.start
-      lastScheduledCourseUpdated!.end = lastCourseUpdate.from.end
-      lastScheduledCourseUpdated!.room = lastCourseUpdate.from.roomId
-      lastScheduledCourseUpdated!.suppTutorIds = lastCourseUpdate.from.suppTutorIds
-      lastScheduledCourseUpdated!.graded = lastCourseUpdate.from.graded
-      lastScheduledCourseUpdated!.roomTypeId = lastCourseUpdate.from.roomTypeId
-      lastScheduledCourseUpdated!.groupIds = lastCourseUpdate.from.groupIds
-      scheduledCourseStore.addOrUpdateCourseToDate(lastScheduledCourseUpdated!)
+      if (update.operation === 'update') {
+        const lastScheduledCourseUpdated = scheduledCourseStore.getCourse(lastCourseUpdate.objectId, undefined, true)
+        lastScheduledCourseUpdated!.start = lastCourseUpdate.from.start
+        lastScheduledCourseUpdated!.end = lastCourseUpdate.from.end
+        lastScheduledCourseUpdated!.room = lastCourseUpdate.from.roomId
+        lastScheduledCourseUpdated!.suppTutorIds = lastCourseUpdate.from.suppTutorIds
+        lastScheduledCourseUpdated!.graded = lastCourseUpdate.from.graded
+        lastScheduledCourseUpdated!.roomTypeId = lastCourseUpdate.from.roomTypeId
+        lastScheduledCourseUpdated!.groupIds = lastCourseUpdate.from.groupIds
+        scheduledCourseStore.addOrUpdateCourseToDate(lastScheduledCourseUpdated!)
+      } else if (update.operation === 'create') {
+        console.log('TODO')
+      } else if (update.operation === 'remove') {
+        const newCourse: Course = {
+          id: lastCourseUpdate.objectId,
+          no: -1,
+          room: lastCourseUpdate.from.roomId,
+          start: lastCourseUpdate.from.start,
+          end: lastCourseUpdate.from.end,
+          tutorId: lastCourseUpdate.from.tutorId,
+          suppTutorIds: lastCourseUpdate.from.suppTutorIds,
+          module: -1,
+          groupIds: lastCourseUpdate.from.groupIds,
+          courseTypeId: -1,
+          roomTypeId: lastCourseUpdate.from.roomTypeId,
+          graded: lastCourseUpdate.from.graded,
+          workCopy: -1,
+        }
+        const lastCourseRemoved: Course | undefined = scheduledCourseStore.createCourse(lastCourseUpdate.objectId)
+        if (lastCourseRemoved) {
+          newCourse.no = lastCourseRemoved.no
+          newCourse.module = lastCourseRemoved.module
+          newCourse.courseTypeId = lastCourseRemoved.courseTypeId
+        }
+        scheduledCourseStore.addOrUpdateCourseToDate(newCourse)
+      }
     } else if (update?.type === 'availability') {
       const lastAvailUpdate = update as UpdateAvailability
       if (lastAvailUpdate.operation === 'create') {
@@ -179,7 +206,7 @@ export function useUndoredo() {
       )
       if (currentUpdate) updates.push(currentUpdate)
     })
-    updatesHistories.value.push(updates)
+    if (updates.length !== 0) updatesHistories.value.push(updates)
   }
 
   function revertUpdateBlock(): void {

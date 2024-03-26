@@ -595,4 +595,31 @@ describe('undoredo composable', () => {
     expect(courseStore.getCourse(65692)).toBeUndefined()
     expect(hasUpdate.value).toBe(true)
   })
+
+  it('historizes the deletion of a course and revert it', () => {
+    const courseStore = useScheduledCourseStore()
+    const { addUpdateBlock, revertUpdateBlock, hasUpdate } = useUndoredo()
+    addUpdateBlock([
+      {
+        objectId: 65692,
+        data: {
+          tutorId: -1,
+          start: parseTimestamp(today())!,
+          end: parseTimestamp(today())!,
+          roomId: -1,
+          suppTutorIds: [],
+          graded: false,
+          roomTypeId: -1,
+          groupIds: [],
+        },
+        type: 'course',
+        operation: 'remove',
+      },
+    ])
+    expect(courseStore.getCourse(65692)).toBeUndefined()
+    expect(hasUpdate.value).toBe(true)
+    revertUpdateBlock()
+    expect(courseStore.getCourse(65692)).toBeDefined()
+    expect(hasUpdate.value).toBe(false)
+  })
 })
