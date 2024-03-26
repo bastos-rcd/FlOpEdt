@@ -178,6 +178,7 @@ class ScheduledCoursesJoinedViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.ScheduledCoursesSerializer
 
     def get_queryset(self):
+
         if getattr(self, "swagger_fake_view", False):
             return bm.ScheduledCourse.objects.none()
 

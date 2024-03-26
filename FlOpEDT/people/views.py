@@ -36,22 +36,11 @@ from django.utils.translation import gettext as _
 import base.queries as queries
 from base.models import Department, Theme
 from core.decorators import tutor_or_superuser_required
-from people.admin import (
-    GroupPreferencesResource,
-    PhysicalPresenceResource,
-    StudentPreferencesResource,
-    TutorResource,
-    UserPreferredLinksResource,
-)
-from people.models import (
-    GroupPreferences,
-    PhysicalPresence,
-    Student,
-    StudentPreferences,
-    Tutor,
-    User,
-    UserPreferredLinks,
-)
+from people.admin import (GroupPreferencesResource, PhysicalPresenceResource,
+                          StudentPreferencesResource, TutorResource,
+                          UserPreferredLinksResource)
+from people.models import (GroupPreferences, PhysicalPresence, Student,
+                           StudentPreferences, Tutor, User, UserPreferredLinks)
 
 logger = logging.getLogger(__name__)
 
@@ -59,51 +48,52 @@ logger = logging.getLogger(__name__)
 @login_required
 def redirect_change_people_kind(req):
     if req.user.is_student:
-        return redirect("people:change_student")
+        return redirect('people:change_student')
     if req.user.is_tutor:
         if req.user.tutor.status == Tutor.FULL_STAFF:
-            return redirect("people:change_fullstaff")
+            return redirect('people:change_fullstaff')
         if req.user.tutor.status == Tutor.SUPP_STAFF:
-            return redirect("people:change_supplystaff")
+            return redirect('people:change_supplystaff')
         if req.user.tutor.status == Tutor.BIATOS:
-            return redirect("people:change_BIATOS")
+            return redirect('people:change_BIATOS')
     else:
         raise Http404("Who are you?")
 
 
 def fetch_tutors(req):
     dataset = TutorResource().export(Tutor.objects.all())
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(dataset.csv,
+                            content_type='text/csv')
     return response
 
 
 def fetch_preferences_group(req):
     dataset = GroupPreferencesResource().export(GroupPreferences.objects.all())
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(dataset.csv,
+                            content_type='text/csv')
     return response
 
 
 def fetch_preferences_students(req):
     dataset = StudentPreferencesResource().export(StudentPreferences.objects.all())
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(dataset.csv,
+                            content_type='text/csv')
     return response
 
 
 @login_required
 def student_preferences(req):
-    if req.method == "POST":
-        logger.info(f"REQ: student preferences {req}")
+    if req.method == 'POST':
+        logger.info(f'REQ: student preferences {req}')
         if req.user.is_authenticated and req.user.is_student:
             user = req.user
-            morning_weight = req.POST["morning_evening"]
-            free_half_day_weight = req.POST["light_free"]
-            hole_weight = req.POST["hole_nothole"]
-            eat_weight = req.POST["eat"]
+            morning_weight = req.POST['morning_evening']
+            free_half_day_weight = req.POST['light_free']
+            hole_weight = req.POST['hole_nothole']
+            eat_weight = req.POST['eat']
 
             student = Student.objects.get(username=user.username)
-            student_pref, created = StudentPreferences.objects.get_or_create(
-                student=student
-            )
+            student_pref, created = StudentPreferences.objects.get_or_create(student=student)
             if created:
                 student_pref.save()
             student_pref.morning_weight = morning_weight
@@ -114,9 +104,7 @@ def student_preferences(req):
             student_pref.save()
             group_pref = None
             for group in student.generic_groups.all():
-                group_pref, created = GroupPreferences.objects.get_or_create(
-                    group=group
-                )
+                group_pref, created = GroupPreferences.objects.get_or_create(group=group)
                 if created:
                     group_pref.save()
             if group_pref is not None:
@@ -138,54 +126,48 @@ def student_preferences(req):
             morning = student_pref.morning_weight
             morning_txt = ""
             if morning == 0:
-                morning_txt = "Commencer le plus tôt possible mais finir tôt"
+                morning_txt = 'Commencer le plus tôt possible mais finir tôt'
             if morning == 0.25:
-                morning_txt = "Ne pas commencer trop tard et ne pas finir trop tard"
+                morning_txt = 'Ne pas commencer trop tard et ne pas finir trop tard'
             if morning == 0.5:
-                morning_txt = "Ni trop tôt ni trop tard"
+                morning_txt = 'Ni trop tôt ni trop tard'
             if morning == 0.75:
-                morning_txt = "Ne pas commencer trop tôt et finir plus tard"
+                morning_txt = 'Ne pas commencer trop tôt et finir plus tard'
             if morning == 1:
-                morning_txt = "Commencer le plus tard possible mais finir tard"
+                morning_txt = 'Commencer le plus tard possible mais finir tard'
 
             free_half_day = student_pref.free_half_day_weight
             free_half_day_txt = ""
             if free_half_day == 0:
-                free_half_day_txt = "Avoir toute la semaine des journées allégées"
+                free_half_day_txt = 'Avoir toute la semaine des journées allégées'
             if free_half_day == 0.25:
-                free_half_day_txt = (
-                    "Avoir plus de journées allégées que de demi-journées libérées"
-                )
+                free_half_day_txt = 'Avoir plus de journées allégées que de demi-journées libérées'
             if free_half_day == 0.5:
-                free_half_day_txt = "Avoir des semaines équilibrées"
+                free_half_day_txt = 'Avoir des semaines équilibrées'
             if free_half_day == 0.75:
-                free_half_day_txt = (
-                    "Avoir plus de demi-journées libérées que de journées allégées"
-                )
+                free_half_day_txt = 'Avoir plus de demi-journées libérées que de journées allégées'
             if free_half_day == 1:
-                free_half_day_txt = (
-                    "Avoir des journées chargées mais aussi des demi-journées libérées"
-                )
+                free_half_day_txt = 'Avoir des journées chargées mais aussi des demi-journées libérées'
 
             hole = student_pref.hole_weight
             hole_txt = ""
             if hole == 0:
-                hole_txt = "Ne pas avoir de trous entre deux cours"
+                hole_txt = 'Ne pas avoir de trous entre deux cours'
             if hole == 0.5:
-                hole_txt = "Indifférent"
+                hole_txt = 'Indifférent'
             if hole == 1:
-                hole_txt = "Avoir des trous entre deux cours"
+                hole_txt = 'Avoir des trous entre deux cours'
 
             eat = student_pref.eat_weight
             eat_txt = ""
             if eat == 0:
-                eat_txt = "Manger plus tôt"
+                eat_txt = 'Manger plus tôt'
             if eat == 0.5:
-                eat_txt = "Indifférent"
+                eat_txt = 'Indifférent'
             if eat == 1:
-                eat_txt = "Manger plus tard"
+                eat_txt = 'Manger plus tard'
 
-            day = Department.objects.get(abbrev="INFO")
+            day = Department.objects.get(abbrev='INFO')
 
             themes = []
             for a in Theme:
@@ -193,63 +175,62 @@ def student_preferences(req):
 
             return TemplateResponse(
                 req,
-                "people/studentPreferencesSelection.html",
-                {
-                    "morning": morning,
-                    "morning_txt": morning_txt,
-                    "free_half_day": free_half_day,
-                    "free_half_day_txt": free_half_day_txt,
-                    "hole": hole,
-                    "hole_txt": hole_txt,
-                    "selfeat": eat,
-                    "eat_txt": eat_txt,
-                    "user_notifications_pref": queries.get_notification_preference(
-                        req.user
-                    ),
-                    "themes": themes,
-                    "theme": queries.get_theme_preference(req.user),
-                },
-            )
+                'people/studentPreferencesSelection.html',
+                {'morning': morning,
+                 'morning_txt': morning_txt,
+                 'free_half_day': free_half_day,
+                 'free_half_day_txt': free_half_day_txt,
+                 'hole': hole,
+                 'hole_txt': hole_txt,
+                 'selfeat': eat,
+                 'eat_txt': eat_txt,
+                 'user_notifications_pref':
+                     queries.get_notification_preference(req.user),
+                 'themes': themes,
+                 'theme': queries.get_theme_preference(req.user),
+                 })
         else:
             # Make a decorator instead
             raise Http404("Who are you?")
 
 
 def fetch_user_preferred_links(req, **kwargs):
-    pref = UserPreferredLinks.objects.prefetch_related("user__departments").filter(
-        user__departments=req.department
-    )
+    pref = UserPreferredLinks.objects \
+        .prefetch_related('user__departments') \
+        .filter(user__departments=req.department)
     dataset = UserPreferredLinksResource().export(pref)
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(dataset.csv,
+                            content_type='text/csv')
     return response
 
 
 def fetch_physical_presence(req, year, week, **kwargs):
-    presence = PhysicalPresence.objects.filter(
-        user__departments=req.department, week__year=year, week__nb=week
-    )
+    presence = PhysicalPresence.objects.filter(user__departments=req.department,
+                                               week__year=year,
+                                               week__nb=week)
     dataset = PhysicalPresenceResource().export(presence)
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(dataset.csv,
+                            content_type='text/csv')
     return response
 
 
 @tutor_or_superuser_required
 def change_physical_presence(req, year, week_nb, user):
-    bad_response = {"status": "KO"}
+    bad_response = {'status': 'KO'}
 
     if not req.is_department_admin and req.user.username != user:
-        bad_response["more"] = _(f"Not allowed")
+        bad_response['more'] = _(f'Not allowed')
         return JsonResponse(bad_response)
 
     try:
         user = User.objects.get(username=user)
     except User.DoesNotExist:
-        bad_response["more"] = _(f"No such user as {user}")
+        bad_response['more'] = _(f'No such user as {user}')
         return JsonResponse(bad_response)
 
-    good_response = {"status": "OK", "more": ""}
+    good_response = {'status': 'OK', 'more': ''}
 
-    changes = json.loads(req.POST.get("changes", "{}"))
+    changes = json.loads(req.POST.get('changes', '{}'))
     logger.info("List of changes")
     for change in changes:
         logger.info(change)
@@ -261,16 +242,18 @@ def change_physical_presence(req, year, week_nb, user):
         try:
             week = Week.objects.get(nb=week_nb, year=year)
         except Week.DoesNotExist:
-            bad_response["more"] = "Wrong week"
+            bad_response['more'] = 'Wrong week'
             return JsonResponse(bad_response)
 
     for change in changes:
         logger.info(f"Change {change}")
-        if not change["force_here"]:
-            PhysicalPresence.objects.filter(
-                week=week, day=change["day"], user=user
-            ).delete()
+        if not change['force_here']:
+            PhysicalPresence.objects.filter(week=week,
+                                            day=change['day'],
+                                            user=user).delete()
         else:
-            PhysicalPresence.objects.create(week=week, day=change["day"], user=user)
+            PhysicalPresence.objects.create(week=week,
+                                            day=change['day'],
+                                            user=user)
 
     return JsonResponse(good_response)

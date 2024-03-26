@@ -28,11 +28,8 @@ import logging
 from django.views.generic import UpdateView
 
 
-from .forms import (
-    ChangeBIATOSTutorForm,
-    ChangeFullStaffTutorForm,
-    ChangeSupplyStaffTutorForm,
-)
+from .forms import (ChangeBIATOSTutorForm, ChangeFullStaffTutorForm,
+                    ChangeSupplyStaffTutorForm)
 from .models import BIATOS, FullStaff, SupplyStaff
 
 logger = logging.getLogger(__name__)

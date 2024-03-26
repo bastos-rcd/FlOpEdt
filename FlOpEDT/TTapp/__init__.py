@@ -1,1 +1,1 @@
-default_app_config = "TTapp.apps.TtappConfig"
+default_app_config = 'TTapp.apps.TtappConfig'

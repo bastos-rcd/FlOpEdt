@@ -27,26 +27,18 @@
 from django.db.models import F, Q
 
 import base.queries as queries
-from base.models import (
-    Course,
-    Room,
-    RoomAvailability,
-    RoomSort,
-    ScheduledCourse,
-    TimeGeneralSettings,
-    TimetableVersion,
-)
+from base.models import (Course, Room, RoomAvailability, RoomSort,
+                         ScheduledCourse, TimeGeneralSettings,
+                         TimetableVersion)
 from core.decorators import timer
 from roomreservation.models import RoomReservation
 from TTapp.FlopConstraint import max_weight
-from TTapp.FlopModel import GUROBI_NAME, FlopModel, get_room_constraints
-from TTapp.RoomConstraints.RoomConstraint import (
-    ConsiderRoomSorts,
-    LimitGroupMoves,
-    LimitSimultaneousRoomCourses,
-    LimitTutorMoves,
-    LocateAllCourses,
-)
+from TTapp.FlopModel import (GUROBI_NAME, FlopModel, get_room_constraints)
+from TTapp.RoomConstraints.RoomConstraint import (ConsiderRoomSorts,
+                                                  LimitGroupMoves,
+                                                  LimitSimultaneousRoomCourses,
+                                                  LimitTutorMoves,
+                                                  LocateAllCourses)
 from TTapp.slots import Slot, days_filter
 
 
@@ -57,9 +49,7 @@ class RoomModel(FlopModel):
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
         super(RoomModel, self).__init__(
-            department_abbrev,
-            periods,
-            keep_many_solution_files=keep_many_solution_files,
+            department_abbrev, periods, keep_many_solution_files=keep_many_solution_files
         )
 
         print("\nLet's start rooms affectation for periods %s" % self.periods)
@@ -140,20 +130,13 @@ class RoomModel(FlopModel):
         all_days = set()
         for period in self.periods:
             all_days |= set(period.dates())
-        days = list(
-            days_filter(
-                all_days,
-                weekday_in=TimeGeneralSettings.objects.get(
-                    department=self.department
-                ).days,
-            )
-        )
+        days = list(days_filter(all_days, weekday_in=TimeGeneralSettings.objects.get(department=self.department).days))
         days.sort()
 
         slots = []
         for day in days:
             scheduled_courses_of_the_day = self.scheduled_courses.filter(
-                start_time__date=day
+                start_time__date = day
             )
             if not scheduled_courses_of_the_day.exists():
                 continue
@@ -163,15 +146,15 @@ class RoomModel(FlopModel):
             times_list = list(times_set)
             times_list.sort()
             for i in range(len(times_list) - 1):
-                slots.append(Slot(start_time=times_list[i], end_time=times_list[i + 1]))
+                slots.append(
+                    Slot(start_time=times_list[i], end_time=times_list[i + 1])
+                )
         return days, slots
 
     @timer
     def other_departments_located_scheduled_courses_init(self):
         other_departments_located_scheduled_courses = (
-            ScheduledCourse.objects.filter(
-                course__period__in=self.periods, version__major=0
-            )
+            ScheduledCourse.objects.filter(course__period__in=self.periods, version__major=0)
             .exclude(course__type__department=self.department)
             .exclude(room=None)
         )
@@ -322,9 +305,7 @@ class RoomModel(FlopModel):
         located = {}
         for course in self.courses:
             for room in self.course_room_compat[course]:
-                located[(course, room)] = self.add_var(
-                    "located(%s,%s)" % (course, room)
-                )
+                located[(course, room)] = self.add_var("located(%s,%s)" % (course, room))
         return located
 
     @timer
@@ -468,7 +449,8 @@ class RoomModel(FlopModel):
         ignore_sigint=False,
         create_new_version=False,
     ):
-        """ """
+        """
+        """
         print("\nLet's solve periods #%s" % self.periods)
 
         self.update_objective()
@@ -488,9 +470,7 @@ class RoomModel(FlopModel):
             target_major = self.major
         course_location_list_for_period = {}
         for period in self.periods:
-            target_version, _ = TimetableVersion.objects.get_or_create(
-                department=self.department, period=period, major=target_major
-            )
+            target_version, _ = TimetableVersion.objects.get_or_create(department=self.department, period=period, major=target_major)
             course_location_list_for_period[period] = []
             for course in self.courses_for_period[period]:
                 for room in self.course_room_compat[course]:

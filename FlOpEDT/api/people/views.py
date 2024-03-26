@@ -41,7 +41,6 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a User object.
     """
-
     permission_classes = [IsAdminOrReadOnly]
     queryset = pm.User.objects.all()
     serializer_class = serializers.UsersSerializer
@@ -54,7 +53,6 @@ class UserDepartmentSettingsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a User Department object.
     """
-
     permission_classes = [IsAdminOrReadOnly]
     queryset = pm.UserDepartmentSettings.objects.all()
     serializer_class = serializers.UserDepartmentSettingsSerializer
@@ -66,7 +64,6 @@ class SupplyStaffsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Supply Staff object.
     """
-
     permission_classes = [IsAdminOrReadOnly]
     queryset = pm.SupplyStaff.objects.all()
     serializer_class = serializers.SupplyStaffsSerializer
@@ -78,7 +75,6 @@ class StudentsViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a Student object.
     """
-
     permission_classes = [IsAdminOrReadOnly]
     queryset = pm.Student.objects.all()
     serializer_class = serializers.StudentsSerializer
@@ -88,7 +84,6 @@ class StudentInfoViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all info of one student
     """
-
     permission_classes = [IsAdminOrReadOnly]
     queryset = pm.Student.objects.all()
     serializer_class = serializers.StudentInfoSerializer
@@ -130,11 +125,11 @@ class StudentInfoViewSet(viewsets.ModelViewSet):
 
 class TutorFilterSet(filters.FilterSet):
     permission_classes = [IsTutorOrReadOnly]
-    dept = filters.CharFilter(field_name="departments__abbrev", required=True)
+    dept = filters.CharFilter(field_name='departments__abbrev', required=True)
 
     class Meta:
         model = pm.Tutor
-        fields = ["dept"]
+        fields = ['dept']
 
 
 class TutorUsernameViewSet(viewsets.ReadOnlyModelViewSet):
@@ -143,7 +138,6 @@ class TutorUsernameViewSet(viewsets.ReadOnlyModelViewSet):
 
     Can be filtered as wanted with every field of a Tutor object.
     """
-
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = pm.Tutor.objects.all()
@@ -151,27 +145,25 @@ class TutorUsernameViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = TutorFilterSet
 
 
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        operation_description="Active tutors",
-        manual_parameters=[week_param(), year_param()],
-    ),
-)
+@method_decorator(name='list',
+                  decorator=swagger_auto_schema(
+                      operation_description="Active tutors",
+                      manual_parameters=[week_param(), year_param()])
+                  )
 class TutorViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Getting all the filters
-        week = self.request.query_params.get("week", None)
-        year = self.request.query_params.get("year", None)
+        week = self.request.query_params.get('week', None)
+        year = self.request.query_params.get('year', None)
 
         # Filtering
         if week is not None and year is not None:
             return pm.Tutor.objects.filter(
                 pk__in=bm.ScheduledCourse.objects.filter(
-                    course__week__nb=week, course__week__year=year, work_copy=0
-                )
-                .distinct("tutor")
-                .values("tutor")
+                    course__week__nb=week,
+                    course__week__year=year,
+                    work_copy=0) \
+                    .distinct('tutor').values('tutor')
             )
         else:
             return pm.Tutor.objects.all()
@@ -181,8 +173,13 @@ class TutorViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
-class getCurrentUserView(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+class getCurrentUserView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    
+    def get(
+        self,
+        request
+    ):
         return Response(serializers.ShortUsersSerializer(request.user).data)

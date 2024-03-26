@@ -35,25 +35,16 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
 
 from base.models import Department
-from flopeditor.cruds import (
-    course_start_times_constraints,
-    course_type,
-    module,
-    period,
-    room_attributes,
-    room_types,
-    rooms,
-    student_group_type,
-    student_structural_group,
-    student_transversal_group,
-    students,
-    training_programmes,
-    tutors,
-)
+from flopeditor.cruds import (course_start_times_constraints, course_type,
+                              module, period, room_attributes, room_types,
+                              rooms, student_group_type,
+                              student_structural_group,
+                              student_transversal_group, students,
+                              training_programmes, tutors)
 
 
 def good_request(request, department):
-    """Request rights verification
+    """ Request rights verification
     :param request: Client request.
     :type request:  django.http.HttpRequest
     :param department: Department.
@@ -61,11 +52,10 @@ def good_request(request, department):
     :return: true if the user has the right access to do the request
     :rtype:  boolean
     """
-    if request.method == "GET":
+    if request.method == 'GET':
         return not request.user.is_anonymous and request.user.is_tutor
-    return not request.user.is_anonymous and request.user.has_department_perm(
-        department, admin=True
-    )
+    return not request.user.is_anonymous and \
+        request.user.has_department_perm(department, admin=True)
 
 
 def crud_model(request, department_abbrev, crud):
@@ -88,16 +78,18 @@ def crud_model(request, department_abbrev, crud):
     if request.method == "GET":
         return crud.read(department)
     elif request.method == "POST":
-        actions = json.loads(request.body.decode("utf-8"))["actions"]
+        actions = json.loads(request.body.decode('utf-8'))['actions']
         result = []
         for action in actions:
-            if action["request"] == "NEW":
+            if action['request'] == 'NEW':
                 result.append(crud.create(action, department))
-            elif action["request"] == "MODIFIED":
+            elif action['request'] == 'MODIFIED':
                 result.append(crud.update(action, department))
-            elif action["request"] == "DELETED":
+            elif action['request'] == 'DELETED':
                 result.append(crud.delete(action, department))
-        return JsonResponse({"actions": result})
+        return JsonResponse({
+            'actions': result
+        })
     return HttpResponseForbidden()
 
 
@@ -118,16 +110,18 @@ def crud_tutors(request, department_abbrev):
     elif request.method == "GET":
         return tutors.read()
     elif request.method == "POST":
-        actions = json.loads(request.body.decode("utf-8"))["actions"]
+        actions = json.loads(request.body.decode('utf-8'))['actions']
         result = []
         for action in actions:
-            if action["request"] == "NEW":
+            if action['request'] == 'NEW':
                 result.append(tutors.create(request, action))
-            elif action["request"] == "MODIFIED":
+            elif action['request'] == 'MODIFIED':
                 result.append(tutors.update(request, action))
-            elif action["request"] == "DELETED":
+            elif action['request'] == 'DELETED':
                 result.append(tutors.delete(request, action))
-        return JsonResponse({"actions": result})
+        return JsonResponse({
+            'actions': result
+        })
     return HttpResponseForbidden()
 
 
@@ -148,16 +142,18 @@ def crud_rooms(request, department_abbrev):
     elif request.method == "GET":
         return rooms.read()
     elif request.method == "POST":
-        actions = json.loads(request.body.decode("utf-8"))["actions"]
+        actions = json.loads(request.body.decode('utf-8'))['actions']
         result = []
         for action in actions:
-            if action["request"] == "NEW":
+            if action['request'] == 'NEW':
                 result.append(rooms.create(request, action))
-            elif action["request"] == "MODIFIED":
+            elif action['request'] == 'MODIFIED':
                 result.append(rooms.update(request, action))
-            elif action["request"] == "DELETED":
+            elif action['request'] == 'DELETED':
                 result.append(rooms.delete(request, action))
-        return JsonResponse({"actions": result})
+        return JsonResponse({
+            'actions': result
+        })
     return HttpResponseForbidden()
 
 
@@ -240,7 +236,6 @@ def crud_student_transversal_group(request, department_abbrev):
     """
     return crud_model(request, department_abbrev, student_transversal_group)
 
-
 def crud_students(request, department_abbrev):
     """Crud url for student group edition
 
@@ -292,7 +287,6 @@ def crud_course_start_times_constraints(request, department_abbrev):
 
     """
     return crud_model(request, department_abbrev, course_start_times_constraints)
-
 
 def crud_periods(request, department_abbrev):
     """Crud url for period edition

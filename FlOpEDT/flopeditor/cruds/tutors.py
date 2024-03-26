@@ -30,13 +30,12 @@ without disclosing the source code of your own applications.
 from django.http import JsonResponse
 
 from base.models import Department
-from flopeditor.db_requests import (
-    TUTOR_CHOICES_DICT,
-    TUTOR_CHOICES_LIST,
-    get_status_of_tutor,
-)
-from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE, validate_tutor_values
-from people.models import BIATOS, FullStaff, SupplyStaff, Tutor, TutorPreference, User
+from flopeditor.db_requests import (TUTOR_CHOICES_DICT, TUTOR_CHOICES_LIST,
+                                    get_status_of_tutor)
+from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE,
+                                  validate_tutor_values)
+from people.models import (BIATOS, FullStaff, SupplyStaff, Tutor,
+                           TutorPreference, User)
 
 # rank in this list == bit's position in user.rights
 RIGHTS_LIST = [

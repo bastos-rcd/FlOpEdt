@@ -6,19 +6,17 @@ django.setup()
 from unittest import skip
 
 from base.models import Department, Week
-from TTapp.deprecated_tests.tools_test_pre_analyse.constraint_test_case import (
-    ConstraintTestCase,
-)
+from TTapp.deprecated_tests.tools_test_pre_analyse.constraint_test_case import \
+    ConstraintTestCase
 from TTapp.TimetableConstraints.slots_constraints import ConsiderDependencies
 
 # In this python file we test (class by class) pre_analyse's function for constraints in slots_constraints.py and assert
 # the correct result is returned
 
-
 class ConsiderDependenciesWithConstraintsTestCase(ConstraintTestCase):
     # In this class, we consider the relation between TD and TP as TD has to be given before TP
 
-    fixtures = ["data_test_constraints_with_constraints.json"]
+    fixtures = ['data_test_constraints_with_constraints.json']
 
     def setUp(self):
         # Set constraint's type
@@ -29,9 +27,7 @@ class ConsiderDependenciesWithConstraintsTestCase(ConstraintTestCase):
         self.default_dep = Department.objects.get(abbrev="default")
 
         # Constraints by departments
-        self.constraint_default_dep = ConsiderDependencies.objects.get(
-            department=self.default_dep
-        )
+        self.constraint_default_dep = ConsiderDependencies.objects.get(department=self.default_dep)
 
         # Weeks
         self.week_40_2022 = Week.objects.get(year=2022, nb=40)
@@ -47,15 +43,12 @@ class ConsiderDependenciesWithConstraintsTestCase(ConstraintTestCase):
         # done before TDdep2 and in the same day. bibiTU is unavailable on tuesdays and wednesdays (NoTutorCourseOnDay),
         # on thursdays and fridays (unavailable user's preference) and on mondays, between 12am and 1pm (TutorLunchBreak).
         # TDdep1 can be given on monday at 10am and TDdep2 can be given at 2pm. It is OK.
-        json_response_dict = self.constraint_default_dep.pre_analyse(
-            week=self.week_40_2022
-        )
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_40_2022)
         self.assertJsonResponseIsOK("1", json_response_dict)
 
         # Test 2 : KO case : same as Test 1 but TutorLunchBreak is from 11am until 1pm, so TDdep1 and TDdep2 can only be
         # given at the same time : beginning at 2pm, wich is impossible because bibiTU can not teach two courses
         # at the same time.
-        json_response_dict = self.constraint_default_dep.pre_analyse(
-            week=self.week_41_2022
-        )
+        json_response_dict = self.constraint_default_dep.pre_analyse(week=self.week_41_2022)
         self.assertJsonResponseIsKO("2", json_response_dict)
+

@@ -38,7 +38,6 @@ class GroupTypesViewSet(viewsets.ModelViewSet):
 
     Can be filtered as wanted with every field of a GroupType object.
     """
-
     permission_classes = [IsAdminOrReadOnly]
 
     queryset = bm.GroupType.objects.all()
@@ -52,28 +51,21 @@ class GroupTypesViewSet(viewsets.ModelViewSet):
         model = bm.Group
         fields = ['dept']"""
 
-
 # Creer class StructuralGroupFilterSet
 class StructuralGroupsFilterSet(filters.FilterSet):
-    dept = filters.CharFilter(
-        field_name="train_prog__department__abbrev", required=True
-    )
+    dept = filters.CharFilter(field_name='train_prog__department__abbrev',required=True)
 
     class Meta:
         model = bm.StructuralGroup
-        fields = ["dept"]
-
-
+        fields = ['dept']
+        
 # Creer class TransversalGroupFilterSet
 class TransversalGroupsFilterSet(filters.FilterSet):
-    dept = filters.CharFilter(
-        field_name="train_prog__department__abbrev", required=True
-    )
-
+    dept = filters.CharFilter(field_name='train_prog__department__abbrev',required=True)
+    
     class Meta:
         model = bm.TransversalGroup
-        fields = ["dept"]
-
+        fields = ['dept']
 
 class StructuralGroupViewSet(viewsets.ModelViewSet):
     """
@@ -88,17 +80,18 @@ class StructuralGroupViewSet(viewsets.ModelViewSet):
 
     permission_classes = [IsAdminOrReadOnly]
 
-    @action(detail=False, methods=["GET"])
+    @action(detail=False, methods=['GET'])
     def tree(self, req):
         groups_filtered = StructuralGroupsFilterSet(data=req.query_params)
         if not groups_filtered.is_valid():
             return HttpResponse("KO")
-        department = groups_filtered.data.get("dept")
+        department = groups_filtered.data.get('dept')
 
         groups = queries.get_groups(department)
         # groups_serialized = serializers.GroupTreeSerializer(data=groups, many=True)
 
         return JsonResponse(groups, safe=False)
+
 
 
 class TransversalGroupViewSet(viewsets.ModelViewSet):
@@ -108,5 +101,6 @@ class TransversalGroupViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     def get_queryset(self):
-        abbrev = self.request.query_params.get("dept", None)
+        abbrev=self.request.query_params.get('dept', None)
         return self.queryset.filter(train_prog__department__abbrev=abbrev)
+        

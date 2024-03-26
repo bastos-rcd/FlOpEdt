@@ -1,3 +1,5 @@
+
+
 def can_push_user_availability(user, availability_user_id):
     if user.has_perm("base.push_any_useravailability"):
         return True

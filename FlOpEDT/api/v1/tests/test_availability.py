@@ -3,13 +3,14 @@ import datetime as dt
 
 import pytest
 from django.utils.duration import duration_string
-from rest_framework.status import HTTP_403_FORBIDDEN, is_success
+from rest_framework.status import (HTTP_403_FORBIDDEN, is_success)
 
 from api.v1.tests.utils import add_user_permission, retrieve_elements
 from base.models.availability import UserAvailability
 from base.models.groups import Department
 from base.models.rooms import Room
 from people.models import FullStaff, Tutor, User
+
 
 
 class TestListUserAvailability:

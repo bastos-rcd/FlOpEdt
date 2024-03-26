@@ -22,18 +22,17 @@
 # without disclosing the source code of your own applications.
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
-from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
+from rest_framework.permissions import (DjangoModelPermissions,
+                                        IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
 import people.models as pm
 from api.permissions import IsAdminOrReadOnly
-from api.v1.people.serializers import (
-    StudentSerializer,
-    ThemePreferencesSerializer,
-    UserSerializer,
-)
+from api.v1.people.serializers import (StudentSerializer,
+                                       ThemePreferencesSerializer,
+                                       UserSerializer)
 
 
 class UsersViewSet(viewsets.ModelViewSet):

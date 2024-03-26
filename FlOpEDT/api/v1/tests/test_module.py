@@ -1,6 +1,7 @@
 import pytest
 
 
+
 class TestScheduledCourseList:
     endpoint = "/fr/api/v1/base/courses/scheduled_courses"
 

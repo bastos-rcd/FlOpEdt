@@ -1,11 +1,7 @@
 import pytest
 
-from ..factories.course import (
-    CourseRRGroup,
-    CourseTypeFactory,
-    ModuleFactory,
-    TrainingPeriodDummyFactory,
-)
+from ..factories.course import (CourseRRGroup, CourseTypeFactory,
+                                ModuleFactory, TrainingPeriodDummyFactory)
 from ..factories.group import DepartmentFactory, TrainingProgrammeFactory
 
 

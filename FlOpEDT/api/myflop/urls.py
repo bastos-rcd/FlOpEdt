@@ -27,17 +27,7 @@ from api.myflop import views
 
 routerMyFlop = routers.SimpleRouter()
 
-routerMyFlop.register(r"pay", views.PayViewSet, basename="pay")
-routerMyFlop.register(
-    r"monthly_volume", views.MonthlyVolumeByDayViewSet, basename="monthly_volume"
-)
-routerMyFlop.register(
-    r"room_monthly_volume",
-    views.RoomMonthlyVolumeByDayViewSet,
-    basename="room_monthly_volume",
-)
-routerMyFlop.register(
-    r"monthly_duplicates",
-    views.MonthlyByDayDuplicatesViewSet,
-    basename="monthly_duplicates",
-)
+routerMyFlop.register(r'pay', views.PayViewSet, basename='pay')
+routerMyFlop.register(r'monthly_volume', views.MonthlyVolumeByDayViewSet, basename='monthly_volume')
+routerMyFlop.register(r'room_monthly_volume', views.RoomMonthlyVolumeByDayViewSet, basename='room_monthly_volume')
+routerMyFlop.register(r'monthly_duplicates', views.MonthlyByDayDuplicatesViewSet, basename='monthly_duplicates')

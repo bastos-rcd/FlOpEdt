@@ -5,6 +5,7 @@ from TTapp.TimetableModel import TimetableData
 
 
 class WeekDBTestCase(TestCase):
+
     fixtures = ["dump.json"]
 
     def test_attributes(self):

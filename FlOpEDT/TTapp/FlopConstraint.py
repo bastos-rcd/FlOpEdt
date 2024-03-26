@@ -27,21 +27,15 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from base.models import (
-    Course,
-    ScheduledCourse,
-    SchedulingPeriod,
-    TimeGeneralSettings,
-    TimetableVersion,
-)
+from base.models import (Course, ScheduledCourse, SchedulingPeriod,
+                         TimeGeneralSettings, TimetableVersion)
 
 max_weight = 8
 
 
 def all_subclasses(cls):
     return set([c for c in cls.__subclasses__() if not c._meta.abstract]).union(
-        [s for c in cls.__subclasses__() for s in all_subclasses(c)]
-    )
+        [s for c in cls.__subclasses__() for s in all_subclasses(c)])
 
 
 class FlopConstraint(models.Model):
@@ -55,20 +49,14 @@ class FlopConstraint(models.Model):
                  None if the constraint is necessary
         is_active : usefull to de-activate a Constraint just before the generation
     """
-
-    department = models.ForeignKey(
-        "base.Department", null=True, on_delete=models.CASCADE
-    )
-    periods = models.ManyToManyField("base.SchedulingPeriod", blank=True)
+    department = models.ForeignKey('base.Department', null=True, on_delete=models.CASCADE)
+    periods = models.ManyToManyField('base.SchedulingPeriod', blank=True)
     weight = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
-        null=True,
-        default=None,
-        blank=True,
-    )
+        null=True, default=None, blank=True)
     title = models.CharField(max_length=30, null=True, default=None, blank=True)
     comment = models.CharField(max_length=100, null=True, default=None, blank=True)
-    is_active = models.BooleanField(verbose_name=_("Is active?"), default=True)
+    is_active = models.BooleanField(verbose_name=_('Is active?'), default=True)
     modified_at = models.DateField(auto_now=True)
 
     def is_satisfied_for(self, period: SchedulingPeriod, version: TimetableVersion):
@@ -76,17 +64,14 @@ class FlopConstraint(models.Model):
         Test if the constraint is satisfied for the given period and work copy
         """
         raise NotImplementedError
-
-    def period_version_scheduled_courses_queryset(
-        self, period: SchedulingPeriod, version: TimetableVersion
-    ) -> models.QuerySet:
+    
+    def period_version_scheduled_courses_queryset(self, period: SchedulingPeriod, version: TimetableVersion) -> models.QuerySet:
         """
         Return all scheduled courses of the given work copy for the given period
         """
-        return ScheduledCourse.objects.filter(
-            course__in=self.considered_courses(period), version=version
-        ).select_related("course", "tutor", "room")
-
+        return ScheduledCourse.objects.filter(course__in=self.considered_courses(period),
+                                              version=version).select_related('course', 'tutor', 'room')
+    
     def local_weight(self):
         if self.weight is None:
             return 10
@@ -106,23 +91,23 @@ class FlopConstraint(models.Model):
         """
 
         if self.periods.exists():
-            period_value = ",".join([f"{p.name} " for p in self.periods.all()])
+            period_value = ','.join([f"{p.name} " for p in self.periods.all()])
         else:
-            period_value = "All"
+            period_value = 'All'
 
         return {
-            "model": self.__class__.__name__,
-            "pk": self.pk,
-            "is_active": self.is_active,
-            "name": self._meta.verbose_name,
-            "description": self.description(),
-            "explanation": self.one_line_description(),
-            "comment": self.comment,
-            "details": {
-                "periods": period_value,
-                "weight": self.weight,
-            },
-        }
+            'model': self.__class__.__name__,
+            'pk': self.pk,
+            'is_active': self.is_active,
+            'name': self._meta.verbose_name,
+            'description': self.description(),
+            'explanation': self.one_line_description(),
+            'comment': self.comment,
+            'details': {
+                'periods': period_value,
+                'weight': self.weight,
+                }
+            }
 
     def one_line_description(self):
         # Return a human readable constraint name with its attributes
@@ -130,65 +115,54 @@ class FlopConstraint(models.Model):
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
-        return [
-            "department",
-        ]
+        return ['department',]
 
-    def time_settings(self, department=None):
+    def time_settings(self, department = None):
         if department:
-            return TimeGeneralSettings.objects.get(department=department)
+            return TimeGeneralSettings.objects.get(department = department)
         else:
-            return TimeGeneralSettings.objects.get(department=self.department)
+            return TimeGeneralSettings.objects.get(department = self.department)
 
-    def get_courses_queryset_by_parameters(
-        self,
-        period,
-        flopmodel=None,
-        train_prog=None,
-        train_progs=None,
-        group=None,
-        groups=None,
-        transversal_groups_included=None,
-        module=None,
-        modules=None,
-        course_type=None,
-        course_types=None,
-        room_type=None,
-        room_types=None,
-    ):
+    def get_courses_queryset_by_parameters(self, period, 
+                                           flopmodel=None,
+                                           train_prog=None,
+                                           train_progs=None,
+                                           group=None,
+                                           groups=None,
+                                           transversal_groups_included=None,
+                                           module=None,
+                                           modules=None,
+                                           course_type=None,
+                                           course_types=None,
+                                           room_type=None,
+                                           room_types=None):
         """
         Filter courses depending on constraints parameters
         parameter group : if not None, return all courses that has one group connected to group
         """
         if flopmodel is None:
-            courses_qs = (
-                Course.objects.filter(
-                    period=period, groups__train_prog__department=self.department
-                )
-                .select_related("module", "type", "period")
-                .prefetch_related("groups")
-            )
+            courses_qs = Course.objects.filter(period=period, groups__train_prog__department=self.department).select_related('module', 'type', 'period').prefetch_related('groups')
         else:
             courses_qs = flopmodel.courses.filter(period=period)
         courses_filter = {}
 
         if train_prog is not None:
-            courses_filter["module__train_prog"] = train_prog
+            courses_filter['module__train_prog'] = train_prog
 
         if train_progs:
-            courses_filter["module__train_prog__in"] = train_progs
+            courses_filter['module__train_prog__in'] = train_progs
 
         if module is not None:
-            courses_filter["module"] = module
+            courses_filter['module'] = module
 
         if modules:
-            courses_filter["module__in"] = modules
+            courses_filter['module__in'] = modules
 
         if group is not None:
             considered_groups = group.connected_groups()
             if transversal_groups_included:
                 considered_groups |= group.transversal_conflicting_groups()
-            courses_filter["groups__in"] = considered_groups
+            courses_filter['groups__in'] = considered_groups
 
         if groups:
             all_groups = set()
@@ -197,39 +171,30 @@ class FlopConstraint(models.Model):
                 if transversal_groups_included:
                     considered_groups |= group.transversal_conflicting_groups()
                 all_groups |= considered_groups
-            courses_filter["groups__in"] = all_groups
+            courses_filter['groups__in'] = all_groups
 
         if course_type is not None:
-            courses_filter["type"] = course_type
+            courses_filter['type'] = course_type
 
         if course_types:
-            courses_filter["type__in"] = course_types
+            courses_filter['type__in'] = course_types
 
         if room_type is not None:
-            courses_filter["room_type"] = room_type
-
+            courses_filter['room_type'] = room_type
+        
         if room_types:
-            courses_filter["room_type__in"] = room_types
+            courses_filter['room_type__in'] = room_types
 
         return courses_qs.filter(**courses_filter)
+
 
     def get_courses_queryset_by_attributes(self, period, flopmodel=None, **kwargs):
         """
         Filter courses depending constraint attributes
         """
-        for attr_name in [
-            "train_prog",
-            "train_progs" "module",
-            "modules",
-            "group",
-            "groups",
-            "course_type",
-            "course_types",
-            "tutor",
-            "tutors",
-            "room_type",
-            "room_types",
-        ]:
+        for attr_name in ['train_prog', "train_progs" 'module', 'modules', 'group', 
+                          'groups', 'course_type', 'course_types', 'tutor', 'tutors', 
+                          'room_type', 'room_types']:
             if hasattr(self, attr_name) and attr_name not in kwargs:
                 attr = getattr(self, attr_name)
                 if type(attr).__name__ == "ManyRelatedManager":
@@ -237,6 +202,7 @@ class FlopConstraint(models.Model):
                 else:
                     kwargs[attr_name] = attr
         return self.get_courses_queryset_by_parameters(period, flopmodel, **kwargs)
+    
 
     def considered_courses(self, period, flopmodel=None):
         return self.get_courses_queryset_by_attributes(period, flopmodel)
@@ -247,3 +213,5 @@ class FlopConstraint(models.Model):
             if self.train_progs.exists():
                 train_progs &= set(self.train_progs.all())
         return train_progs
+
+

@@ -37,7 +37,6 @@ from api.base.urls import url_base_patterns
 from api.fetch.urls import routerFetch
 from api.people.urls import url_user_patterns
 from api.TTapp.urls import routerTTapp
-
 # TODO remove V1...
 from api.v1.urls import url_V1_patterns
 

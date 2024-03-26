@@ -32,38 +32,17 @@ from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
-from base.models import (
-    Course,
-    CourseAdditional,
-    CourseAvailability,
-    CourseModification,
-    CourseStartTimeConstraint,
-    CourseType,
-    Department,
-    Dependency,
-    EnrichedLink,
-    GroupPreferredLinks,
-    Holiday,
-    Mode,
-    Module,
-    ModuleTutorRepartition,
-    Regen,
-    Room,
-    RoomAvailability,
-    RoomSort,
-    RoomType,
-    ScheduledCourse,
-    ScheduledCourseAdditional,
-    StructuralGroup,
-    TimetableVersion,
-    TrainingHalfDay,
-    TrainingPeriod,
-    TrainingProgramme,
-    TransversalGroup,
-    UserAvailability,
-)
+from base.models import (Course, CourseAdditional, CourseAvailability,
+                         CourseModification, CourseStartTimeConstraint,
+                         CourseType, Department, Dependency, EnrichedLink,
+                         GroupPreferredLinks, Holiday, Mode, Module,
+                         ModuleTutorRepartition, Regen, Room, RoomAvailability,
+                         RoomSort, RoomType, ScheduledCourse,
+                         ScheduledCourseAdditional, StructuralGroup,
+                         TimetableVersion, TrainingHalfDay, TrainingPeriod,
+                         TrainingProgramme, TransversalGroup, UserAvailability)
 from core.department import get_model_department_lookup
-from core.filters import DropdownFilterRel, DropdownFilterSimple
+from core.filters import (DropdownFilterRel, DropdownFilterSimple)
 from displayweb.models import ModuleDisplay, TutorDisplay
 from people.models import Tutor
 
@@ -408,7 +387,7 @@ class CoursResource(resources.ModelResource):
 class WeekYearResource(resources.ModelResource):
     class Meta:
         model = Course
-        fields = "period"
+        fields = ("period")
 
 
 class CourseAvailabilityResource(resources.ModelResource):
@@ -632,6 +611,7 @@ class DepartmentModelAdminMixin:
     #     return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_field_queryset(self, db, db_field, request):
+
         queryset = super().get_field_queryset(db, db_field, request)
 
         if hasattr(request, "department"):
@@ -661,9 +641,13 @@ class DepartmentModelAdmin(DepartmentModelAdminMixin, MyModelAdmin):
 
 
 class HolidayAdmin(MyModelAdmin):
-    list_display = ("date",)
-    ordering = ("-date",)
-    list_filter = (("date", DropdownFilterSimple),)
+    list_display = (
+        "date",
+    )
+    ordering = ("-date", )
+    list_filter = (
+        ("date", DropdownFilterSimple),
+    )
 
 
 class TrainingHalfDayAdmin(DepartmentModelAdmin):
@@ -699,9 +683,11 @@ class RoomAdmin(DepartmentModelAdmin):
 
 
 class RoomAvailabilityAdmin(DepartmentModelAdmin):
-    list_display = ("room", "value")
-    ordering = ("room",)
-    list_filter = (("room", DropdownFilterRel),)
+    list_display = ("room", "value")  
+    ordering = ("room",)  
+    list_filter = (
+        ("room", DropdownFilterRel),
+    )
 
 
 class RoomSortAdmin(DepartmentModelAdmin):
@@ -736,6 +722,7 @@ class CourseAdmin(DepartmentModelAdmin):
 
 
 class ScheduledCourseAdmin(DepartmentModelAdmin):
+
     def course_period(o):
         return str(o.course.period)
 
@@ -744,7 +731,9 @@ class ScheduledCourseAdmin(DepartmentModelAdmin):
 
     list_display = (course_period, "course", "start_time", "room")
     ordering = ("start_time", "course", "room")
-    list_filter = (("course__tutor", DropdownFilterRel),)
+    list_filter = (
+        ("course__tutor", DropdownFilterRel),
+    )
 
 
 class CourseAvailabilityAdmin(DepartmentModelAdmin):
@@ -753,7 +742,9 @@ class CourseAvailabilityAdmin(DepartmentModelAdmin):
         "train_prog",
         "value",
     )
-    list_filter = (("train_prog", DropdownFilterRel),)
+    list_filter = (
+        ("train_prog", DropdownFilterRel),
+    )
 
 
 class DependencyAdmin(DepartmentModelAdmin):
@@ -770,10 +761,12 @@ class DependencyAdmin(DepartmentModelAdmin):
         "successive",
         "day_gap",
     )
-    list_filter = ()
+    list_filter = (
+    )
 
 
 class CourseModificationAdmin(DepartmentModelAdmin):
+
     def course_period(o):
         return str(o.course.period)
 
@@ -791,7 +784,9 @@ class CourseModificationAdmin(DepartmentModelAdmin):
         "updated_at",
         "initiator",
     )
-    list_filter = (("initiator", DropdownFilterRel),)
+    list_filter = (
+        ("initiator", DropdownFilterRel),
+    )
     ordering = ("-updated_at",)
 
 
@@ -799,9 +794,13 @@ class UserAvailabilityAdmin(DepartmentModelAdmin):
     list_display = (
         "user",
         "value",
+
     )
-    ordering = ("user",)
-    list_filter = (("user", DropdownFilterRel),)
+    ordering = ("user",) 
+    list_filter = (
+
+        ("user", DropdownFilterRel),
+    )
 
 
 class RegenAdmin(DepartmentModelAdmin):
@@ -830,11 +829,9 @@ class GroupPreferredLinksAdmin(MyModelAdmin):
 class CourseStartTimeConstraintAdmin(MyModelAdmin):
     pass
 
-
 class ModuleTutorRepartitionAdmin(DepartmentModelAdmin):
-    list_display = ("module", "period", "course_type", "tutor", "courses_nb")
-    ordering = ("module", "period", "course_type", "tutor", "courses_nb")
-
+    list_display = ('module', 'period', 'course_type', 'tutor', 'courses_nb')
+    ordering = ('module', 'period', 'course_type', 'tutor', 'courses_nb')
 
 # </editor-fold desc="ADMIN_MENU">
 

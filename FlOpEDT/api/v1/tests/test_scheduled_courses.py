@@ -1,3 +1,5 @@
+
+
 from base.models import Course, StructuralGroup
 
 

@@ -27,7 +27,7 @@
 
 # class DummyConstraintTemplate():
 #     """
-#     This class is a template for writing your own custom contraint.
+#     This class is a template for writing your own custom contraint. 
 
 #     The module can contains several custom constraints.
 #     """
@@ -39,10 +39,10 @@
 #         """
 #         pass
 
-
+    
 #     def get_viewmodel(self):
 #         """
-#         You can add one or more details to be displayed in the solve board
+#         You can add one or more details to be displayed in the solve board 
 #         interface about what this constraint does
 #         """
 #         return {'detail_name_sample': "detail_content_sample", }
@@ -53,3 +53,4 @@
 #         You can give a contextual explanation about what this constraint doesnt
 #         """
 #         return "DummyConstraint online description"
+

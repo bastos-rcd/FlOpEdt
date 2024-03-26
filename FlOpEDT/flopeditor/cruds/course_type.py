@@ -28,8 +28,9 @@ without disclosing the source code of your own applications.
 
 from django.http import JsonResponse
 
-from base.models import CourseType, GroupType
-from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE, validate_course_values
+from base.models import (CourseType, GroupType)
+from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE,
+                                  validate_course_values)
 
 
 def groups_types(department):
@@ -44,6 +45,7 @@ def groups_types(department):
     for group in group_types:
         groups_types_list.append(group.name)
     return groups_types_list
+
 
 
 def read(department):
@@ -69,33 +71,34 @@ def read(department):
         else:
             graded = "Non"
 
-        values.append((ctype.name, ctype_list_group, graded))
+        values.append((ctype.name,
+                       ctype_list_group,
+                       graded))
 
-    return JsonResponse(
-        {
-            "columns": [
-                {"name": "Type de cours", "type": "text", "options": {}},
-                {
-                    "name": "Types de groupes concernés",
-                    "type": "select-chips",
-                    "options": {"values": groups_types(department)},
-                },
-                {
-                    "name": "Evalué",
-                    "type": "select",
-                    "options": {"values": ["Non", "Oui"]},
-                },
-            ],
-            "values": values,
-            "options": {
-                "examples": [
-                    ["Amphi", ["C"], "Non"],
-                    ["Exam", ["C"], "Oui"],
-                    ["TP120", ["TPA", "TPB"], "Non"],
-                ]
-            },
+    return JsonResponse({
+        "columns":  [{
+            'name': 'Type de cours',
+            "type": "text",
+            "options": {}
+        }, {
+            'name': 'Types de groupes concernés',
+            "type": "select-chips",
+            "options": {"values": groups_types(department)}
+        }, {
+            'name': 'Evalué', 
+            "type": "select",
+            "options": {"values" : ["Non", "Oui"]}
+         }
+        ],
+        "values": values,
+        "options": {
+            "examples": [
+                ["Amphi", ["C"], "Non"],
+                ["Exam", ["C"], "Oui"],
+                ["TP120", ["TPA", "TPB"], "Non"]
+            ]
         }
-    )
+    })
 
 
 def create(entries, department):
@@ -108,11 +111,11 @@ def create(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries["result"] = []
-    for i in range(len(entries["new_values"])):
-        new_course_type = entries["new_values"][i][0]
-        new_types_groups = entries["new_values"][i][1]
-        is_graded_str = entries["new_values"][i][2]
+    entries['result'] = []
+    for i in range(len(entries['new_values'])):
+        new_course_type = entries['new_values'][i][0]
+        new_types_groups = entries['new_values'][i][1]
+        is_graded_str = entries['new_values'][i][2]
         if is_graded_str == "Oui":
             is_graded = True
         else:
@@ -122,24 +125,21 @@ def create(entries, department):
             return entries
 
         if CourseType.objects.filter(name=new_course_type, department=department):
-            entries["result"].append(
-                [
-                    ERROR_RESPONSE,
-                    "Un type de cours avec ce nom est déjà présent dans la base de données.",
-                ]
-            )
+            entries['result'].append([
+                ERROR_RESPONSE,
+                "Un type de cours avec ce nom est déjà présent dans la base de données."
+            ])
             return entries
 
-        new_course = CourseType.objects.create(
-            name=new_course_type, department=department, graded=is_graded
-        )
+        new_course = CourseType.objects.create(name=new_course_type,
+                                               department=department,
+                                               graded=is_graded)
         for name in new_types_groups:
-            new_course.group_types.add(
-                GroupType.objects.get(name=name, department=department)
-            )
+            new_course.group_types.add(GroupType.objects.get(
+                name=name, department=department))
         new_course.save()
 
-        entries["result"].append([OK_RESPONSE])
+        entries['result'].append([OK_RESPONSE])
 
     return entries
 
@@ -154,15 +154,15 @@ def update(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries["result"] = []
-    if len(entries["old_values"]) != len(entries["new_values"]):
+    entries['result'] = []
+    if len(entries['old_values']) != len(entries['new_values']):
         return entries
 
-    for i in range(len(entries["old_values"])):
-        old_course_type = entries["old_values"][i][0]
-        new_course_type = entries["new_values"][i][0]
-        new_types_groups = entries["new_values"][i][1]
-        is_graded_str = entries["new_values"][i][2]
+    for i in range(len(entries['old_values'])):
+        old_course_type = entries['old_values'][i][0]
+        new_course_type = entries['new_values'][i][0]
+        new_types_groups = entries['new_values'][i][1]
+        is_graded_str = entries['new_values'][i][2]
         if is_graded_str == "Oui":
             new_is_graded = True
         else:
@@ -172,43 +172,32 @@ def update(entries, department):
             return entries
 
         try:
-            course_type_to_update = CourseType.objects.get(
-                name=old_course_type, department=department
-            )
+            course_type_to_update = CourseType.objects.get(name=old_course_type,
+                                                           department=department)
 
-            if (
-                CourseType.objects.filter(name=new_course_type, department=department)
-                and old_course_type != new_course_type
-            ):
-                entries["result"].append(
-                    [ERROR_RESPONSE, "Le nom de ce type de cours est déjà utilisée."]
-                )
+            if CourseType.objects.filter(name=new_course_type, department=department)\
+                    and old_course_type != new_course_type:
+                entries['result'].append(
+                    [ERROR_RESPONSE,
+                     "Le nom de ce type de cours est déjà utilisée."])
             else:
                 course_type_to_update.name = new_course_type
                 course_type_to_update.graded = new_is_graded
                 course_type_to_update.group_types.remove(
-                    *course_type_to_update.group_types.all()
-                )
+                    *course_type_to_update.group_types.all())
                 for name in new_types_groups:
                     course_type_to_update.group_types.add(
-                        GroupType.objects.get(name=name, department=department)
-                    )
+                        GroupType.objects.get(name=name, department=department))
                 course_type_to_update.save()
-                entries["result"].append([OK_RESPONSE])
+                entries['result'].append([OK_RESPONSE])
         except CourseType.DoesNotExist:
-            entries["result"].append(
-                [
-                    ERROR_RESPONSE,
-                    "Un type de cours à modifier n'a pas été trouvée dans la base de données.",
-                ]
-            )
+            entries['result'].append(
+                [ERROR_RESPONSE,
+                 "Un type de cours à modifier n'a pas été trouvée dans la base de données."])
         except CourseType.MultipleObjectsReturned:
-            entries["result"].append(
-                [
-                    ERROR_RESPONSE,
-                    "Plusieurs type de cours du même nom existent en base de données.",
-                ]
-            )
+            entries['result'].append(
+                [ERROR_RESPONSE,
+                 "Plusieurs type de cours du même nom existent en base de données."])
 
     return entries
 
@@ -223,12 +212,15 @@ def delete(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries["result"] = []
-    for i in range(len(entries["old_values"])):
-        old_course_type = entries["old_values"][i][0]
+    entries['result'] = []
+    for i in range(len(entries['old_values'])):
+        old_course_type = entries['old_values'][i][0]
         try:
-            CourseType.objects.get(name=old_course_type, department=department).delete()
-            entries["result"].append([OK_RESPONSE])
+            CourseType.objects.get(name=old_course_type,
+                                   department=department).delete()
+            entries['result'].append([OK_RESPONSE])
         except CourseType.DoesNotExist:
-            entries["result"].append([ERROR_RESPONSE, "Erreur en base de données."])
+            entries['result'].append(
+                [ERROR_RESPONSE,
+                 "Erreur en base de données."])
     return entries

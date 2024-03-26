@@ -1,7 +1,8 @@
 import pytest
 from rest_framework.test import APIClient
 
-from base.models import Course, CourseType, Module, StructuralGroup, Week
+from base.models import (Course, CourseType, Module, StructuralGroup,
+                         Week)
 
 
 @pytest.fixture

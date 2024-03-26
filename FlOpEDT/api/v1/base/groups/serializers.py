@@ -28,6 +28,7 @@ import base.models as bm
 
 
 class StructuralGroupsSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = bm.StructuralGroup
         fields = ("id", "name", "train_prog_id", "type_id", "parent_groups")

@@ -1,5 +1,5 @@
 import pytest
-from rest_framework.status import HTTP_400_BAD_REQUEST, is_success
+from rest_framework.status import (HTTP_400_BAD_REQUEST, is_success)
 
 from base.models import Department
 

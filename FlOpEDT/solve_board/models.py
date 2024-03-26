@@ -24,21 +24,22 @@
 # without disclosing the source code of your own applications.
 
 
+
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 # Create your models here.
 
-
 class SolveRun(models.Model):
     run_label = models.CharField(max_length=60)
-    start_week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)], null=True, blank=True
-    )
+    start_week =  models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(53)],
+        null=True, blank=True)
     start_year = models.PositiveSmallIntegerField(null=True, blank=True)
-    end_week = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(53)], null=True, blank=True
-    )
+    end_week =  models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(53)],
+        null=True, blank=True)
     end_year = models.PositiveSmallIntegerField(null=True, blank=True)
-    log_file = models.CharField(null=True, default=None, max_length=1000)
-    iis_file = models.CharField(null=True, default=None, max_length=1000)
+    log_file = models.CharField(null=True, default=None, max_length = 1000)
+    iis_file = models.CharField(null=True, default=None, max_length = 1000)

@@ -28,12 +28,10 @@ from rest_framework import serializers
 import base.models as bm
 import displayweb.models as dwm
 import people.models as pm
-from api.base.courses.serializers import (
-    CoursesSerializer,
-    Department_TC_Serializer,
-    Group_SC_Serializer,
-    Module_SC_Serializer,
-)
+from api.base.courses.serializers import (CoursesSerializer,
+                                          Department_TC_Serializer,
+                                          Group_SC_Serializer,
+                                          Module_SC_Serializer)
 from base.timing import Day, flopdate_to_datetime
 
 #    --------------------------------------------------------------------------------
@@ -114,8 +112,8 @@ class NewApiScheduledCoursesSerializer(serializers.Serializer):
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
     course = CoursesSerializer()
-    tutor = serializers.IntegerField(source="tutor.id", allow_null=True)
-    id_visio = serializers.IntegerField(source="additional.link.id", allow_null=True)
+    tutor = serializers.IntegerField(source='tutor.id', allow_null=True)
+    id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
     number = serializers.IntegerField()
 
     # Mise en forme des données

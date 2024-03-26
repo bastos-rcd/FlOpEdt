@@ -2,13 +2,7 @@ from django import forms
 from django.core.validators import RegexValidator
 
 
-DAYS = [
-    ("m", "Monday"),
-    ("tu", "Tuesday"),
-    ("w", "Wenesday"),
-    ("th", "Thursday"),
-    ("f", "Friday"),
-]
+DAYS = [('m', 'Monday'), ('tu', 'Tuesday'), ('w', 'Wenesday'), ('th', 'Thursday'), ('f', 'Friday')]
 
 validator_time = RegexValidator(r"^\d{2}:\d{2}$", "Must be as 00:00")
 

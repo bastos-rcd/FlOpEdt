@@ -31,19 +31,10 @@ from django.conf import settings as ds
 from django.db import transaction
 from openpyxl import *
 
-from base.models import (
-    Course,
-    CourseAdditional,
-    CoursePossibleTutors,
-    CourseType,
-    Dependency,
-    GenericGroup,
-    Module,
-    ModuleTutorRepartition,
-    RoomType,
-    SchedulingPeriod,
-    TrainingPeriod,
-)
+from base.models import (Course, CourseAdditional, CoursePossibleTutors,
+                         CourseType, Dependency, GenericGroup, Module,
+                         ModuleTutorRepartition, RoomType, SchedulingPeriod,
+                         TrainingPeriod)
 from misc.assign_colors import assign_module_color
 from people.models import Tutor
 from TTapp.models import StabilizationThroughPeriods
@@ -90,15 +81,11 @@ def do_assign(module, course_type, period, book):
 
 
 @transaction.atomic
-def ReadPlanifSchedulingPeriod(
-    department, book, feuille, period: SchedulingPeriod, courses_to_stabilize=None
-):
+def ReadPlanifSchedulingPeriod(department, book, feuille, period: SchedulingPeriod, courses_to_stabilize=None):
     sheet = book[feuille]
     training_period = TrainingPeriod.objects.get(name=feuille, department=department)
     Course.objects.filter(
-        type__department=department,
-        period=period,
-        module__training_period=training_period,
+        type__department=department, period=period, module__training_period=training_period
     ).delete()
     after_type_dependencies = []
     # lookup period column
@@ -111,7 +98,7 @@ def ReadPlanifSchedulingPeriod(
             if short_period_name is None or short_period_name == "VERIF":
                 print("Pas de période %s en %s" % (period.name, feuille))
                 return
-            if period.name.startswith(short_period_name):
+            if period.name.startswith(short_period_name) :
                 PERIOD_COL = wc
                 break
     print("Période %s de %s : colonne %g" % (period.name, feuille, PERIOD_COL))
@@ -180,9 +167,7 @@ def ReadPlanifSchedulingPeriod(
             grps = sheet.cell(row=row, column=group_COL).value
             COURSE_TYPE = CourseType.objects.get(name=nature, department=department)
             ROOM_TYPE = RoomType.objects.get(name=room_type, department=department)
-            DURATION = dt.timedelta(
-                minutes=sheet.cell(row=row, column=duration_COL).value
-            )
+            DURATION = dt.timedelta(minutes = sheet.cell(row=row, column=duration_COL).value)
             supp_profs = []
             possible_profs = []
             if prof is None:
@@ -286,13 +271,9 @@ def ReadPlanifSchedulingPeriod(
                         groups__in=relevant_groups,
                     ).exclude(id=C.id)
                     for relevant_group in relevant_groups:
-                        courses_queryset = course_type_queryset.filter(
-                            groups=relevant_group
-                        )
+                        courses_queryset = course_type_queryset.filter(groups=relevant_group)
                         if courses_queryset.exists():
-                            after_type_dependencies.append(
-                                (C.id, courses_queryset, n, row)
-                            )
+                            after_type_dependencies.append((C.id, courses_queryset, n, row))
 
                 if "P" in all_comments:
                     course_additional, created = CourseAdditional.objects.get_or_create(
@@ -344,7 +325,7 @@ def ReadPlanifSchedulingPeriod(
     for id, courses_queryset, n, row in after_type_dependencies:
         course2 = Course.objects.get(id=id)
         for course1 in courses_queryset[:n]:
-            P = Dependency.objects.create(course1=course1, course2=course2)
+            P = Dependency.objects.create(course1=course1, course2=course2)        
 
 
 @transaction.atomic
@@ -353,14 +334,12 @@ def extract_training_period(
     book,
     training_period: TrainingPeriod,
     stabilize_courses=False,
-    periods=[],
+    periods = []
 ):
+
     if stabilize_courses:
         courses_to_stabilize = {}
-        print(
-            "Courses will be stabilized through scheduling periods for training period",
-            training_period,
-        )
+        print("Courses will be stabilized through scheduling periods for training period", training_period)
     else:
         courses_to_stabilize = None
     considered_periods = set(training_period.periods.all())
@@ -369,9 +348,7 @@ def extract_training_period(
     considered_periods = list(considered_periods)
     considered_periods.sort()
     for period in considered_periods:
-        ReadPlanifSchedulingPeriod(
-            department, book, training_period.name, period, courses_to_stabilize
-        )
+        ReadPlanifSchedulingPeriod(department, book, training_period.name, period, courses_to_stabilize)
 
     if stabilize_courses:
         for courses_list in courses_to_stabilize.values():
@@ -395,10 +372,7 @@ def extract_planif(
     Generate the courses from bookname; the school year starts in actual_year
     """
     if bookname is None:
-        bookname = os.path.join(
-            ds.MEDIA_ROOT,
-            "media/configuration/planif_file_" + department.abbrev + ".xlsx",
-        )
+        bookname = os.path.join(ds.MEDIA_ROOT,'media/configuration/planif_file_'+department.abbrev+'.xlsx')
     book = load_workbook(filename=bookname, data_only=True)
     training_periods = define_training_periods(department, book, training_periods)
     for training_period in training_periods:
@@ -414,21 +388,14 @@ def extract_planif(
 
 
 @transaction.atomic
-def extract_planif_scheduling_periods(
-    scheduling_periods, department, bookname=None, training_periods=None
-):
+def extract_planif_scheduling_periods(scheduling_periods, department, bookname=None, training_periods=None):
     if bookname is None:
-        bookname = os.path.join(
-            ds.MEDIA_ROOT,
-            "media/configuration/planif_file_" + department.abbrev + ".xlsx",
-        )
+        bookname = os.path.join(ds.MEDIA_ROOT,'media/configuration/planif_file_'+department.abbrev+'.xlsx')
     book = load_workbook(filename=bookname, data_only=True)
     training_periods = define_training_periods(department, book, training_periods)
     for training_period in training_periods:
         for scheduling_period in scheduling_periods:
-            ReadPlanifSchedulingPeriod(
-                department, book, training_period.name, scheduling_period
-            )
+            ReadPlanifSchedulingPeriod(department, book, training_period.name, scheduling_period)
 
 
 def define_training_periods(department, book, training_periods):
