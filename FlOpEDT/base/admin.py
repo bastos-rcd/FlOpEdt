@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 import logging
 
-import django.contrib.auth as auth
+from django.contrib import auth
 from django.contrib import admin
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models.fields import related as related_fields
@@ -545,7 +545,7 @@ class DepartmentModelAdminMixin:
         # Hide department field if a department attribute exists
         # on the related model and a department value has been set
         base = super().get_exclude(request, obj)
-        exclude = list() if base is None else list(base)
+        exclude = [] if base is None else list(base)
 
         if hasattr(request, "department"):
             for field in self.model._meta.get_fields():
@@ -642,12 +642,11 @@ class DepartmentModelAdminMixin:
             if related_filter:
                 if queryset:
                     return queryset.filter(**related_filter).distinct()
-                else:
-                    return (
-                        db_field.remote_field.model._default_manager.using(db)
-                        .filter(**related_filter)
-                        .distinct()
-                    )
+                return (
+                    db_field.remote_field.model._default_manager.using(db)
+                    .filter(**related_filter)
+                    .distinct()
+                )
 
         return queryset
 

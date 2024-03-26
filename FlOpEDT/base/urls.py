@@ -23,7 +23,7 @@
 
 from django.urls import include, path, re_path
 
-from . import statistics, views
+from . import views
 
 app_name = "base"
 
@@ -114,18 +114,6 @@ urlpatterns = [
         "fetch_group_preferred_links/",
         views.fetch_group_preferred_links,
         name="fetch_group_preferred_links",
-    ),
-    # statistics
-    # ---------------------------------
-    path(
-        "statistics/",
-        include(
-            [
-                path("", statistics.index, name="statistics"),
-                path("rooms/", statistics.fetch_room_activity, name="room_activity"),
-                path("tutors/", statistics.fetch_tutor_hours, name="tutor_hours"),
-            ]
-        ),
     ),
     # from screen to db
     path("change_edt/", views.edt_changes, name="edt_changes"),

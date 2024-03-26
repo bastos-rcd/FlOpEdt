@@ -124,5 +124,4 @@ def week_list():
 def year_by_week(week):
     if week > 36:
         return current_year
-    else:
-        return current_year + 1
+    return current_year + 1
