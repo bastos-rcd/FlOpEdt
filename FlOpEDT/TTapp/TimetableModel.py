@@ -44,8 +44,8 @@ from base.models import (
     TimetableVersion,
     TrainingProgramme,
     TutorCost,
-    period_actual_availabilities,
 )
+from base.timing import Time
 from core.decorators import timer
 from people.models import Tutor
 from roomreservation.models import RoomReservation
@@ -1555,11 +1555,11 @@ class TimetableModel(FlopModel):
         if send_gurobi_logs_email_to is not None:
             if result is None:
                 solved = False
-                subject = f"Logs {self.department.abbrev} {self.weeks} : not solved"
+                subject = f"Logs {self.department.abbrev} {self.periods} : not solved"
             else:
                 solved = True
                 subject = (
-                    f"Logs {self.department.abbrev} {self.weeks} : copy {target_major}"
+                    f"Logs {self.department.abbrev} {self.periods} : copy {target_major}"
                 )
             self.send_gurobi_log_files_email(
                 subject=subject, to=[send_gurobi_logs_email_to], solved=solved
@@ -1578,7 +1578,6 @@ class TimetableModel(FlopModel):
         return other_slots.pop()
 
     def send_gurobi_log_files_email(self, subject, to, solved):
-        from django.core.mail import EmailMessage
 
         message = gettext(
             "This email was automatically sent by the flop!EDT timetable generator\n\n"

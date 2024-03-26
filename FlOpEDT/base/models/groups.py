@@ -11,6 +11,7 @@ class Department(models.Model):
     def scheduling_mode(self):
         if hasattr(self, "mode"):
             return self.mode.scheduling_mode
+        return None
 
     def scheduling_periods(self, exclude_empty=False):
         scheduling_period_model = apps.get_model("base", "SchedulingPeriod")
@@ -88,19 +89,11 @@ class GenericGroup(models.Model):
 
     @property
     def is_structural(self):
-        try:
-            self.structuralgroup
-            return True
-        except:
-            return False
+        return hasattr(self, "structuralgroup")
 
     @property
     def is_transversal(self):
-        try:
-            self.transversalgroup
-            return True
-        except:
-            return False
+        return hasattr(self, "transversalgroup")
 
 
 class StructuralGroup(GenericGroup):

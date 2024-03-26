@@ -109,7 +109,8 @@ def get_edt_version(department, week_nb, year, create=False):
             )
         except TimetableVersion.MultipleObjectsReturned as e:
             logger.error(
-                "get_edt_version: database inconsistency, multiple objects returned for %s" % params
+                "get_edt_version: database inconsistency, multiple objects returned for %s"
+                % params
             )
             raise e
         version = edt_version.version
@@ -187,10 +188,14 @@ def get_groups(department_abbrev):
                 raise ValueError("Group name should be unique")
             if gp.parent_groups.all().count() == 0:
                 if gp_master is not None:
-                    raise ValueError("One single group is able to be without " "parents")
+                    raise ValueError(
+                        "One single group is able to be without parents"
+                    )
                 gp_master = gp
             elif gp.parent_groups.all().count() > 1:
-                raise ValueError("Not tree-like group structures are not yet " "handled")
+                raise ValueError(
+                    "Not tree-like group structures are not yet handled"
+                )
             gp_dict_children[gp.full_name] = []
 
         if gp_master is None:
@@ -234,12 +239,12 @@ def get_descendant_groups(gp, children):
             else:
                 current["promotxt"] = tp.abbrev
             current["row"] = tpd.row
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as exc:
             raise Exception(
                 "You should indicate on which row a training "
                 "programme will be displayed "
                 "(cf TrainingProgrammeDisplay)"
-            )
+            ) from exc
     current["name"] = gp.name
     try:
         gpd = GroupDisplay.objects.get(group=gp)
@@ -298,15 +303,12 @@ def get_rooms(department_abbrev, basic=False):
     if not basic:
         if dept is None:
             return Room.objects.all()
-        else:
-            return Room.objects.filter(departments=dept)
-    else:
-        if dept is None:
-            return Room.objects.annotate(nb_sub=Count("subrooms")).filter(nb_sub=0)
-        else:
-            return Room.objects.annotate(nb_sub=Count("subrooms")).filter(
-                departments=dept, nb_sub=0
-            )
+        return Room.objects.filter(departments=dept)
+    if dept is None:
+        return Room.objects.annotate(nb_sub=Count("subrooms")).filter(nb_sub=0)
+    return Room.objects.annotate(nb_sub=Count("subrooms")).filter(
+        departments=dept, nb_sub=0
+    )
 
 
 def get_coursetype_constraints(department_abbrev):

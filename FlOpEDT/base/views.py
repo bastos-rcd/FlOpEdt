@@ -42,7 +42,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_page
 from django.views.generic import RedirectView
 
-import base.queries as queries
+from base import queries
 from base.admin import (
     CourseAvailabilityResource,
     ModuleDescriptionResource,
@@ -71,7 +71,6 @@ from base.models import (
     RoomType,
     ScheduledCourse,
     ScheduledCourseAdditional,
-    SchedulingPeriod,
     StructuralGroup,
     Theme,
     TimetableVersion,
@@ -91,6 +90,9 @@ from people.models import (
     UserDepartmentSettings,
     UserPreferredLinks,
 )
+
+from TTapp.TimetableUtils import number_courses
+
 
 logger = logging.getLogger(__name__)
 
@@ -144,9 +146,7 @@ def index(req):
         return redirect(redirect_to_edt(department))
     if len(departments) == 1:
         return redirect(redirect_to_edt(departments[0]))
-    return TemplateResponse(
-        req, "base/departments.html", {"departments": departments}
-    )
+    return TemplateResponse(req, "base/departments.html", {"departments": departments})
 
 
 def edt(req, year=None, week=None, splash_id=0, **kwargs):
@@ -252,10 +252,9 @@ def edt_light(req, year=None, week=None, **kwargs):
 def preferences(req, **kwargs):
     if req.user.is_student:
         return redirect("people:student_preferences")
-    elif req.user.is_tutor:
+    if req.user.is_tutor:
         return redirect("base:stype", department=req.department)
-    else:
-        return HttpResponse("Contacter un administrateur.")
+    return HttpResponse("Contacter un administrateur.")
 
 
 @login_required
@@ -414,7 +413,7 @@ def room_preference(req, department, tutor=None):
 def user_perfect_day_changes(req, username=None, *args, **kwargs):
     if username is not None:
         t = Tutor.objects.get(username=username)
-        preferences, created = TutorPreference.objects.get_or_create(tutor=t)
+        preferences, _ = TutorPreference.objects.get_or_create(tutor=t)
         data = req.POST
         user_pref_time = int(data["user_pref_time"][0])
         user_max_time = int(data["user_max_time"][0])
@@ -976,7 +975,7 @@ def clean_change(
         )
         ret["sched"].room = new_room
     except Room.DoesNotExist:
-        raise Exception(f"Problème : salle {change['room']} inconnue")
+        raise ValueError(f"Problème : salle {change['room']} inconnue")
 
     # Timing
     if not scheduled_before or not (
@@ -995,7 +994,7 @@ def clean_change(
         if ret["course"].tutor is not None:
             ret["course"].tutor = tutor
     except ObjectDoesNotExist:
-        raise Exception(f"Problème : prof {change['tutor']} inconnu")
+        raise ValueError(f"Problème : prof {change['tutor']} inconnu")
 
     # Grade
     try:
@@ -1032,7 +1031,7 @@ def clean_change(
                 additional.link = new_visio
                 additional.save()
         except EnrichedLink.DoesNotExist:
-            raise Exception(f"Problème : visio avec if {change['id_visio']} inconnue")
+            raise ValueError(f"Problème : visio avec if {change['id_visio']} inconnue")
 
     return ret
 
@@ -1073,7 +1072,6 @@ def edt_changes(req, **kwargs):
 
     recv_changes = json.loads(req.POST.get("tab", []))
 
-    intro = f"Bonjour,\n\n{initiator.first_name} {initiator.last_name} a effectué les modifications suivantes \n\n"
     msg = {}
 
     logger.info(
@@ -1108,7 +1106,6 @@ def edt_changes(req, **kwargs):
                         department=department,
                     )
                     if work_copy == 0:
-                        same, changed = new_courses["log"].strs_course_changes()
                         impacted_tutor = new_courses["sched"].tutor
                         msg[impacted_tutor] = str(new_courses["log"])
                         impacted_inst.add(new_courses["course"].tutor)
@@ -1145,9 +1142,8 @@ def edt_changes(req, **kwargs):
                     logger.info(email)
 
         return JsonResponse(good_response)
-    else:
-        bad_response["more"] = f"Version: {version} VS {old_version}"
-        return JsonResponse(bad_response)
+    bad_response["more"] = f"Version: {version} VS {old_version}"
+    return JsonResponse(bad_response)
 
 
 class HelperUserAvailability:
@@ -1158,6 +1154,7 @@ class HelperUserAvailability:
         return UserAvailability.objects.filter(user=self.tutor)
 
     def generate(self, week, day, start_time, duration, value):
+        # pylint: disable=too-many-arguments
         return UserAvailability(
             user=self.tutor,
             week=week,
@@ -1179,6 +1176,7 @@ class HelperCourseAvailability:
         )
 
     def generate(self, week, day, start_time, duration, value):
+        # pylint: disable=too-many-arguments
         return CourseAvailability(
             train_prog=self.training_programme,
             course_type=self.course_type,
@@ -1198,6 +1196,7 @@ class HelperRoomAvailability:
         return RoomAvailability.objects.filter(room=self.room)
 
     def generate(self, week, day, start_time, duration, value):
+        # pylint: disable=too-many-arguments
         return RoomAvailability(
             room=self.room,
             week=week,
@@ -1369,8 +1368,8 @@ def room_preferences_changes(req, year, week, room, **kwargs):
 
     response = {"status": "KO", "more": ""}
 
-    logger.info(f"REQ: dispo change for {room} by {req.user.username}")
-    logger.info(f"     W{week} Y{year}")
+    logger.info("REQ: dispo change for %s by %s", (room, req.user.username))
+    logger.info("     W%s Y%s", (week, year))
 
     try:
         room = Room.objects.get(name=room)
@@ -1417,7 +1416,6 @@ def course_preferences_changes(req, year, week, train_prog, course_type, **kwarg
 
 @tutor_required
 def decale_changes(req, **kwargs):
-    from TTapp.TimetableUtils import number_courses
 
     bad_response = HttpResponse("KO")
     good_response = HttpResponse("OK")

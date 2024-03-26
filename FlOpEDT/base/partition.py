@@ -33,14 +33,13 @@ from base.models import (
     ScheduledCourse,
     SchedulingPeriod,
     TimeGeneralSettings,
-    UserAvailability,
 )
 from base.models.availability import period_actual_availabilities
 from base.timing import Day, TimeInterval, days_index
 from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 
 
-class Partition(object):
+class Partition:
     """Partition class to analyse data related by time"""
 
     def __init__(
@@ -126,7 +125,7 @@ class Partition(object):
     def __str__(self):
         return_string = f"Partition starts at {self.intervals[0][0].start} and ends at {self.intervals[self.nb_intervals-1][0].end}\n"
         return_string += f"It contains {self.available_duration} available minutes.\n"
-        return_string += f"The intervals are :\n"
+        return_string += "The intervals are :\n"
         for interval in self.intervals:
             return_string += f"{interval[0]}, {interval[1]}\n"
         return_string += "end."

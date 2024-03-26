@@ -144,12 +144,12 @@ class RoomPonderation(models.Model):
     basic_rooms = models.ManyToManyField("Room")
 
     def save(self, *args, **kwargs):
-        super(RoomPonderation, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         self.add_basic_rooms()
 
     def add_basic_rooms(self):
-        RT = RoomType.objects.filter(id__in=self.room_types)
-        for rt in RT:
+        room_types = RoomType.objects.filter(id__in=self.room_types)
+        for rt in room_types:
             for basic_room in rt.basic_rooms():
                 self.basic_rooms.add(basic_room)
 

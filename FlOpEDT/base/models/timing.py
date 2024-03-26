@@ -2,13 +2,12 @@ import datetime as dt
 
 from django.apps import apps
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
-from base.timing import Day, Time, days_list, min_to_str
+from base.timing import Day, Time, days_list
 
 
 class Holiday(models.Model):

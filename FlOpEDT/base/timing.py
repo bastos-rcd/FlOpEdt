@@ -193,23 +193,6 @@ def flopday_to_date(day):
     return datetime.strptime(day_string, "%Y-%W-%w").date()
 
 
-def time_to_floptime(time_data):
-    return time_data.hour * 60 + time_data.minute
-
-
-def date_to_flopday(date) -> Day:
-    isocalendar = date.isocalendar()
-    flop_week = bm.Week.objects.get(nb=isocalendar[1], year=isocalendar[0])
-    flop_day = Day.CHOICES[isocalendar[2] - 1][0]
-    return Day(week=flop_week, day=flop_day)
-
-
-def datetime_to_floptime(datetime):
-    flopday = date_to_flopday(datetime.date())
-    floptime = time_to_floptime(datetime.time())
-    return flopday, floptime
-
-
 ###TRANSLATION FUNCTIONS BETWEEN FLOPDATES AND PYTHON'S DATES###
 ################################################################
 
