@@ -472,7 +472,8 @@ function currentTimeUpdate(dateTime: Timestamp, layerY: number): void {
  * @param event The event we are currently dragging
  */
 function onDragStart(browserEvent: MouseEvent, event: CalendarEvent) {
-  //@ts-expect-error LayerY supported on most browsers
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
   minutesToStartEvent = browserEvent.layerY * minutesToPixelRate
   currentTime.value = copyTimestamp(event.data.start) as TimestampOrNull
   isDragging.value = true
@@ -491,7 +492,8 @@ function getAllEvents(): CalendarEvent[] {
 }
 
 function onDragEnter(e: MouseEvent, scope: { timestamp: Timestamp }): boolean {
-  //@ts-expect-error LayerY supported on most browsers
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
   currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return true
@@ -506,14 +508,16 @@ function onDragEnter(e: MouseEvent, scope: { timestamp: Timestamp }): boolean {
  */
 function onDragOver(e: MouseEvent, type: string, scope: { timestamp: Timestamp }) {
   e.preventDefault()
-  //@ts-expect-error LayerY supported on most browsers
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
   currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return true
 }
 
 function onDragLeave(e: MouseEvent, type: string, scope: { timestamp: Timestamp }) {
-  //@ts-expect-error LayerY supported on most browsers
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
   currentTimeUpdate(scope.timestamp, e.layerY)
   dropZoneCloseUpdate(scope.timestamp)
   return false
@@ -694,7 +698,8 @@ function onAvailClick(mouseEvent: MouseEvent, eventId: number): void {
       if (firstAvail) {
         if (firstAvail.data.duration! > (props.step || STEP_DEFAULT)) {
           const secondAvail = cloneDeep(firstAvail)
-          //@ts-expect-error LayerY supported on most browsers
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
           const layerY: number = mouseEvent.layerY
           firstAvail.data.duration = closestStep(minutesToPixelRate * layerY, props.step)
           updateMinutes(

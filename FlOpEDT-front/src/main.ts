@@ -1,4 +1,4 @@
-import { createApp, readonly, ref, Ref } from 'vue'
+import { Component, ComputedOptions, createApp, MethodOptions, readonly, ref, Ref } from 'vue'
 
 import { createPinia } from 'pinia'
 
@@ -16,7 +16,17 @@ import '@quasar/quasar-ui-qcalendar/src/css/calendar-day.sass'
 
 import i18n from '@/i18n'
 
-const app = createApp(App)
+const app = createApp(
+  App as Component<
+    unknown,
+    unknown,
+    unknown,
+    ComputedOptions,
+    MethodOptions,
+    Record<string, never>,
+    Record<string, never>
+  >
+)
 // Provide the current week and year
 const now = new Date()
 const startDate = new Date(now.getFullYear(), 0, 1)
@@ -30,4 +40,5 @@ const currentWeek: Ref<FlopWeek> = ref({
 
 app.provide('currentWeek', readonly(currentWeek.value))
 app.component('PopperComponent', Popper)
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 app.use(router).use(createPinia()).use(i18n).use(Plugin).mount('#app')
