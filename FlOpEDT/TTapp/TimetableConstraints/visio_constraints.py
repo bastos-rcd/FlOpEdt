@@ -53,17 +53,17 @@ class NoVisio(TimetableConstraint):
             print("Visio Mode is not activated : ignore NoVisio constraint")
             return
         considered_groups = self.considered_basic_groups(ttmodel)
-        days = days_filter(ttmodel.wdb.days, period=period)
+        days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         for group in considered_groups:
             # Si contrainte forte, AUCUN cours en visio
             # Sinon un poids LOURD pour chaque cours mis en Visio (sauf ceux indiqués Visio!)
             if self.weight is None:
-                considered_group_courses = ttmodel.wdb.courses_for_basic_group[group]
+                considered_group_courses = ttmodel.data.courses_for_basic_group[group]
             else:
-                considered_group_courses = ttmodel.wdb.courses_for_basic_group[group] \
-                                                  - ttmodel.wdb.visio_courses
+                considered_group_courses = ttmodel.data.courses_for_basic_group[group] \
+                                                  - ttmodel.data.visio_courses
 
             if self.course_types.exists():
                 considered_group_courses = set(c for c in considered_group_courses
@@ -73,7 +73,7 @@ class NoVisio(TimetableConstraint):
                                                if c.module in self.modules.all())
             relevant_sum = ttmodel.sum(ttmodel.located[sl, c, None]
                                        for c in considered_group_courses
-                                       for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day_in=days))
+                                       for sl in slots_filter(ttmodel.data.compatible_slots[c], day_in=days))
             if self.weight is None:
                 ttmodel.add_constraint(relevant_sum,
                                        '==',
@@ -120,17 +120,17 @@ class VisioOnly(TimetableConstraint):
             print("Visio Mode is not activated : ignore VisioOnly constraint")
             return
         considered_groups = self.considered_basic_groups(ttmodel)
-        days = days_filter(ttmodel.wdb.days, period=period)
+        days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         for group in considered_groups:
             # Si contrainte forte, Tous les cours en visio,
             # Sinon un poids LOURD pour chaque cours mis en Présentiel (sauf ceux indiqués no Visio!)
             if self.weight is None:
-                considered_group_courses = ttmodel.wdb.courses_for_basic_group[group]
+                considered_group_courses = ttmodel.data.courses_for_basic_group[group]
             else:
-                considered_group_courses = ttmodel.wdb.courses_for_basic_group[group] \
-                                           - ttmodel.wdb.no_visio_courses
+                considered_group_courses = ttmodel.data.courses_for_basic_group[group] \
+                                           - ttmodel.data.no_visio_courses
             if self.course_types.exists():
                 considered_group_courses = set(c for c in considered_group_courses
                                                if c.type in self.course_types.all())
@@ -139,8 +139,8 @@ class VisioOnly(TimetableConstraint):
                                                if c.module in self.modules.all())
             relevant_sum = ttmodel.sum(ttmodel.located[sl, c, r]
                                        for c in considered_group_courses
-                                       for r in ttmodel.wdb.course_rg_compat[c] - {None}
-                                       for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day_in=days))
+                                       for r in ttmodel.data.course_rg_compat[c] - {None}
+                                       for sl in slots_filter(ttmodel.data.compatible_slots[c], day_in=days))
             if self.weight is None:
                 ttmodel.add_constraint(relevant_sum,
                                        '==',
@@ -190,10 +190,10 @@ class LimitGroupsPhysicalPresence(TimetableConstraint):
             return
         if self.train_progs.exists():
             considered_basic_groups = set(
-                ttmodel.wdb.basic_groups.filter(train_prog__in=self.train_progs.all()))
+                ttmodel.data.basic_groups.filter(train_prog__in=self.train_progs.all()))
         else:
-            considered_basic_groups = set(ttmodel.wdb.basic_groups)
-        days = days_filter(ttmodel.wdb.days, period=period)
+            considered_basic_groups = set(ttmodel.data.basic_groups)
+        days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
         proportion = self.percentage / 100
@@ -201,7 +201,7 @@ class LimitGroupsPhysicalPresence(TimetableConstraint):
         for d in days:
             for apm in [Time.AM, Time.PM]:
                 physically_presents_groups_number = ttmodel.sum(ttmodel.physical_presence[g][d, apm]
-                                                                for g in ttmodel.wdb.basic_groups)
+                                                                for g in ttmodel.data.basic_groups)
                 is_over_bound = ttmodel.add_floor(physically_presents_groups_number,
                                                   nb_of_basic_groups * proportion + 1,
                                                   2 * nb_of_basic_groups)
@@ -244,7 +244,7 @@ class BoundPhysicalPresenceHalfDays(TimetableConstraint):
             print("Visio Mode is not activated : ignore BoundPhysicalPresenceHalfDays constraint")
             return
         considered_groups = self.considered_basic_groups(ttmodel)
-        total_nb_half_days = len(ttmodel.wdb.days) * 2
+        total_nb_half_days = len(ttmodel.data.days) * 2
         physical_presence_half_days_number = {}
         for g in considered_groups:
             physical_presence_half_days_number[g] = \
@@ -301,14 +301,14 @@ class Curfew(TimetableConstraint):
         if not self.department.mode.visio:
             print("Visio Mode is not activated : ignore Curfew constraint")
             return
-        days = days_filter(ttmodel.wdb.days, period=period)
+        days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
             days = days_filter(days, day_in=self.weekdays)
 
         relevant_sum = ttmodel.sum(ttmodel.located[sl, c, r]
-                                   for c in ttmodel.wdb.courses
-                                   for r in ttmodel.wdb.course_rg_compat[c] - {None}
-                                   for sl in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                   for c in ttmodel.data.courses
+                                   for r in ttmodel.data.course_rg_compat[c] - {None}
+                                   for sl in slots_filter(ttmodel.data.compatible_slots[c],
                                                           ends_after=self.curfew_time,
                                                           day_in=days,
                                                           period=period))

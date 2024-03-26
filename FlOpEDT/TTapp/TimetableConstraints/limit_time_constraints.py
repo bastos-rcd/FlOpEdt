@@ -34,9 +34,9 @@ from base.models import SchedulingPeriod
 
 def build_fd_or_apm_period_slots(ttmodel, day, apm_period):
     if apm_period is None:
-        return slots_filter(ttmodel.wdb.courses_slots, day=day)
+        return slots_filter(ttmodel.data.courses_slots, day=day)
     else:
-        return slots_filter(ttmodel.wdb.courses_slots, day=day, apm=apm_period)
+        return slots_filter(ttmodel.data.courses_slots, day=day, apm=apm_period)
 
 
 class LimitTimePerPeriod(TimetableConstraint):
@@ -60,7 +60,7 @@ class LimitTimePerPeriod(TimetableConstraint):
             apm_periods = ttmodel.possible_apms
 
         fd_or_apm_period_by_day = []
-        for day in days_filter(ttmodel.wdb.days, period=period):
+        for day in days_filter(ttmodel.data.days, period=period):
             for apm_period in apm_periods:
                 fd_or_apm_period_by_day.append((day, apm_period,))
 
@@ -77,7 +77,7 @@ class LimitTimePerPeriod(TimetableConstraint):
     def build_apm_period_expression(self, ttmodel, day, apm_period, considered_courses, tutor=None):
         expr = ttmodel.lin_expr()
         for slot in build_fd_or_apm_period_slots(ttmodel, day, apm_period):
-            for course in considered_courses & ttmodel.wdb.compatible_courses[slot]:
+            for course in considered_courses & ttmodel.data.compatible_courses[slot]:
                 expr += ttmodel.scheduled[(slot, course)] * course.minutes
 
         return expr
@@ -123,7 +123,7 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         # if self.groups.exists():
         #     considered_groups = self.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
         # else:
-        #     considered_groups = ttmodel.wdb.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
+        #     considered_groups = ttmodel.data.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
         for group in self.considered_basic_groups(ttmodel):
             self.enrich_model_for_one_object(ttmodel, period, ponderation, group=group)
 
@@ -192,7 +192,7 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         if self.modules.exists():
             considered_modules = self.modules.filter(train_prog__in=self.considered_train_progs(ttmodel))
         else:
-            considered_modules = ttmodel.wdb.modules.filter(train_prog__in=self.considered_train_progs(ttmodel))
+            considered_modules = ttmodel.data.modules.filter(train_prog__in=self.considered_train_progs(ttmodel))
 
         for module in considered_modules:
             for group in self.considered_basic_groups(ttmodel):
@@ -264,7 +264,7 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
     def build_apm_period_expression(self, ttmodel, day, fd_or_apm_period, considered_courses, tutor=None):
         expr = ttmodel.lin_expr()
         for slot in build_fd_or_apm_period_slots(ttmodel, day, fd_or_apm_period):
-            for course in considered_courses & ttmodel.wdb.compatible_courses[slot]:
+            for course in considered_courses & ttmodel.data.compatible_courses[slot]:
                 expr += ttmodel.assigned[(slot, course, tutor)] * course.minutes
 
         return expr
@@ -274,7 +274,7 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
         if self.tutors.exists():
             considered_tutors = self.tutors.all()
         else:
-            considered_tutors = ttmodel.wdb.instructors
+            considered_tutors = ttmodel.data.instructors
 
         for tutor in considered_tutors:
             self.enrich_model_for_one_object(ttmodel, period, ponderation, tutor=tutor)

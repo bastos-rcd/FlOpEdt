@@ -6,13 +6,12 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import ArrayField
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-
-
+from django.apps import apps
 from base.timing import Day, Time, min_to_str, days_list
 
 
 class Holiday(models.Model):
-    date = models.DateField(default = dt.date(1890, 5, 1))
+    date = models.DateField(default=dt.date(1890, 5, 1))
 
     class Meta:
         verbose_name = _("holiday")
@@ -41,7 +40,10 @@ class TrainingHalfDay(models.Model):
 class TrainingPeriod(models.Model):
     name = models.CharField(max_length=20)
     department = models.ForeignKey(
-        "base.Department", on_delete=models.CASCADE, null=True, related_name="training_periods"
+        "base.Department",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="training_periods",
     )
     periods = models.ManyToManyField("SchedulingPeriod")
 
@@ -73,11 +75,12 @@ class PeriodEnum:
         (CUSTOM, _("custom")),
     ]
 
+
 class SchedulingPeriod(models.Model):
     """
     start_date and end_date included
     """
-    
+
     name = models.CharField(max_length=20, null=True, blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -90,7 +93,7 @@ class SchedulingPeriod(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     def __lte__(self, other):
         if type(other) is SchedulingPeriod:
             return self.start_date <= other.start_date
@@ -102,24 +105,36 @@ class SchedulingPeriod(models.Model):
             return self.end_date < other.start_date
         elif type(other) is dt.date:
             return self.end_date < other
-        
+
     def __gt__(self, other):
         if type(other) is SchedulingPeriod:
             return self.start_date > other.end_date
         elif type(other) is dt.date:
             return self.start_date > other
-        
+
     def __gte__(self, other):
         if type(other) is SchedulingPeriod:
             return self.end_date >= other.end_date
         elif type(other) is dt.date:
             return self.end_date >= other
-    
+
     def dates(self):
-        return [self.start_date + dt.timedelta(days=i) for i in range((self.end_date - self.start_date).days + 1)]
-    
+        return [
+            self.start_date + dt.timedelta(days=i)
+            for i in range((self.end_date - self.start_date).days + 1)
+        ]
+
     def index(self, date):
         return self.dates().index(date)
+
+    def related_departments(self):
+        if self.department:
+            return [self.department]
+        else:
+            department_model = apps.get_model("base.Department")
+            return list(
+                department_model.objects.filter(mode__scheduling_mode=self.mode)
+            )
 
 
 class TimeGeneralSettings(models.Model):
@@ -165,7 +180,7 @@ class Mode(models.Model):
     department = models.OneToOneField("base.Department", on_delete=models.CASCADE)
     cosmo = models.PositiveSmallIntegerField(default=0, choices=cosmo_choices)
     visio = models.BooleanField(default=False)
-    scheduling_mode =  models.CharField(
+    scheduling_mode = models.CharField(
         max_length=1, choices=scheduling_mode_choices, default=PeriodEnum.WEEK
     )
 
@@ -187,9 +202,10 @@ class Mode(models.Model):
 def create_department_related(sender, instance, created, raw, **kwargs):
     if not created or raw:
         return
-
-    Mode.objects.create(department=instance)
-    TimeGeneralSettings.objects.create(
+    mode_model = apps.get_model("base.Mode")
+    time_general_settings_model = apps.get_model("base.TimeGeneralSettings")
+    mode_model.objects.create(department=instance)
+    time_general_settings_model.objects.create(
         department=instance,
         day_start_time=dt.time(6),
         day_end_time=dt.time(20),

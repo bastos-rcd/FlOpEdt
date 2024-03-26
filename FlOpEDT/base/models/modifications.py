@@ -1,6 +1,6 @@
 from django.db import models
 from base.timing import Day, min_to_str
-from base.models.courses import ScheduledCourse, ScheduledCourseAdditional
+from django.apps import apps
 from base import weeks
 
 
@@ -51,10 +51,13 @@ class CourseModification(models.Model):
     initiator = models.ForeignKey("people.User", on_delete=models.CASCADE)
 
     def strs_course_changes(self, course=None, sched_course=None):
+        scheduled_course_model = apps.get_model("base", "ScheduledCourse")
         if course is None:
             course = self.course
         if sched_course is None:
-            sched_course = ScheduledCourse.objects.get(course=course, version__major=0)
+            sched_course = scheduled_course_model.objects.get(
+                course=course, version__major=0
+            )
         department = course.type.department
         al = "\n  · "
         same = f"- Cours {course.module.abbrev} semaine {course.period}"
@@ -74,7 +77,10 @@ class CourseModification(models.Model):
             changed += al + f"Prof : {tutor_old_name} -> {cur_tutor_name}"
 
         if sched_course.room is None:
-            if ScheduledCourseAdditional.objects.filter(
+            scheduled_course_additionnal_model = apps.get_model(
+                "base", "ScheduledCourseAdditional"
+            )
+            if scheduled_course_additionnal_model.objects.filter(
                 scheduled_course=sched_course
             ).exists():
                 cur_room_name = "en visio"

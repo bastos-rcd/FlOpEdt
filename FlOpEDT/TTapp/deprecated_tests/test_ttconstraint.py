@@ -43,7 +43,7 @@ class TimetableConstraintTestCase(TestCase):
     @patch('TTapp.models.LimitCourseTypePerPeriod.register_expression')
     def test_limit_register_expression_without_tutors(self, register_expression):      
 
-        attrs = {'wdb.days': (0,1,2,)}
+        attrs = {'data.days': (0,1,2,)}
         ttmodel = Mock(**attrs)
 
         period_by_day = [
@@ -71,7 +71,7 @@ class TimetableConstraintTestCase(TestCase):
         constraint.period == LimitTimePerPeriod.FULL_DAY
 
         calls = []
-        attrs = {'wdb.days': (0,1,2,)}
+        attrs = {'data.days': (0,1,2,)}
         ttmodel = Mock(**attrs)
 
         period_by_day = [

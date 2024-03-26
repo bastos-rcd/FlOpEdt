@@ -97,7 +97,7 @@ class MyTimetableModel(TimetableModel):
 
         if result_version_nb is not None and self.major_to_stabilize is not None:
             print_differences(self.department, self.periods,
-                              self.major_to_stabilize, target_version_nb, self.wdb.instructors)
+                              self.major_to_stabilize, target_version_nb, self.data.instructors)
 
         if with_numerotation:
             number_courses(self.department, periods=self.periods,

@@ -1,6 +1,5 @@
 from django.db import models
-from base.models.courses import Course
-from base.models.timing import SchedulingPeriod
+from django.apps import apps
 from django.utils.translation import gettext_lazy as _
 
 
@@ -14,9 +13,10 @@ class Department(models.Model):
     
 
     def scheduling_periods(self, exclude_empty=False):
-        result = SchedulingPeriod.objects.filter(department=self)
+        scheduling_period_model = apps.get_model('base', 'SchedulingPeriod')
+        result = scheduling_period_model.objects.filter(department=self)
         if not result.exists():
-            result =  SchedulingPeriod.objects.filter(department=None, 
+            result =  scheduling_period_model.objects.filter(department=None, 
                                                       mode=self.scheduling_mode)
         if exclude_empty:
             result = result.filter(course__type__department__abbrev='INFO').distinct()
@@ -177,10 +177,12 @@ class TransversalGroup(GenericGroup):
         verbose_name_plural = _("transversal groups")
 
     def nb_of_courses(self, period):
-        return len(Course.objects.filter(period=period, groups=self))
+        course_model = apps.get_model('base', 'Course')
+        return len(course_model.objects.filter(period=period, groups=self))
 
     def time_of_courses(self, period):
+        course_model = apps.get_model('base', 'Course')
         t = 0
-        for c in Course.objects.filter(period=period, groups=self):
+        for c in course_model.objects.filter(period=period, groups=self):
             t += c.duration
         return t

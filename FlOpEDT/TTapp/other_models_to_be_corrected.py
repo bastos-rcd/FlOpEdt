@@ -54,7 +54,7 @@ class ReasonableDays(TimetableConstraint):
         """
         Filter courses depending on constraints parameters
         """
-        courses_qs = ttmodel.wdb.courses
+        courses_qs = ttmodel.data.courses
         courses_filter = {}
 
         if tutor is not None:
@@ -104,8 +104,8 @@ class ReasonableDays(TimetableConstraint):
         combinations = set()
 
         # Get two dicts with the first and last slot by day
-        first_slots = set([slot for slot in ttmodel.wdb.courses_slots if slot.start_time <= 9 * 60])
-        last_slots = set([slot for slot in ttmodel.wdb.courses_slots if slot.end_time > 18 * 60])
+        first_slots = set([slot for slot in ttmodel.data.courses_slots if slot.start_time <= 9 * 60])
+        last_slots = set([slot for slot in ttmodel.data.courses_slots if slot.end_time > 18 * 60])
         slots = first_slots | last_slots
 
 
@@ -169,15 +169,15 @@ class AvoidBothTimes(TimetableConstraint):
         return attributes
 
     def enrich_ttmodel(self, ttmodel, ponderation=1):
-        fc = ttmodel.wdb.courses
+        fc = ttmodel.data.courses
         if self.tutor is not None:
             fc = fc.filter(tutor=self.tutor)
         if self.train_prog is not None:
             fc = fc.filter(group__train_prog=self.train_prog)
         if self.group:
             fc = fc.filter(group=self.group)
-        slots1 = set([slot for slot in ttmodel.wdb.courses_slots if slot.start_time <= self.time1 < slot.end_time])
-        slots2 = set([slot for slot in ttmodel.wdb.courses_slots if slot.start_time <= self.time2 < slot.end_time])
+        slots1 = set([slot for slot in ttmodel.data.courses_slots if slot.start_time <= self.time1 < slot.end_time])
+        slots2 = set([slot for slot in ttmodel.data.courses_slots if slot.start_time <= self.time2 < slot.end_time])
         for c1 in fc:
             for c2 in fc.exclude(id__lte=c1.id):
                 for sl1 in slots1:
@@ -236,11 +236,11 @@ class LimitedStartTimeChoices(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, ponderation=1.):
         fc = self.considered_courses(ttmodel)
-        possible_slots_ids = set(slot.id for slot in ttmodel.wdb.courses_slots
+        possible_slots_ids = set(slot.id for slot in ttmodel.data.courses_slots
                                  if slot.start_time in self.possible_start_times.values_list())
 
         for c in fc:
-            for sl in ttmodel.wdb.courses_slots.exclude(id__in=possible_slots_ids):
+            for sl in ttmodel.data.courses_slots.exclude(id__in=possible_slots_ids):
                 if self.weight is not None:
                     ttmodel.obj += self.local_weight() * ponderation * ttmodel.scheduled[(sl, c)]
                 else:
@@ -294,7 +294,7 @@ class LimitedRoomChoices(TimetableConstraint):
                                             related_name="limited_rooms")
 
     def enrich_ttmodel(self, ttmodel, ponderation=1.):
-        fc = ttmodel.wdb.courses
+        fc = ttmodel.data.courses
         if self.tutor is not None:
             fc = fc.filter(tutor=self.tutor)
         if self.module is not None:
@@ -306,8 +306,8 @@ class LimitedRoomChoices(TimetableConstraint):
         possible_rooms_ids = self.possible_rooms.values_list('id', flat=True)
 
         for c in fc:
-            for sl in ttmodel.wdb.courses_slots:
-                for rg in ttmodel.wdb.room_groups.filter(types__in=[c.room_type]).exclude(id__in = possible_rooms_ids):
+            for sl in ttmodel.data.courses_slots:
+                for rg in ttmodel.data.room_groups.filter(types__in=[c.room_type]).exclude(id__in = possible_rooms_ids):
                     if self.weight is not None:
                         ttmodel.obj += self.local_weight() * ponderation * ttmodel.located[(sl, c, rg)]
                     else:

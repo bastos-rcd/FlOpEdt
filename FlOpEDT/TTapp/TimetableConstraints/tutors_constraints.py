@@ -37,7 +37,7 @@ import datetime as dt
 
 
 def considered_tutors(tutors_ttconstraint, ttmodel):
-    tutors_to_consider = set(ttmodel.wdb.instructors)
+    tutors_to_consider = set(ttmodel.data.instructors)
     if tutors_ttconstraint.tutors.exists():
         tutors_to_consider &= set(tutors_ttconstraint.tutors.all())
     return tutors_to_consider
@@ -104,12 +104,12 @@ class MinNonPreferedTutorsSlot(TimetableConstraint):
         if ponderation is None:
             ponderation = ttmodel.min_ups_i
         tutors = considered_tutors(self, ttmodel)
-        for sl in ttmodel.wdb.availability_slots:
+        for sl in ttmodel.data.availability_slots:
             for tutor in tutors:
-                filtered_courses = set(c for c in ttmodel.wdb.possible_courses[tutor] if c.period == period)
+                filtered_courses = set(c for c in ttmodel.data.possible_courses[tutor] if c.period == period)
                 for c in filtered_courses:
                     slot_vars_sum = ttmodel.sum(ttmodel.assigned[(sl2, c, tutor)]
-                                                for sl2 in slots_filter(ttmodel.wdb.compatible_slots[c],
+                                                for sl2 in slots_filter(ttmodel.data.compatible_slots[c],
                                                                         simultaneous_to=sl))
                     cost = self.local_weight() \
                         * ponderation * slot_vars_sum \
@@ -151,12 +151,12 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
             slot_by_day_cost = ttmodel.lin_expr()
             # need to be sorted
             teaching_time = sum([c.duration
-                                for c in (ttmodel.wdb.courses_for_tutor[tutor]
-                                          | ttmodel.wdb.courses_for_supp_tutor[tutor])
-                                & ttmodel.wdb.courses_by_period[period]
+                                for c in (ttmodel.data.courses_for_tutor[tutor]
+                                          | ttmodel.data.courses_for_supp_tutor[tutor])
+                                & ttmodel.data.courses_by_period[period]
                                 ], dt.timedelta()
                             )
-            nb_days = len(days_filter(ttmodel.wdb.days, period=period))
+            nb_days = len(days_filter(ttmodel.data.days, period=period))
             minimal_number_of_days = nb_days
             # for any number of days inferior to nb_days
             for d in range(nb_days, 0, -1):
@@ -219,9 +219,9 @@ class RespectTutorsMaxTimePerDay(TimetableConstraint):
         tutors = considered_tutors(self, ttmodel)
 
         for tutor in tutors:
-            for d in days_filter(ttmodel.wdb.days, period=period):
+            for d in days_filter(ttmodel.data.days, period=period):
                 other_departments_teaching_minutes = sum(sc.minutes
-                                                 for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor] if sc.date == d)
+                                                 for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[tutor] if sc.date == d)
                 max_teaching_minutes = max(tutor.preferences.max_time_per_day.seconds//60 - other_departments_teaching_minutes, 0)
                 if self.weight is None:
                     ttmodel.add_constraint(tutor_teaching_minutes_by_day_expression(ttmodel, tutor, d),
@@ -271,9 +271,9 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
         tutors = considered_tutors(self, ttmodel)
 
         for tutor in tutors:
-            for d in days_filter(ttmodel.wdb.days, period=period):
+            for d in days_filter(ttmodel.data.days, period=period):
                 other_departments_teaching_minutes = sum(sc.course.minutes
-                                                 for sc in ttmodel.wdb.other_departments_scheduled_courses_for_tutor[tutor] if sc.date == d)
+                                                 for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[tutor] if sc.date == d)
                 min_teaching_minutes = max(tutor.preferences.min_time_per_day.seconds//60 - other_departments_teaching_minutes, 0)
                 if min_teaching_minutes == 0:
                     continue
@@ -343,8 +343,8 @@ class LowerBoundBusyDays(TimetableConstraint):
 
 def tutor_teaching_minutes_by_day_expression(ttmodel, tutor, day):
     return ttmodel.sum(ttmodel.assigned[sl, c, tutor] * sl.minutes / 60
-                       for c in ttmodel.wdb.possible_courses[tutor]
-                       for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day)) \
+                       for c in ttmodel.data.possible_courses[tutor]
+                       for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day)) \
            + ttmodel.sum(ttmodel.scheduled[sl, c] * sl.minutes / 60
-                         for c in ttmodel.wdb.courses_for_supp_tutor[tutor]
-                         for sl in slots_filter(ttmodel.wdb.compatible_slots[c], day=day))
+                         for c in ttmodel.data.courses_for_supp_tutor[tutor]
+                         for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day))
