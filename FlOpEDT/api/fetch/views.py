@@ -50,7 +50,7 @@ from api.shared.params import (
     year_param,
 )
 from base import queries, weeks
-from base.timing import Day, days_list, flopday_to_date, time_to_floptime
+from base.timing import Day, days_list, flopday_to_date
 
 
 class ScheduledCourseFilterSet(filters.FilterSet):
@@ -716,7 +716,7 @@ class UnavailableRoomViewSet(viewsets.ViewSet):
             {
                 "room": d.room.name,
                 "day": days_list[d.date.isocalendar()[2] - 1],
-                "start_time": time_to_floptime(d.start_time),
+                "start_time": d.start_time,
                 "duration": d.duration,
                 "value": 0,
             }

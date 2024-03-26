@@ -278,17 +278,6 @@ class TimeInterval(object):
         # datetime1 - datetime2 = timedelta
         return abs(self.start - self.end)
 
-    # Build a TimeInterval from a Flop-based day date type
-    @staticmethod
-    def from_flop_date(day, start_time, duration=None, end_time=None):
-        if not duration and not end_time:
-            return None
-        if not end_time:
-            end_time = start_time + duration
-        return TimeInterval(
-            flopdate_to_datetime(day, start_time), flopdate_to_datetime(day, end_time)
-        )
-
 
 def all_possible_start_times(department):
     apst_set = set()

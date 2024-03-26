@@ -36,13 +36,7 @@ from base.models import (
     UserAvailability,
 )
 from base.models.availability import period_actual_availabilities
-from base.timing import (
-    Day,
-    TimeInterval,
-    days_index,
-    flopdate_to_datetime,
-    time_to_floptime,
-)
+from base.timing import Day, TimeInterval, days_index
 from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 
 
@@ -344,8 +338,8 @@ class Partition(object):
             # For each start time we look for a slot
 
             if interval[1]["available"] and not interval[1]["forbidden"]:
-                start = time_to_floptime(interval[0].start.time())
-                end = time_to_floptime(interval[0].end.time())
+                start = interval[0].start.time()
+                end = interval[0].end.time()
 
                 # We need to know times already used for a slot in an interval
 
@@ -428,8 +422,8 @@ class Partition(object):
             # For each start time we look for a slot
 
             if not interval[1]["forbidden"]:
-                start = time_to_floptime(interval[0].start.time())
-                end = time_to_floptime(interval[0].end.time())
+                start = interval[0].start.time()
+                end = interval[0].end.time()
 
                 # We need to know times already used for a slot in an interval
 
@@ -578,10 +572,10 @@ class Partition(object):
             ):
                 for st in start_times:
                     if (
-                        time_to_floptime(self.intervals[i][0].start.time()) <= st
-                        and time_to_floptime(self.intervals[i][0].end.time()) > st
+                        self.intervals[i][0].start.time() <= st
+                        and self.intervals[i][0].end.time() > st
                     ):
-                        dif = st - time_to_floptime(self.intervals[i][0].start.time())
+                        dif = st - self.intervals[i][0].start.time()
                         datetime_start = self.intervals[i][0].start + dt.timedelta(
                             hours=dif / 60
                         )
@@ -591,7 +585,7 @@ class Partition(object):
                     i += 1
                     continue
                 current_duration = self.intervals[i][0].duration - (
-                    start - time_to_floptime(self.intervals[i][0].start.time())
+                    start - self.intervals[i][0].start.time()
                 )
                 i += 1
                 while (
@@ -630,10 +624,10 @@ class Partition(object):
             ):
                 for st in start_times:
                     if (
-                        time_to_floptime(self.intervals[i][0].start.time()) <= st
-                        and time_to_floptime(self.intervals[i][0].end.time()) > st
+                        self.intervals[i][0].start.time() <= st
+                        and self.intervals[i][0].end.time() > st
                     ):
-                        dif = st - time_to_floptime(self.intervals[i][0].start.time())
+                        dif = st - self.intervals[i][0].start.time()
                         datetime_start = self.intervals[i][0].start + dt.timedelta(
                             hours=dif / 60
                         )
@@ -643,7 +637,7 @@ class Partition(object):
                     i += 1
                     continue
                 current_duration = self.intervals[i][0].duration - (
-                    start - time_to_floptime(self.intervals[i][0].start.time())
+                    start - self.intervals[i][0].start.time()
                 )
                 i += 1
                 while (
