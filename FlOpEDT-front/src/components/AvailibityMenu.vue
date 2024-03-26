@@ -1,6 +1,6 @@
 <template>
   <ContextMenuRoot :modal="false">
-    <ContextMenuTrigger class="ContextMenuTrigger" as="div">
+    <ContextMenuTrigger class="ContextMenuTrigger" as="div" :disabled="props.disabled">
       <slot name="trigger">
         <span>{{ $t('availabilityMenu.trigger') }}Right-Click Here !</span>
       </slot>
@@ -35,6 +35,7 @@ import {
 import { CalendarEvent } from './calendar/declaration'
 const props = defineProps<{
   event: CalendarEvent
+  disabled: boolean
 }>()
 const emits = defineEmits<{
   (e: 'update:event', id: number, value: number): void

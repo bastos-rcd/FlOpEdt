@@ -106,7 +106,8 @@ export function badgeStyles(
   columns: CalendarColumn[],
   timeDurationHeight: (arg0: number | undefined) => number,
   closestStartTime: string,
-  currentTime: TimestampOrNull
+  currentTime: TimestampOrNull,
+  isInEdit: boolean = false
 ) {
   const preceedingWeight = preWeight[columns[span.istart].id]
 
@@ -129,7 +130,7 @@ export function badgeStyles(
     s['border'] = '2px solid #000000'
     s['margin'] = '0'
   } else if (event.data.dataType === 'avail') {
-    s['resize'] = 'vertical'
+    if (isInEdit) s['resize'] = 'vertical'
     s['overflow'] = 'auto'
     s['border'] = '1px solid #222222'
   } else if (

@@ -67,7 +67,7 @@
                 (isDragging && event.data.dataId === eventDragged?.id))
             "
           >
-            <div :draggable="event.data.dataType !== 'avail'" @dragstart="onDragStart($event, event)">
+            <div :draggable="event.data.dataType !== 'avail' && props.isInEdit" @dragstart="onDragStart($event, event)">
               <div
                 v-for="span in event.spans"
                 :key="generateSpanId(event.id, span)"
@@ -83,7 +83,8 @@
                     props.columns,
                     calendar!.timeDurationHeight,
                     closestStartTime,
-                    currentTime
+                    currentTime,
+                    props.isInEdit
                   )
                 "
                 @mousedown="onMouseDown($event, event.id)"
@@ -116,7 +117,7 @@
                     "
                     class="avail"
                   >
-                    <AvailibityMenu :event="event" @update:event="changeAvailValue">
+                    <AvailibityMenu :event="event" :disabled="!props.isInEdit" @update:event="changeAvailValue">
                       <template #trigger>
                         <span class="avail">
                           {{ event.data.value }}
@@ -278,6 +279,7 @@ function putAZero(i: number): string {
 // Their columnIds are changed to merge the same events
 // occuring on different columns
 const eventsByDate = computed(() => {
+  console.log(props.events.filter((ev) => ev.data.dataType === 'avail' && ev.data.start.weekday === 1))
   const map: Map<string, CalendarEvent[]> = new Map<string, CalendarEvent[]>()
   let allEvents: InputCalendarEvent[] = props.events
   // Copy of events
@@ -580,6 +582,7 @@ let newAvailDuration: number = 0
 let oldAvailDuration: number = 0
 
 function onMouseDown(mouseEvent: MouseEvent, eventId: number): void {
+  if (!props.isInEdit) return
   if (!minutesToPixelRate) minutesToPixelRate = 1000 / calendar.value!.timeDurationHeight(1000)
   const target = mouseEvent.target
   if (target instanceof HTMLElement) {
@@ -637,6 +640,7 @@ function allNextAvailWithSameValue(
 }
 
 function onMouseUp(): void {
+  if (!props.isInEdit) return
   availResizeObs.disconnect()
   if (currentAvailId !== -1) {
     const newEvent: InputCalendarEvent = cloneDeep(

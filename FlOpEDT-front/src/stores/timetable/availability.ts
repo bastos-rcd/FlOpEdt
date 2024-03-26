@@ -173,6 +173,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return availabilitiesReturned
   }
 
+  //TOFIX Doesn't work as intended
   function formatAvailabilityWithDayTime(avail: Availability): Availability[] {
     let timeStart = parseTime(avail.start)
     const dayStartTime = timeSettings.value.get(current.value.id)!.dayStartTime
@@ -184,7 +185,7 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
       newAvail.id = nextId.value++
       avail.duration = dayStartTime - timeStart
       newAvail.duration = newAvail.duration - avail.duration
-      availabilitiesReturned.push(newAvail, avail)
+      availabilitiesReturned.push(newAvail)
     }
     timeStart = parseTime(newAvail.start)
     if (timeStart < dayEndTime && timeStart + newAvail.duration > dayEndTime) {
@@ -193,9 +194,9 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
       newAvailUp.id = nextId.value++
       newAvail.duration = dayEndTime - timeStart
       newAvailUp.duration = newAvailUp.duration - newAvail.duration
-      if (newAvail.id !== avail.id) availabilitiesReturned.push(newAvail)
       availabilitiesReturned.push(newAvailUp)
     }
+    if (newAvail.id !== avail.id) availabilitiesReturned.push(avail)
     return availabilitiesReturned
   }
 
