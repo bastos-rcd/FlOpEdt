@@ -35,7 +35,7 @@ class ConstraintType(Enum):
     IBS_INF = "IBS inférieur"
     IBD_INF = "IBD inférieur"
     IBD_EQ = "IBD égal"
-    FORCED_IBD = "forced_IBD"
+    FORCED_TBD = "forced tutor busy day"
     IBHD_INF = "IBHD_inférieur"
     IBHD_EQ = "IBHD_égal"
     IBHD_SUP = "IBHD_supérieur"

@@ -27,7 +27,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from base.timing import french_format
-from TTapp.flop_constraint import max_weight
+from TTapp.flop_constraint import MAX_WEIGHT
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter

@@ -35,27 +35,21 @@ from django.utils.translation import gettext_lazy as _
 import base.views as base_views
 from base.models import (
     Course,
-    CourseModification,
-    CourseStartTimeConstraint,
     CourseType,
-    Department,
     Module,
     Room,
-    RoomAvailability,
     ScheduledCourse,
     SchedulingPeriod,
-    TimeGeneralSettings,
     TimetableVersion,
     TrainingPeriod,
     TrainingProgramme,
     UserAvailability,
 )
-from base.timing import days_index, str_slot
+from base.timing import str_slot
 from people.models import Tutor
-from TTapp.flop_constraint import max_weight
+from TTapp.flop_constraint import MAX_WEIGHT
 from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
 from TTapp.room_model import RoomModel
-from TTapp.slots import slot_pause
 
 
 def basic_reassign_rooms(department, period, version, create_new_version):
@@ -118,7 +112,7 @@ def compute_conflicts_helper(dic):
     conflicts = []
     for k in dic:
         dic[k].sort(key=lambda s: (s["start_time"]))
-    for t, sched_list in dic.items():
+    for sched_list in dic.values():
         for i in range(len(sched_list) - 1):
             if (
                 sched_list[i]["start_time"] + sched_list[i]["duration"]
@@ -138,7 +132,6 @@ def compute_conflicts(department, period, version):
 
     # tutors with overlapping courses
     dic_by_tutor = {}
-    tmp_conflicts = []
     tutors_username_list = get_shared_tutors(department, period, version)
     courses_list = (
         ScheduledCourse.objects.select_related(
@@ -218,7 +211,7 @@ def get_conflicts(department, period, copy_a):
             sched = []
             for sc in conflict:
                 sched.append(ScheduledCourse.objects.get(id=sc["id"]))
-            more += sc["tutor__username"] + " : "
+            more += conflict[0]["tutor__username"] + " : "
             str_sched = list(
                 map(
                     lambda s: f"{str_slot(s.day,s.start_time,s.course.duration)} "
@@ -314,29 +307,29 @@ def add_generic_constraints_to_database(department):
     # first objective  => minimise use of unpreferred slots for teachers
     # ponderation MIN_UPS_I
 
-    M, created = MinNonPreferedTutorsSlot.objects.get_or_create(
-        weight=max_weight, department=department
+    m, _ = MinNonPreferedTutorsSlot.objects.get_or_create(
+        weight=MAX_WEIGHT, department=department
     )
-    M.save()
+    m.save()
 
     # second objective  => minimise use of unpreferred slots for courses
     # ponderation MIN_UPS_C
 
-    M, created = MinNonPreferedTrainProgsSlot.objects.get_or_create(
-        weight=max_weight, department=department
+    m, created = MinNonPreferedTrainProgsSlot.objects.get_or_create(
+        weight=MAX_WEIGHT, department=department
     )
-    M.save()
+    m.save()
 
 
 def int_or_none(value):
     if value == "":
-        return
-    else:
-        return value
+        return None
+    return value
 
 
 def load_dispos(json_filename):
-    data = json.loads(open(json_filename, "r").read())
+    with open(json_filename, "r", encoding="utf-8") as file:
+        data = json.load(file)
     exceptions = set()
     for dispo in data:
         try:
@@ -344,15 +337,16 @@ def load_dispos(json_filename):
         except Tutor.DoesNotExist:
             exceptions.add(dispo["prof"])
             continue
-        dispo["date"]
-        U, created = UserAvailability.objects.get_or_create(
+        with open(json_filename, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        u, _ = UserAvailability.objects.get_or_create(
             user=tutor,
             date=dispo["date"],
             start_time=dispo["start_time"],
             duration=dispo["duration"],
         )
-        U.value = dispo["value"]
-        U.save()
+        u.value = dispo["value"]
+        u.save()
 
     if exceptions:
         print("The following tutor do not exist:", exceptions)
@@ -396,7 +390,7 @@ def duplicate_what_can_be_in_other_periods(
                 if done:
                     result["more"] += _("%s, ") % op
         return result
-    except:
+    except:  # pylint: disable=bare-except
         result["status"] = "KO"
         return result
 
@@ -417,8 +411,7 @@ def first_free_version(department, period):
 def convert_into_set(declared_object_or_iterable):
     if hasattr(declared_object_or_iterable, "__iter__"):
         return set(declared_object_or_iterable)
-    else:
-        return {declared_object_or_iterable}
+    return {declared_object_or_iterable}
 
 
 def intersect_with_declared_objects(considered_queryset, declared_object_or_iterable):
@@ -464,7 +457,6 @@ def number_courses(
             for c_group in considered_courses.distinct("groups"):
                 group = c_group.groups.first()
                 group_courses = considered_courses.filter(groups=group)
-                total_number = len(group_courses)
                 if periods is not None:
                     first_period = min(periods, key=lambda x: x.start_date)
                     last_period = max(periods, key=lambda x: x.end_date)
@@ -492,25 +484,25 @@ def print_differences(
     for period in periods:
         print("For", period)
         for tutor in tutors:
-            SCa = ScheduledCourse.objects.filter(
+            sched_course_a = ScheduledCourse.objects.filter(
                 course__tutor=tutor,
                 version__major=old_major,
                 course__period=period,
                 course__type__department=department,
             )
-            SCb = ScheduledCourse.objects.filter(
+            sched_course_b = ScheduledCourse.objects.filter(
                 course__tutor=tutor,
                 version__major=new_major,
                 course__period=period,
                 course__type__department=department,
             )
-            slots_a = set([x.start_time for x in SCa])
-            slots_b = set([x.start_time for x in SCb])
+            slots_a = set(x.start_time for x in sched_course_a)
+            slots_b = set(x.start_time for x in sched_course_b)
             if slots_a ^ slots_b:
-                result = "For %s old copy has :" % tutor
+                result = f"For {tutor} old copy has :"
                 for sl in slots_a - slots_b:
-                    result += "%s, " % str(sl)
+                    result += f"{sl}, "
                 result += "and new copy has :"
                 for sl in slots_b - slots_a:
-                    result += "%s, " % str(sl)
+                    result += f"{sl}, "
                 print(result)

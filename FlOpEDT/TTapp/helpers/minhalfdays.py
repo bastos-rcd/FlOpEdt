@@ -91,7 +91,7 @@ class MinHalfDaysHelperBase:
                     half_days[limit + 1],
                     "==",
                     0,
-                    Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS_LIMIT),
+                    Constraint(constraint_type=ConstraintType.MIN_HALF_DAYS),
                 )
         cost = self.ttmodel.lin_expr()
         for i in half_days:
@@ -173,7 +173,7 @@ class MinHalfDaysHelperGroup(MinHalfDaysHelperBase):
         )
 
         expression = self.ttmodel.sum(
-            self.ttmodel.GBHD[self.group, d, apm]
+            self.ttmodel.group_busy_halfday[self.group, d, apm]
             for apm in self.ttmodel.possible_apms
             for d in self.ttmodel.data.days
             if d in self.period.dates()
@@ -182,19 +182,19 @@ class MinHalfDaysHelperGroup(MinHalfDaysHelperBase):
         return expression, courses
 
     def add_cost(self, cost):
-        g_pref, created = GroupPreferences.objects.get_or_create(group=self.group)
+        g_pref, _ = GroupPreferences.objects.get_or_create(group=self.group)
         g_pref.calculate_fields()
         free_half_day_weight = g_pref.get_free_half_day_weight()
         self.ttmodel.add_to_group_cost(
             self.group, free_half_day_weight * cost, self.period
         )
 
-    def enrich_model(self, group=None):
+    def enrich_model(self, group=None, **args):
         if group:
-            self.group = group
+            self.group = group  # pylint: disable=attribute-defined-outside-init
             super().enrich_model()
         else:
-            raise Exception("MinHalfDaysHelperGroup requires a group argument")
+            raise ValueError("MinHalfDaysHelperGroup requires a group argument")
 
 
 class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
@@ -206,7 +206,7 @@ class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
         )
         days = days_filter(self.ttmodel.data.days, period=self.period)
         expression = self.ttmodel.sum(
-            self.ttmodel.IBHD[(self.tutor, d, apm)]
+            self.ttmodel.tutor_busy_halfday[(self.tutor, d, apm)]
             for d in days
             for apm in [Time.AM, Time.PM]
         )
@@ -285,9 +285,9 @@ class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
                                 ),
                             )
 
-    def enrich_model(self, tutor=None):
+    def enrich_model(self, tutor=None, **args):
         if tutor:
-            self.tutor = tutor
+            self.tutor = tutor  # pylint: disable=attribute-defined-outside-init
             super().enrich_model()
         else:
-            raise Exception("MinHalfDaysHelperTutor requires a tutor argument")
+            raise ValueError("MinHalfDaysHelperTutor requires a tutor argument")

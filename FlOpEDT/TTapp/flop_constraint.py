@@ -35,11 +35,11 @@ from base.models import (
     TimetableVersion,
 )
 
-max_weight = 8
+MAX_WEIGHT = 8
 
 
 def all_subclasses(cls):
-    return set([c for c in cls.__subclasses__() if not c._meta.abstract]).union(
+    return set(c for c in cls.__subclasses__() if not c._meta.abstract).union(
         [s for c in cls.__subclasses__() for s in all_subclasses(c)]
     )
 
@@ -61,7 +61,7 @@ class FlopConstraint(models.Model):
     )
     periods = models.ManyToManyField("base.SchedulingPeriod", blank=True)
     weight = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(max_weight)],
+        validators=[MinValueValidator(1), MaxValueValidator(MAX_WEIGHT)],
         null=True,
         default=None,
         blank=True,
@@ -90,7 +90,7 @@ class FlopConstraint(models.Model):
     def local_weight(self):
         if self.weight is None:
             return 10
-        return float(self.weight) / max_weight
+        return float(self.weight) / MAX_WEIGHT
 
     class Meta:
         abstract = True
@@ -137,8 +137,7 @@ class FlopConstraint(models.Model):
     def time_settings(self, department=None):
         if department:
             return TimeGeneralSettings.objects.get(department=department)
-        else:
-            return TimeGeneralSettings.objects.get(department=self.department)
+        return TimeGeneralSettings.objects.get(department=self.department)
 
     def get_courses_queryset_by_parameters(
         self,
@@ -155,7 +154,7 @@ class FlopConstraint(models.Model):
         course_types=None,
         room_type=None,
         room_types=None,
-    ):
+    ):  # pylint: disable=too-many-arguments
         """
         Filter courses depending on constraints parameters
         parameter group : if not None, return all courses that has one group connected to group

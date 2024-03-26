@@ -514,16 +514,11 @@ class TimetableData(object):
                     compatible_courses[sl].add(c)
                     compatible_slots[c] = {sl}
                 else:
-                    slots = set(
-                        [
-                            slot
-                            for slot in slots_filter(
-                                self.courses_slots,
-                                period=c.period,
-                                duration=c.duration,
-                                department=c.type.department,
-                            )
-                        ]
+                    slots = slots_filter(
+                        self.courses_slots,
+                        period=c.period,
+                        duration=c.duration,
+                        department=c.type.department,
                     )
                     compatible_slots[c] = slots
                     for sl in slots:

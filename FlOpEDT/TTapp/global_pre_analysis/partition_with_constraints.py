@@ -4,6 +4,8 @@ from TTapp.global_pre_analysis.tools_centralized_preanalysis import (
     getFlopConstraintsInDB,
 )
 
+# pylint: disable=line-too-long
+
 
 def create_tutor_partition_from_constraints(period, department, tutor, available=False):
     """

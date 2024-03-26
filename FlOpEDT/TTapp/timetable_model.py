@@ -49,15 +49,13 @@ from base.timing import Time
 from core.decorators import timer
 from people.models import Tutor
 from roomreservation.models import RoomReservation
-from TTapp.flop_constraint import max_weight
+from TTapp.flop_constraint import MAX_WEIGHT
 from TTapp.flop_model import (
     GUROBI_NAME,
     FlopModel,
     get_room_constraints,
     get_ttconstraints,
-    gurobi_log_files_path,
     iis_files_path,
-    solution_files_path,
 )
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -162,7 +160,7 @@ class TimetableModel(FlopModel):
         self.possible_apms = self.data.possible_apms
         (
             self.tutor_cost,
-            self.FHD_G,
+            self.group_free_halfday,
             self.group_cost,
             self.slot_cost,
             self.generic_cost,
@@ -171,13 +169,13 @@ class TimetableModel(FlopModel):
         if self.pre_assign_rooms:
             self.located = self.room_vars_init()
         (
-            self.IBD,
-            self.IBD_GTE,
-            self.IBHD,
-            self.GBD,
-            self.GBHD,
-            self.IBS,
-            self.forced_IBD,
+            self.tutor_busy_day,
+            self.tutor_busy_day_gte,
+            self.tutor_busy_halfday,
+            self.group_busy_day,
+            self.group_busy_halfday,
+            self.tutor_busy_slot,
+            self.forced_tutor_busy_day,
         ) = self.busy_vars_init()
         if self.pre_assign_rooms:
             if self.department.mode.visio:
@@ -206,7 +204,7 @@ class TimetableModel(FlopModel):
         if self.warnings:
             print(_("Relevant warnings :"))
             for key, key_warnings in self.warnings.items():
-                print("%s : %s" % (key, ", ".join([str(x) for x in key_warnings])))
+                print(f"{key} : {', '.join([str(x) for x in key_warnings])}")
 
         if self.send_mails:
             self.send_lack_of_availability_mail()
@@ -235,9 +233,9 @@ class TimetableModel(FlopModel):
                 )
             )
         )
-        FHD_G = {}
+        group_free_half_day = {}
         for apm in self.possible_apms:
-            FHD_G[apm] = dict(
+            group_free_half_day[apm] = dict(
                 list(
                     zip(
                         self.data.basic_groups,
@@ -272,7 +270,7 @@ class TimetableModel(FlopModel):
 
         generic_cost = {period: self.lin_expr() for period in self.periods + [None]}
 
-        return tutor_cost, FHD_G, group_cost, slot_cost, generic_cost
+        return tutor_cost, group_free_half_day, group_cost, slot_cost, generic_cost
 
     @timer
     def schedule_vars_init(self):
@@ -297,7 +295,7 @@ class TimetableModel(FlopModel):
 
     @timer
     def busy_vars_init(self):
-        IBS = {}
+        tutor_busy_slot = {}
         limit = 1000
         for i in self.data.instructors:
             other_dep_sched_courses = (
@@ -315,10 +313,10 @@ class TimetableModel(FlopModel):
                     fixed_courses & self.data.fixed_courses_for_avail_slot[sl]
                 )
                 fixed_courses_nb = len(fixed_courses_for_sl)
-                IBS[(i, sl)] = self.add_var("IBS(%s,%s)" % (i, sl))
+                tutor_busy_slot[(i, sl)] = self.add_var(f"tutor_busy_slot({i},{sl})")
                 # Linking the variable to the scheduled dict
                 expr = self.lin_expr()
-                expr += limit * IBS[(i, sl)]
+                expr += limit * tutor_busy_slot[(i, sl)]
                 for s_sl in slots_filter(self.data.courses_slots, simultaneous_to=sl):
                     for c in (
                         self.data.possible_courses[i]
@@ -348,7 +346,7 @@ class TimetableModel(FlopModel):
 
                 # if other_dep_nb + fixed_courses_nb > 1 for some i, then IBS==1 !
                 self.add_constraint(
-                    limit * IBS[(i, sl)],
+                    limit * tutor_busy_slot[(i, sl)],
                     ">=",
                     other_dep_nb + fixed_courses_nb,
                     Constraint(
@@ -358,16 +356,17 @@ class TimetableModel(FlopModel):
                     ),
                 )
 
-        IBD = {}
-        IBHD = {}
+        tutor_busy_day = {}
+        tutor_busy_halfday = {}
         for d in self.data.days:
             dayslots = slots_filter(self.data.availability_slots, day=d)
             for i in self.data.instructors:
-                IBD[(i, d)] = self.add_var()
+                tutor_busy_day[(i, d)] = self.add_var()
                 # Linking the variable to the scheduled dict
                 card = 2 * len(dayslots)
                 self.add_constraint(
-                    card * IBD[i, d] - self.sum(IBS[i, sl] for sl in dayslots),
+                    card * tutor_busy_day[i, d]
+                    - self.sum(tutor_busy_slot[i, sl] for sl in dayslots),
                     ">=",
                     0,
                     Constraint(
@@ -377,11 +376,11 @@ class TimetableModel(FlopModel):
             for apm in self.data.possible_apms:
                 halfdayslots = slots_filter(dayslots, apm=apm)
                 for i in self.data.instructors:
-                    IBHD[(i, d, apm)] = self.add_var()
+                    tutor_busy_halfday[(i, d, apm)] = self.add_var()
                     # Linking the variable to the scheduled dict
                     card = 2 * len(halfdayslots)
-                    expr = card * IBHD[i, d, apm] - self.sum(
-                        IBS[i, sl] for sl in halfdayslots
+                    expr = card * tutor_busy_halfday[i, d, apm] - self.sum(
+                        tutor_busy_slot[i, sl] for sl in halfdayslots
                     )
                     self.add_constraint(
                         expr,
@@ -404,54 +403,54 @@ class TimetableModel(FlopModel):
                         ),
                     )
 
-        forced_IBD = {}
+        forced_tutor_busy_day = {}
         for i in self.data.instructors:
             for d in self.data.days:
-                forced_IBD[(i, d)] = 0
+                forced_tutor_busy_day[(i, d)] = 0
                 if d in self.data.physical_presence_days_for_tutor[i]:
-                    forced_IBD[(i, d)] = 1
+                    forced_tutor_busy_day[(i, d)] = 1
                 if self.department.mode.cosmo == 1:
                     if self.data.sched_courses.filter(
                         start_time__date=d,
                         course__suspens=False,
                         course__tutor=i,
                     ).exists():
-                        forced_IBD[(i, d)] = 1
+                        forced_tutor_busy_day[(i, d)] = 1
                 self.add_constraint(
-                    IBD[i, d],
+                    tutor_busy_day[i, d],
                     ">=",
-                    forced_IBD[(i, d)],
+                    forced_tutor_busy_day[(i, d)],
                     Constraint(
-                        constraint_type=ConstraintType.FORCED_IBD, instructors=i, days=d
+                        constraint_type=ConstraintType.FORCED_TBD, instructors=i, days=d
                     ),
                 )
 
-        IBD_GTE = {period: [] for period in self.periods}
+        tutor_busy_day_gte = {period: [] for period in self.periods}
         max_days = len(TimeGeneralSettings.objects.get(department=self.department).days)
         for period in self.periods:
             for j in range(max_days + 1):
-                IBD_GTE[period].append({})
+                tutor_busy_day_gte[period].append({})
 
             for i in self.data.instructors:
                 for j in range(1, max_days + 1):
-                    IBD_GTE[period][j][i] = self.add_floor(
+                    tutor_busy_day_gte[period][j][i] = self.add_floor(
                         self.sum(
-                            IBD[(i, d)]
+                            tutor_busy_day[(i, d)]
                             for d in days_filter(self.data.days, period=period)
                         ),
                         j,
                         max_days,
                     )
-        GBD = {}
-        GBHD = {}
+        group_busy_day = {}
+        group_busy_halfday = {}
         for bg in self.data.basic_groups:
             for d in self.data.days:
                 # add constraint linking GBD to EDT
-                GBD[(bg, d)] = self.add_var()
+                group_busy_day[(bg, d)] = self.add_var()
                 dayslots = slots_filter(self.data.courses_slots, day=d)
                 # Linking the variable to the scheduled dict
                 card = 2 * len(dayslots)
-                expr = card * GBD[(bg, d)] - self.sum(
+                expr = card * group_busy_day[(bg, d)] - self.sum(
                     self.scheduled[(sl, c)]
                     for sl in dayslots
                     for c in self.data.all_courses_for_basic_group[bg]
@@ -475,10 +474,12 @@ class TimetableModel(FlopModel):
                 )
 
                 for apm in self.possible_apms:
-                    GBHD[(bg, d, apm)] = self.add_var("GBHD(%s,%s,%s)" % (bg, d, apm))
+                    group_busy_halfday[(bg, d, apm)] = self.add_var(
+                        f"GBHD({bg},{d},{apm})"
+                    )
                     halfdayslots = slots_filter(dayslots, apm=apm)
                     card = 2 * len(halfdayslots)
-                    expr = card * GBHD[(bg, d, apm)] - self.sum(
+                    expr = card * group_busy_halfday[(bg, d, apm)] - self.sum(
                         self.scheduled[(sl, c)]
                         for sl in halfdayslots
                         for c in self.data.all_courses_for_basic_group[bg]
@@ -501,7 +502,15 @@ class TimetableModel(FlopModel):
                         ),
                     )
 
-        return IBD, IBD_GTE, IBHD, GBD, GBHD, IBS, forced_IBD
+        return (
+            tutor_busy_day,
+            tutor_busy_day_gte,
+            tutor_busy_halfday,
+            group_busy_day,
+            group_busy_halfday,
+            tutor_busy_slot,
+            forced_tutor_busy_day,
+        )
 
     @timer
     def visio_vars_init(self):
@@ -609,12 +618,12 @@ class TimetableModel(FlopModel):
             st = StabilizeTutorsCourses.objects.create(
                 department=self.department,
                 version__major=self.major_to_stabilize,
-                weight=max_weight,
+                weight=MAX_WEIGHT,
             )
             sg = StabilizeGroupsCourses.objects.create(
                 department=self.department,
                 version__major=self.major_to_stabilize,
-                weight=max_weight,
+                weight=MAX_WEIGHT,
             )
             for period in self.periods:
                 st.enrich_ttmodel(self, period, self.max_stab)
@@ -674,7 +683,7 @@ class TimetableModel(FlopModel):
             department=self.department
         ).exists():
             MinimizeTutorsBusyDays.objects.create(
-                department=self.department, weight=max_weight
+                department=self.department, weight=MAX_WEIGHT
             )
 
         if not self.department.mode.cosmo:
@@ -687,7 +696,7 @@ class TimetableModel(FlopModel):
                 department=self.department
             ).exists():
                 MinGroupsHalfDays.objects.create(
-                    department=self.department, weight=max_weight
+                    department=self.department, weight=MAX_WEIGHT
                 )
 
             # Check if ConsiderDependencies constraint is in database, and add it if not
@@ -1032,7 +1041,7 @@ class TimetableModel(FlopModel):
                                 period.name,
                             ),
                         )
-                    maximum = max([a.value for a in period_tutor_availabilities])
+                    maximum = max(a.value for a in period_tutor_availabilities)
                     if maximum == 0:
                         for availability_slot in period_availability_slots:
                             unp_slot_cost[i][availability_slot] = 0
@@ -1209,7 +1218,7 @@ class TimetableModel(FlopModel):
             department=self.department
         ).exists():
             MinNonPreferedTutorsSlot.objects.create(
-                weight=max_weight, department=self.department
+                weight=MAX_WEIGHT, department=self.department
             )
 
         # second objective  => minimise use of unpreferred slots for courses
@@ -1218,7 +1227,7 @@ class TimetableModel(FlopModel):
             department=self.department
         ).exists():
             MinNonPreferedTrainProgsSlot.objects.create(
-                weight=max_weight, department=self.department
+                weight=MAX_WEIGHT, department=self.department
             )
 
     @timer
@@ -1417,9 +1426,13 @@ class TimetableModel(FlopModel):
             for g in self.data.basic_groups:
                 DJL = 0
                 if Time.PM in self.possible_apms:
-                    DJL += self.get_expr_value(self.FHD_G[Time.PM][g][period])
+                    DJL += self.get_expr_value(
+                        self.group_free_halfday[Time.PM][g][period]
+                    )
                 if Time.AM in self.possible_apms:
-                    DJL += 0.01 * self.get_expr_value(self.FHD_G[Time.AM][g][period])
+                    DJL += 0.01 * self.get_expr_value(
+                        self.group_free_halfday[Time.AM][g][period]
+                    )
 
                 djlg = GroupFreeHalfDay(
                     group=g, period=period, version=versions_dict[period], DJL=DJL
@@ -1521,7 +1534,7 @@ class TimetableModel(FlopModel):
         considered period.
         Returns the version
         """
-        print("\nLet's solve periods %s" % [p.name for p in self.periods])
+        print(f"\nLet's solve periods {[p.name for p in self.periods]}")
 
         self.update_objective()
 
@@ -1537,7 +1550,7 @@ class TimetableModel(FlopModel):
                     target_major = self.choose_free_version_major()
 
             self.add_tt_to_db(target_major)
-            print("Added work copy N°%g" % target_major)
+            print(f"Added work copy N°{target_major}")
             if self.post_assign_rooms:
                 RoomModel(self.department.abbrev, self.periods, target_major).solve()
                 print("Rooms assigned")

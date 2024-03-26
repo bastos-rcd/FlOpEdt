@@ -189,7 +189,7 @@ def add_iut_blagnac_specials(ttmodel):
     #                                                          for sl in slots_filter(ttmodel.data.courses_slots, simultaneous_to=slot)]
     #                                                          for c in ttmodel.data.compatible_courses[sl]))
     #     for i in ttmodel.data.instructors:
-    #         ttmodel.add_constraint(ttmodel.IBD[(i, mardi_4)],
+    #         ttmodel.add_constraint(ttmodel.tutor_busy_day[(i, mardi_4)],
     #                                '==',
     #                                1)
 
@@ -208,7 +208,7 @@ def add_iut_blagnac_info(ttmodel):
             if week in ttmodel.weeks:
                 ttmodel.add_constraint(
                     ttmodel.sum(
-                        ttmodel.IBD[IC, d]
+                        ttmodel.tutor_busy_day[IC, d]
                         for d in days_filter(ttmodel.data.days, week=week)
                     ),
                     ">=",
@@ -226,8 +226,12 @@ def add_iut_blagnac_info(ttmodel):
             sl17 = slots_filter(
                 ttmodel.data.availability_slots, day=d, start_time=17 * 60 + 15
             ).pop()
-            B2 = ttmodel.add_conjunct(ttmodel.IBS[IC, sl15], ttmodel.IBS[IC, sl17])
-            ttmodel.add_to_inst_cost(IC, ttmodel.IBS[IC, sl15] - B2, week=d.week)
+            B2 = ttmodel.add_conjunct(
+                ttmodel.tutor_busy_slot[IC, sl15], ttmodel.tutor_busy_slot[IC, sl17]
+            )
+            ttmodel.add_to_inst_cost(
+                IC, ttmodel.tutor_busy_slot[IC, sl15] - B2, week=d.week
+            )
 
     # si PDU vient à 8h, il ne vient pas ni à 11 ni à 14.
     PDU = Tutor.objects.get(username="PDU")
@@ -243,8 +247,12 @@ def add_iut_blagnac_info(ttmodel):
                 ttmodel.data.availability_slots, day=day, start_time=14 * 60 + 15
             ).pop()
             ttmodel.add_constraint(
-                ttmodel.IBS[PDU, sl8]
-                + 0.5 * (ttmodel.IBS[PDU, sl11] + ttmodel.IBS[PDU, sl14]),
+                ttmodel.tutor_busy_slot[PDU, sl8]
+                + 0.5
+                * (
+                    ttmodel.tutor_busy_slot[PDU, sl11]
+                    + ttmodel.tutor_busy_slot[PDU, sl14]
+                ),
                 "<=",
                 1,
                 Constraint(constraint_type=ConstraintType.SPECIFICITE_PDU, days=day),
@@ -324,7 +332,7 @@ def add_iut_blagnac_info(ttmodel):
     #             < avail_slots_before_friday_noon:
     #         for d in ttmodel.data.days.exclude(no=4):
     #             ttmodel.add_constraint(
-    #                 ttmodel.IBHD[(prof_mn, v, Time.PM)] + ttmodel.IBHD[(prof_mn, d, Time.AM)],
+    #                 ttmodel.tutor_busy_halfday[(prof_mn, v, Time.PM)] + ttmodel.tutor_busy_halfday[(prof_mn, d, Time.AM)],
     #                 '<=',
     #                 1)
 
@@ -351,7 +359,7 @@ def add_iut_blagnac_info(ttmodel):
     prof_aj = Tutor.objects.get(username="AJ")
     if len(ttmodel.data.courses.filter(tutor=prof_aj)) > 3:
         ttmodel.add_constraint(
-            ttmodel.IBD_GTE[2][prof_aj],
+            ttmodel.tutor_busy_day_gte[2][prof_aj],
             "==",
             1,
             Constraint(
@@ -389,7 +397,7 @@ def add_iut_blagnac_info(ttmodel):
                         if tutor.status == Tutor.FULL_STAFF
                     ):
                         ttmodel.add_constraint(
-                            ttmodel.IBD[(i, day)],
+                            ttmodel.tutor_busy_day[(i, day)],
                             "==",
                             1,
                             Constraint(
@@ -617,7 +625,7 @@ def add_iut_blagnac_info(ttmodel):
     #         sl_11h=ttmodel.data.courses_slots.get(jour=d, heure__hours=11)
     #         Pablo_11h = ttmodel.add_or([ttmodel.scheduled[sl_11h,c] for c in ttmodel.data.courses_for_tutor[Pablo]])
     #         Paul_11h = ttmodel.add_or([ttmodel.scheduled[sl_11h,c] for c in ttmodel.data.courses_for_tutor[Paul]])
-    #         commun[d] = ttmodel.add_conjunct(ttmodel.IBD[(Paul, d)],ttmodel.IBD[(Pablo, d)])
+    #         commun[d] = ttmodel.add_conjunct(ttmodel.tutor_busy_day[(Paul, d)],ttmodel.tutor_busy_day[(Pablo, d)])
     #         Les_deux_pas_cours_a_11h[d] = ttmodel.add_conjunct(ttmodel.add_neg(Pablo_11h), ttmodel.add_neg(Paul_11h))
     #     pas_de_commun = ttmodel.add_neg(ttmodel.add_or([commun[d] for d in ttmodel.data.days]))
     #     ttmodel.add_constraint(pas_de_commun +
@@ -631,7 +639,7 @@ def add_iut_blagnac_info(ttmodel):
         for i in ttmodel.data.instructors:
             if i.status == Tutor.FULL_STAFF:
                 ttmodel.add_constraint(
-                    ttmodel.IBD[(i, vendredi)],
+                    ttmodel.tutor_busy_day[(i, vendredi)],
                     "==",
                     1,
                     Constraint(constraint_type="Semaine 6, Jury le vendredi"),
@@ -905,7 +913,7 @@ def add_iut_blagnac_rt(ttmodel):
                 if nb_dj_min != int(nb_dj_min):
                     nb_dj_min = int(nb_dj_min) + 1
                 total_dj = ttmodel.sum(
-                    ttmodel.IBHD[(t, d, apm)]
+                    ttmodel.tutor_busy_halfday[(t, d, apm)]
                     for d in days_filter(ttmodel.data.days, week=week)
                     for apm in [Time.AM, Time.PM]
                 )

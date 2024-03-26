@@ -28,7 +28,7 @@ import datetime as dt
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from TTapp.flop_constraint import max_weight
+from TTapp.flop_constraint import MAX_WEIGHT
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperTutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -191,14 +191,16 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
                     # multiply the previous cost by 2
                     slot_by_day_cost *= 2
                     # add a cost for having d busy days
-                    slot_by_day_cost += ttmodel.IBD_GTE[period][d][tutor]
+                    slot_by_day_cost += ttmodel.tutor_busy_day_gte[period][d][tutor]
                 else:
                     minimal_number_of_days = d
                     break
             if self.weight is None:
                 if minimal_number_of_days < nb_days:
                     ttmodel.add_constraint(
-                        ttmodel.IBD_GTE[period][minimal_number_of_days + 1][tutor],
+                        ttmodel.tutor_busy_day_gte[period][minimal_number_of_days + 1][
+                            tutor
+                        ],
                         "==",
                         0,
                         Constraint(
@@ -352,7 +354,9 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
                     min_teaching_minutes,
                     100000,
                 )
-                undesired_situation = ttmodel.IBD[(tutor, d)] - has_enough_time
+                undesired_situation = (
+                    ttmodel.tutor_busy_day[(tutor, d)] - has_enough_time
+                )
                 if self.weight is None:
                     ttmodel.add_constraint(
                         undesired_situation,
@@ -410,7 +414,7 @@ class LowerBoundBusyDays(TimetableConstraint):
 
         if sum(c.duration for c in relevant_courses) > self.lower_bound_hours:
             ttmodel.add_constraint(
-                ttmodel.IBD_GTE[self.min_days_nb][self.tutor],
+                ttmodel.tutor_busy_day_gte[self.min_days_nb][self.tutor],
                 "==",
                 1,
                 Constraint(

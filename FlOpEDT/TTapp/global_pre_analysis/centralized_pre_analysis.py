@@ -5,8 +5,9 @@ from django.utils import translation
 from django.utils.html import strip_tags
 
 from base.models import Course, Department, SchedulingPeriod
-from TTapp.global_pre_analysis.tools_centralized_preanalysis import \
-    getFlopConstraintsInDB
+from TTapp.global_pre_analysis.tools_centralized_preanalysis import (
+    getFlopConstraintsInDB,
+)
 
 
 def pre_analyse(department, period):
@@ -25,29 +26,38 @@ def pre_analyse(department, period):
     all_constraints_list = getFlopConstraintsInDB(period, department)
 
     # Search for each TimetableConstraint's subclass if we can find an instance of it for the given period and department
-    result=[]
+    result = []
 
     for constraint in all_constraints_list:
         try:
             json_dict = constraint.pre_analyse(period)
-            if json_dict['status'] != 'OK':
+            if json_dict["status"] != "OK":
                 # KO status found
                 result.append(json_dict)
         except AttributeError:
-                pass
+            pass
 
     # All status returned by all pre-analysis iterations are OK
-    json_dict = {"status": "OK", "messages": [], "period": {"id": period.id, "name": period.name}}
+    json_dict = {
+        "status": "OK",
+        "messages": [],
+        "period": {"id": period.id, "name": period.name},
+    }
 
     return result
 
 
 def pre_analyse_next_periods(department, nb_of_weeks):
     now = dt.datetime.now()
-    considered_periods = SchedulingPeriod.objects.filter(start_date__lte = (now + dt.timedelta(days=7 * nb_of_weeks)).date(), mode=department.mode.scheduling_mode)
-    C = Course.objects.filter(periods__in=considered_periods, type__department=department)
+    considered_periods = SchedulingPeriod.objects.filter(
+        start_date__lte=(now + dt.timedelta(days=7 * nb_of_weeks)).date(),
+        mode=department.mode.scheduling_mode,
+    )
+    C = Course.objects.filter(
+        periods__in=considered_periods, type__department=department
+    )
     result = {}
-    considered_periods = list(c.period for c in C.distinct('period'))
+    considered_periods = list(c.period for c in C.distinct("period"))
     for period in considered_periods:
         result[period] = pre_analyse(department=department, period=period)
         if not result[period]:
@@ -60,18 +70,25 @@ def send_pre_analyse_email(department_abbrev, email_adress, nb_of_weeks=10):
         nb_of_weeks = int(nb_of_weeks)
     except:
         nb_of_weeks = 10
-    translation.activate('fr')
+    translation.activate("fr")
     department = Department.objects.get(abbrev=department_abbrev)
     result = pre_analyse_next_periods(nb_of_weeks, department)
     if result:
         html_message = f"Voici les pré-analyses des prochaines semaines pour le département {department.abbrev} :  <br />"
         for period in result:
-            html_message += f"&emsp; Période {period.name} : <br />" 
+            html_message += f"&emsp; Période {period.name} : <br />"
             for json_dict in result[period]:
-                for message in json_dict['messages']:
-                    html_message += f"&emsp;&emsp; - {message['str']} <br />" % 
+                for message in json_dict["messages"]:
+                    html_message += f"&emsp;&emsp; - {message['str']} <br />"
             html_message += "<br />"
         html_message += "<br /> <br /> "
 
         plain_message = strip_tags(html_message)
-        send_mail(f"Pré-analyse des prochaines semaines ({department.abbrev})", plain_message, "", [email_adress], html_message=html_message, fail_silently=True)
+        send_mail(
+            f"Pré-analyse des prochaines semaines ({department.abbrev})",
+            plain_message,
+            "",
+            [email_adress],
+            html_message=html_message,
+            fail_silently=True,
+        )

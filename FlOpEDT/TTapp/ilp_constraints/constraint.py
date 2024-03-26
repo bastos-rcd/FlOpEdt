@@ -200,13 +200,13 @@ class Constraint:
                 # return ' '.join(';'.join(x))
             return str(x)
 
-        res = [self.id, self.constraint_type.value]  # pylint: disable=no-member
-        for dimension, value in self.dimensions.items():
+        res = [self.id, self.constraint_type.value]
+        for value in self.dimensions.values():
             res.append(f(value["value"]))
         return tuple(res)
 
     def __str__(self):
-        res = f"({self.id}) La contrainte "  # pylint: disable=no-member
+        res = f"({self.id}) La contrainte "
         if self.name:
             res += f'"{self.name} "'
         if self.constraint_type is not None:

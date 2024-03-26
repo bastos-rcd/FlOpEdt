@@ -26,7 +26,7 @@
 
 from django.db.models import F, Q
 
-import base.queries as queries
+from base import queries
 from base.models import (
     Course,
     Room,
@@ -38,15 +38,12 @@ from base.models import (
 )
 from core.decorators import timer
 from roomreservation.models import RoomReservation
-from TTapp.flop_constraint import max_weight
+from TTapp.flop_constraint import MAX_WEIGHT
 from TTapp.flop_model import (
     GUROBI_NAME,
     FlopModel,
     get_room_constraints,
-    solution_files_path,
 )
-from TTapp.ilp_constraints.constraint import Constraint
-from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.RoomConstraints.room_constraint import (
     ConsiderRoomSorts,
     LimitGroupMoves,
@@ -63,13 +60,13 @@ class RoomModel(FlopModel):
         self, department_abbrev, periods, major=0, keep_many_solution_files=False
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
-        super(RoomModel, self).__init__(
+        super().__init__(
             department_abbrev,
             periods,
             keep_many_solution_files=keep_many_solution_files,
         )
 
-        print("\nLet's start rooms affectation for periods %s" % self.periods)
+        print(f"\nLet's start rooms affectation for periods {self.periods}")
         self.major = major
         (
             self.scheduled_courses,
@@ -432,19 +429,19 @@ class RoomModel(FlopModel):
         # limit groups moves
         if not LimitGroupMoves.objects.filter(department=self.department).exists():
             LimitGroupMoves.objects.create(
-                department=self.department, weight=max_weight
+                department=self.department, weight=MAX_WEIGHT
             )
 
         # limit tutors moves
         if not LimitTutorMoves.objects.filter(department=self.department).exists():
             LimitTutorMoves.objects.create(
-                department=self.department, weight=max_weight
+                department=self.department, weight=MAX_WEIGHT
             )
 
         # consider room sort
         if not ConsiderRoomSorts.objects.filter(department=self.department).exists():
             ConsiderRoomSorts.objects.create(
-                department=self.department, weight=max_weight
+                department=self.department, weight=MAX_WEIGHT
             )
 
     def add_specific_constraints(self):

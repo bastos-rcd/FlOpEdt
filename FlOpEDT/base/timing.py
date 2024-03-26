@@ -115,7 +115,7 @@ def min_to_str(t, sep=":"):
 
 
 def str_slot(day, start_time, duration):
-    return f"{day}. {min_to_str(start_time)}" + f"-{min_to_str(start_time + duration)}"
+    return f"{day}. {start_time}" + f"-{start_time + duration}"
 
 
 def french_format(minutes):
