@@ -73,7 +73,7 @@ export function useUndoredo() {
           from: dataFrom,
         } as UpdatesHistory
       } else if (operation === 'create') {
-        console.log('TODO')
+        throw Error('Course creation not implemented')
       }
     } else if (type === 'availability') {
       const availData = data as AvailabilityData
@@ -138,7 +138,7 @@ export function useUndoredo() {
         lastScheduledCourseUpdated!.groupIds = lastCourseUpdate.from.groupIds
         scheduledCourseStore.addOrUpdateCourseToDate(lastScheduledCourseUpdated!)
       } else if (update.operation === 'create') {
-        console.log('TODO')
+        throw Error('Course creation not implemented')
       } else if (update.operation === 'remove') {
         const newCourse: Course = {
           id: lastCourseUpdate.objectId,
