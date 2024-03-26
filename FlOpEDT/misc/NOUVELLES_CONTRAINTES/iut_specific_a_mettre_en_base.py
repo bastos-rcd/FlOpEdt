@@ -43,7 +43,7 @@ from TTapp.models import (
     MinTutorsHalfDays,
     max_weight,
 )
-from TTapp.TimetableUtils import add_generic_constraints_to_database
+from TTapp.timetable_utils import add_generic_constraints_to_database
 
 
 def add_iut_constraints_to_database():

@@ -31,7 +31,7 @@ from base.models import ScheduledCourse, SchedulingPeriod
 from MyFlOp import MyTimetableUtils
 from TTapp.admin import GroupsLunchBreakResource
 from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
-from TTapp.TimetableUtils import get_conflicts
+from TTapp.timetable_utils import get_conflicts
 
 
 def available_work_copies(req, department, year, week):

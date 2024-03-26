@@ -191,8 +191,6 @@ class ConstraintType(Enum):
     NIGHT_BREAK = "NIGHT_BREAK"
     MIN_WE = "MIN_WE"
     TRAVAILLE_PAS_TROP = "TRAVAILLE_PAS_TROP"
-    max_time_per_week = "max_time_per_week"
-    min_time_per_week = "min_time_per_week"
 
     # Gardes
     GARDES = "Gardes"
@@ -202,10 +200,10 @@ class ConstraintType(Enum):
     PAS_TROP_DE_NUITS = "Pas trop de nuits par jours glissants"
     TECHNICAL_WE = "TECHNICAL_WE"
     ASSEZ_DE_WE = "ASSEZ_DE_WE libres"
-    ASSEZ_DE_quasiWE = "ASSEZ_DE_quasiWE libres "
+    ASSEZ_DE_QUASIWE = "ASSEZ_DE_quasiWE libres "
     ASSEZ_DE_WE_OU_QUASI = "ASSEZ_DE_WE_OU_QUASI libres"
-    ASSEZ_DE_dimanches = "Assez dimanches travaillés"
-    PAS_TROP_DE_dimanches = "Pas trop de dimanches travaillés"
+    ASSEZ_DE_DIMANCHES = "Assez dimanches travaillés"
+    PAS_TROP_DE_DIMANCHES = "Pas trop de dimanches travaillés"
     ASSEZ_DE_SAMEDIS = "Assez de samedis travaillés"
     PAS_TROP_DE_SAMEDIS = "Pas trop de samedis travaillés"
     ASSEZ_DE_SAMEDIS_ET_DIM = "Assez de samedis/dimanches travaillés"

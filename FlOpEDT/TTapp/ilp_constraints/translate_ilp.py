@@ -1,4 +1,4 @@
-from TTapp.FlopModel import iis_files_path
+from TTapp.flop_model import iis_files_path
 
 
 def analyse_contraintes(ttmodel):

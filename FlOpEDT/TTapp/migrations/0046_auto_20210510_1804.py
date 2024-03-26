@@ -2,322 +2,322 @@
 
 from django.db import migrations, models
 from django.db.models import Q
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
-from TTapp.FlopConstraint import all_subclasses
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
+from TTapp.flop_constraint import all_subclasses
 
 
-def from_week_year_to_weeks(apps, schema_editor):
+def from_week_year_to_weeks(apps, schema_editor):  # pylint: disable=unused-argument
     all_ttconstraint_classes = all_subclasses(TimetableConstraint)
-    Week = apps.get_model('base', "Week")
+    week_model = apps.get_model("base", "Week")
     for ttc_c in all_ttconstraint_classes:
         class_name = ttc_c._meta.object_name
         try:
-            cl = apps.get_model('TTapp', class_name)
-        except:
+            cl = apps.get_model("TTapp", class_name)
+        except LookupError:
             continue
         all_o = cl.objects.exclude(Q(week=None) | Q(year=None))
         for o in all_o:
-            w = Week.objects.get(nb=o.week, year=o.year)
+            w = week_model.objects.get(nb=o.week, year=o.year)
             o.weeks.add(w)
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('base', '0074_week'),
-        ('TTapp', '0045_auto_20210505_0711'),
+        ("base", "0074_week"),
+        ("TTapp", "0045_auto_20210505_0711"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='avoidbothtimes',
-            name='modified_at',
+            model_name="avoidbothtimes",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='avoidbothtimes',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="avoidbothtimes",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='boundphysicalpresencehalfdays',
-            name='modified_at',
+            model_name="boundphysicalpresencehalfdays",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='boundphysicalpresencehalfdays',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="boundphysicalpresencehalfdays",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='breakaroundcoursetype',
-            name='modified_at',
+            model_name="breakaroundcoursetype",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='breakaroundcoursetype',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="breakaroundcoursetype",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='considerdepencies',
-            name='modified_at',
+            model_name="considerdepencies",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='considerdepencies',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="considerdepencies",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='curfew',
-            name='modified_at',
+            model_name="curfew",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='curfew',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="curfew",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='customconstraint',
-            name='modified_at',
+            model_name="customconstraint",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='customconstraint',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="customconstraint",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='groupslunchbreak',
-            name='modified_at',
+            model_name="groupslunchbreak",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='groupslunchbreak',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="groupslunchbreak",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='limitedroomchoices',
-            name='modified_at',
+            model_name="limitedroomchoices",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='limitedroomchoices',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="limitedroomchoices",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='limitedstarttimechoices',
-            name='modified_at',
+            model_name="limitedstarttimechoices",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='limitedstarttimechoices',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="limitedstarttimechoices",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='limitgroupsphysicalpresence',
-            name='modified_at',
+            model_name="limitgroupsphysicalpresence",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='limitgroupsphysicalpresence',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="limitgroupsphysicalpresence",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='limitgroupstimeperperiod',
-            name='modified_at',
+            model_name="limitgroupstimeperperiod",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='limitgroupstimeperperiod',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="limitgroupstimeperperiod",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='limitmodulestimeperperiod',
-            name='modified_at',
+            model_name="limitmodulestimeperperiod",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='limitmodulestimeperperiod',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="limitmodulestimeperperiod",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='limittutorstimeperperiod',
-            name='modified_at',
+            model_name="limittutorstimeperperiod",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='limittutorstimeperperiod',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="limittutorstimeperperiod",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='lowerboundbusydays',
-            name='modified_at',
+            model_name="lowerboundbusydays",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='lowerboundbusydays',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="lowerboundbusydays",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='mingroupshalfdays',
-            name='modified_at',
+            model_name="mingroupshalfdays",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='mingroupshalfdays',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="mingroupshalfdays",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='minimizebusydays',
-            name='modified_at',
+            model_name="minimizebusydays",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='minimizebusydays',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="minimizebusydays",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='minmoduleshalfdays',
-            name='modified_at',
+            model_name="minmoduleshalfdays",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='minmoduleshalfdays',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="minmoduleshalfdays",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='minnonpreferedtrainprogsslot',
-            name='modified_at',
+            model_name="minnonpreferedtrainprogsslot",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='minnonpreferedtrainprogsslot',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="minnonpreferedtrainprogsslot",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='minnonpreferedtutorsslot',
-            name='modified_at',
+            model_name="minnonpreferedtutorsslot",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='minnonpreferedtutorsslot',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="minnonpreferedtutorsslot",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='mintutorshalfdays',
-            name='modified_at',
+            model_name="mintutorshalfdays",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='mintutorshalfdays',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="mintutorshalfdays",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='nogroupcourseonday',
-            name='modified_at',
+            model_name="nogroupcourseonday",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='nogroupcourseonday',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="nogroupcourseonday",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='notutorcourseonday',
-            name='modified_at',
+            model_name="notutorcourseonday",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='notutorcourseonday',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="notutorcourseonday",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='novisio',
-            name='modified_at',
+            model_name="novisio",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='novisio',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="novisio",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='respectboundperday',
-            name='modified_at',
+            model_name="respectboundperday",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='respectboundperday',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="respectboundperday",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='simultaneouscourses',
-            name='modified_at',
+            model_name="simultaneouscourses",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='simultaneouscourses',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="simultaneouscourses",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='stabilizationthroughweeks',
-            name='modified_at',
+            model_name="stabilizationthroughweeks",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='stabilizationthroughweeks',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="stabilizationthroughweeks",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='stabilize',
-            name='modified_at',
+            model_name="stabilize",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='stabilize',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="stabilize",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='tutorslunchbreak',
-            name='modified_at',
+            model_name="tutorslunchbreak",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='tutorslunchbreak',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="tutorslunchbreak",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.AddField(
-            model_name='visioonly',
-            name='modified_at',
+            model_name="visioonly",
+            name="modified_at",
             field=models.DateField(auto_now=True),
         ),
         migrations.AddField(
-            model_name='visioonly',
-            name='weeks',
-            field=models.ManyToManyField(to='base.Week'),
+            model_name="visioonly",
+            name="weeks",
+            field=models.ManyToManyField(to="base.Week"),
         ),
         migrations.RunPython(from_week_year_to_weeks),
     ]

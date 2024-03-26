@@ -33,7 +33,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.functional import lazy
 
-from TTapp.RoomConstraints.RoomConstraint import (
+from TTapp.RoomConstraints.room_constraint import (
     ConsiderRoomSorts,
     LimitedRoomChoices,
     LimitGroupMoves,
@@ -96,7 +96,7 @@ from TTapp.TimetableConstraints.stabilization_constraints import (
 )
 
 # Import constraints from other files
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 from TTapp.TimetableConstraints.tutors_constraints import (
     LowerBoundBusyDays,
     MinimizeTutorsBusyDays,

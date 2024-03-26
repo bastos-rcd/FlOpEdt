@@ -8,15 +8,15 @@ from TTapp.global_pre_analysis.tools_centralized_preanalysis import (
 def create_tutor_partition_from_constraints(period, department, tutor, available=False):
     """
         Create a partition and add information in some slots about all constraints implementing complete_tutor_partition.
-    Those constraints are retrieved in the database and taken in account if they are applied on the period and
-    the department given in parameters and that concern the given tutor.
-    Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
+        Those constraints are retrieved in the database and taken in account if they are applied on the period and
+        the department given in parameters and that concern the given tutor.
+        Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
 
     :param period: The SchedulingPeriod we want to consider in a pre-analysis.
     :param department: The Department on which constraints in a pre-analysis are applied.
     :param tutor: The Tutor used to create his partition.
     :return: A tutor's partition with more details about this tutor's availabilities or forbidden slots depending
-    on defined constraints in the database.
+        on defined constraints in the database.
 
     """
 
@@ -41,16 +41,16 @@ def create_tutor_partition_from_constraints(period, department, tutor, available
 def complete_tutor_partition_from_constraints(partition, period, department, tutor):
     """
         Complete a partition and add information in some slots about all constraints implementing complete_tutor_partition.
-    Those constraints are retrieved in the database and taken in account if they are applied on the period and
-    the department given in parameters and that concern the given tutor.
-    Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
+        Those constraints are retrieved in the database and taken in account if they are applied on the period and
+        the department given in parameters and that concern the given tutor.
+        Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
 
     :param partition: The partition we want to add information to.
     :param period: The SchedulingPeriod we want to consider in a pre-analysis.
     :param department: The Department on which constraints in a pre-analysis are applied.
     :param tutor: The Tutor used to create his partition.
     :return: A tutor's partition with more details about this tutor's availabilities or forbidden slots depending
-    on defined constraints in the database.
+        on defined constraints in the database.
 
     """
 
@@ -70,15 +70,15 @@ def complete_tutor_partition_from_constraints(partition, period, department, tut
 def create_group_partition_from_constraints(period, department, group, available=False):
     """
         Create a partition and add information in some slots about all constraints implementing complete_group_partition.
-    Those constraints are retrieved in the database and taken in account if they are applied on the period and
-    the department given in parameters and that concern the given group.
-    Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
+        Those constraints are retrieved in the database and taken in account if they are applied on the period and
+        the department given in parameters and that concern the given group.
+        Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
 
     :param period: The SchedulingPeriod we want to consider in a pre-analysis.
     :param department: The Department on which constraints in a pre-analysis are applied.
     :param group: The group used to create its partition.
     :return: A partition for a group with more details about this group's availabilities or forbidden slots depending
-    on defined constraints in the database.
+        on defined constraints in the database.
 
     """
     # Init partition
@@ -103,16 +103,16 @@ def create_group_partition_from_constraints(period, department, group, available
 def complete_group_partition_from_constraints(partition, period, department, group):
     """
         Complete a partition and add information in some slots about all constraints implementing complete_group_partition.
-    Those constraints are retrieved in the database and taken in account if they are applied on the period and
-    the department given in parameters and that concern the given group.
-    Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
+        Those constraints are retrieved in the database and taken in account if they are applied on the period and
+        the department given in parameters and that concern the given group.
+        Constraints that can be taken in account : NoTutorCourseOnDay, NoGroupCourseOnDay, TutorLunchBreak, GroupLunchBreak.
 
     :param partition: The partition we want to add information to.
     :param period: The SchedulingPeriod we want to consider in a pre-analysis.
     :param department: The Department on which constraints in a pre-analysis are applied.
     :param group: The group used to create its partition.
     :return: A partition for a group with more details about this group's availabilities or forbidden slots depending
-    on defined constraints in the database.
+        on defined constraints in the database.
 
     """
 

@@ -45,7 +45,7 @@ from TTapp.ilp_constraints.constraints.dependency_constraint import (
 )
 from TTapp.slots import Slot, days_filter, slots_filter
 from TTapp.TimetableConstraints.core_constraints import ConsiderTutorsUnavailability
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 

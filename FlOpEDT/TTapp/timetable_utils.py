@@ -52,9 +52,9 @@ from base.models import (
 )
 from base.timing import days_index, str_slot
 from people.models import Tutor
-from TTapp.FlopConstraint import max_weight
+from TTapp.flop_constraint import max_weight
 from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
-from TTapp.RoomModel import RoomModel
+from TTapp.room_model import RoomModel
 from TTapp.slots import slot_pause
 
 

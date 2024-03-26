@@ -38,8 +38,8 @@ from base.models import (
 )
 from core.decorators import timer
 from roomreservation.models import RoomReservation
-from TTapp.FlopConstraint import max_weight
-from TTapp.FlopModel import (
+from TTapp.flop_constraint import max_weight
+from TTapp.flop_model import (
     GUROBI_NAME,
     FlopModel,
     get_room_constraints,
@@ -47,7 +47,7 @@ from TTapp.FlopModel import (
 )
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.RoomConstraints.RoomConstraint import (
+from TTapp.RoomConstraints.room_constraint import (
     ConsiderRoomSorts,
     LimitGroupMoves,
     LimitSimultaneousRoomCourses,
@@ -286,7 +286,8 @@ class RoomModel(FlopModel):
         for course in self.courses:
             course_room_compat[course] = set(course.room_type.members.all())
 
-        # for each basic room, build the list of courses that may use it, in couple with the corresponding room
+        # for each basic room, build the list of courses that may use it,
+        # in couple with the corresponding room
         room_course_compat = {}
         for basic_room in basic_rooms:
             room_course_compat[basic_room] = []

@@ -28,7 +28,7 @@ import functools
 
 from base.models import Department, ScheduledCourse, SchedulingPeriod, TimetableVersion
 from people.models import Tutor
-from TTapp.TimetableUtils import (
+from TTapp.timetable_utils import (
     basic_delete_all_unused_versions,
     basic_delete_version,
     basic_duplicate_version,

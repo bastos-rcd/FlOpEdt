@@ -39,7 +39,7 @@ from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import Slot, days_filter, slots_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 

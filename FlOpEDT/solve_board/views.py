@@ -37,7 +37,7 @@ from django.utils.functional import Promise
 
 from base.models import ScheduledCourse, SchedulingPeriod, TrainingProgramme
 from core.decorators import dept_admin_required
-from TTapp.FlopModel import get_flop_constraints
+from TTapp.flop_model import get_flop_constraints
 from TTapp.TimetableConstraints.core_constraints import (
     ConsiderTutorsUnavailability,
     NoSimultaneousGroupCourses,

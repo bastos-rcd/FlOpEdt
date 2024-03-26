@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from TTapp.FlopConstraint import FlopConstraint, all_subclasses
+from TTapp.flop_constraint import FlopConstraint, all_subclasses
 
 
 def getFlopConstraintsInDB(period, department):

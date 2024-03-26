@@ -49,8 +49,8 @@ from base.timing import Time
 from core.decorators import timer
 from people.models import Tutor
 from roomreservation.models import RoomReservation
-from TTapp.FlopConstraint import max_weight
-from TTapp.FlopModel import (
+from TTapp.flop_constraint import max_weight
+from TTapp.flop_model import (
     GUROBI_NAME,
     FlopModel,
     get_room_constraints,
@@ -82,14 +82,14 @@ from TTapp.models import (
     StabilizeGroupsCourses,
     StabilizeTutorsCourses,
 )
-from TTapp.RoomConstraints.RoomConstraint import (
+from TTapp.RoomConstraints.room_constraint import (
     LimitSimultaneousRoomCourses,
     LocateAllCourses,
 )
-from TTapp.RoomModel import RoomModel
+from TTapp.room_model import RoomModel
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TimetableData import TimetableData
-from TTapp.TimetableUtils import number_courses, print_differences
+from TTapp.timetable_data import TimetableData
+from TTapp.timetable_utils import number_courses, print_differences
 
 
 class TimetableModel(FlopModel):
@@ -283,9 +283,7 @@ class TimetableModel(FlopModel):
             for c in self.data.compatible_courses[sl]:
                 scheduled[(sl, c)] = self.add_var(f"scheduled({sl},{c})")
                 for i in self.data.possible_tutors[c]:
-                    assigned[(sl, c, i)] = self.add_var(
-                        f"assigned({sl},{c},{i})"
-                    )
+                    assigned[(sl, c, i)] = self.add_var(f"assigned({sl},{c},{i})")
         return scheduled, assigned
 
     @timer
@@ -294,9 +292,7 @@ class TimetableModel(FlopModel):
         for sl in self.data.courses_slots:
             for c in self.data.compatible_courses[sl]:
                 for rg in self.data.course_rg_compat[c]:
-                    located[(sl, c, rg)] = self.add_var(
-                        f"located({sl},{c},{rg})"
-                    )
+                    located[(sl, c, rg)] = self.add_var(f"located({sl},{c},{rg})")
         return located
 
     @timer

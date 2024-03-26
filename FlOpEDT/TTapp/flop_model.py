@@ -52,12 +52,12 @@ from pulp import (
 
 from base.models import Department, ScheduledCourse
 from core.decorators import timer
-from TTapp.FlopConstraint import all_subclasses
+from TTapp.flop_constraint import all_subclasses
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint_manager import ConstraintManager
-from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.RoomConstraints.room_constraint import RoomConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 logger = logging.getLogger(__name__)
 PATTERN = r".+: (.|\s)+ (=|>=|<=) \d*"

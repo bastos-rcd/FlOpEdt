@@ -47,7 +47,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 import TTapp.models as TimetableClasses
 from base.models import SchedulingPeriod, TrainingProgramme
-from TTapp.TimetableModel import TimetableModel
+from TTapp.timetable_model import TimetableModel
 
 _solver_child_process = 0
 

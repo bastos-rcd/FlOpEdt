@@ -200,22 +200,19 @@ class Constraint:
                 # return ' '.join(';'.join(x))
             return str(x)
 
-        res = [self.id, self.constraint_type.value]
-        for dimension in self.dimensions:
-            res.append(f(self.dimensions[dimension]["value"]))
+        res = [self.id, self.constraint_type.value]  # pylint: disable=no-member
+        for dimension, value in self.dimensions.items():
+            res.append(f(value["value"]))
         return tuple(res)
 
     def __str__(self):
-        res = "(%s) La contrainte " % self.id
+        res = f"({self.id}) La contrainte "  # pylint: disable=no-member
         if self.name:
-            res += '"%s "' % self.name
+            res += f'"{self.name} "'
         if self.constraint_type is not None:
-            res += 'de type "%s" ; ' % self.constraint_type.value
-        for dimension in self.dimensions.keys():
-            if self.dimensions[dimension]["value"]:
-                res += "pour %s %s ; " % (
-                    sing_or_plural(self.dimensions[dimension]),
-                    self.dimensions[dimension]["value"],
-                )
+            res += f'de type "{self.constraint_type.value}" ; '
+        for value in self.dimensions.values():
+            if value["value"]:
+                res += f"pour {sing_or_plural(value)} {value['value']} ; "
         res += "doit être respectée."
         return res

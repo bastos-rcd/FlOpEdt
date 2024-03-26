@@ -28,10 +28,10 @@ from typing import TYPE_CHECKING
 from django.db.models import Q
 
 from core.decorators import timer
-from TTapp.FlopConstraint import FlopConstraint
+from TTapp.flop_constraint import FlopConstraint
 
 if TYPE_CHECKING:
-    from TTapp.TimetableModel import TimetableModel
+    from TTapp.timetable_model import TimetableModel
     from base.models import SchedulingPeriod
 
 from base.models import StructuralGroup

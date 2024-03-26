@@ -28,7 +28,7 @@ import random
 
 from base.models import CourseType, Day, ScheduledCourse, Time
 from TTapp.models import days_filter, days_list, slot_pause, slots_filter
-from TTapp.TimetableModel import max_weight
+from TTapp.timetable_model import max_weight
 
 
 def previous_week(week):
@@ -581,9 +581,11 @@ def basic_cosmo_constraints(ttmodel):
     heures_periode = {}
     for i in ttmodel.data.instructors:
         heures_periode[i] = sum(
-            salaries[i.username][week]
-            if week in salaries[i.username]
-            else salaries[i.username]["base"]
+            (
+                salaries[i.username][week]
+                if week in salaries[i.username]
+                else salaries[i.username]["base"]
+            )
             for week in ttmodel.weeks
         )
     for i in ttmodel.data.instructors:

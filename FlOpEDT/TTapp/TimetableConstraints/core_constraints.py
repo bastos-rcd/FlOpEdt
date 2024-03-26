@@ -59,7 +59,7 @@ from TTapp.ilp_constraints.constraints.slot_instructor_constraint import (
 )
 from TTapp.slots import slots_filter
 from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 
 class NoSimultaneousGroupCourses(TimetableConstraint):

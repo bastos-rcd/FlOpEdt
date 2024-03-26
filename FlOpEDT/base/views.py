@@ -91,7 +91,7 @@ from people.models import (
     UserPreferredLinks,
 )
 
-from TTapp.TimetableUtils import number_courses
+from TTapp.timetable_utils import number_courses
 
 
 logger = logging.getLogger(__name__)
@@ -937,7 +937,7 @@ def fetch_all_modules_with_desc(req, **kwargs):
 def clean_change(
     week, old_version, change, work_copy=0, initiator=None, apply=False, department=None
 ):
-    from TTapp.TimetableUtils import number_courses
+    from TTapp.timetable_utils import number_courses
 
     scheduled_before = True
     renumber = False
