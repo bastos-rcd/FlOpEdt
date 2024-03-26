@@ -1154,7 +1154,6 @@ class HelperUserAvailability:
         return UserAvailability.objects.filter(user=self.tutor)
 
     def generate(self, week, day, start_time, duration, value):
-        # pylint: disable=too-many-arguments
         return UserAvailability(
             user=self.tutor,
             week=week,
@@ -1162,7 +1161,7 @@ class HelperUserAvailability:
             start_time=start_time,
             duration=duration,
             value=value,
-        )
+        )  # pylint: disable=too-many-arguments
 
 
 class HelperCourseAvailability:
@@ -1176,7 +1175,6 @@ class HelperCourseAvailability:
         )
 
     def generate(self, week, day, start_time, duration, value):
-        # pylint: disable=too-many-arguments
         return CourseAvailability(
             train_prog=self.training_programme,
             course_type=self.course_type,
@@ -1185,7 +1183,7 @@ class HelperCourseAvailability:
             start_time=start_time,
             duration=duration,
             value=value,
-        )
+        )  # pylint: disable=too-many-arguments
 
 
 class HelperRoomAvailability:
@@ -1196,7 +1194,6 @@ class HelperRoomAvailability:
         return RoomAvailability.objects.filter(room=self.room)
 
     def generate(self, week, day, start_time, duration, value):
-        # pylint: disable=too-many-arguments
         return RoomAvailability(
             room=self.room,
             week=week,
@@ -1204,7 +1201,7 @@ class HelperRoomAvailability:
             start_time=start_time,
             duration=duration,
             value=value,
-        )
+        )  # pylint: disable=too-many-arguments
 
 
 @tutor_required

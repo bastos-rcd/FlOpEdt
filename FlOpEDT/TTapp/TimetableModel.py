@@ -116,7 +116,7 @@ class TimetableModel(FlopModel):
         post_assign_rooms=True,
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
-        super(TimetableModel, self).__init__(
+        super().__init__(
             department_abbrev,
             periods,
             keep_many_solution_files=keep_many_solution_files,
@@ -339,7 +339,8 @@ class TimetableModel(FlopModel):
                     ),
                 )
 
-                # If IBS == 1, then assigned equals 1 for some OR (other_dep_nb + fixed_courses_nb)> 1
+                # If IBS == 1, then assigned equals 1 for
+                # some OR (other_dep_nb + fixed_courses_nb)> 1
                 self.add_constraint(
                     expr,
                     "<=",
@@ -767,9 +768,6 @@ class TimetableModel(FlopModel):
                     for fc in self.data.fixed_courses_for_avail_slot[sl]
                     if fc.room == rg
                 )
-                # if self.data.fixed_courses.filter((Q(start_time__lt=sl.start_time + sl.duration) |
-                #                                   Q(start_time__gt=sl.start_time - F('course__type__duration'))),
-                #                                  room=rg, day=sl.day).exists():
                 if fcrg:
                     for r in rg.basic_rooms():
                         self.add_constraint(
@@ -937,7 +935,7 @@ class TimetableModel(FlopModel):
         unp_slot_cost = {}
 
         if self.data.holidays:
-            self.add_warning(None, "%s are holidays" % self.data.holidays)
+            self.add_warning(None, f"{self.data.holidays} are holidays")
 
         for i in self.data.instructors:
             avail_instr[i] = {}
@@ -1214,7 +1212,7 @@ class TimetableModel(FlopModel):
         if not MinNonPreferedTutorsSlot.objects.filter(
             department=self.department
         ).exists():
-            M = MinNonPreferedTutorsSlot.objects.create(
+            MinNonPreferedTutorsSlot.objects.create(
                 weight=max_weight, department=self.department
             )
 
@@ -1223,7 +1221,7 @@ class TimetableModel(FlopModel):
         if not MinNonPreferedTrainProgsSlot.objects.filter(
             department=self.department
         ).exists():
-            M = MinNonPreferedTrainProgsSlot.objects.create(
+            MinNonPreferedTrainProgsSlot.objects.create(
                 weight=max_weight, department=self.department
             )
 
@@ -1558,9 +1556,7 @@ class TimetableModel(FlopModel):
                 subject = f"Logs {self.department.abbrev} {self.periods} : not solved"
             else:
                 solved = True
-                subject = (
-                    f"Logs {self.department.abbrev} {self.periods} : copy {target_major}"
-                )
+                subject = f"Logs {self.department.abbrev} {self.periods} : copy {target_major}"
             self.send_gurobi_log_files_email(
                 subject=subject, to=[send_gurobi_logs_email_to], solved=solved
             )
@@ -1595,6 +1591,8 @@ class TimetableModel(FlopModel):
                 open(
                     "%s/constraints_summary%s.txt"
                     % (iis_files_path, self.iis_filename_suffixe()),
+                    mode="r",
+                    encoding="utf-8",
                     errors="replace",
                 ).read()
                 + "\n\n"
@@ -1602,6 +1600,8 @@ class TimetableModel(FlopModel):
             message += open(
                 "%s/constraints_factorised%s.txt"
                 % (iis_files_path, self.iis_filename_suffixe()),
+                mode="r",
+                encoding="utf-8",
                 errors="replace",
             ).read()
 

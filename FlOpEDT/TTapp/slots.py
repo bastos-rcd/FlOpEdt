@@ -31,7 +31,7 @@ from base.models import (
     TimeGeneralSettings,
     UserAvailability,
 )
-from base.timing import Day, Time, days_index, days_list, slot_pause
+from base.timing import Time,  days_list, slot_pause
 
 midday = dt.time(12, 0, 0)
 
@@ -78,11 +78,10 @@ class Slot:
         ):
             return self.date == other.date
 
-        else:
-            raise TypeError(
-                "A slot can only have "
-                "same day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
-            )
+        raise TypeError(
+            "A slot can only have "
+            "same day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
+        )
 
     def has_previous_day_than(self, other):
         if isinstance(
@@ -149,10 +148,6 @@ class CourseSlot(Slot):
             return Time.AM
 
     def __str__(self):
-        hours = self.start_time.hour
-        minuts = self.start_time.minute
-        if minuts == 0:
-            minuts = ""
         return str(self.department) + "_" + str(self.start_time)
 
     def get_periods(self):
