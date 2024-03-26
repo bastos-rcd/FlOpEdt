@@ -16,6 +16,7 @@ unit-test-python:
   coverage: /(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/
   script:
     - cd FlOpEDT
+    - pip freeze | grep psyc
     - python test_db.py
       # TODO: once tests are all using pytest, remove the last `api` argument to run everything
     - pytest --cov --cov-report term:skip-covered --cov-report xml:.reports/pytest/coverage.xml --junitxml=.reports/pytest/junit.xml api

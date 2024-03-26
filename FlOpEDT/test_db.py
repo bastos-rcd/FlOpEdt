@@ -10,7 +10,7 @@ POSTGRES_PASSWORD = os.environ["POSTGRES_PASSWORD"]
 #
 db = psycopg.connect(
     host=POSTGRES_HOST,
-    database=POSTGRES_DB,
+    dbname=POSTGRES_DB,
     user=POSTGRES_USER,
     password=POSTGRES_PASSWORD,
 )
