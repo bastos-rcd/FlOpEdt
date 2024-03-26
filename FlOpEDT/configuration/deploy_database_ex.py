@@ -31,12 +31,10 @@ from random import choice
 from django.db import IntegrityError, transaction
 from openpyxl import load_workbook
 
-from base.models import (CourseAvailability, CourseStartTimeConstraint,
-                         CourseType, Day, Department, GroupType, Module, Room,
-                         RoomType, StructuralGroup, Time, TimeGeneralSettings,
-                         TrainingPeriod, TrainingProgramme, UserAvailability)
+from base.models import (CourseStartTimeConstraint, CourseType,
+                         Day, Department, GroupType, Module, Room, RoomType,
+                         StructuralGroup, TimeGeneralSettings, TrainingPeriod, TrainingProgramme)
 from displayweb.models import TrainingProgrammeDisplay
-from misc.assign_colors import assign_module_color
 from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
 
 media_dir = "media/configuration"
@@ -128,7 +126,6 @@ def tutors_extract(department, book):
                     "A constraint has not been respected creation the Professor : \n",
                     ie,
                 )
-                pass
             else:
                 logger.info(f"create tutor with id:{id}")
         else:
@@ -357,7 +354,6 @@ def groups_extract(department, book):
                     % idTP,
                     ie,
                 )
-                pass
 
         TP_ROW += 1
         idTP = sheet.cell(row=TP_ROW, column=TP_COL).value
@@ -385,7 +381,6 @@ def groups_extract(department, book):
                     % idGroupType,
                     ie,
                 )
-                pass
 
         GT_ROW += 1
         idGroupType = sheet.cell(row=GT_ROW, column=TP_COL).value
@@ -426,7 +421,6 @@ def groups_extract(department, book):
                     % idGroup,
                     ie,
                 )
-                pass
 
         GROUP_ROW += 1
         idGroup = sheet.cell(row=GROUP_ROW, column=1).value
@@ -511,7 +505,6 @@ def groups_extract(department, book):
                     % id_per,
                     ie,
                 )
-                pass
 
         PERIOD_ROW += 1
         id_per = sheet.cell(row=PERIOD_ROW, column=id_per_col).value
@@ -585,7 +578,6 @@ def modules_extract(department, book):
                     % idMod,
                     ie,
                 )
-                pass
 
         MODULE_ROW += 1
 
@@ -656,7 +648,6 @@ def coursetypes_extract(department, book):
                     % idType,
                     ie,
                 )
-                pass
 
         type_row += 1
         idType = sheet.cell(row=type_row, column=1).value

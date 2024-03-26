@@ -2,10 +2,7 @@ import datetime as dt
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from rules import always_allow, always_deny
-from rules.contrib.models import RulesModel
 
-from base.rules import can_push_user_availability, can_view_user_availability
 from base.timing import days_list, get_default_date
 
 

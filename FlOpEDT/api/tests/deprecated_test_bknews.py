@@ -1,7 +1,6 @@
 import pytest
 from rest_framework.test import APIClient
 
-from api.tests.fixtures import department_a
 from base.models import Department
 from displayweb.models import BreakingNews
 

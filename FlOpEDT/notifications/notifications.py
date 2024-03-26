@@ -29,7 +29,6 @@ import json
 import logging
 import os
 
-from django.conf import settings as ds
 from django.core.mail import send_mail
 from django.utils.html import strip_tags
 from django.utils.translation import gettext

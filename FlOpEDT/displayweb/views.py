@@ -1,5 +1,4 @@
 from django.http import HttpResponse
-from django.shortcuts import render
 
 import base.queries as queries
 from base.models import Module, ScheduledCourse

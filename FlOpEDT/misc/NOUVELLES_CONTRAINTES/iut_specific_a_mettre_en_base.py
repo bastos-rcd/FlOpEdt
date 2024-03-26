@@ -26,8 +26,7 @@
 # without disclosing the source code of your own applications.
 
 
-from base.models import (CourseType, Department, Module, StructuralGroup,
-                         TrainingProgramme)
+from base.models import (CourseType, Department, TrainingProgramme)
 from people.models import Tutor
 from TTapp.models import (LimitGroupsTimePerPeriod, LimitModulesTimePerPeriod,
                           LimitTimePerPeriod, MinGroupsHalfDays,

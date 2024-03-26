@@ -33,17 +33,14 @@ from django.db.models import Count, F, Max, Q
 from django.utils.translation import gettext_lazy as _
 
 import base.views as base_views
-from base.models import (Course, CourseModification, CourseStartTimeConstraint,
-                         CourseType, Department, Module, Room,
-                         RoomAvailability, ScheduledCourse, SchedulingPeriod,
-                         TimeGeneralSettings, TimetableVersion, TrainingPeriod,
-                         TrainingProgramme, UserAvailability)
-from base.timing import days_index, str_slot
+from base.models import (Course, CourseType, Module,
+                         Room, ScheduledCourse, SchedulingPeriod, TimetableVersion,
+                         TrainingPeriod, TrainingProgramme, UserAvailability)
+from base.timing import str_slot
 from people.models import Tutor
 from TTapp.FlopConstraint import max_weight
 from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
 from TTapp.RoomModel import RoomModel
-from TTapp.slots import slot_pause
 
 
 def basic_reassign_rooms(department, period, version, create_new_version):

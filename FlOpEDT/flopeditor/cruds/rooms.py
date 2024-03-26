@@ -30,7 +30,7 @@ without disclosing the source code of your own applications.
 from django.http import JsonResponse
 
 from base.models import (BooleanRoomAttributeValue, Department,
-                         NumericRoomAttributeValue, Room, RoomAttribute)
+                         NumericRoomAttributeValue, Room)
 from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE
 
 attributes_list = [] # list(RoomAttribute.objects.all())

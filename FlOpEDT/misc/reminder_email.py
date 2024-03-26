@@ -27,7 +27,7 @@
 
 from django.core.mail import EmailMessage
 
-from base.models import Course, Department
+from base.models import Course
 from people.models import Tutor
 
 

@@ -24,7 +24,6 @@
 # without disclosing the source code of your own applications.
 
 
-from random import randint
 
 from django.http import HttpResponse
 from django.shortcuts import render

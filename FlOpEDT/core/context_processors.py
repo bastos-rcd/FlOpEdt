@@ -1,4 +1,3 @@
-from django.conf import settings
 
 
 def edt_context(request):

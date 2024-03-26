@@ -33,7 +33,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from base.models import Department, SchedulingPeriod, TrainingPeriod
+from base.models import Department, TrainingPeriod
 from base.weeks import current_year
 from configuration.deploy_database import extract_database_file
 from configuration.extract_planif_file import extract_planif

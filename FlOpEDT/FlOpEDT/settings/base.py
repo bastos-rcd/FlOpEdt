@@ -290,7 +290,6 @@ except KeyError:
         "Static directory not defined in configuration file. Let's fall back to %s"
         % STATIC_ROOT
     )
-    pass
 
 # Define cache directory configuration
 try:
@@ -301,7 +300,6 @@ except KeyError:
         "Cache directory not defined in configuration file. Let's fall back to %s"
         % CACHE_DIRECTORY
     )
-    pass
 
 # Define tmp directory configuration
 try:
@@ -312,7 +310,6 @@ except KeyError:
         "Temp directory not defined in configuration file. Let's fall back to %s"
         % TMP_DIRECTORY
     )
-    pass
 
 # Define storage configuration
 try:
@@ -323,7 +320,6 @@ except KeyError:
         "Storage directory not defined in configuration file. Let's fall back to %s"
         % STORAGE_DIRECTORY
     )
-    pass
 
 # Define environment variable for GUROBI license
 try:
@@ -335,7 +331,6 @@ try:
         )
 except KeyError:
     print("WARNING - GUROBI License is not declared. GUROBI solver won't be available")
-    pass
 
 # Define subdirs and other dirs
 MEDIA_ROOT = TMP_DIRECTORY
@@ -522,7 +517,6 @@ except KeyError:
         "Static directory not defined in configuration file. Let's fall back to %s"
         % STATIC_ROOT
     )
-    pass
 
 # Define cache directory configuration
 try:
@@ -533,7 +527,6 @@ except KeyError:
         "Cache directory not defined in configuration file. Let's fall back to %s"
         % CACHE_DIRECTORY
     )
-    pass
 
 # Define tmp directory configuration
 try:
@@ -544,7 +537,6 @@ except KeyError:
         "Temp directory not defined in configuration file. Let's fall back to %s"
         % TMP_DIRECTORY
     )
-    pass
 
 # Define storage configuration
 try:
@@ -555,7 +547,6 @@ except KeyError:
         "Storage directory not defined in configuration file. Let's fall back to %s"
         % STORAGE_DIRECTORY
     )
-    pass
 
 # Define environment variable for GUROBI license
 try:
@@ -567,7 +558,6 @@ try:
         )
 except KeyError:
     print("WARNING - GUROBI License is not declared. GUROBI solver won't be available")
-    pass
 
 # Define subdirs and other dirs
 MEDIA_ROOT = TMP_DIRECTORY

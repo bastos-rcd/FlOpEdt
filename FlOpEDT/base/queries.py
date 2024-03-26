@@ -32,9 +32,9 @@ from django.db.models import Count
 
 from base.models import (Course, CourseStartTimeConstraint, CourseType,
                          Department, GroupType, Regen, Room, RoomType,
-                         ScheduledCourse, SchedulingPeriod, StructuralGroup,
-                         TimeGeneralSettings, TimetableVersion, TrainingPeriod,
-                         TrainingProgramme, TutorCost)
+                         ScheduledCourse, StructuralGroup, TimeGeneralSettings,
+                         TimetableVersion, TrainingPeriod, TrainingProgramme,
+                         TutorCost)
 from displayweb.models import (BreakingNews, GroupDisplay,
                                TrainingProgrammeDisplay)
 from people.models import NotificationsPreferences, ThemesPreferences, Tutor

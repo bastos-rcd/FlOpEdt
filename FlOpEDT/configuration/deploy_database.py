@@ -33,17 +33,15 @@ from random import choice
 from django.conf import settings as ds
 from django.db import IntegrityError, transaction
 
-from base.models import (CourseAvailability, CourseStartTimeConstraint,
-                         CourseType, Department, GenericGroup, GroupType, Mode,
-                         Module, Room, RoomType, SchedulingPeriod,
-                         StructuralGroup, TimeGeneralSettings, TrainingPeriod,
-                         TrainingProgramme, TransversalGroup, UserAvailability)
+from base.models import (CourseStartTimeConstraint, CourseType,
+                         Department, GenericGroup, GroupType, Mode, Module,
+                         Room, RoomType, StructuralGroup, TimeGeneralSettings,
+                         TrainingPeriod, TrainingProgramme, TransversalGroup)
 from configuration.database_description_checker import \
     database_description_check
 from configuration.database_description_xlsx import \
     database_description_load_xlsx_file
 from displayweb.models import TrainingProgrammeDisplay
-from misc.assign_colors import assign_module_color
 from people.models import (FullStaff, SupplyStaff, Tutor, TutorPreference,
                            UserDepartmentSettings)
 
@@ -135,7 +133,6 @@ def people_extract(department, people, fill_default_availabilities=True):
                     "A constraint has not been respected while creating the Professor : \n",
                     ie,
                 )
-                pass
             else:
                 logger.info(f'create tutor with id:{id_}')
 

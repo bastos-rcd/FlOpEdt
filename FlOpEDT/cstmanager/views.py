@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.template.response import TemplateResponse
 
 from base.views import clean_edt_view_params

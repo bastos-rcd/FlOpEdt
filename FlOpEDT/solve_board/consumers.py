@@ -35,12 +35,9 @@ import logging
 import os
 import signal
 import sys
-import time
 import traceback
-from threading import Thread
 
 from channels.generic.websocket import WebsocketConsumer
-from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 

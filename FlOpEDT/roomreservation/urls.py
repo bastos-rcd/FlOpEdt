@@ -21,9 +21,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.urls import path
 
-from roomreservation import views
 
 app_name="roomreservation"
 

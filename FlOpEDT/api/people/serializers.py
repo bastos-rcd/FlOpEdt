@@ -23,7 +23,6 @@
 
 from rest_framework import serializers
 
-import base.models as bm
 import people.models as pm
 from api.fetch.serializers import DepartmentAbbrevSerializer
 

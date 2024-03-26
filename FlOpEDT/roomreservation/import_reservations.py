@@ -25,7 +25,6 @@
 # without disclosing the source code of your own applications.
 
 import configparser
-import csv
 import datetime
 import logging
 import os

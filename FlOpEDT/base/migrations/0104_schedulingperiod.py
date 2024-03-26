@@ -3,9 +3,7 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
-from populate.period import generate_scheduling_periods
 
-import datetime as dt
 
 
 class Migration(migrations.Migration):

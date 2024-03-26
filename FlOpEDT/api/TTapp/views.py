@@ -31,10 +31,8 @@ from django.apps import apps
 from django.conf import settings as ds
 from django.contrib.postgres.fields.array import ArrayField
 from django.http import FileResponse, HttpResponse
-from django.utils.decorators import method_decorator
-from drf_spectacular.utils import OpenApiParameter, extend_schema
-from drf_yasg import openapi
-from rest_framework import generics, viewsets
+from drf_spectacular.utils import extend_schema
+from rest_framework import viewsets
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 

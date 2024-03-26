@@ -30,14 +30,10 @@ import base.queries as queries
 from base.models import (Course, Room, RoomAvailability, RoomSort,
                          ScheduledCourse, TimeGeneralSettings,
                          TimetableVersion)
-from base.timing import Day, flopday_to_date, floptime_to_time
 from core.decorators import timer
 from roomreservation.models import RoomReservation
 from TTapp.FlopConstraint import max_weight
-from TTapp.FlopModel import (GUROBI_NAME, FlopModel, get_room_constraints,
-                             solution_files_path)
-from TTapp.ilp_constraints.constraint import Constraint
-from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.FlopModel import (GUROBI_NAME, FlopModel, get_room_constraints)
 from TTapp.RoomConstraints.RoomConstraint import (ConsiderRoomSorts,
                                                   LimitGroupMoves,
                                                   LimitSimultaneousRoomCourses,

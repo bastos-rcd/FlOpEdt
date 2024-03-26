@@ -32,7 +32,6 @@ from TTapp.FlopConstraint import FlopConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import slots_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 
 
 class RoomConstraint(FlopConstraint):

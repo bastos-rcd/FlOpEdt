@@ -21,8 +21,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.urls import include, path, re_path
-from rest_framework import routers
+from django.urls import include, path
 
 from api.v1.availability.urls import routerAvailability
 from api.v1.base.urls import url_base_patterns

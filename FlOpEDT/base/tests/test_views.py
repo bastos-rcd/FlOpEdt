@@ -1,6 +1,6 @@
 import unittest
 
-from django.test import Client, SimpleTestCase
+from django.test import Client
 from django.urls import reverse
 
 import base.models as models

@@ -1,7 +1,7 @@
 from csv import DictReader
 from datetime import datetime
 
-from base.models import Day, Slot, UserAvailability
+from base.models import Day, UserAvailability
 from people.models import Tutor, User
 
 

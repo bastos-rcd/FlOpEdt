@@ -42,10 +42,9 @@ from base.models import (Course, CourseAdditional, CourseAvailability,
                          TimetableVersion, TrainingHalfDay, TrainingPeriod,
                          TrainingProgramme, TransversalGroup, UserAvailability)
 from core.department import get_model_department_lookup
-from core.filters import (DropdownFilterAll, DropdownFilterRel,
-                          DropdownFilterSimple)
+from core.filters import (DropdownFilterRel, DropdownFilterSimple)
 from displayweb.models import ModuleDisplay, TutorDisplay
-from people.models import Tutor, User
+from people.models import Tutor
 
 logger = logging.getLogger("admin")
 

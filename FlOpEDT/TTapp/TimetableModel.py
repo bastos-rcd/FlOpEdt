@@ -35,16 +35,14 @@ from django.utils.translation import gettext_lazy as _
 from base.models import (GroupCost, GroupFreeHalfDay, ModuleTutorRepartition,
                          RoomAvailability, RoomType, ScheduledCourse,
                          ScheduledCourseAdditional, TimeGeneralSettings,
-                         TimetableVersion, TrainingProgramme, TutorCost,
-                         period_actual_availabilities)
-from base.timing import Time, flopday_to_date, floptime_to_time
+                         TimetableVersion, TrainingProgramme, TutorCost)
+from base.timing import Time
 from core.decorators import timer
 from people.models import Tutor
 from roomreservation.models import RoomReservation
 from TTapp.FlopConstraint import max_weight
 from TTapp.FlopModel import (GUROBI_NAME, FlopModel, get_room_constraints,
-                             get_ttconstraints, gurobi_log_files_path,
-                             iis_files_path, solution_files_path)
+                             get_ttconstraints, iis_files_path)
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint

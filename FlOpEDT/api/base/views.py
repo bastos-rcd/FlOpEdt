@@ -25,18 +25,13 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.http import *
 from django.shortcuts import redirect, render
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.views import APIView
 
 import base.models as bm
 from api.base import serializers
-from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
-from api.shared.params import dept_param, week_param, year_param
+from api.permissions import IsAdminOrReadOnly
 
 # ------------
 # -- GROUPS --

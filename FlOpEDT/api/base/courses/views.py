@@ -28,7 +28,7 @@ from rest_framework import viewsets
 
 import base.models as bm
 from api.base.courses import serializers
-from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
+from api.permissions import IsAdminOrReadOnly
 from api.shared.params import dept_param, week_param, year_param
 from api.shared.views_set import ListGenericViewSet
 

@@ -1,8 +1,6 @@
 from django import forms
-from django.core.files.storage import FileSystemStorage
 from django.core.validators import RegexValidator
 
-from base.models import Department
 
 DAYS = [('m', 'Monday'), ('tu', 'Tuesday'), ('w', 'Wenesday'), ('th', 'Thursday'), ('f', 'Friday')]
 

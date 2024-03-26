@@ -25,17 +25,15 @@ import datetime as dt
 
 from django.db import models
 from django.db.models import Q
-from django.http.response import JsonResponse
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
 from base.models import (Course, CourseStartTimeConstraint, CourseType,
-                         Holiday, Module, ModuleTutorRepartition,
-                         SchedulingPeriod, UserAvailability)
+                         Holiday, Module, ModuleTutorRepartition)
 from base.models.availability import period_actual_availabilities
 from base.partition import Partition
-from base.timing import Day, TimeInterval, flopdate_to_datetime
+from base.timing import TimeInterval
 from core.decorators import timer
 from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint

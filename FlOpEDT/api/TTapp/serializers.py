@@ -26,13 +26,12 @@ from collections import OrderedDict
 from django.contrib.postgres.fields.array import ArrayField
 from django.db import models
 from rest_framework import serializers
-from rest_framework.fields import Field, empty
+from rest_framework.fields import Field
 from rest_framework.serializers import ModelSerializer
 
 import TTapp.TimetableConstraints.tutors_constraints as ttt
 import TTapp.TimetableConstraints.visio_constraints as ttv
 from base.models import Department
-from base.timing import all_possible_start_times
 from TTapp.FlopConstraint import FlopConstraint
 
 # ---------------

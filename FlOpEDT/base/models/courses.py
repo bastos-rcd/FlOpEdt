@@ -1,10 +1,9 @@
-import datetime as dt
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from base.timing import Day, slot_pause
+from base.timing import slot_pause
 
 
 class Module(models.Model):

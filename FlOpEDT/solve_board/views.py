@@ -26,7 +26,6 @@
 import json
 
 import pulp
-from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse, JsonResponse
 # from channels import Group

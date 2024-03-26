@@ -10,8 +10,7 @@ from zeep import Client  # API HP
 from zeep.transports import Transport  # API HP
 
 from base.models import (Course, CourseType, GenericGroup, Module, RoomType,
-                         StructuralGroup, TransversalGroup, Week)
-from misc.assign_colors import assign_module_color
+                         Week)
 from people.models import Tutor
 
 

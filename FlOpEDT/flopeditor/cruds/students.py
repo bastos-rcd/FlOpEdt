@@ -31,8 +31,7 @@ This module is used to create, read, update and/or delete a group type
 
 from django.http import JsonResponse
 
-from base.models import (GenericGroup, GroupType, StructuralGroup,
-                         TrainingProgramme, TransversalGroup)
+from base.models import (GenericGroup, TrainingProgramme)
 from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE,
                                   student_groups_from_full_names,
                                   validate_student_values)

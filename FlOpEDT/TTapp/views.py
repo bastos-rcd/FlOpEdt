@@ -24,10 +24,8 @@
 # without disclosing the source code of your own applications.
 
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
-from django.utils.translation import gettext as _
 
-from base.models import ScheduledCourse, SchedulingPeriod
+from base.models import ScheduledCourse
 from MyFlOp import MyTimetableUtils
 from TTapp.admin import GroupsLunchBreakResource
 from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak

@@ -1,4 +1,3 @@
-from django.db.models import Q
 from django.shortcuts import render
 
 import base.queries as queries

@@ -28,8 +28,7 @@ without disclosing the source code of your own applications.
 
 from django.http import JsonResponse
 
-from base.models import (Department, PeriodEnum, SchedulingPeriod,
-                         TrainingPeriod)
+from base.models import (Department, SchedulingPeriod, TrainingPeriod)
 from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE,
                                   validate_training_period_values)
 

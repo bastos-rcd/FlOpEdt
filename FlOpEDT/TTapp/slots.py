@@ -27,7 +27,7 @@ import datetime as dt
 
 from base.models import (CourseAvailability, ScheduledCourse,
                          TimeGeneralSettings, UserAvailability)
-from base.timing import Day, Time, days_index, days_list, slot_pause
+from base.timing import Time, days_list, slot_pause
 
 midday = dt.time(12, 0, 0)
 

@@ -21,9 +21,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.contrib.staticfiles.storage import staticfiles_storage
-from django.urls import include, path
-from django.views.generic import RedirectView
+from django.urls import path
 
 from . import views
 

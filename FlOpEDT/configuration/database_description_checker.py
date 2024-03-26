@@ -107,7 +107,6 @@
 # - main checker
 
 import datetime as dt
-import operator
 
 people_sheet = 'Intervenants'
 rooms_sheet = 'Salles'
