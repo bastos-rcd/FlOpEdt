@@ -1,9 +1,10 @@
-from django.test import TestCase
-from unittest.mock import patch
 from unittest import skip
+from unittest.mock import patch
 
-from TTapp.TimetableModel import TimetableModel
+from django.test import TestCase
+
 import base.models as models
+from TTapp.TimetableModel import TimetableModel
 
 
 def mock_optimize(self, time_limit=300, solver="CBC", presolve=2):
@@ -17,7 +18,6 @@ def mock_add_tt_to_db(target_work_copy):
 
 
 class TimetableModelTestCase(TestCase):
-
     fixtures = ["dump.json"]
 
     @property

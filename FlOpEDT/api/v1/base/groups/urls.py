@@ -21,6 +21,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 from rest_framework import routers
+
 from api.v1.base.groups import views as groups_views
 
 routerGroup = routers.SimpleRouter()

@@ -1,10 +1,10 @@
 import rest_framework.serializers as rf_s
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, viewsets
 
-from drf_spectacular.utils import extend_schema
+import base.models as bm
 
 from . import serializers
-import base.models as bm
 
 
 class TimetableVersionQueryParamsSerializer(rf_s.Serializer):
@@ -23,7 +23,9 @@ class TimetableVersionViewSet(viewsets.ReadOnlyModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return bm.TimetableVersion.objects.none()
 
-        qp_serializer = TimetableVersionQueryParamsSerializer(data=self.request.query_params)
+        qp_serializer = TimetableVersionQueryParamsSerializer(
+            data=self.request.query_params
+        )
         qp_serializer.is_valid(raise_exception=True)
         qp_params = qp_serializer.validated_data
 

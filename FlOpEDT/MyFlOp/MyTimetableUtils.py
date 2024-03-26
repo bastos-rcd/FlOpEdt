@@ -26,21 +26,25 @@
 # without disclosing the source code of your own applications.
 import functools
 
-from TTapp.TimetableUtils import basic_reassign_rooms, basic_swap_version, \
-    basic_delete_version, basic_duplicate_version, basic_delete_all_unused_versions, \
-    duplicate_what_can_be_in_other_periods, number_courses
-from base.models import ScheduledCourse, Department, SchedulingPeriod, TimetableVersion
+from base.models import Department, ScheduledCourse, SchedulingPeriod, TimetableVersion
 from people.models import Tutor
+from TTapp.TimetableUtils import (
+    basic_delete_all_unused_versions,
+    basic_delete_version,
+    basic_duplicate_version,
+    basic_reassign_rooms,
+    basic_swap_version,
+    duplicate_what_can_be_in_other_periods,
+    number_courses,
+)
 
 
 def resolve_department(func):
-
     # Replace department attribute by the target
     # department instance if needed
 
     @functools.wraps(func)
     def _wraper_function(department, *args, **kwargs):
-
         if type(department) is str:
             department = Department.objects.get(abbrev=department)
 
@@ -48,14 +52,25 @@ def resolve_department(func):
 
     return _wraper_function
 
-def print_differences(department, periods, old_version, new_version, tutors=Tutor.objects.all()):
+
+def print_differences(
+    department, periods, old_version, new_version, tutors=Tutor.objects.all()
+):
     for period in periods:
         print("For", period)
         for tutor in tutors:
-            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, version=old_version, course__period=period,
-                                                 course__type__department=department)
-            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, version=new_version, course__period=period,
-                                                 course__type__department=department)
+            SCa = ScheduledCourse.objects.filter(
+                course__tutor=tutor,
+                version=old_version,
+                course__period=period,
+                course__type__department=department,
+            )
+            SCb = ScheduledCourse.objects.filter(
+                course__tutor=tutor,
+                version=new_version,
+                course__period=period,
+                course__type__department=department,
+            )
             slots_a = set([x.start_time for x in SCa])
             slots_b = set([x.start_time for x in SCb])
             if slots_a ^ slots_b:
@@ -71,14 +86,18 @@ def print_differences(department, periods, old_version, new_version, tutors=Tuto
 @resolve_department
 def reassign_rooms(department, period_id, major, create_new_version=True):
     period = SchedulingPeriod.objects.get(id=period_id)
-    version = TimetableVersion.objects.get(department=department, period=period, major=major)
-    result = basic_reassign_rooms(department, period, version, create_new_version=create_new_version)
+    version = TimetableVersion.objects.get(
+        department=department, period=period, major=major
+    )
+    result = basic_reassign_rooms(
+        department, period, version, create_new_version=create_new_version
+    )
     return result
 
 
 @resolve_department
 def swap_version(department, period_id, copy_a, copy_b=0):
-    result = {'status':'OK', 'more':''}
+    result = {"status": "OK", "more": ""}
     period = SchedulingPeriod.objects.get(id=period_id)
     basic_swap_version(department, period, copy_a, copy_b)
     return result
@@ -87,7 +106,9 @@ def swap_version(department, period_id, copy_a, copy_b=0):
 @resolve_department
 def delete_version(department, period_id, major):
     period = SchedulingPeriod.objects.get(id=period_id)
-    version = TimetableVersion.objects.get(department=department, period=period, major=major)
+    version = TimetableVersion.objects.get(
+        department=department, period=period, major=major
+    )
     return basic_delete_version(department, period, version)
 
 
@@ -100,14 +121,18 @@ def delete_all_unused_work_copies(department, period_id):
 @resolve_department
 def duplicate_version(department, period_id, major):
     period = SchedulingPeriod.objects.get(id=period_id)
-    version = TimetableVersion.objects.get(department=department, period=period, major=major)
+    version = TimetableVersion.objects.get(
+        department=department, period=period, major=major
+    )
     return basic_duplicate_version(department, period, version)
 
 
 @resolve_department
 def duplicate_in_other_periods(department, period_id, major):
     period = SchedulingPeriod.objects.get(id=period_id)
-    version = TimetableVersion.objects.get(department=department, period=period, major=major)
+    version = TimetableVersion.objects.get(
+        department=department, period=period, major=major
+    )
     return duplicate_what_can_be_in_other_periods(department, period, version)
 
 

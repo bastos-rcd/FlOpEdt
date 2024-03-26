@@ -26,61 +26,69 @@
  ---------------------------
 """
 import datetime as dt
-from datetime import date, time, datetime
-import base.models as bm
+from datetime import date, datetime, time
+
 from django.utils.translation import gettext_lazy as _
+
+import base.models as bm
 
 slot_pause = dt.timedelta(minutes=30)
 
+
 class Day(object):
-  MONDAY = "m"
-  TUESDAY = "tu"
-  WEDNESDAY = "w"
-  THURSDAY = "th"
-  FRIDAY = "f"
-  SATURDAY = "sa"
-  SUNDAY = "su"
+    MONDAY = "m"
+    TUESDAY = "tu"
+    WEDNESDAY = "w"
+    THURSDAY = "th"
+    FRIDAY = "f"
+    SATURDAY = "sa"
+    SUNDAY = "su"
 
-  CHOICES = ((MONDAY, _("monday")), (TUESDAY, _("tuesday")),
-              (WEDNESDAY, _("wednesday")), (THURSDAY, _("thursday")),
-              (FRIDAY, _("friday")), (SATURDAY, _("saturday")),
-              (SUNDAY, _("sunday")))
+    CHOICES = (
+        (MONDAY, _("monday")),
+        (TUESDAY, _("tuesday")),
+        (WEDNESDAY, _("wednesday")),
+        (THURSDAY, _("thursday")),
+        (FRIDAY, _("friday")),
+        (SATURDAY, _("saturday")),
+        (SUNDAY, _("sunday")),
+    )
 
-  def __init__(self, day, week):
-      self.day = day
-      self.week = week
+    def __init__(self, day, week):
+        self.day = day
+        self.week = week
 
-  def __str__(self):
-      # return self.nom[:3]
-      return self.day + '_s' + str(self.week)
+    def __str__(self):
+        # return self.nom[:3]
+        return self.day + "_s" + str(self.week)
 
-  def __repr__(self):
-      return self.day + '_s' + str(self.week)
+    def __repr__(self):
+        return self.day + "_s" + str(self.week)
 
-  def equals(self, other):
-      if isinstance(other, Day):
-          return self.week == other.week and self.day == other.day
-      else:
-          return False
+    def equals(self, other):
+        if isinstance(other, Day):
+            return self.week == other.week and self.day == other.day
+        else:
+            return False
 
-  def __lt__(self, other):
-      if isinstance(other, Day):
-          return days_index[self.day] < days_index[other.day]
-      else:
-          return False
+    def __lt__(self, other):
+        if isinstance(other, Day):
+            return days_index[self.day] < days_index[other.day]
+        else:
+            return False
 
-  def __gt__(self, other):
-      if isinstance(other, Day):
-          return days_index[self.day] > days_index[other.day]
-      else:
-          return False
+    def __gt__(self, other):
+        if isinstance(other, Day):
+            return days_index[self.day] > days_index[other.day]
+        else:
+            return False
 
-  def __le__(self, other):
-      return self.equals(other) or self < other
+    def __le__(self, other):
+        return self.equals(other) or self < other
 
-  def __ge__(self, other):
-      return self.equals(other) or self > other
-    
+    def __ge__(self, other):
+        return self.equals(other) or self > other
+
 
 days_list = [c[0] for c in Day.CHOICES]
 days_index = {}
@@ -155,8 +163,9 @@ def time_to_str(t, sep=":"):
 ################################################################
 ###TRANSLATION FUNCTIONS BETWEEN FLOPDATES AND PYTHON'S DATES###
 
-#Returns the index of the first monday of the given year.
-#Argument "day" being a flop_day type
+
+# Returns the index of the first monday of the given year.
+# Argument "day" being a flop_day type
 def first_day_first_week(day):
     year = day.week.year
     if year == 0:
@@ -164,13 +173,13 @@ def first_day_first_week(day):
     i = 1
     first = datetime(year, 1, i)
     while first.weekday() != 0:
-        i+=1
+        i += 1
         first = datetime(year, 1, i)
     return i - 1
 
 
-#Takes a day (with week and year) and a starting time
-#and returns the datetime object corresponding
+# Takes a day (with week and year) and a starting time
+# and returns the datetime object corresponding
 def flopdate_to_datetime(day: Day, time):
     day_date = flopday_to_date(day)
     time_day = floptime_to_time(time)
@@ -178,15 +187,15 @@ def flopdate_to_datetime(day: Day, time):
 
 
 ##Takes a day (with week and year)
-#and returns the date object corresponding
+# and returns the date object corresponding
 def flopday_to_date(day):
-    us_day_index = (days_index[day.day] + 1)%7
+    us_day_index = (days_index[day.day] + 1) % 7
     if day.week is None:
         day_string = f"0001-1-{us_day_index}"
     else:
         four_digit_year = str(day.week.year)
         if len(four_digit_year) < 4:
-            four_digit_year = (4 - len(four_digit_year)) * '0' + four_digit_year
+            four_digit_year = (4 - len(four_digit_year)) * "0" + four_digit_year
         day_string = f"{four_digit_year}-{day.week.nb}-{us_day_index}"
     return datetime.strptime(day_string, "%Y-%W-%w").date()
 
@@ -194,13 +203,13 @@ def flopday_to_date(day):
 # Takes a starting time and returns the time object corresponding
 # TODO: The result does not work if time is 24:00 .....
 def floptime_to_time(time_minutes):
-    if time_minutes == 24*60:
-        return time(0,0)
-    return time(time_minutes//60, time_minutes%60)
+    if time_minutes == 24 * 60:
+        return time(0, 0)
+    return time(time_minutes // 60, time_minutes % 60)
 
 
 def time_to_floptime(time_data):
-    return time_data.hour*60 + time_data.minute
+    return time_data.hour * 60 + time_data.minute
 
 
 def date_to_flopday(date) -> Day:
@@ -214,19 +223,22 @@ def datetime_to_floptime(datetime):
     flopday = date_to_flopday(datetime.date())
     floptime = time_to_floptime(datetime.time())
     return flopday, floptime
+
+
 ###TRANSLATION FUNCTIONS BETWEEN FLOPDATES AND PYTHON'S DATES###
 ################################################################
+
 
 # will not be used
 # TO BE DELETED at the end
 class Time:
-    AM = 'AM'
-    PM = 'PM'
-    HALF_DAY_CHOICES = ((AM, _('AM')), (PM, _('PM')))
+    AM = "AM"
+    PM = "PM"
+    HALF_DAY_CHOICES = ((AM, _("AM")), (PM, _("PM")))
+
 
 class TimeInterval(object):
-
-    #date_start, date_end : datetime
+    # date_start, date_end : datetime
     def __init__(self, date_start, date_end):
         if date_start > date_end:
             self.start = date_end
@@ -236,47 +248,61 @@ class TimeInterval(object):
             self.end = date_end
 
     def __str__(self):
-        return f'//intervalle: {self.start} ---> {self.end} //'
+        return f"//intervalle: {self.start} ---> {self.end} //"
 
     def __repr__(self):
-        return f'//intervalle: {self.start} ---> {self.end} //'
+        return f"//intervalle: {self.start} ---> {self.end} //"
 
     def __eq__(self, other):
-        return isinstance(other, TimeInterval) and self.start == other.start and self.end == other.end
+        return (
+            isinstance(other, TimeInterval)
+            and self.start == other.start
+            and self.end == other.end
+        )
 
-    #An interval is considered less than another one if
-    #it ends before or at the same time the other one starts
+    # An interval is considered less than another one if
+    # it ends before or at the same time the other one starts
     def __lt__(self, other):
         return isinstance(other, TimeInterval) and self.end <= other.start
 
-    #An interval is considered greater than another one if
-    #it starts after or at the same time the other one ends
+    # An interval is considered greater than another one if
+    # it starts after or at the same time the other one ends
     def __gt__(self, other):
         return isinstance(other, TimeInterval) and self.start >= other.end
-    
-    #An interval is considered greater or equal to another one if
-    #it starts and ends after or at the same moment
-    def __ge__(self, other):
-        return isinstance(other, TimeInterval) and self.start >= other.start and self.end >= other.end
 
-    #An interval is considered less or equal to another one if
-    #it starts and ends before or at the same moment
+    # An interval is considered greater or equal to another one if
+    # it starts and ends after or at the same moment
+    def __ge__(self, other):
+        return (
+            isinstance(other, TimeInterval)
+            and self.start >= other.start
+            and self.end >= other.end
+        )
+
+    # An interval is considered less or equal to another one if
+    # it starts and ends before or at the same moment
     def __le__(self, other):
-        return isinstance(other, TimeInterval) and self.start <= other.start and self.end <= other.end
+        return (
+            isinstance(other, TimeInterval)
+            and self.start <= other.start
+            and self.end <= other.end
+        )
 
     @property
     def duration(self):
-      #datetime1 - datetime2 = timedelta
-      return abs(self.start - self.end)
-    
-    #Build a TimeInterval from a Flop-based day date type
+        # datetime1 - datetime2 = timedelta
+        return abs(self.start - self.end)
+
+    # Build a TimeInterval from a Flop-based day date type
     @staticmethod
-    def from_flop_date(day, start_time, duration = None, end_time = None):
+    def from_flop_date(day, start_time, duration=None, end_time=None):
         if not duration and not end_time:
             return None
         if not end_time:
             end_time = start_time + duration
-        return TimeInterval(flopdate_to_datetime(day, start_time), flopdate_to_datetime(day, end_time))
+        return TimeInterval(
+            flopdate_to_datetime(day, start_time), flopdate_to_datetime(day, end_time)
+        )
 
 
 def all_possible_start_times(department):
@@ -288,11 +314,12 @@ def all_possible_start_times(department):
     apst_list.sort()
     return apst_list
 
+
 def get_default_date(date):
-    return dt.date.fromisocalendar(1, 1, date.weekday()+1)
+    return dt.date.fromisocalendar(1, 1, date.weekday() + 1)
 
 
-def add_duration_to_time(time:dt.time, duration:dt.timedelta):
+def add_duration_to_time(time: dt.time, duration: dt.timedelta):
     return (dt.datetime.combine(dt.date.today(), time) + duration).time()
 
 
@@ -302,5 +329,6 @@ def get_all_scheduling_periods(department):
     elif department.timegeneralsettings.scheduling_period_mode == bm.PeriodEnum.CUSTOM:
         return department.schedulingperiod_set.all()
     else:
-        return bm.SchedulingPeriod.objects.filter(mode=department.timegeneralsettings.scheduling_period_mode)
-    
+        return bm.SchedulingPeriod.objects.filter(
+            mode=department.timegeneralsettings.scheduling_period_mode
+        )

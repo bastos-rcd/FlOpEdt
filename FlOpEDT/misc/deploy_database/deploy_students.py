@@ -24,10 +24,12 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import csv
+
 from django.db import transaction
+
 from base.models import StructuralGroup
 from people.models import Student, UserDepartmentSettings
-import csv
 
 
 @transaction.atomic
@@ -35,19 +37,19 @@ def extract_students_file(file_name, department, train_prog):
     file = open(file_name)
     reader = csv.DictReader(file)
     for row in reader:
-        last_name = row['nom']
-        first_name = row['prenom']
-        email = row['email']
-        gp_name = row['groupe']
-        username = email.split('@')[0]
+        last_name = row["nom"]
+        first_name = row["prenom"]
+        email = row["email"]
+        gp_name = row["groupe"]
+        username = email.split("@")[0]
         group = StructuralGroup.objects.get(train_prog=train_prog, name=gp_name)
-        S, created =Student.objects.get_or_create(username = username)
-        S.first_name=first_name
-        S.last_name=last_name
-        S.email=email
+        S, created = Student.objects.get_or_create(username=username)
+        S.first_name = first_name
+        S.last_name = last_name
+        S.email = email
         S.save()
         if created:
-            S.set_password('patate_en_carton')
+            S.set_password("patate_en_carton")
         S.generic_groups.clear()
         S.generic_groups.add(group)
         S.is_student = True

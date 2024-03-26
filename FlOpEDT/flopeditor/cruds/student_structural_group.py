@@ -30,8 +30,13 @@ This module is used to create, read, update and/or delete a group type
 """
 
 from django.http import JsonResponse
-from base.models import StructuralGroup, TrainingProgramme, GroupType, TransversalGroup
-from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_student_structural_groups_values
+
+from base.models import GroupType, StructuralGroup, TrainingProgramme, TransversalGroup
+from flopeditor.validator import (
+    ERROR_RESPONSE,
+    OK_RESPONSE,
+    validate_student_structural_groups_values,
+)
 
 
 def read(department):
@@ -44,15 +49,17 @@ def read(department):
 
     """
     groups = StructuralGroup.objects.filter(
-        train_prog__in=TrainingProgramme.objects.filter(department=department))
+        train_prog__in=TrainingProgramme.objects.filter(department=department)
+    )
     values = []
     parents_choices = []
     for group in groups:
         parents = []
         for parent in group.parent_groups.all():
             parents.append(parent.name)
-        values.append((group.name, group.train_prog.abbrev,
-                       parents, group.type.name, group.size))
+        values.append(
+            (group.name, group.train_prog.abbrev, parents, group.type.name, group.size)
+        )
         parents_choices.append(group.name)
 
     train_prog_choices = []
@@ -63,36 +70,30 @@ def read(department):
     for type_choice in GroupType.objects.filter(department=department):
         type_choices.append(type_choice.name)
 
-    return JsonResponse({
-        "columns":  [{
-            'name': 'Nom',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Promo',
-            "type": "select",
-            "options": {
-                "values": train_prog_choices
-            }
-        }, {
-            'name': 'Sous-groupe de...',
-            "type": "select-chips",
-            "options": {
-                "values": parents_choices
-            }
-        }, {
-            'name': 'Nature',
-            "type": "select",
-            "options": {
-                "values": type_choices
-            }
-        }, {
-            'name': 'Taille',
-            "type": "int",
-            "options": {}
-        }],
-        "values": values
-    })
+    return JsonResponse(
+        {
+            "columns": [
+                {"name": "Nom", "type": "text", "options": {}},
+                {
+                    "name": "Promo",
+                    "type": "select",
+                    "options": {"values": train_prog_choices},
+                },
+                {
+                    "name": "Sous-groupe de...",
+                    "type": "select-chips",
+                    "options": {"values": parents_choices},
+                },
+                {
+                    "name": "Nature",
+                    "type": "select",
+                    "options": {"values": type_choices},
+                },
+                {"name": "Taille", "type": "int", "options": {}},
+            ],
+            "values": values,
+        }
+    )
 
 
 def create(entries, department):
@@ -105,37 +106,48 @@ def create(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
+    entries["result"] = []
 
-    for i in range(len(entries['new_values'])):
-        new_name = entries['new_values'][i][0]
-        new_tp_abbrev = entries['new_values'][i][1]
-        new_type_name = entries['new_values'][i][3]
+    for i in range(len(entries["new_values"])):
+        new_name = entries["new_values"][i][0]
+        new_tp_abbrev = entries["new_values"][i][1]
+        new_type_name = entries["new_values"][i][3]
 
         try:
             train = TrainingProgramme.objects.get(
-                abbrev=new_tp_abbrev, department=department)
-            gtype = GroupType.objects.get(
-                name=new_type_name, department=department)
+                abbrev=new_tp_abbrev, department=department
+            )
+            gtype = GroupType.objects.get(name=new_type_name, department=department)
             new_parents = []
-            for group_name in entries['new_values'][i][2]:
-                new_parents.append(StructuralGroup.objects.get(
-                    name=group_name, train_prog=train))
+            for group_name in entries["new_values"][i][2]:
+                new_parents.append(
+                    StructuralGroup.objects.get(name=group_name, train_prog=train)
+                )
 
-            if validate_student_structural_groups_values(entries['new_values'][i], entries):
-                if TransversalGroup.objects.filter(name=new_name, train_prog=train).exists() \
-                        or StructuralGroup.objects.filter(name=new_name, train_prog=train).exists():
-                    entries['result'].append([
-                        ERROR_RESPONSE,
-                        "un groupe de ce nom existe déjà dans cette promo."
-                    ])
+            if validate_student_structural_groups_values(
+                entries["new_values"][i], entries
+            ):
+                if (
+                    TransversalGroup.objects.filter(
+                        name=new_name, train_prog=train
+                    ).exists()
+                    or StructuralGroup.objects.filter(
+                        name=new_name, train_prog=train
+                    ).exists()
+                ):
+                    entries["result"].append(
+                        [
+                            ERROR_RESPONSE,
+                            "un groupe de ce nom existe déjà dans cette promo.",
+                        ]
+                    )
                 else:
-
                     group = StructuralGroup.objects.create(
                         name=new_name,
-                        size=entries['new_values'][i][4],
+                        size=entries["new_values"][i][4],
                         train_prog=train,
-                        type=gtype)
+                        type=gtype,
+                    )
                     group.basic = True
 
                     for parent in new_parents:
@@ -143,16 +155,17 @@ def create(entries, department):
                         group.parent_groups.add(parent)
 
                     group.save()
-                    entries['result'].append([OK_RESPONSE])
+                    entries["result"].append([OK_RESPONSE])
 
         except (TrainingProgramme.DoesNotExist, GroupType.DoesNotExist):
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Erreur en base de données."])
+            entries["result"].append([ERROR_RESPONSE, "Erreur en base de données."])
         except StructuralGroup.DoesNotExist:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Un groupe ne peut-être le sous-groupe que d'un groupe de la même promo."])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Un groupe ne peut-être le sous-groupe que d'un groupe de la même promo.",
+                ]
+            )
 
     return entries
 
@@ -166,63 +179,71 @@ def update(entries, department):
     :return: Server response for the request.
     :rtype:  django.http.JsonResponse
     """
-    entries['result'] = []
-    if len(entries['old_values']) != len(entries['new_values']):
+    entries["result"] = []
+    if len(entries["old_values"]) != len(entries["new_values"]):
         return entries
 
-    for i in range(len(entries['old_values'])):
-        if not validate_student_structural_groups_values(entries['new_values'][i], entries):
+    for i in range(len(entries["old_values"])):
+        if not validate_student_structural_groups_values(
+            entries["new_values"][i], entries
+        ):
             return entries
 
-        old_name = entries['old_values'][i][0]
-        old_tp_abbrev = entries['old_values'][i][1]
+        old_name = entries["old_values"][i][0]
+        old_tp_abbrev = entries["old_values"][i][1]
 
-        new_name = entries['new_values'][i][0]
-        new_tp_abbrev = entries['new_values'][i][1]
-        new_type_name = entries['new_values'][i][3]
+        new_name = entries["new_values"][i][0]
+        new_tp_abbrev = entries["new_values"][i][1]
+        new_type_name = entries["new_values"][i][3]
 
         try:
             old_train = TrainingProgramme.objects.get(
-                abbrev=old_tp_abbrev, department=department)
+                abbrev=old_tp_abbrev, department=department
+            )
             new_train = TrainingProgramme.objects.get(
-                abbrev=new_tp_abbrev, department=department)
-            new_gtype = GroupType.objects.get(
-                name=new_type_name, department=department)
+                abbrev=new_tp_abbrev, department=department
+            )
+            new_gtype = GroupType.objects.get(name=new_type_name, department=department)
 
-            if (new_name != old_name or new_tp_abbrev != old_tp_abbrev) and \
-            StructuralGroup.objects.filter(name=new_name, train_prog=new_train):
-                entries['result'].append([
-                    ERROR_RESPONSE,
-                    "un groupe de ce nom existe déjà dans cette promo."
-                ])
+            if (
+                new_name != old_name or new_tp_abbrev != old_tp_abbrev
+            ) and StructuralGroup.objects.filter(name=new_name, train_prog=new_train):
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "un groupe de ce nom existe déjà dans cette promo.",
+                    ]
+                )
                 return entries
 
             group = StructuralGroup.objects.get(name=old_name, train_prog=old_train)
             group.train_prog = new_train
             group.name = new_name
-            group.size = entries['new_values'][i][4]
+            group.size = entries["new_values"][i][4]
             group.type = new_gtype
             group.basic = True
 
             group.parent_groups.remove(*group.parent_groups.all())
-            for group_name in entries['new_values'][i][2]:
+            for group_name in entries["new_values"][i][2]:
                 group.basic = False
                 parent = StructuralGroup.objects.get(
-                    name=group_name, train_prog=new_train)
+                    name=group_name, train_prog=new_train
+                )
                 group.parent_groups.add(parent)
 
             group.save()
-            entries['result'].append([OK_RESPONSE])
+            entries["result"].append([OK_RESPONSE])
 
         except (TrainingProgramme.DoesNotExist, GroupType.DoesNotExist):
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Erreur en base de données."])
+            entries["result"].append([ERROR_RESPONSE, "Erreur en base de données."])
 
         except StructuralGroup.DoesNotExist:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Un groupe ne peut-être le sous-groupe que d'un groupe de la même promo."])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Un groupe ne peut-être le sous-groupe que d'un groupe de la même promo.",
+                ]
+            )
 
     return entries
 
@@ -237,17 +258,16 @@ def delete(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
-        old_tp_abbrev = entries['old_values'][i][1]
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
+        old_tp_abbrev = entries["old_values"][i][1]
         try:
             train = TrainingProgramme.objects.get(
-                abbrev=old_tp_abbrev, department=department)
+                abbrev=old_tp_abbrev, department=department
+            )
             StructuralGroup.objects.get(name=old_name, train_prog=train).delete()
-            entries['result'].append([OK_RESPONSE])
+            entries["result"].append([OK_RESPONSE])
         except (GroupType.DoesNotExist, TrainingProgramme.DoesNotExist):
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Erreur en base de données."])
+            entries["result"].append([ERROR_RESPONSE, "Erreur en base de données."])
     return entries

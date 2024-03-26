@@ -21,33 +21,29 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import django_filters.rest_framework as filters
-from drf_spectacular.utils import (
-    extend_schema,
-    OpenApiParameter,
-    PolymorphicProxySerializer,
-)
-import rest_framework as rf
-from rest_framework import viewsets
-from rest_framework import exceptions
-from rest_framework import serializers as rf_s
-from rest_framework import permissions
+import datetime as dt
 
-from django.utils.decorators import method_decorator
+import django_filters.rest_framework as filters
+import rest_framework as rf
+from django.apps import apps
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
-
-from django.apps import apps
+from django.utils.decorators import method_decorator
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    PolymorphicProxySerializer,
+    extend_schema,
+)
+from rest_framework import exceptions, permissions
+from rest_framework import serializers as rf_s
+from rest_framework import viewsets
 
 import base.models as bm
 import people.models as pm
+from api.permissions import IsAdminOrReadOnly
+from base.timing import date_to_flopday, days_index, days_list
 
 from . import serializers
-
-from api.permissions import IsAdminOrReadOnly
-
-from base.timing import date_to_flopday, days_list, days_index
-import datetime as dt
 
 
 class ScheduledCourseHumanQueryParamsSerializer(rf_s.Serializer):
@@ -191,7 +187,6 @@ class ScheduledCoursesJoinedViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.ScheduledCoursesSerializer
 
     def get_queryset(self):
-
         if getattr(self, "swagger_fake_view", False):
             return bm.ScheduledCourse.objects.none()
 

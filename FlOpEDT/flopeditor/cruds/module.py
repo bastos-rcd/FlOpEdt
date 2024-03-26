@@ -28,10 +28,11 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
+
 from base.models import Module, TrainingPeriod, TrainingProgramme
 from displayweb.models import ModuleDisplay
+from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE, validate_module_values
 from people.models import Tutor
-from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_module_values
 
 
 def read(department):
@@ -45,7 +46,8 @@ def read(department):
     """
 
     modules = Module.objects.filter(
-        train_prog__in=TrainingProgramme.objects.filter(department=department))
+        train_prog__in=TrainingProgramme.objects.filter(department=department)
+    )
 
     values = []
     for module in modules:
@@ -120,24 +122,24 @@ def create(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    for i in range(len(entries['new_values'])):
-        if not validate_module_values(entries['new_values'][i], entries):
+    entries["result"] = []
+    for i in range(len(entries["new_values"])):
+        if not validate_module_values(entries["new_values"][i], entries):
             pass
         elif Module.objects.filter(
-                abbrev=entries['new_values'][i][0],
-                train_prog__in=TrainingProgramme.objects.filter(department=department)):
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Un module de ce nom existe déjà dans ce départment"
-            ])
+            abbrev=entries["new_values"][i][0],
+            train_prog__in=TrainingProgramme.objects.filter(department=department),
+        ):
+            entries["result"].append(
+                [ERROR_RESPONSE, "Un module de ce nom existe déjà dans ce départment"]
+            )
         else:
             try:
                 module = Module.objects.create(
-                    abbrev=entries['new_values'][i][0],
-                    ppn=entries['new_values'][i][1],
-                    name=entries['new_values'][i][2],
-                    description=entries['new_values'][i][3],
+                    abbrev=entries["new_values"][i][0],
+                    ppn=entries["new_values"][i][1],
+                    name=entries["new_values"][i][2],
+                    description=entries["new_values"][i][3],
                     train_prog=TrainingProgramme.objects.get(
                         name=entries["new_values"][i][4], department=department
                     ),
@@ -168,33 +170,42 @@ def update(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    if len(entries['old_values']) != len(entries['new_values']):
+    entries["result"] = []
+    if len(entries["old_values"]) != len(entries["new_values"]):
         return entries
 
-    for i in range(len(entries['new_values'])):
-        if validate_module_values(entries['new_values'][i], entries):
+    for i in range(len(entries["new_values"])):
+        if validate_module_values(entries["new_values"][i], entries):
             try:
                 module = Module.objects.get(
-                    abbrev=entries['old_values'][i][0],
-                    train_prog__in=TrainingProgramme.objects.filter(department=department))
+                    abbrev=entries["old_values"][i][0],
+                    train_prog__in=TrainingProgramme.objects.filter(
+                        department=department
+                    ),
+                )
 
-                if entries['old_values'][i][0] != entries['new_values'][i][0] and \
-                    Module.objects.filter(abbrev=entries['new_values'][i][0],
-                                          train_prog__in=TrainingProgramme
-                                          .objects.filter(department=department)):
-
-                    entries['result'].append([
-                        ERROR_RESPONSE,
-                        "Un module de ce nom existe déjà dans ce départment"
-                    ])
+                if entries["old_values"][i][0] != entries["new_values"][i][
+                    0
+                ] and Module.objects.filter(
+                    abbrev=entries["new_values"][i][0],
+                    train_prog__in=TrainingProgramme.objects.filter(
+                        department=department
+                    ),
+                ):
+                    entries["result"].append(
+                        [
+                            ERROR_RESPONSE,
+                            "Un module de ce nom existe déjà dans ce départment",
+                        ]
+                    )
                 else:
-                    module.abbrev = entries['new_values'][i][0]
-                    module.ppn = entries['new_values'][i][1]
-                    module.name = entries['new_values'][i][2]
-                    module.description = entries['new_values'][i][3]
+                    module.abbrev = entries["new_values"][i][0]
+                    module.ppn = entries["new_values"][i][1]
+                    module.name = entries["new_values"][i][2]
+                    module.description = entries["new_values"][i][3]
                     module.train_prog = TrainingProgramme.objects.get(
-                        name=entries['new_values'][i][4], department=department)
+                        name=entries["new_values"][i][4], department=department
+                    )
                     module.head = Tutor.objects.get(
                         username=entries["new_values"][i][5]
                     )
@@ -223,15 +234,20 @@ def delete(entries, department):
     :return: Server response for the request.
     :rtype:  django.http.JsonResponse
     """
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        old_abbrev = entries['old_values'][i][0]
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        old_abbrev = entries["old_values"][i][0]
         try:
-            Module.objects.get(abbrev=old_abbrev, train_prog__in=TrainingProgramme.objects.filter(
-                department=department)).delete()
+            Module.objects.get(
+                abbrev=old_abbrev,
+                train_prog__in=TrainingProgramme.objects.filter(department=department),
+            ).delete()
         except Module.DoesNotExist:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Un module à supprimer n'a pas été trouvé dans la base de données."])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Un module à supprimer n'a pas été trouvé dans la base de données.",
+                ]
+            )
 
     return entries

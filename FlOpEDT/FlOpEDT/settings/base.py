@@ -33,9 +33,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
-from django.utils.translation import gettext_lazy as _
-import configparser, os
+import configparser
+import os
 import sys
+
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -716,8 +718,14 @@ LOGGING = {
 # Specific cronjob
 # CRONJOBS = [("0 4 * * *", "notifications.cron.backup_and_notify")]
 try:
-    CRONJOBS = [(cron_time, cron_command.replace(' ','').split(',')[0], cron_command.replace(' ','').split(',')[1:]) 
-                for cron_time, cron_command in flop_config['cronjobs'].items()]
+    CRONJOBS = [
+        (
+            cron_time,
+            cron_command.replace(" ", "").split(",")[0],
+            cron_command.replace(" ", "").split(",")[1:],
+        )
+        for cron_time, cron_command in flop_config["cronjobs"].items()
+    ]
 except KeyError:
     print("WARNING - no CRON jobs hence no backup is configured")
     CRONJOBS = []

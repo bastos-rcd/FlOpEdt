@@ -31,13 +31,13 @@ from django.utils.translation import gettext_lazy as _
 import base.models
 
 days_infos = {
-    'm': {'shift': 0, 'slug': _('Mon.')},
-    'tu': {'shift': 1, 'slug': _('Tue.')},
-    'w': {'shift': 2, 'slug': _('Wed.')},
-    'th': {'shift': 3, 'slug': _('Thu.')},
-    'f': {'shift': 4, 'slug': _('Fri.')},
-    'sa': {'shift': 5, 'slug': _('Sat.')},
-    'su': {'shift': 6, 'slug': _('Sun.')}
+    "m": {"shift": 0, "slug": _("Mon.")},
+    "tu": {"shift": 1, "slug": _("Tue.")},
+    "w": {"shift": 2, "slug": _("Wed.")},
+    "th": {"shift": 3, "slug": _("Thu.")},
+    "f": {"shift": 4, "slug": _("Fri.")},
+    "sa": {"shift": 5, "slug": _("Sat.")},
+    "su": {"shift": 6, "slug": _("Sun.")},
 }
 
 
@@ -72,7 +72,7 @@ def current_week():
     if now.weekday() > 4:
         now = now + datetime.timedelta(2)
     delta = now - mond
-    return {'week': 2 + (delta.days // 7), 'year': now.year}
+    return {"week": 2 + (delta.days // 7), "year": now.year}
 
 
 # list of days
@@ -88,16 +88,21 @@ def num_all_days(y, w, dept=None):
         dept_day_list = list(depts_day_set)
     else:
         dept_day_list = base.models.TimeGeneralSettings.objects.get(
-            department=dept).days
+            department=dept
+        ).days
 
-    dept_day_list.sort(key=lambda x: days_infos[x]['shift'])
+    dept_day_list.sort(key=lambda x: days_infos[x]["shift"])
     iday = 0
     for d_ref in dept_day_list:
-        cur_day = monday + datetime.timedelta(days_infos[d_ref]['shift'])
-        day_list.append({'num': iday,
-                         'date': f"{cur_day.day:02d}/{cur_day.month:02d}",
-                         'ref': d_ref,
-                         'name': days_infos[d_ref]['slug']})
+        cur_day = monday + datetime.timedelta(days_infos[d_ref]["shift"])
+        day_list.append(
+            {
+                "num": iday,
+                "date": f"{cur_day.day:02d}/{cur_day.month:02d}",
+                "ref": d_ref,
+                "name": days_infos[d_ref]["slug"],
+            }
+        )
         iday += 1
     return day_list
 
@@ -108,11 +113,11 @@ def num_all_days(y, w, dept=None):
 def week_list():
     li = []
     for i in list(range(1, 53)):
-        li.append({'week': i, 'year': actual_year-1})
+        li.append({"week": i, "year": actual_year - 1})
     for i in list(range(1, 53)):
-        li.append({'week': i, 'year': actual_year})
+        li.append({"week": i, "year": actual_year})
     for i in list(range(1, 53)):
-        li.append({'week': i, 'year': actual_year + 1})
+        li.append({"week": i, "year": actual_year + 1})
     return li
 
 

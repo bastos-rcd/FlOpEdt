@@ -1,7 +1,8 @@
-from django.db import models
-from base.timing import Day, min_to_str
 from django.apps import apps
+from django.db import models
+
 from base import weeks
+from base.timing import Day, min_to_str
 
 
 class TimetableVersion(models.Model):

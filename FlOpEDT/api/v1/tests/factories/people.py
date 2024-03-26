@@ -1,4 +1,5 @@
 import factory
+
 from .availability import UserDailyAvailabilityFactory
 
 

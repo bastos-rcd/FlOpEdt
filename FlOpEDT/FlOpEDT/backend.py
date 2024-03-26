@@ -1,8 +1,7 @@
-from django.contrib.auth.backends import ModelBackend
-
-from rules.permissions import has_perm, permissions
-
 import logging
+
+from django.contrib.auth.backends import ModelBackend
+from rules.permissions import has_perm, permissions
 
 logger = logging.getLogger("rules")
 

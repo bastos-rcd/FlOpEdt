@@ -24,32 +24,43 @@
 # without disclosing the source code of your own applications.
 
 
+from django.core.validators import MaxValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from base.models import CourseStartTimeConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
-from django.core.validators import MaxValueValidator
-from django.utils.translation import gettext_lazy as _
-from base.models import CourseStartTimeConstraint
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 
 slot_pause = 5
+
 
 ############################
 # Tools for hole analysis
 ############################
 def sum_of_courses_that_end_at(ttmodel, prof, day, end_time):
-    res = ttmodel.sum(ttmodel.assigned[sl, c, prof]
-                      for sl in ttmodel.data.courses_slots if sl.end_time == end_time and sl.day == day
-                      for c in ttmodel.data.compatible_courses[sl] & ttmodel.data.possible_courses[prof])
+    res = ttmodel.sum(
+        ttmodel.assigned[sl, c, prof]
+        for sl in ttmodel.data.courses_slots
+        if sl.end_time == end_time and sl.day == day
+        for c in ttmodel.data.compatible_courses[sl]
+        & ttmodel.data.possible_courses[prof]
+    )
     return res
 
 
 def sum_of_busy_slots_just_after(ttmodel, prof, day, end_time):
-    res = ttmodel.sum(ttmodel.IBS[prof, sl_suivant]
-                      for sl_suivant in slots_filter(ttmodel.data.availability_slots, starts_after=end_time,
-                                                     starts_before=end_time + slot_pause, day=day))
+    res = ttmodel.sum(
+        ttmodel.IBS[prof, sl_suivant]
+        for sl_suivant in slots_filter(
+            ttmodel.data.availability_slots,
+            starts_after=end_time,
+            starts_before=end_time + slot_pause,
+            day=day,
+        )
+    )
     return res
 
 
@@ -57,20 +68,27 @@ class LimitHoles(TimetableConstraint):
     """
     Limit the total number of holes in each day, and every period
     """
-    tutors = models.ManyToManyField('people.Tutor', blank=True)
-    max_holes_per_day = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
-    max_holes_per_period = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
+
+    tutors = models.ManyToManyField("people.Tutor", blank=True)
+    max_holes_per_day = models.PositiveSmallIntegerField(
+        null=True, blank=True
+    )  # FIXME : time with TimeField or DurationField
+    max_holes_per_period = models.PositiveSmallIntegerField(
+        null=True, blank=True
+    )  # FIXME : time with TimeField or DurationField
 
     class Meta:
-        verbose_name = _('Limit holes')
+        verbose_name = _("Limit holes")
         verbose_name_plural = verbose_name
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.tutors.exists():
-            details.update({'tutors': ', '.join([tutor.username for tutor in self.tutors.all()])})
+            details.update(
+                {"tutors": ", ".join([tutor.username for tutor in self.tutors.all()])}
+            )
 
         return view_model
 
@@ -83,11 +101,15 @@ class LimitHoles(TimetableConstraint):
         if self.max_holes_per_period is not None:
             text += f"à {self.max_holes_per_period} par semaine "
         if self.tutors.exists():
-            text += ' pour : ' + ', '.join([tutor.username for tutor in self.tutors.all()])
+            text += " pour : " + ", ".join(
+                [tutor.username for tutor in self.tutors.all()]
+            )
         else:
             text += " pour tous les profs"
         if self.train_progs.exists():
-            text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+            text += " en " + ", ".join(
+                [train_prog.abbrev for train_prog in self.train_progs.all()]
+            )
         return text
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
@@ -99,78 +121,130 @@ class LimitHoles(TimetableConstraint):
 
         for i in considered_tutors:
             for d in ttmodel.data.days:
-                possible_end_times = list(set(sl.end_time for sl in slots_filter(ttmodel.data.courses_slots, day=d)))
+                possible_end_times = list(
+                    set(
+                        sl.end_time
+                        for sl in slots_filter(ttmodel.data.courses_slots, day=d)
+                    )
+                )
                 possible_end_times.sort()
                 for end_time in possible_end_times:
                     end_of_block[i, end_time] = ttmodel.add_var()
                     # Si c'est une fin de bloc, un cours se termine là
                     ttmodel.add_constraint(
-                        end_of_block[i, end_time] - sum_of_courses_that_end_at(ttmodel, i, d, end_time),
-                        '<=', 0,
-                        Constraint(constraint_type=ConstraintType.END_OF_BLOC,
-                                   instructors=i, days=d,
-                                   name="last->busy_%s_%s_%s" % (d, end_time, i.username))
+                        end_of_block[i, end_time]
+                        - sum_of_courses_that_end_at(ttmodel, i, d, end_time),
+                        "<=",
+                        0,
+                        Constraint(
+                            constraint_type=ConstraintType.END_OF_BLOC,
+                            instructors=i,
+                            days=d,
+                            name="last->busy_%s_%s_%s" % (d, end_time, i.username),
+                        ),
                     )
                     # si c'est une fin de bloc, y'a pas de busy_slot juste après
                     ttmodel.add_constraint(
                         sum_of_busy_slots_just_after(ttmodel, i, d, end_time)
-                        + 100 * end_of_block[i, end_time]
-                        , '<=', 100,
-                        Constraint(constraint_type=ConstraintType.END_OF_BLOC,
-                                   instructors=i, days=d,
-                                   name="last_%s_%s_%s_A" % (d, end_time, i.username))
+                        + 100 * end_of_block[i, end_time],
+                        "<=",
+                        100,
+                        Constraint(
+                            constraint_type=ConstraintType.END_OF_BLOC,
+                            instructors=i,
+                            days=d,
+                            name="last_%s_%s_%s_A" % (d, end_time, i.username),
+                        ),
                     )
                     # si c'est pas une fin de bloc, y'en a juste après OU y'en a pas qui se terminent là
                     ttmodel.add_constraint(
                         sum_of_busy_slots_just_after(ttmodel, i, d, end_time)
-                        + (ttmodel.one_var - sum_of_courses_that_end_at(ttmodel, i, d, end_time))
-                        + end_of_block[i, end_time]
-                        , '>=', 1,
-                        Constraint(constraint_type=ConstraintType.END_OF_BLOC,
-                                   instructors=i, days=d,
-                                   name="last_%s_%s_%s_B" % (d, end_time, i.username))
+                        + (
+                            ttmodel.one_var
+                            - sum_of_courses_that_end_at(ttmodel, i, d, end_time)
+                        )
+                        + end_of_block[i, end_time],
+                        ">=",
+                        1,
+                        Constraint(
+                            constraint_type=ConstraintType.END_OF_BLOC,
+                            instructors=i,
+                            days=d,
+                            name="last_%s_%s_%s_B" % (d, end_time, i.username),
+                        ),
                     )
 
-                holes_nb[i, d] = ttmodel.sum(end_of_block[i, end_time]
-                                             for end_time in possible_end_times) - ttmodel.IBD[i, d]
+                holes_nb[i, d] = (
+                    ttmodel.sum(
+                        end_of_block[i, end_time] for end_time in possible_end_times
+                    )
+                    - ttmodel.IBD[i, d]
+                )
 
                 if self.max_holes_per_day:
                     if self.weight is None:
-                        ttmodel.add_constraint(holes_nb[i, d], '<=', self.max_holes_per_day,
-                                               Constraint(constraint_type=ConstraintType.MAX_HOLES,
-                                                          instructors=i, days=d,
-                                                          name="%g trous max %s %s" % (self.max_holes_per_day, i.username, d))
-                                               )
-                        #ttmodel.add_to_inst_cost(i, 10 * holes_nb[i, d], period)
+                        ttmodel.add_constraint(
+                            holes_nb[i, d],
+                            "<=",
+                            self.max_holes_per_day,
+                            Constraint(
+                                constraint_type=ConstraintType.MAX_HOLES,
+                                instructors=i,
+                                days=d,
+                                name="%g trous max %s %s"
+                                % (self.max_holes_per_day, i.username, d),
+                            ),
+                        )
+                        # ttmodel.add_to_inst_cost(i, 10 * holes_nb[i, d], period)
                     else:
-                        ttmodel.add_to_inst_cost(i, holes_nb[i, d] * self.local_weight(), period)
+                        ttmodel.add_to_inst_cost(
+                            i, holes_nb[i, d] * self.local_weight(), period
+                        )
             if self.max_holes_per_period:
                 total_holes = ttmodel.sum(holes_nb[i, d] for d in ttmodel.data.days)
                 if self.weight is None:
-                    ttmodel.add_constraint(total_holes, '<=', self.max_holes_per_period,
-                                           Constraint(constraint_type=ConstraintType.MAX_HOLES))
+                    ttmodel.add_constraint(
+                        total_holes,
+                        "<=",
+                        self.max_holes_per_period,
+                        Constraint(constraint_type=ConstraintType.MAX_HOLES),
+                    )
                 else:
-                    unwanted = ttmodel.add_floor(total_holes, self.max_holes_per_period + 1, 10000)
-                    ttmodel.add_to_inst_cost(i, unwanted * ponderation * self.local_weight(), period)
+                    unwanted = ttmodel.add_floor(
+                        total_holes, self.max_holes_per_period + 1, 10000
+                    )
+                    ttmodel.add_to_inst_cost(
+                        i, unwanted * ponderation * self.local_weight(), period
+                    )
 
 
 class LimitTutorTimePerWeeks(TimetableConstraint):
-    tutors = models.ManyToManyField('people.Tutor', blank=True)
-    min_time_per_period = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
-    max_time_per_period = models.PositiveSmallIntegerField(null=True, blank=True)  # FIXME : time with TimeField or DurationField
-    tolerated_margin = models.PositiveSmallIntegerField(validators=[MaxValueValidator(100)], null=True, blank=True)
-    number_of_weeks = models.PositiveSmallIntegerField(default=1, verbose_name=_("Number of weeks"))
+    tutors = models.ManyToManyField("people.Tutor", blank=True)
+    min_time_per_period = models.PositiveSmallIntegerField(
+        null=True, blank=True
+    )  # FIXME : time with TimeField or DurationField
+    max_time_per_period = models.PositiveSmallIntegerField(
+        null=True, blank=True
+    )  # FIXME : time with TimeField or DurationField
+    tolerated_margin = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(100)], null=True, blank=True
+    )
+    number_of_weeks = models.PositiveSmallIntegerField(
+        default=1, verbose_name=_("Number of weeks")
+    )
 
     class Meta:
-        verbose_name = _('Limit time per weeks for tutors')
+        verbose_name = _("Limit time per weeks for tutors")
         verbose_name_plural = verbose_name
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.tutors.exists():
-            details.update({'tutors': ', '.join([tutor.username for tutor in self.tutors.all()])})
+            details.update(
+                {"tutors": ", ".join([tutor.username for tutor in self.tutors.all()])}
+            )
 
         return view_model
 
@@ -183,11 +257,15 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
         if self.max_time_per_period is not None:
             text += f"de {self.max_time_per_period} maximum "
         if self.tutors.exists():
-            text += ' pour : ' + ', '.join([tutor.username for tutor in self.tutors.all()])
+            text += " pour : " + ", ".join(
+                [tutor.username for tutor in self.tutors.all()]
+            )
         else:
             text += " pour tous les profs"
         if self.train_progs.exists():
-            text += ' en ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+            text += " en " + ", ".join(
+                [train_prog.abbrev for train_prog in self.train_progs.all()]
+            )
         if self.tolerated_margin:
             text += f" (avec une marge tolérée de {self.tolerated_margin}%)."
         return text
@@ -204,55 +282,88 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
         if self.weight is not None:
             local_weight = self.local_weight()
         # enrich model for each period of the desired length inside ttmodel.periods
-        for i, in range(len(ttmodel.periods) - self.number_of_weeks + 1):
-            considered_weeks = ttmodel.periods[i:i+self.number_of_weeks]
+        for (i,) in range(len(ttmodel.periods) - self.number_of_weeks + 1):
+            considered_weeks = ttmodel.periods[i : i + self.number_of_weeks]
             for tutor in tutors:
-                total_tutor_time = ttmodel.sum(ttmodel.assigned[sl, c, tutor] * sl.minutes
-                                               for c in ttmodel.data.possible_courses[tutor]
-                                               for sl in slots_filter(ttmodel.data.compatible_slots[c],
-                                                                      week_in = considered_weeks)
-                                               ) \
-                                  + sum(sc.course.minutes
-                                        for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[tutor]
-                                        if sc.course.week in considered_weeks)
+                total_tutor_time = ttmodel.sum(
+                    ttmodel.assigned[sl, c, tutor] * sl.minutes
+                    for c in ttmodel.data.possible_courses[tutor]
+                    for sl in slots_filter(
+                        ttmodel.data.compatible_slots[c], week_in=considered_weeks
+                    )
+                ) + sum(
+                    sc.course.minutes
+                    for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[
+                        tutor
+                    ]
+                    if sc.course.week in considered_weeks
+                )
                 if self.max_time_per_period is not None:
-                    undesirable_max = ttmodel.add_floor(total_tutor_time, self.max_time_per_period,
-                                                        24 * 60 * 7 * self.number_of_weeks)
+                    undesirable_max = ttmodel.add_floor(
+                        total_tutor_time,
+                        self.max_time_per_period,
+                        24 * 60 * 7 * self.number_of_weeks,
+                    )
                     if self.tolerated_margin:
-                        untolerable_max = ttmodel.add_floor(total_tutor_time,
-                                                            self.max_time_per_period * (1 + self.tolerated_margin / 100),
-                                                            24 * 60 * 7 * self.number_of_weeks)
+                        untolerable_max = ttmodel.add_floor(
+                            total_tutor_time,
+                            self.max_time_per_period
+                            * (1 + self.tolerated_margin / 100),
+                            24 * 60 * 7 * self.number_of_weeks,
+                        )
                     else:
                         untolerable_max = undesirable_max
 
                     if self.weight is None:
-                        ttmodel.add_constraint(untolerable_max,
-                                               '==',
-                                               0,
-                                               Constraint(constraint_type=ConstraintType.max_time_per_period,
-                                                          instructors=tutor))
+                        ttmodel.add_constraint(
+                            untolerable_max,
+                            "==",
+                            0,
+                            Constraint(
+                                constraint_type=ConstraintType.max_time_per_period,
+                                instructors=tutor,
+                            ),
+                        )
                     else:
-                        ttmodel.add_to_inst_cost(tutor, untolerable_max * local_weight * ponderation, period)
-                    ttmodel.add_to_inst_cost(tutor, undesirable_max * local_weight * ponderation, period)
+                        ttmodel.add_to_inst_cost(
+                            tutor, untolerable_max * local_weight * ponderation, period
+                        )
+                    ttmodel.add_to_inst_cost(
+                        tutor, undesirable_max * local_weight * ponderation, period
+                    )
                 if self.min_time_per_period is not None:
-                    undesirable_min = ttmodel.one_var - ttmodel.add_floor(total_tutor_time, self.min_time_per_period,
-                                                                          24 * 60 * 7 * self.number_of_weeks)
+                    undesirable_min = ttmodel.one_var - ttmodel.add_floor(
+                        total_tutor_time,
+                        self.min_time_per_period,
+                        24 * 60 * 7 * self.number_of_weeks,
+                    )
                     if self.tolerated_margin:
-                        untolerable_min = ttmodel.one_var - ttmodel.add_floor(total_tutor_time,
-                                                                              self.min_time_per_period * (1 - self.tolerated_margin / 100),
-                                                                              24 * 60 * 7 * self.number_of_weeks)
+                        untolerable_min = ttmodel.one_var - ttmodel.add_floor(
+                            total_tutor_time,
+                            self.min_time_per_period
+                            * (1 - self.tolerated_margin / 100),
+                            24 * 60 * 7 * self.number_of_weeks,
+                        )
                     else:
                         untolerable_min = undesirable_min
 
                     if self.weight is None:
-                        ttmodel.add_constraint(untolerable_min,
-                                               '==',
-                                               0,
-                                               Constraint(constraint_type=ConstraintType.min_time_per_period,
-                                                          instructors=tutor))
+                        ttmodel.add_constraint(
+                            untolerable_min,
+                            "==",
+                            0,
+                            Constraint(
+                                constraint_type=ConstraintType.min_time_per_period,
+                                instructors=tutor,
+                            ),
+                        )
                     else:
-                        ttmodel.add_to_inst_cost(tutor, untolerable_min * local_weight * ponderation, period)
-                    ttmodel.add_to_inst_cost(tutor, undesirable_min * local_weight * ponderation, period)
+                        ttmodel.add_to_inst_cost(
+                            tutor, untolerable_min * local_weight * ponderation, period
+                        )
+                    ttmodel.add_to_inst_cost(
+                        tutor, undesirable_min * local_weight * ponderation, period
+                    )
 
 
 class ModulesByBloc(TimetableConstraint):
@@ -260,25 +371,28 @@ class ModulesByBloc(TimetableConstraint):
     Force that same module is affected by bloc (a same tutor is affected to each bloc of same module)
     Except for suspens courses
     """
-    modules = models.ManyToManyField('base.Module', blank=True)
+
+    modules = models.ManyToManyField("base.Module", blank=True)
 
     class Meta:
-        verbose_name = _('Gather courses of considered modules')
+        verbose_name = _("Gather courses of considered modules")
         verbose_name_plural = verbose_name
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.modules.exists():
-            details.update({'modules': ', '.join([module.abbrev for module in self.modules.all()])})
+            details.update(
+                {"modules": ", ".join([module.abbrev for module in self.modules.all()])}
+            )
 
         return view_model
 
     def one_line_description(self):
         text = "Modules "
         if self.modules.exists():
-            text +=', '.join([module.abbrev for module in self.modules.all()])
+            text += ", ".join([module.abbrev for module in self.modules.all()])
         text += "are affected by bloc."
         return text
 
@@ -291,59 +405,104 @@ class ModulesByBloc(TimetableConstraint):
         if self.modules.exists():
             considered_modules = set(considered_modules) & set(self.modules.all())
         if self.train_progs.exists():
-            considered_modules = set(m for m in considered_modules if m.train_prog in self.train_progs.all())
+            considered_modules = set(
+                m for m in considered_modules if m.train_prog in self.train_progs.all()
+            )
 
         possible_start_times = set()
-        for c in CourseStartTimeConstraint.objects.filter(course_type__department=ttmodel.department):
+        for c in CourseStartTimeConstraint.objects.filter(
+            course_type__department=ttmodel.department
+        ):
             possible_start_times |= set(c.allowed_start_times)
         possible_start_times = list(possible_start_times)
         possible_start_times.sort()
 
         for d in days_filter(ttmodel.data.days, period=period):
             day_slots = slots_filter(ttmodel.data.courses_slots, day=d)
-            day_sched_courses = ttmodel.data.sched_courses.filter(day=d.day, course__period=period, course__suspens=False)
+            day_sched_courses = ttmodel.data.sched_courses.filter(
+                day=d.day, course__period=period, course__suspens=False
+            )
             for m in considered_modules:
                 module_day_sched_courses = day_sched_courses.filter(course__module=m)
                 if not module_day_sched_courses.exists():
                     continue
                 for i in range(len(possible_start_times) - 1):
-                    slot_sched_courses = module_day_sched_courses.filter(start_time=possible_start_times[i])
-                    next_slot_sched_courses = module_day_sched_courses.filter(start_time=possible_start_times[i+1])
-                    if not (slot_sched_courses.exists() and next_slot_sched_courses.exists()):
+                    slot_sched_courses = module_day_sched_courses.filter(
+                        start_time=possible_start_times[i]
+                    )
+                    next_slot_sched_courses = module_day_sched_courses.filter(
+                        start_time=possible_start_times[i + 1]
+                    )
+                    if not (
+                        slot_sched_courses.exists() and next_slot_sched_courses.exists()
+                    ):
                         continue
-                    slot = slots_filter(day_slots, start_time=possible_start_times[i]).pop()
-                    next_slot = slots_filter(day_slots, start_time=possible_start_times[i+1]).pop()
+                    slot = slots_filter(
+                        day_slots, start_time=possible_start_times[i]
+                    ).pop()
+                    next_slot = slots_filter(
+                        day_slots, start_time=possible_start_times[i + 1]
+                    ).pop()
                     # Choose the slot where more courses have to be assigned
                     if slot_sched_courses.count() == next_slot_sched_courses.count():
                         for tutor in ttmodel.data.possible_tutors[m]:
                             ttmodel.add_constraint(
-                                ttmodel.sum(ttmodel.assigned[(next_slot, sc2.course, tutor)]
-                                            for sc2 in next_slot_sched_courses)
-                                - ttmodel.sum(ttmodel.assigned[(slot, sc.course, tutor)]
-                                              for sc in slot_sched_courses),
-                                '==',
+                                ttmodel.sum(
+                                    ttmodel.assigned[(next_slot, sc2.course, tutor)]
+                                    for sc2 in next_slot_sched_courses
+                                )
+                                - ttmodel.sum(
+                                    ttmodel.assigned[(slot, sc.course, tutor)]
+                                    for sc in slot_sched_courses
+                                ),
+                                "==",
                                 0,
-                                Constraint(constraint_type=ConstraintType.module_by_bloc,
-                                           instructors=tutor, days=d, modules=m))
+                                Constraint(
+                                    constraint_type=ConstraintType.module_by_bloc,
+                                    instructors=tutor,
+                                    days=d,
+                                    modules=m,
+                                ),
+                            )
                     elif slot_sched_courses.count() > next_slot_sched_courses.count():
                         for tutor in ttmodel.data.possible_tutors[m]:
                             ttmodel.add_constraint(
-                                2 * ttmodel.sum(ttmodel.assigned[(next_slot, sc2.course, tutor)]
-                                                for sc2 in next_slot_sched_courses)
-                                - ttmodel.sum(ttmodel.assigned[(slot, sc.course, tutor)]
-                                              for sc in slot_sched_courses),
-                                '<=',
+                                2
+                                * ttmodel.sum(
+                                    ttmodel.assigned[(next_slot, sc2.course, tutor)]
+                                    for sc2 in next_slot_sched_courses
+                                )
+                                - ttmodel.sum(
+                                    ttmodel.assigned[(slot, sc.course, tutor)]
+                                    for sc in slot_sched_courses
+                                ),
+                                "<=",
                                 1,
-                                Constraint(constraint_type=ConstraintType.module_by_bloc,
-                                           instructors=tutor, days=d, modules=m))
-                    else: # slot_sched_courses.count() < next_slot_sched_courses.count()
+                                Constraint(
+                                    constraint_type=ConstraintType.module_by_bloc,
+                                    instructors=tutor,
+                                    days=d,
+                                    modules=m,
+                                ),
+                            )
+                    else:  # slot_sched_courses.count() < next_slot_sched_courses.count()
                         for tutor in ttmodel.data.possible_tutors[m]:
                             ttmodel.add_constraint(
-                                2 * ttmodel.sum(ttmodel.assigned[(slot, sc.course, tutor)]
-                                              for sc in slot_sched_courses)
-                                - ttmodel.sum(ttmodel.assigned[(next_slot, sc2.course, tutor)]
-                                                for sc2 in next_slot_sched_courses),
-                                '<=',
+                                2
+                                * ttmodel.sum(
+                                    ttmodel.assigned[(slot, sc.course, tutor)]
+                                    for sc in slot_sched_courses
+                                )
+                                - ttmodel.sum(
+                                    ttmodel.assigned[(next_slot, sc2.course, tutor)]
+                                    for sc2 in next_slot_sched_courses
+                                ),
+                                "<=",
                                 1,
-                                Constraint(constraint_type=ConstraintType.module_by_bloc,
-                                           instructors=tutor, days=d, modules=m))
+                                Constraint(
+                                    constraint_type=ConstraintType.module_by_bloc,
+                                    instructors=tutor,
+                                    days=d,
+                                    modules=m,
+                                ),
+                            )

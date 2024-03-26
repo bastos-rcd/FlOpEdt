@@ -1,17 +1,14 @@
 import pytest
-
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from rest_framework.status import (
-    HTTP_406_NOT_ACCEPTABLE,
     HTTP_403_FORBIDDEN,
+    HTTP_406_NOT_ACCEPTABLE,
     is_success,
 )
 
 from api.v1.tests.factories.people import UserFactory
-
-from people.models import ThemesPreferences, User, Student
-
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
+from people.models import Student, ThemesPreferences, User
 
 
 @pytest.fixture

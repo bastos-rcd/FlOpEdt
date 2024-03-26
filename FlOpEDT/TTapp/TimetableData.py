@@ -1,6 +1,63 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import datetime as dt
+import logging
+
+import pulp
+from django.conf import settings
+from django.core.mail import EmailMessage
+from django.db.models import F, Max, Q
+from pulp import (
+    GUROBI_CMD,
+    LpAffineExpression,
+    LpBinary,
+    LpConstraint,
+    LpConstraintEQ,
+    LpConstraintGE,
+    LpConstraintLE,
+    LpMinimize,
+    LpProblem,
+    LpStatus,
+    LpStatusNotSolved,
+    LpStatusOptimal,
+    LpVariable,
+    lpSum,
+)
+
+import base.queries as queries
+from base.models import (
+    Course,
+    CourseAdditional,
+    CourseAvailability,
+    CoursePossibleTutors,
+    CourseStartTimeConstraint,
+    CourseType,
+    Department,
+    Dependency,
+    GroupCost,
+    GroupFreeHalfDay,
+    Holiday,
+    Module,
+    ModulePossibleTutors,
+    ModuleTutorRepartition,
+    Pivot,
+    Room,
+    RoomAvailability,
+    RoomPonderation,
+    RoomSort,
+    RoomType,
+    ScheduledCourse,
+    StructuralGroup,
+    TimeGeneralSettings,
+    TrainingHalfDay,
+    TrainingProgramme,
+    TransversalGroup,
+    TutorCost,
+    UserAvailability,
+)
+from base.models.availability import period_actual_availabilities
+
 # This file is part of the FlOpEDT/FlOpScheduler project.
 # Copyright (c) 2017
 # Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.
@@ -23,78 +80,11 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-from base.timing import get_default_date
-from base.models.availability import period_actual_availabilities
-from django.core.mail import EmailMessage
-import datetime as dt
-from pulp import (
-    LpVariable,
-    LpConstraint,
-    LpBinary,
-    LpConstraintEQ,
-    LpConstraintGE,
-    LpConstraintLE,
-    LpAffineExpression,
-    LpProblem,
-    LpStatus,
-    LpMinimize,
-    lpSum,
-    LpStatusOptimal,
-    LpStatusNotSolved,
-)
-
-import pulp
-from pulp import GUROBI_CMD
-
-from django.conf import settings
-
-from base.models import (
-    StructuralGroup,
-    TransversalGroup,
-    Room,
-    RoomSort,
-    RoomType,
-    RoomAvailability,
-    Course,
-    ScheduledCourse,
-    UserAvailability,
-    CourseAvailability,
-    Department,
-    Module,
-    TrainingProgramme,
-    CourseType,
-    Dependency,
-    TutorCost,
-    GroupFreeHalfDay,
-    GroupCost,
-    Holiday,
-    TrainingHalfDay,
-    Pivot,
-    CourseStartTimeConstraint,
-    TimeGeneralSettings,
-    ModulePossibleTutors,
-    CoursePossibleTutors,
-    CourseAdditional,
-    RoomPonderation,
-)
-
-from base.timing import add_duration_to_time
-
-import base.queries as queries
-
-from people.models import Tutor, PhysicalPresence
-
+from base.timing import add_duration_to_time, get_default_date
 from misc.manage_rooms_ponderations import register_ponderations_in_database
-
-from TTapp.slots import Slot, CourseSlot, slots_filter, days_filter
+from people.models import PhysicalPresence, Tutor
 from TTapp.models import AssignAllCourses
-
-from django.db.models import Q, Max, F
-
-import logging
-
-from base.models import ModuleTutorRepartition
-
+from TTapp.slots import CourseSlot, Slot, days_filter, slots_filter
 
 logger = logging.getLogger(__name__)
 pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
@@ -141,9 +131,11 @@ class TimetableData(object):
             self.other_departments_sched_courses_for_avail_slot,
         ) = self.courses_for_avail_slot_init()
         if self.department.mode.visio:
-            self.visio_courses, self.no_visio_courses, self.visio_ponderation = (
-                self.visio_init()
-            )
+            (
+                self.visio_courses,
+                self.no_visio_courses,
+                self.visio_ponderation,
+            ) = self.visio_init()
         (
             self.room_types,
             self.used_room_types,
@@ -184,12 +176,13 @@ class TimetableData(object):
             self.other_departments_scheduled_courses_for_tutor,
             self.physical_presence_days_for_tutor,
         ) = self.users_init()
-        self.possible_tutors, self.possible_modules, self.possible_courses = (
-            self.possible_courses_tutor_init()
-        )
+        (
+            self.possible_tutors,
+            self.possible_modules,
+            self.possible_courses,
+        ) = self.possible_courses_tutor_init()
 
     def days_init(self):
-
         all_days = set()
         for period in self.periods:
             all_days |= set(period.dates())
@@ -789,7 +782,6 @@ class TimetableData(object):
         return possible_tutors, possible_modules, possible_courses
 
     def visio_init(self):
-
         visio_courses = set()
         no_visio_courses = set()
         visio_ponderation = {c: 1 for c in self.courses}

@@ -1,9 +1,12 @@
-from TTapp.global_pre_analysis.tools_centralized_preanalysis import getFlopConstraintsInDB
 import datetime as dt
-from base.models import SchedulingPeriod, Course, Department
+
 from django.core.mail import send_mail
-from django.utils.html import strip_tags
 from django.utils import translation
+from django.utils.html import strip_tags
+
+from base.models import Course, Department, SchedulingPeriod
+from TTapp.global_pre_analysis.tools_centralized_preanalysis import \
+    getFlopConstraintsInDB
 
 
 def pre_analyse(department, period):

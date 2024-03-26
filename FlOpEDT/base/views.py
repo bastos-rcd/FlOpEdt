@@ -23,69 +23,74 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.db.models import Q
 import json
 import logging
 
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMessage
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.translation import gettext as _
 from django.utils.translation import get_language
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import cache_page
 from django.views.generic import RedirectView
 
-from core.decorators import dept_admin_required, tutor_required
-
-from people.models import (
-    Tutor,
-    UserDepartmentSettings,
-    User,
-    NotificationsPreferences,
-    UserPreferredLinks,
-    TutorPreference,
-    ThemesPreferences,
+import base.queries as queries
+from base.admin import (
+    CourseAvailabilityResource,
+    ModuleDescriptionResource,
+    ModuleRessource,
+    MultiDepartmentTutorResource,
+    RoomAvailabilityResource,
+    SharedRoomsResource,
+    TutorCoursesResource,
+    TutorRessource,
+    VersionResource,
 )
-
-from base.admin import ModuleRessource, TutorRessource, CourseAvailabilityResource, VersionResource, RoomAvailabilityResource, ModuleDescriptionResource, TutorCoursesResource, MultiDepartmentTutorResource, SharedRoomsResource
-
-from displayweb.admin import BreakingNewsResource
-from displayweb.models import BreakingNews
-
-from base.forms import ContactForm, ModuleDescriptionForm, EnrichedLinkForm
+from base.forms import ContactForm, EnrichedLinkForm, ModuleDescriptionForm
 from base.models import (
     Course,
-    UserAvailability,
-    ScheduledCourse,
-    TimetableVersion,
-    CourseModification,
-    Room,
-    RoomType,
-    RoomSort,
-    RoomAvailability,
-    Department,
-    CourseAvailability,
-    TrainingProgramme,
-    CourseType,
-    Module,
-    StructuralGroup,
-    EnrichedLink,
-    ScheduledCourseAdditional,
-    GroupPreferredLinks,
-    SchedulingPeriod,
-    Theme,
     CourseAdditional,
+    CourseAvailability,
+    CourseModification,
+    CourseType,
+    Department,
+    EnrichedLink,
+    GroupPreferredLinks,
+    Module,
+    Room,
+    RoomAvailability,
+    RoomSort,
+    RoomType,
+    ScheduledCourse,
+    ScheduledCourseAdditional,
+    SchedulingPeriod,
+    StructuralGroup,
+    Theme,
+    TimetableVersion,
+    TrainingProgramme,
+    UserAvailability,
 )
-import base.queries as queries
 from base.weeks import *
+from core.decorators import dept_admin_required, tutor_required
+from displayweb.admin import BreakingNewsResource
+from displayweb.models import BreakingNews
+from people.models import (
+    NotificationsPreferences,
+    ThemesPreferences,
+    Tutor,
+    TutorPreference,
+    User,
+    UserDepartmentSettings,
+    UserPreferredLinks,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -893,19 +898,22 @@ def fetch_extra_sched(req, year, week, **kwargs):
 def fetch_shared_rooms(req, year, week, **kwargs):
     # which room groups are shared among departments
     shared_rooms = [
-        room for room in Room.objects.all().prefetch_related('departments') if room.departments.count() > 1
+        room
+        for room in Room.objects.all().prefetch_related("departments")
+        if room.departments.count() > 1
     ]
 
     # courses in any shared room
-    courses = ScheduledCourse.objects.filter(
+    courses = (
+        ScheduledCourse.objects.filter(
             course__week__nb=week,
             course__week__year=year,
             work_copy=0,
             room__in=shared_rooms,
-        ) \
-        .select_related('room',
-                        'course__type__department', 'course__week')\
+        )
+        .select_related("room", "course__type__department", "course__week")
         .exclude(course__type__department=req.department)
+    )
     dataset = SharedRoomsResource().export(courses)
     return HttpResponse(dataset.csv, content_type="text/csv")
 
@@ -1084,7 +1092,9 @@ def edt_changes(req, **kwargs):
 
     if work_copy != 0 or old_version == version:
         if work_copy == 0:
-            edt_versions = TimetableVersion.objects.select_for_update().filter(week=week)
+            edt_versions = TimetableVersion.objects.select_for_update().filter(
+                week=week
+            )
 
         with transaction.atomic():
             try:
@@ -1111,7 +1121,9 @@ def edt_changes(req, **kwargs):
                 return JsonResponse(bad_response)
 
             if work_copy == 0:
-                edt_version = TimetableVersion.objects.get(week=week, department=department)
+                edt_version = TimetableVersion.objects.get(
+                    week=week, department=department
+                )
                 edt_version.version += 1
                 edt_version.save()
 
@@ -1446,7 +1458,9 @@ def decale_changes(req, **kwargs):
                     )
                 )
                 scheduled_course.delete()
-                ev = TimetableVersion.objects.get(week=old_week, department=req.department)
+                ev = TimetableVersion.objects.get(
+                    week=old_week, department=req.department
+                )
                 ev.version += 1
                 ev.save()
                 number_courses(
@@ -1670,7 +1684,6 @@ def fetch_group_preferred_links(req, **kwargs):
 # ---------
 @tutor_required
 def module_description(req, module=None, **kwargs):
-
     if req.method == "POST":
         form = ModuleDescriptionForm(module, req.department, req.POST)
         if form.is_valid():

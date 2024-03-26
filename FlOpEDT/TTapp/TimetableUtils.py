@@ -25,35 +25,37 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import (
-    ScheduledCourse,
-    RoomAvailability,
-    TimetableVersion,
-    Department,
-    CourseStartTimeConstraint,
-    TimeGeneralSettings,
-    Room,
-    CourseModification,
-    UserAvailability,
-    SchedulingPeriod,
-    Course,
-    Module,
-    CourseType,
-    TrainingProgramme,
-    TrainingPeriod,
-)
-from base.timing import str_slot, days_index
-from django.db.models import Count, Max, Q, F
-from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
-from TTapp.FlopConstraint import max_weight
-from TTapp.slots import slot_pause
-from TTapp.RoomModel import RoomModel
-import base.views as base_views
-from django.core.cache import cache
-from people.models import Tutor
-import json
-from django.utils.translation import gettext_lazy as _
 import datetime as dt
+import json
+
+from django.core.cache import cache
+from django.db.models import Count, F, Max, Q
+from django.utils.translation import gettext_lazy as _
+
+import base.views as base_views
+from base.models import (
+    Course,
+    CourseModification,
+    CourseStartTimeConstraint,
+    CourseType,
+    Department,
+    Module,
+    Room,
+    RoomAvailability,
+    ScheduledCourse,
+    SchedulingPeriod,
+    TimeGeneralSettings,
+    TimetableVersion,
+    TrainingPeriod,
+    TrainingProgramme,
+    UserAvailability,
+)
+from base.timing import days_index, str_slot
+from people.models import Tutor
+from TTapp.FlopConstraint import max_weight
+from TTapp.models import MinNonPreferedTrainProgsSlot, MinNonPreferedTutorsSlot
+from TTapp.RoomModel import RoomModel
+from TTapp.slots import slot_pause
 
 
 def basic_reassign_rooms(department, period, version, create_new_version):
@@ -170,7 +172,8 @@ def compute_conflicts(department, period, version):
     print(dic_subrooms)
     courses_list = (
         ScheduledCourse.objects.select_related("course__duration")
-        .filter(Q(course__module__train_prog__department__abbrev=department),
+        .filter(
+            Q(course__module__train_prog__department__abbrev=department),
             course__period=period,
             version=version,
             room__in=conflict_room_list,
@@ -248,7 +251,7 @@ def get_conflicts(department, period, copy_a):
 
 
 def basic_swap_version(department, period, version_a, version_b):
-    version_a.major, version_b.major =  version_b.major, version_a.major
+    version_a.major, version_b.major = version_b.major, version_a.major
     version_a.save()
     version_b.save()
     cache.delete(base_views.get_key_course_pl(department.abbrev, period, version_a))
@@ -258,7 +261,6 @@ def basic_swap_version(department, period, version_a, version_b):
 
 
 def basic_delete_version(department, period, version):
-
     result = {"status": "OK", "more": ""}
 
     version.delete()
@@ -270,22 +272,25 @@ def basic_delete_version(department, period, version):
 
 def basic_delete_all_unused_versions(department, period):
     result = {"status": "OK", "more": ""}
-    TimetableVersion.objects.filter(department=department, period=period, version__major__gt=0).delete()
+    TimetableVersion.objects.filter(
+        department=department, period=period, version__major__gt=0
+    ).delete()
     return result
 
 
 def basic_duplicate_version(department, period, version):
-
     result = {"status": "OK", "more": ""}
     scheduled_courses_params = {
         "course__module__train_prog__department": department,
         "course__period": period,
     }
-    local_max_major = ScheduledCourse.objects.filter(**scheduled_courses_params).aggregate(
-        Max("version__major")
-    )["version__major__max"]
+    local_max_major = ScheduledCourse.objects.filter(
+        **scheduled_courses_params
+    ).aggregate(Max("version__major"))["version__major__max"]
     target_major = local_max_major + 1
-    target_version = TimetableVersion.objects.create(department=department, period=period, major=target_major)
+    target_version = TimetableVersion.objects.create(
+        department=department, period=period, major=target_major
+    )
 
     try:
         sc_to_duplicate = ScheduledCourse.objects.filter(
@@ -342,7 +347,7 @@ def load_dispos(json_filename):
         dispo["date"]
         U, created = UserAvailability.objects.get_or_create(
             user=tutor,
-            date = dispo["date"],
+            date=dispo["date"],
             start_time=dispo["start_time"],
             duration=dispo["duration"],
         )
@@ -353,7 +358,9 @@ def load_dispos(json_filename):
         print("The following tutor do not exist:", exceptions)
 
 
-def duplicate_what_can_be_in_other_periods(department, period:SchedulingPeriod, version):
+def duplicate_what_can_be_in_other_periods(
+    department, period: SchedulingPeriod, version
+):
     result = {"status": "OK", "more": ""}
     try:
         sched_period = ScheduledCourse.objects.filter(
@@ -381,7 +388,9 @@ def duplicate_what_can_be_in_other_periods(department, period:SchedulingPeriod, 
                         sc.pk = None
                         sc.course = corresponding_course
                         sc.version = target_version
-                        sc.start_time = dt.datetime.combine(other_date, sc.start_time.time())
+                        sc.start_time = dt.datetime.combine(
+                            other_date, sc.start_time.time()
+                        )
                         sc.save()
                         done = True
                 if done:
@@ -400,7 +409,9 @@ def first_free_version(department, period):
         target_major = local_max_major + 1
     else:
         target_major = 0
-    return TimetableVersion.objects.create(department=department, period=period, major=target_major)
+    return TimetableVersion.objects.create(
+        department=department, period=period, major=target_major
+    )
 
 
 def convert_into_set(declared_object_or_iterable):
@@ -419,9 +430,7 @@ def intersect_with_declared_objects(considered_queryset, declared_object_or_iter
 
 def sorted_by_start_time(scheduled_courses_iterable):
     sc_list = list(scheduled_courses_iterable)
-    return sorted(
-        sc_list, key=lambda x: (x.start_time)
-    )
+    return sorted(sc_list, key=lambda x: (x.start_time))
 
 
 def number_courses(
@@ -441,7 +450,8 @@ def number_courses(
     )
     considered_modules = intersect_with_declared_objects(
         Module.objects.filter(
-            train_prog__in=considered_train_progs, training_period__in=considered_periods
+            train_prog__in=considered_train_progs,
+            training_period__in=considered_periods,
         ),
         modules,
     )
@@ -458,8 +468,12 @@ def number_courses(
                 if periods is not None:
                     first_period = min(periods, key=lambda x: x.start_date)
                     last_period = max(periods, key=lambda x: x.end_date)
-                    group_courses = group_courses.filter(period__gte=first_period, period__lte=last_period)
-                    past_courses_number = len(group_courses.filter(period__lt=first_period))
+                    group_courses = group_courses.filter(
+                        period__gte=first_period, period__lte=last_period
+                    )
+                    past_courses_number = len(
+                        group_courses.filter(period__lt=first_period)
+                    )
                 else:
                     past_courses_number = 0
                 sorted_sched_courses = sorted_by_start_time(
@@ -471,14 +485,25 @@ def number_courses(
                     sc.number = past_courses_number + i + 1
                     sc.save()
 
-def print_differences(department, periods, old_major, new_major, tutors=Tutor.objects.all()):
+
+def print_differences(
+    department, periods, old_major, new_major, tutors=Tutor.objects.all()
+):
     for period in periods:
         print("For", period)
         for tutor in tutors:
-            SCa = ScheduledCourse.objects.filter(course__tutor=tutor, version__major=old_major, course__period=period,
-                                                 course__type__department=department)
-            SCb = ScheduledCourse.objects.filter(course__tutor=tutor, version__major=new_major, course__period=period,
-                                                 course__type__department=department)
+            SCa = ScheduledCourse.objects.filter(
+                course__tutor=tutor,
+                version__major=old_major,
+                course__period=period,
+                course__type__department=department,
+            )
+            SCb = ScheduledCourse.objects.filter(
+                course__tutor=tutor,
+                version__major=new_major,
+                course__period=period,
+                course__type__department=department,
+            )
             slots_a = set([x.start_time for x in SCa])
             slots_b = set([x.start_time for x in SCb])
             if slots_a ^ slots_b:

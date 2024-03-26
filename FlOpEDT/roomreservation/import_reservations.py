@@ -24,60 +24,78 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import configparser
 import csv
 import datetime
-from base.models import Room
-from roomreservation.models import RoomReservation, RoomReservationType
-from django.db import transaction
-from people.models import User
-from ics import Calendar
-import requests
-from pytz import timezone
-import configparser, os
 import logging
+import os
+
+import requests
+from django.db import transaction
+from pytz import timezone
+
+from base.models import Room
+from ics import Calendar
+from people.models import User
+from roomreservation.models import RoomReservation, RoomReservationType
 
 logger = logging.getLogger("base")
 # Let's parse the configuration file
 flop_config = configparser.ConfigParser()
 flop_config.read(os.environ.get("FLOP_CONFIG_FILE"))
-ics_url = flop_config['roomreservations-import']['ics_url']
-key_exclusion = flop_config['roomreservations-import']['key_exclusion']
-exclude_if_key_contains = flop_config['roomreservations-import']['exclude_if_key_contains']
-imported_reservations_name=flop_config['roomreservations-import']['imported_reservations_name']
+ics_url = flop_config["roomreservations-import"]["ics_url"]
+key_exclusion = flop_config["roomreservations-import"]["key_exclusion"]
+exclude_if_key_contains = flop_config["roomreservations-import"][
+    "exclude_if_key_contains"
+]
+imported_reservations_name = flop_config["roomreservations-import"][
+    "imported_reservations_name"
+]
 
 paris = timezone("Europe/Paris")
 
+
 @transaction.atomic
-def import_reservations_from_ics_url(room_reservations_ics_url=ics_url, 
-                                     future_only=True,
-                                     key_exclusion=key_exclusion,
-                                     exclude_if_key_contains=exclude_if_key_contains,
-                                     default_responsible_name=imported_reservations_name):
+def import_reservations_from_ics_url(
+    room_reservations_ics_url=ics_url,
+    future_only=True,
+    key_exclusion=key_exclusion,
+    exclude_if_key_contains=exclude_if_key_contains,
+    default_responsible_name=imported_reservations_name,
+):
     try:
         calendar = Calendar(requests.get(room_reservations_ics_url).text)
     except:
-        logger.warning("Error while trying to get the ics file from URL: " + room_reservations_ics_url)
+        logger.warning(
+            "Error while trying to get the ics file from URL: "
+            + room_reservations_ics_url
+        )
         return
-    
+
     responsible = User.objects.get_or_create(username=default_responsible_name)[0]
-    reservation_type = RoomReservationType.objects.get_or_create(name=default_responsible_name)[0]
-    room_reservations_to_delete = RoomReservation.objects.filter(reservation_type=reservation_type, 
-                                                                 responsible=responsible)
+    reservation_type = RoomReservationType.objects.get_or_create(
+        name=default_responsible_name
+    )[0]
+    room_reservations_to_delete = RoomReservation.objects.filter(
+        reservation_type=reservation_type, responsible=responsible
+    )
     if future_only:
         tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-        room_reservations_to_delete = room_reservations_to_delete.filter(start_time__date__gte=tomorrow)
-    
+        room_reservations_to_delete = room_reservations_to_delete.filter(
+            start_time__date__gte=tomorrow
+        )
+
     room_reservations_to_delete.delete()
     for e in calendar.events:
         begin = e.begin.astimezone(paris)
         end = e.end.astimezone(paris)
-        to_be_saved=True
+        to_be_saved = True
         date = begin.date()
         if future_only:
             if date < tomorrow:
                 continue
         concateneted_room_names = e.location
-        room_names = concateneted_room_names.split(',')
+        room_names = concateneted_room_names.split(",")
         rooms = set()
         for room_name in room_names:
             room = Room.objects.get_or_create(name=room_name)[0]
@@ -87,14 +105,16 @@ def import_reservations_from_ics_url(room_reservations_ics_url=ics_url,
         description = e.description
         title = e.name[:30]
         if exclude_if_key_contains in getattr(e, key_exclusion):
-            to_be_saved=False
+            to_be_saved = False
             continue
         if to_be_saved:
             for room in rooms:
-                RoomReservation.objects.create(room=room, 
-                                               reservation_type=reservation_type, 
-                                               start_time=start_time, 
-                                               end_time=end_time,
-                                               title=title,
-                                               responsible=responsible,
-                                               description=description)
+                RoomReservation.objects.create(
+                    room=room,
+                    reservation_type=reservation_type,
+                    start_time=start_time,
+                    end_time=end_time,
+                    title=title,
+                    responsible=responsible,
+                    description=description,
+                )

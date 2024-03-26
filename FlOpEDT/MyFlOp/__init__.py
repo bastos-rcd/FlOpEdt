@@ -1,1 +1,1 @@
-default_app_config = 'MyFlOp.apps.MyflopConfig'
+default_app_config = "MyFlOp.apps.MyflopConfig"

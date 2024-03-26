@@ -2,9 +2,11 @@ import factory
 
 from .availability import RoomDailyAvailabilityFactory
 
+
 class RoomTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "base.RoomType"
+
     name = factory.Sequence(lambda n: f"room_type{n}")
 
 

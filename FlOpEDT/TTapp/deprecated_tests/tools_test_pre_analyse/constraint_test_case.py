@@ -1,12 +1,13 @@
 from django.test import TestCase
+
 import TTapp.deprecated_tests.tools_test_pre_analyse.json_response as json_response_module
 
 
 class ConstraintTestCase(TestCase):
     """
-        A class that inherits from Django TestCase class. Is intended to be inherited. Allow to compare a dictionary
-        (json response) with an expected result given.
-        Note : it is important to define with a string the property `contraint_type` with the setUp method.
+    A class that inherits from Django TestCase class. Is intended to be inherited. Allow to compare a dictionary
+    (json response) with an expected result given.
+    Note : it is important to define with a string the property `contraint_type` with the setUp method.
 
     """
 
@@ -24,13 +25,17 @@ class ConstraintTestCase(TestCase):
 
         """
         if self.constraint_type is not None:
-
             # Json response is OK
-            self.assertEquals("OK", json_response_module.getResponseStatus(response_dict),
-                          self.unexpectedResponseErrorMessage(test_id, "OK", "KO"))
+            self.assertEquals(
+                "OK",
+                json_response_module.getResponseStatus(response_dict),
+                self.unexpectedResponseErrorMessage(test_id, "OK", "KO"),
+            )
 
         else:
-            print("Constraint's type is not set up while ConstraintTestCase inheritance.")
+            print(
+                "Constraint's type is not set up while ConstraintTestCase inheritance."
+            )
 
     def assertJsonResponseIsKO(self, test_id, response_dict):
         """
@@ -43,18 +48,28 @@ class ConstraintTestCase(TestCase):
 
         """
         if self.constraint_type is not None:
-            all_blocking_constraints_types = list(map(lambda dico: dico["type"], response_dict["messages"]))
+            all_blocking_constraints_types = list(
+                map(lambda dico: dico["type"], response_dict["messages"])
+            )
 
             # Json response is KO and constraint's type belongs to failure's reasons
-            self.assertEquals("KO", json_response_module.getResponseStatus(response_dict),
-                              self.unexpectedResponseErrorMessage(test_id, "KO", "OK")) \
-            and self.assertIn(self.constraint_type, all_blocking_constraints_types,
-                              self.constraintNotInJsonResponseErrorMessage(test_id))
+            self.assertEquals(
+                "KO",
+                json_response_module.getResponseStatus(response_dict),
+                self.unexpectedResponseErrorMessage(test_id, "KO", "OK"),
+            ) and self.assertIn(
+                self.constraint_type,
+                all_blocking_constraints_types,
+                self.constraintNotInJsonResponseErrorMessage(test_id),
+            )
         else:
-            print("Constraint's type is not set up while ConstraintTestCase inheritance.")
+            print(
+                "Constraint's type is not set up while ConstraintTestCase inheritance."
+            )
 
-
-    def unexpectedResponseErrorMessage(self, test_id, expected_response, actual_response):
+    def unexpectedResponseErrorMessage(
+        self, test_id, expected_response, actual_response
+    ):
         """
                 Generate an error message.
 
@@ -66,10 +81,15 @@ class ConstraintTestCase(TestCase):
         :rtype: str
 
         """
-        return "Test %(test_id)s of %(constraint_type)s FAILED.\nUnexpected json response, expected %(expected_response)s but got %(actual_response)s"%{'test_id' : str(test_id),
-                                                                                                                                                        'constraint_type' : self.constraint_type,
-                                                                                                                                                        'expected_response' : expected_response,
-                                                                                                                                                        'actual_response' : actual_response}
+        return (
+            "Test %(test_id)s of %(constraint_type)s FAILED.\nUnexpected json response, expected %(expected_response)s but got %(actual_response)s"
+            % {
+                "test_id": str(test_id),
+                "constraint_type": self.constraint_type,
+                "expected_response": expected_response,
+                "actual_response": actual_response,
+            }
+        )
 
     def constraintNotInJsonResponseErrorMessage(self, test_id):
         """
@@ -82,5 +102,7 @@ class ConstraintTestCase(TestCase):
         :rtype: str
 
         """
-        return "Test %(test_id)s of %(constraint_type)s FAILED.\nExpected %(constraint_type)s in failure's reasons."%{'test_id' : str(test_id),
-                                                                                                                      'constraint_type' : self.constraint_type}
+        return (
+            "Test %(test_id)s of %(constraint_type)s FAILED.\nExpected %(constraint_type)s in failure's reasons."
+            % {"test_id": str(test_id), "constraint_type": self.constraint_type}
+        )

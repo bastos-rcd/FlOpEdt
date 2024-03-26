@@ -1,9 +1,9 @@
-from rest_framework import viewsets, permissions
 import django_filters.rest_framework as filters
-from . import serializers
-
+from rest_framework import permissions, viewsets
 
 import base.models as bm
+
+from . import serializers
 
 
 class CourseStartTimeFilter(filters.FilterSet):

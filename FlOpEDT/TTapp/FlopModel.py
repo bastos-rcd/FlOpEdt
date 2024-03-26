@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import fnmatch
+import logging
+
 # This file is part of the FlOpEDT/FlOpScheduler project.
 # Copyright (c) 2017
 # Authors: Iulian Ober, Paul Renaud-Goud, Pablo Seban, et al.
@@ -23,36 +26,46 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-import os, fnmatch
-
-from pulp import LpVariable, LpConstraint, LpBinary, LpConstraintEQ, \
-    LpConstraintGE, LpConstraintLE, LpAffineExpression, LpProblem, LpStatus, \
-    LpMinimize, lpSum, LpStatusOptimal, LpStatusNotSolved
-import pulp
-from pulp import GUROBI_CMD
+import os
 import signal
-import logging
-from TTapp.ilp_constraints.constraintManager import ConstraintManager
+
+import pulp
+from django.conf import settings
+from django.db import close_old_connections
+from django.db.models import Max, Q
+from pulp import (
+    GUROBI_CMD,
+    LpAffineExpression,
+    LpBinary,
+    LpConstraint,
+    LpConstraintEQ,
+    LpConstraintGE,
+    LpConstraintLE,
+    LpMinimize,
+    LpProblem,
+    LpStatus,
+    LpStatusNotSolved,
+    LpStatusOptimal,
+    LpVariable,
+    lpSum,
+)
+
+from base.models import Department, ScheduledCourse
+from core.decorators import timer
+from TTapp.FlopConstraint import all_subclasses
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from base.models import Department, ScheduledCourse
-
-from core.decorators import timer
-from django.db import close_old_connections
-from django.db.models import Q, Max
-from django.conf import settings
-
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.ilp_constraints.constraintManager import ConstraintManager
 from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
-from TTapp.FlopConstraint import all_subclasses
+from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 
 logger = logging.getLogger(__name__)
 pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
-GUROBI = 'GUROBI'
-GUROBI_NAME = 'GUROBI_CMD'
-solution_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/solutions")
-iis_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/iis")
-gurobi_log_files_path = os.path.join(settings.TMP_DIRECTORY,"misc/logs/gurobi")
+GUROBI = "GUROBI"
+GUROBI_NAME = "GUROBI_CMD"
+solution_files_path = os.path.join(settings.TMP_DIRECTORY, "misc/logs/solutions")
+iis_files_path = os.path.join(settings.TMP_DIRECTORY, "misc/logs/iis")
+gurobi_log_files_path = os.path.join(settings.TMP_DIRECTORY, "misc/logs/gurobi")
 
 
 class FlopVar:
@@ -68,7 +81,13 @@ class FlopVar:
 
 
 class FlopModel(object):
-    def __init__(self, department_abbrev, periods, keep_many_solution_files=False, use_flop_vars=False):
+    def __init__(
+        self,
+        department_abbrev,
+        periods,
+        keep_many_solution_files=False,
+        use_flop_vars=False,
+    ):
         self.use_flop_vars = use_flop_vars
         self.department = Department.objects.get(abbrev=department_abbrev)
         self.periods = periods
@@ -79,7 +98,9 @@ class FlopModel(object):
             self.vars = {}
         self.constraintManager = ConstraintManager()
         self.one_var = self.add_var()
-        self.add_constraint(self.one_var, '==', 1, Constraint(constraint_type=ConstraintType.TECHNICAL))
+        self.add_constraint(
+            self.one_var, "==", 1, Constraint(constraint_type=ConstraintType.TECHNICAL)
+        )
         self.warnings = {}
         self.obj = self.lin_expr()
 
@@ -99,16 +120,17 @@ class FlopModel(object):
         constraint_id = self.constraintManager.get_nb_constraints()
 
         # Add mathematic constraint
-        if relation == '==':
+        if relation == "==":
             pulp_relation = LpConstraintEQ
-        elif relation == '<=':
+        elif relation == "<=":
             pulp_relation = LpConstraintLE
-        elif relation == '>=':
+        elif relation == ">=":
             pulp_relation = LpConstraintGE
         else:
             raise Exception("relation must be either '==' or '>=' or '<='")
-        self.model += LpConstraint(e=expr, sense=pulp_relation,
-                                   rhs=value, name=str(constraint_id))
+        self.model += LpConstraint(
+            e=expr, sense=pulp_relation, rhs=value, name=str(constraint_id)
+        )
 
         # Add intelligible constraint
         constraint.id = constraint_id
@@ -137,8 +159,11 @@ class FlopModel(object):
         """
         get the coeff of each var in the objective
         """
-        l = [(weight, var) for (var, weight) in self.obj.items()
-             if var.value() != 0 and round(weight) != 0]
+        l = [
+            (weight, var)
+            for (var, weight) in self.obj.items()
+            if var.value() != 0 and round(weight) != 0
+        ]
         l.sort(reverse=True)
         return l
 
@@ -168,10 +193,18 @@ class FlopModel(object):
         if self.use_flop_vars:
             name = f"{v1} ET {v2}"
         l_conj_var = self.add_var()
-        self.add_constraint(l_conj_var - (v1 + v2), '>=', -1,
-                            Constraint(constraint_type=ConstraintType.CONJONCTION))
-        self.add_constraint(2 * l_conj_var - (v1 + v2), '<=', 0,
-                            Constraint(constraint_type=ConstraintType.CONJONCTION))
+        self.add_constraint(
+            l_conj_var - (v1 + v2),
+            ">=",
+            -1,
+            Constraint(constraint_type=ConstraintType.CONJONCTION),
+        )
+        self.add_constraint(
+            2 * l_conj_var - (v1 + v2),
+            "<=",
+            0,
+            Constraint(constraint_type=ConstraintType.CONJONCTION),
+        )
         return l_conj_var
 
     def add_floor(self, expr, floor, bound):
@@ -183,16 +216,28 @@ class FlopModel(object):
         if self.use_flop_vars:
             name = f"({' + '.join([v.name for v in expr])} >= {floor})"
         l_floor = self.add_var(name)
-        self.add_constraint(expr - l_floor * floor, '>=', 0,
-                            Constraint(constraint_type=ConstraintType.FLOOR_BOUND))
-        self.add_constraint(expr - l_floor * bound, '<=', floor - 0.001,
-                            Constraint(constraint_type=ConstraintType.CEILING_BOUND))
+        self.add_constraint(
+            expr - l_floor * floor,
+            ">=",
+            0,
+            Constraint(constraint_type=ConstraintType.FLOOR_BOUND),
+        )
+        self.add_constraint(
+            expr - l_floor * bound,
+            "<=",
+            floor - 0.001,
+            Constraint(constraint_type=ConstraintType.CEILING_BOUND),
+        )
         return l_floor
 
     def add_if_var_a_then_not_vars_b_constraint(self, var_a, vars_b_list):
         bound = len(vars_b_list) + 1
-        self.add_constraint(bound * var_a + self.sum(var for var in vars_b_list), '<=', bound,
-                            Constraint(constraint_type=ConstraintType.SI_A_ALORS_NON_B))
+        self.add_constraint(
+            bound * var_a + self.sum(var for var in vars_b_list),
+            "<=",
+            bound,
+            Constraint(constraint_type=ConstraintType.SI_A_ALORS_NON_B),
+        )
 
     def add_warning(self, key, warning):
         if key in self.warnings:
@@ -213,7 +258,7 @@ class FlopModel(object):
             for name in files:
                 if fnmatch.fnmatch(name, solution_file_pattern):
                     result.append(os.path.join(root, name))
-        result.sort(key=lambda filename: int(filename.split('_')[-1].split('.')[0]))
+        result.sort(key=lambda filename: int(filename.split("_")[-1].split(".")[0]))
         return result
 
     def last_counted_solution_filename(self):
@@ -242,11 +287,10 @@ class FlopModel(object):
     def choose_free_version_major(self):
         close_old_connections()
 
-        local_max_major = ScheduledCourse \
-            .objects \
-            .filter(course__module__train_prog__department=self.department,
-                    course__period__in=self.periods) \
-            .aggregate(Max('version__major'))['version__major__max']
+        local_max_major = ScheduledCourse.objects.filter(
+            course__module__train_prog__department=self.department,
+            course__period__in=self.periods,
+        ).aggregate(Max("version__major"))["version__major__max"]
 
         if local_max_major is None:
             local_max_major = 0
@@ -263,7 +307,8 @@ class FlopModel(object):
         close_old_connections()
         iis_filename = self.iis_filename()
         if write_iis:
-            from gurobipy import read, GurobiError
+            from gurobipy import GurobiError, read
+
             lp = f"{self.solution_files_prefix()}-pulp.lp"
             m = read(lp)
             if presolve:
@@ -278,55 +323,59 @@ class FlopModel(object):
                 m.computeIIS()
                 m.write(iis_filename)
         if write_analysis:
-            self.constraintManager.handle_reduced_result(iis_filename,
-                                                         iis_files_path,
-                                                         self.iis_filename_suffixe())
-            
+            self.constraintManager.handle_reduced_result(
+                iis_filename, iis_files_path, self.iis_filename_suffixe()
+            )
+
     def gurobi_log_file(self):
         return f"{gurobi_log_files_path}/{self.log_files_prefix()}_gurobi.log"
 
     @timer
-    def optimize(self, time_limit, solver, presolve=2, threads=None, ignore_sigint=True):
+    def optimize(
+        self, time_limit, solver, presolve=2, threads=None, ignore_sigint=True
+    ):
         # The solver value shall be one of the available
         # solver corresponding pulp command or contain
         # gurobi
-        if 'gurobi' in solver.lower() and hasattr(pulp, GUROBI_NAME):
+        if "gurobi" in solver.lower() and hasattr(pulp, GUROBI_NAME):
             self.delete_solution_files(all=True)
             if ignore_sigint:
                 # ignore SIGINT while solver is running
                 # => SIGINT is still delivered to the solver, which is what we want
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
             solver = GUROBI_NAME
-            options = [("Presolve", presolve),
-                       ("MIPGapAbs", 0.2),
-                       ('LogFile', self.gurobi_log_file())]
+            options = [
+                ("Presolve", presolve),
+                ("MIPGapAbs", 0.2),
+                ("LogFile", self.gurobi_log_file()),
+            ]
             if time_limit is not None:
                 options.append(("TimeLimit", time_limit))
             if threads is not None:
-                options.append(("Threads",threads))
+                options.append(("Threads", threads))
             if self.keep_many_solution_files:
-                options.append(('SolFiles',
-                                f"{self.solution_files_prefix()}"))
-            result = self.model.solve(GUROBI_CMD(keepFiles=1,
-                                                 msg=True,
-                                                 options=options))
+                options.append(("SolFiles", f"{self.solution_files_prefix()}"))
+            result = self.model.solve(
+                GUROBI_CMD(keepFiles=1, msg=True, options=options)
+            )
             if result is None or result == 0:
                 self.write_infaisability()
 
         elif hasattr(pulp, solver):
             # raise an exception when the solver name is incorrect
             command = getattr(pulp, solver)
-            self.model.solve(command(keepFiles=1,
-                                     msg=True,
-                                     presolve=presolve,
-                                     timeLimit=time_limit))
+            self.model.solve(
+                command(keepFiles=1, msg=True, presolve=presolve, timeLimit=time_limit)
+            )
         else:
-            print(f'Solver {solver} not found.')
+            print(f"Solver {solver} not found.")
             return None
 
         status = self.model.status
         print(LpStatus[status])
-        if status == LpStatusOptimal or (solver != GUROBI_NAME and status == LpStatusNotSolved):
+        if status == LpStatusOptimal or (
+            solver != GUROBI_NAME and status == LpStatusNotSolved
+        ):
             return self.get_obj_coeffs()
 
         else:
@@ -355,7 +404,7 @@ def get_ttconstraints(department, period=None, is_active=None):
         if atributes:
             queryset = queryset.prefetch_related(*atributes)
 
-        for constraint in queryset.order_by('id'):
+        for constraint in queryset.order_by("id"):
             yield constraint
 
 
@@ -380,7 +429,7 @@ def get_room_constraints(department, period=None, is_active=None):
         if atributes:
             queryset = queryset.prefetch_related(*atributes)
 
-        for constraint in queryset.order_by('id'):
+        for constraint in queryset.order_by("id"):
             yield constraint
 
 

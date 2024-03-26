@@ -24,17 +24,18 @@
 # without disclosing the source code of your own applications.
 
 
-from django.db import models
-from django.contrib.auth.models import AbstractUser
-from base.models import Department
-from base.timing import Day
-from django.core.validators import MinValueValidator, MaxValueValidator
 import datetime as dt
+
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from django.utils.translation import gettext_lazy as _
+from rules import always_false, always_true, is_staff
 from rules.contrib.models import RulesModel
 
+from base.models import Department
+from base.timing import Day
 from people.rules import is_theme_ok, is_theme_view_ok
-from rules import always_true, always_false, is_staff
 
 # Create your models here.
 

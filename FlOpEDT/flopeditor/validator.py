@@ -30,15 +30,16 @@ This module is used to declare the form validations related to flop!EDITOR, an a
 to manage a department statistics for FlOpEDT.
 """
 import re
-from django.core.validators import validate_email
+
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+
 from base.models import Department, GenericGroup
-from people.models import Tutor, SupplyStaff, FullStaff, BIATOS
+from people.models import BIATOS, FullStaff, SupplyStaff, Tutor
 
-
-OK_RESPONSE = 'OK'
-ERROR_RESPONSE = 'ERROR'
-UNKNOWN_RESPONSE = 'UNKNOWN'
+OK_RESPONSE = "OK"
+ERROR_RESPONSE = "ERROR"
+UNKNOWN_RESPONSE = "UNKNOWN"
 
 
 def validate_department_values(name, abbrev, tutors_id):
@@ -54,31 +55,31 @@ def validate_department_values(name, abbrev, tutors_id):
     :return: (are the paramaters valid , status and errors)
     :rtype: (boolean,json)
     """
-    response = {'status': UNKNOWN_RESPONSE}
+    response = {"status": UNKNOWN_RESPONSE}
     slug_re = re.compile(r"^[a-zA-Z]\w{0,6}$")
     if not name or len(name) > 50:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Le nom du département est invalide. \
-            Il doit comporter entre 1 et 50 caractères."
+            "status": ERROR_RESPONSE,
+            "message": "Le nom du département est invalide. \
+            Il doit comporter entre 1 et 50 caractères.",
         }
     elif not slug_re.match(abbrev):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "L'abréviation du département est invalide. Elle doit être \
+            "status": ERROR_RESPONSE,
+            "message": "L'abréviation du département est invalide. Elle doit être \
             entre 1 et 7 caractères. Elle peut comporter des lettres et des chiffres \
             et doit commencer par une lettre. Elle ne doit pas comporter d'espace, \
-            utilisez des '_' pour les séparations."
+            utilisez des '_' pour les séparations.",
         }
     else:
         for tutor_id in tutors_id:
             if not Tutor.objects.filter(id=tutor_id):
                 response = {
-                    'status': ERROR_RESPONSE,
-                    'message': "Le tuteur que vous recherchez est introuvable. \
-                    Veuillez en sélectionner un autre."
+                    "status": ERROR_RESPONSE,
+                    "message": "Le tuteur que vous recherchez est introuvable. \
+                    Veuillez en sélectionner un autre.",
                 }
-        response = {'status': OK_RESPONSE}
+        response = {"status": OK_RESPONSE}
     return response
 
 
@@ -96,25 +97,26 @@ def validate_department_creation(name, abbrev, tutors_id):
     :rtype: (boolean,json)
     """
     response = validate_department_values(name, abbrev, tutors_id)
-    if response['status'] != OK_RESPONSE:
+    if response["status"] != OK_RESPONSE:
         pass
     elif Department.objects.filter(name=name):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Le nom du département est déjà utilisé. veuillez en choisir un autre."
+            "status": ERROR_RESPONSE,
+            "message": "Le nom du département est déjà utilisé. veuillez en choisir un autre.",
         }
     elif Department.objects.filter(abbrev=abbrev):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "L'abbréviation est déjà utilisée."
+            "status": ERROR_RESPONSE,
+            "message": "L'abbréviation est déjà utilisée.",
         }
     else:
-        response = {'status': OK_RESPONSE}
+        response = {"status": OK_RESPONSE}
     return response
 
 
-def validate_department_update(old_dept_name, new_dept_name,
-                               old_dept_abbrev, new_dept_abbrev, tutors_id):
+def validate_department_update(
+    old_dept_name, new_dept_name, old_dept_abbrev, new_dept_abbrev, tutors_id
+):
     """Validate parameters for department updaten
 
     :param old_dept_name: Old department name
@@ -131,31 +133,31 @@ def validate_department_update(old_dept_name, new_dept_name,
     :return: (are the paramaters valid , status and errors)
     :rtype: (boolean,json)
     """
-    response = validate_department_values(
-        new_dept_name, new_dept_abbrev, tutors_id)
-    if response['status'] != OK_RESPONSE:
+    response = validate_department_values(new_dept_name, new_dept_abbrev, tutors_id)
+    if response["status"] != OK_RESPONSE:
         pass
-    elif old_dept_name != new_dept_name and Department.objects.filter(name=new_dept_name):
+    elif old_dept_name != new_dept_name and Department.objects.filter(
+        name=new_dept_name
+    ):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Un autre département possède déjà ce nom."
+            "status": ERROR_RESPONSE,
+            "message": "Un autre département possède déjà ce nom.",
         }
-    elif old_dept_abbrev != new_dept_abbrev and Department.objects.filter(abbrev=new_dept_abbrev):
+    elif old_dept_abbrev != new_dept_abbrev and Department.objects.filter(
+        abbrev=new_dept_abbrev
+    ):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Un autre département possède déjà cette abbréviation."
+            "status": ERROR_RESPONSE,
+            "message": "Un autre département possède déjà cette abbréviation.",
         }
     else:
-        response = {
-            'status': OK_RESPONSE,
-            'message': ''
-        }
+        response = {"status": OK_RESPONSE, "message": ""}
     return response
 
 
-def validate_parameters_edit(days, day_start_time,
-                             day_end_time, morning_end_time,
-                             afternoon_start_time):
+def validate_parameters_edit(
+    days, day_start_time, day_end_time, morning_end_time, afternoon_start_time
+):
     """Validate parameters for department creation
 
     :param days: List of checked working days
@@ -171,50 +173,50 @@ def validate_parameters_edit(days, day_start_time,
 
     :return: (boolean,json) (are the paramaters valid , status and errors)
     """
-    response = {'status': UNKNOWN_RESPONSE}
+    response = {"status": UNKNOWN_RESPONSE}
     time_re = re.compile("^[0-2][0-9]:[0-5][0-9]$")
     if len(days) <= 0:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Veuillez cocher au moins un jour"
+            "status": ERROR_RESPONSE,
+            "message": "Veuillez cocher au moins un jour",
         }
     elif not time_re.match(day_start_time):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "L'heure de début des cours est incorrecte."
+            "status": ERROR_RESPONSE,
+            "message": "L'heure de début des cours est incorrecte.",
         }
     elif not time_re.match(day_end_time):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "L'heure de fin des cours est incorrecte."
+            "status": ERROR_RESPONSE,
+            "message": "L'heure de fin des cours est incorrecte.",
         }
     elif not time_re.match(morning_end_time):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "L'heure de fin de matinée est incorrecte."
+            "status": ERROR_RESPONSE,
+            "message": "L'heure de fin de matinée est incorrecte.",
         }
     elif not time_re.match(afternoon_start_time):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "L'heure de début d'après midi est incorrecte."
+            "status": ERROR_RESPONSE,
+            "message": "L'heure de début d'après midi est incorrecte.",
         }
     elif day_start_time > day_end_time:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "L'heure de début des cours doit précéder l'heure de fin des cours."
+            "status": ERROR_RESPONSE,
+            "message": "L'heure de début des cours doit précéder l'heure de fin des cours.",
         }
     elif morning_end_time > afternoon_start_time:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "L'heure de fin de matinée doit précéder l'heure de début d'après-midi."
+            "status": ERROR_RESPONSE,
+            "message": "L'heure de fin de matinée doit précéder l'heure de début d'après-midi.",
         }
     elif day_start_time > morning_end_time or afternoon_start_time > day_end_time:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "La période du déjeuner doit être pendant la période des cours."
+            "status": ERROR_RESPONSE,
+            "message": "La période du déjeuner doit être pendant la période des cours.",
         }
     else:
-        response = {'status': OK_RESPONSE, 'message': ''}
+        response = {"status": OK_RESPONSE, "message": ""}
     return response
 
 
@@ -231,18 +233,20 @@ def validate_training_programme_values(abbrev, name, entries):
     """
     # Verifie la validite du slug
     if not abbrev:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "L'abbreviation de la promo ne peut pas être vide."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "L'abbreviation de la promo ne peut pas être vide."]
+        )
     elif len(abbrev) > 5:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "L'abbreviation de la promo est trop longue."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "L'abbreviation de la promo est trop longue."]
+        )
     # verifie la longueur du nom
     elif not name:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom de la promo ne peut pas être vide."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom de la promo ne peut pas être vide."]
+        )
     elif len(name) > 50:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom de la promo est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "Le nom de la promo est trop long."])
     else:
         return True
     return False
@@ -260,11 +264,13 @@ def validate_course_values(name, entries):
     """
 
     if not name:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom du type de cours ne peut pas être vide."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom du type de cours ne peut pas être vide."]
+        )
     elif len(name) > 50:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom du type de cours est trop long."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom du type de cours est trop long."]
+        )
     else:
         return True
     return False
@@ -280,17 +286,19 @@ def validate_student_structural_groups_values(entry, entries):
     :return: boolean are the paramaters valid
     """
     if not entry[0]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom ne peut pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "Le nom ne peut pas être vide."])
     elif len(entry[0]) > 10:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom ne peut pas être plus long que 10 caractères."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom ne peut pas être plus long que 10 caractères."]
+        )
     elif entry[4] < 0:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "La taille ne peut pas être négative."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "La taille ne peut pas être négative."]
+        )
     elif entry[0] in entry[2]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le groupe ne peut pas être un sous-groupe de lui-même."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le groupe ne peut pas être un sous-groupe de lui-même."]
+        )
     else:
         return True
     return False
@@ -306,14 +314,15 @@ def validate_student_transversal_groups_values(entry, entries):
     :return: boolean are the paramaters valid
     """
     if not entry[0]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom ne peut pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "Le nom ne peut pas être vide."])
     elif len(entry[0]) > 10:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom ne peut pas être plus long que 10 caractères."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom ne peut pas être plus long que 10 caractères."]
+        )
     elif entry[5] < 0:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "La taille ne peut pas être négative."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "La taille ne peut pas être négative."]
+        )
     else:
         return True
     return False
@@ -329,23 +338,21 @@ def validate_module_values(entry, entries):
     :return: boolean are the paramaters valid
     """
     if not entry[0]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "L'abréviation ne peut pas être vide."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "L'abréviation ne peut pas être vide."]
+        )
     elif not entry[1]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le code PPN ne peut pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "Le code PPN ne peut pas être vide."])
     elif not entry[2]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom complet ne peut pas être vide."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom complet ne peut pas être vide."]
+        )
     elif len(entry[0]) > 10:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "L'abréviation est trop longue."])
+        entries["result"].append([ERROR_RESPONSE, "L'abréviation est trop longue."])
     elif len(entry[1]) > 8:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le code PPN est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "Le code PPN est trop long."])
     elif len(entry[2]) > 100:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom complet est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "Le nom complet est trop long."])
     else:
         return True
     return False
@@ -365,14 +372,17 @@ def validate_training_period_values(name, scheduling_periods, entries):
     """
 
     if scheduling_periods is None:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Les périodes de génération ne peuvent pas être vide."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Les périodes de génération ne peuvent pas être vide."]
+        )
     elif not name:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom du semestre ne peut pas être vide."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom du semestre ne peut pas être vide."]
+        )
     elif len(name) > 20:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom du semestre est trop long. (<20)"])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom du semestre est trop long. (<20)"]
+        )
     else:
         return True
     return False
@@ -389,21 +399,20 @@ def validate_profil_update(request):
 
     """
     old_username = request.user.username
-    new_username = request.POST['newIdProfil']
-    new_first_name = request.POST['newFirtNameProfil']
-    new_last_name = request.POST['newLastNameProfil']
-    new_email = request.POST['newEmailProfil']
-    new_status_vacataire = request.POST['newstatusVacataire']
-    new_employer = request.POST['newEmployer']
-    old_status = request.POST['oldStatus']
+    new_username = request.POST["newIdProfil"]
+    new_first_name = request.POST["newFirtNameProfil"]
+    new_last_name = request.POST["newLastNameProfil"]
+    new_email = request.POST["newEmailProfil"]
+    new_status_vacataire = request.POST["newstatusVacataire"]
+    new_employer = request.POST["newEmployer"]
+    old_status = request.POST["oldStatus"]
     tutor = Tutor.objects.get(username=old_username)
 
-
     try:
-        if old_status == 'Vacataire':
+        if old_status == "Vacataire":
             SupplyStaff.objects.get(id=tutor.id)
             tutor_exist = True
-        elif old_status == 'Permanent':
+        elif old_status == "Permanent":
             FullStaff.objects.get(id=tutor.id)
             tutor_exist = True
         else:
@@ -412,62 +421,55 @@ def validate_profil_update(request):
     except Tutor.DoesNotExist:
         tutor_exist = False
 
-
     try:
         validate_email(new_email)
         email = True
     except ValidationError:
         email = False
 
-    idregex = re.compile(r'^[\w.@+-]+$')
+    idregex = re.compile(r"^[\w.@+-]+$")
     if len(new_username) > 150:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Le username est trop long. (<150caractères)"
+            "status": ERROR_RESPONSE,
+            "message": "Le username est trop long. (<150caractères)",
         }
     elif not idregex.match(new_username):
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Le nom d'utilisateur n'est pas valide"
+            "status": ERROR_RESPONSE,
+            "message": "Le nom d'utilisateur n'est pas valide",
         }
     elif len(new_first_name) > 30:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Le prénom est trop long. (<30caractères)'"
+            "status": ERROR_RESPONSE,
+            "message": "Le prénom est trop long. (<30caractères)'",
         }
     elif len(new_last_name) > 150:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Le nom est trop long. (<150caractères)'"
+            "status": ERROR_RESPONSE,
+            "message": "Le nom est trop long. (<150caractères)'",
         }
     elif not email:
-        response = {
-            'status': ERROR_RESPONSE,
-            'message': "L'email est invalide"
-        }
+        response = {"status": ERROR_RESPONSE, "message": "L'email est invalide"}
     elif new_status_vacataire is not None and len(new_status_vacataire) > 50:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Le statut de vacataire est trop long. (<50caractères)"
+            "status": ERROR_RESPONSE,
+            "message": "Le statut de vacataire est trop long. (<50caractères)",
         }
     elif new_employer is not None and len(new_employer) > 50:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Le nom de l'employeur est trop long. (<50caractères)"
+            "status": ERROR_RESPONSE,
+            "message": "Le nom de l'employeur est trop long. (<50caractères)",
         }
     elif old_username != new_username and Tutor.objects.filter(username=new_username):
-        response = {
-            'status': ERROR_RESPONSE,
-            'message': "Id déjà utilisé"
-        }
+        response = {"status": ERROR_RESPONSE, "message": "Id déjà utilisé"}
     elif not tutor_exist:
         response = {
-            'status': ERROR_RESPONSE,
-            'message': "Impossible de modifier votre profil : \
-            vous n'avez pas de statut en base de données"
+            "status": ERROR_RESPONSE,
+            "message": "Impossible de modifier votre profil : \
+            vous n'avez pas de statut en base de données",
         }
     else:
-        response = {'status': OK_RESPONSE, 'message': ''}
+        response = {"status": OK_RESPONSE, "message": ""}
     return response
 
 
@@ -480,46 +482,39 @@ def validate_tutor_values(entry, entries):
     :type abbrev: list
     :return: boolean are the paramaters valid
     """
-    idregex = re.compile(r'^[\w.@+-]+$')
+    idregex = re.compile(r"^[\w.@+-]+$")
     if not entry[0]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "L'id ne peut pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "L'id ne peut pas être vide."])
     elif len(entry[0]) > 30:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "L'id est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "L'id est trop long."])
     elif not idregex.match(entry[0]):
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom d'utilisateur n'est pas valide"])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom d'utilisateur n'est pas valide"]
+        )
     elif not entry[1]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le prénom ne peut pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "Le prénom ne peut pas être vide."])
     elif len(entry[1]) > 30:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le prénom est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "Le prénom est trop long."])
     elif not entry[2]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom ne peut pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "Le nom ne peut pas être vide."])
     elif len(entry[2]) > 30:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "Le nom est trop long."])
     elif not entry[3]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le statut ne doit pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "Le statut ne doit pas être vide."])
     elif not entry[4]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "L'email' ne doit pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "L'email' ne doit pas être vide."])
     elif entry[3] != "Vacataire" and entry[5]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Seul un vacataire peut avoir une position"])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Seul un vacataire peut avoir une position"]
+        )
     elif entry[3] != "Vacataire" and entry[6]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Seul un vacataire peut avoir un employeur"])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Seul un vacataire peut avoir un employeur"]
+        )
     elif len(entry[5]) > 50:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "La position est trop longue."])
+        entries["result"].append([ERROR_RESPONSE, "La position est trop longue."])
     elif len(entry[6]) > 50:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "L'employeur est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "L'employeur est trop long."])
     else:
         return True
     return False
@@ -534,31 +529,23 @@ def validate_student_values(entry, entries):
     :type abbrev: list
     :return: boolean are the paramaters valid
     """
-    idregex = re.compile(r'^[\w.@+-]+$')
+    idregex = re.compile(r"^[\w.@+-]+$")
     if not entry[0]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le login ne peut pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "Le login ne peut pas être vide."])
     elif len(entry[0]) > 30:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le login est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "Le login est trop long."])
     elif not idregex.match(entry[0]):
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le login n'est pas valide"])
+        entries["result"].append([ERROR_RESPONSE, "Le login n'est pas valide"])
     elif not entry[1]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le prénom ne peut pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "Le prénom ne peut pas être vide."])
     elif len(entry[1]) > 30:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le prénom est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "Le prénom est trop long."])
     elif not entry[2]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom ne peut pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "Le nom ne peut pas être vide."])
     elif len(entry[2]) > 30:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom est trop long."])
+        entries["result"].append([ERROR_RESPONSE, "Le nom est trop long."])
     elif not entry[2]:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "L'email' ne doit pas être vide."])
+        entries["result"].append([ERROR_RESPONSE, "L'email' ne doit pas être vide."])
     else:
         return True
     return False
@@ -567,11 +554,13 @@ def validate_student_values(entry, entries):
 def student_groups_from_full_names(full_names, department):
     gp_to_return = set()
     for gp_full_name in full_names:
-        if gp_full_name.count('-') >= 2:
+        if gp_full_name.count("-") >= 2:
             pass
 
-        tp, gp = gp_full_name.split('-')
-        gg = GenericGroup.objects.get(train_prog__abbrev=tp, name=gp, train_prog__department=department)
+        tp, gp = gp_full_name.split("-")
+        gg = GenericGroup.objects.get(
+            train_prog__abbrev=tp, name=gp, train_prog__department=department
+        )
         gp_to_return.add(gg)
     return gp_to_return
 
@@ -589,11 +578,13 @@ def validate_room_attributes_values(name, description, entries):
     """
     # Verifie la validite du slug
     if not name:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom de l'attribut ne peut pas être vide."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom de l'attribut ne peut pas être vide."]
+        )
     elif len(name) > 20:
-        entries['result'].append([ERROR_RESPONSE,
-                                  "Le nom de l'attribut est trop long."])
+        entries["result"].append(
+            [ERROR_RESPONSE, "Le nom de l'attribut est trop long."]
+        )
     else:
         return True
     return False

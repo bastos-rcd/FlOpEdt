@@ -1,6 +1,6 @@
 import pytest
 
-from api.v1.tests.factories.people import UserFactory, UserAndAvFactory
+from api.v1.tests.factories.people import UserAndAvFactory, UserFactory
 
 
 @pytest.fixture

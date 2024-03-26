@@ -24,38 +24,37 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.weeks import week_list
-from base.models import Course, TrainingProgramme, Module
-from people.models import Tutor
-from displayweb.models import ModuleDisplay, TutorDisplay
-
-from django.core.exceptions import ObjectDoesNotExist
-from django.conf import settings
-
-from pyclustering.gcolor.dsatur import dsatur
-from numpy import diag, eye
-
 import json
 import os
+
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from numpy import diag, eye
+from pyclustering.gcolor.dsatur import dsatur
+
+from base.models import Course, Module, TrainingProgramme
+from base.weeks import week_list
+from displayweb.models import ModuleDisplay, TutorDisplay
+from people.models import Tutor
 
 
 def assign_tutor_color(department=None):
     all_tutors = Tutor.objects.all()
     if department is not None:
         all_tutors = all_tutors.filter(departments=department)
-    color_set = get_color_set(os.path.join(settings.BASE_DIR,
-                                           'misc',
-                                           'colors.json'),
-                              all_tutors.count())
+    color_set = get_color_set(
+        os.path.join(settings.BASE_DIR, "misc", "colors.json"), all_tutors.count()
+    )
     for tut, col in zip(all_tutors, color_set):
         td, created = TutorDisplay.objects.get_or_create(tutor=tut)
         td.color_bg = col
         td.color_txt = compute_luminance(col)
         td.save()
-        
-    
 
-def assign_module_color(department, overwrite=True, diff_across_train_prog=False, build_graph_matrices=False):
+
+def assign_module_color(
+    department, overwrite=True, diff_across_train_prog=False, build_graph_matrices=False
+):
     """
     Assigns a color to each module
     :param department department
@@ -68,12 +67,15 @@ def assign_module_color(department, overwrite=True, diff_across_train_prog=False
     :return:
     """
     if department is None:
-        raise Exception('Please provide a department')
+        raise Exception("Please provide a department")
     if diff_across_train_prog:
         if build_graph_matrices:
             keys, mat = build_graph_matrices(None, department)
         else:
-            keys, mat = list(Module.objects.filter(train_prog__department=department)), None
+            keys, mat = (
+                list(Module.objects.filter(train_prog__department=department)),
+                None,
+            )
         optim_and_save(keys, mat, overwrite)
     else:
         for train_prog in TrainingProgramme.objects.filter(department=department):
@@ -94,14 +96,35 @@ def optim_and_save(keys, mat, overwrite):
         opti.process()
         color_indices = opti.get_colors()
         print(color_indices, max(color_indices))
-        color_set = get_color_set(os.path.join(settings.BASE_DIR,
-                                            'misc',
-                                            'colors.json'),
-                                max(color_indices))
+        color_set = get_color_set(
+            os.path.join(settings.BASE_DIR, "misc", "colors.json"), max(color_indices)
+        )
     else:
-        color_set = ["#208eb7", "#8fba06", "#961d6b", "#63e118", "#ef6ade", "#207a3f", "#fe16f4", "#83c989", "#af3014", 
-                    "#20d8fd", "#6a3747", "#1cf1a3", "#1932bf", "#efd453", 
-                    "#5310f0", "#fca552", "#274c56", "#ddc0bd", "#2d68c7", "#9a5c0d", "#c098fd", "#474a09", "#fb899b"]
+        color_set = [
+            "#208eb7",
+            "#8fba06",
+            "#961d6b",
+            "#63e118",
+            "#ef6ade",
+            "#207a3f",
+            "#fe16f4",
+            "#83c989",
+            "#af3014",
+            "#20d8fd",
+            "#6a3747",
+            "#1cf1a3",
+            "#1932bf",
+            "#efd453",
+            "#5310f0",
+            "#fca552",
+            "#274c56",
+            "#ddc0bd",
+            "#2d68c7",
+            "#9a5c0d",
+            "#c098fd",
+            "#474a09",
+            "#fb899b",
+        ]
     for mi in range(len(keys)):
         if mat is not None:
             cbg = color_set[color_indices[mi] - 1]
@@ -114,15 +137,15 @@ def optim_and_save(keys, mat, overwrite):
                 mod_disp.color_txt = compute_luminance(cbg)
                 mod_disp.save()
         except ObjectDoesNotExist:
-            mod_disp = ModuleDisplay(module=keys[mi],
-                                     color_bg=cbg,
-                                     color_txt=compute_luminance(cbg))
+            mod_disp = ModuleDisplay(
+                module=keys[mi], color_bg=cbg, color_txt=compute_luminance(cbg)
+            )
             mod_disp.save()
 
 
 def build_graph_matrices(train_prog, department=None):
     if train_prog is None and department is None:
-        raise Exception('You need to provide at least a department')
+        raise Exception("You need to provide at least a department")
     if train_prog is None:
         keys = list(Module.objects.filter(train_prog__department=department))
     else:
@@ -133,14 +156,20 @@ def build_graph_matrices(train_prog, department=None):
     for mi in range(len(keys)):
         for mj in range(mi + 1, len(keys)):
             for wy in wl:
-                if Course.objects.filter(week__nb=wy['week'],
-                                         week__year=wy['year'],
-                                         module__in=[keys[mi], keys[mj]]) \
-                        .distinct('module').count() == 2:
+                if (
+                    Course.objects.filter(
+                        week__nb=wy["week"],
+                        week__year=wy["year"],
+                        module__in=[keys[mi], keys[mj]],
+                    )
+                    .distinct("module")
+                    .count()
+                    == 2
+                ):
                     mat[(mi, mj)] = 1
                     break
     mat += mat.T - diag(mat.diagonal())
-    print('Conflict matrix:')
+    print("Conflict matrix:")
     print(mat)
     return keys, mat
 
@@ -161,12 +190,12 @@ def get_color_set(filename, target_nb_colors):
         # find smallest set, bigger than needed
         # otherwise just the biggest
         for init_color_set in initial_colors:
-            if len(init_color_set['colors']) > len(color_set):
+            if len(init_color_set["colors"]) > len(color_set):
                 if len(color_set) < target_nb_colors:
-                    color_set = init_color_set['colors']
+                    color_set = init_color_set["colors"]
             else:
-                if len(init_color_set['colors']) >= target_nb_colors:
-                    color_set = init_color_set['colors']
+                if len(init_color_set["colors"]) >= target_nb_colors:
+                    color_set = init_color_set["colors"]
 
         print(color_set)
 
@@ -178,17 +207,19 @@ def get_color_set(filename, target_nb_colors):
                 color_set += sliced
             # shrink the color set if needed
             if len(color_set) > target_nb_colors:
-                color_set = color_set[len(color_set) - target_nb_colors:]
+                color_set = color_set[len(color_set) - target_nb_colors :]
 
     return color_set
 
 
 def compute_luminance(col):
     hexa = col[1:]
-    perceived_luminance = 0.299 * int('0x' + hexa[0:2], 16) \
-                          + 0.587 * int('0x' + hexa[2:4], 16) \
-                          + 0.114 * int('0x' + hexa[4:6], 16)
+    perceived_luminance = (
+        0.299 * int("0x" + hexa[0:2], 16)
+        + 0.587 * int("0x" + hexa[2:4], 16)
+        + 0.114 * int("0x" + hexa[4:6], 16)
+    )
     if perceived_luminance < 127.5:
-        return '#FFFFFF'
+        return "#FFFFFF"
     else:
-        return '#000000'
+        return "#000000"

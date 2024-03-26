@@ -1,10 +1,12 @@
-from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
 class RoomType(models.Model):
-    department = models.ForeignKey('base.Department', on_delete=models.CASCADE, null=True)
+    department = models.ForeignKey(
+        "base.Department", on_delete=models.CASCADE, null=True
+    )
     name = models.CharField(max_length=20)
 
     class Meta:
@@ -34,41 +36,46 @@ class RoomAttribute(models.Model):
 
 
 class BooleanRoomAttribute(RoomAttribute):
-    attribute = models.OneToOneField(RoomAttribute, parent_link=True, on_delete=models.CASCADE)
+    attribute = models.OneToOneField(
+        RoomAttribute, parent_link=True, on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return f"{self.name} (boolean)"
 
 
 class NumericRoomAttribute(RoomAttribute):
-    attribute = models.OneToOneField(RoomAttribute, parent_link=True, on_delete=models.CASCADE)
+    attribute = models.OneToOneField(
+        RoomAttribute, parent_link=True, on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return f"{self.name} (numeric)"
 
 
 class BooleanRoomAttributeValue(models.Model):
-    room = models.ForeignKey('Room', on_delete=models.CASCADE)
-    attribute = models.ForeignKey('BooleanRoomAttribute', on_delete=models.CASCADE)
+    room = models.ForeignKey("Room", on_delete=models.CASCADE)
+    attribute = models.ForeignKey("BooleanRoomAttribute", on_delete=models.CASCADE)
     value = models.BooleanField()
 
 
 class NumericRoomAttributeValue(models.Model):
-    room = models.ForeignKey('Room', on_delete=models.CASCADE)
-    attribute = models.ForeignKey('NumericRoomAttribute', on_delete=models.CASCADE)
+    room = models.ForeignKey("Room", on_delete=models.CASCADE)
+    attribute = models.ForeignKey("NumericRoomAttribute", on_delete=models.CASCADE)
     value = models.DecimalField(max_digits=7, decimal_places=2)
-
 
 
 class Room(models.Model):
     name = models.CharField(max_length=50)
     types = models.ManyToManyField(RoomType, blank=True, related_name="members")
-    subroom_of = models.ManyToManyField('self', symmetrical=False, blank=True, related_name="subrooms")
-    departments = models.ManyToManyField('base.Department')
-    
+    subroom_of = models.ManyToManyField(
+        "self", symmetrical=False, blank=True, related_name="subrooms"
+    )
+    departments = models.ManyToManyField("base.Department")
+
     class Meta:
-            verbose_name = _("room")
-            verbose_name_plural = _("rooms")
+        verbose_name = _("room")
+        verbose_name_plural = _("rooms")
 
     @property
     def is_basic(self):
@@ -94,11 +101,13 @@ class Room(models.Model):
         return self.name
 
     def str_extended(self):
-        return f'{self.name}, ' \
-               + f'Types: {[t.name for t in self.types.all()]}, ' \
-               + f'Depts: {self.departments.all()}, ' \
-               + f'Is in: {[rg.name for rg in self.subroom_of.all()]}'
-    
+        return (
+            f"{self.name}, "
+            + f"Types: {[t.name for t in self.types.all()]}, "
+            + f"Depts: {self.departments.all()}, "
+            + f"Is in: {[rg.name for rg in self.subroom_of.all()]}"
+        )
+
     def related_rooms(self):
         result = set()
         for r in self.basic_rooms():
@@ -107,20 +116,32 @@ class Room(models.Model):
 
 
 class RoomSort(models.Model):
-    for_type = models.ForeignKey(RoomType, blank=True, null=True, related_name='+', on_delete=models.CASCADE)
-    prefer = models.ForeignKey(Room, blank=True, null=True, related_name='+', on_delete=models.CASCADE)
-    unprefer = models.ForeignKey(Room, blank=True, null=True, related_name='+', on_delete=models.CASCADE)
-    tutor = models.ForeignKey('people.Tutor', related_name='abcd', null=True, default=None, on_delete=models.CASCADE)
+    for_type = models.ForeignKey(
+        RoomType, blank=True, null=True, related_name="+", on_delete=models.CASCADE
+    )
+    prefer = models.ForeignKey(
+        Room, blank=True, null=True, related_name="+", on_delete=models.CASCADE
+    )
+    unprefer = models.ForeignKey(
+        Room, blank=True, null=True, related_name="+", on_delete=models.CASCADE
+    )
+    tutor = models.ForeignKey(
+        "people.Tutor",
+        related_name="abcd",
+        null=True,
+        default=None,
+        on_delete=models.CASCADE,
+    )
 
     def __str__(self):
         return f"{self.for_type}: {self.tutor} prefers {self.prefer} to {self.unprefer}"
 
 
 class RoomPonderation(models.Model):
-    department = models.ForeignKey('Department', on_delete=models.CASCADE)
+    department = models.ForeignKey("Department", on_delete=models.CASCADE)
     room_types = ArrayField(models.PositiveSmallIntegerField())
     ponderations = ArrayField(models.PositiveSmallIntegerField(), null=True)
-    basic_rooms = models.ManyToManyField('Room')
+    basic_rooms = models.ManyToManyField("Room")
 
     def save(self, *args, **kwargs):
         super(RoomPonderation, self).save(*args, **kwargs)
@@ -134,4 +155,3 @@ class RoomPonderation(models.Model):
 
     def get_room_types_set(self):
         return set(RoomType.objects.filter(id__in=self.room_types))
-

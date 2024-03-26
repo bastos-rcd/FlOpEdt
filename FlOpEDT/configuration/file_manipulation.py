@@ -24,8 +24,10 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.conf import settings
 import os
+
+from django.conf import settings
+
 
 def upload_file(file, file_name):
     """
@@ -35,7 +37,7 @@ def upload_file(file, file_name):
     :return: the path of the saved file
     """
     path = os.path.join(settings.MEDIA_ROOT, file_name)
-    with open(path, 'wb+') as dest:
+    with open(path, "wb+") as dest:
         for chunk in file.chunks():
             dest.write(chunk)
     return path

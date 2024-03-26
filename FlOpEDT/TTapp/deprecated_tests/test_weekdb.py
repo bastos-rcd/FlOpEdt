@@ -1,11 +1,10 @@
-import base.models as models
-
 from django.test import TestCase
+
+import base.models as models
 from TTapp.TimetableModel import TimetableData
 
 
 class WeekDBTestCase(TestCase):
-
     fixtures = ["dump.json"]
 
     def test_attributes(self):

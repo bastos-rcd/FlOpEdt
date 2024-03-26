@@ -1,15 +1,24 @@
 import datetime
+
 from django.db.models import Q
+
 from base.models import Course
 
 
-class PeriodWeeks():
+class PeriodWeeks:
     """
     Week oriented school year description
-    """    
-    
-    def __init__(self, department=None, year=None, start=None, end=None, exclude_empty_weeks=False):
-        """    
+    """
+
+    def __init__(
+        self,
+        department=None,
+        year=None,
+        start=None,
+        end=None,
+        exclude_empty_weeks=False,
+    ):
+        """
         Parameters
         ----------
         exclude_empty_weeks : bool
@@ -22,9 +31,9 @@ class PeriodWeeks():
         self.start_year = year if year else PeriodWeeks.get_current_school_year()
         self.end_year = self.start_year + 1
 
-        # TODO : ensure that start.year corresponds to year 
+        # TODO : ensure that start.year corresponds to year
 
-        # By default, we assume that a school year starts at 
+        # By default, we assume that a school year starts at
         # september, 1 and ends at june, 30
         self.start_day = datetime.date(self.start_year, 9, 1)
         self.end_day = datetime.date(self.end_year, 6, 30)
@@ -37,52 +46,43 @@ class PeriodWeeks():
 
         # Get weeks list for each year
         if exclude_empty_weeks:
-
             if not department:
-                raise ValueError(f"the department argument is required for weeks exclusion deduction")
+                raise ValueError(
+                    f"the department argument is required for weeks exclusion deduction"
+                )
 
             start_weeks = PeriodWeeks.filter_empty_weeks(
-                            self.department,
-                            self.start_year, 
-                            self.start_week, 
-                            self.max_week)
+                self.department, self.start_year, self.start_week, self.max_week
+            )
 
             end_weeks = PeriodWeeks.filter_empty_weeks(
-                            self.department,
-                            self.end_year,
-                            1, 
-                            self.end_week)
+                self.department, self.end_year, 1, self.end_week
+            )
             next_year_start_weeks = PeriodWeeks.filter_empty_weeks(
-                            self.department,
-                            self.start_year+1, 
-                            self.start_week, 
-                            self.max_week)
+                self.department, self.start_year + 1, self.start_week, self.max_week
+            )
             next_year_end_weeks = PeriodWeeks.filter_empty_weeks(
-                            self.department,
-                            self.end_year+1,
-                            1, 
-                            self.end_week)
+                self.department, self.end_year + 1, 1, self.end_week
+            )
         else:
             start_weeks = range(self.start_week, self.max_week + 1)
             end_weeks = range(1, self.end_week + 1)
             next_year_start_weeks = start_weeks
             next_year_end_weeks = end_weeks
-            
+
         # Set final lists
         self.__period_raw = (
             (self.start_year, set(start_weeks)),
             (self.end_year, set(end_weeks)),
-            (self.start_year+1, set(next_year_start_weeks)),
-            (self.end_year+1, set(next_year_end_weeks)),
-            )
+            (self.start_year + 1, set(next_year_start_weeks)),
+            (self.end_year + 1, set(next_year_end_weeks)),
+        )
 
         self.__period_weeks = self.__period_raw[0][1] | self.__period_raw[1][1]
 
-    
     def __iter__(self):
         self.current_year_index = 0
         return self
-
 
     def __next__(self):
         index = self.current_year_index
@@ -93,23 +93,23 @@ class PeriodWeeks():
         else:
             raise StopIteration
 
-
     def __str__(self):
-        return f"School year {self.start_year}-{self.end_year}"            
-
+        return f"School year {self.start_year}-{self.end_year}"
 
     @classmethod
     def filter_empty_weeks(cls, department, year, start, end):
         """
-        Exclude weeks that doesn't have any planned course 
-        """        
-        return sorted(Course.objects \
-                .filter(
-                    week__year=year,
-                    week__nb__in=list(range(start, end + 1)),
-                    module__train_prog__department=department) \
-                .distinct() \
-                .values_list('week__nb', flat=True))
+        Exclude weeks that doesn't have any planned course
+        """
+        return sorted(
+            Course.objects.filter(
+                week__year=year,
+                week__nb__in=list(range(start, end + 1)),
+                module__train_prog__department=department,
+            )
+            .distinct()
+            .values_list("week__nb", flat=True)
+        )
 
     @classmethod
     def get_current_school_year(cls):
@@ -120,16 +120,14 @@ class PeriodWeeks():
         else:
             school_year = now.year
         return school_year
-        
 
     def get_weeks(self, year=None, format=False):
-
         periods = None
 
         if year == self.start_year:
-            periods = self.__period_raw[0],
+            periods = (self.__period_raw[0],)
         elif year == self.end_year:
-            periods = self.__period_raw[1],
+            periods = (self.__period_raw[1],)
         else:
             periods = self.__period_raw
         print(self.department, periods)
@@ -137,7 +135,6 @@ class PeriodWeeks():
             return tuple(self.format_week_list(periods, include_year=True))
         else:
             return tuple(self.format_week_list(periods, include_year=False))
-
 
     def format_week_list(self, periods, include_year=True):
         """
@@ -150,25 +147,23 @@ class PeriodWeeks():
                 if include_year:
                     yield period[0], week
                 else:
-                    yield week                
+                    yield week
 
     def get_raw(self):
         return self.__period_raw
 
-    
-    def get_filter(self, related_path='course', week=None):
+    def get_filter(self, related_path="course", week=None):
         """
-        Return a Q filter to restrict records returned 
+        Return a Q filter to restrict records returned
         by course query to a given period
 
-        When exclude_empty_weeks parameter is set to True, the method 
+        When exclude_empty_weeks parameter is set to True, the method
         could return None if no course is planned for the period
         """
         filter = None
         for year, weeks in self.__period_raw:
-            
             week_list = None
-            
+
             if week:
                 if week.nb in weeks:
                     week_list = {week.nb}
@@ -176,11 +171,14 @@ class PeriodWeeks():
                 week_list = weeks
 
             if week_list:
-                kwargs = { f"{related_path}__week__year": year, f"{related_path}__week__nb__in": week_list}
+                kwargs = {
+                    f"{related_path}__week__year": year,
+                    f"{related_path}__week__nb__in": week_list,
+                }
 
                 if filter:
                     filter |= Q(**kwargs)
                 else:
                     filter = Q(**kwargs)
-        
+
         return filter

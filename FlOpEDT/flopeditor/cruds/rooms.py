@@ -28,10 +28,18 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
-from base.models import Room, Department, RoomAttribute, BooleanRoomAttributeValue, NumericRoomAttributeValue
-from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE
 
-attributes_list = [] # list(RoomAttribute.objects.all())
+from base.models import (
+    BooleanRoomAttributeValue,
+    Department,
+    NumericRoomAttributeValue,
+    Room,
+    RoomAttribute,
+)
+from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE
+
+attributes_list = []  # list(RoomAttribute.objects.all())
+
 
 def set_values_for_room(room, i, new_name, entries):
     """
@@ -42,29 +50,22 @@ def set_values_for_room(room, i, new_name, entries):
 
     """
     subrooms = []
-    for subroom_name in entries['new_values'][i][1]:
+    for subroom_name in entries["new_values"][i][1]:
         subrooms_found = Room.objects.filter(name=subroom_name)
         if subrooms_found[0].name == new_name:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Une salle ne peut pas être sur-salle d'elle-même."
-            ])
+            entries["result"].append(
+                [ERROR_RESPONSE, "Une salle ne peut pas être sur-salle d'elle-même."]
+            )
             return False
         if len(subrooms_found) != 1:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Erreur en base de données."
-            ])
+            entries["result"].append([ERROR_RESPONSE, "Erreur en base de données."])
             return False
         subrooms.append(subrooms_found[0])
     depts = []
-    for dept_abbrev in entries['new_values'][i][2]:
+    for dept_abbrev in entries["new_values"][i][2]:
         depts_found = Department.objects.filter(abbrev=dept_abbrev)
         if len(depts_found) != 1:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Erreur en base de données."
-            ])
+            entries["result"].append([ERROR_RESPONSE, "Erreur en base de données."])
             return False
         depts.append(depts_found[0])
     room.name = new_name
@@ -85,11 +86,14 @@ def has_rights_to_create_or_delete_room(user, room, entries):
     """
     for dept in room.departments.all():
         if not user.has_department_perm(department=dept, admin=True):
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Vous ne pouvez pas créer ou supprimer une salle avec un département (" +
-                dept.name+") dont vous n'êtes pas responsable."
-            ])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Vous ne pouvez pas créer ou supprimer une salle avec un département ("
+                    + dept.name
+                    + ") dont vous n'êtes pas responsable.",
+                ]
+            )
             return False
     return True
 
@@ -104,40 +108,49 @@ def has_rights_to_update_room(user, entries, i):
     :rtype:  Boolean
 
     """
-    if set(entries['new_values'][i][2]) == set(entries['old_values'][i][2]):
-        departments = Department.objects.filter(
-            abbrev__in=entries['new_values'][i][2])
+    if set(entries["new_values"][i][2]) == set(entries["old_values"][i][2]):
+        departments = Department.objects.filter(abbrev__in=entries["new_values"][i][2])
         if not departments:
             return True
         for dept in departments:
             if user.has_department_perm(department=dept, admin=True):
                 return True
-        entries['result'].append([
-            ERROR_RESPONSE,
-            "Vous ne pouvez pas modifier une salle dont vous n'êtes pas responsable."
-        ])
+        entries["result"].append(
+            [
+                ERROR_RESPONSE,
+                "Vous ne pouvez pas modifier une salle dont vous n'êtes pas responsable.",
+            ]
+        )
         return False
 
-    old_departments = Department.objects.filter(
-        abbrev__in=entries['old_values'][i][2])
+    old_departments = Department.objects.filter(abbrev__in=entries["old_values"][i][2])
 
-    new_departments = Department.objects.filter(
-        abbrev__in=entries['new_values'][i][2])
+    new_departments = Department.objects.filter(abbrev__in=entries["new_values"][i][2])
 
     for dep in old_departments:
-        if not user.has_department_perm(department=dep, admin=True) and dep not in new_departments:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Impossible de retirer d'une salle un départment dont vous n'êtes pas responsable."
-            ])
+        if (
+            not user.has_department_perm(department=dep, admin=True)
+            and dep not in new_departments
+        ):
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Impossible de retirer d'une salle un départment dont vous n'êtes pas responsable.",
+                ]
+            )
             return False
 
     for dep in new_departments:
-        if not user.has_department_perm(department=dep, admin=True) and dep not in old_departments:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "impossible d'ajouter à une salle un départment dont vous n'êtes pas responsable."
-            ])
+        if (
+            not user.has_department_perm(department=dep, admin=True)
+            and dep not in old_departments
+        ):
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "impossible d'ajouter à une salle un départment dont vous n'êtes pas responsable.",
+                ]
+            )
             return False
 
     return True
@@ -148,18 +161,21 @@ def room_attribute_values(room):
     for attribute in attributes_list:
         if attribute.is_boolean():
             try:
-                attribute_value = BooleanRoomAttributeValue.objects.get(room=room,
-                                                                        attribute=attribute.booleanroomattribute).value
+                attribute_value = BooleanRoomAttributeValue.objects.get(
+                    room=room, attribute=attribute.booleanroomattribute
+                ).value
             except BooleanRoomAttributeValue.DoesNotExist:
                 attribute_value = None
         else:
             try:
-                attribute_value = NumericRoomAttributeValue.objects.get(room=room,
-                                                                        attribute=attribute.numericroomattribute).value
+                attribute_value = NumericRoomAttributeValue.objects.get(
+                    room=room, attribute=attribute.numericroomattribute
+                ).value
             except NumericRoomAttributeValue.DoesNotExist:
                 attribute_value = None
         result_list.append(attribute_value)
     return result_list
+
 
 def read():
     """Return all rooms
@@ -170,8 +186,8 @@ def read():
 
     """
     # Chips options
-    rooms_available = list(Room.objects.values_list('name', flat=True))
-    departments = list(Department.objects.values_list('abbrev', flat=True))
+    rooms_available = list(Room.objects.values_list("name", flat=True))
+    departments = list(Department.objects.values_list("abbrev", flat=True))
 
     # Rows
     rooms = Room.objects.all()
@@ -188,32 +204,31 @@ def read():
         values.append(tuple(value))
 
     attributes_columns = [
-                {'name': attribute.name,
-                 "type": "select" if attribute.is_boolean() else "int",
-                 "options": {"values": [True, False]} if attribute.is_boolean() else {}}
-        for attribute in attributes_list]
-
-    columns = [{
-            'name': 'Nom',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Sous-salles',
-            "type": "select-chips",
-            "options": {'values': rooms_available}
-        }, {
-            'name': 'Départements associés',
-            "type": "select-chips",
-            "options": {'values': departments}
-        }] + attributes_columns
-
-    return JsonResponse({
-        "columns":  columns,
-        "values": values,
-        "options": {
-            "examples": []
+        {
+            "name": attribute.name,
+            "type": "select" if attribute.is_boolean() else "int",
+            "options": {"values": [True, False]} if attribute.is_boolean() else {},
         }
-    })
+        for attribute in attributes_list
+    ]
+
+    columns = [
+        {"name": "Nom", "type": "text", "options": {}},
+        {
+            "name": "Sous-salles",
+            "type": "select-chips",
+            "options": {"values": rooms_available},
+        },
+        {
+            "name": "Départements associés",
+            "type": "select-chips",
+            "options": {"values": departments},
+        },
+    ] + attributes_columns
+
+    return JsonResponse(
+        {"columns": columns, "values": values, "options": {"examples": []}}
+    )
 
 
 def create(request, entries):
@@ -226,37 +241,46 @@ def create(request, entries):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    for i in range(len(entries['new_values'])):
-        new_name = entries['new_values'][i][0]
+    entries["result"] = []
+    for i in range(len(entries["new_values"])):
+        new_name = entries["new_values"][i][0]
         if not new_name:
-            entries['result'].append([ERROR_RESPONSE,
-                                      "Le nom de la salle ne peut pas être vide."])
+            entries["result"].append(
+                [ERROR_RESPONSE, "Le nom de la salle ne peut pas être vide."]
+            )
         elif len(new_name) > 20:
-            entries['result'].append([ERROR_RESPONSE,
-                                      "Le nom de la salle est trop long."])
+            entries["result"].append(
+                [ERROR_RESPONSE, "Le nom de la salle est trop long."]
+            )
         elif Room.objects.filter(name=new_name):
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "La salle à ajouter est déjà présente dans la base de données."
-            ])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "La salle à ajouter est déjà présente dans la base de données.",
+                ]
+            )
         else:
             room = Room.objects.create(name=new_name)
-            if set_values_for_room(room, i, new_name, entries) and \
-                    has_rights_to_create_or_delete_room(request.user, room, entries):
+            if set_values_for_room(
+                room, i, new_name, entries
+            ) and has_rights_to_create_or_delete_room(request.user, room, entries):
                 room.save()
                 for attribute_rank, attribute in enumerate(attributes_list):
-                    attribute_value = entries['new_values'][i][attribute_rank+2]
+                    attribute_value = entries["new_values"][i][attribute_rank + 2]
                     if attribute_value is not None:
                         if attribute.is_boolean():
-                            BooleanRoomAttributeValue.objects.create(room=room,
-                                                                     attribute=attribute.booleanroomattribute,
-                                                                     value=attribute_value)
+                            BooleanRoomAttributeValue.objects.create(
+                                room=room,
+                                attribute=attribute.booleanroomattribute,
+                                value=attribute_value,
+                            )
                         else:
-                            NumericRoomAttributeValue.objects.create(room=room,
-                                                                     attribute=attribute.numericroomattribute,
-                                                                     value=attribute_value)
-                entries['result'].append([OK_RESPONSE])
+                            NumericRoomAttributeValue.objects.create(
+                                room=room,
+                                attribute=attribute.numericroomattribute,
+                                value=attribute_value,
+                            )
+                entries["result"].append([OK_RESPONSE])
             else:
                 room.delete()
 
@@ -273,51 +297,66 @@ def update(request, entries):
     :rtype:  django.http.JsonResponse
     """
 
-    if len(entries['old_values']) != len(entries['new_values']):
+    if len(entries["old_values"]) != len(entries["new_values"]):
         return entries
 
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
-        new_name = entries['new_values'][i][0]
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
+        new_name = entries["new_values"][i][0]
         if not has_rights_to_update_room(request.user, entries, i):
             pass
         elif not new_name:
-            entries['result'].append([ERROR_RESPONSE,
-                                      "Le nouveau nom de la salle ne peut pas être vide."])
+            entries["result"].append(
+                [ERROR_RESPONSE, "Le nouveau nom de la salle ne peut pas être vide."]
+            )
         elif len(new_name) > 20:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Le nom de la salle est trop long."])
+            entries["result"].append(
+                [ERROR_RESPONSE, "Le nom de la salle est trop long."]
+            )
         elif Room.objects.filter(name=new_name) and old_name != new_name:
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "La salle à modifier est déjà présente dans la base de données."
-            ])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "La salle à modifier est déjà présente dans la base de données.",
+                ]
+            )
         else:
             try:
                 room_to_update = Room.objects.get(name=old_name)
                 if set_values_for_room(room_to_update, i, new_name, entries):
                     room_to_update.save()
                     for attribute_rank, attribute in enumerate(attributes_list):
-                        attribute_value = entries['new_values'][i][attribute_rank + 2]
+                        attribute_value = entries["new_values"][i][attribute_rank + 2]
                         if attribute_value is not None:
                             if attribute.is_boolean():
-                                attribute, created = BooleanRoomAttributeValue\
-                                    .objects.get_or_create(room=room_to_update,attribute=attribute.booleanroomattribute)
+                                (
+                                    attribute,
+                                    created,
+                                ) = BooleanRoomAttributeValue.objects.get_or_create(
+                                    room=room_to_update,
+                                    attribute=attribute.booleanroomattribute,
+                                )
                                 attribute.value = attribute_value
                                 attribute.save()
                             else:
-                                attribute, created = NumericRoomAttributeValue \
-                                    .objects.get_or_create(room=room_to_update,
-                                                           attribute=attribute.numericroomattribute)
+                                (
+                                    attribute,
+                                    created,
+                                ) = NumericRoomAttributeValue.objects.get_or_create(
+                                    room=room_to_update,
+                                    attribute=attribute.numericroomattribute,
+                                )
                                 attribute.value = attribute_value
                                 attribute.save()
-                    entries['result'].append([OK_RESPONSE])
+                    entries["result"].append([OK_RESPONSE])
             except Room.DoesNotExist:
-                entries['result'].append(
-                    [ERROR_RESPONSE,
-                     "Une salle à modifier n'a pas été trouvée dans la base de données."])
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "Une salle à modifier n'a pas été trouvée dans la base de données.",
+                    ]
+                )
     return entries
 
 
@@ -331,17 +370,20 @@ def delete(request, entries):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
         try:
             room = Room.objects.get(name=old_name)
             if has_rights_to_create_or_delete_room(request.user, room, entries):
                 room.delete()
-                entries['result'].append([OK_RESPONSE])
+                entries["result"].append([OK_RESPONSE])
 
         except Room.DoesNotExist:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Une salle à supprimer n'a pas été trouvée dans la base de données."])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Une salle à supprimer n'a pas été trouvée dans la base de données.",
+                ]
+            )
     return entries

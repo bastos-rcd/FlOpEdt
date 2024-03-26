@@ -1,6 +1,6 @@
-import rules
-
 import logging
+
+import rules
 
 
 @rules.predicate

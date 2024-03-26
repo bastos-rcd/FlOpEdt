@@ -35,18 +35,20 @@
 
 import yaml
 
+
 def database_description_save_yaml_file(filename, database):
     try:
-        with open(filename, 'w') as handle:
+        with open(filename, "w") as handle:
             handle.write(yaml.dump(database))
     except Exception as exc:
-        print('Problem saving: ', exc) # FIXME complain better
+        print("Problem saving: ", exc)  # FIXME complain better
+
 
 def database_description_load_yaml_file(filename):
     try:
-        with open(filename, 'r') as handle:
+        with open(filename, "r") as handle:
             result = yaml.load(handle.read(), Loader=yaml.FullLoader)
             return result
     except Exception as exc:
-        print('Problem loading: ', exc) # FIXME complain better
+        print("Problem loading: ", exc)  # FIXME complain better
         return None

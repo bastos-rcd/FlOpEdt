@@ -1,8 +1,8 @@
-import factory
-
 import datetime as dt
 
-from base.models import GenericGroup, TrainingPeriod, Module, CourseType
+import factory
+
+from base.models import CourseType, GenericGroup, Module, TrainingPeriod
 
 from .shared import PostGenerationWithCounter
 

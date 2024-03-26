@@ -1,25 +1,21 @@
-import datetime as dt
 import copy
+import datetime as dt
 
 import pytest
-
-
-from rest_framework.status import (
-    HTTP_406_NOT_ACCEPTABLE,
-    HTTP_403_FORBIDDEN,
-    is_success,
-)
-from api.v1.tests.utils import retrieve_elements, add_user_permission
-
-from django.utils.duration import duration_string
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.utils.duration import duration_string
+from rest_framework.status import (
+    HTTP_403_FORBIDDEN,
+    HTTP_406_NOT_ACCEPTABLE,
+    is_success,
+)
 
-from base.models.rooms import Room
-from base.models.groups import Department
+from api.v1.tests.utils import add_user_permission, retrieve_elements
 from base.models.availability import UserAvailability
-from people.models import Tutor, User, FullStaff
-
+from base.models.groups import Department
+from base.models.rooms import Room
+from people.models import FullStaff, Tutor, User
 
 from .factories.availability import UserIUTEveningFactory, UserIUTMorningFactory
 

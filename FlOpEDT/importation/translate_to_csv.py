@@ -1,20 +1,23 @@
 from csv import DictWriter, writer
+
+from django.conf import settings
 from openpyxl import load_workbook
 from openpyxl.cell.cell import MergedCell
 
-from django.conf import settings
-
 from base.weeks import year_by_week
 
-DAYS = [('monday', 'lundi'),
-                 ('tuesday', 'mardi'),
-                 ('wednesday', 'mercredi'),
-                 ('thursday', 'jeudi'),
-                 ('friday', 'vendredi')]
+DAYS = [
+    ("monday", "lundi"),
+    ("tuesday", "mardi"),
+    ("wednesday", "mercredi"),
+    ("thursday", "jeudi"),
+    ("friday", "vendredi"),
+]
+
 
 def calc_start_time(time):
-    t = time.split(':')
-    return int(t[0])*60 + int(t[1])
+    t = time.split(":")
+    return int(t[0]) * 60 + int(t[1])
 
 
 def translate_day(day):
@@ -35,16 +38,16 @@ def convert_xlsx2csv(source_path, target_path=target_path):
     SLOT_ROW = 4
     DAY_ROW = 2
     DURATION = 120
-    with open(target_path, 'w') as csvfile:
-        fieldnames = ['prof', 'year', 'week', 'day', 'start_time', 'duration', 'value']
-        csv_writer = writer(csvfile, delimiter=',')
+    with open(target_path, "w") as csvfile:
+        fieldnames = ["prof", "year", "week", "day", "start_time", "duration", "value"]
+        csv_writer = writer(csvfile, delimiter=",")
         csv_writer.writerow([g for g in fieldnames])
         wb = load_workbook(filename=source_path)
         for sheet in wb.worksheets:
             rank = 5
-            week = sheet.title.split(' ')[1]
+            week = sheet.title.split(" ")[1]
             while sheet.cell(row=rank, column=NAME_COL).value is not None:
-                for col in range(START_WEEK_COL, END_WEEK_COL+1):
+                for col in range(START_WEEK_COL, END_WEEK_COL + 1):
                     prof = sheet.cell(row=rank, column=USERNAME_COL).value
                     year = year_by_week(int(week))
                     if not isinstance(sheet.cell(row=DAY_ROW, column=col), MergedCell):
