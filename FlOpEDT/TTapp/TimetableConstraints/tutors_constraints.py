@@ -28,6 +28,7 @@ import datetime as dt
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from TTapp.FlopConstraint import max_weight
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperTutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType

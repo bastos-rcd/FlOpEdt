@@ -4,16 +4,26 @@
 import datetime as dt
 import logging
 
-from django.db.models import Q
+import pulp
+from django.conf import settings
+from django.core.mail import EmailMessage
+from django.db.models import F, Max, Q
+from pulp import (GUROBI_CMD, LpAffineExpression, LpBinary, LpConstraint,
+                  LpConstraintEQ, LpConstraintGE, LpConstraintLE, LpMinimize,
+                  LpProblem, LpStatus, LpStatusNotSolved, LpStatusOptimal,
+                  LpVariable, lpSum)
 
 import base.queries as queries
 from base.models import (Course, CourseAdditional, CourseAvailability,
                          CoursePossibleTutors, CourseStartTimeConstraint,
-                         Dependency, Holiday, Module, ModulePossibleTutors,
-                         ModuleTutorRepartition, Pivot, Room,
-                         RoomPonderation, RoomSort, RoomType,
-                         ScheduledCourse, StructuralGroup, TimeGeneralSettings, TrainingHalfDay,
-                         TransversalGroup)
+                         CourseType, Department, Dependency, GroupCost,
+                         GroupFreeHalfDay, Holiday, Module,
+                         ModulePossibleTutors, ModuleTutorRepartition, Pivot,
+                         Room, RoomAvailability, RoomPonderation, RoomSort,
+                         RoomType, ScheduledCourse, StructuralGroup,
+                         TimeGeneralSettings, TrainingHalfDay,
+                         TrainingProgramme, TransversalGroup, TutorCost,
+                         UserAvailability)
 from base.models.availability import period_actual_availabilities
 # This file is part of the FlOpEDT/FlOpScheduler project.
 # Copyright (c) 2017

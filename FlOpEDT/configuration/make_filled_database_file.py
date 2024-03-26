@@ -36,6 +36,7 @@ import os
 from copy import copy
 
 from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
 
 logger = logging.getLogger(__name__)
 from django.conf import settings as ds
@@ -43,12 +44,14 @@ from django.conf import settings as ds
 from base.models import (CourseStartTimeConstraint, CourseType, GroupType,
                          Module, Room, RoomType, StructuralGroup,
                          TrainingPeriod, TrainingProgramme, TransversalGroup)
-from configuration.database_description_xlsx import (courses_sheet, find_marker_cell,
+from configuration.database_description_xlsx import (REASONABLE, courses_sheet,
+                                                     find_marker_cell,
                                                      groups_sheet,
                                                      modules_sheet,
-                                                     people_sheet,
-                                                     rooms_sheet, settings_sheet,
-                                                     strftime_from_time)
+                                                     people_sheet, rooms_sheet,
+                                                     settings_sheet,
+                                                     strftime_from_time,
+                                                     time_from_integer)
 from people.models import Tutor
 
 #################################################

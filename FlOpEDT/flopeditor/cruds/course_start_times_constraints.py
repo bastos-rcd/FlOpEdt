@@ -30,8 +30,11 @@ import datetime as dt
 
 from django.http import JsonResponse
 
-from base.models import (CourseStartTimeConstraint, TimeGeneralSettings)
-from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE)
+from base.models import (CourseStartTimeConstraint, CourseType, GroupType,
+                         TimeGeneralSettings)
+from base.timing import min_to_str, str_to_min
+from flopeditor.validator import (ERROR_RESPONSE, OK_RESPONSE,
+                                  validate_course_values)
 
 
 def possible_start_time(department):

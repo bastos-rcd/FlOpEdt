@@ -26,17 +26,19 @@
 
 import datetime as dt
 import os
+import sys
 
 from django.conf import settings as ds
 from django.db import transaction
+from django.db.models import Q
 from openpyxl import *
 
 from base.models import (Course, CourseAdditional, CoursePossibleTutors,
-                         CourseType, Dependency, GenericGroup, Module,
-                         ModuleTutorRepartition, RoomType, SchedulingPeriod,
-                         TrainingPeriod)
+                         CourseType, Department, Dependency, GenericGroup,
+                         Module, ModuleTutorRepartition, RoomType,
+                         SchedulingPeriod, TrainingPeriod, TrainingProgramme)
 from misc.assign_colors import assign_module_color
-from people.models import Tutor
+from people.models import Tutor, UserDepartmentSettings
 from TTapp.models import StabilizationThroughPeriods
 
 

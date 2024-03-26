@@ -21,6 +21,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from .base import *
 
 STATIC_ROOT = '/var/www/edt/static/'
 

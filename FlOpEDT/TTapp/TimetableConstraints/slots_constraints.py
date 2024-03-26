@@ -30,12 +30,13 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models import Q
+from django.http.response import JsonResponse
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
 from base.models import CourseStartTimeConstraint, Dependency
-from base.timing import Day, slot_pause
+from base.timing import Day, french_format, slot_pause
 from core.decorators import timer
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType

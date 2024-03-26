@@ -29,7 +29,7 @@ from django.db import transaction
 
 from base.models import StructuralGroup
 
-from .models import BIATOS, FullStaff, Student, SupplyStaff, Tutor
+from .models import BIATOS, FullStaff, Student, SupplyStaff, Tutor, User
 
 
 class GroupChoiceField(forms.ModelMultipleChoiceField):

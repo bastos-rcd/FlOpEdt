@@ -26,7 +26,7 @@
  ---------------------------
 """
 import datetime as dt
-from datetime import datetime, time
+from datetime import date, datetime, time
 
 from django.utils.translation import gettext_lazy as _
 

@@ -24,7 +24,7 @@
 from typing import List
 
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.utils import OpenApiParameter, extend_schema_field
 from rest_framework import serializers
 
 import base.models as bm

@@ -52,9 +52,9 @@ from base.models import (Course, CourseAdditional, CourseAvailability,
                          CourseModification, CourseType, Department,
                          EnrichedLink, GroupPreferredLinks, Module, Room,
                          RoomAvailability, RoomSort, RoomType, ScheduledCourse,
-                         ScheduledCourseAdditional, StructuralGroup,
-                         Theme, TimetableVersion, TrainingProgramme,
-                         UserAvailability)
+                         ScheduledCourseAdditional, SchedulingPeriod,
+                         StructuralGroup, Theme, TimetableVersion,
+                         TrainingProgramme, UserAvailability)
 from base.weeks import *
 from core.decorators import dept_admin_required, tutor_required
 from displayweb.admin import BreakingNewsResource

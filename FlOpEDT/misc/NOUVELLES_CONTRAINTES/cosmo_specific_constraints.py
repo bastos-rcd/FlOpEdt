@@ -26,8 +26,9 @@
 
 import random
 
-from base.models import Day, ScheduledCourse
+from base.models import CourseType, Day, ScheduledCourse, Time
 from TTapp.models import days_filter, days_list, slot_pause, slots_filter
+from TTapp.TimetableModel import max_weight
 
 
 def previous_week(week):

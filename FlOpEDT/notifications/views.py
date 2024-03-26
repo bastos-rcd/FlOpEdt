@@ -23,5 +23,6 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from django.shortcuts import render
 
 # Create your views here.

@@ -46,6 +46,7 @@
 
 from django.contrib.admin.filters import (AllValuesFieldListFilter,
                                           ChoicesFieldListFilter,
+                                          RelatedFieldListFilter,
                                           RelatedOnlyFieldListFilter)
 from django.db.models.fields import BLANK_CHOICE_DASH
 

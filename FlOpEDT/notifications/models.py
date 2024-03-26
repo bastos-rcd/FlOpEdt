@@ -24,9 +24,11 @@
 # without disclosing the source code of your own applications.
 
 from django.contrib.postgres.fields import ArrayField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from base.timing import Day
 
 # <editor-fold desc="BACKUP">
 # ------------

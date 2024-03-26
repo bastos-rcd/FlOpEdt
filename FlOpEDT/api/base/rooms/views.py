@@ -23,7 +23,7 @@
 
 import django_filters.rest_framework as filters
 from django.http import HttpResponse, JsonResponse
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets
 
 import base.models as bm

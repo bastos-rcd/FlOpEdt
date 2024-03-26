@@ -23,6 +23,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from datetime import datetime
 
 from django.http import JsonResponse
 from django.template.response import TemplateResponse

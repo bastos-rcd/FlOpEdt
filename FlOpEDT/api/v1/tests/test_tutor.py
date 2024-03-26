@@ -1,6 +1,7 @@
 import pytest
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 
+from api.v1.tests.utils import retrieve_elements
 
 
 @pytest.fixture

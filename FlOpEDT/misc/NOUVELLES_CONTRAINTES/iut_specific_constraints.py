@@ -26,8 +26,8 @@
 # without disclosing the source code of your own applications.
 
 
-from base.models import (CourseType, Day, Department, Module, ScheduledCourse,
-                         Time)
+from base.models import (CourseType, Day, Department, Module, Room,
+                         ScheduledCourse, Time, TrainingProgramme)
 from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType

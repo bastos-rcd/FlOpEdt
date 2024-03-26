@@ -29,11 +29,13 @@ import datetime as dt
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
 from base.models import ScheduledCourse
-from base.timing import Day, TimeInterval
+from base.partition import Partition
+from base.timing import Day, TimeInterval, flopdate_to_datetime
+from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import Slot, days_filter, slots_filter

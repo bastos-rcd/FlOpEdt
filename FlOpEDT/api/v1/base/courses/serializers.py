@@ -28,6 +28,8 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 import base.models as bm
+import displayweb.models as dwm
+import people.models as pm
 from api.v1.base.modification.serializers import \
     TimetableVersionShortSerializer
 

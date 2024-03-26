@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 from django.contrib.auth import views as auth_views
-from django.urls import path, re_path, reverse_lazy
+from django.urls import include, path, re_path, reverse_lazy
 from django.views.generic.base import RedirectView
 
 from people.student import ChangeStudent

@@ -1,5 +1,6 @@
 import datetime as dt
 
+import factory
 import pytest
 
 from base.models import Course, ScheduledCourse

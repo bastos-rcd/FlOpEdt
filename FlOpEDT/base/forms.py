@@ -27,7 +27,7 @@ from django import forms
 from django.utils.translation import gettext as _
 
 from base.models import EnrichedLink, Module
-from people.models import Tutor
+from people.models import FullStaff, Tutor
 
 
 class ContactForm(forms.Form):

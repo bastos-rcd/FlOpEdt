@@ -34,7 +34,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from base.models import Day, Department, Mode, TimeGeneralSettings
-from base.timing import time_to_str
+from base.timing import min_to_str, str_to_min, str_to_time, time_to_str
 from core.decorators import (superuser_required, tutor_or_superuser_required,
                              tutor_required)
 from flopeditor.db_requests import (create_departments_in_database, get_is_iut,

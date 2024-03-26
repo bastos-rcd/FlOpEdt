@@ -1,4 +1,5 @@
 from django.core.mail import EmailMessage
+from django.db.models import Max
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 

@@ -1,6 +1,8 @@
-from rest_framework.status import (HTTP_403_FORBIDDEN, is_success)
+import pytest
+from rest_framework.status import (HTTP_403_FORBIDDEN, HTTP_406_NOT_ACCEPTABLE,
+                                   is_success)
 
-from api.v1.tests.utils import add_user_permission
+from api.v1.tests.utils import add_user_permission, retrieve_elements
 from base.models import Department
 from people.models import User
 

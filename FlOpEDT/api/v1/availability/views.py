@@ -22,15 +22,25 @@
 # without disclosing the source code of your own applications.
 
 import datetime as dt
+from distutils.util import strtobool
 
+import django_filters.rest_framework as filters
+from django.utils.decorators import method_decorator
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import exceptions, mixins, viewsets
+from rest_framework import exceptions, mixins, parsers, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
+from rules.contrib.rest_framework import AutoPermissionViewSetMixin
+from rules.contrib.views import PermissionRequiredMixin
 
 import base.models as bm
-from api.shared.params import (dept_id_param, from_date_param, room_id_param,
-                               to_date_param, user_id_param)
+import people.models as pm
+from api.permissions import IsAdminOrReadOnly, IsTutor, IsTutorOrReadOnly
+from api.shared.params import (dept_id_param, dept_param, from_date_param,
+                               room_id_param, to_date_param, user_id_param)
 from api.v1.availability import serializers
 from base.rules import can_view_user_availability
+from base.timing import Day, date_to_flopday
 
 
 class DatedAvailabilityListViewSet(

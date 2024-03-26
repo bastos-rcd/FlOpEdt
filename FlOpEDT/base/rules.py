@@ -1,3 +1,4 @@
+import rules
 
 
 def can_push_user_availability(user, availability_user_id):

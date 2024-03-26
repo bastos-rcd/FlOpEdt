@@ -28,7 +28,7 @@ from rest_framework.decorators import action
 
 import base.models as bm
 from api.base.groups import serializers
-from api.permissions import IsAdminOrReadOnly
+from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
 from base import queries
 
 

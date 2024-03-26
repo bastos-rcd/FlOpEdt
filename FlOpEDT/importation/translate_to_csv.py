@@ -1,4 +1,4 @@
-from csv import writer
+from csv import DictWriter, writer
 
 from django.conf import settings
 from openpyxl import load_workbook

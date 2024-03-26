@@ -34,7 +34,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import gettext as _
 
 import base.queries as queries
-from base.models import Department, Theme
+from base.models import Department, SchedulingPeriod, Theme
 from core.decorators import tutor_or_superuser_required
 from people.admin import (GroupPreferencesResource, PhysicalPresenceResource,
                           StudentPreferencesResource, TutorResource,

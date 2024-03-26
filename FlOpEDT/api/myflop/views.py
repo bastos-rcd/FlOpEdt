@@ -23,7 +23,7 @@
 
 import datetime
 
-from django.db.models import Case, Count, F, Q, When
+from django.db.models import Case, Count, F, Q, Sum, When
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -36,8 +36,9 @@ from api.myflop.serializers import (DailyVolumeSerializer, DuplicateSerializer,
                                     ScheduledCoursePaySerializer, VolumeAgrege)
 from api.permissions import IsTutorOrReadOnly
 from api.shared.params import dept_param
-from base.models import (Department, Room, ScheduledCourse, TrainingProgramme)
-from base.timing import Day, flopday_to_date, french_format
+from base.models import (Department, Room, ScheduledCourse, SchedulingPeriod,
+                         TrainingProgramme)
+from base.timing import Day, days_list, flopday_to_date, french_format
 from people.models import Tutor
 
 

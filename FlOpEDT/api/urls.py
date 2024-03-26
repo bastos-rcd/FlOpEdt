@@ -22,10 +22,11 @@
 # without disclosing the source code of your own applications.
 
 from django.contrib.auth.decorators import login_required
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework import routers
+from rest_framework import permissions, routers
+from rest_framework.authtoken.views import obtain_auth_token
 
 import api.base.views as views_base
 import api.fetch.views as views_fetch
@@ -35,7 +36,9 @@ from api.base.groups.urls import routerGroups
 from api.base.rooms.urls import routerRooms
 from api.base.urls import url_base_patterns
 from api.fetch.urls import routerFetch
+from api.myflop.urls import routerMyFlop
 from api.people.urls import url_user_patterns
+from api.roomreservation.urls import routerRoomReservation
 from api.TTapp.urls import routerTTapp
 # TODO remove V1...
 from api.v1.urls import url_V1_patterns

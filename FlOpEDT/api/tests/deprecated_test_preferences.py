@@ -3,9 +3,11 @@ import datetime
 import pytest
 from rest_framework.test import APIClient
 
+from api.v1.tests.fixtures import department_a, tutor_fs_a
 from base.models import Day, Week
 from base.models.availability import UserAvailability
-from base.timing import time_to_floptime
+from base.models.groups import Department
+from base.timing import date_to_flopday, datetime_to_floptime, time_to_floptime
 from people.models import Tutor
 
 first_may_2023_8AM = datetime.datetime(year=2023, month=5, day=1, hour=8)

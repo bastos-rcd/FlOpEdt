@@ -1,7 +1,9 @@
 from base.models import (Course, CourseAvailability, CourseModification,
-                         Department, Dependency, GenericGroup, Module,
-                         Room, RoomAvailability, RoomSort, ScheduledCourse, StructuralGroup,
-                         TrainingHalfDay, TransversalGroup, UserAvailability)
+                         CourseType, Department, Dependency, GenericGroup,
+                         GroupType, Module, Room, RoomAvailability, RoomSort,
+                         RoomType, ScheduledCourse, StructuralGroup,
+                         TrainingHalfDay, TrainingProgramme, TransversalGroup,
+                         TutorCost, UserAvailability)
 from people.models import Tutor
 
 

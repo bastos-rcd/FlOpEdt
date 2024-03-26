@@ -1,6 +1,10 @@
 import datetime as dt
+from calendar import timegm
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.http import Http404, HttpResponse
+from django.utils.http import http_date
 from django_ical.views import ICalFeed
 
 from base.models import (Day, Department, Regen, Room, ScheduledCourse,

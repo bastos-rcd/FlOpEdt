@@ -31,8 +31,45 @@ from django.conf import settings
 from django.db import models
 from django.utils.functional import lazy
 
+from TTapp.RoomConstraints.RoomConstraint import (ConsiderRoomSorts,
+                                                  LimitedRoomChoices,
+                                                  LimitGroupMoves,
+                                                  LimitSimultaneousRoomCourses,
+                                                  LimitTutorMoves,
+                                                  LocateAllCourses)
+from TTapp.TimetableConstraints.core_constraints import (
+    AssignAllCourses, ConsiderModuleTutorRepartitions,
+    ConsiderTutorsUnavailability, NoSimultaneousGroupCourses,
+    ScheduleAllCourses)
+from TTapp.TimetableConstraints.cosmo_style_constraints import (
+    LimitHoles, LimitTutorTimePerWeeks, ModulesByBloc)
+from TTapp.TimetableConstraints.groups_constraints import (
+    GroupsMinHoursPerDay, MinGroupsHalfDays, MinNonPreferedTrainProgsSlot)
+from TTapp.TimetableConstraints.limit_time_constraints import (
+    LimitCourseTypeTimePerPeriod, LimitGroupsTimePerPeriod,
+    LimitModulesTimePerPeriod, LimitTimePerPeriod, LimitTutorsTimePerPeriod)
+from TTapp.TimetableConstraints.modules_constraints import MinModulesHalfDays
+from TTapp.TimetableConstraints.no_course_constraints import (
+    NoGroupCourseOnWeekDay, NoTutorCourseOnWeekDay)
+from TTapp.TimetableConstraints.orsay_constraints import (
+    BreakAroundCourseType, GroupsLunchBreak, TutorsLunchBreak)
+from TTapp.TimetableConstraints.simultaneity_constraints import (
+    NotAloneForTheseCouseTypes, ParallelizeCourses)
+from TTapp.TimetableConstraints.slots_constraints import (
+    AvoidBothTimesSameDay, AvoidStartTimes, ConsiderDependencies,
+    ConsiderPivots, LimitSimultaneousCoursesNumber, LimitStartTimeChoices,
+    LimitUndesiredSlotsPerDayPeriod, SimultaneousCourses)
+from TTapp.TimetableConstraints.stabilization_constraints import (
+    StabilizationThroughPeriods, StabilizeGroupsCourses,
+    StabilizeTutorsCourses)
 # Import constraints from other files
 from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.tutors_constraints import (
+    LowerBoundBusyDays, MinimizeTutorsBusyDays, MinNonPreferedTutorsSlot,
+    MinTutorsHalfDays, RespectTutorsMaxTimePerDay, RespectTutorsMinTimePerDay)
+from TTapp.TimetableConstraints.visio_constraints import (
+    BoundPhysicalPresenceHalfDays, Curfew, LimitGroupsPhysicalPresence,
+    NoVisio, VisioOnly)
 
 #
 #   CustomConstraint

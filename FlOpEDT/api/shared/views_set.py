@@ -21,7 +21,9 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from rest_framework.mixins import ListModelMixin
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import action
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.viewsets import GenericViewSet
 
 
@@ -29,6 +31,7 @@ class ListGenericViewSet(GenericViewSet, ListModelMixin):
     """
     Abstract GenericViewSet who implement the action List.
     """
+    pass
 
 
 # class GetGenericViewSet(GenericViewSet, RetrieveModelMixin):

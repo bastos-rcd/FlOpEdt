@@ -23,6 +23,7 @@
 
 from rest_framework import serializers
 
+import base.models as bm
 import displayweb.models as dwm
 import quote.models as q
 

@@ -23,6 +23,7 @@
 
 import os
 
+from .base import *
 
 LOGGING = {  
     'version': 1,  

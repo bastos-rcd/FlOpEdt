@@ -29,9 +29,11 @@ import datetime as dt
 from django.db.models import Q
 
 from base.models import (ModulePossibleTutors, ScheduledCourse,
-                         SchedulingPeriod, TimeGeneralSettings)
+                         SchedulingPeriod, TimeGeneralSettings,
+                         UserAvailability)
 from base.models.availability import period_actual_availabilities
-from base.timing import (Day, TimeInterval, days_index, time_to_floptime)
+from base.timing import (Day, TimeInterval, days_index, flopdate_to_datetime,
+                         time_to_floptime)
 from TTapp.TimetableConstraints.no_course_constraints import \
     NoTutorCourseOnWeekDay
 

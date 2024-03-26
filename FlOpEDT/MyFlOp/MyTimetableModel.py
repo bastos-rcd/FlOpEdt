@@ -24,6 +24,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import importlib
 
 from MyFlOp.MyTimetableUtils import number_courses, print_differences
 from TTapp.TimetableModel import GUROBI_NAME, TimetableModel
