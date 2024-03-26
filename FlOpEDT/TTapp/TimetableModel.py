@@ -61,8 +61,8 @@ from TTapp.FlopModel import (
 )
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
-from TTapp.ilp_constraints.constraints.slotInstructorConstraint import (
+from TTapp.ilp_constraints.constraints.course_constraint import CourseConstraint
+from TTapp.ilp_constraints.constraints.slot_instructor_constraint import (
     SlotInstructorConstraint,
 )
 from TTapp.models import (
@@ -161,10 +161,10 @@ class TimetableModel(FlopModel):
         self.courses = self.data.courses
         self.possible_apms = self.data.possible_apms
         (
-            self.cost_I,
+            self.tutor_cost,
             self.FHD_G,
-            self.cost_G,
-            self.cost_SL,
+            self.group_cost,
+            self.slot_cost,
             self.generic_cost,
         ) = self.costs_init()
         self.scheduled, self.assigned = self.schedule_vars_init()
@@ -224,7 +224,7 @@ class TimetableModel(FlopModel):
 
     @timer
     def costs_init(self):
-        cost_I = dict(
+        tutor_cost = dict(
             list(
                 zip(
                     self.data.instructors,
@@ -249,7 +249,7 @@ class TimetableModel(FlopModel):
                 )
             )
 
-        cost_G = dict(
+        group_cost = dict(
             list(
                 zip(
                     self.data.basic_groups,
@@ -261,7 +261,7 @@ class TimetableModel(FlopModel):
             )
         )
 
-        cost_SL = dict(
+        slot_cost = dict(
             list(
                 zip(
                     self.data.courses_slots,
@@ -272,7 +272,7 @@ class TimetableModel(FlopModel):
 
         generic_cost = {period: self.lin_expr() for period in self.periods + [None]}
 
-        return cost_I, FHD_G, cost_G, cost_SL, generic_cost
+        return tutor_cost, FHD_G, group_cost, slot_cost, generic_cost
 
     @timer
     def schedule_vars_init(self):
@@ -281,10 +281,10 @@ class TimetableModel(FlopModel):
 
         for sl in self.data.courses_slots:
             for c in self.data.compatible_courses[sl]:
-                scheduled[(sl, c)] = self.add_var("scheduled(%s,%s)" % (sl, c))
+                scheduled[(sl, c)] = self.add_var(f"scheduled({sl},{c})")
                 for i in self.data.possible_tutors[c]:
                     assigned[(sl, c, i)] = self.add_var(
-                        "assigned(%s,%s,%s)" % (sl, c, i)
+                        f"assigned({sl},{c},{i})"
                     )
         return scheduled, assigned
 
@@ -295,7 +295,7 @@ class TimetableModel(FlopModel):
             for c in self.data.compatible_courses[sl]:
                 for rg in self.data.course_rg_compat[c]:
                     located[(sl, c, rg)] = self.add_var(
-                        "located(%s,%s,%s)" % (sl, c, rg)
+                        f"located({sl},{c},{rg})"
                     )
         return located
 
@@ -426,7 +426,7 @@ class TimetableModel(FlopModel):
                     ">=",
                     forced_IBD[(i, d)],
                     Constraint(
-                        constraint_type=ConstraintType.forced_IBD, instructors=i, days=d
+                        constraint_type=ConstraintType.FORCED_IBD, instructors=i, days=d
                     ),
                 )
 
@@ -595,13 +595,13 @@ class TimetableModel(FlopModel):
         return physical_presence, has_visio
 
     def add_to_slot_cost(self, slot, cost, period=None):
-        self.cost_SL[slot] += cost
+        self.slot_cost[slot] += cost
 
     def add_to_inst_cost(self, instructor, cost, period=None):
-        self.cost_I[instructor][period] += cost
+        self.tutor_cost[instructor][period] += cost
 
     def add_to_group_cost(self, group, cost, period=None):
-        self.cost_G[group][period] += cost
+        self.group_cost[group][period] += cost
 
     def add_to_generic_cost(self, cost, period=None):
         self.generic_cost[period] += cost
@@ -1285,12 +1285,12 @@ class TimetableModel(FlopModel):
         self.obj = self.lin_expr()
         for period in self.periods + [None]:
             for i in self.data.instructors:
-                self.obj += self.cost_I[i][period]
+                self.obj += self.tutor_cost[i][period]
             for g in self.data.basic_groups:
-                self.obj += self.cost_G[g][period]
+                self.obj += self.group_cost[g][period]
             self.obj += self.generic_cost[period]
         for sl in self.data.courses_slots:
-            self.obj += self.cost_SL[sl]
+            self.obj += self.slot_cost[sl]
         self.set_objective(self.obj)
 
     def add_aschedule_constraints(self):
@@ -1413,7 +1413,7 @@ class TimetableModel(FlopModel):
                     department=self.department,
                     tutor=i,
                     period=period,
-                    value=self.get_expr_value(self.cost_I[i][period]),
+                    value=self.get_expr_value(self.tutor_cost[i][period]),
                     version=versions_dict[period],
                 )
                 tc.save()
@@ -1433,7 +1433,7 @@ class TimetableModel(FlopModel):
                     group=g,
                     period=period,
                     version=versions_dict[period],
-                    value=self.get_expr_value(self.cost_G[g][period]),
+                    value=self.get_expr_value(self.group_cost[g][period]),
                 )
                 cg.save()
 

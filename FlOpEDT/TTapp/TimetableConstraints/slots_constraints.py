@@ -40,7 +40,9 @@ from base.timing import Day, french_format, slot_pause
 from core.decorators import timer
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraints.dependencyConstraint import DependencyConstraint
+from TTapp.ilp_constraints.constraints.dependency_constraint import (
+    DependencyConstraint,
+)
 from TTapp.slots import Slot, days_filter, slots_filter
 from TTapp.TimetableConstraints.core_constraints import ConsiderTutorsUnavailability
 from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint

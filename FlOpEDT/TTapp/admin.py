@@ -167,17 +167,6 @@ class LimitTutorsTimePerPeriodAdmin(DepartmentModelAdmin):
     )
 
 
-class ReasonableDaysAdmin(DepartmentModelAdmin):
-    list_display = ("comment", "weight", "is_active")
-    ordering = ()
-    list_filter = (
-        ("train_progs", DropdownFilterRel),
-        ("weeks__nb", DropdownFilterAll),
-        ("groups", DropdownFilterRel),
-        ("tutors", DropdownFilterRel),
-    )
-
-
 class StabilizeTutorsCoursesAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()

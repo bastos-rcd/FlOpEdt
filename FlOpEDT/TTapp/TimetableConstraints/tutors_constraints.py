@@ -414,7 +414,7 @@ class LowerBoundBusyDays(TimetableConstraint):
                 "==",
                 1,
                 Constraint(
-                    constraint_type=ConstraintType.LowerBoundBusyDays,
+                    constraint_type=ConstraintType.LOWER_BOUND_BUSY_DAYS,
                     instructors=self.tutor,
                 ),
             )

@@ -55,12 +55,12 @@ from core.decorators import timer
 from TTapp.FlopConstraint import all_subclasses
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraintManager import ConstraintManager
+from TTapp.ilp_constraints.constraint_manager import ConstraintManager
 from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
 from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
 
 logger = logging.getLogger(__name__)
-pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
+PATTERN = r".+: (.|\s)+ (=|>=|<=) \d*"
 GUROBI = "GUROBI"
 GUROBI_NAME = "GUROBI_CMD"
 solution_files_path = os.path.join(settings.TMP_DIRECTORY, "misc/logs/solutions")
@@ -96,7 +96,7 @@ class FlopModel(object):
         self.var_nb = 0
         if self.use_flop_vars:
             self.vars = {}
-        self.constraintManager = ConstraintManager()
+        self.constraint_manager = ConstraintManager()
         self.one_var = self.add_var()
         self.add_constraint(
             self.one_var, "==", 1, Constraint(constraint_type=ConstraintType.TECHNICAL)
@@ -117,7 +117,7 @@ class FlopModel(object):
         """
         Add a mathematical (in)equation to the system
         """
-        constraint_id = self.constraintManager.get_nb_constraints()
+        constraint_id = self.constraint_manager.get_nb_constraints()
 
         # Add mathematic constraint
         if relation == "==":
@@ -134,7 +134,7 @@ class FlopModel(object):
 
         # Add intelligible constraint
         constraint.id = constraint_id
-        self.constraintManager.add_constraint(constraint)
+        self.constraint_manager.add_constraint(constraint)
 
     @staticmethod
     def lin_expr(expr=None):
@@ -323,7 +323,7 @@ class FlopModel(object):
                 m.computeIIS()
                 m.write(iis_filename)
         if write_analysis:
-            self.constraintManager.handle_reduced_result(
+            self.constraint_manager.handle_reduced_result(
                 iis_filename, iis_files_path, self.iis_filename_suffixe()
             )
 

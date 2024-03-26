@@ -105,7 +105,9 @@ class RoomModel(FlopModel):
             self.courses_for_group,
             self.courses_for_basic_group,
         ) = self.users_init()
-        self.cost_I, self.cost_G, self.cost_SL, self.generic_cost = self.costs_init()
+        self.tutor_cost, self.group_cost, self.slot_cost, self.generic_cost = (
+            self.costs_init()
+        )
         self.located = self.room_vars_init()
         self.avail_room = self.compute_avail_room()
         self.add_core_constraints()
@@ -372,7 +374,7 @@ class RoomModel(FlopModel):
 
     @timer
     def costs_init(self):
-        cost_I = dict(
+        tutor_cost = dict(
             list(
                 zip(
                     self.tutors,
@@ -384,7 +386,7 @@ class RoomModel(FlopModel):
             )
         )
 
-        cost_G = dict(
+        group_cost = dict(
             list(
                 zip(
                     self.basic_groups,
@@ -396,20 +398,20 @@ class RoomModel(FlopModel):
             )
         )
 
-        cost_SL = dict(list(zip(self.slots, [self.lin_expr() for _ in self.slots])))
+        slot_cost = dict(list(zip(self.slots, [self.lin_expr() for _ in self.slots])))
 
         generic_cost = {period: self.lin_expr() for period in self.periods + [None]}
 
-        return cost_I, cost_G, cost_SL, generic_cost
+        return tutor_cost, group_cost, slot_cost, generic_cost
 
-    def add_to_slot_cost(self, slot, cost, week=None):
-        self.cost_SL[slot] += cost
+    def add_to_slot_cost(self, slot, cost):
+        self.slot_cost[slot] += cost
 
     def add_to_inst_cost(self, instructor, cost, period=None):
-        self.cost_I[instructor][period] += cost
+        self.tutor_cost[instructor][period] += cost
 
     def add_to_group_cost(self, group, cost, period=None):
-        self.cost_G[group][period] += cost
+        self.group_cost[group][period] += cost
 
     def add_to_generic_cost(self, cost, period=None):
         self.generic_cost[period] += cost
@@ -459,12 +461,12 @@ class RoomModel(FlopModel):
         self.obj = self.lin_expr()
         for period in self.periods + [None]:
             for i in self.tutors:
-                self.obj += self.cost_I[i][period]
+                self.obj += self.tutor_cost[i][period]
             for g in self.basic_groups:
-                self.obj += self.cost_G[g][period]
+                self.obj += self.group_cost[g][period]
             self.obj += self.generic_cost[period]
         for sl in self.slots:
-            self.obj += self.cost_SL[sl]
+            self.obj += self.slot_cost[sl]
         self.set_objective(self.obj)
 
     def solve(

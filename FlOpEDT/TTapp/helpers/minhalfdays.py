@@ -54,7 +54,8 @@ class MinHalfDaysHelperBase:
             course_time = sum(c.duration for c in courses)
             limit = (course_time - 1) // half_days_min_time + 1
         qui avait le défaut que :
-        si par exemple la demie-journée fait 4h30 et qu'on a 3 cours de 3h (soit 9h en tout) ça impose de le faire tenir
+        si par exemple la demie-journée fait 4h30 et qu'on a 3 cours
+        de 3h (soit 9h en tout) ça impose de le faire tenir
         en 2 demies-journées... impossible !
         """
         t = TimeGeneralSettings.objects.get(department=self.ttmodel.department)
@@ -108,10 +109,10 @@ class MinHalfDaysHelperModule(MinHalfDaysHelperBase):
         mod_b_h_d = {}
         for d in days:
             mod_b_h_d[(self.module, d, Time.AM)] = self.ttmodel.add_var(
-                "ModBHD(%s,%s,%s)" % (self.module, d, Time.AM)
+                f"ModBHD({self.module},{d},{Time.AM})"
             )
             mod_b_h_d[(self.module, d, Time.PM)] = self.ttmodel.add_var(
-                "ModBHD(%s,%s,%s)" % (self.module, d, Time.PM)
+                f"ModBHD({self.module},{d},{Time.PM})"
             )
 
             # add constraint linking MBHD to TT
@@ -155,12 +156,12 @@ class MinHalfDaysHelperModule(MinHalfDaysHelperBase):
     def add_cost(self, cost):
         self.ttmodel.add_to_generic_cost(cost)
 
-    def enrich_model(self, module=None):
+    def enrich_model(self, module=None, **args):
         if module:
-            self.module = module
-            super().enrich_model()
+            self.module = module  # pylint: disable=attribute-defined-outside-init
+            super().enrich_model(**args)
         else:
-            raise "MinHalfDaysHelperModule requires a module argument"
+            raise ValueError("MinHalfDaysHelperModule requires a module argument")
 
 
 class MinHalfDaysHelperGroup(MinHalfDaysHelperBase):
@@ -248,11 +249,11 @@ class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
                             & self.ttmodel.data.compatible_slots[c2]
                         )
                         if self.constraint.weight:
-                            conj_var_AM = self.ttmodel.add_conjunct(
+                            conj_var_am = self.ttmodel.add_conjunct(
                                 self.ttmodel.scheduled[(sl8h, c)],
                                 self.ttmodel.scheduled[(sl11h, c2)],
                             )
-                            conj_var_PM = self.ttmodel.add_conjunct(
+                            conj_var_pm = self.ttmodel.add_conjunct(
                                 self.ttmodel.scheduled[(sl14h, c)],
                                 self.ttmodel.scheduled[(sl17h, c2)],
                             )
@@ -260,7 +261,7 @@ class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
                                 self.tutor,
                                 self.constraint.local_weight()
                                 * self.ponderation
-                                * (conj_var_AM + conj_var_PM)
+                                * (conj_var_am + conj_var_pm)
                                 / 2,
                                 period=self.period,
                             )
