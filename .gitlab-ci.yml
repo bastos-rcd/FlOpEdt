@@ -14,7 +14,7 @@ variables:
   DJANGO_SETTINGS_MODULE: "FlOpEDT.settings.base"
   FLOP_CONFIG_FILE: "$CI_PROJECT_DIR/config_file/flopedt-ci.ini"
   POSTGRES_DB: "postgres"
-  POSTGRES_HOST: "localhost"
+  POSTGRES_HOST: "postgres"
   POSTGRES_PORT: "5432"
   POSTGRES_USER: "flop_user"
   POSTGRES_PASSWORD: "flop_pwd"
