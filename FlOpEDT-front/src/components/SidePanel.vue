@@ -2,7 +2,7 @@
   <div class="side-panel" :class="{ open: authStore.sidePanelToggle }">
     <div class="RevertButton">
       <Separator class="Separator" />
-      <span>Revert Changes </span>
+      <h4>Revert Changes</h4>
       <button :disabled="!revert" @click="handleClick"><Icon icon="iconoir:undo-circle" /></button>
     </div>
     <div>
@@ -15,6 +15,18 @@
           </CheckboxIndicator>
         </CheckboxRoot>
         {{ $t('side.availabilityLabel') }}
+      </div>
+    </div>
+    <div>
+      <h3>{{ $t('side.editModeTitle') }}</h3>
+      <Separator class="Separator" orientation="horizontal" />
+      <div class="avail-div">
+        <CheckboxRoot v-model:checked="editCheckBox" class="CheckboxRoot" :default-checked="editCheckBox">
+          <CheckboxIndicator class="CheckboxIndicator">
+            <Icon icon="iconoir:check"></Icon>
+          </CheckboxIndicator>
+        </CheckboxRoot>
+        {{ $t('side.editModeLabel') }}
       </div>
     </div>
     <div class="workcopy-div">
@@ -156,6 +168,14 @@ const eventStore = useEventStore()
 const groupStore = useGroupStore()
 const courseStore = useScheduledCourseStore()
 const permanentStore = usePermanentStore()
+const editCheckBox = computed({
+  get() {
+    return props.isInEdit
+  },
+  set(v: boolean) {
+    emits('update:edit', v)
+  },
+})
 const availCheckBox = computed({
   get() {
     return props.availChecked
@@ -183,12 +203,14 @@ const props = defineProps<{
   tutors: User[]
   groups: Group[]
   revert: boolean
+  isInEdit: boolean
 }>()
 const emits = defineEmits<{
   (e: 'update:checkbox', v: boolean): void
   (e: 'update:workcopy', v: number): void
   (e: 'update:rooms', v: Room[]): void
   (e: 'revertUpdate'): void
+  (e: 'update:edit', v: boolean): void
 }>()
 
 function handleClick() {

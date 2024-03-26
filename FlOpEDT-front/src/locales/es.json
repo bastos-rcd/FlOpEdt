@@ -84,6 +84,11 @@
     "availabilityLabel": "",
     "workcopyTitle": "",
     "workcopyPlaceholder": "",
-    "workcopyNumber": ""
+    "workcopyNumber": "",
+    "editModeTitle": "",
+    "editModeLabel": ""
+  },
+  "editEvent": {
+    "deleteButton": ""
   }
 }

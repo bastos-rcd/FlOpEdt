@@ -84,6 +84,11 @@
     "availabilityLabel": "Afficher les disponibilités ?",
     "workcopyTitle": "Versions d'EDT",
     "workcopyPlaceholder": "Sélectionnez un numéro de version",
-    "workcopyNumber": "Version n°"
+    "workcopyNumber": "Version n°",
+    "editModeTitle": "Edition de l'emploi du temps",
+    "editModeLabel": "Mode édition ?"
+  },
+  "editEvent": {
+    "deleteButton": "Supprimer"
   }
 }

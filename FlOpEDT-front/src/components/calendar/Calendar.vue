@@ -24,7 +24,6 @@
       :interval-height="20"
       time-clicks-clamped
       :weekdays="weekdays"
-      :drag-enter-func="onDragEnter"
       :drag-over-func="onDragOver"
       :drag-leave-func="onDragLeave"
       @dragend="onDragStop"
@@ -95,7 +94,11 @@
                   name="event"
                   :event="event"
                 >
-                  <EditEvent :event-object-id="event.data.dataId">
+                  <EditEvent
+                    :event-object-id="event.data.dataId"
+                    :can-delete="props.isInEdit"
+                    @delete:event="(id: number) => emits('delete:event', id)"
+                  >
                     <template #trigger>
                       <CourseCard :event-id="event.data.dataId" />
                     </template>
@@ -188,6 +191,7 @@ const props = defineProps<{
   step?: number
   workcopy: number
   intervalMinutes: number
+  isInEdit: boolean
 }>()
 
 const emits = defineEmits<{
@@ -197,6 +201,7 @@ const emits = defineEmits<{
   (e: 'weekdays', value: number[]): void
   (e: 'event:details', value: number): void
   (e: 'update:event', value: InputCalendarEvent): void
+  (e: 'delete:event', value: number): void
 }>()
 
 const preWeight = computed(() => {
@@ -489,14 +494,6 @@ function getAllEvents(): CalendarEvent[] {
     })
   })
   return allEvents
-}
-
-function onDragEnter(e: MouseEvent, scope: { timestamp: Timestamp }): boolean {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  currentTimeUpdate(scope.timestamp, e.layerY)
-  dropZoneCloseUpdate(scope.timestamp)
-  return true
 }
 
 /**

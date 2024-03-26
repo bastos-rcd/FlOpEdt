@@ -84,6 +84,11 @@
     "availabilityLabel": "Show your availabilities ?",
     "workcopyTitle": "Workcopies",
     "workcopyPlaceholder": "Select a workcopy..",
-    "workcopyNumber": "Workcopy n°"
+    "workcopyNumber": "Workcopy n°",
+    "editModeTitle": "Edit schedule",
+    "editModeLabel": "Edit mode ?"
+  },
+  "editEvent": {
+    "deleteButton": "Delete"
   }
 }

@@ -31,6 +31,11 @@
             <div class="popover-title">graded</div>
             <span>{{ course?.graded ? 'yes' : 'no' }}</span> <br />
           </div>
+          <div v-show="props.canDelete" class="popover-section">
+            <button style="align-self: center" @click="emits('delete:event', props.eventObjectId)">
+              {{ $t('editEvent.deleteButton') }}
+            </button>
+          </div>
         </div>
       </slot>
     </PopoverContent>
@@ -53,6 +58,10 @@ const roomStore = useRoomStore()
 const tutorStore = useTutorStore()
 const props = defineProps<{
   eventObjectId: number
+  canDelete?: boolean
+}>()
+const emits = defineEmits<{
+  (e: 'delete:event', id: number): void
 }>()
 const courseModule = ref<Module>()
 const courseRoom = ref<Room>()

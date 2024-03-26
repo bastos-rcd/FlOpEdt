@@ -9,6 +9,8 @@
         :tutors="tutors"
         :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)"
         :revert="undoRedo.hasUpdate.value"
+        :is-in-edit="isInEditMode"
+        @update:edit="(v) => (isInEditMode = v)"
         @update:checkbox="(v) => (availabilityToggle = v)"
         @update:workcopy="(n) => (workcopySelected = n)"
         @revert-update="() => undoRedo.revertUpdateBlock()"
@@ -23,9 +25,11 @@
         :end-of-day="timeSettings.get(current.id)!.dayEndTime"
         :workcopy="workcopySelected"
         :interval-minutes="intervalMinutes"
+        :is-in-edit="isInEditMode"
         @update:events="handleUpdateEvents"
         @dragstart="onDragStart"
         @update:week="changeDate"
+        @delete:event="handleDeleteEvent"
       />
     </div>
   </div>
@@ -100,6 +104,7 @@ const { fetchedStructuralGroups } = storeToRefs(groupStore)
 const { timeSettings, intervalMinutes } = storeToRefs(permanentStore)
 const selectedGroups = ref<Group[]>([])
 const dropzonesToDisplay = ref<CalendarEvent[]>([])
+const isInEditMode = ref<boolean>(false)
 const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()
 const workcopySelected = ref<number>(-1)
@@ -162,6 +167,28 @@ function changeDate(newDate: Timestamp) {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
   }
+}
+
+function handleDeleteEvent(id: number): void {
+  const course = scheduledCourseStore.getCourse(id)
+  if (course)
+    undoRedo.addUpdateBlock([
+      {
+        data: {
+          tutorId: course.tutorId,
+          start: course.start,
+          end: course.end,
+          roomId: course.room,
+          suppTutorIds: course.suppTutorIds,
+          graded: course.graded,
+          roomTypeId: course.roomTypeId,
+          groupIds: course.groupIds,
+        } as CourseData,
+        objectId: id,
+        type: 'course',
+        operation: 'remove',
+      },
+    ])
 }
 
 function handleUpdateEvents(newCalendarEvents: InputCalendarEvent[]): void {
@@ -238,12 +265,6 @@ onBeforeMount(() => {
   }
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
   void groupStore.fetchGroups(deptStore.current)
-})
-
-onBeforeMount(() => {
-  let todayDate: Timestamp = updateFormatted(parsed(today()) as Timestamp)
-  monday.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
-  sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
   fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
   fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
 })

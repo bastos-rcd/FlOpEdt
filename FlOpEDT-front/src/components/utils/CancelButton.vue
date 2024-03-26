@@ -1,6 +1,6 @@
 <template>
   <button class="cancel-button" @click="onClick">
-    <span><Icon icon="iconoir:cancel" width="24" height="24" /></span>
+    <div><Icon icon="iconoir:cancel" width="24" height="24" /></div>
   </button>
 </template>
 <script setup lang="ts">
@@ -16,13 +16,17 @@ function onClick() {
 <style>
 .cancel-button {
   background-color: #bbb;
-  max-width: 15px;
-  max-height: 15px;
+  max-width: 25px;
+  max-height: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 10px 8px 10px;
+  padding: 5px 5px 5px 5px;
   margin: 5px 10px;
+  border-radius: 50%;
+}
+.cancel-button div {
+  display: flex;
 }
 .cancel-button:hover {
   background-color: #fff;
