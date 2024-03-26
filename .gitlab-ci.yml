@@ -17,6 +17,7 @@ variables:
   POSTGRES_HOST: "localhost"
   POSTGRES_PORT: "5432"
   POSTGRES_USER: "flop_user"
+  POSTGRES_PASSWORD: "flop_pwd"
   POSTGRES_HOST_AUTH_METHOD: "trust"
   REDIS_HOST: "redis"
   EMAIL_HOST: "maildev"
