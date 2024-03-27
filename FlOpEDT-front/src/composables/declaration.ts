@@ -25,6 +25,8 @@ export interface CourseData {
   graded: boolean
   roomTypeId: number
   groupIds: number[]
+  moduleId?: number
+  courseTypeId?: number
 }
 
 export interface AvailabilityData {

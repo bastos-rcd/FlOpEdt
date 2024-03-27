@@ -183,6 +183,8 @@ function handleDeleteEvent(id: number): void {
           graded: course.graded,
           roomTypeId: course.roomTypeId,
           groupIds: course.groupIds,
+          moduleId: course.module,
+          courseTypeId: course.courseTypeId,
         } as CourseData,
         objectId: id,
         type: 'course',

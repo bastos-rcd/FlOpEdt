@@ -63,6 +63,8 @@ export function useUndoredo() {
           graded: currentCourse.graded,
           roomTypeId: currentCourse.roomTypeId,
           groupIds: currentCourse.groupIds,
+          moduleId: currentCourse.module,
+          courseTypeId: currentCourse.courseTypeId,
         }
         scheduledCourseStore.removeCourse(currentCourse.id, getDate(currentCourse.start))
         return {
@@ -148,9 +150,9 @@ export function useUndoredo() {
           end: lastCourseUpdate.from.end,
           tutorId: lastCourseUpdate.from.tutorId,
           suppTutorIds: lastCourseUpdate.from.suppTutorIds,
-          module: -1,
+          module: lastCourseUpdate.from.moduleId!,
           groupIds: lastCourseUpdate.from.groupIds,
-          courseTypeId: -1,
+          courseTypeId: lastCourseUpdate.from.courseTypeId!,
           roomTypeId: lastCourseUpdate.from.roomTypeId,
           graded: lastCourseUpdate.from.graded,
           workCopy: -1,
