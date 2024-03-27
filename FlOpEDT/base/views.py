@@ -91,9 +91,6 @@ from people.models import (
     UserPreferredLinks,
 )
 
-from TTapp.timetable_utils import number_courses
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -937,7 +934,9 @@ def fetch_all_modules_with_desc(req, **kwargs):
 def clean_change(
     week, old_version, change, work_copy=0, initiator=None, apply=False, department=None
 ):
-    from TTapp.timetable_utils import number_courses
+    from TTapp.timetable_utils import (
+        number_courses,
+    )  # pylint: disable=import-outside-toplevel
 
     scheduled_before = True
     renumber = False
@@ -1413,6 +1412,10 @@ def course_preferences_changes(req, year, week, train_prog, course_type, **kwarg
 
 @tutor_required
 def decale_changes(req, **kwargs):
+
+    from TTapp.timetable_utils import (
+        number_courses,
+    )  # pylint: disable=import-outside-toplevel
 
     bad_response = HttpResponse("KO")
     good_response = HttpResponse("OK")
