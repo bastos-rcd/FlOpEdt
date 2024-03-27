@@ -1,5 +1,9 @@
 <template>
   <div class="side-panel" :class="{ open: authStore.sidePanelToggle }">
+    <div class="SelectDays">
+      <Separator class="Separator" />
+      <PeriodPicker v-model:toggled="weekdaysModel" />
+    </div>
     <div class="RevertButton">
       <Separator class="Separator" />
       <h4>Revert Changes</h4>
@@ -163,6 +167,7 @@ import { storeToRefs } from 'pinia'
 import { useGroupStore } from '@/stores/timetable/group'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { usePermanentStore } from '@/stores/timetable/permanent'
+import PeriodPicker from '@/components/utils/PeriodPicker.vue'
 const authStore = useAuth()
 const eventStore = useEventStore()
 const groupStore = useGroupStore()
@@ -192,6 +197,14 @@ const workcopy = computed({
     emits('update:workcopy', Number(v))
   },
 })
+const weekdaysModel = computed({
+  get() {
+    return props.weekdays
+  },
+  set(v: string[]) {
+    emits('update:weekdays', v)
+  },
+})
 const { roomsSelected, tutorsSelected, colorSelect, courseTypesSelected } = storeToRefs(eventStore)
 const { modules, modulesSelected } = storeToRefs(permanentStore)
 const { groupsSelected } = storeToRefs(groupStore)
@@ -204,6 +217,7 @@ const props = defineProps<{
   groups: Group[]
   revert: boolean
   isInEdit: boolean
+  weekdays: string[]
 }>()
 const emits = defineEmits<{
   (e: 'update:checkbox', v: boolean): void
@@ -211,6 +225,7 @@ const emits = defineEmits<{
   (e: 'update:rooms', v: Room[]): void
   (e: 'revertUpdate'): void
   (e: 'update:edit', v: boolean): void
+  (e: 'update:weekdays', v: string[]): void
 }>()
 
 function handleClick() {

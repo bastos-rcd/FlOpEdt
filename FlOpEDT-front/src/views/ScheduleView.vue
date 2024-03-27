@@ -6,6 +6,7 @@
         v-model:workcopy="workcopySelected"
         :avail-checked="availabilityToggle"
         :rooms="roomsFetched"
+        :weekdays="daysToDisplay"
         :tutors="tutors"
         :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)"
         :revert="undoRedo.hasUpdate.value && isInEditMode"
@@ -26,6 +27,7 @@
         :workcopy="workcopySelected"
         :interval-minutes="intervalMinutes"
         :is-in-edit="isInEditMode"
+        :weekdays-string="daysToDisplay"
         @update:events="handleUpdateEvents"
         @dragstart="onDragStart"
         @update:week="changeDate"
@@ -105,6 +107,7 @@ const { timeSettings, intervalMinutes } = storeToRefs(permanentStore)
 const selectedGroups = ref<Group[]>([])
 const dropzonesToDisplay = ref<CalendarEvent[]>([])
 const isInEditMode = ref<boolean>(false)
+const daysToDisplay = ref<string[]>(['mo', 'tu', 'we', 'th', 'fr'])
 const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()
 const workcopySelected = ref<number>(-1)

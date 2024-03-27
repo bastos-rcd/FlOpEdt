@@ -193,6 +193,7 @@ const props = defineProps<{
   workcopy: number
   intervalMinutes: number
   isInEdit: boolean
+  weekdaysString: string[]
 }>()
 
 const emits = defineEmits<{
@@ -234,7 +235,37 @@ watch(selectedDate, () => {
  * Time and date data defining which days will
  * be displayed in a week
  */
-const weekdays = ref<number[]>([1, 2, 3, 4, 5])
+const weekdays = computed(() => {
+  const daysToReturn: number[] = []
+  props.weekdaysString.forEach((day) => {
+    switch (day) {
+      case 'mo':
+        daysToReturn.push(1)
+        break
+      case 'tu':
+        daysToReturn.push(2)
+        break
+      case 'we':
+        daysToReturn.push(3)
+        break
+      case 'th':
+        daysToReturn.push(4)
+        break
+      case 'fr':
+        daysToReturn.push(5)
+        break
+      case 'sa':
+        daysToReturn.push(6)
+        break
+      case 'su':
+        daysToReturn.push(0)
+        break
+      default:
+        break
+    }
+  })
+  return daysToReturn
+})
 const selectedDates = ref<string[]>([today()])
 const typeCalendar = ref<string>('week')
 const dayStart = ref<{ min: number; max: number }>()
@@ -246,7 +277,6 @@ watch(dayStart, () => {
       if (i === 7) newValue.push(0)
       else newValue.push(i)
     }
-  weekdays.value = newValue
   if (weekdays.value.length === 1) {
     typeCalendar.value = 'day'
   } else {
