@@ -8,7 +8,7 @@
         :rooms="roomsFetched"
         :tutors="tutors"
         :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)"
-        :revert="undoRedo.hasUpdate.value"
+        :revert="undoRedo.hasUpdate.value && isInEditMode"
         :is-in-edit="isInEditMode"
         @update:edit="(v) => (isInEditMode = v)"
         @update:checkbox="(v) => (availabilityToggle = v)"
