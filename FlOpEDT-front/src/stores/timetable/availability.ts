@@ -173,19 +173,18 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     return availabilitiesReturned
   }
 
-  //TOFIX Doesn't work as intended
   function formatAvailabilityWithDayTime(avail: Availability): Availability[] {
     let timeStart = parseTime(avail.start)
     const dayStartTime = timeSettings.value.get(current.value.id)!.dayStartTime
     const dayEndTime = timeSettings.value.get(current.value.id)!.dayEndTime
     const newAvail = cloneDeep(avail)
-    const availabilitiesReturned = []
+    const availabilitiesReturned = [newAvail]
     if (timeStart < dayStartTime && timeStart + newAvail.duration > dayStartTime) {
       newAvail.start = updateMinutes(newAvail.start, dayStartTime)
       newAvail.id = nextId.value++
       avail.duration = dayStartTime - timeStart
       newAvail.duration = newAvail.duration - avail.duration
-      availabilitiesReturned.push(newAvail)
+      availabilitiesReturned.push(avail)
     }
     timeStart = parseTime(newAvail.start)
     if (timeStart < dayEndTime && timeStart + newAvail.duration > dayEndTime) {
@@ -196,7 +195,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
       newAvailUp.duration = newAvailUp.duration - newAvail.duration
       availabilitiesReturned.push(newAvailUp)
     }
-    if (newAvail.id !== avail.id) availabilitiesReturned.push(avail)
     return availabilitiesReturned
   }
 
@@ -211,5 +209,6 @@ export const useAvailabilityStore = defineStore('availabilityStore', () => {
     getAvailabilityFromDates,
     addOrUpdateAvailibility,
     createNewAvailability,
+    formatAvailabilityWithDayTime,
   }
 })

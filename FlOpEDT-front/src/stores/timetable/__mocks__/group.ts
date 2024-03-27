@@ -10,6 +10,8 @@ import { concat } from 'lodash'
  * This store is not related to the scheduledCourse
  */
 export const useGroupStore = defineStore('group', () => {
+  // Map to keep track of children for each group
+  const childrenMap = new Map<number, number[]>()
   const fetchedTransversalGroups = ref<Group[]>([
     {
       id: 13,
@@ -376,9 +378,26 @@ export const useGroupStore = defineStore('group', () => {
   }
 
   function populateGroupsColumnIds(groups: Group[]): Group[] {
-    // Map to keep track of children for each group
-    const childrenMap = new Map<number, number[]>()
+    // Generate columnIds for each group
+    populateChildrenGroupMap(groups)
+    return groups.map((group) => {
+      const descendantLeafNodeIds = collectDescendantLeafNodeIds(group.id)
+      return { ...group, columnIds: descendantLeafNodeIds }
+    })
+  }
 
+  // Recursive function to collect all descendant leaf node IDs
+  // !! This function doesn't populate the map !!
+  function collectDescendantLeafNodeIds(groupId: number): number[] {
+    const children = childrenMap.get(groupId)
+    if (!children || children.length === 0) {
+      return [groupId] // Leaf node
+    }
+    // Collect leaf node IDs from all children recursively
+    return children.flatMap((childId) => collectDescendantLeafNodeIds(childId))
+  }
+
+  function populateChildrenGroupMap(groups: Group[]): void {
     // Initialize the map with empty arrays for each group
     groups.forEach((group) => {
       childrenMap.set(group.id, [])
@@ -394,22 +413,6 @@ export const useGroupStore = defineStore('group', () => {
           }
         })
       }
-    })
-
-    // Recursive function to collect all descendant leaf node IDs
-    function collectDescendantLeafNodeIds(groupId: number): number[] {
-      const children = childrenMap.get(groupId)
-      if (!children || children.length === 0) {
-        return [groupId] // Leaf node
-      }
-      // Collect leaf node IDs from all children recursively
-      return children.flatMap((childId) => collectDescendantLeafNodeIds(childId))
-    }
-
-    // Generate columnIds for each group
-    return groups.map((group) => {
-      const descendantLeafNodeIds = collectDescendantLeafNodeIds(group.id)
-      return { ...group, columnIds: descendantLeafNodeIds }
     })
   }
 
