@@ -3,47 +3,21 @@
 
 import datetime as dt
 import logging
-
-import pulp
-from django.conf import settings
-from django.core.mail import EmailMessage
-from django.db.models import F, Max, Q
-from pulp import (
-    GUROBI_CMD,
-    LpAffineExpression,
-    LpBinary,
-    LpConstraint,
-    LpConstraintEQ,
-    LpConstraintGE,
-    LpConstraintLE,
-    LpMinimize,
-    LpProblem,
-    LpStatus,
-    LpStatusNotSolved,
-    LpStatusOptimal,
-    LpVariable,
-    lpSum,
-)
-
-import base.queries as queries
+from django.db.models import Q
+from base import queries
 from base.models import (
     Course,
     CourseAdditional,
     CourseAvailability,
     CoursePossibleTutors,
     CourseStartTimeConstraint,
-    CourseType,
-    Department,
     Dependency,
-    GroupCost,
-    GroupFreeHalfDay,
     Holiday,
     Module,
     ModulePossibleTutors,
     ModuleTutorRepartition,
     Pivot,
     Room,
-    RoomAvailability,
     RoomPonderation,
     RoomSort,
     RoomType,
@@ -51,10 +25,7 @@ from base.models import (
     StructuralGroup,
     TimeGeneralSettings,
     TrainingHalfDay,
-    TrainingProgramme,
     TransversalGroup,
-    TutorCost,
-    UserAvailability,
 )
 from base.models.availability import period_actual_availabilities
 
@@ -87,12 +58,12 @@ from TTapp.models import AssignAllCourses
 from TTapp.slots import CourseSlot, Slot, days_filter, slots_filter
 
 logger = logging.getLogger(__name__)
-pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
+PATTERN = r".+: (.|\s)+ (=|>=|<=) \d*"
 GUROBI = "GUROBI"
 GUROBI_NAME = "GUROBI_CMD"
 
 
-class TimetableData(object):
+class TimetableData:
     def __init__(self, department, periods, train_prog, slots_step=None):
         self.train_prog = train_prog
         self.department = department
@@ -266,8 +237,9 @@ class TimetableData(object):
         for slot in courses_slots:
             self.possible_apms.add(slot.apm)
 
-        # We build availability slots considering the possible Intervals from a possible start time to another
-        # and adding the possible end times. It is a partition, and we may use the Partition class to do it.
+        # We build availability slots considering the possible Intervals
+        # from a possible start time to another and adding the possible end times.
+        # It is a partition, and we may use the Partition class to do it.
         dayly_availability_slots = set()
         for cst in filtered_cstc:
             dayly_availability_slots |= set(cst.allowed_start_times)
@@ -302,8 +274,8 @@ class TimetableData(object):
             for i in range(len(start_times))
         }
         print(
-            "Ok"
-            + f" : {len(courses_slots)} courses_slots and {len(availability_slots)} availability_slots created!"
+            f"Ok : {len(courses_slots)} courses_slots "
+            "and {len(availability_slots)} availability_slots created!"
         )
 
         first_hour_slots = {
@@ -524,15 +496,12 @@ class TimetableData(object):
             for c in self.courses:
                 sc = self.sched_courses.get(course=c)
                 if not c.suspens:
-                    slots = {
-                        slot
-                        for slot in slots_filter(
-                            self.courses_slots,
-                            start_time=sc.start_time,
-                            duration=c.duration,
-                            department=c.type.department,
-                        )
-                    }
+                    slots = slots_filter(
+                        self.courses_slots,
+                        start_time=sc.start_time,
+                        duration=c.duration,
+                        department=c.type.department,
+                    )
                     if len(slots) == 1:
                         sl = slots.pop()
                     else:
@@ -542,16 +511,11 @@ class TimetableData(object):
                     compatible_courses[sl].add(c)
                     compatible_slots[c] = {sl}
                 else:
-                    slots = set(
-                        [
-                            slot
-                            for slot in slots_filter(
-                                self.courses_slots,
-                                period=c.period,
-                                duration=c.duration,
-                                department=c.type.department,
-                            )
-                        ]
+                    slots = slots_filter(
+                        self.courses_slots,
+                        period=c.period,
+                        duration=c.duration,
+                        department=c.type.department,
                     )
                     compatible_slots[c] = slots
                     for sl in slots:
@@ -659,11 +623,6 @@ class TimetableData(object):
             module__in=self.modules, period__in=self.periods
         ):
             instructors.add(mtr.tutor)
-        try:
-            no_tut = Tutor.objects.get(username="---")
-            instructors.add(no_tut)
-        except:
-            pass
         courses_for_tutor = {}
         for i in instructors:
             courses_for_tutor[i] = set(self.courses.filter(tutor=i))

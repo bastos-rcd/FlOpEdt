@@ -24,101 +24,100 @@
 # without disclosing the source code of your own applications.
 
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
 from django.utils.translation import gettext as _
 
 from base.models import ScheduledCourse, SchedulingPeriod
 from MyFlOp import MyTimetableUtils
 from TTapp.admin import GroupsLunchBreakResource
 from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
-from TTapp.TimetableUtils import get_conflicts
+from TTapp.timetable_utils import get_conflicts
 
 
-def available_work_copies(req, department, year, week):
+def available_major_versions(_, department, period):
     """
     Send the content of the side panel.
     """
-    copies = list(
+    majors = list(
         ScheduledCourse.objects.filter(
-            course__week__year=year,
-            course__week__nb=week,
+            course__period=period,
             course__type__department__abbrev=department,
         )
-        .distinct("work_copy")
-        .values_list("work_copy")
+        .distinct("version__major")
+        .values_list("version__major")
     )
-    copies = [n for (n,) in copies]
-    copies.sort()
-    return JsonResponse({"copies": copies})
+    majors = [n for (n,) in majors]
+    majors.sort()
+    return JsonResponse({"majors": majors})
 
 
-def check_swap(req, department, year, week, work_copy):
+def check_swap(_, department, period_id, version):
     """
     Check whether the swap between scheduled courses with work copy
     work_copy and scheduled courses with work copy 0 is feasible
     against the scheduled courses in other departments
     """
-    print(department, week, year, work_copy)
-    week_o = Week.objects.get(nb=week, year=year)
-    return JsonResponse(get_conflicts(department, week_o, work_copy))
+    period = SchedulingPeriod.objects.get(id=period_id)
+    return JsonResponse(get_conflicts(department, period, version))
 
 
-def swap(req, department, year, week, work_copy):
+def swap(_, department, period_id, major):
     """
     Swap scheduled courses with work copy work_copy
     against scheduled courses with work copy 0
     """
     return JsonResponse(
-        MyTimetableUtils.swap_version(department, week, year, work_copy)
+        MyTimetableUtils.swap_version(department, period_id, major), safe=False
     )
 
 
-def delete_work_copy(req, department, year, week, work_copy):
+def delete_version(_, department, period_id, major):
     """
     Delete scheduled courses with work copy work_copy
     """
     return JsonResponse(
-        MyTimetableUtils.delete_work_copy(department, week, year, work_copy), safe=False
+        MyTimetableUtils.delete_version(department, period_id, major), safe=False
     )
 
 
-def delete_all_unused_work_copies(req, department, year, week):
+def delete_all_unused_versions(_, department, period_id):
     """
     Delete scheduled courses with work copy work_copy
     """
     return JsonResponse(
-        MyTimetableUtils.delete_all_unused_work_copies(department, week, year),
+        MyTimetableUtils.delete_all_unused_versions(department, period_id),
         safe=False,
     )
 
 
-def duplicate_work_copy(req, department, year, week, work_copy):
+def duplicate_version(_, department, period_id, major):
     """
     Duplicate scheduled courses with work copy work_copy in the first work_copy available
     """
     return JsonResponse(
-        MyTimetableUtils.duplicate_work_copy(department, week, year, work_copy),
+        MyTimetableUtils.duplicate_version(department, period_id, major),
         safe=False,
     )
 
 
-def reassign_rooms(req, department, year, week, work_copy, create_new_work_copy=True):
+def reassign_rooms(_, department, period_id, major, create_new_major=True):
     """
     Reassign rooms of scheduled courses with work copy work_copy
     """
     return JsonResponse(
         MyTimetableUtils.reassign_rooms(
-            department, week, year, work_copy, create_new_work_copy=create_new_work_copy
+            department, period_id, major, create_new_major=create_new_major
         )
     )
 
 
-def duplicate_in_other_weeks(req, department, year, week, work_copy):
+def duplicate_in_other_periods(_, department, period_id, major):
     """
-    Duplicate all scheduled courses in other weeks (for courses that are equals than this week's ones)
+    Duplicate all scheduled courses in other weeks
+    (for courses that are equals than this week's ones)
     """
     return JsonResponse(
-        MyTimetableUtils.duplicate_in_other_weeks(department, week, year, work_copy)
+        MyTimetableUtils.duplicate_in_other_periods(department, period_id, major),
+        safe=False,
     )
 
 
@@ -126,4 +125,4 @@ def fetch_group_lunch(req, **kwargs):
     dataset = GroupsLunchBreakResource().export(
         GroupsLunchBreak.objects.filter(department=req.department)
     )
-    return HttpResponse(dataset.csv)
+    return HttpResponse(dataset.csv)  # pylint: disable=no-member

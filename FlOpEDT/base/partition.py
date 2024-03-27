@@ -57,8 +57,10 @@ class Partition:
             type (str): the type of data the Partition is going to hold
             date_start (datetime): the beginning of its time interval
             date_end (datetime): the end of its time interval
-            day_start_time (int) [Optionnal]: the starting time in minutes of the schedule time each day
-            day_end_time (int) [Optionnal]: the ending time in minutes of the schedule time each day
+            day_start_time (int) [Optionnal]: the starting time in minutes
+            of the schedule time each day
+            day_end_time (int) [Optionnal]: the ending time in minutes
+            of the schedule time each day
 
         If one of the optionnal parameters is missing no day time will be set."""
         self.intervals = []
@@ -123,7 +125,10 @@ class Partition:
         return self.weekend
 
     def __str__(self):
-        return_string = f"Partition starts at {self.intervals[0][0].start} and ends at {self.intervals[self.nb_intervals-1][0].end}\n"
+        return_string = (
+            f"Partition starts at {self.intervals[0][0].start}"
+            f"and ends at {self.intervals[self.nb_intervals-1][0].end}\n"
+        )
         return_string += f"It contains {self.available_duration} available minutes.\n"
         return_string += "The intervals are :\n"
         for interval in self.intervals:
@@ -212,7 +217,8 @@ class Partition:
         number_of_day_week_end = (
             weekend_indexes[len(weekend_indexes) - 1] - weekend_indexes[0]
         )
-        # Manque le dernier jour si self.intervals[0][0].start > self.intervals[len(self.intervals)-1][0].end
+        # Manque le dernier jour si self.intervals[0][0].start >
+        # self.intervals[len(self.intervals)-1][0].end
         while day < self.intervals[len(self.intervals) - 1][0].end:
             if day.weekday() == weekend_indexes[0]:
                 self.add_slot(
@@ -317,14 +323,17 @@ class Partition:
         return int(nb_slots)
 
     def nb_slots_available_of_duration_beginning_at(self, duration, start_times):
-        """Calculates the number of available time in the partition of minimum consecutive duration and with specific starting times
+        """Calculates the number of available time in the partition of minimum
+        consecutive duration and with specific starting times
 
         Parameters:
             duration (int): the minimum duration of one slot of time
-            start_times (list(int)): the list of times in minutes from midnight when the slots can start
+            start_times (list(int)): the list of times in minutes from midnight
+            when the slots can start
 
         Returns:
-            (int): the number of times it founds an available time of minimum duration starting at a starting time
+            (int): the number of times it founds an available time
+            of minimum duration starting at a starting time
         """
 
         # Here we consider that one night necessarily exists i.e. an interval that makes us pass from one day to another
@@ -349,7 +358,7 @@ class Partition:
                         # We look if the current start time is not in a slot already computed
 
                         if start + st > time_already_use:
-                            if start <= st and end > st:
+                            if start <= st < end:
                                 slot_duration = interval[0].duration - (st - start)
                                 time_already_use += duration
                                 if slot_duration >= duration:
@@ -382,7 +391,8 @@ class Partition:
         return int(nb_slots)
 
     def nb_slots_not_forbidden_of_duration(self, duration):
-        """Calculates the number of time not forbidden in the partition of minimum consecutive duration
+        """Calculates the number of time not forbidden in the partition
+        of minimum consecutive duration
 
         Parameters:
             duration (int): the minimum duration of one slot of time

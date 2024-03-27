@@ -30,7 +30,7 @@ from base.models import SchedulingPeriod
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 
 def build_fd_or_apm_period_slots(ttmodel, day, apm_period):

@@ -28,7 +28,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperModule
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 
 class MinModulesHalfDays(TimetableConstraint):

@@ -36,7 +36,7 @@ from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 
 class MinGroupsHalfDays(TimetableConstraint):
@@ -219,7 +219,9 @@ class GroupsMinHoursPerDay(TimetableConstraint):
                 has_enough_time = ttmodel.add_floor(
                     group_day_scheduled_minutes, min_time.seconds // 60, 100000
                 )
-                undesired_situation = ttmodel.GBD[(basic_group, day)] - has_enough_time
+                undesired_situation = (
+                    ttmodel.group_busy_day[(basic_group, day)] - has_enough_time
+                )
                 if self.weight is None:
                     ttmodel.add_constraint(
                         undesired_situation,

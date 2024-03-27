@@ -28,11 +28,11 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from core.decorators import timer
-from TTapp.FlopConstraint import FlopConstraint
+from TTapp.flop_constraint import FlopConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import slots_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 
 class RoomConstraint(FlopConstraint):
@@ -80,7 +80,7 @@ class RoomConstraint(FlopConstraint):
             room_model,
             train_prog=train_prog,
             train_progs=train_progs,
-            group=group,
+            g=group,
             groups=groups,
             module=module,
             modules=modules,

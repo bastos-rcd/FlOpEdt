@@ -51,10 +51,9 @@ def get_readable_day(day):
 def convert_to_list(dimension):
     if dimension is None:
         return []
-    elif isinstance(dimension, Iterable):
+    if isinstance(dimension, Iterable):
         return list(dimension)
-    else:
-        return [dimension]
+    return [dimension]
 
 
 class Constraint:
@@ -186,8 +185,8 @@ class Constraint:
     # generic method
     def get_summary_format(self):
         output = (
-            "\tDes contraintes de type '%s' posent problème dans la résolution\n"
-            % self.constraint_type.value
+            f"\tDes contraintes de type '{self.constraint_type.value}' "
+            "posent problème dans la résolution\n"
         )
         return output, []
 
@@ -201,21 +200,18 @@ class Constraint:
             return str(x)
 
         res = [self.id, self.constraint_type.value]
-        for dimension in self.dimensions:
-            res.append(f(self.dimensions[dimension]["value"]))
+        for value in self.dimensions.values():
+            res.append(f(value["value"]))
         return tuple(res)
 
     def __str__(self):
-        res = "(%s) La contrainte " % self.id
+        res = f"({self.id}) La contrainte "
         if self.name:
-            res += '"%s "' % self.name
+            res += f'"{self.name} "'
         if self.constraint_type is not None:
-            res += 'de type "%s" ; ' % self.constraint_type.value
-        for dimension in self.dimensions.keys():
-            if self.dimensions[dimension]["value"]:
-                res += "pour %s %s ; " % (
-                    sing_or_plural(self.dimensions[dimension]),
-                    self.dimensions[dimension]["value"],
-                )
+            res += f'de type "{self.constraint_type.value}" ; '
+        for value in self.dimensions.values():
+            if value["value"]:
+                res += f"pour {sing_or_plural(value)} {value['value']} ; "
         res += "doit être respectée."
         return res

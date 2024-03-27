@@ -26,7 +26,7 @@
 
 from django.db.models import F, Q
 
-import base.queries as queries
+from base import queries
 from base.models import (
     Course,
     Room,
@@ -38,16 +38,13 @@ from base.models import (
 )
 from core.decorators import timer
 from roomreservation.models import RoomReservation
-from TTapp.FlopConstraint import max_weight
-from TTapp.FlopModel import (
+from TTapp.flop_constraint import MAX_WEIGHT
+from TTapp.flop_model import (
     GUROBI_NAME,
     FlopModel,
     get_room_constraints,
-    solution_files_path,
 )
-from TTapp.ilp_constraints.constraint import Constraint
-from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.RoomConstraints.RoomConstraint import (
+from TTapp.RoomConstraints.room_constraint import (
     ConsiderRoomSorts,
     LimitGroupMoves,
     LimitSimultaneousRoomCourses,
@@ -63,13 +60,13 @@ class RoomModel(FlopModel):
         self, department_abbrev, periods, major=0, keep_many_solution_files=False
     ):
         # beg_file = os.path.join('logs',"FlOpTT")
-        super(RoomModel, self).__init__(
+        super().__init__(
             department_abbrev,
             periods,
             keep_many_solution_files=keep_many_solution_files,
         )
 
-        print("\nLet's start rooms affectation for periods %s" % self.periods)
+        print(f"\nLet's start rooms affectation for periods {self.periods}")
         self.major = major
         (
             self.scheduled_courses,
@@ -105,7 +102,9 @@ class RoomModel(FlopModel):
             self.courses_for_group,
             self.courses_for_basic_group,
         ) = self.users_init()
-        self.cost_I, self.cost_G, self.cost_SL, self.generic_cost = self.costs_init()
+        self.tutor_cost, self.group_cost, self.slot_cost, self.generic_cost = (
+            self.costs_init()
+        )
         self.located = self.room_vars_init()
         self.avail_room = self.compute_avail_room()
         self.add_core_constraints()
@@ -113,7 +112,7 @@ class RoomModel(FlopModel):
         if self.warnings:
             print("Relevant warnings :")
             for key, key_warnings in self.warnings.items():
-                print("%s : %s" % (key, ", ".join([str(x) for x in key_warnings])))
+                print(f"{key} : {', '.join([str(x) for x in key_warnings])}")
 
     # Some extra Utils
     def log_files_prefix(self):
@@ -216,7 +215,7 @@ class RoomModel(FlopModel):
                 for_type__department=self.department, tutor=tutor
             )
             declared_types = set(
-                [rs.for_type for rs in declared_room_sorts.distinct("for_type")]
+                rs.for_type for rs in declared_room_sorts.distinct("for_type")
             )
             tutor_room_sorts[tutor] = set(declared_room_sorts) | set(
                 common_room_sorts.exclude(for_type__in=declared_types)
@@ -284,7 +283,8 @@ class RoomModel(FlopModel):
         for course in self.courses:
             course_room_compat[course] = set(course.room_type.members.all())
 
-        # for each basic room, build the list of courses that may use it, in couple with the corresponding room
+        # for each basic room, build the list of courses that may use it,
+        # in couple with the corresponding room
         room_course_compat = {}
         for basic_room in basic_rooms:
             room_course_compat[basic_room] = []
@@ -329,9 +329,7 @@ class RoomModel(FlopModel):
         located = {}
         for course in self.courses:
             for room in self.course_room_compat[course]:
-                located[(course, room)] = self.add_var(
-                    "located(%s,%s)" % (course, room)
-                )
+                located[(course, room)] = self.add_var(f"located({course},{room})")
         return located
 
     @timer
@@ -372,7 +370,7 @@ class RoomModel(FlopModel):
 
     @timer
     def costs_init(self):
-        cost_I = dict(
+        tutor_cost = dict(
             list(
                 zip(
                     self.tutors,
@@ -384,7 +382,7 @@ class RoomModel(FlopModel):
             )
         )
 
-        cost_G = dict(
+        group_cost = dict(
             list(
                 zip(
                     self.basic_groups,
@@ -396,20 +394,20 @@ class RoomModel(FlopModel):
             )
         )
 
-        cost_SL = dict(list(zip(self.slots, [self.lin_expr() for _ in self.slots])))
+        slot_cost = dict(list(zip(self.slots, [self.lin_expr() for _ in self.slots])))
 
         generic_cost = {period: self.lin_expr() for period in self.periods + [None]}
 
-        return cost_I, cost_G, cost_SL, generic_cost
+        return tutor_cost, group_cost, slot_cost, generic_cost
 
-    def add_to_slot_cost(self, slot, cost, week=None):
-        self.cost_SL[slot] += cost
+    def add_to_slot_cost(self, slot, cost):
+        self.slot_cost[slot] += cost
 
     def add_to_inst_cost(self, instructor, cost, period=None):
-        self.cost_I[instructor][period] += cost
+        self.tutor_cost[instructor][period] += cost
 
     def add_to_group_cost(self, group, cost, period=None):
-        self.cost_G[group][period] += cost
+        self.group_cost[group][period] += cost
 
     def add_to_generic_cost(self, cost, period=None):
         self.generic_cost[period] += cost
@@ -429,19 +427,19 @@ class RoomModel(FlopModel):
         # limit groups moves
         if not LimitGroupMoves.objects.filter(department=self.department).exists():
             LimitGroupMoves.objects.create(
-                department=self.department, weight=max_weight
+                department=self.department, weight=MAX_WEIGHT
             )
 
         # limit tutors moves
         if not LimitTutorMoves.objects.filter(department=self.department).exists():
             LimitTutorMoves.objects.create(
-                department=self.department, weight=max_weight
+                department=self.department, weight=MAX_WEIGHT
             )
 
         # consider room sort
         if not ConsiderRoomSorts.objects.filter(department=self.department).exists():
             ConsiderRoomSorts.objects.create(
-                department=self.department, weight=max_weight
+                department=self.department, weight=MAX_WEIGHT
             )
 
     def add_specific_constraints(self):
@@ -459,12 +457,12 @@ class RoomModel(FlopModel):
         self.obj = self.lin_expr()
         for period in self.periods + [None]:
             for i in self.tutors:
-                self.obj += self.cost_I[i][period]
+                self.obj += self.tutor_cost[i][period]
             for g in self.basic_groups:
-                self.obj += self.cost_G[g][period]
+                self.obj += self.group_cost[g][period]
             self.obj += self.generic_cost[period]
         for sl in self.slots:
-            self.obj += self.cost_SL[sl]
+            self.obj += self.slot_cost[sl]
         self.set_objective(self.obj)
 
     def solve(
@@ -475,8 +473,7 @@ class RoomModel(FlopModel):
         ignore_sigint=False,
         create_new_version=False,
     ):
-        """ """
-        print("\nLet's solve periods #%s" % self.periods)
+        print(f"\nLet's solve periods {self.periods}")
 
         self.update_objective()
 
@@ -487,6 +484,7 @@ class RoomModel(FlopModel):
         if result is not None:
             result_version = self.add_rooms_in_db(create_new_version)
             return result_version
+        return None
 
     def add_rooms_in_db(self, create_new_version):
         if create_new_version:

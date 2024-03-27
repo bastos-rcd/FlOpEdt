@@ -31,7 +31,7 @@ from base.models import (
     TimeGeneralSettings,
     UserAvailability,
 )
-from base.timing import Day, Time, days_index, days_list, slot_pause
+from base.timing import Time, days_list, slot_pause
 
 midday = dt.time(12, 0, 0)
 
@@ -65,8 +65,7 @@ class Slot:
         pm_start = midday
         if self.start_time.time() >= pm_start:
             return Time.PM
-        else:
-            return Time.AM
+        return Time.AM
 
     def __str__(self):
         return f"{self.date} de {self.start_time.time()} à {self.end_time.time()}"
@@ -78,11 +77,10 @@ class Slot:
         ):
             return self.date == other.date
 
-        else:
-            raise TypeError(
-                "A slot can only have "
-                "same day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
-            )
+        raise TypeError(
+            "A slot can only have "
+            "same day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
+        )
 
     def has_previous_day_than(self, other):
         if isinstance(
@@ -90,11 +88,11 @@ class Slot:
             (Slot, CourseSlot, ScheduledCourse, UserAvailability, CourseAvailability),
         ):
             return self.date < other.date
-        else:
-            raise TypeError(
-                "A slot can only have "
-                "previous day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
-            )
+        raise TypeError(
+            "A slot can only have "
+            "previous day than a ScheduledCourse, UserAvailability, "
+            "CourseAvailability or another slot"
+        )
 
     def is_simultaneous_to(self, other):
         return self.start_time < other.end_time and other.start_time < self.end_time
@@ -103,7 +101,7 @@ class Slot:
         return self.start_time >= other.end_time
 
     def is_successor_of(self, other):
-        other.end_time <= self.start_time <= other.end_time + slot_pause
+        return other.end_time <= self.start_time <= other.end_time + slot_pause
 
     def __lt__(self, other):
         return other.is_after(self) and not self.is_after(other)
@@ -121,10 +119,9 @@ class Slot:
                 and self.start_time.time() == other.start_time.time()
                 and self.duration == other.duration
             )
-        else:
-            raise TypeError(
-                "A slot can only be compared to another slot or a ScheduledCourse"
-            )
+        raise TypeError(
+            "A slot can only be compared to another slot or a ScheduledCourse"
+        )
 
     def get_periods(self):
         raise NotImplementedError
@@ -145,14 +142,9 @@ class CourseSlot(Slot):
             pm_start = midday
         if self.start_time.time() >= pm_start:
             return Time.PM
-        else:
-            return Time.AM
+        return Time.AM
 
     def __str__(self):
-        hours = self.start_time.hour
-        minuts = self.start_time.minute
-        if minuts == 0:
-            minuts = ""
         return str(self.department) + "_" + str(self.start_time)
 
     def get_periods(self):

@@ -26,78 +26,13 @@ from collections import OrderedDict
 from django.contrib.postgres.fields.array import ArrayField
 from django.db import models
 from rest_framework import serializers
-from rest_framework.fields import Field, empty
+from rest_framework.fields import Field
 from rest_framework.serializers import ModelSerializer
 
 import TTapp.TimetableConstraints.tutors_constraints as ttt
 import TTapp.TimetableConstraints.visio_constraints as ttv
 from base.models import Department
-from base.timing import all_possible_start_times
-from TTapp.FlopConstraint import FlopConstraint
-
-# ---------------
-# ---- TTAPP ----
-# ---------------
-
-""" 
-class TTCustomConstraintsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.CustomConstraint
-        fields = '__all__'
-
-
-class TTLimitCourseTypeTimePerPeriodsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.LimitCourseTypeTimePerPeriod
-        fields = '__all__'
-
-
-class TTReasonableDayssSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.ReasonableDays
-        fields = '__all__'
-
-
-class TTStabilizeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.Stabilize
-        fields = '__all__'
-
-
-class TTMinHalfDaysSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.MinHalfDays
-        fields = '__all__'
-
-
-class TTMinNonPreferedSlotsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.MinNonPreferedSlot
-        fields = '__all__'
-
-
-class TTAvoidBothTimesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.AvoidBothTimesSameDay
-        fields = '__all__'
-
-
-class TTSimultaneousCoursesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.SimultaneousCourses
-        fields = '__all__'
-
-
-class TTLimitedStartTimeChoicesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.LimitedStartTimeChoices
-        fields = '__all__'
-
-
-class TTLimitedRoomChoicesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.LimitedRoomChoices
-        fields = '__all__' """
+from TTapp.flop_constraint import FlopConstraint
 
 
 def serializer_factory(mdl: models.Model, fields=None, **kwargss):
@@ -259,7 +194,7 @@ class FlopConstraintTypeSerializer(serializers.Serializer):
             if not (field.many_to_one or field.many_to_many):
                 typename = type(field).__name__
 
-                if type(field) == ArrayField:
+                if isinstance(field, ArrayField):
                     multiple = True
                     typename = type(field.base_field).__name__
             else:

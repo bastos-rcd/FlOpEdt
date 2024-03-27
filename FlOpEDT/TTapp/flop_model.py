@@ -52,15 +52,15 @@ from pulp import (
 
 from base.models import Department, ScheduledCourse
 from core.decorators import timer
-from TTapp.FlopConstraint import all_subclasses
+from TTapp.flop_constraint import all_subclasses
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraintManager import ConstraintManager
-from TTapp.RoomConstraints.RoomConstraint import RoomConstraint
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.ilp_constraints.constraint_manager import ConstraintManager
+from TTapp.RoomConstraints.room_constraint import RoomConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 logger = logging.getLogger(__name__)
-pattern = r".+: (.|\s)+ (=|>=|<=) \d*"
+PATTERN = r".+: (.|\s)+ (=|>=|<=) \d*"
 GUROBI = "GUROBI"
 GUROBI_NAME = "GUROBI_CMD"
 solution_files_path = os.path.join(settings.TMP_DIRECTORY, "misc/logs/solutions")
@@ -69,9 +69,9 @@ gurobi_log_files_path = os.path.join(settings.TMP_DIRECTORY, "misc/logs/gurobi")
 
 
 class FlopVar:
-    def __init__(self, id, name):
+    def __init__(self, var_id, name):
         self.name = name
-        self.id = id
+        self.id = var_id
 
     def __str__(self):
         return self.name
@@ -80,7 +80,7 @@ class FlopVar:
         return self.name
 
 
-class FlopModel(object):
+class FlopModel:
     def __init__(
         self,
         department_abbrev,
@@ -96,7 +96,7 @@ class FlopModel(object):
         self.var_nb = 0
         if self.use_flop_vars:
             self.vars = {}
-        self.constraintManager = ConstraintManager()
+        self.constraint_manager = ConstraintManager()
         self.one_var = self.add_var()
         self.add_constraint(
             self.one_var, "==", 1, Constraint(constraint_type=ConstraintType.TECHNICAL)
@@ -117,7 +117,7 @@ class FlopModel(object):
         """
         Add a mathematical (in)equation to the system
         """
-        constraint_id = self.constraintManager.get_nb_constraints()
+        constraint_id = self.constraint_manager.get_nb_constraints()
 
         # Add mathematic constraint
         if relation == "==":
@@ -127,14 +127,14 @@ class FlopModel(object):
         elif relation == ">=":
             pulp_relation = LpConstraintGE
         else:
-            raise Exception("relation must be either '==' or '>=' or '<='")
+            raise ValueError("relation must be either '==' or '>=' or '<='")
         self.model += LpConstraint(
             e=expr, sense=pulp_relation, rhs=value, name=str(constraint_id)
         )
 
         # Add intelligible constraint
         constraint.id = constraint_id
-        self.constraintManager.add_constraint(constraint)
+        self.constraint_manager.add_constraint(constraint)
 
     @staticmethod
     def lin_expr(expr=None):
@@ -189,9 +189,6 @@ class FlopModel(object):
         """
         Create a new var that is the conjunction of v1 and v2 and add it to the model
         """
-        name = ""
-        if self.use_flop_vars:
-            name = f"{v1} ET {v2}"
         l_conj_var = self.add_var()
         self.add_constraint(
             l_conj_var - (v1 + v2),
@@ -254,7 +251,7 @@ class FlopModel(object):
     def all_counted_solution_files(self):
         solution_file_pattern = f"{self.solution_files_prefix()}_*.sol"
         result = []
-        for root, dirs, files in os.walk(solution_files_path):
+        for root, _, files in os.walk(solution_files_path):
             for name in files:
                 if fnmatch.fnmatch(name, solution_file_pattern):
                     result.append(os.path.join(root, name))
@@ -264,18 +261,18 @@ class FlopModel(object):
     def last_counted_solution_filename(self):
         return self.all_counted_solution_files()[-1]
 
-    def delete_solution_files(self, all=False):
+    def delete_solution_files(self, delete_all=False):
         solution_files = self.all_counted_solution_files()
         if solution_files:
             for f in solution_files[:-1]:
                 os.remove(f)
-            if all:
+            if delete_all:
                 os.remove(solution_files[-1])
 
     @staticmethod
     def read_solution_file(filename):
         one_vars = set()
-        with open(filename) as f:
+        with open(filename, "r", encoding="utf-8") as f:
             lines = f.readlines()
             print(lines[1])
             for line in lines[2:]:
@@ -298,16 +295,22 @@ class FlopModel(object):
         return local_max_major + 1
 
     def iis_filename_suffixe(self):
-        return "_%s_%s" % (self.department.abbrev, self.periods)
+        return f"_{self.department.abbrev}_{self.periods}"
 
     def iis_filename(self):
-        return "%s/IIS%s.ilp" % (iis_files_path, self.iis_filename_suffixe())
+        return f"{iis_files_path}/IIS{self.iis_filename_suffixe()}.ilp"
 
     def write_infaisability(self, write_iis=True, write_analysis=True, presolve=False):
         close_old_connections()
         iis_filename = self.iis_filename()
         if write_iis:
-            from gurobipy import GurobiError, read
+            # pylint: disable=import-outside-toplevel, no-name-in-module
+            from gurobipy import (
+                GurobiError,
+                read,
+            )
+
+            # pylint: enable=import-outside-toplevel, no-name-in-module
 
             lp = f"{self.solution_files_prefix()}-pulp.lp"
             m = read(lp)
@@ -323,7 +326,7 @@ class FlopModel(object):
                 m.computeIIS()
                 m.write(iis_filename)
         if write_analysis:
-            self.constraintManager.handle_reduced_result(
+            self.constraint_manager.handle_reduced_result(
                 iis_filename, iis_files_path, self.iis_filename_suffixe()
             )
 
@@ -338,7 +341,7 @@ class FlopModel(object):
         # solver corresponding pulp command or contain
         # gurobi
         if "gurobi" in solver.lower() and hasattr(pulp, GUROBI_NAME):
-            self.delete_solution_files(all=True)
+            self.delete_solution_files(delete_all=True)
             if ignore_sigint:
                 # ignore SIGINT while solver is running
                 # => SIGINT is still delivered to the solver, which is what we want
@@ -378,9 +381,7 @@ class FlopModel(object):
         ):
             return self.get_obj_coeffs()
 
-        else:
-            # print(f'lpfile has been saved in {self.solution_files_prefix()}-pulp.lp')
-            return None
+        return None
 
 
 def get_ttconstraints(department, period=None, is_active=None):

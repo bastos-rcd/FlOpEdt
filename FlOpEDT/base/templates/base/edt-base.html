@@ -64,22 +64,22 @@
 
     var url_week_infos = "{% url 'api:extra:week-infos-list' %}";
 
-    var url_work_copies = "{% url "TTapp:available_work_copies" department 0 0 %}" ;
-    url_work_copies = url_work_copies.slice(0, -7);
-    var url_check_swap = "{% url 'TTapp:check_swap' department 0 0 0 %}" ;
+    var url_major_versions = "{% url "TTapp:available_major_versions" department 0 %}" ;
+    url_major_versions = url_major_versions.slice(0, -7);
+    var url_check_swap = "{% url 'TTapp:check_swap' department 0 0%}" ;
     url_check_swap = url_check_swap.slice(0, -9) ;
-    var url_delete_work_copy = "{% url 'TTapp:delete_work_copy' department 0 0 0 %}" ;
-    url_delete_work_copy = url_delete_work_copy.slice(0, -9) ;
-    var url_duplicate_work_copy = "{% url 'TTapp:duplicate_work_copy' department 0 0 0 %}" ;
-    url_duplicate_work_copy = url_duplicate_work_copy.slice(0, -9) ;
-    var url_delete_all_unused_work_copies = "{% url 'TTapp:delete_all_unused_work_copies' department 0 0 %}" ;
-    url_delete_all_unused_work_copies = url_delete_all_unused_work_copies.slice(0, -7) ;
+    var url_delete_version = "{% url 'TTapp:delete_version' department 0 0 %}" ;
+    url_delete_version = url_delete_version.slice(0, -9) ;
+    var url_duplicate_version = "{% url 'TTapp:duplicate_version' department 0 0 %}" ;
+    url_duplicate_version = url_duplicate_version.slice(0, -9) ;
+    var url_delete_all_unused_versions = "{% url 'TTapp:delete_all_unused_versions' department 0 0 %}" ;
+    url_delete_all_unused_versions = url_delete_all_unused_versions.slice(0, -7) ;
     var url_swap = "{% url 'TTapp:swap' department 0 0 0 %}" ;
     url_swap = url_swap.slice(0, -9) ;
     var url_reassign_rooms = "{% url 'TTapp:reassign_rooms' department 0 0 0 %}" ;
     url_reassign_rooms = url_reassign_rooms.slice(0, -9) ;
-    var url_duplicate_in_other_weeks = "{% url 'TTapp:duplicate_in_other_weeks' department 0 0 0 %}" ;
-    url_duplicate_in_other_weeks = url_duplicate_in_other_weeks.slice(0, -9) ;
+    var url_duplicate_in_other_periods = "{% url 'TTapp:duplicate_in_other_periods' department 0 0 0 %}" ;
+    url_duplicate_in_other_periods = url_duplicate_in_other_periods.slice(0, -9) ;
     var url_fetch_extra_sched = "{% url 'api:fetch:extrasched-list' %}" ;
     var url_fetch_shared_rooms = "{% url 'base:fetch_shared_rooms' department 0 0 %}" ;
     url_fetch_shared_rooms = url_fetch_shared_rooms.slice(0, -7) ;

@@ -47,17 +47,19 @@ from core.decorators import timer
 from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraints.courseConstraint import CourseConstraint
-from TTapp.ilp_constraints.constraints.instructorConstraint import InstructorConstraint
-from TTapp.ilp_constraints.constraints.simulSlotGroupConstraint import (
+from TTapp.ilp_constraints.constraints.course_constraint import CourseConstraint
+from TTapp.ilp_constraints.constraints.insctructor_constraint import (
+    InstructorConstraint,
+)
+from TTapp.ilp_constraints.constraints.simul_slot_group_constraint import (
     SimulSlotGroupConstraint,
 )
-from TTapp.ilp_constraints.constraints.slotInstructorConstraint import (
+from TTapp.ilp_constraints.constraints.slot_instructor_constraint import (
     SlotInstructorConstraint,
 )
 from TTapp.slots import slots_filter
 from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 
 class NoSimultaneousGroupCourses(TimetableConstraint):

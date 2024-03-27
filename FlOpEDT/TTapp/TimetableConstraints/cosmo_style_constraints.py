@@ -32,7 +32,7 @@ from base.models import CourseStartTimeConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 slot_pause = 5
 
@@ -53,7 +53,7 @@ def sum_of_courses_that_end_at(ttmodel, prof, day, end_time):
 
 def sum_of_busy_slots_just_after(ttmodel, prof, day, end_time):
     res = ttmodel.sum(
-        ttmodel.IBS[prof, sl_suivant]
+        ttmodel.tutor_busy_slot[prof, sl_suivant]
         for sl_suivant in slots_filter(
             ttmodel.data.availability_slots,
             starts_after=end_time,
@@ -178,7 +178,7 @@ class LimitHoles(TimetableConstraint):
                     ttmodel.sum(
                         end_of_block[i, end_time] for end_time in possible_end_times
                     )
-                    - ttmodel.IBD[i, d]
+                    - ttmodel.tutor_busy_day[i, d]
                 )
 
                 if self.max_holes_per_day:

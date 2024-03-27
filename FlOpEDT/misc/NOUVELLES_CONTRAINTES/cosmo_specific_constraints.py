@@ -28,7 +28,7 @@ import random
 
 from base.models import CourseType, Day, ScheduledCourse, Time
 from TTapp.models import days_filter, days_list, slot_pause, slots_filter
-from TTapp.TimetableModel import max_weight
+from TTapp.timetable_model import MAX_WEIGHT
 
 
 def previous_week(week):
@@ -58,7 +58,7 @@ def somme_des_cours_qui_terminent_en(ttmodel, prof, day, end_time):
 
 def somme_des_busy_slot_juste_apres(ttmodel, prof, day, end_time):
     res = ttmodel.sum(
-        ttmodel.IBS[prof, sl_suivant]
+        ttmodel.tutor_busy_slot[prof, sl_suivant]
         for sl_suivant in slots_filter(
             ttmodel.data.slots,
             starts_after=end_time,
@@ -87,11 +87,11 @@ def jours_max_consecutifs(ttmodel, salarie, jours_max=6, contrainte=False):
                     local_jours_max -= 1
                 else:
                     break
-        expr = ttmodel.IBD[salarie, day]
+        expr = ttmodel.tutor_busy_day[salarie, day]
         suivant = day
         for _ in range(local_jours_max):
             suivant = ttmodel.data.day_after[suivant]
-            expr += ttmodel.IBD[salarie, suivant]
+            expr += ttmodel.tutor_busy_day[salarie, suivant]
         if contrainte:
             ttmodel.add_constraint(
                 expr,
@@ -113,7 +113,7 @@ def jours_de_repos_par_semaine(ttmodel, salarie, jours_min=2):
     for week in ttmodel.data.weeks:
         ttmodel.add_constraint(
             ttmodel.sum(
-                ttmodel.IBD[salarie, day]
+                ttmodel.tutor_busy_day[salarie, day]
                 for day in days_filter(ttmodel.data.days, week=week)
             ),
             "<=",
@@ -133,15 +133,15 @@ def deux_jours_de_repos_consecutifs(ttmodel, salarie):
             )
             ttmodel.add_constraint(
                 les_deux
-                + ttmodel.IBD[salarie, jours[0]]
-                + ttmodel.IBD[salarie, jours[1]],
+                + ttmodel.tutor_busy_day[salarie, jours[0]]
+                + ttmodel.tutor_busy_day[salarie, jours[1]],
                 ">=",
                 1,
             )
             ttmodel.add_constraint(
                 2 * les_deux
-                + ttmodel.IBD[salarie, jours[0]]
-                + ttmodel.IBD[salarie, jours[1]],
+                + ttmodel.tutor_busy_day[salarie, jours[0]]
+                + ttmodel.tutor_busy_day[salarie, jours[1]],
                 "<=",
                 2,
             )
@@ -244,7 +244,7 @@ def soirs_assez_longs(ttmodel, postes, limite=4.5):
                 & ttmodel.data.possible_tutors[last_course]
             ):
                 # last_i = ttmodel.add_var("%s %s ferme en %s" % (day, i, poste.abbrev))
-                # ttmodel.add_constraint(last_i - ttmodel.IBS[(i, last_slot)], '==', 0,
+                # ttmodel.add_constraint(last_i - ttmodel.tutor_busy_slot[(i, last_slot)], '==', 0,
                 #                        "Fermeture %s par %s en %s" % (day, i, poste.abbrev))
                 heures_de_soiree = ttmodel.sum(
                     ttmodel.assigned[(sl, c, i)] * sl.duration / 60
@@ -395,7 +395,7 @@ def coupure_nocturne_min(ttmodel, salarie, heures_coupure_min=11):
                 )
                 ttmodel.add_constraint(
                     ttmodel.sum(
-                        ttmodel.IBS[(salarie, sl2)]
+                        ttmodel.tutor_busy_slot[(salarie, sl2)]
                         for sl2 in slots_filter(
                             ttmodel.data.slots,
                             day=day,
@@ -413,9 +413,9 @@ def coupure_nocturne_min(ttmodel, salarie, heures_coupure_min=11):
         for sl1 in slots_filter(ttmodel.data.slots, day=day, starts_after=19 * 60):
             admissible_start_time = (sl1.end_time + heures_coupure_min * 60) % (24 * 60)
             ttmodel.add_constraint(
-                1000 * ttmodel.IBS[(salarie, sl1)]
+                1000 * ttmodel.tutor_busy_slot[(salarie, sl1)]
                 + ttmodel.sum(
-                    ttmodel.IBS[(salarie, sl2)]
+                    ttmodel.tutor_busy_slot[(salarie, sl2)]
                     for sl2 in successive_day_slots
                     if sl2.start_time < admissible_start_time
                 ),
@@ -446,7 +446,7 @@ def we_cosmo_constraints(ttmodel, salarie):
         #                        '>=',
         #                        1,
         #                        "Au moins 1 WE de 3 jours pour %s" % salarie.username)
-        # ttmodel.add_constraint(ttmodel.sum(ttmodel.IBD[salarie, jour] for jour in jours_de_WE),
+        # ttmodel.add_constraint(ttmodel.sum(ttmodel.tutor_busy_day[salarie, jour] for jour in jours_de_WE),
         #                        '<=',
         #                        7,
         #                        "Au moins 3 jours de WE %s" % salarie.username)
@@ -506,7 +506,7 @@ def we_cosmo_constraints(ttmodel, salarie):
 
     # Les patrons peuvent travailler le WE, mais le coût a été rendu très grand...
     if salarie.username in patrons:
-        # ttmodel.add_constraint(ttmodel.sum(ttmodel.IBD[salarie, d] - ttmodel.forced_IBD[salarie, d] * ttmodel.UN
+        # ttmodel.add_constraint(ttmodel.sum(ttmodel.tutor_busy_day[salarie, d] - ttmodel.forced_tutor_busy_day[salarie, d] * ttmodel.UN
         #                                    for d in jours_de_WE),
         #                        '==',
         #                        0,
@@ -516,8 +516,8 @@ def we_cosmo_constraints(ttmodel, salarie):
             ttmodel.add_to_inst_cost(
                 salarie,
                 ttmodel.sum(
-                    ttmodel.IBD[salarie, d]
-                    - ttmodel.forced_IBD[salarie, d] * ttmodel.UN
+                    ttmodel.tutor_busy_day[salarie, d]
+                    - ttmodel.forced_tutor_busy_day[salarie, d] * ttmodel.UN
                     for d in WE
                 )
                 * 100,
@@ -581,9 +581,11 @@ def basic_cosmo_constraints(ttmodel):
     heures_periode = {}
     for i in ttmodel.data.instructors:
         heures_periode[i] = sum(
-            salaries[i.username][week]
-            if week in salaries[i.username]
-            else salaries[i.username]["base"]
+            (
+                salaries[i.username][week]
+                if week in salaries[i.username]
+                else salaries[i.username]["base"]
+            )
             for week in ttmodel.weeks
         )
     for i in ttmodel.data.instructors:
@@ -652,10 +654,10 @@ def basic_cosmo_constraints(ttmodel):
                 heures_max["jour"][i.username],
                 "%s travaille pas trop %s" % (i, day),
             )
-            # if not ttmodel.forced_IBD[i, day]:
+            # if not ttmodel.forced_tutor_busy_day[i, day]:
             if (day.week, day.day) not in reus_d_equipe:
                 ttmodel.add_constraint(
-                    heures_min["jour"][i.username] * ttmodel.IBD[(i, day)]
+                    heures_min["jour"][i.username] * ttmodel.tutor_busy_day[(i, day)]
                     - ttmodel.nb_heures[i][day],
                     "<=",
                     0,
@@ -815,7 +817,7 @@ def basic_cosmo_constraints(ttmodel):
 
             nb_trous[i, d] = (
                 ttmodel.sum(fin_de_bloc[i, end_time] for end_time in possible_end_times)
-                - ttmodel.IBD[i, d]
+                - ttmodel.tutor_busy_day[i, d]
             )
 
     for d in ttmodel.data.days:
@@ -897,7 +899,7 @@ def basic_cosmo_constraints(ttmodel):
             # if (d.week, d.day) not in reus_d_equipe:
             #     ttmodel.add_to_inst_cost(i, 10 * nb_trous[i, d])
             # else:
-            #     ttmodel.add_to_inst_cost(i, 10 * (nb_trous[i, d]) + ttmodel.IBD[i, d]))
+            #     ttmodel.add_to_inst_cost(i, 10 * (nb_trous[i, d]) + ttmodel.tutor_busy_day[i, d]))
 
     # Ménage:
     ttmodel.add_constraint(
@@ -1019,9 +1021,13 @@ def basic_cosmo_constraints(ttmodel):
     contrainte = False
     for d in ttmodel.data.days:
         les_deux_patrons_travaillent[d] = ttmodel.add_conjunct(
-            ttmodel.IBD[Annie, d], ttmodel.IBD[Jeremy, d]
+            ttmodel.tutor_busy_day[Annie, d], ttmodel.tutor_busy_day[Jeremy, d]
         )
-        if ttmodel.forced_IBD[Annie, d] + ttmodel.forced_IBD[Jeremy, d] < 2:
+        if (
+            ttmodel.forced_tutor_busy_day[Annie, d]
+            + ttmodel.forced_tutor_busy_day[Jeremy, d]
+            < 2
+        ):
             if contrainte:
                 ttmodel.add_constraint(
                     les_deux_patrons_travaillent, "==", 0, "Un patron max bosse %s" % d
@@ -1053,7 +1059,9 @@ def basic_cosmo_constraints(ttmodel):
 
             for fr in frontier_pref_busy_days:
                 if nb_heures_a_faire <= fr:
-                    cout_jours_de_trop += ttmodel.IBD_GTE[semaine][nb_days][salarie]
+                    cout_jours_de_trop += ttmodel.tutor_busy_day_gte[semaine][nb_days][
+                        salarie
+                    ]
                     nb_days -= 1
                 else:
                     break
@@ -1067,7 +1075,7 @@ def basic_cosmo_constraints(ttmodel):
             for salarie in ttmodel.data.instructors:
                 if salarie.username in salaries:
                     ttmodel.add_constraint(
-                        ttmodel.IBD[salarie, jour],
+                        ttmodel.tutor_busy_day[salarie, jour],
                         "==",
                         1,
                         "reu d'equipe %s" % salarie.username,

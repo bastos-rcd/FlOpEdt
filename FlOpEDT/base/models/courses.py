@@ -1,10 +1,8 @@
-import datetime as dt
-
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from base.timing import Day, slot_pause
+from base.timing import slot_pause
 
 
 class Module(models.Model):
@@ -129,7 +127,10 @@ class Course(models.Model):
 
     def full_name(self):
         username_mod = self.tutor.username if self.tutor is not None else "-no_tut-"
-        return f"{self.type}-{self.duration}-{self.module}-{username_mod}-{'|'.join([g.name for g in self.groups.all()])}"
+        return (
+            f"{self.type}-{self.duration}-{self.module}-{username_mod}-"
+            "{'|'.join([g.name for g in self.groups.all()])}"
+        )
 
     def equals(self, other):
         return (
@@ -149,8 +150,7 @@ class Course(models.Model):
     def is_graded(self):
         if CourseAdditional.objects.filter(course=self).exists():
             return self.additional.graded
-        else:
-            return self.type.graded
+        return self.type.graded
 
     @property
     def minutes(self):

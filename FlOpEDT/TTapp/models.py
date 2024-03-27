@@ -23,6 +23,8 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+# pylint: disable=unused-import
+
 import importlib
 import inspect
 from functools import wraps
@@ -31,7 +33,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.functional import lazy
 
-from TTapp.RoomConstraints.RoomConstraint import (
+from TTapp.RoomConstraints.room_constraint import (
     ConsiderRoomSorts,
     LimitedRoomChoices,
     LimitGroupMoves,
@@ -94,7 +96,7 @@ from TTapp.TimetableConstraints.stabilization_constraints import (
 )
 
 # Import constraints from other files
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 from TTapp.TimetableConstraints.tutors_constraints import (
     LowerBoundBusyDays,
     MinimizeTutorsBusyDays,
@@ -130,8 +132,10 @@ def get_constraint_list():
             constraints.append((fully_qualified_name, fully_qualified_name))
 
         return constraints
-    except ModuleNotFoundError:
-        print(f"can't find the {settings.CUSTOM_CONSTRAINTS_PATH} module")
+    except ModuleNotFoundError as exc:
+        raise ValueError(
+            f"can't find the {settings.CUSTOM_CONSTRAINTS_PATH} module"
+        ) from exc
 
 
 class CustomConstraint(TimetableConstraint):
@@ -162,7 +166,7 @@ class CustomConstraint(TimetableConstraint):
                 self.constraint = getattr(module, class_name)()
             except ModuleNotFoundError:
                 print(f"can't find the <{module_name}> module")
-            except:
+            except:  # pylint: disable=bare-except
                 print(f"an error has occured while loading class <{class_name}>")
 
         return self.constraint
@@ -192,7 +196,7 @@ class CustomConstraint(TimetableConstraint):
         return _wrapper
 
     @inject_method
-    def enrich_ttmodel(self, ttmodel, week, ponderation=1, injected_method=None):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1, injected_method=None):
         """
         Call custom constraint method
         """

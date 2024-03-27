@@ -6,40 +6,40 @@ app_name = "TTapp"
 
 urlpatterns = [
     path(
-        "side_panel/<yyyy:year>/<int:week>/",
-        TTapp.views.available_work_copies,
-        name="available_work_copies",
+        "side_panel/<int:period_id>/",
+        TTapp.views.available_major_versions,
+        name="available_major_versions",
     ),
     path(
-        "check_swap/<yyyy:year>/<int:week>/<int:work_copy>/",
+        "check_swap/<int:period_id>/<int:major>/",
         TTapp.views.check_swap,
         name="check_swap",
     ),
-    path("swap/<yyyy:year>/<int:week>/<int:work_copy>/", TTapp.views.swap, name="swap"),
+    path("swap/<int:period_id>/<int:major>/", TTapp.views.swap, name="swap"),
     path(
-        "delete_work_copy/<yyyy:year>/<int:week>/<int:work_copy>/",
-        TTapp.views.delete_work_copy,
-        name="delete_work_copy",
+        "delete_version/<int:period_id>/<int:major>/",
+        TTapp.views.delete_version,
+        name="delete_version",
     ),
     path(
-        "duplicate_work_copy/<yyyy:year>/<int:week>/<int:work_copy>/",
-        TTapp.views.duplicate_work_copy,
-        name="duplicate_work_copy",
+        "duplicate_version/<int:period_id>/<int:major>/",
+        TTapp.views.duplicate_version,
+        name="duplicate_version",
     ),
     path(
-        "delete_all_unused_work_copies/<yyyy:year>/<int:week>/",
-        TTapp.views.delete_all_unused_work_copies,
-        name="delete_all_unused_work_copies",
+        "delete_all_unused_versions/<int:period_id>/",
+        TTapp.views.delete_all_unused_versions,
+        name="delete_all_unused_versions",
     ),
     path(
-        "reassign_rooms/<yyyy:year>/<int:week>/<int:work_copy>/",
+        "reassign_rooms/<int:period_id>/<int:major>/",
         TTapp.views.reassign_rooms,
         name="reassign_rooms",
     ),
     path(
-        "duplicate_in_other_weeks/<yyyy:year>/<int:week>/<int:work_copy>/",
-        TTapp.views.duplicate_in_other_weeks,
-        name="duplicate_in_other_weeks",
+        "duplicate_in_other_periods/<int:period_id>/<int:major>/",
+        TTapp.views.duplicate_in_other_periods,
+        name="duplicate_in_other_periods",
     ),
     path("fetch_group_lunch/", TTapp.views.fetch_group_lunch, name="fetch_group_lunch"),
 ]

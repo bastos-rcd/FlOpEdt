@@ -26,7 +26,7 @@
 
 from base.models import SchedulingPeriod, TimetableVersion
 from core.decorators import timer
-from TTapp.FlopConstraint import FlopConstraint, all_subclasses
+from TTapp.flop_constraint import FlopConstraint, all_subclasses
 
 
 @timer

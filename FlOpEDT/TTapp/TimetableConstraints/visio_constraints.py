@@ -33,7 +33,7 @@ from base.timing import Day, Time, min_to_str
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 
 class NoVisio(TimetableConstraint):

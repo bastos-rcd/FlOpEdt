@@ -46,7 +46,7 @@ from base.models import Department
 from base.timing import Day, all_possible_start_times
 from base.weeks import current_year
 from MyFlOp.colors import Tcolors
-from TTapp.FlopConstraint import FlopConstraint, all_subclasses
+from TTapp.flop_constraint import FlopConstraint, all_subclasses
 
 DOC_DIR = os.path.join(
     os.path.dirname(pkgutil.get_loader("TTapp").get_filename()),

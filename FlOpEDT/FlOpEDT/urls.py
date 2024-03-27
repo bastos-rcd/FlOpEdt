@@ -54,7 +54,7 @@ register_converter(FourDigitYearConverter, "yyyy")
 urlpatterns = [
     # favicon
     # ----------------------------
-    re_path(views.fav_regexp, views.favicon, name="favicon"),
+    re_path(views.FAV_REGEXP, views.favicon, name="favicon"),
     path("", views.index, name="index"),
 ]
 

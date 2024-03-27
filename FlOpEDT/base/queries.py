@@ -50,8 +50,8 @@ from base.models import (
 )
 from displayweb.models import BreakingNews, GroupDisplay, TrainingProgrammeDisplay
 from people.models import NotificationsPreferences, ThemesPreferences, Tutor
-from TTapp.FlopConstraint import all_subclasses
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
+from TTapp.flop_constraint import all_subclasses
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 logger = logging.getLogger(__name__)
 
@@ -188,14 +188,10 @@ def get_groups(department_abbrev):
                 raise ValueError("Group name should be unique")
             if gp.parent_groups.all().count() == 0:
                 if gp_master is not None:
-                    raise ValueError(
-                        "One single group is able to be without parents"
-                    )
+                    raise ValueError("One single group is able to be without parents")
                 gp_master = gp
             elif gp.parent_groups.all().count() > 1:
-                raise ValueError(
-                    "Not tree-like group structures are not yet handled"
-                )
+                raise ValueError("Not tree-like group structures are not yet handled")
             gp_dict_children[gp.full_name] = []
 
         if gp_master is None:

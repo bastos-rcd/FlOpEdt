@@ -71,7 +71,7 @@ def print_brut_constraints(
     for constraint in constraints:
         output += str(constraint) + "\n"
 
-    filename = "%s/constraints_all%s.txt" % (file_path, filename_suffixe)
+    filename = f"{file_path}/constraints_all{filename_suffixe}.txt"
     write_file(filename, output, print_output=print_output)
 
 
@@ -82,12 +82,12 @@ def print_factorised_constraints(
         "\n Voici toutes les contraintes qui créent l'infaisabilité, factorisées :\n "
     )
     for dimension in occurs.keys():
-        output += "\n\n%s:" % dimension
+        output += f"\n\n{dimension}:"
         for elt in occurs[dimension].keys():
-            output += "\n%s -> %s" % (elt, occurs[dimension][elt]["occurences"])
+            output += f"\n {elt} -> {occurs[dimension][elt]['types']}"
             if dimension != "types":
-                output += " (%s)" % ", ".join(occurs[dimension][elt]["types"])
-    filename = "%s/constraints_factorised%s.txt" % (file_path, filename_suffixe)
+                output += f" ({', '.join(occurs[dimension][elt]['types'])})"
+    filename = f"{file_path}/constraints_factorised{filename_suffixe}.txt"
     write_file(filename, output, print_output=print_output)
 
 
@@ -134,7 +134,7 @@ def get_str_attr(dico, threshold, constraint_type):
     """
     output = ""
     for attr in get_most_important(dico, threshold, constraint_type):
-        output += "\t\t%s\n" % str(attr)
+        output += f"\t\t{attr}\n"
     return output
 
 
@@ -158,7 +158,7 @@ def print_summary_from_types_with_threshold(
     filename_suffixe,
     print_output=False,
 ):
-    filename = "%s/constraints_summary%s.txt" % (file_path, filename_suffixe)
+    filename = f"{file_path}/constraints_summary{filename_suffixe}.txt"
     output = "\n Voici les principales contraintes liées à l'infaisabilité :\n"
     write_file(filename, output)
     for constraint_type in get_most_important(occurs["types"], threshold_type):
@@ -175,8 +175,8 @@ def print_summary_from_types_with_threshold(
 
 
 def write_csv(constraints, file_path, filename_suffixe):
-    filename = "%s/graph%s.csv" % (file_path, filename_suffixe)
-    print("writing %s..." % filename)
+    filename = f"{file_path}/graph{filename_suffixe}.csv"
+    print(f"writing {filename}...")
     with open(filename, "w+", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(
@@ -201,9 +201,9 @@ def write_csv(constraints, file_path, filename_suffixe):
 
 def write_file(filename, output, print_output=True, mode="w+"):
     if mode == "w+":
-        print("writing %s..." % filename, "\n")
+        print(f"writing {filename}... \n")
     with open(filename, mode, encoding="utf-8") as file:
         file.write(output)
         file.write("\n")
     if print_output:
-        print("\n%s" % output)
+        print(f"\n{output}")

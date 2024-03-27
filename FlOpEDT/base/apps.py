@@ -24,43 +24,43 @@
 import os
 
 from django.apps import AppConfig
+from django.conf import settings as ds
 
 
 class BaseConfig(AppConfig):
     name = "base"
 
     def ready(self):
-        from django.conf import settings as ds
 
         # STARTUP code
         # Create directory for serving static content in production
         if not os.path.exists(ds.STATIC_ROOT):
             # Directory doesn't exist let's create it
-            print("Let's create %s" % ds.STATIC_ROOT)
+            print(f"Let's create {ds.STATIC_ROOT}")
             os.makedirs(ds.STATIC_ROOT, exist_ok=True)
 
         # Create directory for serving media content in production
         if not os.path.exists(ds.MEDIA_ROOT):
             # Directory doesn't exist let's create it
-            print("Let's create %s" % ds.MEDIA_ROOT)
+            print(f"Let's create {ds.MEDIA_ROOT}")
             os.makedirs(ds.MEDIA_ROOT, exist_ok=True)
 
         # Create directory for django cache
         if not os.path.exists(ds.CACHE_DIRECTORY):
             # Directory doesn't exist let's create it
-            print("Let's create %s" % ds.CACHE_DIRECTORY)
+            print(f"Let's create {ds.CACHE_DIRECTORY}")
             os.makedirs(ds.CACHE_DIRECTORY, exist_ok=True)
 
         # Create tmp directory used for solver resolution
         if not os.path.exists(ds.TMP_DIRECTORY):
             # Directory doesn't exist let's create it
-            print("Let's create %s" % ds.TMP_DIRECTORY)
+            print(f"Let's create {ds.TMP_DIRECTORY}")
             os.makedirs(ds.TMP_DIRECTORY, exist_ok=True)
 
         # Create storage directory
         if not os.path.exists(ds.STORAGE_DIRECTORY):
             # Directory doesn't exist let's create it
-            print("Let's create %s" % ds.STORAGE_DIRECTORY)
+            print(f"Let's create {ds.STORAGE_DIRECTORY}")
             os.makedirs(ds.STORAGE_DIRECTORY, exist_ok=True)
 
         # Let's create the missing subdirectories
@@ -73,5 +73,5 @@ class BaseConfig(AppConfig):
         for cur_directory in directories_to_create:
             if not os.path.exists(cur_directory):
                 # Directory doesn't exist let's create it
-                print("Let's create %s" % cur_directory)
+                print(f"Let's create {cur_directory}")
                 os.makedirs(cur_directory, exist_ok=True)

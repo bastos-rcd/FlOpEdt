@@ -77,7 +77,7 @@ from base.models import (
     TrainingProgramme,
     UserAvailability,
 )
-from base.weeks import *
+from base.weeks import current_week, num_all_days, week_list, current_year
 from core.decorators import dept_admin_required, tutor_required
 from displayweb.admin import BreakingNewsResource
 from displayweb.models import BreakingNews
@@ -91,7 +91,7 @@ from people.models import (
     UserPreferredLinks,
 )
 
-from TTapp.TimetableUtils import number_courses
+from TTapp.timetable_utils import number_courses
 
 
 logger = logging.getLogger(__name__)
@@ -103,7 +103,7 @@ logger = logging.getLogger(__name__)
 # ----------
 
 
-fav_regexp = (
+FAV_REGEXP = (
     r"^(?P<fav>(favicon.ico)|(site\.webmanifest)"
     r"|(browserconfig\.xml)|(safari-pinned-tab.svg)"
     r"|(mstile.*\.png)|(favicon.*\.png)|(android-chrome.*\.png)"
@@ -937,7 +937,7 @@ def fetch_all_modules_with_desc(req, **kwargs):
 def clean_change(
     week, old_version, change, work_copy=0, initiator=None, apply=False, department=None
 ):
-    from TTapp.TimetableUtils import number_courses
+    from TTapp.timetable_utils import number_courses
 
     scheduled_before = True
     renumber = False
@@ -1154,7 +1154,6 @@ class HelperUserAvailability:
         return UserAvailability.objects.filter(user=self.tutor)
 
     def generate(self, week, day, start_time, duration, value):
-        # pylint: disable=too-many-arguments
         return UserAvailability(
             user=self.tutor,
             week=week,
@@ -1162,7 +1161,7 @@ class HelperUserAvailability:
             start_time=start_time,
             duration=duration,
             value=value,
-        )
+        )  # pylint: disable=too-many-arguments
 
 
 class HelperCourseAvailability:
@@ -1176,7 +1175,6 @@ class HelperCourseAvailability:
         )
 
     def generate(self, week, day, start_time, duration, value):
-        # pylint: disable=too-many-arguments
         return CourseAvailability(
             train_prog=self.training_programme,
             course_type=self.course_type,
@@ -1185,7 +1183,7 @@ class HelperCourseAvailability:
             start_time=start_time,
             duration=duration,
             value=value,
-        )
+        )  # pylint: disable=too-many-arguments
 
 
 class HelperRoomAvailability:
@@ -1196,7 +1194,6 @@ class HelperRoomAvailability:
         return RoomAvailability.objects.filter(room=self.room)
 
     def generate(self, week, day, start_time, duration, value):
-        # pylint: disable=too-many-arguments
         return RoomAvailability(
             room=self.room,
             week=week,
@@ -1204,7 +1201,7 @@ class HelperRoomAvailability:
             start_time=start_time,
             duration=duration,
             value=value,
-        )
+        )  # pylint: disable=too-many-arguments
 
 
 @tutor_required
@@ -1738,7 +1735,7 @@ def filt_m(r, module):
 
 
 def filt_p(r, prof):
-    if prof != None:
+    if prof is not None:
         if prof == "":
             r = r.filter(tutor=None)
         else:
@@ -1758,28 +1755,28 @@ def filt_sa(department, week, year):
     )
 
 
-def get_key_course_pl(department_abbrev, week, num_copy):
-    if week is None or num_copy is None:
+def get_key_course_pl(department_abbrev, period, major):
+    if period is None or major is None:
         return ""
-    return f"CPL-D{department_abbrev}-W{week}-C{num_copy}"
+    return f"CPL-D{department_abbrev}-W{period}-C{major}"
 
 
-def get_key_course_pp(department_abbrev, week, num_copy):
-    if week is None or num_copy is None:
+def get_key_course_pp(department_abbrev, period, major):
+    if period is None or major is None:
         return ""
-    return f"CPP-D{department_abbrev}-W{week}-C{num_copy}"
+    return f"CPP-D{department_abbrev}-W{period}-C{major}"
 
 
-def get_key_preferences_tutor(department_abbrev, week):
-    if week is None:
+def get_key_preferences_tutor(department_abbrev, period):
+    if period is None:
         return ""
-    return f"PREFT-D{department_abbrev}-W{week}"
+    return f"PREFT-D{department_abbrev}-W{period}"
 
 
-def get_key_unavailable_rooms(department_abbrev, week):
-    if week is None:
+def get_key_unavailable_rooms(department_abbrev, period):
+    if period is None:
         return ""
-    return f"UNAVR-D{department_abbrev}-W{week}"
+    return f"UNAVR-D{department_abbrev}-W{period}"
 
 
 def get_key_all_tutors(department_abbrev):

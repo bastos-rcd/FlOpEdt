@@ -28,7 +28,7 @@ import functools
 
 from base.models import Department, ScheduledCourse, SchedulingPeriod, TimetableVersion
 from people.models import Tutor
-from TTapp.TimetableUtils import (
+from TTapp.timetable_utils import (
     basic_delete_all_unused_versions,
     basic_delete_version,
     basic_duplicate_version,
@@ -84,13 +84,13 @@ def print_differences(
 
 
 @resolve_department
-def reassign_rooms(department, period_id, major, create_new_version=True):
+def reassign_rooms(department, period_id, major, create_new_major=True):
     period = SchedulingPeriod.objects.get(id=period_id)
     version = TimetableVersion.objects.get(
         department=department, period=period, major=major
     )
     result = basic_reassign_rooms(
-        department, period, version, create_new_version=create_new_version
+        department, period, version, create_new_major=create_new_major
     )
     return result
 
@@ -113,7 +113,7 @@ def delete_version(department, period_id, major):
 
 
 @resolve_department
-def delete_all_unused_work_copies(department, period_id):
+def delete_all_unused_versions(department, period_id):
     period = SchedulingPeriod.objects.get(id=period_id)
     return basic_delete_all_unused_versions(department, period)
 
