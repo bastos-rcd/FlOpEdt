@@ -5,7 +5,8 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 # -- CUSTOM PERM --
 # -----------------
 
-# SAFE_METHODS contains GET, HEAD and OPTIONS methods. These methods are used to retrieve data and not alter them on the database.
+# SAFE_METHODS contains GET, HEAD and OPTIONS methods.
+# These methods are used to retrieve data and not alter them on the database.
 
 
 # This permission allow only tutor to use all of the methods
@@ -21,7 +22,8 @@ class IsTutor(BasePermission):
         )
 
 
-# This permission allow only tutors to use the POST, PUT, PATCH and DELETE methods. GET method can be use by everyone
+# This permission allow only tutors to use the POST, PUT, PATCH and DELETE methods.
+# GET method can be use by everyone
 class IsTutorOrReadOnly(BasePermission):
     message = _("POST, PUT, PATCH and DELETE methods reserved for tutors")
 
@@ -34,7 +36,8 @@ class IsTutorOrReadOnly(BasePermission):
         )
 
 
-# This permission allow only students to use the POST, PUT, PATCH and DELETE methods. GET method can be use by everyone
+# This permission allow only students to use the POST, PUT, PATCH and DELETE methods.
+# GET method can be use by everyone
 class IsStudentOrReadOnly(BasePermission):
     message = _("POST, PUT, PATCH and DELETE methods reserved for students")
 
@@ -47,7 +50,8 @@ class IsStudentOrReadOnly(BasePermission):
         )
 
 
-# This permission allow only admins to use the POST, PUT, PATCH and DELETE methods. GET method can be use by everyone
+# This permission allow only admins to use the POST, PUT, PATCH and DELETE methods.
+# GET method can be use by everyone
 class IsAdminOrReadOnly(BasePermission):
     message = _("POST, PUT, PATCH and DELETE methods reserved for admin")
 

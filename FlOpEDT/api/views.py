@@ -23,25 +23,28 @@
 
 from random import randint
 
-import django_filters.rest_framework as filters
 from django.db.models import Q
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 
 import base.models as bm
-import base.queries as queries
+from base import queries
 import displayweb.models as dwm
 import quote.models as qm
 import TTapp.models as tm
 from api import serializers
-from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
+from api.permissions import IsAdminOrReadOnly
 from api.shared.params import dept_param, week_param, year_param
 
 # ----------
 # -- QUOTE -
 # ----------
+
+# pylint: disable=too-many-ancestors
+# I disable it because ModelViewSet is a class from Django Rest Framework and
+# it does not make sense to change the number of ancestors of this class.
 
 
 class QuoteTypeViewSet(viewsets.ModelViewSet):
@@ -75,7 +78,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 class RandomQuoteViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
-    def list(self, request, format=None):
+    def list(self, request):
         """
         Return a random quote
         """
@@ -87,8 +90,6 @@ class RandomQuoteViewSet(viewsets.ViewSet):
             chosen_id = ids[randint(0, nb_quotes - 1)] if nb_quotes > 0 else -1
             return Response(str(qm.Quote.objects.get(id=chosen_id)))
         return Response("")
-
-        permission_classes = [IsAdminOrReadOnly]
 
 
 # ---------------
@@ -161,7 +162,6 @@ class GroupDisplaysViewSet(viewsets.ModelViewSet):
 
 def pref_requirements(department, tutor, period_id):
     """
-    TODO new-time : Il faut prendre en compte les préférences par défaut...
     Return a pair (filled, required): number of preferences
     that have been proposed VS required number of prefs, according
     to local policy
@@ -170,59 +170,51 @@ def pref_requirements(department, tutor, period_id):
     courses_time = sum(
         c.duration
         for c in bm.Course.objects.filter(
-            Q(tutor=tutor) | Q(supp_tutor=tutor), week=period
+            Q(tutor=tutor) | Q(supp_tutor=tutor), period=period
         )
     )
-    week_av = bm.UserAvailability.objects.filter(
-        user=tutor, week=period, day__in=queries.get_working_days(department)
+    period_av = bm.UserAvailability.objects.filter(
+        user=tutor, period=period, day__in=queries.get_working_days(department)
     )
-    if not week_av.exists():
-        week_av = bm.UserAvailability.objects.filter(
-            user=tutor, week=None, day__in=queries.get_working_days(department)
+    if not period_av.exists():
+        period_av = bm.UserAvailability.objects.filter(
+            user=tutor, period=None, day__in=queries.get_working_days(department)
         )
 
     # Exclude Holidays
-    holidays_query = bm.Holiday.objects.filter(week=period)
-    if holidays_query.exists():
-        holidays = [h.day for h in holidays_query]
-        week_av = week_av.exclude(day__in=holidays)
+    holidays = bm.Holiday.objects.filter(date__in=period.dates())
+    if holidays.exists():
+        period_av = period_av.exclude(date__in=holidays)
 
-    # FIXME New-time
-    # Exclude NoTutorCourseOnDay
-    tutor_no_course_on_day_query = tm.NoTutorCourseOnDay.objects.filter(
+    # Exclude NoTutorCourseOnWeekDay
+    tutor_no_course_on_day_query = tm.NoTutorCourseOnWeekDay.objects.filter(
         Q(tutors=tutor) | Q(tutors__isnull=True),
-        Q(weeks=week) | Q(weeks__isnull=True),
+        Q(periods=period) | Q(periods__isnull=True),
         weight=None,
     )
     if tutor_no_course_on_day_query.exists():
         for tncod in tutor_no_course_on_day_query:
-            if tncod.fampm_period == tm.NoTutorCourseOnDay.FULL_DAY:
-                week_av = week_av.exclude(day=tncod.weekday)
-            elif tncod.fampm_period == tm.NoTutorCourseOnDay.AM:
-                week_av = week_av.exclude(
-                    day=tncod.weekday,
-                    start_time__lt=department.timegeneralsettings.lunch_break_start_time,
+            if tncod.fampm_period == tm.NoTutorCourseOnWeekDay.FULL_DAY:
+                period_av = period_av.exclude(day=tncod.weekday)
+            elif tncod.fampm_period == tm.NoTutorCourseOnWeekDay.AM:
+                period_av = period_av.exclude(
+                    date__weekday=tncod.weekday,
+                    start_time__time__lt=department.timegeneralsettings.lunch_break_start_time,
                 )
-            elif tncod.fampm_period == tm.NoTutorCourseOnDay.PM:
-                week_av = week_av.exclude(
-                    day=tncod.weekday,
-                    start_time__gte=department.timegeneralsettings.lunch_break_end_time,
+            elif tncod.fampm_period == tm.NoTutorCourseOnWeekDay.PM:
+                period_av = period_av.exclude(
+                    date__weekday=tncod.weekday,
+                    start_time__time__gte=department.timegeneralsettings.lunch_break_end_time,
                 )
 
     filled = sum(
         a.duration
-        for a in week_av.filter(
+        for a in period_av.filter(
             value__gte=1, day__in=queries.get_working_days(department)
         )
     )
 
-    # Exclude lunch break TODO
-    tutor_lunch_break_query = tm.TutorsLunchBreak.objects.filter(
-        Q(tutors=tutor) | Q(tutors__isnull=True),
-        Q(weeks=period) | Q(weeks__isnull=True),
-    )
-
-    # END FIXME New-time
+    # Exclude lunch break to be done...
 
     return filled, courses_time
 
@@ -245,7 +237,7 @@ class WeekInfoViewSet(viewsets.ViewSet):
             dept_param(required=True),
         ]
     )
-    def list(self, request, format=None):
+    def list(self, request):
         period_id = int(request.query_params.get("period_id"))
 
         try:
