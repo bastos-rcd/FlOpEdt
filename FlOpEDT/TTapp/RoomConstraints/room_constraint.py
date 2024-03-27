@@ -32,7 +32,6 @@ from TTapp.flop_constraint import FlopConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import slots_filter
-from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 
 class RoomConstraint(FlopConstraint):
@@ -60,11 +59,12 @@ class RoomConstraint(FlopConstraint):
     def get_courses_queryset_by_parameters(
         self,
         period,
-        room_model,
+        flopmodel,
         train_prog=None,
         train_progs=None,
         group=None,
         groups=None,
+        transversal_groups_included=False,
         module=None,
         modules=None,
         course_type=None,
@@ -77,11 +77,12 @@ class RoomConstraint(FlopConstraint):
         courses_qs = FlopConstraint.get_courses_queryset_by_parameters(
             self,
             period,
-            room_model,
+            flopmodel,
             train_prog=train_prog,
             train_progs=train_progs,
-            g=group,
+            group=group,
             groups=groups,
+            transversal_groups_included=transversal_groups_included,
             module=module,
             modules=modules,
             course_type=course_type,
@@ -333,12 +334,16 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
                                 period=period,
                             )
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
 
 class LimitedRoomChoices(RoomConstraint):
     """
     Limit the possible rooms for the courses
     Attributes are cumulative :
-        limit the room choice for the courses o f this/every tutor, of this/every module, for this/every group ...
+        limit the room choice for the courses o f this/every tutor,
+        of this/every module, for this/every group ...
     """
 
     train_progs = models.ManyToManyField("base.TrainingProgramme", blank=True)
@@ -448,6 +453,9 @@ class LimitedRoomChoices(RoomConstraint):
             text += str(sl) + ", "
         return text
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
 
 class ConsiderRoomSorts(RoomConstraint):
     tutors = models.ManyToManyField("people.Tutor", blank=True)
@@ -492,8 +500,11 @@ class ConsiderRoomSorts(RoomConstraint):
                 )
 
     def one_line_description(self):
-        text = f"Prend en compte les préférences de salles des enseignant·e·s "
+        text = "Prend en compte les préférences de salles des enseignant·e·s "
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class LocateAllCourses(RoomConstraint):
@@ -606,6 +617,9 @@ class LocateAllCourses(RoomConstraint):
         text += "."
         return text
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
 
 class LimitMoves(RoomConstraint):
     class Meta:
@@ -677,7 +691,7 @@ class LimitGroupMoves(LimitMoves):
         return 2
 
     def one_line_description(self):
-        text = f"Limite les changements de salles"
+        text = "Limite les changements de salles"
         if self.groups.exists():
             text += (
                 " des groupes "
@@ -687,6 +701,9 @@ class LimitGroupMoves(LimitMoves):
         else:
             text += " de tous les groupes."
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class LimitTutorMoves(LimitMoves):
@@ -720,6 +737,9 @@ class LimitTutorMoves(LimitMoves):
     @property
     def ponderation(self):
         return 1
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 def considered_tutors(tutors_room_constraint, room_model):

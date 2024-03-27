@@ -29,7 +29,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from base.models import StructuralGroup
 from base.timing import Day
 from people.models import GroupPreferences
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
@@ -89,6 +88,9 @@ class MinGroupsHalfDays(TimetableConstraint):
     def __str__(self):
         return _("Minimize groups half-days")
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
 
 class MinNonPreferedTrainProgsSlot(TimetableConstraint):
     """
@@ -114,7 +116,7 @@ class MinNonPreferedTrainProgsSlot(TimetableConstraint):
         for train_prog in train_progs:
             basic_groups = ttmodel.data.basic_groups.filter(train_prog=train_prog)
             for g in basic_groups:
-                g_pref, created = GroupPreferences.objects.get_or_create(group=g)
+                g_pref, _ = GroupPreferences.objects.get_or_create(group=g)
                 g_pref.calculate_fields()
                 morning_weight = 2 * g_pref.get_morning_weight()
                 evening_weight = 2 * g_pref.get_evening_weight()
@@ -177,6 +179,9 @@ class MinNonPreferedTrainProgsSlot(TimetableConstraint):
     def __str__(self):
         return _("Minimize groups non-preferred slots")
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
 
 class GroupsMinHoursPerDay(TimetableConstraint):
     """
@@ -208,7 +213,7 @@ class GroupsMinHoursPerDay(TimetableConstraint):
 
         days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
-            days = days_filter(days, day_in=self.weekdays)
+            days = days_filter(days, weekday_in=self.weekdays)
         for basic_group in considered_groups:
             for day in days:
                 group_day_scheduled_minutes = ttmodel.sum(
@@ -257,3 +262,6 @@ class GroupsMinHoursPerDay(TimetableConstraint):
         You can give a contextual explanation about what this constraint doesnt
         """
         return "Groups min hours per day"
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError

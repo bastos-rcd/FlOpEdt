@@ -1160,8 +1160,9 @@ class TimetableModel(FlopModel):
                                     value = minimum
                                     non_preferred_cost_course[(course_type, promo)][
                                         availability_slot
-                                    ] = (1 - value / 8)
-
+                                    ] = (
+                                        1 - value / 8
+                                    )
                             else:
                                 avail_course[(course_type, promo)][
                                     availability_slot

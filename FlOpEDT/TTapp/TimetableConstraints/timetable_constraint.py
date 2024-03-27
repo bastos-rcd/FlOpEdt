@@ -25,16 +25,13 @@
 
 from typing import TYPE_CHECKING
 
-from django.db.models import Q
-
 from core.decorators import timer
 from TTapp.flop_constraint import FlopConstraint
+from base.models import StructuralGroup
 
 if TYPE_CHECKING:
     from TTapp.timetable_model import TimetableModel
     from base.models import SchedulingPeriod
-
-from base.models import StructuralGroup
 
 
 class TimetableConstraint(FlopConstraint):
@@ -67,11 +64,12 @@ class TimetableConstraint(FlopConstraint):
     def get_courses_queryset_by_parameters(
         self,
         period,
-        ttmodel=None,
+        flopmodel: "TimetableModel" = None,
         train_prog=None,
         train_progs=None,
         group=None,
         groups=None,
+        transversal_groups_included=False,
         module=None,
         modules=None,
         course_type=None,
@@ -84,11 +82,12 @@ class TimetableConstraint(FlopConstraint):
         courses_qs = FlopConstraint.get_courses_queryset_by_parameters(
             self,
             period,
-            ttmodel,
+            flopmodel,
             train_prog=train_prog,
             train_progs=train_progs,
-            g=group,
+            group=group,
             groups=groups,
+            transversal_groups_included=transversal_groups_included,
             module=module,
             modules=modules,
             course_type=course_type,
@@ -99,26 +98,22 @@ class TimetableConstraint(FlopConstraint):
 
         # if tutor is not None, we have to reduce to the courses that are in possible_course[tutor]
         if tutor is not None:
-            if tutor in ttmodel.data.instructors:
+            if tutor in flopmodel.data.instructors:
                 return courses_qs.filter(
-                    id__in=[c.id for c in ttmodel.data.possible_courses[tutor]]
+                    id__in=[c.id for c in flopmodel.data.possible_courses[tutor]]
                 )
-            else:
-                return courses_qs.filter(id__in=[])
+            return courses_qs.filter(id__in=[])
         if tutors:
-            considered_tutors = set(tutors) & set(ttmodel.data.instructors)
+            considered_tutors = set(tutors) & set(flopmodel.data.instructors)
             return courses_qs.filter(
                 id__in=[
                     c.id
-                    for c in ttmodel.data.possible_courses[tutor]
                     for tutor in considered_tutors
+                    for c in flopmodel.data.possible_courses[tutor]
                 ]
             )
 
         return courses_qs
-
-    def considered_train_progs(self, ttmodel=None):
-        return super().considered_train_progs(ttmodel)
 
     def considered_basic_groups(self, ttmodel=None):
         if ttmodel is None:
@@ -142,12 +137,11 @@ class TimetableConstraint(FlopConstraint):
                 basic_groups &= constraint_basic_groups
         if ttmodel is None:
             return basic_groups
-        else:
-            ttmodel_basic_groups_to_consider = set()
-            for g in basic_groups:
-                if ttmodel.data.courses_for_basic_group[g]:
-                    ttmodel_basic_groups_to_consider.add(g)
-            return ttmodel_basic_groups_to_consider
+        ttmodel_basic_groups_to_consider = set()
+        for g in basic_groups:
+            if ttmodel.data.courses_for_basic_group[g]:
+                ttmodel_basic_groups_to_consider.add(g)
+        return ttmodel_basic_groups_to_consider
 
     def considered_groups(self, ttmodel=None, transversal_groups_included=False):
         basic_groups = self.considered_basic_groups(ttmodel)

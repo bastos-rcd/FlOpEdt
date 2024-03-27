@@ -29,13 +29,11 @@ import datetime as dt
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 
 from base.models import ScheduledCourse
-from base.partition import Partition
 from base.timing import Day, TimeInterval
-from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import Slot, days_filter, slots_filter
@@ -118,12 +116,9 @@ class GroupsLunchBreak(TimetableConstraint):
                         not_ok,
                         "==",
                         0,
-                        Constraint(ConstraintType.LUNCH_BREAK, groups=group),
+                        Constraint(ConstraintType.GROUPS_LUNCH_BREAK, groups=group),
                     )
-                    # ttmodel.add_constraint(ttmodel.sum(slot_vars[group, sl] for sl in local_slots),
-                    #                        '<=', len(local_slots),
-                    #                        Constraint(constraint_type=ConstraintType.LUNCH_BREAK,
-                    #                                   groups=group, days=day))
+
                 else:
                     cost = not_ok * ponderation * self.local_weight()
                     # cost = ttmodel.sum(slot_vars[group, sl] for sl in local_slots) * ponderation \
@@ -139,7 +134,7 @@ class GroupsLunchBreak(TimetableConstraint):
         )
         considered_dates = period.dates()
         if self.weekdays:
-            considered_dates = days_filter(considered_dates, day_in=self.weekdays)
+            considered_dates = days_filter(considered_dates, weekday_in=self.weekdays)
         no_lunch_dates = []
         for basic_group in self.considered_basic_groups():
             group_considered_scheduled_courses = considered_scheduled_courses.filter(
@@ -169,7 +164,9 @@ class GroupsLunchBreak(TimetableConstraint):
             f"entre {self.start_lunch_time} et {self.end_lunch_time}"
         )
         try:
-            text += " les " + ", ".join([wd for wd in self.weekdays])
+            text += " les " + ", ".join(
+                [wd for wd in self.weekdays]
+            )  # pylint: disable=unnecessary-comprehension
         except ObjectDoesNotExist:
             pass
         if self.groups.exists():
@@ -189,9 +186,10 @@ class GroupsLunchBreak(TimetableConstraint):
 
     def complete_group_partition(self, partition, group, period):
         """
-            Complete the partition in parameters with informations given by this GroupLunchBreak constraint if it
-        concern the given group and period.
-        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+            Complete the partition in parameters with informations
+            given by this GroupLunchBreak constraint if it concerns the given group and period.
+            This method is called by functions in partition_with_constraints.py
+            to initialize a partition used in pre_analyse methods.
 
         :param partition: A partition (empty or not) with informations about a group's availability.
         :type partition: Partition
@@ -199,7 +197,8 @@ class GroupsLunchBreak(TimetableConstraint):
         :type tutor: StructuralGroup
         :param period: The SchedulingPeriod we want to make a pre-analysis on (can be None if all).
         :type week: SchedulingPeriod
-        :return: A partition with new informations if the given tutor is concerned by this GroupLunchBreak constraint.
+        :return: A partition with new informations if the given tutor is concerned
+        by this GroupLunchBreak constraint.
         :rtype: Partition
 
         """
@@ -209,7 +208,7 @@ class GroupsLunchBreak(TimetableConstraint):
         ):
             days = period.dates()
             if self.weekdays:
-                days = days_filter(days, day_in=self.weekdays)
+                days = days_filter(days, weekday_in=self.weekdays)
             for day in days:
                 max_lunch_start_time = (
                     dt.datetime.combine(day, self.end_lunch_time) - self.lunch_length
@@ -335,7 +334,7 @@ class TutorsLunchBreak(TimetableConstraint):
                     )
                     continue
                 not_ok = ttmodel.add_floor(
-                    expr=ttmodel.sum(slot_vars[sl] for sl in slot_vars),
+                    expr=ttmodel.sum(slot_vars.values()),
                     floor=slots_nb,
                     bound=2 * slots_nb,
                 )
@@ -345,16 +344,13 @@ class TutorsLunchBreak(TimetableConstraint):
                         not_ok,
                         "==",
                         0,
-                        Constraint(ConstraintType.LUNCH_BREAK, instructors=tutor),
+                        Constraint(
+                            ConstraintType.TUTORS_LUNCH_BREAK, instructors=tutor
+                        ),
                     )
-                    # ttmodel.add_constraint(ttmodel.sum(slot_vars[group, sl] for sl in local_slots),
-                    #                        '<=', len(local_slots),
-                    #                        Constraint(constraint_type=ConstraintType.LUNCH_BREAK,
-                    #                                   groups=group, days=day))
+
                 else:
                     cost = not_ok * ponderation * self.local_weight()
-                    # cost = ttmodel.sum(slot_vars[group, sl] for sl in local_slots) * ponderation \
-                    #        * self.local_weight()
                     ttmodel.add_to_inst_cost(tutor, cost, period)
 
     def is_satisfied_for(self, period, version):
@@ -366,14 +362,14 @@ class TutorsLunchBreak(TimetableConstraint):
         )
         considered_dates = period.dates()
         if self.weekdays:
-            considered_dates = days_filter(considered_dates, day_in=self.weekdays)
+            considered_dates = days_filter(considered_dates, weekday_in=self.weekdays)
         no_lunch_dates = []
-        considered_tutors = set(
+        tutors_to_consider = set(
             sc.tutor for sc in considered_scheduled_courses.distinct("tutor")
         )
         if self.tutors.exists():
-            considered_tutors &= set(self.tutors.all())
-        for tutor in considered_tutors:
+            tutors_to_consider &= set(self.tutors.all())
+        for tutor in tutors_to_consider:
             tutor_considered_scheduled_courses = considered_scheduled_courses.filter(
                 tutor=tutor
             )
@@ -396,9 +392,10 @@ class TutorsLunchBreak(TimetableConstraint):
 
     def complete_tutor_partition(self, partition, tutor, period):
         """
-            Complete the partition in parameters with informations given by this TutorsLunchBreak constraint if it
-        concern the given tutor and period.
-        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+            Complete the partition in parameters with informations
+            given by this TutorsLunchBreak constraint if it concerns the given tutor and period.
+            This method is called by functions in partition_with_constraints.py
+            to initialize a partition used in pre_analyse methods.
 
         :param partition: A partition (empty or not) with informations about a tutor's availability.
         :type partition: Partition
@@ -406,7 +403,8 @@ class TutorsLunchBreak(TimetableConstraint):
         :type tutor: Tutor
         :param period: The SchedulingPeriod we want to make a pre-analysis on (can be None if all).
         :type period: SchedulingPeriod
-        :return: A partition with new informations if the given tutor is concerned by this TutorsLunchBreak constraint.
+        :return: A partition with new informations if the given tutor is concerned
+        by this TutorsLunchBreak constraint.
         :rtype: Partition
 
         """
@@ -416,7 +414,7 @@ class TutorsLunchBreak(TimetableConstraint):
         ):
             days = period.dates()
             if self.weekdays:
-                days = days_filter(days, day_in=self.weekdays)
+                days = days_filter(days, weekday_in=self.weekdays)
             for day in days:
                 max_lunch_start_time = (
                     dt.datetime.combine(day, self.end_lunch_time) - self.lunch_length
@@ -486,7 +484,7 @@ class BreakAroundCourseType(TimetableConstraint):
         considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
-            days = days_filter(days, day_in=self.weekdays)
+            days = days_filter(days, weekday_in=self.weekdays)
         for group in considered_groups:
             specific_courses = set(
                 self.get_courses_queryset_by_parameters(
@@ -563,7 +561,7 @@ class BreakAroundCourseType(TimetableConstraint):
         considered_groups = self.considered_groups(transversal_groups_included=True)
         considered_dates = period.dates()
         if self.weekdays:
-            considered_dates = days_filter(considered_dates, day_in=self.weekdays)
+            considered_dates = days_filter(considered_dates, weekday_in=self.weekdays)
         all_scheduled_courses = ScheduledCourse.objects.filter(
             course__type__department=self.department,
             course__period=period,

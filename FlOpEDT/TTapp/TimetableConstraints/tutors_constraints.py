@@ -28,7 +28,6 @@ import datetime as dt
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from TTapp.flop_constraint import MAX_WEIGHT
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperTutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -88,6 +87,9 @@ class MinTutorsHalfDays(TimetableConstraint):
 
         return text
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
 
 class MinNonPreferedTutorsSlot(TimetableConstraint):
     """
@@ -143,6 +145,9 @@ class MinNonPreferedTutorsSlot(TimetableConstraint):
         else:
             text += " de tous les profs."
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class MinimizeTutorsBusyDays(TimetableConstraint):
@@ -204,7 +209,7 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
                         "==",
                         0,
                         Constraint(
-                            constraint_type=ConstraintType.MinimizeBusyDays,
+                            constraint_type=ConstraintType.MINIMIZE_BUSY_DAYS,
                             instructors=tutor,
                             periods=period,
                         ),
@@ -215,6 +220,9 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
                     self.local_weight() * ponderation * slot_by_day_cost,
                     period=period,
                 )
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
@@ -297,6 +305,9 @@ class RespectTutorsMaxTimePerDay(TimetableConstraint):
                         period=period,
                     )
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
         details = view_model["details"]
@@ -375,6 +386,9 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
                         period=period,
                     )
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
         details = view_model["details"]
@@ -401,9 +415,7 @@ class LowerBoundBusyDays(TimetableConstraint):
 
     tutor = models.ForeignKey("people.Tutor", on_delete=models.CASCADE)
     min_days_nb = models.PositiveSmallIntegerField()
-    lower_bound_hours = (
-        models.PositiveSmallIntegerField()
-    )  # FIXME : time with TimeField or DurationField
+    lower_bound_hours = models.PositiveSmallIntegerField()
 
     class Meta:
         verbose_name = _("Lower bound tutor busy days")
@@ -423,8 +435,14 @@ class LowerBoundBusyDays(TimetableConstraint):
                 ),
             )
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
     def one_line_description(self):
-        return f"Si plus de {self.lower_bound_hours} heures pour {self.tutor}  alors au moins {self.min_days_nb} jours"
+        return (
+            f"Si plus de {self.lower_bound_hours} heures pour "
+            f"{self.tutor}  alors au moins {self.min_days_nb} jours"
+        )
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()

@@ -30,13 +30,12 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models import Q
-from django.http.response import JsonResponse
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
 from base.models import CourseStartTimeConstraint, Dependency
-from base.timing import Day, french_format, slot_pause
+from base.timing import Day, slot_pause
 from core.decorators import timer
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -81,8 +80,8 @@ class SimultaneousCourses(TimetableConstraint):
         considered_courses = list(c for c in self.courses.all() if c.period == period)
 
         # We verify if there is only one course to do simultaneously for each tutor/group
-        jsondict, OK = self.maxOneCourse(jsondict, considered_courses)
-        if not (OK):
+        jsondict, ok = self.max_one_course(jsondict, considered_courses)
+        if not ok:
             return jsondict
 
         # No course in the constraint case
@@ -100,19 +99,20 @@ class SimultaneousCourses(TimetableConstraint):
             periods=period
         ).exists()
         for course in considered_courses:
-            if partition == None:  # Here we build the partition of the first teacher
+            if partition is None:  # Here we build the partition of the first teacher
                 partition = partition_bis.create_course_partition_from_constraints(
                     course, period, course.type.department, available=no_user_pref
                 )
             new_partition = partition_bis.create_course_partition_from_constraints(
                 course, period, course.type.department, available=no_user_pref
             )
-            """
-            Then, for each interval (named interval1) available and not forbidden of the main partition (named partition) 
-            we watch if the interval of another teacher (named interval2) is also available and not forbidden 
-            """
+
+            # Then, for each interval (named interval1) available and not forbidden
+            # of the main partition (named partition)
+            # we watch if the interval of another teacher (named interval2)
+            # is also available and not forbidden
             for interval1 in partition.intervals:
-                if interval1[1]["available"] and not (interval1[1]["forbidden"]):
+                if interval1[1]["available"] and not interval1[1]["forbidden"]:
                     for interval2 in new_partition.intervals:
                         if not (
                             interval1[0].start >= interval2[0].end
@@ -137,7 +137,7 @@ class SimultaneousCourses(TimetableConstraint):
             jsondict["status"] = _("KO")
         return jsondict
 
-    def maxOneCourse(self, jsondict, consideredCourses):
+    def max_one_course(self, jsondict, considered_courses):
         """Verify that tutors and groups have only one course to do simultaneously
         Parameters :
             jsondict : a Json dictionary
@@ -148,15 +148,15 @@ class SimultaneousCourses(TimetableConstraint):
             statusOK : boolean, True if it's all good, False otherwise
         Limit start time choice
         """
-        consideredTutors = []
-        consideredGroups = []
-        tutorError = []
-        groupError = []
-        statusOK = True
-        for course in consideredCourses:
-            if consideredTutors.__contains__(course.tutor):
-                if not (tutorError.__contains__(course.tutor)):
-                    tutorError.append(course.tutor)
+        tutors_to_consider = []
+        groups_to_consider = []
+        tutor_error = []
+        group_error = []
+        status_ok = True
+        for course in considered_courses:
+            if course.tutor in tutors_to_consider:
+                if course.tutor not in tutor_error:
+                    tutor_error.append(course.tutor)
                     jsondict["status"] = _("KO")
                     message = (
                         gettext("Tutor %s has more than one to do at the same time")
@@ -169,13 +169,13 @@ class SimultaneousCourses(TimetableConstraint):
                             "type": "SimultaneousCourses",
                         }
                     )
-                    statusOK = False
-            consideredTutors.append(course.tutor)
+                    status_ok = False
+            tutors_to_consider.append(course.tutor)
             course_groups = course.groups.all()
             for group in course_groups:
-                if consideredGroups.__contains__(group):
-                    if not (groupError.__contains__(group)):
-                        groupError.append(group)
+                if group in groups_to_consider:
+                    if group not in group_error:
+                        group_error.append(group)
                         jsondict["status"] = _("KO")
                         message = (
                             gettext(
@@ -190,9 +190,9 @@ class SimultaneousCourses(TimetableConstraint):
                                 "type": "SimultaneousCourses",
                             }
                         )
-                        statusOK = False
-                consideredGroups.append(group)
-        return jsondict, statusOK
+                        status_ok = False
+                groups_to_consider.append(group)
+        return jsondict, status_ok
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -200,11 +200,10 @@ class SimultaneousCourses(TimetableConstraint):
         nb = courses_periods.count()
         if nb == 0:
             return
-        else:
-            super().save(*args, **kwargs)
-            self.periods.clear()
-            for w in courses_periods:
-                self.periods.add(w.period)
+        super().save(*args, **kwargs)
+        self.periods.clear()
+        for w in courses_periods:
+            self.periods.add(w.period)
 
     @classmethod
     def get_viewmodel_prefetch_attributes(cls):
@@ -269,6 +268,9 @@ class SimultaneousCourses(TimetableConstraint):
     class Meta:
         verbose_name = _("Simultaneous courses")
         verbose_name_plural = verbose_name
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class StartTimeConstraint(TimetableConstraint):
@@ -394,6 +396,9 @@ class LimitStartTimeChoices(StartTimeConstraint):
         text += "."
         return text
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
 
 class AvoidStartTimes(StartTimeConstraint):
     """
@@ -456,22 +461,29 @@ class AvoidStartTimes(StartTimeConstraint):
                 text += ", ".join(self.forbidden_week_days)
             if self.forbidden_week_days:
                 text += " à "
-                text += ", ".join([fst for fst in self.forbidden_start_times])
+                text += ", ".join(
+                    [fst for fst in self.forbidden_start_times]
+                )  # pylint: disable=unnecessary-comprehension
         text += "."
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 ################    ConsiderDependencies FUNCTIONS      ################
 def find_successive_slots(
     course_slot1, course_slot2, course1_duration, course2_duration
 ):
-    """This function returns True if it finds a slot for the second course right after one of the first one with enough
-    time duration.
+    """This function returns True if it finds a slot for the second course
+    right after one of the first one with enough time duration.
     Complexity on O(n^2): n being the number of slots for each course.
 
     Parameters:
-        course_slot1 (list(TimeInterval)): A list of time interval representing when the first course can be placed
-        course_slot2 (list(TimeInterval)): A list of time interval representing when the second course can be placed
+        course_slot1 (list(TimeInterval)): A list of time interval representing
+        when the first course can be placed
+        course_slot2 (list(TimeInterval)): A list of time interval representing
+        when the second course can be placed
         course1_duration (dt.timedelta): The duration of the first course
         course2_duration (dt.timedelta): The duration of the second course
 
@@ -486,7 +498,7 @@ def find_successive_slots(
                     and cs2.end >= cs2.start + course2_duration
                 ):
                     return True
-                elif (
+                if (
                     cs2.start <= possible_start_time
                     and cs2.end >= possible_start_time + course2_duration
                 ):
@@ -497,12 +509,14 @@ def find_successive_slots(
 
 
 def find_day_gap_slots(course_slots1, course_slots2, day_gap):
-    """This function search in the available times for each course if we can find a slot for the second course after a day gap passed
-    in the parameters.
+    """This function search in the available times for each course
+    if we can find a slot for the second course after a day gap passed in the parameters.
 
     Parameters:
-        course_slots1 (list(TimeInterval)): The TimeIntervals (starting datetime and ending datetime) available for the first course
-        course_slots2 (list(TimeInterval)): The TimeIntervals (starting datetime and ending datetime) available for the second course
+        course_slots1 (list(TimeInterval)): The TimeIntervals (starting datetime
+        and ending datetime available for the first course
+        course_slots2 (list(TimeInterval)): The TimeIntervals (starting datetime
+        and ending datetime) available for the second course
         day_gap (int): The number of days between the two courses
 
     Returns:
@@ -592,7 +606,7 @@ class GlobalModuleDependency(TimetableConstraint):
         """Returns the tuple courses1, courses2 of courses that have to be considered"""
         courses1 = self.get_courses_queryset_by_parameters(
             period,
-            ttmodel=ttmodel,
+            flopmodel=ttmodel,
             course_type=self.course1_type,
             modules=self.modules.all(),
             tutor=self.course1_tutor,
@@ -601,7 +615,7 @@ class GlobalModuleDependency(TimetableConstraint):
         )
         courses2 = self.get_courses_queryset_by_parameters(
             period,
-            ttmodel=ttmodel,
+            flopmodel=ttmodel,
             course_type=self.course2_type,
             modules=self.modules.all(),
             tutor=self.course2_tutor,
@@ -699,9 +713,11 @@ class ConsiderDependencies(TimetableConstraint):
     @timer
     def pre_analyse(self, period):
         """Pre analysis of the Constraint
-        For each dependency, first checks if there is available slots for both courses taking in consideration tutor's and supp_tutor's
-        availabilities, NoTutorCourseOnDay constraints and possible start times. Then we check if we still have slots for the second one
-        starting after the first one and then if the options are True and or above 0 we check successive slots and the day gap.
+        For each dependency, first checks if there is available slots for both courses
+        taking in consideration tutor's and supp_tutor's availabilities,
+        NoTutorCourseOnDay constraints and possible start times. Then we check if we still
+        have slots for the second one starting after the first one and then if the options
+        are True and or above 0 we check successive slots and the day gap.
 
         Parameter:
             period (SchedulingPeriod): the period we want to analyse the data from
@@ -765,15 +781,12 @@ class ConsiderDependencies(TimetableConstraint):
                         if not course2_slots:
                             break
                     if course2_slots:
-                        if (
-                            course1_slots[0].start + dependency.course1.duration
-                            > course2_slots[0].start
-                        ):
-                            course2_slots[0].start = (
-                                course1_slots[0].start + dependency.course1.duration
-                            )
-                        # Here we check if the first course_slot that we might just shrank is still long enough and if it is the only
-                        # one left.
+                        course2_slots[0].start = max(
+                            course2_slots[0].start,
+                            course1_slots[0].start + dependency.course1.duration,
+                        )
+                        # Here we check if the first course_slot that we might just shrank
+                        # is still long enough and if it is the only one left.
                         if (
                             len(course2_slots) <= 1
                             and course2_slots[0].duration < dependency.course2.duration
@@ -783,7 +796,8 @@ class ConsiderDependencies(TimetableConstraint):
                             jsondict["messages"].append(
                                 {
                                     "str": gettext(
-                                        "There is no available slots for the second course after the first one : %s"
+                                        "There is no available slots for the second "
+                                        "course after the first one : %s"
                                     )
                                     % dependency,
                                     "course1": dependency.course1.id,
@@ -797,7 +811,8 @@ class ConsiderDependencies(TimetableConstraint):
                         jsondict["messages"].append(
                             {
                                 "str": gettext(
-                                    "There is no available slots for the second course after the first one : %s"
+                                    "There is no available slots for the second course "
+                                    "after the first one : %s"
                                 )
                                 % dependency,
                                 "course1": dependency.course1.id,
@@ -811,7 +826,8 @@ class ConsiderDependencies(TimetableConstraint):
                     jsondict["messages"].append(
                         {
                             "str": gettext(
-                                f"There is no available slots for the first or the second course : %s"
+                                "There is no available slots for the first "
+                                "or the second course : %s"
                             )
                             % dependency,
                             "course1": dependency.course1.id,
@@ -833,7 +849,7 @@ class ConsiderDependencies(TimetableConstraint):
                             jsondict["messages"].append(
                                 {
                                     "str": gettext(
-                                        f"There is no available successive slots for those courses: %s"
+                                        "There is no available successive slots for those courses: %s"
                                     )
                                     % dependency,
                                     "course1": dependency.course1.id,
@@ -904,7 +920,7 @@ class ConsiderDependencies(TimetableConstraint):
         return result
 
     def one_line_description(self):
-        text = f"Prend en compte les précédences enregistrées en base."
+        text = "Prend en compte les précédences enregistrées en base."
         if self.train_progs.exists():
             text += " des promos " + ", ".join(
                 [train_prog.abbrev for train_prog in self.train_progs.all()]
@@ -938,9 +954,7 @@ class ConsiderDependencies(TimetableConstraint):
             ):
                 continue
             if c1 == c2:
-                ttmodel.add_warning(
-                    None, "Warning: %s is declared depend on itself" % c1
-                )
+                ttmodel.add_warning(None, f"Warning: {c1} is declared depend on itself")
                 continue
             for sl1 in ttmodel.data.compatible_slots[c1]:
                 if not self.weight:
@@ -1012,7 +1026,7 @@ class ConsiderPivots(TimetableConstraint):
         verbose_name_plural = verbose_name
 
     def one_line_description(self):
-        text = f"Prend en compte les pivots enregistrées en base."
+        text = "Prend en compte les pivots enregistrées en base."
         if self.train_progs.exists():
             text += " des promos " + ", ".join(
                 [train_prog.abbrev for train_prog in self.train_progs.all()]
@@ -1092,8 +1106,8 @@ class ConsiderPivots(TimetableConstraint):
                         undesired_situation * self.local_weight() * ponderation
                     )
 
-
-# Ex TimetableConstraints that have to be re-written.....
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class AvoidBothTimesSameDay(TimetableConstraint):
@@ -1125,18 +1139,14 @@ class AvoidBothTimesSameDay(TimetableConstraint):
         considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.data.days, period=period)
         slots1 = set(
-            [
-                slot
-                for slot in ttmodel.data.courses_slots
-                if slot.start_time.time() <= self.time1 < slot.end_time.time()
-            ]
+            slot
+            for slot in ttmodel.data.courses_slots
+            if slot.start_time.time() <= self.time1 < slot.end_time.time()
         )
         slots2 = set(
-            [
-                slot
-                for slot in ttmodel.data.courses_slots
-                if slot.start_time.time() <= self.time2 < slot.end_time.time()
-            ]
+            slot
+            for slot in ttmodel.data.courses_slots
+            if slot.start_time.time() <= self.time2 < slot.end_time.time()
         )
         if self.weekdays:
             days = days_filter(days, weekday_in=self.weekdays)
@@ -1157,9 +1167,9 @@ class AvoidBothTimesSameDay(TimetableConstraint):
                     for c in considered_courses
                     for sl in day_slots2 & ttmodel.data.compatible_slots[c]
                 )
-                BS1 = ttmodel.add_floor(sum1, 1, 100000)
-                BS2 = ttmodel.add_floor(sum2, 1, 100000)
-                both = ttmodel.add_conjunct(BS1, BS2)
+                bs1 = ttmodel.add_floor(sum1, 1, 100000)
+                bs2 = ttmodel.add_floor(sum2, 1, 100000)
+                both = ttmodel.add_conjunct(bs1, bs2)
                 if self.weight is None:
                     ttmodel.add_constraint(
                         both,
@@ -1186,6 +1196,9 @@ class AvoidBothTimesSameDay(TimetableConstraint):
         else:
             text += " de toutes les promos."
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class LimitUndesiredSlotsPerDayPeriod(TimetableConstraint):
@@ -1239,7 +1252,7 @@ class LimitUndesiredSlotsPerDayPeriod(TimetableConstraint):
                     "<=",
                     self.max_number,
                     Constraint(
-                        constraint_type=ConstraintType.Undesired_slots_limit,
+                        constraint_type=ConstraintType.UNDESIRED_SLOTS_LIMIT,
                         instructors=tutor,
                     ),
                 )
@@ -1249,6 +1262,9 @@ class LimitUndesiredSlotsPerDayPeriod(TimetableConstraint):
                     undesired_situation = ttmodel.add_floor(expr, i, len(days))
                     ttmodel.add_to_inst_cost(tutor, cost * undesired_situation, period)
                     cost *= 2
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
     def one_line_description(self):
         text = ""
@@ -1316,7 +1332,7 @@ class LimitSimultaneousCoursesNumber(TimetableConstraint):
                 "==",
                 0,
                 Constraint(
-                    constraint_type=ConstraintType.LimitSimultaneousCoursesNumber,
+                    constraint_type=ConstraintType.LIMIT_SIMULTANEOUS_COURSES_NUMBER,
                     periods=period,
                 ),
             )
@@ -1355,10 +1371,13 @@ class LimitSimultaneousCoursesNumber(TimetableConstraint):
         return view_model
 
     def one_line_description(self):
-        text = f"Parmi les cours"
+        text = "Parmi les cours"
         if self.course_type:
             text += f" de type {self.course_type.name}"
         if self.modules.exists():
             text += f" des modules {', '.join([m.abbrev for m in self.modules.all()])}"
         text += f" au maximum {self.limit} peuvent être simultanés."
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError

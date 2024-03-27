@@ -25,7 +25,6 @@ import datetime as dt
 
 from django.db import models
 from django.db.models import Q
-from django.http.response import JsonResponse
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
@@ -37,12 +36,10 @@ from base.models import (
     Holiday,
     Module,
     ModuleTutorRepartition,
-    SchedulingPeriod,
-    UserAvailability,
 )
 from base.models.availability import period_actual_availabilities
 from base.partition import Partition
-from base.timing import Day, TimeInterval
+from base.timing import TimeInterval
 from core.decorators import timer
 from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint
@@ -83,8 +80,11 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
     @timer
     def pre_analyse(self, period):
         """Pre analysis of the Constraint
-        Compare the available time of the period to the minimum required in any cases (the time of all courses + the time needed for the longest parallel group)
-        then to the probable mimimum required (the time of all courses + the time of all parallel groups that are maximum of their graph color) and then
+        Compare the available time of the period to the minimum
+        required in any cases (the time of all courses + the time needed
+        for the longest parallel group)
+        then to the probable mimimum required (the time of all courses
+        + the time of all parallel groups that are maximum of their graph color) and then
         checks if there is enough available slots for each course type in the period.
 
         Parameter:
@@ -104,7 +104,8 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
             periods=period
         ).exists()
         for bg in considered_basic_groups:
-            # Retrieving information about general time settings and creating the partition with information about other constraints
+            # Retrieving information about general time settings
+            # and creating the partition with information about other constraints
             group_partition = partition_bis.create_group_partition_from_constraints(
                 period=period,
                 department=bg.type.department,
@@ -123,8 +124,9 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                 graph, color_max = tuple_graph
                 for transversal_group in graph:
                     time_courses = transversal_group.time_of_courses(period)
-                    if time_courses > max_courses_time_transversal:
-                        max_courses_time_transversal = time_courses
+                    max_courses_time_transversal = max(
+                        max_courses_time_transversal, time_courses
+                    )
 
             # We are looking for the minimum transversal_groups we need to consider
             transversal_conflict_groups = set()
@@ -162,7 +164,8 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                 jsondict["messages"].append(
                     {
                         "str": gettext(
-                            "Group %(group_name)s has %(not_forbidden_duration)s available time but requires minimum %(min_course_time_needed)s."
+                            "Group %(group_name)s has %(not_forbidden_duration)s "
+                            "available time but requires minimum %(min_course_time_needed)s."
                         )
                         % {
                             "group_name": bg.name,
@@ -192,7 +195,9 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                     jsondict["messages"].append(
                         {
                             "str": gettext(
-                                "Group %(group_name)s has %(not_forbidden_duration)s available time but probably requires minimum %(min_course_time_needed)s."
+                                "Group %(group_name)s has %(not_forbidden_duration)s "
+                                "available time but probably requires "
+                                "minimum %(min_course_time_needed)s."
                             )
                             % {
                                 "group_name": bg.name,
@@ -209,7 +214,7 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
 
                     # We gather the courses by type
 
-                    course_dict = dict()
+                    course_dict = {}
                     for c in considered_courses:
                         if c.duration in course_dict:
                             course_dict[c.duration] += 1
@@ -221,13 +226,13 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                     min_duration = dt.timedelta(minutes=1440)
 
                     for course_duration, nb_courses in course_dict.items():
-                        # We compute the total number of courses, all the different start times and the minimum duration of course
+                        # We compute the total number of courses, all the different
+                        # start times and the minimum duration of course
                         all_nb_courses += nb_courses
                         start_times = CourseStartTimeConstraint.objects.get(
                             duration=course_duration, department=self.department
                         ).allowed_start_times
-                        if course_duration < min_duration:
-                            min_duration = course_duration
+                        min_duration = min(course_duration, min_duration)
 
                         for st in start_times:
                             if st not in all_start_times:
@@ -244,7 +249,9 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                             jsondict["messages"].append(
                                 {
                                     "str": gettext(
-                                        "Group %(group_name)s has %(allowed_slots_nb)s slots available of %(duration)s minutes and requires %(nb_courses)s."
+                                        "Group %(group_name)s has %(allowed_slots_nb)s "
+                                        "slots available of %(duration)s minutes "
+                                        "and requires %(nb_courses)s."
                                     )
                                     % {
                                         "group_name": bg.name,
@@ -258,7 +265,10 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                             )
                             return jsondict
 
-                    """To try to avoid conflict we are looking if there are enough slots for all courses at all start times possible for the minimum duration of all courses. Not always find an infeasibility but can quickly find conflict in some case."""
+                    # To try to avoid conflict we are looking if there are
+                    # enough slots for all courses at all start times possible
+                    # for the minimum duration of all courses. Not always find
+                    # an infeasibility but can quickly find conflict in some case.
 
                     all_allowed_slots_nb = (
                         group_partition.nb_slots_not_forbidden_of_duration_beginning_at(
@@ -271,7 +281,10 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                         jsondict["messages"].append(
                             {
                                 "str": _(
-                                    "Group %(group_name)s has a total of %(all_allowed_slots_nb)s slots available of minimum %(min_duration)s minutes and requires %(all_nb_courses)s."
+                                    "Group %(group_name)s has a total "
+                                    "of %(all_allowed_slots_nb)s slots available "
+                                    "of minimum %(min_duration)s minutes "
+                                    "and requires %(all_nb_courses)s."
                                 )
                                 % {
                                     "group_name": bg.name,
@@ -361,7 +374,7 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                     )
 
     def one_line_description(self):
-        text = f"Les cours "
+        text = "Les cours "
         if self.groups.exists():
             text += " des groupes " + ", ".join(
                 [group.name for group in self.groups.all()]
@@ -394,9 +407,10 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                 ):
                     if sched_course.is_simultaneous_to(sched_course2):
                         problematic_groups.append(bg)
-        assert (
-            not problematic_groups
-        ), f"{self} is not satisfied for period {period}, version {version} and the following groups : {problematic_groups}"
+        assert not problematic_groups, (
+            f"{self} is not satisfied for period {period}, "
+            "version {version} and the following groups : {problematic_groups}"
+        )
 
 
 class ScheduleAllCourses(TimetableConstraint):
@@ -429,8 +443,8 @@ class ScheduleAllCourses(TimetableConstraint):
             f"{self} is not satisfied for period {period} and version {version} : "
         )
         assert not unscheduled and not scheduled_more_than_once, (
-            not_asserted_text
-            + f"not scheduled : {unscheduled}, scheduled more than once : {scheduled_more_than_once}"
+            not_asserted_text + f"not scheduled : {unscheduled}, "
+            f"scheduled more than once : {scheduled_more_than_once}"
         )
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
@@ -451,7 +465,7 @@ class ScheduleAllCourses(TimetableConstraint):
                 )
 
     def one_line_description(self):
-        text = f"Planifie tous les cours "
+        text = "Planifie tous les cours "
         if self.groups.exists():
             text += " des groupes " + ", ".join(
                 [group.name for group in self.groups.all()]
@@ -463,7 +477,7 @@ class ScheduleAllCourses(TimetableConstraint):
         if self.modules.exists():
             text += " de : " + ", ".join([str(module) for module in self.modules.all()])
         if self.course_types.exists():
-            text += f" de type" + ", ".join([t.name for t in self.course_types.all()])
+            text += " de type" + ", ".join([t.name for t in self.course_types.all()])
         if self.tutors.exists():
             text += " de " + ", ".join([tutor.username for tutor in self.tutors.all()])
         return text
@@ -568,12 +582,13 @@ class AssignAllCourses(TimetableConstraint):
         unassigned_scheduled_courses = considered_scheduled_courses.filter(
             course__in=tutor_courses, tutor__isnull=True
         )
-        assert (
-            not unassigned_scheduled_courses.exists()
-        ), f"{self} is not satisfied for period {period} and version {version}. The following courses are not assigned to a tutor : {unassigned_scheduled_courses}"
+        assert not unassigned_scheduled_courses.exists(), (
+            f"{self} is not satisfied for period {period} and version {version}. "
+            "The following courses are not assigned to a tutor : {unassigned_scheduled_courses}"
+        )
 
     def one_line_description(self):
-        text = f"Assigne tous les cours "
+        text = "Assigne tous les cours "
         if self.groups.exists():
             text += " des groupes " + ", ".join(
                 [group.name for group in self.groups.all()]
@@ -585,8 +600,8 @@ class AssignAllCourses(TimetableConstraint):
         if self.modules.exists():
             text += " de : " + ", ".join([str(module) for module in self.modules.all()])
         if self.course_types.exists():
-            text += f" de type" + ", ".join([t.name for t in self.course_types.all()])
-        text += f" à un prof."
+            text += " de type" + ", ".join([t.name for t in self.course_types.all()])
+        text += " à un prof."
         return text
 
     def __str__(self):
@@ -603,14 +618,14 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
     course_types = models.ManyToManyField("base.CourseType", blank=True)
 
     def one_line_description(self):
-        text = f"Considère les répartitions des cours "
+        text = "Considère les répartitions des cours "
         if self.modules.exists():
             text += " des modules " + ", ".join(
                 [module.name for module in self.modules.all()]
             )
         if self.course_types.exists():
-            text += f" de type" + ", ".join([t.name for t in self.course_types.all()])
-        text += f" par prof."
+            text += " de type" + ", ".join([t.name for t in self.course_types.all()])
+        text += " par prof."
         return text
 
     def considered_modules(self, ttmodel=None):
@@ -668,7 +683,7 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
                             "==",
                             mtr.courses_nb,
                             Constraint(
-                                constraint_type=ConstraintType.MODULETUTORREPARTITION
+                                constraint_type=ConstraintType.MODULE_TUTOR_REPARTITION
                             ),
                         )
                     else:
@@ -692,14 +707,12 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
                             ttmodel.assigned[sl, c, tutor]
                             for tutor in all_tutors
                             for c in considered_courses
-                            for sl in slots_filter(
-                                ttmodel.data.compatible_slots[c], period=mtr.period
-                            )
+                            for sl in ttmodel.data.compatible_slots[c]
                         ),
                         "==",
                         total_mtr_course_nb,
                         Constraint(
-                            constraint_type=ConstraintType.MODULETUTORREPARTITION
+                            constraint_type=ConstraintType.MODULE_TUTOR_REPARTITION
                         ),
                     )
 
@@ -735,9 +748,10 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
                     )
                     if scheduled_courses.count() != mtr.courses_nb:
                         unsatisfied_mtr.append((module, course_type, mtr.tutor))
-        assert (
-            not unsatisfied_mtr
-        ), f"The following ModuleTutorRepartitions are not satisfied for period {period} and version {version} : {unsatisfied_mtr}"
+        assert not unsatisfied_mtr, (
+            f"The following ModuleTutorRepartitions are not satisfied "
+            "for period {period} and version {version} : {unsatisfied_mtr}"
+        )
 
 
 class ConsiderTutorsUnavailability(TimetableConstraint):
@@ -750,13 +764,15 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
     @timer
     def pre_analyse(self, period, spec_tutor=None):
         """Pre analysis of the Constraint
-        For each tutor considered, checks if he or she has enough time available during the period and then
+        For each tutor considered, checks if he or she has enough time available
+        during the period and then
         if he or she has enough slots for each type of courses
         It takes in consideration the scheduled courses of other departments
 
         Parameters:
             period (SchedulingPeriod): the period we want to analyse the data from
-            spec_tutor (Tutor): the tutor we want to consider. If None, we'll consider tutors from the constraint
+            spec_tutor (Tutor): the tutor we want to consider.
+            If None, we'll consider tutors from the constraint
 
         Returns:
             JsonResponse: with status 'KO' or 'OK' and a list of messages explaining the problem
@@ -793,8 +809,8 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
                     "available_duration": int(tutor_partition.available_duration),
                 }
                 message += gettext(
-                    " He or she has to lecture %(classes_nb)s classes for an amount of %(duration)s "
-                    "minutes of courses."
+                    " He or she has to lecture %(classes_nb)s classes "
+                    "for an amount of %(duration)s minutes of courses."
                 ) % {
                     "classes_nb": len(courses),
                     "duration": sum(c.duration for c in courses),
@@ -869,8 +885,8 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
                     else:
                         message += "."
                     message += gettext(
-                        " He or she has to lecture %(classes_nb)s classes for an amount of %(duration)s "
-                        "minutes of courses."
+                        " He or she has to lecture %(classes_nb)s classes "
+                        "for an amount of %(duration)s minutes of courses."
                     ) % {
                         "classes_nb": len(courses),
                         "duration": sum(c.duration for c in courses),
@@ -885,16 +901,19 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
                     jsondict["status"] = _("KO")
 
                 elif courses.exists():
-                    # We build a dictionary with the courses' duration as keys and list of courses of those duration as values
-                    courses_duration = dict()
+                    # We build a dictionary with the courses' duration as keys
+                    # and list of courses of those duration as values
+                    courses_duration = {}
                     for course in courses:
                         if not course.duration in courses_duration:
                             courses_duration[course.duration] = [course]
                         else:
                             courses_duration[course.duration].append(course)
 
-                    # For each course type we build a partition with the approriate time settings, the scheduled courses of other departments
-                    # and the availabilities of the tutor and we check if the tutor has enough available time and slots.
+                    # For each course type we build a partition with the approriate
+                    # time settings, the scheduled courses of other departments
+                    # and the availabilities of the tutor and we check
+                    # if the tutor has enough available time and slots.
                     for course_duration, course_list in courses_duration.items():
                         start_times = CourseStartTimeConstraint.objects.get(
                             duration=course_duration, department=self.department
@@ -917,7 +936,8 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
                             course_list
                         ):
                             message = gettext(
-                                "Tutor %(tutor)s has %(slots_nb)s available slots of %(duration)s mins "
+                                "Tutor %(tutor)s has %(slots_nb)s available "
+                                "slots of %(duration)s mins "
                             ) % {
                                 "tutor": tutor,
                                 "slots_nb": course_partition.nb_slots_available_of_duration_beginning_at(
@@ -1006,12 +1026,14 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
             for sc in tutor_courses:
                 if slots_filter(user_unavailabilities, simultaneous_to=sc):
                     unavailable_tutors.append(tutor)
-        assert (
-            not unavailable_tutors
-        ), f"{self} is not satisfied for period {period} and version {version}. The following tutors have courses on declared unavailabilities : {unavailable_tutors}"
+        assert not unavailable_tutors, (
+            f"{self} is not satisfied for period {period} "
+            f"and version {version}. The following tutors have courses "
+            f"on declared unavailabilities : {unavailable_tutors}"
+        )
 
     def one_line_description(self):
-        text = f"Considère les indispos"
+        text = "Considère les indispos"
         if self.tutors.exists():
             text += " de " + ", ".join([tutor.username for tutor in self.tutors.all()])
         else:
@@ -1023,9 +1045,12 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
 
     def complete_tutor_partition(self, partition, tutor, period):
         """
-            Complete the partition in parameters with informations given by the UserAvailabilities of the given tutor for the given period.
-        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
-        Warning : ConsiderTutorsUnavailability constraint must exist for the given period in the database to consider tutor's preferences.
+            Complete the partition in parameters with informations
+            given by the UserAvailabilities of the given tutor for the given period.
+            This method is called by functions in partition_with_constraints.py
+            to initialize a partition used in pre_analyse methods.
+            Warning : ConsiderTutorsUnavailability constraint must exist
+            for the given period in the database to consider tutor's preferences.
 
         :param partition: A partition (empty or not) with informations about a tutor's availability.
         :type partition: Partition
@@ -1067,14 +1092,17 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
 
 
 def coloration_ordered(basic_group):
-    """Function taking a group and returning all the transversal groups in conflict with it colored to avoid to count several times parallel ones
+    """
+    Function taking a group and returning all the transversal groups
+    in conflict with it colored to avoid to count several times parallel ones
 
 
     Parameter:
         basic_group (StructuralGroup): a basic structural group
 
     Returns :
-        tuple: None if no TransversalGroups is found for 'basic_group' or tuple(dictionnary, color_max) with the dictionnary
+        tuple: None if no TransversalGroups is found for 'basic_group'
+        or tuple(dictionnary, color_max) with the dictionnary
         representing a graph of those TransversalGroups colored according to this pattern:
             {
                 transversal_group_1: {
@@ -1104,7 +1132,7 @@ def coloration_ordered(basic_group):
                 )
             )
         graph.sort(key=lambda x: -len(x[1]))
-        graph_dict = dict()
+        graph_dict = {}
         for summit in graph:
             graph_dict[summit[0]] = {"adjacent": summit[1], "color": summit[2]}
 
@@ -1117,7 +1145,6 @@ def coloration_ordered(basic_group):
             while i in color_adj:
                 i += 1
             summit_dict["color"] = i
-            if i > color_max:
-                color_max = i
+            color_max = max(color_max, i)
         return graph_dict, color_max
     return None

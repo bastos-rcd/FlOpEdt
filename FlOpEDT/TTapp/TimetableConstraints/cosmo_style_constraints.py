@@ -34,7 +34,7 @@ from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
-slot_pause = 5
+SLOT_PAUSE = 5
 
 
 ############################
@@ -57,7 +57,7 @@ def sum_of_busy_slots_just_after(ttmodel, prof, day, end_time):
         for sl_suivant in slots_filter(
             ttmodel.data.availability_slots,
             starts_after=end_time,
-            starts_before=end_time + slot_pause,
+            starts_before=end_time + SLOT_PAUSE,
             day=day,
         )
     )
@@ -137,7 +137,7 @@ class LimitHoles(TimetableConstraint):
                         "<=",
                         0,
                         Constraint(
-                            constraint_type=ConstraintType.END_OF_BLOC,
+                            constraint_type=ConstraintType.END_OF_BLOCK,
                             instructors=i,
                             days=d,
                             name="last->busy_%s_%s_%s" % (d, end_time, i.username),
@@ -150,7 +150,7 @@ class LimitHoles(TimetableConstraint):
                         "<=",
                         100,
                         Constraint(
-                            constraint_type=ConstraintType.END_OF_BLOC,
+                            constraint_type=ConstraintType.END_OF_BLOCK,
                             instructors=i,
                             days=d,
                             name="last_%s_%s_%s_A" % (d, end_time, i.username),
@@ -167,7 +167,7 @@ class LimitHoles(TimetableConstraint):
                         ">=",
                         1,
                         Constraint(
-                            constraint_type=ConstraintType.END_OF_BLOC,
+                            constraint_type=ConstraintType.END_OF_BLOCK,
                             instructors=i,
                             days=d,
                             name="last_%s_%s_%s_B" % (d, end_time, i.username),
@@ -216,6 +216,9 @@ class LimitHoles(TimetableConstraint):
                     ttmodel.add_to_inst_cost(
                         i, unwanted * ponderation * self.local_weight(), period
                     )
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class LimitTutorTimePerWeeks(TimetableConstraint):
@@ -320,7 +323,7 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
                             "==",
                             0,
                             Constraint(
-                                constraint_type=ConstraintType.max_time_per_period,
+                                constraint_type=ConstraintType.MAX_TIME_PER_PERIOD,
                                 instructors=tutor,
                             ),
                         )
@@ -353,7 +356,7 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
                             "==",
                             0,
                             Constraint(
-                                constraint_type=ConstraintType.min_time_per_period,
+                                constraint_type=ConstraintType.MIN_TIME_PER_PERIOD,
                                 instructors=tutor,
                             ),
                         )
@@ -364,6 +367,9 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
                     ttmodel.add_to_inst_cost(
                         tutor, undesirable_min * local_weight * ponderation, period
                     )
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class ModulesByBloc(TimetableConstraint):
@@ -458,7 +464,7 @@ class ModulesByBloc(TimetableConstraint):
                                 "==",
                                 0,
                                 Constraint(
-                                    constraint_type=ConstraintType.module_by_bloc,
+                                    constraint_type=ConstraintType.MODULES_BY_BLOCK,
                                     instructors=tutor,
                                     days=d,
                                     modules=m,
@@ -479,7 +485,7 @@ class ModulesByBloc(TimetableConstraint):
                                 "<=",
                                 1,
                                 Constraint(
-                                    constraint_type=ConstraintType.module_by_bloc,
+                                    constraint_type=ConstraintType.MODULES_BY_BLOCK,
                                     instructors=tutor,
                                     days=d,
                                     modules=m,
@@ -500,9 +506,12 @@ class ModulesByBloc(TimetableConstraint):
                                 "<=",
                                 1,
                                 Constraint(
-                                    constraint_type=ConstraintType.module_by_bloc,
+                                    constraint_type=ConstraintType.MODULES_BY_BLOCK,
                                     instructors=tutor,
                                     days=d,
                                     modules=m,
                                 ),
                             )
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError

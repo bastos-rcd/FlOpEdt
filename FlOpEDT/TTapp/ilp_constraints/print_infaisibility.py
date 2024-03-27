@@ -132,9 +132,10 @@ def get_str_attr(dico, threshold, constraint_type):
     Forme une liste indenté des X attributs les plus occurents,
     dont les occurences constituent threshold % du tout.
     """
-    output = ""
-    for attr in get_most_important(dico, threshold, constraint_type):
-        output += f"\t\t{attr}\n"
+
+    output = "\t\t".join(
+        [f"{attr}\n" for attr in get_most_important(dico, threshold, constraint_type)]
+    )
     return output
 
 

@@ -36,8 +36,7 @@ from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 def build_fd_or_apm_period_slots(ttmodel, day, apm_period):
     if apm_period is None:
         return slots_filter(ttmodel.data.courses_slots, day=day)
-    else:
-        return slots_filter(ttmodel.data.courses_slots, day=day, apm=apm_period)
+    return slots_filter(ttmodel.data.courses_slots, day=day, apm=apm_period)
 
 
 class LimitTimePerPeriod(TimetableConstraint):
@@ -77,7 +76,7 @@ class LimitTimePerPeriod(TimetableConstraint):
 
         return fd_or_apm_period_by_day
 
-    def considered_courses(
+    def courses_to_consider(
         self, ttmodel, period: SchedulingPeriod, train_prog, tutor, module, group
     ):
         return set(
@@ -112,7 +111,7 @@ class LimitTimePerPeriod(TimetableConstraint):
         module=None,
         group=None,
     ):
-        considered_courses = self.considered_courses(
+        considered_courses = self.courses_to_consider(
             ttmodel, period, train_prog, tutor, module, group
         )
         for day, fd_or_apm_period in self.build_fd_or_apm_period_by_day(
@@ -160,10 +159,6 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1.0):
-        # if self.groups.exists():
-        #     considered_groups = self.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
-        # else:
-        #     considered_groups = ttmodel.data.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
         for group in self.considered_basic_groups(ttmodel):
             self.enrich_model_for_one_object(ttmodel, period, ponderation, group=group)
 
@@ -216,6 +211,9 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         else:
             text += " de toutes les promos."
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class LimitModulesTimePerPeriod(LimitTimePerPeriod):
@@ -300,6 +298,9 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
             text += " dans toutes les promos."
 
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
@@ -386,6 +387,9 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
             )
         return text
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
 
 class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
     """
@@ -432,3 +436,6 @@ class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
         else:
             text += " pour toutes les promos."
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError

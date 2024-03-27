@@ -26,10 +26,8 @@
 import datetime as dt
 
 from django.db import models
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from base.models import SchedulingPeriod
 from base.timing import Day, TimeInterval
 from people.models import Tutor
 from TTapp.ilp_constraints.constraint import Constraint
@@ -93,9 +91,10 @@ class NoCourseOnWeekDay(TimetableConstraint):
                 start_time__date__iso_week_day__in=iso_week_days_ranks,
                 start_time__time__gte=self.time_settings().afternoon_start_time,
             )
-        assert (
-            not unwanted_considered_scheduled_courses
-        ), f"Constraint {self} is not satisfied for period {period} and version {version} : {unwanted_considered_scheduled_courses}"
+        assert not unwanted_considered_scheduled_courses, (
+            f"Constraint {self} is not satisfied for period {period}"
+            f"and version {version} : {unwanted_considered_scheduled_courses}"
+        )
 
 
 class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
@@ -145,7 +144,7 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
         if self.fampm_period != self.FULL_DAY:
             text += f" ({self.fampm_period})"
         if self.course_types.exists():
-            text += f" pour les cours de type" + ", ".join(
+            text += " pour les cours de type" + ", ".join(
                 [t.name for t in self.course_types.all()]
             )
         if self.groups.exists():
@@ -182,7 +181,7 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
                         ),
                         data,
                     )
-                elif self.fampm_period == self.AM:
+                if self.fampm_period == self.AM:
                     data["no_course_tutor"]["period"] = {self.AM}
                     return (
                         TimeInterval(
@@ -195,7 +194,7 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
                         ),
                         data,
                     )
-                elif self.fampm_period == self.PM:
+                if self.fampm_period == self.PM:
                     data["no_course_tutor"]["period"] = {self.PM}
                     return (
                         TimeInterval(
@@ -210,9 +209,10 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
 
     def complete_group_partition(self, partition, group, period):
         """
-            Complete the partition in parameters with informations given by this NoGroupCourseOnDay constraint if it
-        concern the given group and period.
-        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+            Complete the partition in parameters with informations given by
+            this NoGroupCourseOnDay constraint if it concerns the given group and period.
+            This method is called by functions in partition_with_constraints.py
+            to initialize a partition used in pre_analyse methods.
 
         :param partition: A partition (empty or not) with informations about a group's availability.
         :type partition: Partition
@@ -220,7 +220,8 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
         :type tutor: StructuralGroup
         :param period: The SchedulingPeriod we want to make a pre-analysis on (can be None if all).
         :type period: SchedulingPeriod
-        :return: A partition with new informations if the given tutor is concerned by this NoGroupCourseOnDay constraint.
+        :return: A partition with new informations if the given tutor
+        is concerned by this NoGroupCourseOnDay constraint.
         :rtype: Partition
 
         """
@@ -362,7 +363,7 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
                         ),
                         data,
                     )
-                elif self.fampm_period == self.AM:
+                if self.fampm_period == self.AM:
                     data["no_course_tutor"]["period"] = {self.AM}
                     return (
                         TimeInterval(
@@ -375,7 +376,7 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
                         ),
                         data,
                     )
-                elif self.fampm_period == self.PM:
+                if self.fampm_period == self.PM:
                     data["no_course_tutor"]["period"] = {self.PM}
                     return (
                         TimeInterval(
@@ -390,9 +391,11 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
 
     @staticmethod
     def tutor_and_supp(interval, required_supps, possible_tutors):
-        """Looking in the interval if all required_supp and at least one possible_tutors are available
+        """Looking in the interval if all required_supp and
+        at least one possible_tutors are available
         in the user preferences and not in the no course key.
-        Complexity on O(t*t') with t being the number of tutors in required supp and possible_tutors and t'
+        Complexity on O(t*t') with t being the number of tutors in
+        required supp and possible_tutors and t'
         then number of tutors in the 'user_preference' key of the interval data.
 
         Parameters:
@@ -428,9 +431,10 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
 
     def complete_tutor_partition(self, partition, tutor, period):
         """
-            Complete the partition in parameters with informations given by this NoTutorCourseOnDay constraint if it
-        concern the given tutor and period.
-        This method is called by functions in partition_with_constraints.py to initialize a partition used in pre_analyse methods.
+            Complete the partition in parameters with informations given by
+            this NoTutorCourseOnDay constraint if it concerns the given tutor and period.
+            This method is called by functions in partition_with_constraints.py
+            to initialize a partition used in pre_analyse methods.
 
         :param partition: A partition (empty or not) with informations about a tutor's availability.
         :type partition: Partition
@@ -438,7 +442,8 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
         :type tutor: Tutor
         :param period: The SchedulingPeriod we want to make a pre-analysis on (can be None if all).
         :type week: SchedulingPeriod
-        :return: A partition with new informations if the given tutor is concerned by this NoTutorCourseOnDay constraint.
+        :return: A partition with new informations if the given tutor is concerned by
+        this NoTutorCourseOnDay constraint.
         :rtype: Partition
 
         """

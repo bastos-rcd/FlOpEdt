@@ -27,17 +27,17 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from base.timing import french_format
-from TTapp.flop_constraint import MAX_WEIGHT
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.slots import days_filter, slots_filter
+from TTapp.slots import slots_filter
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 
 class NotAloneForTheseCouseTypes(TimetableConstraint):
     """
-    TimetableConstraint : Guarantees that any considered tutor will not be alone to do a course of this type/module
+    TimetableConstraint : Guarantees that any considered tutor
+    will not be alone to do a course of this type/module
     (and will be in parallel to one of the guide tutors)
     """
 
@@ -178,10 +178,14 @@ class NotAloneForTheseCouseTypes(TimetableConstraint):
                                 * tutor_without_a_guide,
                             )
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
 
 class ParallelizeCourses(TimetableConstraint):
     """
-    TimetableConstraint : Guarantees that the total course time of certain class of courses do not exceed a certain bound
+    TimetableConstraint : Guarantees that the total course time of certain class of courses
+    do not exceed a certain bound
     """
 
     course_type = models.ForeignKey(
@@ -219,7 +223,10 @@ class ParallelizeCourses(TimetableConstraint):
         return view_model
 
     def one_line_description(self):
-        text = f"Tous les cours sont concentrés en {french_format(self.desired_busy_slots_duration)}"
+        text = (
+            "Tous les cours sont concentrés en "
+            f"{french_format(self.desired_busy_slots_duration)}"
+        )
 
         if self.course_type is not None:
             text += " pour le type " + self.course_type.name
@@ -230,11 +237,7 @@ class ParallelizeCourses(TimetableConstraint):
         return text
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=10):
-        considered_courses = set(ttmodel.data.courses.filter(period=period))
-        if self.course_type is not None:
-            considered_courses = considered_courses.filter(type=self.course_type)
-        if self.module is not None:
-            considered_courses = considered_courses.filter(module=self.module)
+        considered_courses = self.considered_courses(ttmodel)
 
         total_courses_duration = ttmodel.lin_expr()
         for sl in ttmodel.data.availability_slots:
@@ -256,7 +259,7 @@ class ParallelizeCourses(TimetableConstraint):
                 total_courses_duration,
                 "<=",
                 self.desired_busy_slots_duration,
-                Constraint(constraint_type=ConstraintType.LimitBusySlots),
+                Constraint(constraint_type=ConstraintType.LIMIT_BUSY_SLOTS),
             )
         else:
             cost = ttmodel.lin_expr()
@@ -269,3 +272,6 @@ class ParallelizeCourses(TimetableConstraint):
             ttmodel.add_to_generic_cost(
                 cost * self.local_weight() * ponderation, period
             )
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError

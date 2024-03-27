@@ -147,7 +147,7 @@ class FlopConstraint(models.Model):
         train_progs=None,
         group=None,
         groups=None,
-        transversal_groups_included=None,
+        transversal_groups_included=False,
         module=None,
         modules=None,
         course_type=None,

@@ -77,3 +77,6 @@ class MinModulesHalfDays(TimetableConstraint):
             text += " pour toutes les promos."
 
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError

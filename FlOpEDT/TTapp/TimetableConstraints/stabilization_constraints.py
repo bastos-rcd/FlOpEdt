@@ -114,6 +114,9 @@ class StabilizeTutorsCourses(TimetableConstraint):
             #         for sl in ttmodel.data.slots.filter(day=day):
             #             ttmodel.add_constraint(ttmodel.scheduled[(sl, sc.course)], '==', 0)
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
     def one_line_description(self):
         text = "Minimiser les changements"
         if self.tutors.exists():
@@ -195,6 +198,9 @@ class StabilizeGroupsCourses(TimetableConstraint):
             #         for sl in ttmodel.data.slots.filter(day=day):
             #             ttmodel.add_constraint(ttmodel.scheduled[(sl, sc.course)], '==', 0)
 
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
     def one_line_description(self):
         text = "Minimiser les changements"
         if self.groups.exists():
@@ -250,3 +256,6 @@ class StabilizationThroughPeriods(TimetableConstraint):
 
     def one_line_description(self):
         return "Stabilization through periods"
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
