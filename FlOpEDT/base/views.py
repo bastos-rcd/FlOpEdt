@@ -32,7 +32,6 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMessage
 from django.db import transaction
-from django.db.models import Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.template.response import TemplateResponse
@@ -53,6 +52,7 @@ from base.admin import (
     TutorCoursesResource,
     TutorRessource,
     VersionResource,
+    GroupPreferredLinksResource,
 )
 from base.forms import ContactForm, EnrichedLinkForm, ModuleDescriptionForm
 from base.models import (
@@ -246,7 +246,7 @@ def edt_light(req, year=None, week=None, **kwargs):
 
 
 @login_required
-def preferences(req, **kwargs):
+def user_preferences(req):
     if req.user.is_student:
         return redirect("people:student_preferences")
     if req.user.is_tutor:
@@ -255,7 +255,7 @@ def preferences(req, **kwargs):
 
 
 @login_required
-def stype(req, *args, **kwargs):
+def stype(req):
     err = ""
     user_notifications_pref = queries.get_notification_preference(req.user)
     themes = []
@@ -290,7 +290,7 @@ def stype(req, *args, **kwargs):
                 "days": num_all_days(1, 1, req.department),
             },
         )
-    elif req.method == "POST":
+    if req.method == "POST":
         if "apply" in list(req.POST.keys()):
             print(req.POST["week_st"])
             date_deb = {"week": req.POST["week_st"], "year": req.POST["year_st"]}
@@ -329,6 +329,7 @@ def stype(req, *args, **kwargs):
                 "days": num_all_days(1, 1, req.department),
             },
         )
+    return HttpResponse("Problem with request", status=404)
 
 
 @tutor_required
@@ -343,8 +344,8 @@ def room_preference(req, department, tutor=None):
         if tutor is None:
             tutor = req.user.username
         tutor = Tutor.objects.get(username=tutor)
-    except:
-        pass
+    except Tutor.DoesNotExist:
+        return HttpResponse("Tutor not found", status=404)
 
     base_pref = {}
     for rs in RoomSort.objects.filter(tutor=tutor, for_type__department=req.department):
@@ -356,14 +357,14 @@ def room_preference(req, department, tutor=None):
         rt: {rg: len(rt.members.all()) for rg in rt.members.all()} for rt in roomtypes
     }
 
-    for rt in base_pref:
+    for rt in base_pref:  # pylint: disable=consider-using-dict-items
         rank = 1
-        initial_rg = set([rg for p in base_pref[rt] for rg in p.values()])
+        initial_rg = set(rg for p in base_pref[rt] for rg in p.values())
         ranked_rg = set()
 
         while base_pref[rt]:
-            better = set([p["better"] for p in base_pref[rt]])
-            worse = set([p["worse"] for p in base_pref[rt]])
+            better = set(p["better"] for p in base_pref[rt])
+            worse = set(p["worse"] for p in base_pref[rt])
             best = better - worse
             if not best:
                 for rg in better & worse:
@@ -407,7 +408,7 @@ def room_preference(req, department, tutor=None):
 
 
 @login_required
-def user_perfect_day_changes(req, username=None, *args, **kwargs):
+def user_perfect_day_changes(req, username=None):
     if username is not None:
         t = Tutor.objects.get(username=username)
         preferences, _ = TutorPreference.objects.get_or_create(tutor=t)
@@ -423,11 +424,11 @@ def user_perfect_day_changes(req, username=None, *args, **kwargs):
 
 
 @login_required
-def fetch_perfect_day(req, username=None, *args, **kwargs):
+def fetch_perfect_day(_, username=None):
     perfect_day = {"pref": 4, "max": 9, "min": 0}
     if username is not None:
         t = Tutor.objects.get(username=username)
-        preferences, created = TutorPreference.objects.get_or_create(tutor=t)
+        preferences, _ = TutorPreference.objects.get_or_create(tutor=t)
         perfect_day["pref"] = preferences.pref_time_per_day
         perfect_day["max"] = preferences.max_time_per_day
         perfect_day["min"] = preferences.min_time_per_day
@@ -435,7 +436,7 @@ def fetch_perfect_day(req, username=None, *args, **kwargs):
 
 
 @login_required
-def fetch_user_notifications_pref(req, username=None, *args, **kwargs):
+def fetch_user_notifications_pref(_, username=None):
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
@@ -447,10 +448,10 @@ def fetch_user_notifications_pref(req, username=None, *args, **kwargs):
 
 
 @login_required
-def user_notifications_pref_changes(req, username=None, *args, **kwargs):
+def user_notifications_pref_changes(req, username=None):
     if username is not None:
         u = User.objects.get(username=username)
-        n, created = NotificationsPreferences.objects.get_or_create(user=u)
+        n, _ = NotificationsPreferences.objects.get_or_create(user=u)
         data = req.POST
         user_notifications_pref = int(data["user_notifications_pref"])
         n.nb_of_notified_weeks = user_notifications_pref
@@ -464,10 +465,10 @@ def user_notifications_pref_changes(req, username=None, *args, **kwargs):
 #
 ###
 @login_required
-def user_themes_pref_changes(req, username=None, *args, **kwargs):
+def user_themes_pref_changes(req, username=None):
     if username is not None:
         u = User.objects.get(username=username)
-        t, created = ThemesPreferences.objects.get_or_create(user=u)
+        t, _ = ThemesPreferences.objects.get_or_create(user=u)
         user_theme_pref = req.POST["user_themes_pref"]
         t.theme = user_theme_pref
         t.save()
@@ -479,7 +480,7 @@ def aide(req, **kwargs):
 
 
 @login_required
-def decale(req, **kwargs):
+def decale(req):
     if req.method != "GET":
         return TemplateResponse(req, "base/help.html", {})
 
@@ -504,7 +505,7 @@ def decale(req, **kwargs):
     )
 
 
-def all_modules_with_desc(req, **kwargs):
+def all_modules_with_desc(req):
     return TemplateResponse(
         req,
         "base/modules.html",
@@ -521,26 +522,29 @@ def all_modules_with_desc(req, **kwargs):
 # ----------
 
 
-def fetch_module(req, year, week, **kwargs):
+def fetch_module(req, year, week):
     department = req.department
     module = Course.objects.filter(
         module__train_prog__department=department, week=week, year=year
     ).distinct()
     dataset = ModuleRessource().export(module)
-
+    # pylint: disable=no-member
     response = HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: enable=no-member
     response["week"] = week
     response["year"] = year
     return response
 
 
-def fetch_tutor(req, year, week, **kwargs):
+def fetch_tutor(req, year, week):
     department = req.department
     tutor = Course.objects.filter(
         module__train_prog__department=department, week=week, year=year
     ).distinct()
     dataset = TutorRessource().export(tutor)
+    # pylint: disable=no-member
     response = HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: enable=no-member
     response["week"] = week
     response["year"] = year
     return response
@@ -551,7 +555,7 @@ def fetch_course_default_week(req, train_prog, course_type, **kwargs):
     Export course preferences of department req.department
     for week week, year year
     """
-    logger.info(f"REQ: fetch course preferences; {req}")
+    logger.info("REQ: fetch course preferences; %s", req)
 
     tp = None
     ct = None
@@ -576,8 +580,9 @@ def fetch_course_default_week(req, train_prog, course_type, **kwargs):
         )
     )
 
+    # pylint: disable=no-member
     response = HttpResponse(dataset.csv, content_type="text/csv")
-
+    # pylint: enable=no-member
     response["department"] = req.department.abbrev
     response["training_programme"] = train_prog
     response["course_type"] = course_type
@@ -586,7 +591,7 @@ def fetch_course_default_week(req, train_prog, course_type, **kwargs):
     return response
 
 
-def fetch_unavailable_rooms(req, year, week, **kwargs):
+def fetch_unavailable_rooms(req, year, week):
     logger.info(req)
 
     try:
@@ -608,7 +613,9 @@ def fetch_unavailable_rooms(req, year, week, **kwargs):
             room__departments=department, week=week, year=year, value=0
         )
     )
+    # pylint: disable=no-member
     response = HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: enable=no-member
     # cache.set(cache_key, response)
 
     response["week"] = week
@@ -617,11 +624,11 @@ def fetch_unavailable_rooms(req, year, week, **kwargs):
     return response
 
 
-def fetch_all_tutors(req, **kwargs):
+def fetch_all_tutors(req):
     """
     Cache and return all tutors who teach in req.department
     """
-    logger.info(f"Get tutors D{req.department.abbrev}")
+    logger.info("Get tutors D%s", req.department.abbrev)
     cache_key = get_key_all_tutors(req.department.abbrev)
     cached = cache.get(cache_key)
     if cached is not None:
@@ -637,7 +644,7 @@ def fetch_all_tutors(req, **kwargs):
     return response
 
 
-def fetch_room_default_week(req, room, **kwargs):
+def fetch_room_default_week(req, room):
     try:
         room = Room.objects.get(name=room)
     except ObjectDoesNotExist:
@@ -648,11 +655,13 @@ def fetch_room_default_week(req, room, **kwargs):
             week=None, room=room, day__in=queries.get_working_days(req.department)
         )
     )  # all())#
+    # pylint: disable=no-member
     response = HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: enable=no-member
     return response
 
 
-def fetch_decale(req, **kwargs):
+def fetch_decale(req):
     if req.META.get("HTTP_X_REQUESTED_WITH") != "XMLHttpRequest" or req.method != "GET":
         return HttpResponse("KO")
 
@@ -670,7 +679,7 @@ def fetch_decale(req, **kwargs):
             train_prog__abbrev=training_programme,
             train_prog__department=req.department,
         )
-    except Exception as e:
+    except StructuralGroup.DoesNotExist:
         group = None
 
     courses = []
@@ -763,29 +772,33 @@ def fetch_decale(req, **kwargs):
     )
 
 
-def fetch_bknews(req, year, week, **kwargs):
+def fetch_bknews(req, year, week):
     dataset = BreakingNewsResource().export(
         BreakingNews.objects.filter(department=req.department, year=year, week=week)
     )
+    # pylint: disable=no-member
     response = HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: enable=no-member
     response["week"] = week
     response["year"] = year
     return response
 
 
-def fetch_all_versions(req, **kwargs):
+def fetch_all_versions(req):
     """
     Export all TimetableVersions in json
     """
     dataset = VersionResource().export(
         TimetableVersion.objects.filter(department=req.department)
     )
+    # pylint: disable=no-member
     response = HttpResponse(dataset.json, content_type="text/json")
+    # pylint: enable=no-member
     return response
 
 
 @cache_page(15 * 60)
-def fetch_groups(req, **kwargs):
+def fetch_groups(req):
     """
     Return groups tree for a given department
     """
@@ -794,7 +807,7 @@ def fetch_groups(req, **kwargs):
 
 
 # @cache_page(15 * 60)
-def fetch_rooms(req, **kwargs):
+def fetch_rooms(req):
     """
     Return rooms for a given department
     """
@@ -802,7 +815,7 @@ def fetch_rooms(req, **kwargs):
     return JsonResponse(rooms, safe=False)
 
 
-def fetch_flat_rooms(req, **kwargs):
+def fetch_flat_rooms(req):
     """
     Return rooms for a given department
     """
@@ -815,7 +828,7 @@ def fetch_flat_rooms(req, **kwargs):
     )
 
 
-def fetch_constraints(req, **kwargs):
+def fetch_constraints(req):
     """
     Return course type constraints for a given department
     """
@@ -823,7 +836,7 @@ def fetch_constraints(req, **kwargs):
     return JsonResponse(constraints, safe=False)
 
 
-def fetch_departments(req, **kwargs):
+def fetch_departments(_):
     """
     Return departments
     """
@@ -831,7 +844,7 @@ def fetch_departments(req, **kwargs):
     return JsonResponse(depts, safe=False)
 
 
-def fetch_course_types(req, **kwargs):
+def fetch_course_types(req):
     """
     Return course types
     """
@@ -839,7 +852,7 @@ def fetch_course_types(req, **kwargs):
     return JsonResponse(course_types, safe=False)
 
 
-def fetch_training_programmes(req, **kwargs):
+def fetch_training_programmes(req):
     """
     Return training programmes
     """
@@ -847,12 +860,12 @@ def fetch_training_programmes(req, **kwargs):
     return JsonResponse(programmes, safe=False)
 
 
-def fetch_tutor_courses(req, year, week, tutor, **kwargs):
+def fetch_tutor_courses(_, year, week, tutor):
     """
     Return all courses of tutor, accross departments
     """
-    logger.info(f"W{week} Y{year}")
-    logger.info(f"Fetch {tutor} courses")
+    logger.info("W%s Y%s", week, year)
+    logger.info("Fetch %s courses", tutor)
     dataset = TutorCoursesResource().export(
         ScheduledCourse.objects.filter(
             course__week=week,
@@ -861,10 +874,13 @@ def fetch_tutor_courses(req, year, week, tutor, **kwargs):
             course__tutor__username=tutor,
         )
     )
-    return HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: disable=no-member
+    response = HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: enable=no-member
+    return response
 
 
-def fetch_extra_sched(req, year, week, **kwargs):
+def fetch_extra_sched(req, year, week):
     """
     Return the unavailability periods due to teaching in other departments
     """
@@ -887,10 +903,13 @@ def fetch_extra_sched(req, year, week, **kwargs):
             course__tutor__in=tutors,
         ).exclude(course__room_type__department=req.department)
     )
-    return HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: disable=no-member
+    response = HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: enable=no-member
+    return response
 
 
-def fetch_shared_rooms(req, year, week, **kwargs):
+def fetch_shared_rooms(req, year, week):
     # which room groups are shared among departments
     shared_rooms = [
         room
@@ -910,17 +929,20 @@ def fetch_shared_rooms(req, year, week, **kwargs):
         .exclude(course__type__department=req.department)
     )
     dataset = SharedRoomsResource().export(courses)
-    return HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: disable=no-member
+    response = HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: enable=no-member
+    return response
 
 
-def fetch_all_modules_with_desc(req, **kwargs):
+def fetch_all_modules_with_desc(req):
     data = Module.objects.filter(train_prog__department=req.department).select_related(
         "train_prog__department"
     )
     res = ModuleDescriptionResource().export(
         data.select_related("head", "display", "train_prog")
     )
-    return HttpResponse(res.json, content_type="application/json")
+    return JsonResponse(res.json)  # pylint: disable=no-member
 
 
 # </editor-fold desc="FETCHERS">
@@ -934,9 +956,11 @@ def fetch_all_modules_with_desc(req, **kwargs):
 def clean_change(
     week, old_version, change, work_copy=0, initiator=None, apply=False, department=None
 ):
-    from TTapp.timetable_utils import (
-        number_courses,
-    )  # pylint: disable=import-outside-toplevel
+
+    # pylint: disable=import-outside-toplevel
+    from TTapp.timetable_utils import number_courses
+
+    # pylint: enable=import-outside-toplevel
 
     scheduled_before = True
     renumber = False
@@ -973,8 +997,8 @@ def clean_change(
             else None
         )
         ret["sched"].room = new_room
-    except Room.DoesNotExist:
-        raise ValueError(f"Problème : salle {change['room']} inconnue")
+    except Room.DoesNotExist as exc:
+        raise ValueError(f"Problème : salle {change['room']} inconnue") from exc
 
     # Timing
     if not scheduled_before or not (
@@ -992,8 +1016,8 @@ def clean_change(
         ret["sched"].tutor = tutor
         if ret["course"].tutor is not None:
             ret["course"].tutor = tutor
-    except ObjectDoesNotExist:
-        raise ValueError(f"Problème : prof {change['tutor']} inconnu")
+    except Tutor.DoesNotExist as exc:
+        raise ValueError(f"Problème : prof {change['tutor']} inconnu") from exc
 
     # Grade
     try:
@@ -1024,125 +1048,17 @@ def clean_change(
         try:
             new_visio = EnrichedLink.objects.get(id=change["id_visio"])
             if apply:
-                additional, created = ScheduledCourseAdditional.objects.get_or_create(
+                additional, _ = ScheduledCourseAdditional.objects.get_or_create(
                     scheduled_course=sched_course
                 )
                 additional.link = new_visio
                 additional.save()
-        except EnrichedLink.DoesNotExist:
-            raise ValueError(f"Problème : visio avec if {change['id_visio']} inconnue")
+        except EnrichedLink.DoesNotExist as exc:
+            raise ValueError(
+                f"Problème : visio avec if {change['id_visio']} inconnue"
+            ) from exc
 
     return ret
-
-
-def edt_changes(req, **kwargs):
-    bad_response = {"status": "KO", "more": ""}
-    good_response = {"status": "OK", "more": ""}
-
-    if not req.user.is_authenticated:
-        bad_response["more"] = "Vous ne vous êtes pas authentifié·e..."
-        return JsonResponse(bad_response)
-
-    if not req.user.is_tutor:
-        bad_response["more"] = "Pas membre de l'équipe encadrante"
-        return JsonResponse(bad_response)
-
-    impacted_inst = set()
-
-    if req.META.get("HTTP_X_REQUESTED_WITH") != "XMLHttpRequest":
-        bad_response["more"] = "Non ajax"
-        return JsonResponse(bad_response)
-
-    if req.method != "POST":
-        bad_response["more"] = "Non POST"
-        return JsonResponse(bad_response)
-
-    try:
-        week = json.loads(req.POST.get("week"))
-        year = json.loads(req.POST.get("year"))
-        week = Week.objects.get(nb=week, year=year)
-        work_copy = json.loads(req.POST.get("work_copy"))
-        old_version = json.loads(req.POST.get("version"))
-        department = req.department
-        initiator = Tutor.objects.get(username=req.user.username)
-    except:
-        bad_response["more"] = "Problème prof, semaine, année ou numéro de copie."
-        return JsonResponse(bad_response)
-
-    recv_changes = json.loads(req.POST.get("tab", []))
-
-    msg = {}
-
-    logger.info(
-        f"REQ: edt change; W{week} WC{work_copy} V{old_version} "
-        f"by {initiator.username}"
-    )
-    logger.info(recv_changes)
-    # logger.info(req.POST)
-
-    version = TimetableVersion.objects.filter(week=week).aggregate(Sum("version"))[
-        "version__sum"
-    ]
-
-    logger.info(f"Versions: incoming {old_version}, currently {version}")
-
-    if work_copy != 0 or old_version == version:
-        if work_copy == 0:
-            edt_versions = TimetableVersion.objects.select_for_update().filter(
-                week=week
-            )
-
-        with transaction.atomic():
-            try:
-                for change in recv_changes:
-                    new_courses = clean_change(
-                        week,
-                        old_version,
-                        change,
-                        work_copy=work_copy,
-                        initiator=initiator,
-                        apply=True,
-                        department=department,
-                    )
-                    if work_copy == 0:
-                        impacted_tutor = new_courses["sched"].tutor
-                        msg[impacted_tutor] = str(new_courses["log"])
-                        impacted_inst.add(new_courses["course"].tutor)
-                        impacted_inst.add(new_courses["sched"].tutor)
-                        if None in impacted_inst:
-                            impacted_inst.remove(None)
-            except Exception as e:
-                bad_response["more"] = str(e)
-                return JsonResponse(bad_response)
-
-            if work_copy == 0:
-                edt_version = TimetableVersion.objects.get(
-                    week=week, department=department
-                )
-                edt_version.version += 1
-                edt_version.save()
-
-            cache.delete(get_key_course_pl(department.abbrev, week, work_copy))
-            cache.delete(get_key_course_pp(department.abbrev, week, work_copy))
-
-        if work_copy == 0:
-            subject = "[flop!EDT] " + initiator.username + " a changé votre EDT"
-
-            if initiator in impacted_inst:
-                impacted_inst.remove(initiator)
-            for tutor in impacted_inst:
-                notif_pref, created = NotificationsPreferences.objects.get_or_create(
-                    user=tutor
-                )
-                if notif_pref.notify_other_user_modifications:
-                    email = EmailMessage(subject, msg[tutor], to=[tutor.email])
-                    # email.send()
-                    print(msg[tutor])
-                    logger.info(email)
-
-        return JsonResponse(good_response)
-    bad_response["more"] = f"Version: {version} VS {old_version}"
-    return JsonResponse(bad_response)
 
 
 class HelperUserAvailability:
@@ -1204,7 +1120,7 @@ class HelperRoomAvailability:
 
 
 @tutor_required
-def room_preferences_changes_per_tutor(req, tutor, **kwargs):
+def room_preferences_changes_per_tutor(req, tutor):
     bad_response = {"status": "KO", "more": ""}
     good_response = {"status": "OK", "more": ""}
 
@@ -1233,7 +1149,7 @@ def room_preferences_changes_per_tutor(req, tutor, **kwargs):
 
     try:
         recv_pref = json.loads(req.POST.get("roompreferences"))
-    except:
+    except:  # pylint: disable=bare-except
         bad_response["more"] = "Problème format."
         return JsonResponse(bad_response)
 
@@ -1291,7 +1207,7 @@ def preferences_changes(req, year, week, helper_pref):
     if week == 0 or year == 0:
         week = None
     else:
-        week, created = Week.objects.get_or_create(nb=week, year=year)
+        week = None  # Week.objects.get_or_create(nb=week, year=year)
 
     if not helper_pref.filter().filter(week=week).exists():
         for pref in helper_pref.filter().filter(week=None):
@@ -1302,7 +1218,7 @@ def preferences_changes(req, year, week, helper_pref):
             new_dispo.save()
 
     for a in changes:
-        logger.info(f"Change {a}")
+        logger.info("Change %s", a)
         helper_pref.filter().filter(week=week, day=a["day"]).delete()
         for pref in a["val_inter"]:
             new_dispo = helper_pref.generate(
@@ -1330,7 +1246,7 @@ def check_ajax_post(req):
 
 
 @login_required
-def user_preferences_changes(req, year, week, username, **kwargs):
+def user_preferences_changes(req, year, week, username):
     response = check_ajax_post(req)
     if response is not None:
         return response
@@ -1339,8 +1255,8 @@ def user_preferences_changes(req, year, week, username, **kwargs):
 
     usr_change = username
 
-    logger.info(f"REQ: dispo change for {usr_change} by {req.user.username}")
-    logger.info(f"     W{week} Y{year}")
+    logger.info("REQ: dispo change for %s{usr_change} by %s{req.user.username}")
+    logger.info("     W%s{week} Y%s{year}")
 
     tutor = None
     try:
@@ -1357,15 +1273,15 @@ def user_preferences_changes(req, year, week, username, **kwargs):
 
 
 @dept_admin_required
-def room_preferences_changes(req, year, week, room, **kwargs):
+def room_preferences_changes(req, year, week, room):
     response = check_ajax_post(req)
     if response is not None:
         return response
 
     response = {"status": "KO", "more": ""}
 
-    logger.info("REQ: dispo change for %s by %s", (room, req.user.username))
-    logger.info("     W%s Y%s", (week, year))
+    logger.info("REQ: dispo change for %s by %s", room, req.user.username)
+    logger.info("     W%s Y%s", week, year)
 
     try:
         room = Room.objects.get(name=room)
@@ -1387,7 +1303,7 @@ def room_preferences_changes(req, year, week, room, **kwargs):
 
 
 @dept_admin_required
-def course_preferences_changes(req, year, week, train_prog, course_type, **kwargs):
+def course_preferences_changes(req, year, week, train_prog, course_type):
     response = check_ajax_post(req)
     logger.info(response)
     if response is not None:
@@ -1411,11 +1327,12 @@ def course_preferences_changes(req, year, week, train_prog, course_type, **kwarg
 
 
 @tutor_required
-def decale_changes(req, **kwargs):
+def decale_changes(req):
 
-    from TTapp.timetable_utils import (
-        number_courses,
-    )  # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel
+    from TTapp.timetable_utils import number_courses
+
+    # pylint: enable=import-outside-toplevel
 
     bad_response = HttpResponse("KO")
     good_response = HttpResponse("OK")
@@ -1431,17 +1348,13 @@ def decale_changes(req, **kwargs):
 
     new_assignment = json.loads(req.POST.get("new", {}))
     change_list = json.loads(req.POST.get("liste", []))
-    new_week_nb = new_assignment["ns"]
+    # new_week_nb = new_assignment["ns"]
     new_year = new_assignment["na"]
-    new_week = Week.objects.get(nb=new_week_nb, year=new_year)
+    new_week = None  # Week.objects.get(nb=new_week_nb, year=new_year)
 
     for c in change_list:
         changing_course = Course.objects.get(id=c["i"])
         old_week = changing_course.week
-
-        edt_versions = TimetableVersion.objects.select_for_update().filter(
-            Q(week=old_week) | Q(week=new_week), department=req.department
-        )
 
         with transaction.atomic():
             # was the course was scheduled before?
@@ -1508,7 +1421,7 @@ def decale_changes(req, **kwargs):
 # ---------
 
 
-def contact(req, tutor=None, **kwargs):
+def contact(req, tutor=None):
     ack = ""
     if req.method == "POST":
         form = ContactForm(req.POST)
@@ -1526,7 +1439,7 @@ def contact(req, tutor=None, **kwargs):
                     reply_to=[dat.get("sender")],
                 )
                 email.send()
-            except:
+            except TypeError:
                 ack = "Envoi du mail impossible !"
                 return TemplateResponse(
                     req, "base/contact.html", {"form": form, "ack": ack}
@@ -1547,7 +1460,7 @@ def contact(req, tutor=None, **kwargs):
 
 
 @login_required
-def send_email_proposal(req, **kwargs):
+def send_email_proposal(req):
     bad_response = {"status": "KO", "more": ""}
     good_response = {"status": "OK", "more": ""}
 
@@ -1560,12 +1473,12 @@ def send_email_proposal(req, **kwargs):
         return bad_response
 
     try:
-        week_nb = json.loads(req.POST.get("week"))
-        year = json.loads(req.POST.get("year"))
-        week = Week.objects.get(nb=week_nb, year=year)
+        # week_nb = json.loads(req.POST.get("week"))
+        # year = json.loads(req.POST.get("year"))
+        week = None  # Week.objects.get(nb=week_nb, year=year)
         work_copy = json.loads(req.POST.get("work_copy"))
         initiator = User.objects.get(username=req.user.username)
-    except:
+    except:  # pylint: disable=bare-except
         bad_response["more"] = "Problème semaine, année ou numéro de copie."
         return JsonResponse(bad_response)
 
@@ -1593,14 +1506,14 @@ def send_email_proposal(req, **kwargs):
             impacted_inst.add(new_courses["sched"].tutor)
         if None in impacted_inst:
             impacted_inst.remove(None)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         bad_response["more"] = str(e)
         return JsonResponse(bad_response)
 
     if initiator in impacted_inst:
         impacted_inst.remove(initiator)
     if len(impacted_inst) > 0:
-        msg += "\nQu'en dites-vous ?\n\n-- \n" + f"Envoyé de mon flop!EDT\n"
+        msg += "\nQu'en dites-vous ?\n\n-- \n Envoyé de mon flop!EDT\n"
 
         try:
             subject = "[flop!EDT] Proposition de modification"
@@ -1609,7 +1522,7 @@ def send_email_proposal(req, **kwargs):
             email = EmailMessage(subject, msg, to=email_list, reply_to=reply_to_list)
             logger.info(email)
             # email.send()
-        except Exception:
+        except TypeError:
             bad_response["more"] = "Envoi du mail impossible !"
             return JsonResponse(bad_response)
 
@@ -1624,16 +1537,16 @@ def send_email_proposal(req, **kwargs):
 # VISIO
 # ---------
 @tutor_required
-def visio_preference(req, tutor=None, id=None, **kwargs):
+def visio_preference(req, tutor=None, link_id=None):
     ack = ""
     if tutor is None:
         tutor = req.user.username
 
-    if id is None:
+    if link_id is None:
         instance = None
     else:
         try:
-            instance = EnrichedLink.objects.get(id=id)
+            instance = EnrichedLink.objects.get(id=link_id)
             if not req.user.has_department_perm(req.department, admin=True):
                 pref, created = UserPreferredLinks.objects.get_or_create(user=req.user)
                 if created or instance not in pref.links.all():
@@ -1663,12 +1576,14 @@ def visio_preference(req, tutor=None, id=None, **kwargs):
     return TemplateResponse(req, "base/visio.html", {"form": form, "ack": ack})
 
 
-def fetch_group_preferred_links(req, **kwargs):
+def fetch_group_preferred_links(req):
     pref = GroupPreferredLinks.objects.select_related(
         "group__train_prog__department"
     ).filter(group__train_prog__department=req.department)
     dataset = GroupPreferredLinksResource().export(pref)
+    # pylint: disable=no-member
     response = HttpResponse(dataset.csv, content_type="text/csv")
+    # pylint: enable=no-member
     return response
 
 
@@ -1689,8 +1604,7 @@ def module_description(req, module=None, **kwargs):
             m.description = description
             m.save()
             return all_modules_with_desc(req)
-        else:
-            form = ModuleDescriptionForm(module, req.department, req.POST)
+        form = ModuleDescriptionForm(module, req.department, req.POST)
     else:
         form = ModuleDescriptionForm(module, req.department)
     return TemplateResponse(

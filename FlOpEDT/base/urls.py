@@ -21,7 +21,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.urls import include, path, re_path
+from django.urls import path, re_path
 
 from . import views
 
@@ -37,11 +37,11 @@ urlpatterns = [
         r"room-preference/(?P<tutor>\w{2,8})?/", views.room_preference, name="room-pref"
     ),
     re_path(
-        r"visio-preference/(?P<tutor>\w{1,8})?(/?P<id>\d{1,8})?/",
+        r"visio-preference/(?P<tutor>\w{1,8})?(/?P<link_id>\d{1,8})?/",
         views.visio_preference,
         name="visio-pref",
     ),
-    path("preferences/", views.preferences, name="preferences"),
+    path("preferences/", views.user_preferences, name="preferences"),
     path("semaine-type/", views.stype, name="stype"),
     path("aide/", views.aide, name="aide"),
     path("decale/", views.decale, name="decale"),
@@ -116,7 +116,6 @@ urlpatterns = [
         name="fetch_group_preferred_links",
     ),
     # from screen to db
-    path("change_edt/", views.edt_changes, name="edt_changes"),
     path(
         "change_user_pref/<yyyy:year>/<int:week>/<str:username>/",
         views.user_preferences_changes,

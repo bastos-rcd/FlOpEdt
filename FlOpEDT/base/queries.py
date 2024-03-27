@@ -97,35 +97,29 @@ def create_first_department():
     return department
 
 
-def get_edt_version(department, week_nb, year, create=False):
-    week = Week.objects.get(nb=week_nb, year=year)
+def get_edt_version(department, period_id, create=False):
+    period = SchedulingPeriod.objects.get(id=period_id)
 
-    params = {"week": week, "department": department}
+    params = {"perdio": period, "department": department}
 
     if create:
         try:
-            edt_version, _ = TimetableVersion.objects.get_or_create(
-                defaults={"version": 0}, **params
-            )
+            edt_version, _ = TimetableVersion.objects.get_or_create(**params)
         except TimetableVersion.MultipleObjectsReturned as e:
             logger.error(
-                "get_edt_version: database inconsistency, multiple objects returned for %s"
-                % params
+                "get_edt_version: database inconsistency, multiple objects returned for %s",
+                params,
             )
             raise e
-        version = edt_version.version
-    else:
-        """
-        Raise model.DoesNotExist to simulate get behaviour
-        when no item is matching filter parameters
-        """
+        major = edt_version.major
+    else:  # Raise model.DoesNotExist to simulate get behaviour when no item is matching
         try:
-            version = TimetableVersion.objects.filter(**params).values_list(
-                "version", flat=True
+            major = TimetableVersion.objects.filter(**params).values_list(
+                "version__major", flat=True
             )[0]
         except IndexError as exc:
             raise TimetableVersion.DoesNotExist from exc
-    return version
+    return major
 
 
 def get_scheduled_courses(department, week, num_copy=0):
@@ -236,7 +230,7 @@ def get_descendant_groups(gp, children):
                 current["promotxt"] = tp.abbrev
             current["row"] = tpd.row
         except ObjectDoesNotExist as exc:
-            raise Exception(
+            raise ValueError(
                 "You should indicate on which row a training "
                 "programme will be displayed "
                 "(cf TrainingProgrammeDisplay)"

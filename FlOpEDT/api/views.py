@@ -246,31 +246,28 @@ class WeekInfoViewSet(viewsets.ViewSet):
         ]
     )
     def list(self, request, format=None):
-        week_nb = int(request.query_params.get("week"))
-        year = int(request.query_params.get("year"))
+        period_id = int(request.query_params.get("period_id"))
 
         try:
             department = bm.Department.objects.get(
                 abbrev=request.query_params.get("dept")
             )
-        except bm.Department.DoesNotExist:
-            raise DepartmentUnknown
+        except bm.Department.DoesNotExist as exc:
+            raise DepartmentUnknown from exc
 
         version = 0
         for dept in bm.Department.objects.all():
-            version += queries.get_edt_version(dept, week_nb, year, create=True)
+            version += queries.get_edt_version(dept, period_id, create=True)
 
         proposed_pref, required_pref = (
-            pref_requirements(department, request.user, year, week_nb)
+            pref_requirements(department, request.user, period_id)
             if request.user.is_authenticated
             else (-1, -1)
         )
 
         try:
             regen = str(
-                bm.Regen.objects.get(
-                    department=department, week__nb=week_nb, week__year=year
-                )
+                bm.Regen.objects.get(department=department, period__id=period_id)
             )
         except bm.Regen.DoesNotExist:
             regen = "I"
