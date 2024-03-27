@@ -69,6 +69,7 @@ from people.models import Tutor
 
 logger = logging.getLogger("admin")
 
+# pylint: disable=protected-access,no-self-argument,no-member
 
 # from core.models import Book
 

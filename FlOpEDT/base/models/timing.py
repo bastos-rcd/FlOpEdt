@@ -203,7 +203,7 @@ class Mode(models.Model):
 
 
 @receiver(post_save, sender="base.Department")
-def create_department_related(sender, instance, created, raw, **kwargs):
+def create_department_related(sender, instance, created, raw, **kwargs): # pylint: disable=unused-argument
     if not created or raw:
         return
     mode_model = apps.get_model("base.Mode")

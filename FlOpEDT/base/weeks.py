@@ -43,7 +43,7 @@ days_infos = {
 
 def get_current_school_year():
     now = datetime.datetime.now()
-    # TODO find a alternative way to test the swap month
+    # find a alternative way to test the swap month
     if now.month <= 6:
         school_year = now.year - 1
     else:

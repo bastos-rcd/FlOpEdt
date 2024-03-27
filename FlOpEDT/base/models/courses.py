@@ -148,7 +148,7 @@ class Course(models.Model):
 
     @property
     def is_graded(self):
-        if CourseAdditional.objects.filter(course=self).exists():
+        if hasattr(self, "additional"):
             return self.additional.graded
         return self.type.graded
 
