@@ -9,6 +9,7 @@
         :start-of-day="420"
         :workcopy="3"
         :interval-minutes="15"
+        :is-in-edit="false"
         @dragstart="onDragStart"
       />
     </Variant>
@@ -21,6 +22,7 @@
         :start-of-day="420"
         :workcopy="3"
         :interval-minutes="60"
+        :is-in-edit="false"
         @dragstart="onDragStart"
         @weekdays="(wd: number[]) => (weekdays = wd)"
       />
@@ -33,6 +35,7 @@
         :start-of-day="420"
         :workcopy="3"
         :interval-minutes="30"
+        :is-in-edit="true"
         @dragstart="onDragStart"
       />
     </Variant>
@@ -46,6 +49,7 @@
         :start-of-day="420"
         :workcopy="3"
         :interval-minutes="15"
+        :is-in-edit="true"
         @dragstart="onDragStart"
       />
     </Variant>
