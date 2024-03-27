@@ -279,7 +279,6 @@ function putAZero(i: number): string {
 // Their columnIds are changed to merge the same events
 // occuring on different columns
 const eventsByDate = computed(() => {
-  console.log(props.events.filter((ev) => ev.data.dataType === 'avail' && ev.data.start.weekday === 1))
   const map: Map<string, CalendarEvent[]> = new Map<string, CalendarEvent[]>()
   let allEvents: InputCalendarEvent[] = props.events
   // Copy of events
