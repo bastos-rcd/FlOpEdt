@@ -28,7 +28,7 @@ import datetime
 
 from django.utils.translation import gettext_lazy as _
 
-import base.models
+from django.apps import apps
 
 days_infos = {
     "m": {"shift": 0, "slug": _("Mon.")},
@@ -77,19 +77,18 @@ def current_week():
 
 # list of days
 def num_all_days(y, w, dept=None):
+    time_general_settings_model = apps.get_model("base.TimeGeneralSettings")
     if w == 0:
         return []
     monday = monday_w2(y) + datetime.timedelta(7 * (w - 2))
     day_list = []
     if dept is None:
         depts_day_set = set()
-        for dept_tgs in base.models.TimeGeneralSettings.objects.all():
+        for dept_tgs in time_general_settings_model.objects.all():
             depts_day_set |= set(dept_tgs.days)
         dept_day_list = list(depts_day_set)
     else:
-        dept_day_list = base.models.TimeGeneralSettings.objects.get(
-            department=dept
-        ).days
+        dept_day_list = time_general_settings_model.objects.get(department=dept).days
 
     dept_day_list.sort(key=lambda x: days_infos[x]["shift"])
     iday = 0

@@ -1,4 +1,3 @@
-from typing import Iterable
 from django.apps import apps
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -70,8 +69,8 @@ class GenericGroup(models.Model):
         verbose_name = _("generic group")
         verbose_name_plural = _("generic groups")
 
-    def save(self,args, **kwargs) -> None:
-        if '-' or '|' in self.name:
+    def save(self, *args, **kwargs) -> None:
+        if "-" in self.name or "|" in self.name:
             raise ValueError("The name of a group cannot contain '-' or '|'")
         return super().save(args, **kwargs)
 

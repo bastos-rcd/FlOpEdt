@@ -268,7 +268,7 @@ def get_room_types_groups(department_abbrev):
 
     return {
         "roomtypes": {
-            str(rt): list(set([room.name for room in rt.members.all()]))
+            str(rt): list(set(room.name for room in rt.members.all()))
             for rt in RoomType.objects.prefetch_related("members").filter(
                 department=dept
             )
@@ -375,10 +375,8 @@ def get_notification_preference(user):
         except NotificationsPreferences.DoesNotExist:
             if user.is_tutor:
                 return 4
-            elif user.is_student:
+            if user.is_student:
                 return 0
-            else:
-                pass
     return 0
 
 

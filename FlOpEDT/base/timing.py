@@ -30,7 +30,7 @@ import datetime as dt
 
 from django.utils.translation import gettext_lazy as _
 
-import base.models as bm
+from django.apps import apps
 
 slot_pause = dt.timedelta(minutes=30)
 
@@ -277,10 +277,11 @@ def add_duration_to_time(time: dt.time, duration: dt.timedelta):
 
 
 def get_all_scheduling_periods(department):
+    scheduling_period_model = apps.get_model("base.SchedulingPeriod")
     if department is None:
-        return bm.SchedulingPeriod.objects.all()
-    if department.timegeneralsettings.scheduling_period_mode == bm.PeriodEnum.CUSTOM:
+        return scheduling_period_model.objects.all()
+    if department.timegeneralsettings.scheduling_period_mode == "c":
         return department.schedulingperiod_set.all()
-    return bm.SchedulingPeriod.objects.filter(
+    return scheduling_period_model.objects.filter(
         mode=department.timegeneralsettings.scheduling_period_mode
     )
