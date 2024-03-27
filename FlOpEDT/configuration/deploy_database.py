@@ -160,7 +160,6 @@ def people_extract(department, people, fill_default_availabilities=True):
                     "A constraint has not been respected while creating the Professor : \n",
                     ie,
                 )
-                pass
             else:
                 logger.info(f"create tutor with id:{id_}")
 

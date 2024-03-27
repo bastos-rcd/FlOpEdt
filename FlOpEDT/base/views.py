@@ -1255,8 +1255,8 @@ def user_preferences_changes(req, year, week, username):
 
     usr_change = username
 
-    logger.info("REQ: dispo change for %s{usr_change} by %s{req.user.username}")
-    logger.info("     W%s{week} Y%s{year}")
+    logger.info("REQ: dispo change for %s by %s", usr_change, req.user.username)
+    logger.info("     W%s Y%s", week, year)
 
     tutor = None
     try:

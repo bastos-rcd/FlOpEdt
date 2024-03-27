@@ -33,12 +33,9 @@
 import logging
 import os
 from copy import copy
+from django.conf import settings as ds
 
 from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
-
-logger = logging.getLogger(__name__)
-from django.conf import settings as ds
 
 from base.models import (
     CourseStartTimeConstraint,
@@ -53,26 +50,25 @@ from base.models import (
     TransversalGroup,
 )
 from configuration.database_description_xlsx import (
-    REASONABLE,
-    courses_sheet,
+    COURSES_SHEET,
     find_marker_cell,
-    groups_sheet,
-    modules_sheet,
-    people_sheet,
-    rooms_sheet,
-    settings_sheet,
+    GROUPS_SHEET,
+    MODULES_SHEET,
+    PEOPLE_SHEET,
+    ROOMS_SHEET,
+    SETTINGS_SHEET,
     strftime_from_time,
-    time_from_integer,
 )
 from people.models import Tutor
 
+logger = logging.getLogger(__name__)
 #################################################
 #                                               #
 #   Filler functions for the different pages    #
 #                                               #
 #################################################
-max_row = 200
-max_col = 20
+MAX_ROW = 200
+MAX_COL = 20
 
 
 def insert_missing_rows(sheet, row_rank, data, existing_rows_number):
@@ -83,8 +79,8 @@ def insert_missing_rows(sheet, row_rank, data, existing_rows_number):
     missing_rows_number = len(data) - existing_rows_number
 
     if missing_rows_number > 0:
-        # create copy of lines from title_row_rang +1 to max_row some row downer
-        for row in range(max_row, row_rank, -1):
+        # create copy of lines from title_row_rang +1 to MAX_ROW some row downer
+        for row in range(MAX_ROW, row_rank, -1):
             new_row = row + missing_rows_number
             if new_row in merged_cells:
                 for start_col, end_col in merged_cells[new_row]:
@@ -94,11 +90,11 @@ def insert_missing_rows(sheet, row_rank, data, existing_rows_number):
                         end_row=new_row,
                         end_column=end_col,
                     )
-            for col in range(1, max_col):
+            for col in range(1, MAX_COL):
                 cell = sheet.cell(row, col)
                 new_cell = sheet.cell(new_row, col)
                 new_cell.value = cell.value
-                new_cell._style = copy(cell._style)
+                new_cell._style = copy(cell._style)  # pylint: disable=protected-access
             if row in merged_cells:
                 for start_col, end_col in merged_cells[row]:
                     sheet.merge_cells(
@@ -117,10 +113,10 @@ def insert_missing_rows(sheet, row_rank, data, existing_rows_number):
                         end_row=row,
                         end_column=end_col,
                     )
-            for col in range(1, max_col):
+            for col in range(1, MAX_COL):
                 cell = sheet.cell(row_rank + 1, col)
                 new_cell = sheet.cell(row, col)
-                new_cell._style = copy(cell._style)
+                new_cell._style = copy(cell._style)  # pylint: disable=protected-access
                 new_cell.value = cell.value
             if row in merged_cells:
                 for start_col, end_col in merged_cells[row]:
@@ -151,7 +147,7 @@ def make_filled_database_file(department, filename=None):
             ds.CONF_XLS_DIR, f"database_file_{department.abbrev}.xlsx"
         )
         print(filename)
-    sheet = wb[settings_sheet]
+    sheet = wb[SETTINGS_SHEET]
     row, col = find_marker_cell(sheet, "Jalon")
     sheet.cell(
         row=row + 1,
@@ -220,7 +216,7 @@ def make_filled_database_file(department, filename=None):
             sheet.cell(row=row, column=col + 1, value=first.start_date)
             sheet.cell(row=row, column=col + 2, value=last.end_date)
 
-    sheet = wb[people_sheet]
+    sheet = wb[PEOPLE_SHEET]
     row, col = find_marker_cell(sheet, "Identifiant")
     for tutor in Tutor.objects.filter(departments=department):
         row = row + 1
@@ -230,12 +226,10 @@ def make_filled_database_file(department, filename=None):
         sheet.cell(row=row, column=col + 3, value=tutor.email)
 
         sheet.cell(row=row, column=col + 4, value=tutor.status)
-        try:
+        if hasattr(tutor, "supplystaff"):
             sheet.cell(row=row, column=col + 5, value=tutor.supplystaff.employer)
-        except:
-            pass
 
-    sheet = wb[rooms_sheet]
+    sheet = wb[ROOMS_SHEET]
 
     row, col_start = find_marker_cell(sheet, "Groupes")
     room_groups = {
@@ -262,7 +256,7 @@ def make_filled_database_file(department, filename=None):
             col = col + 1
             sheet.cell(row=row, column=col, value=room.name)
 
-    sheet = wb[groups_sheet]
+    sheet = wb[GROUPS_SHEET]
     train_progs = TrainingProgramme.objects.filter(department=department)
     row, col = find_marker_cell(sheet, "Identifiant")
     # if we have too many promotions, avoid to destroy the marker below!
@@ -301,7 +295,7 @@ def make_filled_database_file(department, filename=None):
         parallel_groups = gp.parallel_groups
         nb_conflicts = conflicting_groups.count()
         if nb_conflicts > 7:
-            raise Exception("Trop de groupes en conflit avec %s" % gp)
+            raise ValueError(f"Trop de groupes en conflit avec {gp.name}")
         row = row + 1
         sheet.cell(row=row, column=col, value=gp.name)
         sheet.cell(row=row, column=col + 1, value=gp.train_prog.abbrev)
@@ -311,7 +305,7 @@ def make_filled_database_file(department, filename=None):
         for i, parallel_group in enumerate(parallel_groups.all()):
             sheet.cell(row=row, column=col + 9 + i, value=parallel_group.name)
 
-    sheet = wb[modules_sheet]
+    sheet = wb[MODULES_SHEET]
     row, col = find_marker_cell(sheet, "Identifiant")
     modules = Module.objects.filter(train_prog__in=train_progs)
     insert_missing_rows(sheet, row, modules, 27)
@@ -326,7 +320,7 @@ def make_filled_database_file(department, filename=None):
         if module.head is not None:
             sheet.cell(row=row, column=col + 6, value=module.head.username)
 
-    sheet = wb[courses_sheet]
+    sheet = wb[COURSES_SHEET]
     row, col_start = find_marker_cell(sheet, "Type de cours")
     course_types = CourseType.objects.filter(department=department)
     insert_missing_rows(sheet, row, list(course_types), 10)

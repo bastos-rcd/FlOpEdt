@@ -15,12 +15,11 @@ from base.models import (
     GenericGroup,
     Module,
     RoomType,
-    StructuralGroup,
-    TransversalGroup,
-    Week,
 )
-from misc.assign_colors import assign_module_color
 from people.models import Tutor
+
+# This file is not ok, it has to be refactored
+# pylint: disable=all
 
 
 # Functions used to check book content (dictionary extracted from hyperplanning)
@@ -292,9 +291,9 @@ def extractPeople(IHpSvcWEnseignants, alertList):
         bar_format="{l_bar}{bar:15}{r_bar}{bar:-10b}",
     ):
         teacherSubDictionary = {}
-        teacherSubDictionary[
-            "first_name"
-        ] = IHpSvcWEnseignants.service.PrenomEnseignant(i)
+        teacherSubDictionary["first_name"] = (
+            IHpSvcWEnseignants.service.PrenomEnseignant(i)
+        )
         teacherSubDictionary["last_name"] = IHpSvcWEnseignants.service.NomEnseignant(i)
         email = IHpSvcWEnseignants.service.EMailEnseignant(i)
         if email is None:

@@ -26,19 +26,16 @@
 
 import datetime as dt
 import os
-import sys
 
 from django.conf import settings as ds
 from django.db import transaction
-from django.db.models import Q
-from openpyxl import *
+from openpyxl import load_workbook
 
 from base.models import (
     Course,
     CourseAdditional,
     CoursePossibleTutors,
     CourseType,
-    Department,
     Dependency,
     GenericGroup,
     Module,
@@ -46,10 +43,9 @@ from base.models import (
     RoomType,
     SchedulingPeriod,
     TrainingPeriod,
-    TrainingProgramme,
 )
 from misc.assign_colors import assign_module_color
-from people.models import Tutor, UserDepartmentSettings
+from people.models import Tutor
 from TTapp.models import StabilizationThroughPeriods
 
 
@@ -71,7 +67,7 @@ def do_assign(module, course_type, period, book):
             assign_ok = True
             break
     if not assign_ok:
-        raise Exception(
+        raise ValueError(
             f"Rien n'est prévu pour assigner {module.abbrev} / {course_type.name}..."
         )
     column = 3
@@ -94,11 +90,11 @@ def do_assign(module, course_type, period, book):
 
 
 @transaction.atomic
-def ReadPlanifSchedulingPeriod(
-    department, book, feuille, period: SchedulingPeriod, courses_to_stabilize=None
+def read_planif_scheduling_period(
+    department, book, sheet_name, period: SchedulingPeriod, courses_to_stabilize=None
 ):
-    sheet = book[feuille]
-    training_period = TrainingPeriod.objects.get(name=feuille, department=department)
+    sheet = book[sheet_name]
+    training_period = TrainingPeriod.objects.get(name=sheet_name, department=department)
     Course.objects.filter(
         type__department=department,
         period=period,
@@ -113,54 +109,56 @@ def ReadPlanifSchedulingPeriod(
             wc += 1
             short_period_name = sheet.cell(row=wr, column=wc).value
             if short_period_name is None or short_period_name == "VERIF":
-                print("Pas de période %s en %s" % (period.name, feuille))
+                print(f"Pas de période {period.name} en {sheet_name}")
                 return
             if period.name.startswith(short_period_name):
-                PERIOD_COL = wc
+                period_col = wc
                 break
-    print("Période %s de %s : colonne %g" % (period.name, feuille, PERIOD_COL))
+    print(f"Période {period.name} de {sheet_name} : colonne {period_col}")
 
     row = 4
-    module_COL = 1
-    nature_COL = 3
-    duration_COL = 4
-    prof_COL = 5
-    room_type_COL = 6
-    group_COL = 7
+    module_col = 1
+    nature_col = 3
+    duration_col = 4
+    prof_col = 5
+    room_type_col = 6
+    group_col = 7
     sumtotal = 0
+    comments = []
+
     while 1:
         row += 1
         if courses_to_stabilize is not None:
             if row not in courses_to_stabilize:
                 courses_to_stabilize[row] = []
-        is_total = sheet.cell(row=row, column=group_COL).value
+        is_total = sheet.cell(row=row, column=group_col).value
         if is_total == "TOTAL":
             # print "Period %g de %s - TOTAL: %g"%(period, feuille,sumtotal)
             break
 
-        Cell = sheet.cell(row=row, column=PERIOD_COL)
-        N = Cell.value
-        if N is None:
+        cell = sheet.cell(row=row, column=period_col)
+        courses_number = cell.value
+        if courses_number is None:
             continue
 
         try:
-            room_type = sheet.cell(row=row, column=room_type_COL).value
-            module = sheet.cell(row=row, column=module_COL).value
-            N = float(N)
+            room_type_name = sheet.cell(row=row, column=room_type_col).value
+            module_abbrev = sheet.cell(row=row, column=module_col).value
+            courses_number = float(courses_number)
             # handle dark green lines - Vert fonce
-            assert isinstance(room_type, str) and room_type is not None
-            if room_type == "Type de Salle":
-                nominal = int(N)
-                if N != nominal:
+            assert isinstance(room_type_name, str) and room_type_name is not None
+            if room_type_name == "Type de Salle":
+                nominal = int(courses_number)
+                if courses_number != nominal:
                     print(
-                        "Valeur decimale ligne %g de %s, période %g : on la met a 1 !"
-                        % (row, feuille, period.name)
+                        f"Valeur decimale ligne {row} de {sheet_name}, période {period.name} : "
+                        f" on la met a 1 !"
                     )
                     nominal = 1
                     # le nominal est le nombre de cours par groupe (de TP ou TD)
-                if Cell.comment:
+                if cell.comment:
                     comments = (
-                        Cell.comment.text.replace(" ", "")
+                        cell.comment.text.replace(" ", "")
                         .replace("\n", "")
                         .replace(",", ";")
                         .split(";")
@@ -171,44 +169,42 @@ def ReadPlanifSchedulingPeriod(
                 sumtotal += nominal
 
                 continue
-            try:
-                comments = comments
-            except:
-                comments = []
 
             # handle light green lines - Vert clair
-            MODULE = Module.objects.get(abbrev=module, training_period=training_period)
-            PROMO = MODULE.train_prog
-            nature = sheet.cell(row=row, column=nature_COL).value
-            prof = sheet.cell(row=row, column=prof_COL).value
-            grps = sheet.cell(row=row, column=group_COL).value
-            COURSE_TYPE = CourseType.objects.get(name=nature, department=department)
-            ROOM_TYPE = RoomType.objects.get(name=room_type, department=department)
-            DURATION = dt.timedelta(
-                minutes=sheet.cell(row=row, column=duration_COL).value
+            module = Module.objects.get(
+                abbrev=module_abbrev, training_period=training_period
             )
-            supp_profs = []
-            possible_profs = []
-            if prof is None:
-                TUTOR = None
-            elif prof == "*":
-                TUTOR = None
-                do_assign(MODULE, COURSE_TYPE, period, book)
+            train_prog = module.train_prog
+            type_name = sheet.cell(row=row, column=nature_col).value
+            tutor_usernames = sheet.cell(row=row, column=prof_col).value
+            groups_names = sheet.cell(row=row, column=group_col).value
+            course_type = CourseType.objects.get(name=type_name, department=department)
+            room_type = RoomType.objects.get(name=room_type_name, department=department)
+            duration = dt.timedelta(
+                minutes=sheet.cell(row=row, column=duration_col).value
+            )
+            supp_tutors_usernames = []
+            possible_tutors_usernames = []
+            if tutor_usernames is None:
+                tutor = None
+            elif tutor_usernames == "*":
+                tutor = None
+                do_assign(module, course_type, period, book)
             else:
-                assert isinstance(prof, str)
-                prof = prof.replace("\xa0", "").replace(" ", "")
-                if "|" in prof:
-                    possible_profs = prof.split("|")
-                    TUTOR = None
+                assert isinstance(tutor_usernames, str)
+                tutor_usernames = tutor_usernames.replace("\xa0", "").replace(" ", "")
+                if "|" in tutor_usernames:
+                    possible_tutors_usernames = tutor_usernames.split("|")
+                    tutor = None
                 else:
-                    profs = prof.split(";")
-                    prof = profs[0]
-                    TUTOR = Tutor.objects.get(username=prof)
-                    supp_profs = profs[1:]
+                    tutors_usernames_list = tutor_usernames.split(";")
+                    tutor_username = tutors_usernames_list[0]
+                    tutor = Tutor.objects.get(username=tutor_username)
+                    supp_tutors_usernames = tutors_usernames_list[1:]
 
-            if Cell.comment:
+            if cell.comment:
                 local_comments = (
-                    Cell.comment.text.replace("\xa0", "")
+                    cell.comment.text.replace("\xa0", "")
                     .replace(" ", "")
                     .replace("\n", "")
                     .replace(",", ";")
@@ -219,53 +215,57 @@ def ReadPlanifSchedulingPeriod(
 
             all_comments = comments + local_comments
 
-            if isinstance(grps, int) or isinstance(grps, float):
-                grps = str(int(grps))
-            if not grps:
-                grps = []
+            if isinstance(groups_names, int, float):
+                groups_names = str(int(groups_names))
+            if not groups_names:
+                groups_names = []
             else:
-                grps = (
-                    grps.replace("\xa0", "")
+                groups_names = (
+                    groups_names.replace("\xa0", "")
                     .replace(" ", "")
                     .replace(",", ";")
                     .split(";")
                 )
-            groups = [str(g) for g in grps]
+            groups_names_list = [str(g) for g in groups_names]
 
-            GROUPS = list(
-                GenericGroup.objects.filter(name__in=groups, train_prog=PROMO)
+            groups = list(
+                GenericGroup.objects.filter(
+                    name__in=groups_names_list, train_prog=train_prog
+                )
             )
-            if not GROUPS:
-                raise Exception(
-                    f"Group(s) do(es) not exist {row}, period {period.name} of {feuille}\n"
+            if not groups:
+                raise ValueError(
+                    f"Group(s) do(es) not exist {row}, period {period.name} of {sheet_name}\n"
                 )
 
-            N = int(N)
+            courses_number = int(courses_number)
 
-            for i in range(N):
-                C = Course(
-                    tutor=TUTOR,
-                    type=COURSE_TYPE,
-                    module=MODULE,
+            for i in range(courses_number):
+                course = Course(
+                    tutor=tutor,
+                    type=course_type,
+                    module=module,
                     period=period,
-                    room_type=ROOM_TYPE,
-                    duration=DURATION,
+                    room_type=room_type,
+                    duration=duration,
                 )
-                C.save()
+                course.save()
                 if courses_to_stabilize is not None:
-                    courses_to_stabilize[row].append(C)
-                for g in GROUPS:
-                    C.groups.add(g)
-                C.save()
-                if supp_profs != []:
-                    SUPP_TUTORS = Tutor.objects.filter(username__in=supp_profs)
-                    for sp in SUPP_TUTORS:
-                        C.supp_tutor.add(sp)
-                    C.save()
-                if possible_profs != []:
-                    cpt = CoursePossibleTutors(course=C)
+                    courses_to_stabilize[row].append(course)
+                for g in groups:
+                    course.groups.add(g)
+                course.save()
+                if supp_tutors_usernames != []:
+                    supp_tutors = Tutor.objects.filter(
+                        username__in=supp_tutors_usernames
+                    )
+                    for sp in supp_tutors:
+                        course.supp_tutor.add(sp)
+                    course.save()
+                if possible_tutors_usernames != []:
+                    cpt = CoursePossibleTutors(course=course)
                     cpt.save()
-                    for pp in possible_profs:
+                    for pp in possible_tutors_usernames:
                         t = Tutor.objects.get(username=pp)
                         cpt.possible_tutors.add(t)
                     cpt.save()
@@ -279,76 +279,76 @@ def ReadPlanifSchedulingPeriod(
                         s = 1
                     course_type = after_type[s:]
                     relevant_groups = set()
-                    for g in GROUPS:
+                    for g in groups:
                         relevant_groups |= (
                             g.ancestor_groups() | {g} | g.descendants_groups()
                         )
                     course_type_queryset = Course.objects.filter(
                         type__name=course_type,
-                        module=MODULE,
+                        module=module,
                         period=period,
                         groups__in=relevant_groups,
-                    ).exclude(id=C.id)
+                    ).exclude(id=course.id)
                     for relevant_group in relevant_groups:
                         courses_queryset = course_type_queryset.filter(
                             groups=relevant_group
                         )
                         if courses_queryset.exists():
                             after_type_dependencies.append(
-                                (C.id, courses_queryset, n, row)
+                                (course.id, courses_queryset, n, row)
                             )
 
                 if "P" in all_comments:
-                    course_additional, created = CourseAdditional.objects.get_or_create(
-                        course=C
+                    course_additional, _ = CourseAdditional.objects.get_or_create(
+                        course=course
                     )
                     course_additional.visio_preference_value = 0
                     course_additional.save()
                 elif "DI" in all_comments:
-                    course_additional, created = CourseAdditional.objects.get_or_create(
-                        course=C
+                    course_additional, _ = CourseAdditional.objects.get_or_create(
+                        course=course
                     )
                     course_additional.visio_preference_value = 8
                     course_additional.save()
                 if "E" in all_comments:
-                    course_additional, created = CourseAdditional.objects.get_or_create(
-                        course=C
+                    course_additional, _ = CourseAdditional.objects.get_or_create(
+                        course=course
                     )
                     course_additional.graded = True
                     course_additional.save()
-            if "D" in comments or "D" in local_comments and N >= 2:
+            if "D" in comments or "D" in local_comments and courses_number >= 2:
                 relevant_courses = Course.objects.filter(
-                    type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, period=period
+                    type=course_type, module=module, groups__in=groups, period=period
                 )
-                for i in range(N // 2):
-                    P = Dependency(
+                for i in range(courses_number // 2):
+                    dependency = Dependency(
                         course1=relevant_courses[2 * i],
                         course2=relevant_courses[2 * i + 1],
                         successive=True,
                     )
-                    P.save()
-            if "ND" in comments or "ND" in local_comments and N >= 2:
+                    dependency.save()
+            if "ND" in comments or "ND" in local_comments and courses_number >= 2:
                 relevant_courses = Course.objects.filter(
-                    type=COURSE_TYPE, module=MODULE, groups__in=GROUPS, period=period
+                    type=course_type, module=module, groups__in=groups, period=period
                 )
-                for i in range(N - 1):
-                    P = Dependency(
+                for i in range(courses_number - 1):
+                    dependency = Dependency(
                         course1=relevant_courses[i],
                         course2=relevant_courses[i + 1],
                         day_gap=1,
                     )
-                    P.save()
+                    dependency.save()
 
         except Exception as e:
-            raise Exception(
-                f"Exception ligne {row}, période {period.name} de {feuille}: {e} \n"
-            )
+            raise ValueError(
+                f"Exception ligne {row}, période {period.name} de {sheet_name}: {e} \n"
+            ) from e
 
     # Add after_type dependecies
-    for id, courses_queryset, n, row in after_type_dependencies:
-        course2 = Course.objects.get(id=id)
+    for course_id, courses_queryset, n, row in after_type_dependencies:
+        course2 = Course.objects.get(id=course_id)
         for course1 in courses_queryset[:n]:
-            P = Dependency.objects.create(course1=course1, course2=course2)
+            dependency = Dependency.objects.create(course1=course1, course2=course2)
 
 
 @transaction.atomic
@@ -357,7 +357,7 @@ def extract_training_period(
     book,
     training_period: TrainingPeriod,
     stabilize_courses=False,
-    periods=[],
+    periods=None,
 ):
     if stabilize_courses:
         courses_to_stabilize = {}
@@ -373,7 +373,7 @@ def extract_training_period(
     considered_periods = list(considered_periods)
     considered_periods.sort()
     for period in considered_periods:
-        ReadPlanifSchedulingPeriod(
+        read_planif_scheduling_period(
             department, book, training_period.name, period, courses_to_stabilize
         )
 
@@ -430,7 +430,7 @@ def extract_planif_scheduling_periods(
     training_periods = define_training_periods(department, book, training_periods)
     for training_period in training_periods:
         for scheduling_period in scheduling_periods:
-            ReadPlanifSchedulingPeriod(
+            read_planif_scheduling_period(
                 department, book, training_period.name, scheduling_period
             )
 
