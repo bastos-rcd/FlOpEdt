@@ -1006,17 +1006,21 @@ class TimetableModel(FlopModel):
                     if avail_time < teaching_duration:
                         self.add_warning(
                             i,
-                            f"{avail_time.seconds / 3600} available hours "
-                            / "< {teaching_duration.seconds / 3600}"
-                            / f"courses hours period {period.name}",
+                            (
+                                f"{avail_time.seconds / 3600} available hours "
+                                f"< {teaching_duration.seconds / 3600}"
+                                f"courses hours period {period.name}"
+                            ),
                         )
 
                     elif avail_time < total_teaching_duration:
                         self.add_warning(
                             i,
-                            f"{avail_time.seconds / 3600} available hours < "
-                            / f"{total_teaching_duration.seconds / 3600} "
-                            / f"courses hours including other deps period {period.name}",
+                            (
+                                f"{avail_time.seconds / 3600} available hours < "
+                                f"{total_teaching_duration.seconds / 3600} "
+                                f"courses hours including other deps period {period.name}"
+                            ),
                         )
 
                     elif (
@@ -1025,9 +1029,11 @@ class TimetableModel(FlopModel):
                     ):
                         self.add_warning(
                             i,
-                            f"only {avail_time.seconds / 3600} available hours for "
-                            / f"{teaching_duration.seconds / 3600} courses hours "
-                            / "period {period.name}",
+                            (
+                                f"only {avail_time.seconds / 3600} available hours for "
+                                f"{teaching_duration.seconds / 3600} courses hours "
+                                "period {period.name}"
+                            ),
                         )
                     maximum = max(a.value for a in period_tutor_availabilities)
                     if maximum == 0:
@@ -1160,9 +1166,7 @@ class TimetableModel(FlopModel):
                                     value = minimum
                                     non_preferred_cost_course[(course_type, promo)][
                                         availability_slot
-                                    ] = (
-                                        1 - value / 8
-                                    )
+                                    ] = (1 - value / 8)
                             else:
                                 avail_course[(course_type, promo)][
                                     availability_slot
