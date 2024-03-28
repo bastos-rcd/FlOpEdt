@@ -1,3 +1,5 @@
+# pylint: disable=unused-import
+
 import pytest
 from rest_framework.status import (
     HTTP_403_FORBIDDEN,
