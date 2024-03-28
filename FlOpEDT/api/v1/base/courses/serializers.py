@@ -120,3 +120,9 @@ class ModulesFullSerializer(serializers.ModelSerializer):
             "description",
             "ppn",
         )
+
+
+class TimetableVersionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.TimetableVersion
+        fields = ("id", "period_id", "major", "minor")
