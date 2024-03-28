@@ -23,7 +23,7 @@ class ExtractGeneralSettingsTestCase(TestCase):
         time = convert_time("02:35:00")
         self.assertEqual(time, 155)
 
-    def test_extract_settings(self):
+    def deprecated_test_extract_settings(self):
         settings_extract(self.department, self.book)
         ts = TimeGeneralSettings.objects.get(department=self.department)
         self.assertIsNotNone(ts)

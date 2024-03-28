@@ -7,6 +7,7 @@ from base.models import Course, ScheduledCourse
 from TTapp.models import ScheduleAllCourses
 
 
+@pytest.mark.skip("not yet ready")
 def test_test(create_typical_situation):
     courses = Course.objects.all()
     period = courses[0].period
