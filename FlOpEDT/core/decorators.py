@@ -32,6 +32,7 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.views import redirect_to_login
 from django.shortcuts import resolve_url
 
 
@@ -60,7 +61,6 @@ def request_passes_test(
                 not login_netloc or login_netloc == current_netloc
             ):
                 path = request.get_full_path()
-            from django.contrib.auth.views import redirect_to_login
 
             return redirect_to_login(path, resolved_login_url, redirect_field_name)
 
@@ -139,20 +139,19 @@ def superuser_required(
     return actual_decorator
 
 
-a_mesurer = True
+ACTIVATE_TIMER = True
 
 
 def timer(fonction):
-    if a_mesurer:
+    if ACTIVATE_TIMER:
 
         def pre_analyse_timer(*args, **kwargs):
             start_time = time.time()
             result = fonction(*args, **kwargs)
             stop_time = time.time()
             total = stop_time - start_time
-            print("%s : %.5fs" % (fonction.__name__, total))
+            print(f"{fonction.__name__} : {total}")
             return result
 
         return pre_analyse_timer
-    else:
-        return fonction
+    return fonction

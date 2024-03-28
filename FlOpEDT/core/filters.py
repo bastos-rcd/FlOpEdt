@@ -47,7 +47,6 @@
 from django.contrib.admin.filters import (
     AllValuesFieldListFilter,
     ChoicesFieldListFilter,
-    RelatedFieldListFilter,
     RelatedOnlyFieldListFilter,
 )
 from django.db.models.fields import BLANK_CHOICE_DASH
@@ -56,17 +55,23 @@ from core.department import get_model_department_lookup
 
 
 class DropdownFilterDepartmentMixin:
-    def field_choices(
-        self, field, request, model_admin, blank_choice=BLANK_CHOICE_DASH
+    def field_choices(  # pylint: disable=dangerous-default-value
+        self,
+        field,
+        request,
+        model_admin,  # pylint: disable=unused-argument
+        blank_choice=BLANK_CHOICE_DASH,  # pylint: disable=unused-argument
     ):
-        queryset = field.related_model._default_manager.all()
+        queryset = (
+            field.related_model._default_manager.all()  # pylint: disable=protected-access
+        )
 
         if hasattr(request, "department"):
             lookup = get_model_department_lookup(
                 field.related_model, request.department
             )
             if lookup:
-                queryset = field.related_model._default_manager.filter(
+                queryset = field.related_model._default_manager.filter(  # pylint: disable=protected-access
                     **lookup
                 ).distinct()
 

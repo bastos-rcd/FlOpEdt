@@ -3,7 +3,7 @@ import logging
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseForbidden
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 
 from base.models import Department
 
@@ -26,7 +26,9 @@ class EdtContextMiddleware:
 
         return response
 
-    def process_view(self, request, view_func, view_args, view_kwargs):
+    def process_view(
+        self, request, view_func, view_args, view_kwargs
+    ):  # pylint: disable=unused-argument
         def del_request_department():
             try:
                 del request.session[department_key]
@@ -42,13 +44,17 @@ class EdtContextMiddleware:
                 session = request.session.get(department_key, "")
                 if not session == department.abbrev:
                     logger.debug(
-                        f"store department [{department.abbrev}] in session with key [{department_key}]"
+                        "store department %s in session with key %s",
+                        department.abbrev,
+                        department_key,
                     )
                     request.session[department_key] = department.abbrev
 
             if set_cache:
                 logger.debug(
-                    f"store department [{department.abbrev}] in cache with key [{department_key}]"
+                    "store department %s in cache with key %s",
+                    department.abbrev,
+                    department_key,
                 )
                 cache.set(department_key, department)
 
@@ -71,9 +77,7 @@ class EdtContextMiddleware:
             for lookup_item in lookup_items:
                 department_abbrev = lookup_item.get(department_key, "")
                 if department_abbrev:
-                    logger.debug(
-                        f"retrieve department from [{lookup_item}] dictionnary"
-                    )
+                    logger.debug("retrieve department from %s dictionnary", lookup_item)
                     return department_abbrev
 
             return department_abbrev
@@ -96,20 +100,18 @@ class EdtContextMiddleware:
             if department_abbrev:
                 # Lookup for a department cached item
                 department = cache.get(department_key)
-                logger.debug(f"get department from cache : {department}")
+                logger.debug("get department from cache : %s", department)
                 if department and department.abbrev == department_abbrev:
                     set_request_department(request, department)
                 else:
                     try:
                         logger.debug(
-                            f"load department from database : [{department_abbrev}]"
+                            "load department from database : %s", department_abbrev
                         )
                         department = Department.objects.get(abbrev=department_abbrev)
                         set_request_department(request, department, set_cache=True)
                     except ObjectDoesNotExist:
-                        logger.warning(
-                            f"wrong department value : [{department_abbrev}]"
-                        )
+                        logger.warning("wrong department value : %s", department_abbrev)
                         return redirect("/")
 
         set_request_department_prop(request)
