@@ -65,7 +65,7 @@ def import_reservations_from_ics_url(room_reservations_ics_url=ics_url,
                                                                  responsible=responsible)
     if future_only:
         tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-        room_reservations_to_delete = room_reservations_to_delete.filter(date__gte=tomorrow)
+        room_reservations_to_delete = room_reservations_to_delete.filter(start_time__date__gte=tomorrow)
     
     room_reservations_to_delete.delete()
     for e in calendar.events:
@@ -82,8 +82,8 @@ def import_reservations_from_ics_url(room_reservations_ics_url=ics_url,
         for room_name in room_names:
             room = Room.objects.get_or_create(name=room_name)[0]
             rooms.add(room)
-        start_time = begin.time()
-        end_time = end.time()
+        start_time = begin
+        end_time = end
         description = e.description
         title = e.name[:30]
         if exclude_if_key_contains in getattr(e, key_exclusion):
@@ -93,7 +93,6 @@ def import_reservations_from_ics_url(room_reservations_ics_url=ics_url,
             for room in rooms:
                 RoomReservation.objects.create(room=room, 
                                                reservation_type=reservation_type, 
-                                               date=date, 
                                                start_time=start_time, 
                                                end_time=end_time,
                                                title=title,

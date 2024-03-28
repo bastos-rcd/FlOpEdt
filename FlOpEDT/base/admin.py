@@ -63,6 +63,7 @@ from base.models import (
     GroupPreferredLinks,
     Mode,
     TrainingPeriod,
+    ModuleTutorRepartition
 )
 from displayweb.models import ModuleDisplay
 from displayweb.models import TutorDisplay
@@ -742,7 +743,6 @@ class CourseAdmin(DepartmentModelAdmin):
     ordering = ("-period", "module", "type", "groups", "tutor")
     list_filter = (
         ("tutor", DropdownFilterRel),
-        ("period", DropdownFilterAll),
         ("type", DropdownFilterRel),
     )
 
@@ -759,7 +759,6 @@ class ScheduledCourseAdmin(DepartmentModelAdmin):
     ordering = ("start_time", "course", "room")
     list_filter = (
         ("course__tutor", DropdownFilterRel),
-        ("course_period", DropdownFilterAll),
     )
 
 
@@ -786,10 +785,9 @@ class DependencyAdmin(DepartmentModelAdmin):
         course1_period,
         "course2",
         "successive",
-        "ND",
+        "day_gap",
     )
     list_filter = (
-        ("course1_period", DropdownFilterAll),
     )
 
 
@@ -814,7 +812,6 @@ class CourseModificationAdmin(DepartmentModelAdmin):
     )
     list_filter = (
         ("initiator", DropdownFilterRel),
-        ("course_period", DropdownFilterAll),
     )
     ordering = ("-updated_at",)
 
@@ -858,6 +855,9 @@ class GroupPreferredLinksAdmin(MyModelAdmin):
 class CourseStartTimeConstraintAdmin(MyModelAdmin):
     pass
 
+class ModuleTutorRepartitionAdmin(DepartmentModelAdmin):
+    list_display = ('module', 'period', 'course_type', 'tutor', 'courses_nb')
+    ordering = ('module', 'period', 'course_type', 'tutor', 'courses_nb')
 
 # </editor-fold desc="ADMIN_MENU">
 
@@ -886,3 +886,4 @@ admin.site.register(CourseStartTimeConstraint, CourseStartTimeConstraintAdmin)
 admin.site.register(Mode, DepartmentModelAdmin)
 admin.site.register(CourseType, DepartmentModelAdmin)
 admin.site.register(TrainingPeriod, DepartmentModelAdmin)
+admin.site.register(ModuleTutorRepartition, ModuleTutorRepartitionAdmin)

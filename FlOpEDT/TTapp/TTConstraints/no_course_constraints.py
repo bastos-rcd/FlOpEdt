@@ -34,7 +34,6 @@ from TTapp.slots import slots_filter, days_filter
 
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.ilp_constraints.constraint import Constraint
-from .groups_constraints import considered_basic_groups
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
@@ -64,6 +63,24 @@ class NoCourseOnWeekDay(TTConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         raise NotImplementedError
+    
+    def is_satisfied_for(self, period, work_copy):
+        considered_scheduled_courses = self.period_work_copy_scheduled_courses_queryset(period, work_copy)
+        # iso_week_day starts at 1 (for monday), so we need to add 1 to the rank
+        iso_week_days_ranks = [rank + 1 for rank, day in enumerate(Day.CHOICES) if day[0] == self.weekday]
+        if self.fampm_period == self.FULL_DAY:
+            unwanted_considered_scheduled_courses = considered_scheduled_courses.filter(
+                start_time__date__iso_week_day__in=iso_week_days_ranks)
+        elif self.fampm_period == self.AM:
+            unwanted_considered_scheduled_courses = considered_scheduled_courses.filter(
+                start_time__date__iso_week_day__in=iso_week_days_ranks,
+                start_time__time__lt=self.time_settings().morning_end_time)
+        elif self.fampm_period == self.PM:
+            unwanted_considered_scheduled_courses = considered_scheduled_courses.filter(
+                start_time__date__iso_week_day__in=iso_week_days_ranks,
+                start_time__time__gte=self.time_settings().afternoon_start_time)
+        assert not unwanted_considered_scheduled_courses, f"Constraint {self} is not satisfied for period {period} and work_copy {work_copy} : {unwanted_considered_scheduled_courses}"
+        
 
 
 class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
@@ -82,16 +99,16 @@ class NoGroupCourseOnWeekDay(NoCourseOnWeekDay):
             ttmodel.add_constraint(self.considered_sum(ttmodel, period),
                                    '==', 0,
                                    Constraint(constraint_type=ConstraintType.NO_GROUP_COURSE_ON_WEEKDAY, periods=period,
-                                              groups=considered_basic_groups(self, ttmodel)))
+                                              groups=self.considered_basic_groups(ttmodel)))
         else:
             ttmodel.add_to_generic_cost(self.local_weight() * ponderation * self.considered_sum(ttmodel, period), period)
 
     def considered_courses(self, ttmodel):
         if self.transversal_groups_included:
-            c_c = set(c for g in considered_basic_groups(self, ttmodel)
+            c_c = set(c for g in self.considered_basic_groups(ttmodel)
                       for c in ttmodel.wdb.all_courses_for_basic_group[g])
         else:
-            c_c = set(c for g in considered_basic_groups(self, ttmodel)
+            c_c = set(c for g in self.considered_basic_groups(ttmodel)
                       for c in ttmodel.wdb.courses_for_basic_group[g])
         if self.course_types.exists():
             c_c = set(c for c in c_c

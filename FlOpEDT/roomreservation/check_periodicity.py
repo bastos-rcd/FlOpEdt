@@ -12,28 +12,17 @@ def check_reservation(reservation_data):
     # convert time field in minute
     start_time = reservation_data['start_time']
     end_time = reservation_data['end_time']
-    start_min = time_to_floptime(start_time)
-    end_min = time_to_floptime(end_time)
 
     # date
-    reservation_date = reservation_data['date']
+    reservation_date = start_time.date()
     reservation_day_nb = reservation_date.weekday()
-    reservation_day = days_list[reservation_day_nb]
-    reservation_year_nb = reservation_date.year
-    reservation_week_nb = reservation_date.isocalendar()[1]
-    reservation_week = Week.objects.get(nb=reservation_week_nb, year=reservation_year_nb)
     room = reservation_data["room"]
 
     # filter
     all_room_courses = ScheduledCourse.objects.filter(work_copy=0, room__in=room.and_overrooms())
-    same_day_room_scheduled_courses = all_room_courses.filter(day=reservation_day,
-                                                              course__week=reservation_week
-                                                              )
-
-    simultaneous_room_scheduled_courses = same_day_room_scheduled_courses.filter(start_time__lt=end_min,
-                                                                                 start_time__gt=start_min - F(
-                                                                                     'course__type__duration'))
-    simultaneous_reservations = RoomReservation.objects.filter(room=room, date=reservation_date,
+    simultaneous_room_scheduled_courses = all_room_courses.filter(start_time__lt=end_time,
+                                                                  start_time__gt=start_time - F('course__duration'))
+    simultaneous_reservations = RoomReservation.objects.filter(room=room,
                                                                start_time__lt=end_time,
                                                                end_time__gt=start_time)
 
@@ -81,10 +70,10 @@ def check_periodicity(periodicity_data, reservation_data):
                                       bymonthday=date_nb))
     for date in considered_dates:
         considered_reservation = reservation_data.copy()
-        considered_reservation['date'] = date
+        days_difference = date - reservation_data['start_time'].date()
+        considered_reservation['start_time'] += days_difference
         check = check_reservation(considered_reservation)
         # Format the date into a string
-        considered_reservation['date'] = considered_reservation['date'].date().isoformat()
         if 'id' in considered_reservation:
             # Given reservation already exists, remove its id for the copies
             considered_reservation.pop('id')
@@ -92,5 +81,5 @@ def check_periodicity(periodicity_data, reservation_data):
             result['ok_reservations'].append(considered_reservation)
         else:
             result['status'] = 'NOK'
-            result['nok_reservations'][considered_reservation['date']] = check['more']
+            result['nok_reservations'][considered_reservation['start_time'].date()] = check['more']
     return result

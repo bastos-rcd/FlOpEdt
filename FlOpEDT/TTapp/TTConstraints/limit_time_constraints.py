@@ -28,7 +28,6 @@ from TTapp.TTConstraints.TTConstraint import TTConstraint
 from TTapp.slots import days_filter, slots_filter
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.TTConstraints.groups_constraints import considered_basic_groups
 from django.utils.translation import gettext_lazy as _
 from base.models import SchedulingPeriod
 
@@ -125,7 +124,7 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         #     considered_groups = self.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
         # else:
         #     considered_groups = ttmodel.wdb.groups.filter(train_prog__in=self.considered_train_progs(ttmodel))
-        for group in considered_basic_groups(self,ttmodel):
+        for group in self.considered_basic_groups(ttmodel):
             self.enrich_model_for_one_object(ttmodel, period, ponderation, group=group)
 
     @classmethod
@@ -189,20 +188,14 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1.):
-
+        
         if self.modules.exists():
             considered_modules = self.modules.filter(train_prog__in=self.considered_train_progs(ttmodel))
         else:
             considered_modules = ttmodel.wdb.modules.filter(train_prog__in=self.considered_train_progs(ttmodel))
 
-        if self.train_progs.exists():
-            considered_basic_groups = set(
-                ttmodel.wdb.basic_groups.filter(train_prog__in=self.train_progs.all()))
-        else:
-            considered_basic_groups = set(ttmodel.wdb.basic_groups)
-
         for module in considered_modules:
-            for group in considered_basic_groups:
+            for group in self.considered_basic_groups(ttmodel):
                 self.enrich_model_for_one_object(ttmodel, period, ponderation, module=module, group=group)
 
     @classmethod

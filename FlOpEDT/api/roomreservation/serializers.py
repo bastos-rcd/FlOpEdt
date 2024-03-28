@@ -124,7 +124,7 @@ def create_reservations_if_possible(periodicity, original_reservation, create_re
     # Create the future reservations
     for reservation in ok_reservations:
         # Ignore the current reservation in the list
-        if reservation['date'] != original_reservation['date'].isoformat():
+        if reservation['start_time'].date() != original_reservation['start_time'].date():
             reservation['periodicity'] = periodicity_instance
             rm.RoomReservation.objects.create(**reservation)
     return periodicity_instance
@@ -167,9 +167,9 @@ class RoomReservationSerializer(serializers.ModelSerializer):
         if rm.RoomReservationValidationEmail.objects.filter(room=room).exists():
             validators = rm.RoomReservationValidationEmail.objects.get(room=room).validators.all()
             responsible = validated_data['responsible']
-            date_str = validated_data['date'].strftime('%d/%m/%Y')
-            start_time_str = validated_data['start_time'].strftime("%Hh%m")
-            end_time_str = validated_data['end_time'].strftime("%Hh%m")
+            date_str = validated_data['start_time'].date().strftime("%d/%m/%Y")
+            start_time_str = validated_data['start_time'].time().strftime("%Hh%m")
+            end_time_str = validated_data['end_time'].time().strftime("%Hh%m")
             title = validated_data['title']
             url = ""
             subject = f"{room.name} réservée par {responsible.username} le {date_str}"
@@ -219,7 +219,6 @@ class RoomReservationSerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
         instance.email = validated_data.get('email', instance.email)
-        instance.date = validated_data.get('date', instance.date)
         instance.start_time = validated_data.get('start_time', instance.start_time)
         instance.end_time = validated_data.get('end_time', instance.end_time)
 
