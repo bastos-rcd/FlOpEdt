@@ -317,3 +317,19 @@ class RoomsViewSet(viewsets.ModelViewSet):
     queryset = bm.Room.objects.all()
     serializer_class = serializers.RoomsSerializer
     filterset_class = RoomFilterSet
+
+
+class TimetableVersionQPS(rf_s.Serializer):
+    ids = rf_s.ListField(child=rf_s.IntegerField())
+
+
+@extend_schema(parameters=[TimetableVersionQPS])
+class TimetableVersionViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = serializers.TimetableVersionSerializer
+
+    def get_queryset(self):
+        qp_serializer = TimetableVersionQPS(data=self.request.query_params)
+        qp_serializer.is_valid(raise_exception=True)
+        params = qp_serializer.validated_data
+
+        return bm.TimetableVersion.objects.filter(id__in=params["ids"])

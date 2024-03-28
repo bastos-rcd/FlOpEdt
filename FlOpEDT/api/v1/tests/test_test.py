@@ -8,6 +8,7 @@ from rest_framework.status import (
 )
 
 from api.v1.tests.factories.people import UserFactory
+from api.v1.tests.utils import add_user_permission
 from people.models import Student, ThemesPreferences, User
 
 
@@ -106,11 +107,13 @@ class TestDRFModelPermission:
 
     def test_put_allowed(self, db, client):
         u = Student.objects.create(username="stu", first_name="Georges")
+        u.is_staff = True
+        u.save()
         p, _ = Permission.objects.get_or_create(
             content_type=ContentType.objects.get(app_label="people", model="student"),
             codename="change_student",
         )
-        u.user_permissions.add(p)
+        add_user_permission(u, p)
         assert (
             "people.change_student" in u.get_all_permissions()
         ), u.user_permissions.all()
@@ -120,7 +123,7 @@ class TestDRFModelPermission:
         )
         assert is_success(response.status_code), response.content
         u.refresh_from_db()
-        assert u.first_name == "Georg", u.first_name
+        assert u.first_name == "Georg"
 
     def test_put_forbidden(self, db, client):
         u = Student.objects.create(username="stu", first_name="Georges")

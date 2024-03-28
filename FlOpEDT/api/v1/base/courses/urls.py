@@ -42,3 +42,6 @@ routerCourse.register(
     r"module-full", courses_views.ModuleFullViewSet, basename="module-full"
 )
 routerCourse.register(r"rooms", courses_views.RoomsViewSet, basename="rooms")
+routerCourse.register(
+    r"version", courses_views.TimetableVersionViewSet, basename="version"
+)

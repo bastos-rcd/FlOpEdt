@@ -28,6 +28,7 @@ from rest_framework.permissions import (
     DjangoModelPermissions,
     DjangoObjectPermissions,
     IsAuthenticated,
+    AllowAny,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView

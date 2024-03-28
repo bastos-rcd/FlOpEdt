@@ -70,11 +70,6 @@ class ScheduledCoursesSerializer(serializers.ModelSerializer):
             "version",
         ]
 
-    def get_end_time(self, obj):
-        start_time = self.get_start_time(obj)
-        duration = obj.course.duration
-        return start_time + dt.timedelta(seconds=duration * 60)
-
     @classmethod
     def and_related(cls):
         return {
@@ -120,3 +115,9 @@ class ModulesFullSerializer(serializers.ModelSerializer):
             "description",
             "ppn",
         )
+
+
+class TimetableVersionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = bm.TimetableVersion
+        fields = ("id", "period_id", "major", "minor")
