@@ -32,11 +32,12 @@
 
 import datetime as dt
 import logging
-from base.timing import Day
-
 from django.conf import settings as ds
+
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
+
+from base.timing import Day
 
 logger = logging.getLogger(__name__)
 

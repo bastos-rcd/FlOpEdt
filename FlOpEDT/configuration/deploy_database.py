@@ -88,8 +88,10 @@ def extract_database_file(
 
     if not created:
         logger.info(
-            f"Department with abbrev {department_abbrev} and name {department_name} already exists. "
-            f"It will be updated"
+            "Department with abbrev %s and name %s already exists. "
+            "It will be updated",
+            department_abbrev,
+            department_name,
         )
     if book is None:
         if bookname is None:
@@ -137,7 +139,7 @@ def people_extract(department, people, fill_default_availabilities=True):
             )
             if fill_default_availabilities:
                 pass  # FIXME : we should split user availabilities in here!
-            logger.debug(f"update tutor : '{id_}'")
+            logger.debug("update tutor : '%s'", id_)
 
         else:
             try:
@@ -157,11 +159,12 @@ def people_extract(department, people, fill_default_availabilities=True):
 
             except IntegrityError as ie:
                 logger.warning(
-                    "A constraint has not been respected while creating the Professor : \n",
+                    "A constraint has not been respected while creating the Professor %s : %s \n",
+                    id_,
                     ie,
                 )
             else:
-                logger.info(f"create tutor with id:{id_}")
+                logger.info("create tutor with id: %s", id_)
 
     logger.info("People extraction : finish")
 
@@ -257,9 +260,10 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
                 TrainingProgrammeDisplay(training_programme=promotion, row=0).save()
             except IntegrityError as ie:
                 logger.warning(
-                    f"A constraint has not been respected creating the promotion '{id_}' : {ie}"
+                    "A constraint has not been respected creating the promotion '%s' : %s",
+                    id_,
+                    ie,
                 )
-                pass  # FIXME: continue?
 
     for id_ in group_types:
         verif = GroupType.objects.filter(name=id_, department=department)
@@ -271,9 +275,10 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
 
             except IntegrityError as ie:
                 logger.warning(
-                    f"A constraint has not been respected creating the group type '{id_}' : {ie}"
+                    "A constraint has not been respected creating the group type '%s' : %s",
+                    id_,
+                    ie,
                 )
-                pass  # FIXME: continue ?
 
     # first loop on groups just to create them - it's too early to set the parents
     for (promotion_id, id_), group in groups.items():
@@ -286,14 +291,14 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
                 promotion = TrainingProgramme.objects.get(
                     abbrev=promotion_id, department=department
                 )
-                groupType = GroupType.objects.get(
+                group_type = GroupType.objects.get(
                     name=group["group_type"], department=department
                 )
                 group = StructuralGroup(
                     name=id_,
                     size=0,
                     train_prog=promotion,
-                    type=groupType,
+                    type=group_type,
                     id=available_generic_group_id,
                 )
                 group.save()
@@ -301,9 +306,10 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
 
             except IntegrityError as ie:
                 logger.warning(
-                    f"A constraint has not been respected creating the group '{id_}' : {ie}"
+                    "A constraint has not been respected creating the group '%s' : %s",
+                    id_,
+                    ie,
                 )
-                pass  # FIXME: continue?
 
     # second loop, set the parents
 
@@ -355,9 +361,10 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
 
             except IntegrityError as ie:
                 logger.warning(
-                    f"A constraint has not been respected creating the transversal group '{id_}' : {ie}"
+                    "A constraint has not been respected creating the transversal group '%s' : %s",
+                    id_,
+                    ie,
                 )
-                pass  # FIXME: continue?
 
     # second loop, set the relatives
 
@@ -419,9 +426,10 @@ def modules_extract(department, modules):
 
             except IntegrityError as ie:
                 logger.warning(
-                    f"A constraint has not been respected creating the module {id_} : {ie}"
+                    "A constraint has not been respected creating the module '%s' : %s",
+                    id_,
+                    ie,
                 )
-                pass  # FIXME: continue?
 
     logger.info("Modules extraction : finish")
 
@@ -446,7 +454,9 @@ def course_types_extract(department, course_types):
 
             except IntegrityError as ie:
                 logger.warning(
-                    f"A constraint has not been respected creating the course type {id_} : {ie}"
+                    "A constraint has not been respected creating the course type '%s' : %s",
+                    id_,
+                    ie,
                 )
     logger.info("Course types extraction : finish")
 
@@ -471,7 +481,9 @@ def course_start_time_constraints_extract(department, course_start_time_constrai
 
             except IntegrityError as ie:
                 logger.warning(
-                    f"A constraint has not been respected creating the constraint of duration {duration_str} : {ie}"
+                    "A constraint has not been respected creating the duration constraint %s : %s",
+                    duration_str,
+                    ie,
                 )
     logger.info("Courses extraction : finish")
 
@@ -517,7 +529,7 @@ def settings_extract(department: Department, settings):
             if set(training_period.periods.all()) != set(considered_scheduling_periods):
                 training_period.periods.set(considered_scheduling_periods)
                 logger.info(
-                    f" Training_period {id_}' scheduling periods have been updated"
+                    " Training_period %s' scheduling periods have been updated", id_
                 )
         else:
             try:
@@ -528,15 +540,15 @@ def settings_extract(department: Department, settings):
 
             except IntegrityError as ie:
                 logger.warning(
-                    f"A constraint has not been respected creating the period '{id_}' : {ie}"
+                    "A constraint has not been respected creating the period ''%s' : %s",
+                    id_,
+                    ie,
                 )
 
     params = copy(settings)
     del params["training_periods"]
     del params["mode"]
-    logger.info(f"TimeGeneralSettings : {params}")
-    TimeGeneralSettings.objects.filter(
-        department=department
-    ).delete()  # FIXME: get and modify
+    logger.info("TimeGeneralSettings : %s", params)
+    TimeGeneralSettings.objects.filter(department=department).delete()
     TimeGeneralSettings.objects.create(department=department, **params)
     logger.info("Settings extraction : finish")
