@@ -72,7 +72,7 @@ class GenericGroup(models.Model):
     def save(self, *args, **kwargs) -> None:
         if "-" in self.name or "|" in self.name:
             raise ValueError("The name of a group cannot contain '-' or '|'")
-        return super().save(args, **kwargs)
+        return super().save(*args, **kwargs)
 
     @property
     def full_name(self):
