@@ -90,5 +90,9 @@
   },
   "editEvent": {
     "deleteButton": ""
+  },
+  "periodPicker": {
+    "allWeek": "",
+    "mondayToFriday": ""
   }
 }

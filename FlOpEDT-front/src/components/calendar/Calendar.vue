@@ -264,7 +264,14 @@ const weekdays = computed(() => {
         break
     }
   })
-  return daysToReturn
+  return daysToReturn.sort((a: number, b: number) => {
+    if ((a >= b && b !== 0) || a === 0) {
+      return 1
+    } else if ((a < b && a !== 0) || b == 0) {
+      return 0
+    }
+    return 0
+  })
 })
 const selectedDates = ref<string[]>([today()])
 const typeCalendar = ref<string>('week')
