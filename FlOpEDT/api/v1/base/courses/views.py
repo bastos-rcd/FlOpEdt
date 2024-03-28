@@ -324,8 +324,8 @@ class TimetableVersionQPS(rf_s.Serializer):
 
 
 @extend_schema(parameters=[TimetableVersionQPS])
-class TimeTableVersionViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = serializers.TimeTableVersionSerializer
+class TimetableVersionViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = serializers.TimetableVersionSerializer
 
     def get_queryset(self):
         qp_serializer = TimetableVersionQPS(data=self.request.query_params)
