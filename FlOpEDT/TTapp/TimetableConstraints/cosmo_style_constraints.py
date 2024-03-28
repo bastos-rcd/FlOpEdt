@@ -97,7 +97,7 @@ class LimitHoles(TimetableConstraint):
         if self.max_holes_per_day is not None:
             text += f"à {self.max_holes_per_day} par jour "
             if self.max_holes_per_period is not None:
-                text += f"et "
+                text += "et "
         if self.max_holes_per_period is not None:
             text += f"à {self.max_holes_per_period} par semaine "
         if self.tutors.exists():
@@ -140,7 +140,7 @@ class LimitHoles(TimetableConstraint):
                             constraint_type=ConstraintType.END_OF_BLOCK,
                             instructors=i,
                             days=d,
-                            name="last->busy_%s_%s_%s" % (d, end_time, i.username),
+                            name=f"last->busy_{d}_{end_time}_{i.username}",
                         ),
                     )
                     # si c'est une fin de bloc, y'a pas de busy_slot juste après
@@ -153,10 +153,11 @@ class LimitHoles(TimetableConstraint):
                             constraint_type=ConstraintType.END_OF_BLOCK,
                             instructors=i,
                             days=d,
-                            name="last_%s_%s_%s_A" % (d, end_time, i.username),
+                            name=f"last_{d}_{end_time}_{i.username}",
                         ),
                     )
-                    # si c'est pas une fin de bloc, y'en a juste après OU y'en a pas qui se terminent là
+                    # si c'est pas une fin de bloc,
+                    # y'en a juste après OU y'en a pas qui se terminent là
                     ttmodel.add_constraint(
                         sum_of_busy_slots_just_after(ttmodel, i, d, end_time)
                         + (
@@ -170,7 +171,7 @@ class LimitHoles(TimetableConstraint):
                             constraint_type=ConstraintType.END_OF_BLOCK,
                             instructors=i,
                             days=d,
-                            name="last_%s_%s_%s_B" % (d, end_time, i.username),
+                            name=f"last__{d}_{end_time}_{i.username}_B",
                         ),
                     )
 
@@ -191,8 +192,7 @@ class LimitHoles(TimetableConstraint):
                                 constraint_type=ConstraintType.MAX_HOLES,
                                 instructors=i,
                                 days=d,
-                                name="%g trous max %s %s"
-                                % (self.max_holes_per_day, i.username, d),
+                                name=f"{self.max_holes_per_day} trous max {i.username} {d}",
                             ),
                         )
                         # ttmodel.add_to_inst_cost(i, 10 * holes_nb[i, d], period)
@@ -256,7 +256,7 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
         if self.min_time_per_period is not None:
             text += f"de {self.min_time_per_period} minimum "
             if self.max_time_per_period is not None:
-                text += f"et "
+                text += "et "
         if self.max_time_per_period is not None:
             text += f"de {self.max_time_per_period} maximum "
         if self.tutors.exists():
@@ -286,20 +286,20 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
             local_weight = self.local_weight()
         # enrich model for each period of the desired length inside ttmodel.periods
         for (i,) in range(len(ttmodel.periods) - self.number_of_weeks + 1):
-            considered_weeks = ttmodel.periods[i : i + self.number_of_weeks]
+            considered_periods = ttmodel.periods[i : i + self.number_of_weeks]
             for tutor in tutors:
                 total_tutor_time = ttmodel.sum(
                     ttmodel.assigned[sl, c, tutor] * sl.minutes
                     for c in ttmodel.data.possible_courses[tutor]
                     for sl in slots_filter(
-                        ttmodel.data.compatible_slots[c], week_in=considered_weeks
+                        ttmodel.data.compatible_slots[c], period__in=considered_periods
                     )
                 ) + sum(
                     sc.course.minutes
                     for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[
                         tutor
                     ]
-                    if sc.course.week in considered_weeks
+                    if sc.course.week in considered_periods
                 )
                 if self.max_time_per_period is not None:
                     undesirable_max = ttmodel.add_floor(
@@ -374,7 +374,8 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
 
 class ModulesByBloc(TimetableConstraint):
     """
-    Force that same module is affected by bloc (a same tutor is affected to each bloc of same module)
+    Force that same module is affected by bloc
+    (a same tutor is affected to each bloc of same module)
     Except for suspens courses
     """
 

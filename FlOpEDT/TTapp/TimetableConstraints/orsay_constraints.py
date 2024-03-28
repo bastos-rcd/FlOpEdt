@@ -165,7 +165,7 @@ class GroupsLunchBreak(TimetableConstraint):
         )
         try:
             text += " les " + ", ".join(
-                [wd for wd in self.weekdays]
+                list(self.weekdays)
             )  # pylint: disable=unnecessary-comprehension
         except ObjectDoesNotExist:
             pass
@@ -440,7 +440,7 @@ class TutorsLunchBreak(TimetableConstraint):
             f"entre {self.start_lunch_time} et {self.end_lunch_time}"
         )
         try:
-            text += " les " + ", ".join([wd for wd in self.weekdays])
+            text += " les " + ", ".join(list(self.weekdays))
         except ObjectDoesNotExist:
             pass
         if self.tutors.exists():
@@ -454,7 +454,8 @@ class TutorsLunchBreak(TimetableConstraint):
 
 class BreakAroundCourseType(TimetableConstraint):
     """
-    Ensures that the courses of a given course type and other types of courses cannot be consecutive for the given groups.
+    Ensures that the courses of a given course type and other types of courses
+    cannot be consecutive for the given groups.
     """
 
     weekdays = ArrayField(
@@ -587,9 +588,10 @@ class BreakAroundCourseType(TimetableConstraint):
                 start_time__lte=sched_course.start_time - F("course__duration"),
             ).exists():
                 no_break_before_courses.add(sched_course)
-        assert (
-            not no_break_after_courses and not no_break_before_courses
-        ), f"Break around course type {self.course_type} not respected for {no_break_after_courses | no_break_before_courses}."
+        assert not no_break_after_courses and not no_break_before_courses, (
+            f"Break around course type {self.course_type} not respected"
+            f"for {no_break_after_courses | no_break_before_courses}."
+        )
 
     def one_line_description(self):
         text = (
@@ -597,7 +599,7 @@ class BreakAroundCourseType(TimetableConstraint):
             f"entre un cours de type {self.course_type.name} et un autre type de cours"
         )
         try:
-            text += " les " + ", ".join([wd for wd in self.weekdays])
+            text += " les " + ", ".join(list(self.weekdays))
         except ObjectDoesNotExist:
             pass
         if self.groups.exists():
