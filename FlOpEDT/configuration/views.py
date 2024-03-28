@@ -24,16 +24,15 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import json
 import logging
 import os
 
 from django.conf import settings as ds
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
-from base.models import Department, SchedulingPeriod, TrainingPeriod
+from base.models import Department, TrainingPeriod, SchedulingPeriod
 from base.weeks import current_year
 from configuration.deploy_database import extract_database_file
 from configuration.extract_planif_file import extract_planif
@@ -98,7 +97,7 @@ def import_config_file(req, **kwargs):
                         dept_abbrev = req.POST["abbrev"]
                         try:
                             dept_name = req.POST["name"]
-                        except:
+                        except KeyError:
                             dept_name = None
                         logger.debug(dept_name)
                         if Department.objects.filter(abbrev=dept_abbrev).exists():
@@ -106,12 +105,12 @@ def import_config_file(req, **kwargs):
                             if not dept_name == dept.name and dept_name is not None:
                                 response = {
                                     "status": "error",
-                                    "data": "Il existe déjà un département utilisant cette abbréviation.",
+                                    "data": (
+                                        "Il existe déjà un département "
+                                        "utilisant cette abbréviation."
+                                    ),
                                 }
-                                return HttpResponse(
-                                    json.dumps(response),
-                                    content_type="application/json",
-                                )
+                                return JsonResponse(response)
                             dept_name = dept.name
 
                         extract_database_file(
@@ -133,13 +132,12 @@ def import_config_file(req, **kwargs):
                             "dept_abbrev": dept_abbrev,
                             "dept_fullname": dept_name,
                         }
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-exception-caught
                     os.remove(path)
                     logger.debug(e)
                     response = {"status": "error", "data": str(e)}
-                    return HttpResponse(
-                        json.dumps(response), content_type="application/json"
-                    )
+                    return JsonResponse(response)
+
                 dept = Department.objects.get(abbrev=dept_abbrev)
                 source = os.path.join(
                     os.path.dirname(__file__), "xls/empty_planif_file.xlsx"
@@ -152,24 +150,25 @@ def import_config_file(req, **kwargs):
                 response = {"status": "error", "data": "Invalid format"}
         else:
             response = {"status": "error", "data": "Form not valid"}
-    return HttpResponse(json.dumps(response), content_type="application/json")
+    return JsonResponse(response)
 
 
 @dept_admin_required
-def get_config_file(req, **kwargs):
+def get_config_file(_, **kwargs):
     """
     Resend the empty configuration's file.
 
     :param req:
     :return:
     """
-    f = open(
+
+    with open(
         f"{os.path.join(os.path.dirname(__file__))}/xls/empty_database_file.xlsx", "rb"
-    )
-    response = HttpResponse(f, content_type="application/vnd.ms-excel")
-    response["Content-Disposition"] = 'attachment; filename="database_file.xls"'
-    f.close()
-    return response
+    ) as f:
+        response = HttpResponse(f, content_type="application/vnd.ms-excel")
+        response["Content-Disposition"] = 'attachment; filename="database_file.xls"'
+        f.close()
+        return response
 
 
 @dept_admin_required
@@ -193,11 +192,11 @@ def get_planif_file(req, with_courses=False, **kwargs):
         filename = os.path.join(
             os.path.join(os.path.dirname(__file__)), f"xls/{basic_filename}"
         )
-    f = open(filename, "rb")
-    response = HttpResponse(f, content_type="application/vnd.ms-excel")
-    response["Content-Disposition"] = f'attachment; filename="{basic_filename}"'
-    f.close()
-    return response
+    with open(filename, "rb") as f:
+        response = HttpResponse(f, content_type="application/vnd.ms-excel")
+        response["Content-Disposition"] = f'attachment; filename="{basic_filename}"'
+        f.close()
+        return response
 
 
 @dept_admin_required
@@ -215,11 +214,11 @@ def get_filled_database_file(req, **kwargs):
     if not os.path.exists(filename):
         basic_filename = "empty_database_file.xlsx"
         filename = os.path.join(os.path.dirname(__file__), f"xls/{basic_filename}")
-    f = open(filename, "rb")
-    response = HttpResponse(f, content_type="application/vnd.ms-excel")
-    response["Content-Disposition"] = f"attachment; filename={basic_filename}"
-    f.close()
-    return response
+    with open(filename, "rb") as f:
+        response = HttpResponse(f, content_type="application/vnd.ms-excel")
+        response["Content-Disposition"] = f"attachment; filename={basic_filename}"
+        f.close()
+        return response
 
 
 @dept_admin_required
@@ -268,14 +267,12 @@ def import_planif_file(req, **kwargs):
                             req.FILES["fichier"], f"planif_file_{dept_abbrev}.xlsx"
                         )
                         dept = Department.objects.get(abbrev=dept_abbrev)
-                    except Exception as e:
+                    except Exception as e:  # pylint: disable=broad-exception-caught
                         response = {"status": "error", "data": str(e)}
-                        return HttpResponse(
-                            json.dumps(response), content_type="application/json"
-                        )
+                        return JsonResponse(response)
                     stabilize_courses = "stabilize" in req.POST
                     assign_colors = "assign_colors" in req.POST
-                    choose_scheduling_weeks = "choose_weeks" in req.POST
+                    choose_scheduling_periods = "choose_weeks" in req.POST
                     choose_training_periods = "choose_periods" in req.POST
                     if choose_scheduling_periods:
                         week_nb = req.POST["week_nb"]
@@ -285,7 +282,9 @@ def import_planif_file(req, **kwargs):
                         else:
                             week_nb = int(week_nb)
                             year = int(year)
-                            from_week = Week.objects.get(nb=week_nb, year=year)
+                            from_week = SchedulingPeriod.objects.get(
+                                name=f"W{week_nb}-{year}"
+                            )
                         week_nb_end = req.POST["week_nb_end"]
                         year_end = req.POST["year_end"]
                         if not week_nb_end and not year_end:
@@ -293,10 +292,21 @@ def import_planif_file(req, **kwargs):
                         else:
                             week_nb_end = int(week_nb_end)
                             year_end = int(year_end)
-                            until_week = Week.objects.get(nb=week_nb_end, year=year_end)
+                            until_week = SchedulingPeriod.objects.get(
+                                name=f"W{week_nb_end}-{year_end}"
+                            )
                     else:
                         from_week = None
                         until_week = None
+                    scheduling_periods = SchedulingPeriod.objects.filter(mode="w,")
+                    if from_week is not None:
+                        scheduling_periods = scheduling_periods.filter(
+                            start_date__gte=from_week.start_date
+                        )
+                    if until_week is not None:
+                        scheduling_periods = scheduling_periods.filter(
+                            start_date=until_week.start_date
+                        )
 
                     if choose_training_periods:
                         training_periods = TrainingPeriod.objects.filter(
@@ -322,7 +332,7 @@ def import_planif_file(req, **kwargs):
                     logger.info("Rename OK")
 
                     response = {"status": "ok", "data": rep}
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 os.remove(path)
                 logger.info(e)
                 response = {"status": "error", "data": str(e)}
@@ -330,4 +340,4 @@ def import_planif_file(req, **kwargs):
             response = {"status": "error", "data": "Invalid format"}
     else:
         response = {"status": "error", "data": "Form can't be valid"}
-    return HttpResponse(json.dumps(response), content_type="application/json")
+    return JsonResponse(response)

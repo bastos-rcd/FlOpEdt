@@ -33,8 +33,9 @@
 # on-disk in a JSON format
 #
 
-import yaml
 import logging
+
+import yaml
 
 logger = logging.getLogger("base")
 
@@ -43,7 +44,7 @@ def database_description_save_yaml_file(filename, database):
     try:
         with open(filename, "w", encoding="utf-8") as handle:
             handle.write(yaml.dump(database))
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-exception-caught
         logger.warning("Problem saving: %s", exc)
 
 
@@ -52,6 +53,6 @@ def database_description_load_yaml_file(filename):
         with open(filename, "r", encoding="utf-8") as handle:
             result = yaml.load(handle.read(), Loader=yaml.FullLoader)
             return result
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-exception-caught
         logger.warning("Problem loading: %s", exc)
         return None

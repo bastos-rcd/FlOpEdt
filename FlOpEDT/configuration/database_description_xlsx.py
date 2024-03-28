@@ -523,7 +523,9 @@ def parse_groups(sheet):
 #################################################
 
 
-def database_description_load_xlsx_file(filename="file_essai.xlsx"):
+def database_description_load_xlsx_file(
+    filename="file_essai.xlsx",
+):  # pylint: disable=too-many-return-statements
     try:
         wb = load_workbook(filename, data_only=True)
 

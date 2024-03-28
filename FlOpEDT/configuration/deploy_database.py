@@ -34,7 +34,6 @@ from django.conf import settings as ds
 from django.db import IntegrityError, transaction
 
 from base.models import (
-    CourseAvailability,
     CourseStartTimeConstraint,
     CourseType,
     Department,
@@ -44,18 +43,15 @@ from base.models import (
     Module,
     Room,
     RoomType,
-    SchedulingPeriod,
     StructuralGroup,
     TimeGeneralSettings,
     TrainingPeriod,
     TrainingProgramme,
     TransversalGroup,
-    UserAvailability,
 )
 from configuration.database_description_checker import database_description_check
 from configuration.database_description_xlsx import database_description_load_xlsx_file
 from displayweb.models import TrainingProgrammeDisplay
-from misc.assign_colors import assign_module_color
 from people.models import (
     FullStaff,
     SupplyStaff,
@@ -100,11 +96,11 @@ def extract_database_file(
         book = database_description_load_xlsx_file(bookname)
 
     if book is None:
-        raise Exception("Database file could not be loaded.")
+        raise TypeError("Database file could not be loaded.")
 
     check = database_description_check(book)
     if len(check) > 0:
-        raise Exception("\n".join(check))
+        raise ValueError("\n".join(check))
 
     settings_extract(department, book["settings"])
     rooms_extract(
@@ -187,7 +183,9 @@ def rooms_extract(department, room_groups, room_categories, rooms):
             RoomType.objects.get_or_create(department=department, name=cat_id)
         except IntegrityError as ie:
             logger.warning(
-                f"A constraint has not been respected creating the room category '{cat_id}' : {ie}"
+                "A constraint has not been respected creating the room category '%s' : %s",
+                cat_id,
+                ie,
             )
 
     for id_ in rooms:
@@ -198,7 +196,9 @@ def rooms_extract(department, room_groups, room_categories, rooms):
 
         except IntegrityError as ie:
             logger.warning(
-                f"A constraint has not been respected creating the room '{id_}' : {ie}"
+                "A constraint has not been respected creating the room '%s' : %s",
+                id_,
+                ie,
             )
 
     for group_id, members in room_groups.items():
@@ -209,7 +209,9 @@ def rooms_extract(department, room_groups, room_categories, rooms):
 
         except IntegrityError as ie:
             logger.warning(
-                f"A constraint has not been respected creating the room group '{group_id}' : {ie}"
+                "A constraint has not been respected creating the room group '%s' : %s",
+                group_id,
+                ie,
             )
 
         for room_id in members:
@@ -218,13 +220,12 @@ def rooms_extract(department, room_groups, room_categories, rooms):
                 room.departments.add(department)
                 if room_group in room.subroom_of.all():
                     continue
-                else:
-                    logger.info(f"Add room '{room_id}' to group '{group_id}'")
-                    room.subroom_of.add(room_group)
-                    room.departments.add(department)
+                logger.info("Add room '%s' to group '%s'", room_id, group_id)
+                room.subroom_of.add(room_group)
+                room.departments.add(department)
 
             except Room.DoesNotExist:
-                logger.warning(f"Unable to find room '{room_id}'")
+                logger.warning("Unable to find room '%s'", room_id)
 
     for cat_id, members in room_categories.items():
         room_type = RoomType.objects.get(department=department, name=cat_id)
@@ -235,7 +236,7 @@ def rooms_extract(department, room_groups, room_categories, rooms):
                 room.departments.add(department)
                 room.save()
             except Room.DoesNotExist:
-                logger.warning(f"Unable to find room '{member}'")
+                logger.warning("Unable to find room '%s'", member)
 
     temporary_room_type.delete()
     logger.info("Room extraction : finish")

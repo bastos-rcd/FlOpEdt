@@ -108,12 +108,15 @@
 
 import datetime as dt
 
-PEOPLE_SHEET = "Intervenants"
-ROOMS_SHEET = "Salles"
-GROUPS_SHEET = "Groupes"
-MODULES_SHEET = "Modules"
-COURSES_SHEET = "Cours"
-SETTINGS_SHEET = "Paramètres"
+
+from .database_description_xlsx import (
+    PEOPLE_SHEET,
+    ROOMS_SHEET,
+    GROUPS_SHEET,
+    MODULES_SHEET,
+    COURSES_SHEET,
+    SETTINGS_SHEET,
+)
 
 ##########################################
 #                                        #

@@ -222,7 +222,7 @@ def make_planif_file(
         ################ A line per module per CourseType ################
         for mod in Module.objects.filter(training_period=training_period):
             courses = Course.objects.filter(module=mod)
-            logger.info(f"Module {mod}")
+            logger.info("Module %s", mod)
             for ct in course_types:
                 type_courses = courses.filter(type=ct)
                 durations = [""]
@@ -375,16 +375,18 @@ def make_planif_file(
                                 )
                                 sheet.cell(row=rank, column=3).value = ct.name
                                 sheet.cell(row=rank, column=4).value = (
-                                    f'=IF($D${dark_green_line_rank}="","",$D${dark_green_line_rank})'
+                                    f'=IF($D${dark_green_line_rank}="","",'
+                                    f"$D${dark_green_line_rank})"
                                 )
                                 tutor_validator.add(sheet.cell(row=rank, column=5))
                                 room_type_validator.add(sheet.cell(row=rank, column=6))
                                 sheet.cell(row=rank, column=7).value = g.name
                                 rank += 1
                             sheet.cell(row=rank - nb_groups, column=verif_col).value = (
-                                ""
-                                '=IF(SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d=0,"OK","/!\\ -> '
-                                '"&SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))-$%s%d*%d)'
+                                "=IF(SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))"
+                                '-$%s%d*%d=0,"OK","/!\\ -> '
+                                '"&SUM(%s%d:INDIRECT(ADDRESS(MATCH(G$5,G%d:G%d,0)+ROW()-2,%d)))'
+                                "-$%s%d*%d)"
                                 % (
                                     first_column_letter[training_period],
                                     rank - nb_groups,
@@ -560,7 +562,6 @@ def make_planif_file(
                     cl,
                 )
             )
-            # '=SUMIF(%s!$H$1:$%s$1;%s$1;%s!$H$%d:$%s$%d)' (p.name, last_column_letter[p], cl, p.name, last_row[p.name], last_column_letter[p], last_row[p.name])
 
         rank += 1
     append_row(sheet, recap_rows, 3, rank, recap_col_nb)
