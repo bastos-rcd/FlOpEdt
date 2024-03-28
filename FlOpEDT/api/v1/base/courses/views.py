@@ -194,7 +194,7 @@ class ScheduledCoursesJoinedViewSet(viewsets.ReadOnlyModelViewSet):
 
         if "tutor_id" in params:
             queryset = queryset.filter(
-                Q(tutor=params["tutor_id"]) | Q(course__supp_tutor=params["tutor_id"])
+                Q(tutor=params["tutor_id"]) | Q(course__supp_tutors=params["tutor_id"])
             )
 
         if "group_ids" in params:

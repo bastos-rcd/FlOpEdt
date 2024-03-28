@@ -54,12 +54,14 @@ class NoVisio(TimetableConstraint):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1000000):
-        if not hasattr(self.department, "mode"):
+        if hasattr(self.department, "mode"):
+            if not self.department.mode.visio:
+                print("Visio Mode is not activated : ignore NoVisio constraint")
+                return
+        else:
             print("Visio Mode is not activated : ignore NoVisio constraint")
             return
-        if not self.department.mode.visio:
-            print("Visio Mode is not activated : ignore NoVisio constraint")
-            return
+
         considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
@@ -107,9 +109,9 @@ class NoVisio(TimetableConstraint):
     def one_line_description(self):
         text = "Pas de visio"
         if self.weight is not None:
-            "(sauf demande expresse)"
+            text += " (sauf demande expresse)"
         if self.weekdays:
-            text += " les " + ", ".join([wd for wd in self.weekdays])
+            text += " les " + ", ".join(list(self.weekdays))
         if self.course_types.exists():
             text += " pour les cours de type " + ", ".join(
                 [t.name for t in self.course_types.all()]
@@ -154,13 +156,17 @@ class VisioOnly(TimetableConstraint):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1000000):
-        if not self.department.mode.visio:
+        if hasattr(self.department, "mode"):
+            if not self.department.mode.visio:  # pylint: disable=no-member
+                print("Visio Mode is not activated : ignore VisioOnly constraint")
+                return
+        else:
             print("Visio Mode is not activated : ignore VisioOnly constraint")
             return
         considered_groups = self.considered_basic_groups(ttmodel)
         days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
-            days = days_filter(days, day_in=self.weekdays)
+            days = days_filter(days, weekday_in=self.weekdays)
         for group in considered_groups:
             # Si contrainte forte, Tous les cours en visio,
             # Sinon un poids LOURD pour chaque cours
@@ -207,7 +213,7 @@ class VisioOnly(TimetableConstraint):
         if self.weight is not None:
             text += "(sauf demande expresse)"
         if self.weekdays:
-            text += " les " + ", ".join([wd for wd in self.weekdays])
+            text += " les " + ", ".join(list(self.weekdays))
         if self.course_types.exists():
             text += " pour les cours de type " + ", ".join(
                 [t.name for t in self.course_types.all()]
@@ -301,8 +307,11 @@ class LimitGroupsPhysicalPresence(TimetableConstraint):
             text += ", toutes promos confondues,"
         text += "sont physiquement présents chaque demie-journée"
         if self.weekdays:
-            text += " les " + ", ".join([wd for wd in self.weekdays])
+            text += " les " + ", ".join(list(self.weekdays))
         return text
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
 class BoundPhysicalPresenceHalfDays(TimetableConstraint):
@@ -333,7 +342,7 @@ class BoundPhysicalPresenceHalfDays(TimetableConstraint):
                 "Visio Mode is not activated : ignore BoundPhysicalPresenceHalfDays constraint"
             )
             return
-        if not self.department.mode.visio:
+        if not self.department.mode.visio:  # pylint: disable=no-member
             print(
                 "Visio Mode is not activated : ignore BoundPhysicalPresenceHalfDays constraint"
             )
@@ -427,13 +436,13 @@ class Curfew(TimetableConstraint):
         verbose_name_plural = verbose_name
 
     def one_line_description(self):
-        text = f"Curfew after {min_to_str(self.curfew_time)}"
+        return f"Curfew after {min_to_str(self.curfew_time)}"
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=2):
         if not hasattr(self.department, "mode"):
             print("Visio Mode is not activated : ignore Curfew constraint")
             return
-        if not self.department.mode.visio:
+        if not self.department.mode.visio:  # pylint: disable=no-member
             print("Visio Mode is not activated : ignore Curfew constraint")
             return
         days = days_filter(ttmodel.data.days, period=period)

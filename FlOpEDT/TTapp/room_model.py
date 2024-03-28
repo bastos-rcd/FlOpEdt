@@ -197,13 +197,13 @@ class RoomModel(FlopModel):
     def users_init(self):
         # USERS
         tutors = set(c.tutor for c in self.scheduled_courses.distinct("tutor"))
-        for course in self.courses.distinct("supp_tutor"):
-            tutors |= set(course.supp_tutor.all())
+        for course in self.courses.distinct("supp_tutors"):
+            tutors |= set(course.supp_tutors.all())
 
         courses_for_tutor = {}
         for tutor in tutors:
             courses_for_tutor[tutor] = set(
-                self.courses.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
+                self.courses.filter(Q(tutor=tutor) | Q(supp_tutors=tutor))
             )
 
         common_room_sorts = RoomSort.objects.filter(

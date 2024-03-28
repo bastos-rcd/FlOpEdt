@@ -86,7 +86,7 @@ class Course(models.Model):
         default=None,
         on_delete=models.CASCADE,
     )
-    supp_tutor = models.ManyToManyField(
+    supp_tutors = models.ManyToManyField(
         "people.Tutor", related_name="courses_as_supp", blank=True
     )
     groups = models.ManyToManyField(

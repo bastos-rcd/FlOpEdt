@@ -168,8 +168,8 @@ def create_course_partition_from_constraints(
         possible_tutors_1 = set(
             mod.possible_tutors.all() for mod in mods_possible_tutor
         )
-    if course.supp_tutor is not None:
-        required_supp_1 = set(course.supp_tutor.all())
+    if course.supp_tutors is not None:
+        required_supp_1 = set(course.supp_tutors.all())
 
     for tutor in possible_tutors_1:
         period_partition = complete_tutor_partition_from_constraints(

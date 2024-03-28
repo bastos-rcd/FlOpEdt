@@ -748,9 +748,9 @@ function translate_cours_pl_from_json(d, result) {
   }
 
 
-  if (department_settings.mode.cosmo===0 && Array.isArray(d.course.supp_tutor)) {
+  if (department_settings.mode.cosmo===0 && Array.isArray(d.course.supp_tutors)) {
       // pre-process supplementary tutors
-      d.tutors = d.course.supp_tutor.map(function (st) {
+      d.tutors = d.course.supp_tutors.map(function (st) {
         return st.username;
       });
   }
@@ -856,7 +856,7 @@ function course_pp_canevas_json_to_obj(d) {
 function translate_cours_pp_from_json(d, result) {
   if (department_settings.mode.cosmo==0) {
     // pre-process supplementary tutors
-    d.tutors = d.supp_tutor.map(function(st) {
+    d.tutors = d.supp_tutors.map(function(st) {
       return st.username ;
     });
   } else {

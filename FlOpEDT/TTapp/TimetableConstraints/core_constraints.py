@@ -240,11 +240,11 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
 
                         # We look if there is enough slot for each course_type
 
-                        allowed_slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(
+                        slots_nb = group_partition.nb_slots_not_forbidden_of_duration_beginning_at(
                             course_duration, start_times
                         )
 
-                        if allowed_slots_nb < nb_courses:
+                        if slots_nb < nb_courses:
                             jsondict["status"] = _("KO")
                             jsondict["messages"].append(
                                 {
@@ -255,7 +255,7 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                                     )
                                     % {
                                         "group_name": bg.name,
-                                        "allowed_slots_nb": allowed_slots_nb,
+                                        "allowed_slots_nb": slots_nb,
                                         "duration": course_duration,
                                         "nb_courses": nb_courses,
                                     },
@@ -749,8 +749,8 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
                     if scheduled_courses.count() != mtr.courses_nb:
                         unsatisfied_mtr.append((module, course_type, mtr.tutor))
         assert not unsatisfied_mtr, (
-            f"The following ModuleTutorRepartitions are not satisfied "
-            "for period {period} and version {version} : {unsatisfied_mtr}"
+            "The following ModuleTutorRepartitions are not satisfied "
+            f"for period {period} and version {version} : {unsatisfied_mtr}"
         )
 
 
@@ -792,7 +792,7 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
 
         for tutor in considered_tutors:
             courses = Course.objects.filter(
-                Q(tutor=tutor) | Q(supp_tutor=tutor), period=period
+                Q(tutor=tutor) | Q(supp_tutors=tutor), period=period
             )
             if not courses.filter(type__department=self.department):
                 continue
@@ -927,22 +927,18 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
                         course_partition.add_partition_data_type(
                             tutor_partition, "user_preference"
                         )
-
+                        slots_nb = course_partition.nb_slots_available_of_duration_beginning_at(
+                            course_duration, start_times
+                        )
                         if course_partition.available_duration < len(
                             course_list
-                        ) * course_duration or course_partition.nb_slots_available_of_duration_beginning_at(
-                            course_duration, start_times
-                        ) < len(
-                            course_list
-                        ):
+                        ) * course_duration or slots_nb < len(course_list):
                             message = gettext(
                                 "Tutor %(tutor)s has %(slots_nb)s available "
                                 "slots of %(duration)s mins "
                             ) % {
                                 "tutor": tutor,
-                                "slots_nb": course_partition.nb_slots_available_of_duration_beginning_at(
-                                    course_duration, start_times
-                                ),
+                                "slots_nb": slots_nb,
                                 "duration": course_duration,
                             }
                             message += gettext(
@@ -974,31 +970,31 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
                     for c2 in ttmodel.data.possible_courses[tutor]
                     & ttmodel.data.compatible_courses[sl2]
                 )
-                supp_tutor_relevant_sum = ttmodel.sum(
+                supp_tutors_relevant_sum = ttmodel.sum(
                     ttmodel.scheduled[(sl2, c2)]
                     for sl2 in slots_filter(
                         ttmodel.data.courses_slots, simultaneous_to=sl
                     )
-                    for c2 in ttmodel.data.courses_for_supp_tutor[tutor]
+                    for c2 in ttmodel.data.courses_for_supp_tutors[tutor]
                     & ttmodel.data.compatible_courses[sl2]
                 )
                 if self.weight is None:
                     ttmodel.add_constraint(
-                        tutor_relevant_sum + supp_tutor_relevant_sum,
+                        tutor_relevant_sum + supp_tutors_relevant_sum,
                         "<=",
                         ttmodel.avail_instr[tutor][sl],
                         SlotInstructorConstraint(sl, tutor),
                     )
                 else:
                     ttmodel.add_constraint(
-                        tutor_relevant_sum + supp_tutor_relevant_sum,
+                        tutor_relevant_sum + supp_tutors_relevant_sum,
                         "<=",
                         1,
                         SlotInstructorConstraint(sl, tutor),
                     )
 
                     tutor_undesirable_course = ttmodel.add_floor(
-                        tutor_relevant_sum + supp_tutor_relevant_sum,
+                        tutor_relevant_sum + supp_tutors_relevant_sum,
                         ttmodel.avail_instr[tutor][sl] + 1,
                         10000,
                     )
@@ -1014,11 +1010,11 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
         )
         considered_tutors = set(sc.tutor for sc in considered_scheduled_courses)
         for sc in considered_scheduled_courses:
-            considered_tutors |= set(sc.course.supp_tutor.all())
+            considered_tutors |= set(sc.course.supp_tutors.all())
         unavailable_tutors = []
         for tutor in considered_tutors:
             tutor_courses = considered_scheduled_courses.filter(
-                Q(tutor=tutor) | Q(course__supp_tutor=tutor)
+                Q(tutor=tutor) | Q(course__supp_tutors=tutor)
             )
             user_unavailabilities = period_actual_availabilities(
                 tutor, period, unavail_only=True

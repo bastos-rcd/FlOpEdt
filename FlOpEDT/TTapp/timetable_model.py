@@ -300,7 +300,7 @@ class TimetableModel(FlopModel):
         for i in self.data.instructors:
             other_dep_sched_courses = (
                 self.data.other_departments_scheduled_courses_for_tutor[i]
-                | self.data.other_departments_scheduled_courses_for_supp_tutor[i]
+                | self.data.other_departments_scheduled_courses_for_supp_tutors[i]
             )
             fixed_courses = self.data.fixed_courses_for_tutor[i]
             for sl in self.data.availability_slots:
@@ -1166,7 +1166,9 @@ class TimetableModel(FlopModel):
                                     value = minimum
                                     non_preferred_cost_course[(course_type, promo)][
                                         availability_slot
-                                    ] = (1 - value / 8)
+                                    ] = (
+                                        1 - value / 8
+                                    )  # pylint: disable=superfluous-parens
                             else:
                                 avail_course[(course_type, promo)][
                                     availability_slot
@@ -1245,7 +1247,7 @@ class TimetableModel(FlopModel):
             for i in self.data.instructors:
                 other_dep_sched_courses = (
                     self.data.other_departments_scheduled_courses_for_tutor[i]
-                    | self.data.other_departments_scheduled_courses_for_supp_tutor[i]
+                    | self.data.other_departments_scheduled_courses_for_supp_tutors[i]
                 ) & self.data.other_departments_sched_courses_for_avail_slot[sl]
 
                 if other_dep_sched_courses:

@@ -392,7 +392,7 @@ class LimitStartTimeChoices(StartTimeConstraint):
                 text += ", ".join(self.possible_week_days)
             if self.possible_start_times:
                 text += " à "
-                text += ", ".join([pst for pst in self.possible_start_times])
+                text += ", ".join(list(self.possible_start_times))
         text += "."
         return text
 
@@ -461,9 +461,7 @@ class AvoidStartTimes(StartTimeConstraint):
                 text += ", ".join(self.forbidden_week_days)
             if self.forbidden_week_days:
                 text += " à "
-                text += ", ".join(
-                    [fst for fst in self.forbidden_start_times]
-                )  # pylint: disable=unnecessary-comprehension
+                text += ", ".join(list(self.forbidden_start_times))
         text += "."
         return text
 
@@ -764,32 +762,32 @@ class ConsiderDependencies(TimetableConstraint):
                     course_type=dependency.course2.type
                 ).allowed_start_times
                 # Retrieving only TimeInterval for each course
-                course1_slots = period_partition_course1.find_all_available_timeinterval_starting_at(
+                course1_sl = period_partition_course1.find_all_available_timeinterval_starting_at(
                     course1_start_times, dependency.course1.duration
                 )
-                course2_slots = period_partition_course2.find_all_available_timeinterval_starting_at(
+                course2_sl = period_partition_course2.find_all_available_timeinterval_starting_at(
                     course2_start_times, dependency.course2.duration
                 )
-                if course1_slots and course2_slots:
+                if course1_sl and course2_sl:
                     while (
-                        course2_slots[0].end
-                        < course1_slots[0].start
+                        course2_sl[0].end
+                        < course1_sl[0].start
                         + dependency.course1.duration
                         + dependency.course2.duration
                     ):
-                        course2_slots.pop(0)
-                        if not course2_slots:
+                        course2_sl.pop(0)
+                        if not course2_sl:
                             break
-                    if course2_slots:
-                        course2_slots[0].start = max(
-                            course2_slots[0].start,
-                            course1_slots[0].start + dependency.course1.duration,
+                    if course2_sl:
+                        course2_sl[0].start = max(
+                            course2_sl[0].start,
+                            course1_sl[0].start + dependency.course1.duration,
                         )
                         # Here we check if the first course_slot that we might just shrank
                         # is still long enough and if it is the only one left.
                         if (
-                            len(course2_slots) <= 1
-                            and course2_slots[0].duration < dependency.course2.duration
+                            len(course2_sl) <= 1
+                            and course2_sl[0].duration < dependency.course2.duration
                         ):
                             jsondict["status"] = _("KO")
                             ok_so_far = False
@@ -839,8 +837,8 @@ class ConsiderDependencies(TimetableConstraint):
                 if ok_so_far:
                     if dependency.successive:
                         if not find_successive_slots(
-                            course1_slots,
-                            course2_slots,
+                            course1_sl,
+                            course2_sl,
                             dependency.course1.duration,
                             dependency.course2.duration,
                         ):
@@ -849,7 +847,7 @@ class ConsiderDependencies(TimetableConstraint):
                             jsondict["messages"].append(
                                 {
                                     "str": gettext(
-                                        "There is no available successive slots for those courses: %s"
+                                        "No available successive slots for those courses: %s"
                                     )
                                     % dependency,
                                     "course1": dependency.course1.id,
@@ -859,7 +857,7 @@ class ConsiderDependencies(TimetableConstraint):
                             )
                     if dependency.day_gap != 0:
                         if not find_day_gap_slots(
-                            course1_slots, course2_slots, dependency.day_gap
+                            course1_sl, course2_sl, dependency.day_gap
                         ):
                             jsondict["status"] = _("KO")
                             ok_so_far = False
@@ -1281,7 +1279,8 @@ class LimitUndesiredSlotsPerDayPeriod(TimetableConstraint):
 
 class LimitSimultaneousCoursesNumber(TimetableConstraint):
     """
-    Limit the number of simultaneous courses inside a set of courses, and/or selecting a specific course type
+    Limit the number of simultaneous courses inside a set of courses,
+    and/or selecting a specific course type
     and/or a set of considered modules
     """
 

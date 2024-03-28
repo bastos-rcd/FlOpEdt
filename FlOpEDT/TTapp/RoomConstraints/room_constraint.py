@@ -91,10 +91,10 @@ class RoomConstraint(FlopConstraint):
             room_types=room_types,
         )
         if tutor is not None:
-            courses_qs = courses_qs.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
+            courses_qs = courses_qs.filter(Q(tutor=tutor) | Q(supp_tutors=tutor))
         if tutors:
             courses_qs = courses_qs.filter(
-                Q(tutor__in=tutors) | Q(supp_tutor__in=tutors)
+                Q(tutor__in=tutors) | Q(supp_tutors__in=tutors)
             )
 
         return courses_qs
@@ -125,7 +125,7 @@ class LimitSimultaneousRoomCourses(RoomConstraint):
         verbose_name_plural = verbose_name
 
     def one_line_description(self):
-        text = f"Pas plus d'un cours à la fois dans "
+        text = "Pas plus d'un cours à la fois dans "
         if self.rooms.exists():
             text += (
                 f"dans les salles {', '.join(room.name for room in self.rooms.all())}."
@@ -518,38 +518,8 @@ class LocateAllCourses(RoomConstraint):
         verbose_name = _("Assign a room to the courses")
         verbose_name_plural = verbose_name
 
-    def considered_courses(self, courses_of_the_period):
-        courses_to_consider = courses_of_the_period
-        if self.modules.exists():
-            courses_to_consider = set(
-                c for c in courses_to_consider if c.module in self.modules.all()
-            )
-        if self.course_types.exists():
-            courses_to_consider = set(
-                c for c in courses_to_consider if c.type in self.course_types.all()
-            )
-        if self.room_types.exists():
-            courses_to_consider = set(
-                c for c in courses_to_consider if c.room_type in self.room_types.all()
-            )
-        if self.groups.exists():
-            courses_to_consider = set(
-                c
-                for c in courses_to_consider
-                if all(g in self.groups.all() for g in c.groups.all())
-            )
-        if self.tutors.exists():
-            courses_to_consider = set(
-                c for c in courses_to_consider if c.tutor in self.tutors.all()
-            )
-
-        return courses_to_consider
-
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_courses = self.considered_courses(
-            ttmodel.data.courses_by_period[period]
-        )
-        for c in considered_courses:
+        for c in self.considered_courses(period, ttmodel):
             for sl in ttmodel.data.compatible_slots[c]:
                 undesired_situation = ttmodel.scheduled[(sl, c)] - ttmodel.sum(
                     ttmodel.located[(sl, c, r)]
@@ -601,7 +571,7 @@ class LocateAllCourses(RoomConstraint):
                 )
 
     def one_line_description(self):
-        text = f"Attribue une salle à tous les cours"
+        text = "Attribue une salle à tous les cours"
         if self.groups.exists():
             text += " des groupes " + ", ".join(
                 [group.name for group in self.groups.all()]
@@ -723,7 +693,7 @@ class LimitTutorMoves(LimitMoves):
         return room_model.add_to_inst_cost
 
     def one_line_description(self):
-        text = f"Limite les changements de salles"
+        text = "Limite les changements de salles"
         if self.tutors.exists():
             text += (
                 " des profs "

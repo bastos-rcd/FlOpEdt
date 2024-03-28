@@ -23,6 +23,8 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from typing import TYPE_CHECKING
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -31,6 +33,9 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
+
+if TYPE_CHECKING:
+    from TTapp.timetable_model import TimetableModel
 
 
 def build_fd_or_apm_period_slots(ttmodel, day, apm_period):
@@ -58,7 +63,18 @@ class LimitTimePerPeriod(TimetableConstraint):
     class Meta:
         abstract = True
 
-    def build_fd_or_apm_period_by_day(self, ttmodel, period: SchedulingPeriod):
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
+        raise NotImplementedError
+
+    def one_line_description(self):
+        raise NotImplementedError
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
+
+    def build_fd_or_apm_period_by_day(
+        self, ttmodel: "TimetableModel", period: SchedulingPeriod
+    ):
         if self.fhd_period == self.FULL_DAY:
             apm_periods = [None]
         else:
@@ -92,7 +108,12 @@ class LimitTimePerPeriod(TimetableConstraint):
         )
 
     def build_apm_period_expression(
-        self, ttmodel, day, apm_period, considered_courses, tutor=None
+        self,
+        ttmodel: "TimetableModel",
+        day,
+        apm_period,
+        considered_courses,
+        tutor=None,  # pylint: disable=unused-argument
     ):
         expr = ttmodel.lin_expr()
         for slot in build_fd_or_apm_period_slots(ttmodel, day, apm_period):
@@ -103,7 +124,7 @@ class LimitTimePerPeriod(TimetableConstraint):
 
     def enrich_model_for_one_object(
         self,
-        ttmodel,
+        ttmodel: "TimetableModel",
         period: SchedulingPeriod,
         ponderation,
         train_prog=None,
@@ -220,7 +241,8 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
     """
     Bound the number of hours of courses (of type 'type') per day/half day
     Attributes:
-        modules : the modules concerned by the limitation. All the modules of self.train_progs if None.
+        modules : the modules concerned by the limitation.
+        All the modules of self.train_progs if None.
     """
 
     train_progs = models.ManyToManyField("base.TrainingProgramme", blank=True)
@@ -319,7 +341,7 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
         verbose_name = _("Limit tutors busy time per period")
         verbose_name_plural = verbose_name
 
-    def build_apm_period_expression(
+    def build_apm_period_expression(  # pylint: disable=arguments-renamed
         self, ttmodel, day, fd_or_apm_period, considered_courses, tutor=None
     ):
         expr = ttmodel.lin_expr()

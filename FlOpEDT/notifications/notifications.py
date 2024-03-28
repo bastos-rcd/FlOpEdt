@@ -84,7 +84,7 @@ def backup():
             )
             # Can have no supp_tutors
             supp_tutors = (
-                list(course.supp_tutor.all()) if course.supp_tutor != None else None
+                list(course.supp_tutors.all()) if course.supp_tutors != None else None
             )
             start_time = scheduled_course.start_time
             # Can have no room
@@ -99,7 +99,7 @@ def backup():
                 line.new = True
                 line.module_abbrev = module
                 line.tutor_username = tutor
-                line.supp_tutor_usernames = supp_tutors
+                line.supp_tutors_usernames = supp_tutors
                 line.start_time = start_time
                 line.room_name = room
                 line.group_name = group.name

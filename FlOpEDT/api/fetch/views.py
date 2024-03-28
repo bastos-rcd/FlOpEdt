@@ -126,7 +126,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 "course__module__display",
             )
             .prefetch_related(
-                "course__groups__train_prog", "room", "course__supp_tutor"
+                "course__groups__train_prog", "room", "course__supp_tutorss"
             )
         )
         queryset = queryset.filter(work_copy=work_copy)
@@ -183,7 +183,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 )
             if self.tutor is not None:
                 queryset = queryset.filter(
-                    Q(tutor=self.tutor) | Q(course__supp_tutor=self.tutor)
+                    Q(tutor=self.tutor) | Q(course__supp_tutorss=self.tutor)
                 )
 
         return queryset
@@ -273,7 +273,7 @@ class NewApiScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 "course__module__display",
             )
             .prefetch_related(
-                "course__groups__train_prog", "room", "course__supp_tutor"
+                "course__groups__train_prog", "room", "course__supp_tutorss"
             )
         )
         queryset = queryset.filter(work_copy=work_copy)
@@ -330,7 +330,7 @@ class NewApiScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 )
             if self.tutor is not None:
                 queryset = queryset.filter(
-                    Q(tutor=self.tutor) | Q(course__supp_tutor=self.tutor)
+                    Q(tutor=self.tutor) | Q(course__supp_tutorss=self.tutor)
                 )
 
         return queryset
