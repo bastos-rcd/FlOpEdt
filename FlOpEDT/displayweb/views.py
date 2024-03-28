@@ -1,7 +1,6 @@
 from django.http import HttpResponse
-from django.shortcuts import render
 
-import base.queries as queries
+from base import queries
 from base.models import Module, ScheduledCourse
 from displayweb.admin import ModuleDisplayResource, TutorDisplayResource
 from displayweb.models import ModuleDisplay, TutorDisplay
@@ -15,10 +14,10 @@ def fetch_rectangle_colors(req, **kwargs):
     work_copy = int(req.GET.get("work_copy", "0"))
     filters = {}
     if req.department.mode.cosmo == 1:
-        Display = TutorDisplay.objects.select_related("tutor")
+        display = TutorDisplay.objects.select_related("tutor")
         Resource = TutorDisplayResource
     else:
-        Display = ModuleDisplay.objects.select_related("module")
+        display = ModuleDisplay.objects.select_related("module")
         Resource = ModuleDisplayResource
     if week is None or year is None:
         if req.department.mode.cosmo == 1:
@@ -51,5 +50,7 @@ def fetch_rectangle_colors(req, **kwargs):
                 to_be_colored_set.add(usc.module)
             filters["module__in"] = list(to_be_colored_set)
 
-    dataset = Resource().export(Display.filter(**filters))
-    return HttpResponse(dataset.csv, content_type="text/csv")
+    dataset = Resource().export(display.filter(**filters))
+    return HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )

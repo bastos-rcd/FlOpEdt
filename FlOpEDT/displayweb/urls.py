@@ -23,7 +23,7 @@
 
 from django.urls import path
 
-import displayweb.views as views
+from displayweb import views
 
 app_name = "displayweb"
 
