@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -13,7 +12,7 @@ def get_score(max_nb_score):
         for gs in GameScore.objects.order_by("-score")[:max_nb_score]
     ]
     if len(score_list) < max_nb_score:
-        for s in range(len(score_list), max_nb_score):
+        for _ in range(len(score_list), max_nb_score):
             score_list.append({"user": "fake", "score": 0})
     return score_list
 
@@ -52,5 +51,5 @@ def set_score(req, **kwargs):
 
 
 @login_required
-def fetch_leaderboard(req):
+def fetch_leaderboard(_):
     return JsonResponse(get_score(5), safe=False)

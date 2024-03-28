@@ -1,6 +1,6 @@
 from django.urls import path
 
-import easter_egg.views as views
+from easter_egg import views
 
 app_name = "easter_egg"
 
