@@ -155,9 +155,9 @@ import {
   RadioGroupRoot,
   RadioGroupItem,
   RadioGroupIndicator,
+  Separator,
 } from 'radix-vue'
 import { Icon } from '@iconify/vue'
-import { Separator } from 'radix-vue'
 import { useAuth } from '@/stores/auth'
 import { computed } from 'vue'
 import FilterSelector from './utils/FilterSelector.vue'
@@ -168,6 +168,7 @@ import { useGroupStore } from '@/stores/timetable/group'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { usePermanentStore } from '@/stores/timetable/permanent'
 import PeriodPicker from '@/components/utils/PeriodPicker.vue'
+
 const authStore = useAuth()
 const eventStore = useEventStore()
 const groupStore = useGroupStore()
