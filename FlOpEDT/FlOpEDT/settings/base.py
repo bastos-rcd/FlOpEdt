@@ -225,7 +225,7 @@ REST_FRAMEWORK = {
     ],
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%S",
+    "DATETIME_FORMAT": "%4Y-%m-%dT%H:%M:%S",  # documentation of datetime seems flawed: %Y does not 0-pad to the left
 }
 
 SPECTACULAR_SETTINGS = {
