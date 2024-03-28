@@ -165,7 +165,7 @@ class CoursesSerializer(serializers.Serializer):
     period_id = serializers.IntegerField(source="period.id")
     groups = Group_SC_Serializer(many=True)
     tutor = serializers.CharField()
-    supp_tutor = serializers.CharField()
+    supp_tutors = serializers.CharField()
     module = Module_SC_Serializer()
     modulesupp = Module_C_Serializer()
     pay_module = Module_C_Serializer()
@@ -180,7 +180,7 @@ class CoursesSerializer(serializers.Serializer):
             "type",
             "room_type",
             "tutor",
-            "supp_tutor",
+            "supp_tutors",
             "groups",
             "module",
             "modulesupp",

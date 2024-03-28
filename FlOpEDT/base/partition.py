@@ -922,7 +922,7 @@ class Partition:
             course__period=period, version__major=0
         ).exclude(course__type__department=department)
         if tutor:
-            result = result.filter(Q(tutor=tutor) | Q(course__supp_tutor=tutor))
+            result = result.filter(Q(tutor=tutor) | Q(course__supp_tutors=tutor))
         if room:
             result = result.filter(room=room)
         return result
@@ -965,8 +965,8 @@ class Partition:
                 mod.possible_tutors.all() for mod in mods_possible_tutor
             )
 
-        if course.supp_tutor is not None:
-            required_supp_1 = set(course.supp_tutor.all())
+        if course.supp_tutors is not None:
+            required_supp_1 = set(course.supp_tutors.all())
 
         d1 = set(
             ua

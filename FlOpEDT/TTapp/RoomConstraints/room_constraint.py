@@ -91,10 +91,10 @@ class RoomConstraint(FlopConstraint):
             room_types=room_types,
         )
         if tutor is not None:
-            courses_qs = courses_qs.filter(Q(tutor=tutor) | Q(supp_tutor=tutor))
+            courses_qs = courses_qs.filter(Q(tutor=tutor) | Q(supp_tutors=tutor))
         if tutors:
             courses_qs = courses_qs.filter(
-                Q(tutor__in=tutors) | Q(supp_tutor__in=tutors)
+                Q(tutor__in=tutors) | Q(supp_tutors__in=tutors)
             )
 
         return courses_qs

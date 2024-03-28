@@ -28,7 +28,7 @@ export class Course {
   ]
   no: number
   tutor: string
-  supp_tutor: string
+  supp_tutors: string
   module: {
     name: string
     abbrev: string
@@ -53,7 +53,7 @@ export class Course {
     }
     this.room_type = { name: '' }
     this.tutor = ''
-    this.supp_tutor = ''
+    this.supp_tutors = ''
     this.groups = [
       {
         id: -1,

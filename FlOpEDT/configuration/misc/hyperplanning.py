@@ -800,7 +800,7 @@ def create_course_list_from_hp(
         # courseNumber (not supported aswell)
         courseNumber = 0
 
-        # tutor and supp_tutor
+        # tutor and supp_tutors
         listOfTutors = courseService.service.EnseignantsDuCours(i)
         courseTutor = None
         courseSuppTutor = set()
@@ -839,7 +839,7 @@ def create_course_list_from_hp(
             "room_type": roomType,
             "no": courseNumber,
             "tutor": courseTutor,
-            "supp_tutor": courseSuppTutor,
+            "supp_tutors": courseSuppTutor,
             "groups": courseGroups,
             "transversal_groups": {},
             "module": courseModule,
@@ -878,7 +878,7 @@ def extract_courses_from_book(courses_book, department):
             tut = Tutor.objects.get(username=c["tutor"])
         else:
             tut = None
-        supp_tuts = Tutor.objects.filter(username__in=c["supp_tutor"])
+        supp_tuts = Tutor.objects.filter(username__in=c["supp_tutors"])
         mod = Module.objects.get(name=c["module"], train_prog=groups[0].train_prog)
         week = Week.objects.get(nb=c["week"], year=c["year"])
         new_course = Course(type=ct, room_type=rt, tutor=tut, module=mod, week=week)
@@ -886,5 +886,5 @@ def extract_courses_from_book(courses_book, department):
         for g in groups:
             new_course.groups.add(g)
         for t in supp_tuts:
-            new_course.supp_tutor.add(t)
+            new_course.supp_tutors.add(t)
     print("Course extraction done")

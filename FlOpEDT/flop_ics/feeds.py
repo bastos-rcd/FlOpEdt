@@ -75,7 +75,7 @@ class TutorEventFeed(EventFeed):
 
     def items(self, tutor):
         return ScheduledCourse.objects.filter(
-            Q(tutor=tutor) | Q(course__supp_tutor=tutor), version__major=0
+            Q(tutor=tutor) | Q(course__supp_tutors=tutor), version__major=0
         ).order_by("-start_time")
 
     def item_title(self, scourse):

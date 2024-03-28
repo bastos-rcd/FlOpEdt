@@ -1941,7 +1941,7 @@ function select_pref_links_change() {
     switch(link_type) {
     case 'users':
       pref_links = preferred_links.users ;
-      //TBD supp_tutor
+      //TBD supp_tutors
       key = Object.keys(pref_links)[0];
       if (pending.wanted_course.tutors.length > 0) {
         key = pending.wanted_course.tutors[0] ;
@@ -2167,7 +2167,7 @@ function show_detailed_courses(cours) {
     tutinfo.name = 'Pas de prof attitré·e';
   }
   
-  // TBD supp_tutor
+  // TBD supp_tutors
   let tutor = null ;
   if (cours.tutors.length > 0) {
     tutor = cours.tutors[0] ;

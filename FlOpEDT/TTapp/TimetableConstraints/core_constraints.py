@@ -792,7 +792,7 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
 
         for tutor in considered_tutors:
             courses = Course.objects.filter(
-                Q(tutor=tutor) | Q(supp_tutor=tutor), period=period
+                Q(tutor=tutor) | Q(supp_tutors=tutor), period=period
             )
             if not courses.filter(type__department=self.department):
                 continue
@@ -970,31 +970,31 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
                     for c2 in ttmodel.data.possible_courses[tutor]
                     & ttmodel.data.compatible_courses[sl2]
                 )
-                supp_tutor_relevant_sum = ttmodel.sum(
+                supp_tutors_relevant_sum = ttmodel.sum(
                     ttmodel.scheduled[(sl2, c2)]
                     for sl2 in slots_filter(
                         ttmodel.data.courses_slots, simultaneous_to=sl
                     )
-                    for c2 in ttmodel.data.courses_for_supp_tutor[tutor]
+                    for c2 in ttmodel.data.courses_for_supp_tutors[tutor]
                     & ttmodel.data.compatible_courses[sl2]
                 )
                 if self.weight is None:
                     ttmodel.add_constraint(
-                        tutor_relevant_sum + supp_tutor_relevant_sum,
+                        tutor_relevant_sum + supp_tutors_relevant_sum,
                         "<=",
                         ttmodel.avail_instr[tutor][sl],
                         SlotInstructorConstraint(sl, tutor),
                     )
                 else:
                     ttmodel.add_constraint(
-                        tutor_relevant_sum + supp_tutor_relevant_sum,
+                        tutor_relevant_sum + supp_tutors_relevant_sum,
                         "<=",
                         1,
                         SlotInstructorConstraint(sl, tutor),
                     )
 
                     tutor_undesirable_course = ttmodel.add_floor(
-                        tutor_relevant_sum + supp_tutor_relevant_sum,
+                        tutor_relevant_sum + supp_tutors_relevant_sum,
                         ttmodel.avail_instr[tutor][sl] + 1,
                         10000,
                     )
@@ -1010,11 +1010,11 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
         )
         considered_tutors = set(sc.tutor for sc in considered_scheduled_courses)
         for sc in considered_scheduled_courses:
-            considered_tutors |= set(sc.course.supp_tutor.all())
+            considered_tutors |= set(sc.course.supp_tutors.all())
         unavailable_tutors = []
         for tutor in considered_tutors:
             tutor_courses = considered_scheduled_courses.filter(
-                Q(tutor=tutor) | Q(course__supp_tutor=tutor)
+                Q(tutor=tutor) | Q(course__supp_tutors=tutor)
             )
             user_unavailabilities = period_actual_availabilities(
                 tutor, period, unavail_only=True

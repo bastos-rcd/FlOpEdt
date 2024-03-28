@@ -39,7 +39,7 @@ from base.timing import Day
 class BackUpModif(models.Model):
     module_abbrev = models.CharField(max_length=100, verbose_name=_("Abbreviation"))
     tutor_username = models.CharField(max_length=150, null=True)
-    supp_tutor_usernames = ArrayField(models.CharField(max_length=10), null=True)
+    supp_tutors_usernames = ArrayField(models.CharField(max_length=10), null=True)
     start_time = models.DateTimeField()
     room_name = models.CharField(max_length=50, null=True)
     course_type_name = models.CharField(max_length=50, null=True)
@@ -66,7 +66,7 @@ class BackUpModif(models.Model):
         return (
             self.module_abbrev == other.module_abbrev
             and self.tutor_username == other.tutor_username
-            and self.supp_tutor_usernames == other.supp_tutor_usernames
+            and self.supp_tutors_usernames == other.supp_tutors_usernames
             and self.start_time == other.start_time
             and self.group_name == other.group_name
             and self.course_type_name == other.course_type_name
@@ -78,7 +78,7 @@ class BackUpModif(models.Model):
     def __hash__(self):
         return hash(
             f"{self.course_type_name} {self.module_abbrev} {self.tutor_username} "
-            f"{self.supp_tutor_usernames} {self.start_time} {self.group_name} "
+            f"{self.supp_tutors_usernames} {self.start_time} {self.group_name} "
             f"{self.department_abbrev} {self.train_prog_name}"
         )
 

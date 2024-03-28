@@ -279,7 +279,7 @@ class TutorsLunchBreak(TimetableConstraint):
                 other_dep_scheduled_courses = set(
                     ttmodel.data.other_departments_scheduled_courses_for_tutor[tutor]
                 ) | set(
-                    ttmodel.data.other_departments_scheduled_courses_for_supp_tutor[
+                    ttmodel.data.other_departments_scheduled_courses_for_supp_tutors[
                         tutor
                     ]
                 )

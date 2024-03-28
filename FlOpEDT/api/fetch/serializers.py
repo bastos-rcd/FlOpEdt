@@ -260,7 +260,7 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
     groups = Group_PP_Serializer(many=True)
     type = CourseType_PP_Serializer()
     is_graded = serializers.BooleanField()
-    supp_tutor = Tutor_Serializer(many=True)
+    supp_tutors = Tutor_Serializer(many=True)
 
     class Meta:
         model = bm.Course
@@ -271,7 +271,7 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
             "module",
             "groups",
             "is_graded",
-            "supp_tutor",
+            "supp_tutors",
         ]
 
 

@@ -139,11 +139,11 @@ class TimetableData:
         (
             self.instructors,
             self.courses_for_tutor,
-            self.courses_for_supp_tutor,
+            self.courses_for_supp_tutors,
             self.availabilities,
             self.fixed_courses_for_tutor,
             self.other_departments_courses_for_tutor,
-            self.other_departments_scheduled_courses_for_supp_tutor,
+            self.other_departments_scheduled_courses_for_supp_tutors,
             self.other_departments_scheduled_courses_for_tutor,
             self.physical_presence_days_for_tutor,
         ) = self.users_init()
@@ -610,8 +610,8 @@ class TimetableData:
         instructors = set()
         for tutor in Tutor.objects.filter(id__in=self.courses.values_list("tutor_id")):
             instructors.add(tutor)
-        for cst in self.courses.distinct("supp_tutor"):
-            for tutor in cst.supp_tutor.all():
+        for cst in self.courses.distinct("supp_tutors"):
+            for tutor in cst.supp_tutors.all():
                 instructors.add(tutor)
         for mpt in ModulePossibleTutors.objects.filter(module__in=self.modules):
             for tutor in mpt.possible_tutors.all():
@@ -627,9 +627,9 @@ class TimetableData:
         for i in instructors:
             courses_for_tutor[i] = set(self.courses.filter(tutor=i))
 
-        courses_for_supp_tutor = {}
+        courses_for_supp_tutors = {}
         for i in instructors:
-            courses_for_supp_tutor[i] = set(
+            courses_for_supp_tutors[i] = set(
                 i.courses_as_supp.filter(id__in=self.courses)
             )
 
@@ -642,7 +642,7 @@ class TimetableData:
         fixed_courses_for_tutor = {}
         for i in instructors:
             fixed_courses_for_tutor[i] = set(
-                self.fixed_courses.filter(Q(tutor=i) | Q(course__supp_tutor=i))
+                self.fixed_courses.filter(Q(tutor=i) | Q(course__supp_tutors=i))
             )
 
         other_departments_courses_for_tutor = {}
@@ -651,10 +651,10 @@ class TimetableData:
                 self.other_departments_courses.filter(tutor=i)
             )
 
-        other_departments_scheduled_courses_for_supp_tutor = {}
+        other_departments_scheduled_courses_for_supp_tutors = {}
         for i in instructors:
-            other_departments_scheduled_courses_for_supp_tutor[i] = set(
-                self.other_departments_sched_courses.filter(course__supp_tutor=i)
+            other_departments_scheduled_courses_for_supp_tutors[i] = set(
+                self.other_departments_sched_courses.filter(course__supp_tutors=i)
             )
 
         other_departments_scheduled_courses_for_tutor = {}
@@ -673,11 +673,11 @@ class TimetableData:
         return (
             instructors,
             courses_for_tutor,
-            courses_for_supp_tutor,
+            courses_for_supp_tutors,
             availabilities,
             fixed_courses_for_tutor,
             other_departments_courses_for_tutor,
-            other_departments_scheduled_courses_for_supp_tutor,
+            other_departments_scheduled_courses_for_supp_tutors,
             other_departments_scheduled_courses_for_tutor,
             physical_presence_days_for_tutor,
         )

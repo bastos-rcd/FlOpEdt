@@ -181,7 +181,7 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
                     c.duration
                     for c in (
                         ttmodel.data.courses_for_tutor[tutor]
-                        | ttmodel.data.courses_for_supp_tutor[tutor]
+                        | ttmodel.data.courses_for_supp_tutors[tutor]
                     )
                     & ttmodel.data.courses_by_period[period]
                 ],
@@ -463,6 +463,6 @@ def tutor_teaching_minutes_by_day_expression(ttmodel, tutor, day):
         for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day)
     ) + ttmodel.sum(
         ttmodel.scheduled[sl, c] * sl.minutes / 60
-        for c in ttmodel.data.courses_for_supp_tutor[tutor]
+        for c in ttmodel.data.courses_for_supp_tutors[tutor]
         for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day)
     )

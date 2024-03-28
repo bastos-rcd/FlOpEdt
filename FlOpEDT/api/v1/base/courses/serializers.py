@@ -40,8 +40,8 @@ from api.v1.base.modification.serializers import TimetableVersionShortSerializer
 class ScheduledCoursesSerializer(serializers.ModelSerializer):
     module_id = serializers.IntegerField(source="course.module.id")
     course_type_id = serializers.IntegerField(source="course.type.id")
-    supp_tutor_ids = serializers.PrimaryKeyRelatedField(
-        read_only=True, many=True, source="course.supp_tutor"
+    supp_tutors_ids = serializers.PrimaryKeyRelatedField(
+        read_only=True, many=True, source="course.supp_tutors"
     )
     end_time = serializers.DateTimeField()
     number = serializers.IntegerField()
@@ -60,7 +60,7 @@ class ScheduledCoursesSerializer(serializers.ModelSerializer):
             "module_id",
             "course_type_id",
             "tutor_id",
-            "supp_tutor_ids",
+            "supp_tutors_ids",
             "room_id",
             "start_time",
             "end_time",

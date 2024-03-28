@@ -260,7 +260,7 @@ def read_planif_scheduling_period(
                         username__in=supp_tutors_usernames
                     )
                     for sp in supp_tutors:
-                        course.supp_tutor.add(sp)
+                        course.supp_tutors.add(sp)
                     course.save()
                 if possible_tutors_usernames != []:
                     cpt = CoursePossibleTutors(course=course)

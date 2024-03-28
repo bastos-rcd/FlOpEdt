@@ -170,7 +170,7 @@ def pref_requirements(department, tutor, period_id):
     courses_time = sum(
         c.duration
         for c in bm.Course.objects.filter(
-            Q(tutor=tutor) | Q(supp_tutor=tutor), period=period
+            Q(tutor=tutor) | Q(supp_tutors=tutor), period=period
         )
     )
     period_av = bm.UserAvailability.objects.filter(
