@@ -33,10 +33,7 @@ from django.http import JsonResponse
 
 from base.models import (
     GenericGroup,
-    GroupType,
-    StructuralGroup,
     TrainingProgramme,
-    TransversalGroup,
 )
 from flopeditor.validator import (
     ERROR_RESPONSE,
@@ -182,7 +179,7 @@ def update(entries, department):
     return entries
 
 
-def delete(entries, department):
+def delete(entries, department):  # pylint: disable=unused-argument
     """Delete values for group type in the department
     :param entries: Values to delete.
     :type entries:  django.http.JsonResponse

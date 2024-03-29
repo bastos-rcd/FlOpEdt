@@ -37,7 +37,7 @@ from flopeditor.validator import (
 )
 
 
-def read(department):
+def read(department):  # pylint: disable=unused-argument
     """Return all room attributes
     :param department: Department.
     :type department:  base.models.Department
@@ -74,7 +74,7 @@ def read(department):
     )
 
 
-def create(entries, department):
+def create(entries, department):  # pylint: disable=unused-argument
     """Create values for room attributes
     :param entries: Values to create.
     :type entries:  django.http.JsonResponse
@@ -111,7 +111,7 @@ def create(entries, department):
     return entries
 
 
-def update(entries, department):
+def update(entries, department):  # pylint: disable=unused-argument
     """Update values for rooms
     :param entries: Values to modify.
     :type entries:  django.http.JsonResponse
@@ -138,7 +138,8 @@ def update(entries, department):
                 entries["result"].append(
                     [
                         ERROR_RESPONSE,
-                        "On ne peut pas changer le type d'un attribut. Supprimez-le et recréez-en un autre.",
+                        "On ne peut pas changer le type d'un attribut."
+                        "Supprimez-le et recréez-en un autre.",
                     ]
                 )
             try:
@@ -165,7 +166,7 @@ def update(entries, department):
     return entries
 
 
-def delete(entries, department):
+def delete(entries, department):  # pylint: disable=unused-argument
     """Delete values for rooms
     :param entries: Values to delete.
     :type entries:  django.http.JsonResponse

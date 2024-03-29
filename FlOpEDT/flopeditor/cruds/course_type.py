@@ -29,12 +29,9 @@ without disclosing the source code of your own applications.
 from django.http import JsonResponse
 
 from base.models import (
-    CourseStartTimeConstraint,
     CourseType,
     GroupType,
-    TimeGeneralSettings,
 )
-from base.timing import min_to_str, str_to_min
 from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE, validate_course_values
 
 
@@ -119,10 +116,7 @@ def create(entries, department):
         new_course_type = entries["new_values"][i][0]
         new_types_groups = entries["new_values"][i][1]
         is_graded_str = entries["new_values"][i][2]
-        if is_graded_str == "Oui":
-            is_graded = True
-        else:
-            is_graded = False
+        is_graded = bool(is_graded_str == "Oui")
 
         if not validate_course_values(new_course_type, entries):
             return entries
@@ -169,10 +163,7 @@ def update(entries, department):
         new_course_type = entries["new_values"][i][0]
         new_types_groups = entries["new_values"][i][1]
         is_graded_str = entries["new_values"][i][2]
-        if is_graded_str == "Oui":
-            new_is_graded = True
-        else:
-            new_is_graded = False
+        new_is_graded = bool(is_graded_str == "Oui")
 
         if not validate_course_values(new_course_type, entries):
             return entries

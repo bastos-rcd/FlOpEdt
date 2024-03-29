@@ -359,7 +359,6 @@ def update(request, entries):
                 tutor_to_update = Tutor.objects.get(
                     username=entries["old_values"][i][0]
                 )
-                old_departments = set(tutor_to_update.departments.all())
                 new_departments = Department.objects.filter(
                     name__in=entries["new_values"][i][8]
                 )

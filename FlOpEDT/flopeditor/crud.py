@@ -87,7 +87,7 @@ def crud_model(request, department_abbrev, crud):
 
     if request.method == "GET":
         return crud.read(department)
-    elif request.method == "POST":
+    if request.method == "POST":
         actions = json.loads(request.body.decode("utf-8"))["actions"]
         result = []
         for action in actions:

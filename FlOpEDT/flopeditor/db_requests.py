@@ -135,8 +135,7 @@ def get_status_of_user(request):
     if user.is_tutor:
         tutor = Tutor.objects.get(username=request.user)
         return get_status_of_tutor(tutor)
-    else:
-        return None, None, None
+    return None, None, None
 
 
 def get_status_of_tutor(tutor):

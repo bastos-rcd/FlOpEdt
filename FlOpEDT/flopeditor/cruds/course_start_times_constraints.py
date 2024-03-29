@@ -32,12 +32,9 @@ from django.http import JsonResponse
 
 from base.models import (
     CourseStartTimeConstraint,
-    CourseType,
-    GroupType,
     TimeGeneralSettings,
 )
-from base.timing import min_to_str, str_to_min
-from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE, validate_course_values
+from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE
 
 
 def possible_start_time(department):
@@ -144,7 +141,7 @@ def create(entries, department):
             )
             return entries
 
-        new_cstc = CourseStartTimeConstraint.objects.create(
+        CourseStartTimeConstraint.objects.create(
             department=department,
             duration=new_duration,
             allowed_start_times=get_start_time(new_starts_times),

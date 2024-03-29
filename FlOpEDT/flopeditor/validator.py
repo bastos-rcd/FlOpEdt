@@ -565,7 +565,9 @@ def student_groups_from_full_names(full_names, department):
     return gp_to_return
 
 
-def validate_room_attributes_values(name, description, entries):
+def validate_room_attributes_values(
+    name, description, entries  # pylint: disable=unused-argument
+):
     """Validate parameters for room attribute's CRUD
 
     :param abbrev: department abbreviation to test

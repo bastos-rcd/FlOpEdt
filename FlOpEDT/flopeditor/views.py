@@ -34,7 +34,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from base.models import Day, Department, Mode, TimeGeneralSettings
-from base.timing import min_to_str, str_to_min, str_to_time, time_to_str
+from base.timing import time_to_str
 from core.decorators import (
     superuser_required,
     tutor_or_superuser_required,
@@ -333,10 +333,7 @@ def ajax_edit_parameters(request, department_abbrev):
     morning_end_time = request.POST["morning_end_time"]
     afternoon_start_time = request.POST["afternoon_start_time"]
     visio_mode = request.POST["visio_mode"]
-    if visio_mode == "True":
-        visio_mode = True
-    else:
-        visio_mode = False
+    visio_mode = bool(visio_mode == "True")
     cosmo_mode = request.POST["cosmo_mode"]
     response = validate_parameters_edit(
         days, day_start_time, day_end_time, morning_end_time, afternoon_start_time
@@ -349,7 +346,7 @@ def ajax_edit_parameters(request, department_abbrev):
         parameters.morning_end_time = morning_end_time
         parameters.afternoon_start_time = afternoon_start_time
         parameters.save()
-        mode, created = Mode.objects.get_or_create(department=department)
+        mode, _ = Mode.objects.get_or_create(department=department)
         mode.cosmo = cosmo_mode
         mode.visio = visio_mode
         mode.save()

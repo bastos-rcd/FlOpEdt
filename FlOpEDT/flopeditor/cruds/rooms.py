@@ -34,7 +34,6 @@ from base.models import (
     Department,
     NumericRoomAttributeValue,
     Room,
-    RoomAttribute,
 )
 from flopeditor.validator import ERROR_RESPONSE, OK_RESPONSE
 
@@ -135,7 +134,8 @@ def has_rights_to_update_room(user, entries, i):
             entries["result"].append(
                 [
                     ERROR_RESPONSE,
-                    "Impossible de retirer d'une salle un départment dont vous n'êtes pas responsable.",
+                    "Impossible de retirer d'une salle un départment"
+                    "dont vous n'êtes pas responsable.",
                 ]
             )
             return False
@@ -148,7 +148,8 @@ def has_rights_to_update_room(user, entries, i):
             entries["result"].append(
                 [
                     ERROR_RESPONSE,
-                    "impossible d'ajouter à une salle un départment dont vous n'êtes pas responsable.",
+                    "impossible d'ajouter à une salle un départment"
+                    "dont vous n'êtes pas responsable.",
                 ]
             )
             return False
@@ -330,22 +331,20 @@ def update(request, entries):
                         attribute_value = entries["new_values"][i][attribute_rank + 2]
                         if attribute_value is not None:
                             if attribute.is_boolean():
-                                (
-                                    attribute,
-                                    created,
-                                ) = BooleanRoomAttributeValue.objects.get_or_create(
-                                    room=room_to_update,
-                                    attribute=attribute.booleanroomattribute,
+                                attribute, _ = (
+                                    BooleanRoomAttributeValue.objects.get_or_create(
+                                        room=room_to_update,
+                                        attribute=attribute.booleanroomattribute,
+                                    )
                                 )
                                 attribute.value = attribute_value
                                 attribute.save()
                             else:
-                                (
-                                    attribute,
-                                    created,
-                                ) = NumericRoomAttributeValue.objects.get_or_create(
-                                    room=room_to_update,
-                                    attribute=attribute.numericroomattribute,
+                                attribute, _ = (
+                                    NumericRoomAttributeValue.objects.get_or_create(
+                                        room=room_to_update,
+                                        attribute=attribute.numericroomattribute,
+                                    )
                                 )
                                 attribute.value = attribute_value
                                 attribute.save()
