@@ -23,12 +23,10 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.contrib.auth import login
-from django.shortcuts import redirect
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import UpdateView
 
-from .forms import AddStudentForm, ChangeStudentForm
-from .models import Student, User
+from .forms import ChangeStudentForm
+from .models import Student
 
 
 class ChangeStudent(UpdateView):

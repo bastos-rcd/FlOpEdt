@@ -51,5 +51,5 @@ def set_score(req, **kwargs):
 
 
 @login_required
-def fetch_leaderboard(_):
+def fetch_leaderboard(req):  # pylint: disable=unused-argument
     return JsonResponse(get_score(5), safe=False)

@@ -25,22 +25,14 @@
 
 import logging
 
-from django.contrib.auth import login
-from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import redirect
-from django.views.generic import CreateView, UpdateView
-
-from base.models import Day, Department, TimeGeneralSettings, UserAvailability
+from django.views.generic import UpdateView
 
 from .forms import (
-    AddBIATOSTutorForm,
-    AddFullStaffTutorForm,
-    AddSupplyStaffTutorForm,
     ChangeBIATOSTutorForm,
     ChangeFullStaffTutorForm,
     ChangeSupplyStaffTutorForm,
 )
-from .models import BIATOS, FullStaff, SupplyStaff, TutorPreference, User
+from .models import BIATOS, FullStaff, SupplyStaff
 
 logger = logging.getLogger(__name__)
 

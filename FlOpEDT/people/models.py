@@ -27,14 +27,12 @@
 import datetime as dt
 
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from rules import always_false, always_true, is_staff
+from rules import always_true
 from rules.contrib.models import RulesModel
 
 from base.models import Department
-from base.timing import Day
 from people.rules import is_theme_ok, is_theme_view_ok
 
 # Create your models here.
@@ -95,7 +93,9 @@ class User(AbstractUser):
     ###
     @property
     def get_theme(self):
-        return self.themes_preference.theme
+        if hasattr(self, "themes_preference"):
+            return self.themes_preference.theme
+        return "White"
 
     class Meta:
         ordering = [
@@ -116,7 +116,8 @@ class UserDepartmentSettings(models.Model):
 
     def __str__(self):
         return (
-            f'U:{self.user.username}, D:{self.department.abbrev}, {"main" if self.is_main else "secondary"}, '
+            f"U:{self.user.username}, D:{self.department.abbrev}, "
+            f'{"main" if self.is_main else "secondary"}, '
             f'{"admin" if self.is_admin else "regular"}'
         )
 
@@ -135,7 +136,7 @@ class Tutor(User):
     )
 
     def uni_extended(self):
-        ret = super(Tutor, self).uni_extended()
+        ret = super().uni_extended()
         ret += "-" + self.status
         return ret
 
@@ -144,14 +145,14 @@ class Tutor(User):
 
     def save(self, *args, **kwargs):
         self.is_tutor = True
-        super(Tutor, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class FullStaff(Tutor):
     is_iut = models.BooleanField(default=True)
 
     def uni_extended(self):
-        ret = super(FullStaff, self).uni_extended()
+        ret = super().uni_extended()
         if not self.is_iut:
             ret += "-n"
         ret += "-IUT"
@@ -171,7 +172,7 @@ class SupplyStaff(Tutor):
     )
 
     def uni_extended(self):
-        ret = super(SupplyStaff, self).uni_extended()
+        ret = super().uni_extended()
         ret += "-Emp:" + self.employer + "-"
         ret += "-Pos:" + self.position + "-"
         ret += "-Dom:" + self.field
@@ -182,8 +183,6 @@ class SupplyStaff(Tutor):
 
 
 class BIATOS(Tutor):
-    def uni_extended(self):
-        return super(BIATOS, self).uni_extended()
 
     class Meta:
         verbose_name = "BIATOS"
@@ -209,7 +208,10 @@ class TutorPreference(models.Model):
     )
 
     def __str__(self):
-        ret = f"{self.tutor} - P{self.pref_time_per_day} - M{self.pref_time_per_day} - m{self.min_time_per_day}"
+        ret = (
+            f"{self.tutor} - P{self.pref_time_per_day} - "
+            f"M{self.pref_time_per_day} - m{self.min_time_per_day}"
+        )
         return ret
 
 

@@ -424,7 +424,7 @@ def user_perfect_day_changes(req, username=None):
 
 
 @login_required
-def fetch_perfect_day(_, username=None):
+def fetch_perfect_day(req, username=None):  # pylint: disable=unused-argument
     perfect_day = {"pref": 4, "max": 9, "min": 0}
     if username is not None:
         t = Tutor.objects.get(username=username)
@@ -436,7 +436,9 @@ def fetch_perfect_day(_, username=None):
 
 
 @login_required
-def fetch_user_notifications_pref(_, username=None):
+def fetch_user_notifications_pref(
+    req, username=None
+):  # pylint: disable=unused-argument
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
@@ -836,7 +838,7 @@ def fetch_constraints(req):
     return JsonResponse(constraints, safe=False)
 
 
-def fetch_departments(_):
+def fetch_departments(req):  # pylint: disable=unused-argument
     """
     Return departments
     """
@@ -860,7 +862,7 @@ def fetch_training_programmes(req):
     return JsonResponse(programmes, safe=False)
 
 
-def fetch_tutor_courses(_, year, week, tutor):
+def fetch_tutor_courses(req, year, week, tutor):  # pylint: disable=unused-argument
     """
     Return all courses of tutor, accross departments
     """

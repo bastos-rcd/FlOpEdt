@@ -25,6 +25,7 @@
 
 import json
 import logging
+import datetime as dt
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
@@ -33,8 +34,9 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext as _
 
-import base.queries as queries
-from base.models import Department, SchedulingPeriod, Theme
+from base import queries
+from base.models import Theme
+from base.timing import days_index
 from core.decorators import tutor_or_superuser_required
 from people.admin import (
     GroupPreferencesResource,
@@ -67,32 +69,37 @@ def redirect_change_people_kind(req):
             return redirect("people:change_supplystaff")
         if req.user.tutor.status == Tutor.BIATOS:
             return redirect("people:change_BIATOS")
-    else:
-        raise Http404("Who are you?")
+    raise Http404("Who are you?")
 
 
-def fetch_tutors(req):
+def fetch_tutors(req):  # pylint: disable=unused-argument
     dataset = TutorResource().export(Tutor.objects.all())
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 
-def fetch_preferences_group(req):
+def fetch_preferences_group(req):  # pylint: disable=unused-argument
     dataset = GroupPreferencesResource().export(GroupPreferences.objects.all())
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 
-def fetch_preferences_students(req):
+def fetch_preferences_students(req):  # pylint: disable=unused-argument
     dataset = StudentPreferencesResource().export(StudentPreferences.objects.all())
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 
 @login_required
 def student_preferences(req):
     if req.method == "POST":
-        logger.info(f"REQ: student preferences {req}")
+        logger.info("REQ: student preferences %s", req)
         if req.user.is_authenticated and req.user.is_student:
             user = req.user
             morning_weight = req.POST["morning_evening"]
@@ -123,96 +130,91 @@ def student_preferences(req):
                 group_pref.calculate_fields()
                 group_pref.save()
             return redirect("people:student_preferences")
-        else:
-            raise Http404("Who are you?")
-    else:
-        if req.user.is_authenticated and req.user.is_student:
-            student = Student.objects.get(username=req.user.username)
-            try:
-                student_pref = StudentPreferences.objects.get(student=student)
-            except ObjectDoesNotExist:
-                student_pref = StudentPreferences(student=student)
-                student_pref.save()
+        raise Http404("Who are you?")
+    if req.user.is_authenticated and req.user.is_student:
+        student = Student.objects.get(username=req.user.username)
+        try:
+            student_pref = StudentPreferences.objects.get(student=student)
+        except ObjectDoesNotExist:
+            student_pref = StudentPreferences(student=student)
+            student_pref.save()
 
-            # To display the correct text once we validate the form without move the input
-            morning = student_pref.morning_weight
-            morning_txt = ""
-            if morning == 0:
-                morning_txt = "Commencer le plus tôt possible mais finir tôt"
-            if morning == 0.25:
-                morning_txt = "Ne pas commencer trop tard et ne pas finir trop tard"
-            if morning == 0.5:
-                morning_txt = "Ni trop tôt ni trop tard"
-            if morning == 0.75:
-                morning_txt = "Ne pas commencer trop tôt et finir plus tard"
-            if morning == 1:
-                morning_txt = "Commencer le plus tard possible mais finir tard"
+        # To display the correct text once we validate the form without move the input
+        morning = student_pref.morning_weight
+        morning_txt = ""
+        if morning == 0:
+            morning_txt = "Commencer le plus tôt possible mais finir tôt"
+        if morning == 0.25:
+            morning_txt = "Ne pas commencer trop tard et ne pas finir trop tard"
+        if morning == 0.5:
+            morning_txt = "Ni trop tôt ni trop tard"
+        if morning == 0.75:
+            morning_txt = "Ne pas commencer trop tôt et finir plus tard"
+        if morning == 1:
+            morning_txt = "Commencer le plus tard possible mais finir tard"
 
-            free_half_day = student_pref.free_half_day_weight
-            free_half_day_txt = ""
-            if free_half_day == 0:
-                free_half_day_txt = "Avoir toute la semaine des journées allégées"
-            if free_half_day == 0.25:
-                free_half_day_txt = (
-                    "Avoir plus de journées allégées que de demi-journées libérées"
-                )
-            if free_half_day == 0.5:
-                free_half_day_txt = "Avoir des semaines équilibrées"
-            if free_half_day == 0.75:
-                free_half_day_txt = (
-                    "Avoir plus de demi-journées libérées que de journées allégées"
-                )
-            if free_half_day == 1:
-                free_half_day_txt = (
-                    "Avoir des journées chargées mais aussi des demi-journées libérées"
-                )
-
-            hole = student_pref.hole_weight
-            hole_txt = ""
-            if hole == 0:
-                hole_txt = "Ne pas avoir de trous entre deux cours"
-            if hole == 0.5:
-                hole_txt = "Indifférent"
-            if hole == 1:
-                hole_txt = "Avoir des trous entre deux cours"
-
-            eat = student_pref.eat_weight
-            eat_txt = ""
-            if eat == 0:
-                eat_txt = "Manger plus tôt"
-            if eat == 0.5:
-                eat_txt = "Indifférent"
-            if eat == 1:
-                eat_txt = "Manger plus tard"
-
-            day = Department.objects.get(abbrev="INFO")
-
-            themes = []
-            for a in Theme:
-                themes.append(a.value)
-
-            return TemplateResponse(
-                req,
-                "people/studentPreferencesSelection.html",
-                {
-                    "morning": morning,
-                    "morning_txt": morning_txt,
-                    "free_half_day": free_half_day,
-                    "free_half_day_txt": free_half_day_txt,
-                    "hole": hole,
-                    "hole_txt": hole_txt,
-                    "selfeat": eat,
-                    "eat_txt": eat_txt,
-                    "user_notifications_pref": queries.get_notification_preference(
-                        req.user
-                    ),
-                    "themes": themes,
-                    "theme": queries.get_theme_preference(req.user),
-                },
+        free_half_day = student_pref.free_half_day_weight
+        free_half_day_txt = ""
+        if free_half_day == 0:
+            free_half_day_txt = "Avoir toute la semaine des journées allégées"
+        if free_half_day == 0.25:
+            free_half_day_txt = (
+                "Avoir plus de journées allégées que de demi-journées libérées"
             )
-        else:
-            # Make a decorator instead
-            raise Http404("Who are you?")
+        if free_half_day == 0.5:
+            free_half_day_txt = "Avoir des semaines équilibrées"
+        if free_half_day == 0.75:
+            free_half_day_txt = (
+                "Avoir plus de demi-journées libérées que de journées allégées"
+            )
+        if free_half_day == 1:
+            free_half_day_txt = (
+                "Avoir des journées chargées mais aussi des demi-journées libérées"
+            )
+
+        hole = student_pref.hole_weight
+        hole_txt = ""
+        if hole == 0:
+            hole_txt = "Ne pas avoir de trous entre deux cours"
+        if hole == 0.5:
+            hole_txt = "Indifférent"
+        if hole == 1:
+            hole_txt = "Avoir des trous entre deux cours"
+
+        eat = student_pref.eat_weight
+        eat_txt = ""
+        if eat == 0:
+            eat_txt = "Manger plus tôt"
+        if eat == 0.5:
+            eat_txt = "Indifférent"
+        if eat == 1:
+            eat_txt = "Manger plus tard"
+
+        themes = []
+        for a in Theme:
+            themes.append(a.value)
+
+        return TemplateResponse(
+            req,
+            "people/studentPreferencesSelection.html",
+            {
+                "morning": morning,
+                "morning_txt": morning_txt,
+                "free_half_day": free_half_day,
+                "free_half_day_txt": free_half_day_txt,
+                "hole": hole,
+                "hole_txt": hole_txt,
+                "selfeat": eat,
+                "eat_txt": eat_txt,
+                "user_notifications_pref": queries.get_notification_preference(
+                    req.user
+                ),
+                "themes": themes,
+                "theme": queries.get_theme_preference(req.user),
+            },
+        )
+    # Make a decorator instead
+    raise Http404("Who are you?")
 
 
 def fetch_user_preferred_links(req, **kwargs):
@@ -220,7 +222,9 @@ def fetch_user_preferred_links(req, **kwargs):
         user__departments=req.department
     )
     dataset = UserPreferredLinksResource().export(pref)
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 
@@ -229,7 +233,9 @@ def fetch_physical_presence(req, year, week, **kwargs):
         user__departments=req.department, week__year=year, week__nb=week
     )
     dataset = PhysicalPresenceResource().export(presence)
-    response = HttpResponse(dataset.csv, content_type="text/csv")
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 
@@ -238,7 +244,7 @@ def change_physical_presence(req, year, week_nb, user):
     bad_response = {"status": "KO"}
 
     if not req.is_department_admin and req.user.username != user:
-        bad_response["more"] = _(f"Not allowed")
+        bad_response["more"] = _("Not allowed")
         return JsonResponse(bad_response)
 
     try:
@@ -254,23 +260,13 @@ def change_physical_presence(req, year, week_nb, user):
     for change in changes:
         logger.info(change)
     print(week_nb, year)
-    # Default week at None
-    if week_nb == 0 or year == 0:
-        week = None
-    else:
-        try:
-            week = Week.objects.get(nb=week_nb, year=year)
-        except Week.DoesNotExist:
-            bad_response["more"] = "Wrong week"
-            return JsonResponse(bad_response)
 
     for change in changes:
-        logger.info(f"Change {change}")
+        logger.info("Change %s", change)
+        date = dt.date.fromisocalendar(year, week_nb, days_index[change["day"]] + 1)
         if not change["force_here"]:
-            PhysicalPresence.objects.filter(
-                week=week, day=change["day"], user=user
-            ).delete()
+            PhysicalPresence.objects.filter(date=date, user=user).delete()
         else:
-            PhysicalPresence.objects.create(week=week, day=change["day"], user=user)
+            PhysicalPresence.objects.create(date=date, user=user)
 
     return JsonResponse(good_response)

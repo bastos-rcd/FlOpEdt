@@ -29,7 +29,7 @@ from django.db import transaction
 
 from base.models import StructuralGroup
 
-from .models import BIATOS, FullStaff, Student, SupplyStaff, Tutor, User
+from .models import BIATOS, FullStaff, Student, SupplyStaff, Tutor
 
 
 class GroupChoiceField(forms.ModelMultipleChoiceField):
@@ -37,7 +37,7 @@ class GroupChoiceField(forms.ModelMultipleChoiceField):
         return obj.full_name
 
 
-class AddStudentForm(UserCreationForm):
+class AddStudentForm(UserCreationForm):  # pylint: disable=too-many-ancestors
     gps = GroupChoiceField(
         queryset=StructuralGroup.objects.filter(basic=True),
         widget=forms.CheckboxSelectMultiple,
@@ -49,8 +49,8 @@ class AddStudentForm(UserCreationForm):
         model = Student
 
     @transaction.atomic
-    def save(self):
-        student = super(AddStudentForm, self).save(commit=False)
+    def save(self, commit=False):
+        student = super().save(commit=commit)
         student.is_student = True
         student.save()
         student.generic_groups.add(*self.cleaned_data.get("gps"))
@@ -78,7 +78,7 @@ class ChangeBIATOSTutorForm(UserChangeForm):
         model = BIATOS
 
 
-class AddFullStaffTutorForm(UserCreationForm):
+class AddFullStaffTutorForm(UserCreationForm):  # pylint: disable=too-many-ancestors
     pref_slots_per_day = forms.IntegerField(
         required=False, help_text="Nombre de créneaux préférés par jour"
     )
@@ -89,13 +89,13 @@ class AddFullStaffTutorForm(UserCreationForm):
         fields = ("email", "username", "first_name", "last_name")
 
     def __init__(self, *args, **kwargs):
-        super(AddFullStaffTutorForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for key in self.fields:
             self.fields[key].required = True
 
     @transaction.atomic
-    def save(self):
-        fs = super(AddFullStaffTutorForm, self).save(commit=False)
+    def save(self, commit=False):
+        fs = super().save(commit=commit)
         data = self.cleaned_data
         fs.is_tutor = True
         fs.status = Tutor.FULL_STAFF
@@ -105,7 +105,7 @@ class AddFullStaffTutorForm(UserCreationForm):
         return fs
 
 
-class AddSupplyStaffTutorForm(UserCreationForm):
+class AddSupplyStaffTutorForm(UserCreationForm):  # pylint: disable=too-many-ancestors
     employer = forms.CharField(max_length=50, help_text="Employeur")
     position = forms.CharField(max_length=50, help_text="Qualité")
     field = forms.CharField(max_length=50, help_text="Domaine")
@@ -115,13 +115,13 @@ class AddSupplyStaffTutorForm(UserCreationForm):
         fields = ("email", "username", "first_name", "last_name")
 
     def __init__(self, *args, **kwargs):
-        super(AddSupplyStaffTutorForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for key in self.fields:
             self.fields[key].required = True
 
     @transaction.atomic
-    def save(self):
-        sus = super(AddSupplyStaffTutorForm, self).save(commit=False)
+    def save(self, commit=False):
+        sus = super().save(commit=commit)
         data = self.cleaned_data
         sus.is_tutor = True
         sus.status = Tutor.SUPP_STAFF
@@ -132,19 +132,19 @@ class AddSupplyStaffTutorForm(UserCreationForm):
         return sus
 
 
-class AddBIATOSTutorForm(UserCreationForm):
+class AddBIATOSTutorForm(UserCreationForm):  # pylint: disable=too-many-ancestors
     class Meta(UserCreationForm.Meta):
         model = BIATOS
         fields = ("email", "username", "first_name", "last_name")
 
     def __init__(self, *args, **kwargs):
-        super(AddBIATOSTutorForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for key in self.fields:
             self.fields[key].required = True
 
     @transaction.atomic
-    def save(self):
-        bi = super(AddBIATOSTutorForm, self).save(commit=False)
+    def save(self, commit=False):
+        bi = super().save(commit=commit)
         bi.is_tutor = True
         bi.status = Tutor.BIATOS
         bi.save()
