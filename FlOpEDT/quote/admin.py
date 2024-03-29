@@ -41,7 +41,7 @@ class QuoteResource(resources.ModelResource):
         return str(quote)
 
     class Meta:
-        Quote
+        model = Quote
         fields = "txt"
 
 
