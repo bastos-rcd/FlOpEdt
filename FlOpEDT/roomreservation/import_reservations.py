@@ -25,7 +25,6 @@
 # without disclosing the source code of your own applications.
 
 import configparser
-import csv
 import datetime
 import logging
 import os
@@ -33,9 +32,10 @@ import os
 import requests
 from django.db import transaction
 from pytz import timezone
+from ics import Calendar
+
 
 from base.models import Room
-from ics import Calendar
 from people.models import User
 from roomreservation.models import RoomReservation, RoomReservationType
 
@@ -59,16 +59,16 @@ paris = timezone("Europe/Paris")
 def import_reservations_from_ics_url(
     room_reservations_ics_url=ics_url,
     future_only=True,
-    key_exclusion=key_exclusion,
-    exclude_if_key_contains=exclude_if_key_contains,
+    exclusion_key=key_exclusion,
+    content_excluding=exclude_if_key_contains,
     default_responsible_name=imported_reservations_name,
 ):
     try:
-        calendar = Calendar(requests.get(room_reservations_ics_url).text)
-    except:
+        calendar = Calendar(requests.get(room_reservations_ics_url, timeout=10).text)
+    except:  # pylint: disable=bare-except
         logger.warning(
-            "Error while trying to get the ics file from URL: "
-            + room_reservations_ics_url
+            "Error while trying to get the ics file from URL: %s",
+            room_reservations_ics_url,
         )
         return
 
@@ -104,7 +104,7 @@ def import_reservations_from_ics_url(
         end_time = end
         description = e.description
         title = e.name[:30]
-        if exclude_if_key_contains in getattr(e, key_exclusion):
+        if content_excluding in getattr(e, exclusion_key):
             to_be_saved = False
             continue
         if to_be_saved:

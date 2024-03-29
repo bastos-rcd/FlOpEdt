@@ -1,7 +1,7 @@
 from dateutil.rrule import FR, MO, MONTHLY, SA, SU, TH, TU, WE, WEEKLY, rrule
 from django.db.models import F
 
-from base.models import ScheduledCourse, SchedulingPeriod
+from base.models import ScheduledCourse
 from base.timing import days_index
 from roomreservation.models import ReservationPeriodicity, RoomReservation
 
@@ -14,8 +14,6 @@ def check_reservation(reservation_data):
     end_time = reservation_data["end_time"]
 
     # date
-    reservation_date = start_time.date()
-    reservation_day_nb = reservation_date.weekday()
     room = reservation_data["room"]
 
     # filter
@@ -60,7 +58,7 @@ def check_periodicity(periodicity_data, reservation_data):
     start = periodicity_data["start"]
     end = periodicity_data["end"]
     periodicity_type = periodicity_data["periodicity_type"]
-    if periodicity_type == ReservationPeriodicity.PeriodicityType.ByWeek:
+    if periodicity_type == ReservationPeriodicity.PeriodicityType.BY_WEEK:
         bw_weekdays = periodicity_data["bw_weekdays"]
         bw_weeks_interval = periodicity_data["bw_weeks_interval"]
         bw_integer_weekdays = [days_index[d] for d in bw_weekdays]
@@ -73,7 +71,7 @@ def check_periodicity(periodicity_data, reservation_data):
                 interval=bw_weeks_interval,
             )
         )
-    elif periodicity_type == ReservationPeriodicity.PeriodicityType.ByMonth:
+    elif periodicity_type == ReservationPeriodicity.PeriodicityType.BY_MONTH:
         bm_x_choice = periodicity_data["bm_x_choice"]
         bm_day_choice = periodicity_data["bm_day_choice"]
         integer_bm_day_choice = days_index[bm_day_choice]

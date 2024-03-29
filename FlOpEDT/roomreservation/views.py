@@ -4,7 +4,7 @@ from django.urls import reverse
 
 
 @login_required
-def RoomReservationsView(request, **kwargs):
+def room_reservations_view(request, **kwargs):
     db_data = {
         "dept": request.department.abbrev,
         "api": reverse("api:api_root"),
