@@ -46,14 +46,14 @@ def assign_tutor_color(department=None):
         os.path.join(settings.BASE_DIR, "misc", "colors.json"), all_tutors.count()
     )
     for tut, col in zip(all_tutors, color_set):
-        td, created = TutorDisplay.objects.get_or_create(tutor=tut)
+        td, _ = TutorDisplay.objects.get_or_create(tutor=tut)
         td.color_bg = col
         td.color_txt = compute_luminance(col)
         td.save()
 
 
 def assign_module_color(
-    department, overwrite=True, diff_across_train_prog=False, build_graph_matrices=False
+    department, overwrite=True, diff_across_train_prog=False, with_graph_matrices=False
 ):
     """
     Assigns a color to each module
@@ -67,10 +67,10 @@ def assign_module_color(
     :return:
     """
     if department is None:
-        raise Exception("Please provide a department")
+        raise ValueError("Please provide a department")
     if diff_across_train_prog:
-        if build_graph_matrices:
-            keys, mat = build_graph_matrices(None, department)
+        if with_graph_matrices:
+            keys, mat = with_graph_matrices(None, department)
         else:
             keys, mat = (
                 list(Module.objects.filter(train_prog__department=department)),
@@ -80,8 +80,8 @@ def assign_module_color(
     else:
         for train_prog in TrainingProgramme.objects.filter(department=department):
             print(train_prog)
-            if build_graph_matrices:
-                keys, mat = build_graph_matrices(train_prog, department)
+            if with_graph_matrices:
+                keys, mat = with_graph_matrices(train_prog, department)
             else:
                 keys, mat = list(Module.objects.filter(train_prog=train_prog)), None
             optim_and_save(keys, mat, overwrite)
@@ -125,27 +125,27 @@ def optim_and_save(keys, mat, overwrite):
             "#474a09",
             "#fb899b",
         ]
-    for mi in range(len(keys)):
+    for mi, module in enumerate(keys):
         if mat is not None:
             cbg = color_set[color_indices[mi] - 1]
         else:
             cbg = color_set[mi % len(color_set)]
         try:
-            mod_disp = ModuleDisplay.objects.get(module=keys[mi])
+            mod_disp = ModuleDisplay.objects.get(module=module)
             if overwrite:
                 mod_disp.color_bg = cbg
                 mod_disp.color_txt = compute_luminance(cbg)
                 mod_disp.save()
         except ObjectDoesNotExist:
             mod_disp = ModuleDisplay(
-                module=keys[mi], color_bg=cbg, color_txt=compute_luminance(cbg)
+                module=module, color_bg=cbg, color_txt=compute_luminance(cbg)
             )
             mod_disp.save()
 
 
 def build_graph_matrices(train_prog, department=None):
     if train_prog is None and department is None:
-        raise Exception("You need to provide at least a department")
+        raise ValueError("You need to provide at least a department")
     if train_prog is None:
         keys = list(Module.objects.filter(train_prog__department=department))
     else:
@@ -153,14 +153,14 @@ def build_graph_matrices(train_prog, department=None):
     mat = eye(len(keys))
     wl = week_list()
 
-    for mi in range(len(keys)):
+    for mi, module_i in enumerate(keys):
         for mj in range(mi + 1, len(keys)):
             for wy in wl:
                 if (
                     Course.objects.filter(
                         week__nb=wy["week"],
                         week__year=wy["year"],
-                        module__in=[keys[mi], keys[mj]],
+                        module__in=[module_i, keys[mj]],
                     )
                     .distinct("module")
                     .count()
@@ -184,7 +184,7 @@ def get_color_set(filename, target_nb_colors):
     :return: a set of colors, not smaller than needed
     """
     color_set = ["red"]
-    with open(filename) as json_data:
+    with open(filename, encoding="utf-8") as json_data:
         initial_colors = json.load(json_data)
 
         # find smallest set, bigger than needed
@@ -203,7 +203,7 @@ def get_color_set(filename, target_nb_colors):
         if len(color_set) < target_nb_colors:
             sliced = color_set[:]
             add_factor = target_nb_colors // len(color_set)
-            for i in range(add_factor):
+            for _ in range(add_factor):
                 color_set += sliced
             # shrink the color set if needed
             if len(color_set) > target_nb_colors:
@@ -221,5 +221,4 @@ def compute_luminance(col):
     )
     if perceived_luminance < 127.5:
         return "#FFFFFF"
-    else:
-        return "#000000"
+    return "#000000"

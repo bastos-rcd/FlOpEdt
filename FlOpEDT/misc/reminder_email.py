@@ -25,9 +25,11 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import locale
+
 from django.core.mail import EmailMessage
 
-from base.models import Course, Department
+from base.models import Course
 from people.models import Tutor
 
 
@@ -76,8 +78,6 @@ def send_reminder_email(
     if date is None:
         msg += "dans les 48 heures.\n"
     else:
-        import locale
-
         locale.setlocale(locale.LC_ALL, "fr_FR.UTF-8")
         msg += f"avant le {date.strftime('%A %d %B')}.\n"
 

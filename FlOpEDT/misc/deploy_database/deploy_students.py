@@ -34,24 +34,24 @@ from people.models import Student, UserDepartmentSettings
 
 @transaction.atomic
 def extract_students_file(file_name, department, train_prog):
-    file = open(file_name)
-    reader = csv.DictReader(file)
-    for row in reader:
-        last_name = row["nom"]
-        first_name = row["prenom"]
-        email = row["email"]
-        gp_name = row["groupe"]
-        username = email.split("@")[0]
-        group = StructuralGroup.objects.get(train_prog=train_prog, name=gp_name)
-        S, created = Student.objects.get_or_create(username=username)
-        S.first_name = first_name
-        S.last_name = last_name
-        S.email = email
-        S.save()
-        if created:
-            S.set_password("patate_en_carton")
-        S.generic_groups.clear()
-        S.generic_groups.add(group)
-        S.is_student = True
-        S.save()
-        UserDepartmentSettings(user=S, department=department).save()
+    with open(file_name, encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            last_name = row["nom"]
+            first_name = row["prenom"]
+            email = row["email"]
+            gp_name = row["groupe"]
+            username = email.split("@")[0]
+            group = StructuralGroup.objects.get(train_prog=train_prog, name=gp_name)
+            student, created = Student.objects.get_or_create(username=username)
+            student.first_name = first_name
+            student.last_name = last_name
+            student.email = email
+            student.save()
+            if created:
+                student.set_password("patate_en_carton")
+            student.generic_groups.clear()
+            student.generic_groups.add(group)
+            student.is_student = True
+            student.save()
+            UserDepartmentSettings(user=student, department=department).save()
