@@ -21,7 +21,4 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import configparser
-import os
-
-from .base import *
+from .base import *  # pylint: disable=wildcard-import, unused-wildcard-import

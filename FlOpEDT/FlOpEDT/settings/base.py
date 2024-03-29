@@ -225,7 +225,8 @@ REST_FRAMEWORK = {
     ],
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DATETIME_FORMAT": "%4Y-%m-%dT%H:%M:%S",  # documentation of datetime seems flawed: %Y does not 0-pad to the left
+    "DATETIME_FORMAT": "%4Y-%m-%dT%H:%M:%S",
+    # documentation of datetime seems flawed: %Y does not 0-pad to the left
 }
 
 SPECTACULAR_SETTINGS = {
@@ -267,14 +268,12 @@ if os.environ.get("FLOP_CONFIG_FILE") is not None:
     if os.path.exists(os.environ.get("FLOP_CONFIG_FILE")):
         FLOP_CONFIG_FILE = os.environ.get("FLOP_CONFIG_FILE")
     else:
-        print(
-            "Configuration file %s doesn't exist" % os.environ.get("FLOP_CONFIG_FILE")
-        )
+        print(f"Configuration file {os.environ.get('FLOP_CONFIG_FILE')} doesn't exist")
         sys.exit(1)
 elif os.path.exists(SYSTEM_FLOP_CONFIG_FILE):
     FLOP_CONFIG_FILE = SYSTEM_FLOP_CONFIG_FILE
 else:
-    print("System configuration file %s doesn't exist" % SYSTEM_FLOP_CONFIG_FILE)
+    print(f"System configuration file {SYSTEM_FLOP_CONFIG_FILE} doesn't exist")
     sys.exit(1)
 
 # Let's parse the configuration file
@@ -287,10 +286,8 @@ try:
     STATIC_ROOT = flop_config["flopedt"]["static_directory"]
 except KeyError:
     print(
-        "Static directory not defined in configuration file. Let's fall back to %s"
-        % STATIC_ROOT
+        f"Static directory not defined in configuration file. Let's fall back to {STATIC_ROOT}"
     )
-    pass
 
 # Define cache directory configuration
 try:
@@ -298,10 +295,8 @@ try:
     CACHE_DIRECTORY = flop_config["flopedt"]["cache_directory"]
 except KeyError:
     print(
-        "Cache directory not defined in configuration file. Let's fall back to %s"
-        % CACHE_DIRECTORY
+        f"Cache directory not defined in configuration file. Let's fall back to {CACHE_DIRECTORY}"
     )
-    pass
 
 # Define tmp directory configuration
 try:
@@ -309,10 +304,8 @@ try:
     TMP_DIRECTORY = flop_config["flopedt"]["tmp_directory"]
 except KeyError:
     print(
-        "Temp directory not defined in configuration file. Let's fall back to %s"
-        % TMP_DIRECTORY
+        f"Temp directory not defined in configuration file. Let's fall back to {TMP_DIRECTORY}"
     )
-    pass
 
 # Define storage configuration
 try:
@@ -320,10 +313,9 @@ try:
     STORAGE_DIRECTORY = flop_config["flopedt"]["storage_directory"]
 except KeyError:
     print(
-        "Storage directory not defined in configuration file. Let's fall back to %s"
-        % STORAGE_DIRECTORY
+        "Storage directory not defined in configuration file. "
+        f"Let's fall back to {STORAGE_DIRECTORY}"
     )
-    pass
 
 # Define environment variable for GUROBI license
 try:
@@ -331,11 +323,11 @@ try:
         os.environ["GRB_LICENSE_FILE"] = flop_config["gurobi"]["license_file"]
     else:
         print(
-            "WARNING - Declared GUROBI license file is not readable. GUROBI solver won't be available"
+            "WARNING - Declared GUROBI license file is not readable."
+            " GUROBI solver won't be available"
         )
 except KeyError:
     print("WARNING - GUROBI License is not declared. GUROBI solver won't be available")
-    pass
 
 # Define subdirs and other dirs
 MEDIA_ROOT = TMP_DIRECTORY
@@ -416,19 +408,23 @@ try:
     EMAIL_HOST_USER = flop_config["email"]["email_user"]
 except KeyError:
     print(
-        "WARNING - email_user is not configured. Mail sending won't work if your email server requires authentication."
+        "WARNING - email_user is not configured. "
+        "Mail sending won't work if your email server requires authentication."
     )
 try:
     EMAIL_HOST_PASSWORD = flop_config["email"]["email_password"]
 except KeyError:
     print(
-        "WARNING - email_password is not configured. Mail sending won't work if your email server requires authentication."
+        "WARNING - email_password is not configured. "
+        "Mail sending won't work if your email server requires authentication."
     )
 try:
     DEFAULT_FROM_EMAIL = flop_config["email"]["email_sender"]
 except KeyError:
     print(
-        "WARNING - email_sender is not configured. Mail sending won't work if sender email is not defined. Default value is webmaster@localhost"
+        "WARNING - email_sender is not configured. "
+        "Mail sending won't work if sender email is not defined. "
+        "Default value is webmaster@localhost"
     )
 
 # Logging settings
@@ -443,7 +439,8 @@ try:
         CONFIG_LOG_LEVEL = flop_config["flopedt"]["log_level"]
     else:
         print(
-            "ERROR - Uncorrect log level defined in configuration file. Accepted values are : DEBUG, INFO, WARNING, ERROR, CRITICAL"
+            "ERROR - Uncorrect log level defined in configuration file. "
+            "Accepted values are : DEBUG, INFO, WARNING, ERROR, CRITICAL"
         )
         sys.exit(1)
 except KeyError:
@@ -499,14 +496,12 @@ if os.environ.get("FLOP_CONFIG_FILE") is not None:
     if os.path.exists(os.environ.get("FLOP_CONFIG_FILE")):
         FLOP_CONFIG_FILE = os.environ.get("FLOP_CONFIG_FILE")
     else:
-        print(
-            "Configuration file %s doesn't exist" % os.environ.get("FLOP_CONFIG_FILE")
-        )
+        print(f"Configuration file {os.environ.get('FLOP_CONFIG_FILE')} doesn't exist")
         sys.exit(1)
 elif os.path.exists(SYSTEM_FLOP_CONFIG_FILE):
     FLOP_CONFIG_FILE = SYSTEM_FLOP_CONFIG_FILE
 else:
-    print("System configuration file %s doesn't exist" % SYSTEM_FLOP_CONFIG_FILE)
+    print(f"System configuration file {SYSTEM_FLOP_CONFIG_FILE} doesn't exist")
     sys.exit(1)
 
 # Let's parse the configuration file
@@ -519,10 +514,8 @@ try:
     STATIC_ROOT = flop_config["flopedt"]["static_directory"]
 except KeyError:
     print(
-        "Static directory not defined in configuration file. Let's fall back to %s"
-        % STATIC_ROOT
+        f"Static directory not defined in configuration file. Let's fall back to {STATIC_ROOT}"
     )
-    pass
 
 # Define cache directory configuration
 try:
@@ -530,10 +523,8 @@ try:
     CACHE_DIRECTORY = flop_config["flopedt"]["cache_directory"]
 except KeyError:
     print(
-        "Cache directory not defined in configuration file. Let's fall back to %s"
-        % CACHE_DIRECTORY
+        f"Cache directory not defined in configuration file. Let's fall back to {CACHE_DIRECTORY}"
     )
-    pass
 
 # Define tmp directory configuration
 try:
@@ -541,10 +532,8 @@ try:
     TMP_DIRECTORY = flop_config["flopedt"]["tmp_directory"]
 except KeyError:
     print(
-        "Temp directory not defined in configuration file. Let's fall back to %s"
-        % TMP_DIRECTORY
+        f"Temp directory not defined in configuration file. Let's fall back to {TMP_DIRECTORY}"
     )
-    pass
 
 # Define storage configuration
 try:
@@ -552,10 +541,9 @@ try:
     STORAGE_DIRECTORY = flop_config["flopedt"]["storage_directory"]
 except KeyError:
     print(
-        "Storage directory not defined in configuration file. Let's fall back to %s"
-        % STORAGE_DIRECTORY
+        "Storage directory not defined in configuration file. "
+        f"Let's fall back to {STORAGE_DIRECTORY}"
     )
-    pass
 
 # Define environment variable for GUROBI license
 try:
@@ -563,11 +551,11 @@ try:
         os.environ["GRB_LICENSE_FILE"] = flop_config["gurobi"]["license_file"]
     else:
         print(
-            "WARNING - Declared GUROBI license file is not readable. GUROBI solver won't be available"
+            "WARNING - Declared GUROBI license file is not readable. "
+            "GUROBI solver won't be available"
         )
 except KeyError:
     print("WARNING - GUROBI License is not declared. GUROBI solver won't be available")
-    pass
 
 # Define subdirs and other dirs
 MEDIA_ROOT = TMP_DIRECTORY
@@ -648,19 +636,23 @@ try:
     EMAIL_HOST_USER = flop_config["email"]["email_user"]
 except KeyError:
     print(
-        "WARNING - email_user is not configured. Mail sending won't work if your email server requires authentication."
+        "WARNING - email_user is not configured. "
+        "Mail sending won't work if your email server requires authentication."
     )
 try:
     EMAIL_HOST_PASSWORD = flop_config["email"]["email_password"]
 except KeyError:
     print(
-        "WARNING - email_password is not configured. Mail sending won't work if your email server requires authentication."
+        "WARNING - email_password is not configured. "
+        "Mail sending won't work if your email server requires authentication."
     )
 try:
     DEFAULT_FROM_EMAIL = flop_config["email"]["email_sender"]
 except KeyError:
     print(
-        "WARNING - email_sender is not configured. Mail sending won't work if sender email is not defined. Default value is webmaster@localhost"
+        "WARNING - email_sender is not configured. "
+        "Mail sending won't work if sender email is not defined. "
+        "Default value is webmaster@localhost"
     )
 
 # Logging settings
@@ -675,7 +667,8 @@ try:
         CONFIG_LOG_LEVEL = flop_config["flopedt"]["log_level"]
     else:
         print(
-            "ERROR - Uncorrect log level defined in configuration file. Accepted values are : DEBUG, INFO, WARNING, ERROR, CRITICAL"
+            "ERROR - Uncorrect log level defined in configuration file. "
+            "Accepted values are : DEBUG, INFO, WARNING, ERROR, CRITICAL"
         )
         sys.exit(1)
 except KeyError:

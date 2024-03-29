@@ -98,10 +98,10 @@ environnement virtuel.
   fichier de configuration du service.
 - Choisir le bon fichier de settings en remplaçant
   "FlOpEDT.settings.local" par
-  "FlOpEDT.settings.dockerless-production" dans le
+  "FlOpEDT.settings.dockerless_production" dans le
   [manage.py](../../manage.py).
 - Modifier la secret_key dans [le fichier de configuration
-  Django](../../FlOpEDT/settings/dockerless-production.py)
+  Django](../../FlOpEDT/settings/dockerless_production.py)
 - Dans l'environnement virtuel python, rendre disponible les fichiers
   javascript notamment : `sudo ./manage.py collectstatic`
 - Lancer le service : `sudo start flopedt`

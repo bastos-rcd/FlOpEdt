@@ -23,7 +23,7 @@
 
 import os
 
-from .base import *
+from .base import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
 LOGGING = {
     "version": 1,
