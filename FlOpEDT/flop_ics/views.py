@@ -1,7 +1,6 @@
-from django.db.models import Q
 from django.shortcuts import render
 
-import base.queries as queries
+from base import queries
 from base.models import Department, StructuralGroup, TransversalGroup
 from people.models import Tutor
 

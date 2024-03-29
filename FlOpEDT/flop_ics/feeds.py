@@ -1,10 +1,6 @@
 import datetime as dt
-from calendar import timegm
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
-from django.http import Http404, HttpResponse
-from django.utils.http import http_date
 from django_ical.views import ICalFeed
 
 from base.models import (
@@ -36,12 +32,14 @@ class EventFeed(ICalFeed):
     timezone = "Europe/Paris"
     days = [abbrev for abbrev, _ in Day.CHOICES]
 
-    def item_title(self, scourse):
+    def item_title(self, item):
+        scourse = item
         course = scourse.course
-        gp_str, plural = str_groups(course)
+        gp_str, _ = str_groups(course)
         return f"{course.module.abbrev} {course.type.name} - " + gp_str
 
-    def item_description(self, scourse):
+    def item_description(self, item):
+        scourse = item
         location = scourse.room.name if scourse.room is not None else ""
         course = scourse.course
         tutor = scourse.tutor
@@ -56,21 +54,29 @@ class EventFeed(ICalFeed):
         ret += f"Salle : {location}"
         return ret
 
-    def item_location(self, scourse: ScheduledCourse):
+    def item_location(self, item: ScheduledCourse):
+        scourse = item
         return scourse.room.name if scourse.room is not None else ""
 
-    def item_start_datetime(self, scourse: ScheduledCourse):
+    def item_start_datetime(self, item: ScheduledCourse):
+        scourse = item
         return scourse.start_time
 
-    def item_end_datetime(self, scourse: ScheduledCourse):
+    def item_end_datetime(self, item: ScheduledCourse):
+        scourse = item
         return scourse.end_time
 
-    def item_link(self, s):
-        return str(s.id)
+    def item_link(self, item):
+        return str(item.id)
 
 
 class TutorEventFeed(EventFeed):
-    def get_object(self, request, department, tutor_id):
+    def get_object(  # pylint: disable=arguments-differ
+        self,
+        request,
+        department,  # pylint: disable=unused-argument
+        tutor_id,
+    ):
         return Tutor.objects.get(id=tutor_id)
 
     def items(self, tutor):
@@ -78,17 +84,21 @@ class TutorEventFeed(EventFeed):
             Q(tutor=tutor) | Q(course__supp_tutors=tutor), version__major=0
         ).order_by("-start_time")
 
-    def item_title(self, scourse):
+    def item_title(self, item):
+        scourse = item
         course = scourse.course
-        gp_str, plural = str_groups(course)
+        gp_str, _ = str_groups(course)
         return (
-            f'{course.module.abbrev} {course.type.name} {"N°"+str(scourse.number) if scourse.number else ""} '
+            f"{course.module.abbrev} {course.type.name} "
+            f'{"N°"+str(scourse.number) if scourse.number else ""} '
             f"- {gp_str} "
         )
 
 
 class RoomEventFeed(EventFeed):
-    def get_object(self, request, department, room_id):
+    def get_object(  # pylint: disable=arguments-differ
+        self, request, department, room_id  # pylint: disable=unused-argument
+    ):
         return Room.objects.get(id=room_id).and_overrooms()
 
     def items(self, room_groups):
@@ -100,61 +110,60 @@ class RoomEventFeed(EventFeed):
         ).order_by("-date", "-start_time")
         return list(room_scheduled_courses) + list(room_reservations)
 
-    def item_title(self, sched_course_or_reservation):
-        if type(sched_course_or_reservation) is ScheduledCourse:
+    def item_title(self, item):
+        sched_course_or_reservation = item
+        if isinstance(sched_course_or_reservation, ScheduledCourse):
             scourse = sched_course_or_reservation
             course = scourse.course
-            gp_str, plural = str_groups(course)
+            gp_str, _ = str_groups(course)
             return (
                 f"{course.module.abbrev} {course.type.name} "
                 f"- {gp_str} "
                 f'- {scourse.tutor.username if scourse.tutor is not None else "x"}'
             )
-        elif type(sched_course_or_reservation) is RoomReservation:
+        if isinstance(sched_course_or_reservation, RoomReservation):
             reservation = sched_course_or_reservation
-            return f"{reservation.title} ({reservation.reservation_type.name} - {reservation.responsible.username})"
-        else:
-            raise TypeError("Has to be course or reservation")
-
-    def item_description(self, sched_course_or_reservation):
-        if type(sched_course_or_reservation) is ScheduledCourse:
-            return super(RoomEventFeed, self).item_description(
-                sched_course_or_reservation
+            return (
+                f"{reservation.title} ({reservation.reservation_type.name} - "
+                f"{reservation.responsible.username})"
             )
-        elif type(sched_course_or_reservation) is RoomReservation:
+        raise TypeError("Has to be course or reservation")
+
+    def item_description(self, item):
+        sched_course_or_reservation = item
+        if isinstance(sched_course_or_reservation, ScheduledCourse):
+            return super().item_description(sched_course_or_reservation)
+        if isinstance(sched_course_or_reservation, RoomReservation):
             reservation = sched_course_or_reservation
             ret = f"Réservation : {reservation.title} \n"
             ret += f"{reservation.reservation_type.name}\n"
             ret += f"Responsable : {reservation.responsible.username}\n"
             return ret
-        else:
-            raise TypeError("Has to be course or reservation")
+        raise TypeError("Has to be course or reservation")
 
-    def item_start_datetime(self, sched_course_or_reservation):
-        if type(sched_course_or_reservation) is ScheduledCourse:
-            return super(RoomEventFeed, self).item_start_datetime(
-                sched_course_or_reservation
-            )
-        elif type(sched_course_or_reservation) is RoomReservation:
+    def item_start_datetime(self, item):
+        sched_course_or_reservation = item
+        if isinstance(sched_course_or_reservation, ScheduledCourse):
+            return super().item_start_datetime(sched_course_or_reservation)
+        if isinstance(sched_course_or_reservation, RoomReservation):
             reservation = sched_course_or_reservation
             return dt.datetime.combine(reservation.date, reservation.start_time)
-        else:
-            raise TypeError("Has to be course or reservation")
+        raise TypeError("Has to be course or reservation")
 
-    def item_end_datetime(self, sched_course_or_reservation):
-        if type(sched_course_or_reservation) is ScheduledCourse:
-            return super(RoomEventFeed, self).item_end_datetime(
-                sched_course_or_reservation
-            )
-        elif type(sched_course_or_reservation) is RoomReservation:
+    def item_end_datetime(self, item):
+        sched_course_or_reservation = item
+        if isinstance(sched_course_or_reservation, ScheduledCourse):
+            return super().item_end_datetime(sched_course_or_reservation)
+        if isinstance(sched_course_or_reservation, RoomReservation):
             reservation = sched_course_or_reservation
             return dt.datetime.combine(reservation.date, reservation.end_time)
-        else:
-            raise TypeError("Has to be course or reservation")
+        raise TypeError("Has to be course or reservation")
 
 
 class GroupEventFeed(EventFeed):
-    def get_object(self, request, department, group_id):
+    def get_object(
+        self, request, department, group_id
+    ):  # pylint: disable=arguments-differ
         raise NotImplementedError
 
     def items(self, groups):
@@ -162,7 +171,8 @@ class GroupEventFeed(EventFeed):
             course__groups__in=groups, version__major=0
         ).order_by("-start_time")
 
-    def item_title(self, scourse):
+    def item_title(self, item):
+        scourse = item
         course = scourse.course
         return (
             f"{course.module.abbrev} {course.type.name} "
@@ -188,9 +198,13 @@ class RegenFeed(ICalFeed):
 
     product_id = "flop"
     timezone = "Europe/Paris"
-    # TODO !
 
-    def get_object(self, request, department, dep_id):
+    def get_object(  # pylint: disable=arguments-differ
+        self,
+        request,
+        department,  # pylint: disable=unused-argument
+        dep_id,
+    ):
         dep = Department.objects.get(id=dep_id)
         return [dep]
 
@@ -201,10 +215,12 @@ class RegenFeed(ICalFeed):
             .order_by("-period")
         )
 
-    def item_title(self, regen):
+    def item_title(self, item):
+        regen = item
         return f"flop!EDT - {regen.department.abbrev} : {regen.strplus()}"
 
-    def item_description(self, regen):
+    def item_description(self, item):
+        regen = item
         return self.item_title(regen)
 
     def item_start_datetime(self, regen):
@@ -213,5 +229,6 @@ class RegenFeed(ICalFeed):
     def item_end_datetime(self, regen):
         return regen.period.end_date
 
-    def item_link(self, s):
-        return str(s.id)
+    def item_link(self, item):
+        regen = item
+        return str(regen.id)
