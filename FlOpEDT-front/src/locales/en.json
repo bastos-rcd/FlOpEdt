@@ -86,7 +86,8 @@
     "workcopyPlaceholder": "Select a workcopy..",
     "workcopyNumber": "Workcopy n°",
     "editModeTitle": "Edit schedule",
-    "editModeLabel": "Edit mode ?"
+    "editModeLabel": "Edit mode ?",
+    "choseTutorAvail": "Edit as"
   },
   "editEvent": {
     "deleteButton": "Delete"

@@ -4,11 +4,6 @@
       <Separator class="Separator" />
       <PeriodPicker v-model:toggled="weekdaysModel" />
     </div>
-    <div class="RevertButton">
-      <Separator class="Separator" />
-      <h4>Revert Changes</h4>
-      <button :disabled="!revert" @click="handleClick"><Icon icon="iconoir:undo-circle" /></button>
-    </div>
     <div>
       <h3>{{ $t('side.availabilityTitle') }}</h3>
       <Separator class="Separator" orientation="horizontal" />
@@ -31,6 +26,17 @@
           </CheckboxIndicator>
         </CheckboxRoot>
         {{ $t('side.editModeLabel') }}
+        <div class="RevertButton">
+          <span>Revert Changes</span>
+          <button :disabled="!revert" @click="handleClick"><Icon icon="iconoir:undo-circle" /></button>
+        </div>
+        <FilterSelector
+          v-model:selectedItems="tutorAsModel"
+          :multiple="false"
+          :items="props.tutors.filter((user) => user.id !== authStore.getUser.id)"
+          :filter-selector-undefined-label="$t('side.choseTutorAvail')"
+          item-variable-name="username"
+        />
       </div>
     </div>
     <div class="workcopy-div">
@@ -179,7 +185,7 @@ const editCheckBox = computed({
     return props.isInEdit
   },
   set(v: boolean) {
-    emits('update:edit', v)
+    emits('update:isInEdit', v)
   },
 })
 const availCheckBox = computed({
@@ -187,7 +193,7 @@ const availCheckBox = computed({
     return props.availChecked
   },
   set(v: boolean) {
-    emits('update:checkbox', v)
+    emits('update:availChecked', v)
   },
 })
 const workcopy = computed({
@@ -206,6 +212,14 @@ const weekdaysModel = computed({
     emits('update:weekdays', v)
   },
 })
+const tutorAsModel = computed({
+  get() {
+    return props.tutorAs
+  },
+  set(v: User | undefined) {
+    emits('update:tutorAs', v)
+  },
+})
 const { roomsSelected, tutorsSelected, colorSelect, courseTypesSelected } = storeToRefs(eventStore)
 const { modules, modulesSelected } = storeToRefs(permanentStore)
 const { groupsSelected } = storeToRefs(groupStore)
@@ -219,14 +233,16 @@ const props = defineProps<{
   revert: boolean
   isInEdit: boolean
   weekdays: string[]
+  tutorAs: User | undefined
 }>()
 const emits = defineEmits<{
-  (e: 'update:checkbox', v: boolean): void
+  (e: 'update:availChecked', v: boolean): void
   (e: 'update:workcopy', v: number): void
   (e: 'update:rooms', v: Room[]): void
   (e: 'revertUpdate'): void
-  (e: 'update:edit', v: boolean): void
+  (e: 'update:isInEdit', v: boolean): void
   (e: 'update:weekdays', v: string[]): void
+  (e: 'update:tutorAs', v: User | undefined): void
 }>()
 
 function handleClick() {
@@ -399,11 +415,11 @@ h3 {
   line-height: 1;
   padding-left: 15px;
 }
-.RevertButton {
-  margin-bottom: 10px;
-}
 .RevertButton button {
   padding: 0;
   border-radius: 10%;
+}
+.RevertButton span {
+  margin-right: 5px;
 }
 </style>

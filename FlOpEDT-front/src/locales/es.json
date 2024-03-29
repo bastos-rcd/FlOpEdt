@@ -86,7 +86,8 @@
     "workcopyPlaceholder": "",
     "workcopyNumber": "",
     "editModeTitle": "",
-    "editModeLabel": ""
+    "editModeLabel": "",
+    "choseTutorAvail": ""
   },
   "editEvent": {
     "deleteButton": ""

@@ -86,7 +86,8 @@
     "workcopyPlaceholder": "Sélectionnez un numéro de version",
     "workcopyNumber": "Version n°",
     "editModeTitle": "Edition de l'emploi du temps",
-    "editModeLabel": "Mode édition ?"
+    "editModeLabel": "Mode édition ?",
+    "choseTutorAvail": "Editer en tant que"
   },
   "editEvent": {
     "deleteButton": "Supprimer"

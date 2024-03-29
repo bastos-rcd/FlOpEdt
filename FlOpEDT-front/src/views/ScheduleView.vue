@@ -4,16 +4,14 @@
       <SidePanel
         v-if="authStore.sidePanelToggle"
         v-model:workcopy="workcopySelected"
-        :avail-checked="availabilityToggle"
+        v-model:weekdays="daysToDisplay"
+        v-model:availChecked="availabilityToggle"
+        v-model:isInEdit="isInEditMode"
+        v-model:tutor-as="tutorSelectedForAvail"
         :rooms="roomsFetched"
-        :weekdays="daysToDisplay"
         :tutors="tutors"
         :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)"
         :revert="undoRedo.hasUpdate.value && isInEditMode"
-        :is-in-edit="isInEditMode"
-        @update:edit="(v) => (isInEditMode = v)"
-        @update:checkbox="(v) => (availabilityToggle = v)"
-        @update:workcopy="(n) => (workcopySelected = n)"
         @revert-update="() => undoRedo.revertUpdateBlock()"
       />
     </div>
@@ -60,7 +58,7 @@ import {
 } from '@quasar/quasar-ui-qcalendar'
 import { filter } from 'lodash'
 import { useRoomStore } from '@/stores/timetable/room'
-import { Group } from '@/stores/declarations'
+import { Group, User } from '@/stores/declarations'
 import { useTutorStore } from '@/stores/timetable/tutor'
 import { useDepartmentStore } from '@/stores/department'
 import { useAuth } from '@/stores/auth'
@@ -111,14 +109,17 @@ const daysToDisplay = ref<string[]>(['mo', 'tu', 'we', 'th', 'fr'])
 const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()
 const workcopySelected = ref<number>(-1)
+const tutorSelectedForAvail = ref<User>()
 
 watch(selectedGroups, () => {
   groupStore.clearSelected()
   if (selectedGroups.value !== null) selectedGroups.value.forEach((gp) => groupStore.addTransversalGroupToSelection(gp))
 })
 
-watch(workcopySelected, () => {
-  console.log(workcopySelected.value)
+watch(tutorSelectedForAvail, () => {
+  if (tutorSelectedForAvail.value)
+    fetchAvailCurrentWeek(makeDate(monday.value!), makeDate(sunday.value!), tutorSelectedForAvail.value.id)
+  else fetchAvailCurrentWeek(makeDate(monday.value!), makeDate(sunday.value!))
 })
 
 function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
@@ -155,8 +156,8 @@ function fetchScheduledCurrentWeek(from: Date, to: Date) {
   void scheduledCourseStore.fetchScheduledCourses(from, to, -1, deptStore.current)
 }
 
-function fetchAvailCurrentWeek(from: Date, to: Date) {
-  void availabilityStore.fetchUserAvailabilitiesBack(authStore.getUser.id, from, to)
+function fetchAvailCurrentWeek(from: Date, to: Date, tutorId?: number) {
+  void availabilityStore.fetchUserAvailabilitiesBack(tutorId ? tutorId : authStore.getUser.id, from, to)
 }
 
 function changeDate(newDate: Timestamp) {
