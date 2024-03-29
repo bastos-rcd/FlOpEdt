@@ -39,7 +39,7 @@ from base.timing import Day, TimeInterval, days_index
 from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
 
 
-class Partition:
+class Partition:  # pylint: disable=too-many-public-methods
     """Partition class to analyse data related by time"""
 
     def __init__(

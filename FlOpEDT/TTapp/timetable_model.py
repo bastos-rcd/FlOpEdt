@@ -90,7 +90,7 @@ from TTapp.timetable_data import TimetableData
 from TTapp.timetable_utils import number_courses, print_differences
 
 
-class TimetableModel(FlopModel):
+class TimetableModel(FlopModel):  # pylint: disable=too-many-instance-attributes,too-many-public-methods
     @timer
     def __init__(
         self,

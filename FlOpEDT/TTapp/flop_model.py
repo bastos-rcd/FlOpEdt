@@ -80,7 +80,7 @@ class FlopVar:
         return self.name
 
 
-class FlopModel:
+class FlopModel:  # pylint: disable=too-many-instance-attributes, too-many-public-methods
     def __init__(
         self,
         department_abbrev,

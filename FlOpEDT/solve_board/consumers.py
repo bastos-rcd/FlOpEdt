@@ -144,7 +144,7 @@ def solver_subprocess_signint_handler(sig, stack):  # pylint: disable=unused-arg
     os.kill(0, signal.SIGINT)
 
 
-class Solve:
+class Solve:  # pylint: disable=too-many-instance-attributes
     def __init__(
         self,
         department_abbrev,
@@ -185,7 +185,7 @@ class Solve:
         except ObjectDoesNotExist:
             self.training_programme = None
 
-    def start(self):
+    def start(self): # pylint: disable=too-many-branches
         solver_child_process = cache.get("solver_child_process")
         if solver_child_process:
             self.channel.send(

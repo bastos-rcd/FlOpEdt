@@ -54,7 +54,7 @@ from TTapp.RoomConstraints.room_constraint import (
 from TTapp.slots import Slot, days_filter
 
 
-class RoomModel(FlopModel):
+class RoomModel(FlopModel):  # pylint: disable=too-many-instance-attributes
     @timer
     def __init__(
         self, department_abbrev, periods, major=0, keep_many_solution_files=False

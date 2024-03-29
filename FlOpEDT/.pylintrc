@@ -7,9 +7,7 @@ disable=
     C0115, #(missing-class-docstring)
     C0116, #(missing-function-docstring)
     C0302, #(too-many-lines),
-    R0902, #(too-many-instance-attributes)
     R0903, #(too-few-public-methods)
-    R0904, #(too-many-public-methods),
     R0912, #(too-many-branches),
     R0913, #(too-many-arguments),
     R0914, #(too-many-locals),

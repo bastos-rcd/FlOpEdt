@@ -63,7 +63,7 @@ GUROBI = "GUROBI"
 GUROBI_NAME = "GUROBI_CMD"
 
 
-class TimetableData:
+class TimetableData:  # pylint: disable=too-many-instance-attributes
     def __init__(self, department, periods, train_prog, slots_step=None):
         self.train_prog = train_prog
         self.department = department
