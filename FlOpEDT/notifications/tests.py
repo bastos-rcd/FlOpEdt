@@ -23,6 +23,6 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.test import TestCase
+# from django.test import TestCase
 
 # Create your tests here.
