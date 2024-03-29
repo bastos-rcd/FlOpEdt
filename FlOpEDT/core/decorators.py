@@ -150,7 +150,7 @@ def timer(fonction):
             result = fonction(*args, **kwargs)
             stop_time = time.time()
             total = stop_time - start_time
-            print(f"{fonction.__name__} : {total}")
+            print(f"{fonction.__name__} : {total:.3f}s")
             return result
 
         return pre_analyse_timer

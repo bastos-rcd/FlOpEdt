@@ -256,7 +256,12 @@ class LimitGroupsPhysicalPresence(TimetableConstraint):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1000):
-        if not self.department.mode.visio:
+        if not hasattr(self.department, "mode"):
+            print(
+                "Visio Mode is not activated : ignore LimitGroupsPhysicalPresence constraint"
+            )
+            return
+        if not self.department.mode.visio:  # pylint: disable=no-member
             print(
                 "Visio Mode is not activated : ignore LimitGroupsPhysicalPresence constraint"
             )

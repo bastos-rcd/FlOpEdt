@@ -41,7 +41,6 @@ from TTapp.models import (
     ConsiderRoomSorts,
     ConsiderTutorsUnavailability,
     Curfew,
-    CustomConstraint,
     LimitCourseTypeTimePerPeriod,
     LimitedRoomChoices,
     LimitGroupMoves,
@@ -95,16 +94,6 @@ class BasicConstraintAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (("train_progs", DropdownFilterRel), ("weeks__nb", DropdownFilterAll))
-
-
-class CustomConstraintAdmin(DepartmentModelAdmin):
-    list_display = ("class_name", "comment")
-    ordering = ()
-    list_filter = (
-        ("groups", DropdownFilterRel),
-        ("tutors", DropdownFilterRel),
-        ("modules", DropdownFilterRel),
-    )
 
 
 class BasicTutorsConstraintAdmin(DepartmentModelAdmin):
@@ -358,7 +347,6 @@ class ConsiderPivotsAdmin(DepartmentModelAdmin):
 
 admin.site.register(ConsiderDependencies, ConsiderDependenciesAdmin)
 admin.site.register(ConsiderPivots, ConsiderPivotsAdmin)
-admin.site.register(CustomConstraint, CustomConstraintAdmin)
 admin.site.register(StabilizeTutorsCourses, StabilizeTutorsCoursesAdmin)
 admin.site.register(StabilizeGroupsCourses, StabilizeGroupsCoursesAdmin)
 admin.site.register(MinGroupsHalfDays, MinGroupsHalfDaysAdmin)

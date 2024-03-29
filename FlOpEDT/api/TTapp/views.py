@@ -45,7 +45,7 @@ from api.TTapp import serializers
 from base.models import Department
 from base.timing import Day, all_possible_start_times
 from base.weeks import current_year
-from MyFlOp.colors import Tcolors
+from TTapp.colors import Tcolors
 from TTapp.flop_constraint import FlopConstraint, all_subclasses
 
 DOC_DIR = os.path.join(
@@ -63,18 +63,6 @@ REGEX_IMAGE = r"(?:[!]\[(.*?)\])\(((\.\.)(.*?))\)"
 # ---- TTAPP ----
 # ---------------
 """ 
-
-class TTCustomConstraintsViewSet(viewsets.ModelViewSet):
-    
-    ViewSet to see all the TTCustomConstraints.
-
-    Can be filtered as wanted with every field of a CustomContraint object.
-    
-    queryset = ttm.CustomConstraint.objects.all()
-    serializer_class = serializers.TTCustomConstraintsSerializer
-    permission_classes = [IsAdminOrReadOnly]
-
-    filterset_fields = '__all__'
 
 
 class TTLimitCourseTypeTimePerPeriodsViewSet(viewsets.ModelViewSet):

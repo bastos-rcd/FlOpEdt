@@ -27,10 +27,10 @@ from django.http import HttpResponse, JsonResponse
 from django.utils.translation import gettext as _
 
 from base.models import ScheduledCourse, SchedulingPeriod
-from MyFlOp import MyTimetableUtils
 from TTapp.admin import GroupsLunchBreakResource
 from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
 from TTapp.timetable_utils import get_conflicts
+from TTapp import timetable_utils
 
 
 def available_major_versions(_, department, period):
@@ -66,7 +66,7 @@ def swap(_, department, period_id, major):
     against scheduled courses with work copy 0
     """
     return JsonResponse(
-        MyTimetableUtils.swap_version(department, period_id, major), safe=False
+        timetable_utils.swap_version(department, period_id, major), safe=False
     )
 
 
@@ -75,7 +75,7 @@ def delete_version(_, department, period_id, major):
     Delete scheduled courses with work copy work_copy
     """
     return JsonResponse(
-        MyTimetableUtils.delete_version(department, period_id, major), safe=False
+        timetable_utils.delete_version(department, period_id, major), safe=False
     )
 
 
@@ -84,7 +84,7 @@ def delete_all_unused_versions(_, department, period_id):
     Delete scheduled courses with work copy work_copy
     """
     return JsonResponse(
-        MyTimetableUtils.delete_all_unused_versions(department, period_id),
+        timetable_utils.delete_all_unused_versions(department, period_id),
         safe=False,
     )
 
@@ -94,7 +94,7 @@ def duplicate_version(_, department, period_id, major):
     Duplicate scheduled courses with work copy work_copy in the first work_copy available
     """
     return JsonResponse(
-        MyTimetableUtils.duplicate_version(department, period_id, major),
+        timetable_utils.duplicate_version(department, period_id, major),
         safe=False,
     )
 
@@ -104,7 +104,7 @@ def reassign_rooms(_, department, period_id, major, create_new_major=True):
     Reassign rooms of scheduled courses with work copy work_copy
     """
     return JsonResponse(
-        MyTimetableUtils.reassign_rooms(
+        timetable_utils.reassign_rooms(
             department, period_id, major, create_new_major=create_new_major
         )
     )
@@ -116,7 +116,7 @@ def duplicate_in_other_periods(_, department, period_id, major):
     (for courses that are equals than this week's ones)
     """
     return JsonResponse(
-        MyTimetableUtils.duplicate_in_other_periods(department, period_id, major),
+        timetable_utils.duplicate_in_other_periods(department, period_id, major),
         safe=False,
     )
 

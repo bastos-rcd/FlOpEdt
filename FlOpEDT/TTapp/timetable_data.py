@@ -275,7 +275,7 @@ class TimetableData:
         }
         print(
             f"Ok : {len(courses_slots)} courses_slots "
-            "and {len(availability_slots)} availability_slots created!"
+            f"and {len(availability_slots)} availability_slots created!"
         )
 
         first_hour_slots = {

@@ -27,6 +27,7 @@
 
 import datetime as dt
 import json
+import functools
 
 from django.core.cache import cache
 from django.db.models import Count, F, Max, Q
@@ -44,6 +45,7 @@ from base.models import (
     TrainingPeriod,
     TrainingProgramme,
     UserAvailability,
+    Department,
 )
 from base.timing import str_slot
 from people.models import Tutor
@@ -438,6 +440,7 @@ def number_courses(
     training_periods=None,
     train_progs=None,
     periods=None,
+    from_period=None,
     version_major=0,
 ):
     considered_train_progs = intersect_with_declared_objects(
@@ -462,17 +465,21 @@ def number_courses(
             for c_group in considered_courses.distinct("groups"):
                 group = c_group.groups.first()
                 group_courses = considered_courses.filter(groups=group)
+                past_courses_number = 0
+                if from_period is not None:
+                    group_courses = group_courses.filter(period__gte=from_period)
+                    past_courses = group_courses.filter(period__lt=from_period)
+                    past_courses_number = len(past_courses)
+
                 if periods is not None:
-                    first_period = min(periods, key=lambda x: x.start_date)
-                    last_period = max(periods, key=lambda x: x.end_date)
+                    first_period = min(periods)
+                    last_period = max(periods)
                     group_courses = group_courses.filter(
                         period__gte=first_period, period__lte=last_period
                     )
-                    past_courses_number = len(
-                        group_courses.filter(period__lt=first_period)
-                    )
-                else:
-                    past_courses_number = 0
+                    past_courses = group_courses.filter(period__lt=first_period)
+                    past_courses_number = len(past_courses)
+
                 sorted_sched_courses = sorted_by_start_time(
                     ScheduledCourse.objects.filter(
                         course__in=group_courses, version__major=version_major
@@ -511,3 +518,78 @@ def print_differences(
                 for sl in slots_b - slots_a:
                     result += f"{sl}, "
                 print(result)
+
+
+def resolve_department(func):
+    # Replace department attribute by the target
+    # department instance if needed
+
+    @functools.wraps(func)
+    def _wraper_function(department, *args, **kwargs):
+        if isinstance(department, str):
+            department = Department.objects.get(abbrev=department)
+
+        return func(department, *args, **kwargs)
+
+    return _wraper_function
+
+
+@resolve_department
+def reassign_rooms(department, period_id, major, create_new_major=True):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    version = TimetableVersion.objects.get(
+        department=department, period=period, major=major
+    )
+    result = basic_reassign_rooms(
+        department, period, version, create_new_major=create_new_major
+    )
+    return result
+
+
+@resolve_department
+def swap_version(department, period_id, copy_a, copy_b=0):
+    result = {"status": "OK", "more": ""}
+    period = SchedulingPeriod.objects.get(id=period_id)
+    basic_swap_version(department, period, copy_a, copy_b)
+    return result
+
+
+@resolve_department
+def delete_version(department, period_id, major):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    version = TimetableVersion.objects.get(
+        department=department, period=period, major=major
+    )
+    return basic_delete_version(department, period, version)
+
+
+@resolve_department
+def delete_all_unused_versions(department, period_id):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    return basic_delete_all_unused_versions(department, period)
+
+
+@resolve_department
+def duplicate_version(department, period_id, major):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    version = TimetableVersion.objects.get(
+        department=department, period=period, major=major
+    )
+    return basic_duplicate_version(department, period, version)
+
+
+@resolve_department
+def duplicate_in_other_periods(department, period_id, major):
+    period = SchedulingPeriod.objects.get(id=period_id)
+    version = TimetableVersion.objects.get(
+        department=department, period=period, major=major
+    )
+    return duplicate_what_can_be_in_other_periods(department, period, version)
+
+
+@resolve_department
+def number_courses_from_this_period(department, period_id, major):
+    if major != 0:
+        return None
+    period = SchedulingPeriod.objects.get(id=period_id)
+    return number_courses(department, from_period=period)

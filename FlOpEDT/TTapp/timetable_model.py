@@ -1554,6 +1554,14 @@ class TimetableModel(FlopModel):
                 number_courses(
                     self.department, periods=self.periods, version_major=target_major
                 )
+            if self.major_to_stabilize is not None:
+                print_differences(
+                    self.department,
+                    self.periods,
+                    self.major_to_stabilize,
+                    target_major,
+                    self.data.instructors,
+                )
 
         if send_gurobi_logs_email_to is not None:
             if result is None:

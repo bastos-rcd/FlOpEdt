@@ -4,7 +4,7 @@ from pathlib import Path
 
 from django.conf import settings as ds
 
-from MyFlOp.colors import Tcolors
+from TTapp.colors import Tcolors
 from TTapp.onLaunch.settings import settings
 
 TEMP_DIR = os.path.join(ds.TMP_DIRECTORY, "constraints")
@@ -58,6 +58,6 @@ def purgeTempFolder():
         print(
             Tcolors.WARNING,
             "Temp directory will not be cleared, you can modify it in : \n",
-            "FlopEDT/MyFlOp/apps.py",
+            "FlopEDT/TTapp/apps.py",
             Tcolors.ENDC,
         )

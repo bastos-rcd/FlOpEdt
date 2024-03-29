@@ -39,7 +39,6 @@ ScheduleAllCourses
 LowerBoundBusyDays
 NoSimultaneousGroupCourses
 LimitTutorMoves
-CustomConstraint
 VisioOnly
 StabilizeTutorsCourses
 MinModulesHalfDays

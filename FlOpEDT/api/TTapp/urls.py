@@ -28,7 +28,7 @@ from api.TTapp import views
 
 routerTTapp = routers.SimpleRouter()
 
-# routerTTapp.register(r'customconstrains', views.TTCustomConstraintsViewSet)
+
 # routerTTapp.register(r'limitcoursetypetimeperperiods', views.TTLimitCourseTypeTimePerPeriodsViewSet)
 # routerTTapp.register(r'reasonabledays', views.TTReasonableDaysViewSet)
 # routerTTapp.register(r'stabilize', views.TTStabilizeViewSet)

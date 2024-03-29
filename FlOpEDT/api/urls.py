@@ -89,7 +89,6 @@ urlpatterns = [
     path("courses/", include((routerCourses.urls, "api"), namespace="course")),
     path("groups/", include((routerGroups.urls, "api"), namespace="groups")),
     # path("extra/", include((routerExtra.urls, "api"), namespace="extra")),
-    # path("myflop/", include((routerMyFlop.urls, "api"), namespace="myflop")),
     # path(
     #     "roomreservations/",
     #     include((routerRoomReservation.urls, "api"), namespace="roomreservations"),

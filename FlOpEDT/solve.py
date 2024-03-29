@@ -25,7 +25,6 @@
 import getopt
 import os
 import sys
-
 import django
 
 if __name__ == "__main__":
@@ -39,14 +38,14 @@ if __name__ == "__main__":
         # exceptions on Python 2.
         try:
             import django
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
                 "Couldn't import Django. Are you sure it's installed and "
                 "available on your PYTHONPATH environment variable? Did you "
                 "forget to activate a virtual environment?"
-            )
+            ) from exc
         raise
-    from MyFlOp.MyTimetableModel import MyTimetableModel
+    from TTapp.timetable_model import TimetableModel
 
     opts, args = getopt.getopt(sys.argv[1:], "d:w:y:", ["department", "weeks", "year"])
     print(opts, args)
@@ -55,5 +54,5 @@ if __name__ == "__main__":
     year = opts_dict["y"]
     weeks = opts_dict["w"].split(",")
     week_year_list = [{"week": int(w), "year": year} for w in weeks]
-    a = MyTimetableModel(dep, week_year_list)
+    a = TimetableModel(dep, week_year_list)
     a.solve()

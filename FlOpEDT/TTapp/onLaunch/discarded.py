@@ -5,7 +5,7 @@ from pathlib import Path
 
 from django.conf import settings as ds
 
-from MyFlOp.colors import Tcolors
+from TTapp.colors import Tcolors
 from TTapp.onLaunch.settings import settings
 
 LANG_LIST = settings()["langs"]
