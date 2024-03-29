@@ -31,13 +31,15 @@ if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "FlOpEDT.settings.local")
     django.setup()
     try:
-        from django.core.management import execute_from_command_line
+        from django.core.management import (  # pylint: disable=unused-import
+            execute_from_command_line,
+        )
     except ImportError:
         # The above import may fail for some other reason. Ensure that the
         # issue is really that Django is missing to avoid masking other
         # exceptions on Python 2.
         try:
-            import django
+            import django  # pylint: disable=reimported
         except ImportError as exc:
             raise ImportError(
                 "Couldn't import Django. Are you sure it's installed and "

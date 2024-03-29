@@ -69,7 +69,6 @@ INSTALLED_APPS = [
     "displayweb",
     "configuration",
     "easter_egg",
-    #    'importation'
     "api",
     "rest_framework.authtoken",
     "dj_rest_auth",

@@ -45,8 +45,10 @@ class QuoteResource(resources.ModelResource):
         fields = "txt"
 
 
-def accept(modeladmin, request, queryset):
-    next = Quote.objects.all().aggregate(Max("id_acc"))["id_acc__max"] + 1
+def accept(modeladmin, request, queryset):  # pylint: disable=unused-argument
+    next = (  # pylint: disable=redefined-builtin
+        Quote.objects.all().aggregate(Max("id_acc"))["id_acc__max"] + 1
+    )
     for q in queryset:
         q.status = Quote.ACCEPTED
         q.id_acc = next
@@ -57,7 +59,7 @@ def accept(modeladmin, request, queryset):
 accept.short_description = "Accept selected quotes"
 
 
-def reject(modeladmin, request, queryset):
+def reject(modeladmin, request, queryset):  # pylint: disable=unused-argument
     queryset.update(status=Quote.REJECTED, id_acc=0)
 
 
@@ -65,7 +67,8 @@ reject.short_description = "Reject selected quotes"
 
 
 class QuoteAdmin(MyModelAdmin):
-    def strquote(o):
+
+    def strquote(o):  # pylint: disable=no-self-argument
         return str(o)
 
     strquote.short_description = "Quote"

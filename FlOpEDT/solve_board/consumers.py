@@ -46,7 +46,6 @@ import TTapp.models as TimetableClasses
 from base.models import SchedulingPeriod, TrainingProgramme
 from TTapp.timetable_model import TimetableModel
 
-_solver_child_process = 0
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +138,7 @@ class SolverConsumer(WebsocketConsumer):
                 )
 
 
-def solver_subprocess_signint_handler(sig, stack):
+def solver_subprocess_signint_handler(sig, stack):  # pylint: disable=unused-argument
     # ignore in current process and forward to process group (=> gurobi)
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     os.kill(0, signal.SIGINT)

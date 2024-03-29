@@ -405,8 +405,7 @@ def get_ttconstraints(department, period=None, is_active=None):
         if atributes:
             queryset = queryset.prefetch_related(*atributes)
 
-        for constraint in queryset.order_by("id"):
-            yield constraint
+        yield from queryset.order_by("id")
 
 
 def get_room_constraints(department, period=None, is_active=None):
@@ -430,8 +429,7 @@ def get_room_constraints(department, period=None, is_active=None):
         if atributes:
             queryset = queryset.prefetch_related(*atributes)
 
-        for constraint in queryset.order_by("id"):
-            yield constraint
+        yield from queryset.order_by("id")
 
 
 def get_flop_constraints(department, period=None, is_active=None):

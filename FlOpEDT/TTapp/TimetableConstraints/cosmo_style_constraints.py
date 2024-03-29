@@ -72,10 +72,10 @@ class LimitHoles(TimetableConstraint):
     tutors = models.ManyToManyField("people.Tutor", blank=True)
     max_holes_per_day = models.PositiveSmallIntegerField(
         null=True, blank=True
-    )  # FIXME : time with TimeField or DurationField
+    )  # FIX ME : time with TimeField or DurationField
     max_holes_per_period = models.PositiveSmallIntegerField(
         null=True, blank=True
-    )  # FIXME : time with TimeField or DurationField
+    )  # FIX ME : time with TimeField or DurationField
 
     class Meta:
         verbose_name = _("Limit holes")
@@ -225,10 +225,10 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
     tutors = models.ManyToManyField("people.Tutor", blank=True)
     min_time_per_period = models.PositiveSmallIntegerField(
         null=True, blank=True
-    )  # FIXME : time with TimeField or DurationField
+    )  # FIX ME : time with TimeField or DurationField
     max_time_per_period = models.PositiveSmallIntegerField(
         null=True, blank=True
-    )  # FIXME : time with TimeField or DurationField
+    )  # FIX ME : time with TimeField or DurationField
     tolerated_margin = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(100)], null=True, blank=True
     )

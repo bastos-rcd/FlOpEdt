@@ -8,16 +8,16 @@ POSTGRES_PASSWORD = os.environ["POSTGRES_PASSWORD"]
 
 # Connect to the database.
 #
-db = psycopg.connect(
+DB = psycopg.connect(
     host=POSTGRES_HOST,
     dbname=POSTGRES_DB,
     user=POSTGRES_USER,
     password=POSTGRES_PASSWORD,
 )
 
-cursor = db.cursor()
+cursor = DB.cursor()
 
 print(cursor)
 
 cursor.close()
-db.close()
+DB.close()

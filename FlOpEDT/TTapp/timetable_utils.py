@@ -33,7 +33,7 @@ from django.core.cache import cache
 from django.db.models import Count, F, Max, Q
 from django.utils.translation import gettext_lazy as _
 
-import base.views as base_views
+import base.views as base_views  # pylint: disable=cyclic-import
 from base.models import (
     Course,
     CourseType,

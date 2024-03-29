@@ -31,6 +31,6 @@ echo Semaines ?
 read weeks
 time=$(date +%Y_%m_%d-%H-%M)
 
-python -m cProfile -o misc/logs/cProfile/solve\_$dep\_$year\_$weeks\_$time.profile solve.py -d $dep -w $weeks -y $year
+python -m cProfile -o misc/logs/c_profile/solve\_$dep\_$year\_$weeks\_$time.profile solve.py -d $dep -w $weeks -y $year
 
-pyprof2calltree -i misc/logs/cProfile/solve\_$dep\_$year\_$weeks\_$time.profile -o misc/logs/cProfile/solve\_$dep\_$year\_$weeks\_$time.calltree
+pyprof2calltree -i misc/logs/c_profile/solve\_$dep\_$year\_$weeks\_$time.profile -o misc/logs/c_profile/solve\_$dep\_$year\_$weeks\_$time.calltree

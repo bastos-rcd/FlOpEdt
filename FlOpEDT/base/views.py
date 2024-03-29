@@ -959,10 +959,9 @@ def clean_change(
     week, old_version, change, work_copy=0, initiator=None, apply=False, department=None
 ):
 
-    # pylint: disable=import-outside-toplevel
-    from TTapp.timetable_utils import number_courses
-
-    # pylint: enable=import-outside-toplevel
+    from TTapp.timetable_utils import (  # pylint: disable=import-outside-toplevel
+        number_courses,
+    )
 
     scheduled_before = True
     renumber = False
@@ -1331,10 +1330,9 @@ def course_preferences_changes(req, year, week, train_prog, course_type):
 @tutor_required
 def decale_changes(req):
 
-    # pylint: disable=import-outside-toplevel
-    from TTapp.timetable_utils import number_courses
-
-    # pylint: enable=import-outside-toplevel
+    from TTapp.timetable_utils import (  # pylint: disable=import-outside-toplevel
+        number_courses,
+    )
 
     bad_response = HttpResponse("KO")
     good_response = HttpResponse("OK")

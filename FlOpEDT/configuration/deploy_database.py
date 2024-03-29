@@ -134,7 +134,7 @@ def people_extract(department, people, fill_default_availabilities=True):
                 department=department, user=tutor
             )
             if fill_default_availabilities:
-                pass  # FIXME : we should split user availabilities in here!
+                pass  # FIX ME : we should split user availabilities in here!
             logger.debug("update tutor : '%s'", id_)
 
         else:

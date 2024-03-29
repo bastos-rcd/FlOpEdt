@@ -24,8 +24,6 @@
 # without disclosing the source code of your own applications.
 
 
-from random import randint
-
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -58,11 +56,13 @@ def submit(req):
     )
 
 
-def moderate(req):
+def moderate(req):  # pylint: disable=unused-argument
     pass
 
 
-def fetch_all_quotes(req):
+def fetch_all_quotes(req):  # pylint: disable=unused-argument
     dataset = QuoteResource().export(Quote.objects.filter(status="A"))
-    response = HttpResponse(dataset.json, content_type="text/json")
+    response = HttpResponse(
+        dataset.json, content_type="text/json"  # pylint: disable=no-member
+    )
     return response
