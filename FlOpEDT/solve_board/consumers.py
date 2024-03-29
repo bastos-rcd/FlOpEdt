@@ -36,12 +36,9 @@ import logging
 import os
 import signal
 import sys
-import time
 import traceback
-from threading import Thread
 
 from channels.generic.websocket import WebsocketConsumer
-from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -55,8 +52,8 @@ logger = logging.getLogger(__name__)
 
 
 class SolverConsumer(WebsocketConsumer):
-    def get_constraint_class(self, str):
-        return getattr(sys.modules[TimetableClasses.__name__], str)
+    def get_constraint_class(self, string):
+        return getattr(sys.modules[TimetableClasses.__name__], string)
 
     def connect(self):
         # ws_message()
@@ -70,19 +67,19 @@ class SolverConsumer(WebsocketConsumer):
             )
         )
 
-    def disconnect(self, close_code):
+    def disconnect(self, code):
         pass
 
-    def receive(self, text_data):
+    def receive(self, text_data=None, bytes_data=None):
         data = json.loads(text_data)
-        logger.debug(f" WebSocket receive data : {data}")
+        logger.debug(" WebSocket receive data : %s", data)
 
         if data["action"] == "go":
             # Save constraints state
             for constraint in data["constraints"]:
                 try:
-                    type = self.get_constraint_class(constraint["model"])
-                    instance = type.objects.get(pk=constraint["pk"])
+                    flop_model = self.get_constraint_class(constraint["model"])
+                    instance = flop_model.objects.get(pk=constraint["pk"])
                     instance.is_active = constraint["is_active"]
                     instance.save()
                 except ObjectDoesNotExist:
@@ -94,9 +91,9 @@ class SolverConsumer(WebsocketConsumer):
 
             # Get work copy as stabilization base
             try:
-                stabilize = int(data["stabilize"])
-            except:
-                stabilize = None
+                major_to_stabilize = int(data["stabilize"])
+            except:  # pylint: disable=bare-except
+                major_to_stabilize = None
 
             # Get additional informations
             time_limit = data["time_limit"] or None
@@ -113,7 +110,7 @@ class SolverConsumer(WebsocketConsumer):
                 data["solver"],
                 data["pre_assign_rooms"],
                 data["post_assign_rooms"],
-                stabilize_version=stabilize,
+                major_to_stabilize=major_to_stabilize,
                 all_periods_together=data["all_periods_together"],
                 send_log_email=data["send_log_email"],
                 user_email=data["current_user_email"],
@@ -142,7 +139,7 @@ class SolverConsumer(WebsocketConsumer):
                 )
 
 
-def solver_subprocess_SIGINT_handler(sig, stack):
+def solver_subprocess_signint_handler(sig, stack):
     # ignore in current process and forward to process group (=> gurobi)
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     os.kill(0, signal.SIGINT)
@@ -165,7 +162,7 @@ class Solve:
         major_to_stabilize=None,
         all_periods_together=True,
     ):
-        super(Solve, self).__init__()
+        super().__init__()
         self.department_abbrev = department_abbrev
         self.periods = periods
         self.timestamp = timestamp
@@ -219,7 +216,7 @@ class Solve:
                             post_assign_rooms=self.post_assign_rooms,
                         )
                         os.setpgid(os.getpid(), os.getpid())
-                        signal.signal(signal.SIGINT, solver_subprocess_SIGINT_handler)
+                        signal.signal(signal.SIGINT, solver_subprocess_signint_handler)
                         t.solve(
                             time_limit=self.time_limit,
                             solver=self.solver,
@@ -237,14 +234,14 @@ class Solve:
                             )
                             os.setpgid(os.getpid(), os.getpid())
                             signal.signal(
-                                signal.SIGINT, solver_subprocess_SIGINT_handler
+                                signal.SIGINT, solver_subprocess_signint_handler
                             )
                             t.solve(
                                 time_limit=self.time_limit,
                                 solver=self.solver,
                                 send_gurobi_logs_email_to=self.user_email,
                             )
-                except:
+                except:  # pylint: disable=bare-except
                     traceback.print_exc()
                     print("solver aborting...")
                     os._exit(1)
@@ -261,7 +258,11 @@ class Solve:
                     self.channel.send(
                         text_data=json.dumps(
                             {
-                                "message": "unable to store solver_child_process PID, you won't be able to stop it via the browser! Is Django cache not working?",
+                                "message": (
+                                    "unable to store solver_child_process PID, "
+                                    "you won't be able to stop it via the browser! "
+                                    "Is Django cache not working?"
+                                ),
                                 "action": "error",
                             }
                         )
@@ -284,7 +285,10 @@ class Solve:
                     self.channel.send(
                         text_data=json.dumps(
                             {
-                                "message": f"solver process has aborted with a {os.WEXITSTATUS(status)} error code",
+                                "message": (
+                                    "solver process has aborted with "
+                                    f"a {os.WEXITSTATUS(status)} error code"
+                                ),
                                 "action": "error",
                             }
                         )
@@ -299,7 +303,7 @@ class Solve:
                         )
                     )
 
-        except OSError as e:
+        except OSError:
             print("Exception while launching a solver sub-process:")
             traceback.print_exc()
             print("Continuing business as usual...")

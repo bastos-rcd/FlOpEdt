@@ -35,9 +35,12 @@ urlpatterns = [
     ),
     re_path(r"^main/$", views.main_board, name="main_board"),
     re_path(
-        r"^analyse/(?P<train_prog>[a-zA-Z]\w{1,9})/(?P<period>\w{1,8})/(?P<type>[a-zA-Z]\w{1,30})$",
+        (
+            r"^analyse/(?P<train_prog>[a-zA-Z]\w{1,9})/(?P<period>\w{1,8})/"
+            r"(?P<constraint_type>[a-zA-Z]\w{1,30})$"
+        ),
         views.launch_pre_analyse,
         name="pre_analyse",
-    )
+    ),
     #    re_path(r'^run/(?P<timestamp>[0-9-]+)?$', views.run, name="run"),
 ]

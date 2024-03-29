@@ -26,9 +26,8 @@
 import json
 
 import pulp
-from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 
 # from channels import Group
 from django.template.response import TemplateResponse
@@ -47,7 +46,7 @@ from TTapp.TimetableConstraints.slots_constraints import ConsiderDependencies
 # from solve_board.consumers import ws_add
 
 # String used to specify all filter
-text_all = "All"
+TEXT_ALL = "All"
 
 
 def get_version_majors(department, period):
@@ -130,25 +129,25 @@ def get_context(department, period):
 
 
 @dept_admin_required
-def fetch_context(req, train_prog, period, **kwargs):
+def fetch_context(req, train_prog, period, **kwargs):  # pylint: disable=unused-argument
     context = get_context(req.department, period)
-    return HttpResponse(json.dumps(context, cls=LazyEncoder), content_type="text/json")
+    return JsonResponse(context)
 
 
 @dept_admin_required
-def launch_pre_analyse(req, train_prog, period, type, **kwargs):
+def launch_pre_analyse(req, train_prog, period, constraint_type, **kwargs):
     period = SchedulingPeriod.objects.get(id=period)
-    resultat = {type: []}
-    result = dict()
-    if type == "ConsiderTutorsUnavailability":
+    resultat = {constraint_type: []}
+    result = {}
+    if constraint_type == "ConsiderTutorsUnavailability":
         constraints = ConsiderTutorsUnavailability.objects.filter(
             department=req.department
         )
         for constraint in constraints:
             result = constraint.pre_analyse(period=period)
-            resultat[type].append(result)
+            resultat[constraint_type].append(result)
 
-    elif type == "NoSimultaneousGroupCourses":
+    elif constraint_type == "NoSimultaneousGroupCourses":
         if train_prog == "All" or not NoSimultaneousGroupCourses.objects.filter(
             train_progs__in=TrainingProgramme.objects.filter(abbrev=train_prog).all(),
             department=req.department,
@@ -165,9 +164,9 @@ def launch_pre_analyse(req, train_prog, period, type, **kwargs):
             )
         for constraint in constraints:
             result = constraint.pre_analyse(period=period)
-            resultat[type].append(result)
+            resultat[constraint_type].append(result)
 
-    elif type == "ConsiderDependencies":
+    elif constraint_type == "ConsiderDependencies":
         if train_prog == "All" or not ConsiderDependencies.objects.filter(
             train_progs__in=TrainingProgramme.objects.filter(abbrev=train_prog).all(),
             department=req.department,
@@ -182,7 +181,7 @@ def launch_pre_analyse(req, train_prog, period, type, **kwargs):
             )
         for constraint in constraints:
             result = constraint.pre_analyse(period=period)
-            resultat[type].append(result)
+            resultat[constraint_type].append(result)
     return JsonResponse(resultat)
 
 
@@ -208,7 +207,7 @@ def main_board(req, **kwargs):
 
     view_context = {
         "department": department,
-        "text_all": text_all,
+        "text_all": TEXT_ALL,
         "periods": json.dumps(periods),
         "train_progs": json.dumps(all_tps),
         "solvers": solvers_viewmodel,
@@ -226,7 +225,7 @@ def main_board(req, **kwargs):
 
 
 class LazyEncoder(DjangoJSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Promise):
-            return force_str(obj)
-        return super(LazyEncoder, self).default(obj)
+    def default(self, o):
+        if isinstance(o, Promise):
+            return force_str(o)
+        return super().default(o)

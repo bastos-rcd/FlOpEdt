@@ -23,11 +23,11 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.conf.urls import url
+from django.urls import path
 
 from . import consumers
 
 websocket_urlpatterns = [
-    url(r"^solver/$", consumers.SolverConsumer),
+    path(r"^solver/$", consumers.SolverConsumer),
     # (?P<timestamp>[0-9-]+)?
 ]
