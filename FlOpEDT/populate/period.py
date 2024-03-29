@@ -5,14 +5,14 @@ from base.models.timing import PeriodEnum
 
 
 def generate_scheduling_periods(
-    from_date: dt.datetime, to_date: dt.datetime, SchedulingPeriodModel
+    from_date: dt.datetime, to_date: dt.datetime, scheduling_period_model
 ):
     objects = []
 
     current = from_date
     while current <= to_date:
         objects.append(
-            SchedulingPeriodModel(
+            scheduling_period_model(
                 start_date=current,
                 end_date=current,
                 mode=PeriodEnum.DAY,
@@ -24,7 +24,7 @@ def generate_scheduling_periods(
     current = from_date - dt.timedelta(days=from_date.isocalendar().weekday - 1)
     while current <= to_date:
         objects.append(
-            SchedulingPeriodModel(
+            scheduling_period_model(
                 start_date=current,
                 end_date=current + dt.timedelta(days=6),
                 mode=PeriodEnum.WEEK,
@@ -37,7 +37,7 @@ def generate_scheduling_periods(
     while current <= to_date:
         future = current + dt.timedelta(days=monthrange(current.year, current.month)[1])
         objects.append(
-            SchedulingPeriodModel(
+            scheduling_period_model(
                 start_date=current,
                 end_date=future - dt.timedelta(days=1),
                 mode=PeriodEnum.MONTH,
@@ -51,7 +51,7 @@ def generate_scheduling_periods(
         ndays = 366 if isleap(current.year) else 365
         future = current + dt.timedelta(days=ndays)
         objects.append(
-            SchedulingPeriodModel(
+            scheduling_period_model(
                 start_date=current,
                 end_date=future - dt.timedelta(days=1),
                 mode=PeriodEnum.YEAR,
@@ -60,4 +60,4 @@ def generate_scheduling_periods(
         )
         current = future
 
-    SchedulingPeriodModel.objects.bulk_create(objects)
+    scheduling_period_model.objects.bulk_create(objects)
