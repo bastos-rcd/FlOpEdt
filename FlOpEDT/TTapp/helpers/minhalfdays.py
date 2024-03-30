@@ -62,10 +62,9 @@ class MinHalfDaysHelperBase:
         """
         if not courses:
             return 0
-        try:
-            tgs = courses[0].type.department.timegeneralsettings
-        except AttributeError as exc:
-            raise AttributeError("TimeGeneralSettings not found") from exc
+        first_course = next(iter(courses))
+
+        tgs = first_course.type.department.timegeneralsettings
         today = dt.date.today()
         half_days_min_time = min(
             dt.datetime.combine(today, tgs.morning_end_time)

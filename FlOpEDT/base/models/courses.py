@@ -198,10 +198,6 @@ class ScheduledCourse(Slot):
         verbose_name = _("scheduled course")
         verbose_name_plural = _("scheduled courses")
 
-    def save(self, *args, **kwargs):
-        self.duration = self.course.duration
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return (
             f"{self.course}{self.number}:"
