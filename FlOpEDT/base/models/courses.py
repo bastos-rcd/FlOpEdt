@@ -2,7 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from base.timing import slot_pause
+from base.models.timing import Slot
 
 
 class Module(models.Model):
@@ -109,6 +109,7 @@ class Course(models.Model):
         blank=True,
         on_delete=models.CASCADE,
     )
+    pay_duration = models.DurationField(null=True, blank=True)
     period = models.ForeignKey(
         "SchedulingPeriod", on_delete=models.CASCADE, null=True, blank=True
     )
@@ -175,9 +176,8 @@ class CoursePossibleTutors(models.Model):
     )
 
 
-class ScheduledCourse(models.Model):
+class ScheduledCourse(Slot):
     course = models.ForeignKey("Course", on_delete=models.CASCADE)
-    start_time = models.DateTimeField()
     room = models.ForeignKey("Room", blank=True, null=True, on_delete=models.SET_NULL)
     number = models.PositiveSmallIntegerField(null=True, blank=True)
     noprec = models.BooleanField(
@@ -198,6 +198,10 @@ class ScheduledCourse(models.Model):
         verbose_name = _("scheduled course")
         verbose_name_plural = _("scheduled courses")
 
+    def save(self, *args, **kwargs):
+        self.duration = self.course.duration
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return (
             f"{self.course}{self.number}:"
@@ -211,39 +215,10 @@ class ScheduledCourse(models.Model):
         )
 
     @property
-    def end_time(self):
-        return self.start_time + self.duration
-
-    @property
-    def date(self):
-        return self.start_time.date()
-
-    @property
-    def day(self):
-        return self.date
-
-    def has_same_date(self, other):
-        return self.start_time.date() == other.start_time.date()
-
-    def is_successor_of(self, other):
-        return other.end_time <= self.start_time <= other.end_time + slot_pause
-
-    def is_simultaneous_to(self, other):
-        return self.start_time < other.end_time and other.start_time < self.end_time
-
-    @property
-    def duration(self):
-        return self.course.duration
-
-    @property
-    def minutes(self):
-        return self.course.minutes
-
-    # @property
-    # def pay_duration(self):
-    #     if self.course.type.pay_duration is not None:
-    #         return self.course.type.pay_duration
-    #     return self.duration
+    def pay_duration(self):
+        if self.course.pay_duration is not None:
+            return self.course.pay_duration
+        return self.duration
 
 
 class ScheduledCourseAdditional(models.Model):

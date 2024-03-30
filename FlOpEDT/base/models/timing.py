@@ -7,7 +7,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
-from base.timing import Day, Time, days_list
+from base.timing import Day, Time, days_list, slot_pause
 
 
 class Holiday(models.Model):
@@ -202,8 +202,80 @@ class Mode(models.Model):
         return text
 
 
+class Slot(models.Model):
+    start_time = models.DateTimeField(default=dt.datetime(1871, 3, 18))
+    date = models.DateField(default=dt.date(1, 1, 1))
+    duration = models.DurationField(default=dt.timedelta(0))
+
+    def save(self, *args, **kwargs):
+        force_date = kwargs.pop("force_date") if "force_date" in kwargs else False
+        if force_date is False:
+            self.date = self.start_time.date()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+
+    def is_simultaneous_to(self, other: "Slot"):
+        return self.start_time < other.end_time and self.end_time > other.start_time
+
+    def __lt__(self, other):
+        if isinstance(other, Slot):
+            return self.end_time < other.start_time
+        raise NotImplementedError
+
+    def __gt__(self, other):
+        if isinstance(other, Slot):
+            return self.start_time > other.end_time
+        raise NotImplementedError
+
+    def has_same_date(self, other: "Slot"):
+        return self.date == other.date
+
+    def is_successor_of(self, other: "Slot"):
+        return other.end_time <= self.start_time <= other.end_time + slot_pause
+
+    def weekday_is(self, weekday):
+        return days_list[self.date.weekday()] == weekday
+
+    def weekday__in(self, weekdays):
+        return days_list[self.date.weekday()] in weekdays
+
+    @property
+    def in_day_start_time(self):
+        return self.start_time.time()
+
+    @property
+    def end_time(self):
+        return self.start_time + self.duration
+
+    @property
+    def in_day_end_time(self):
+        return self.end_time.time()
+
+    @property
+    def minutes(self):
+        return self.duration.seconds // 60
+
+    @property
+    def start_date(self):
+        return self.date
+
+    @property
+    def weekday(self):
+        return days_list[self.date.weekday()]
+
+    def __str__(self):
+        return (
+            f"{self.date:%d/%m/%y}: "
+            + f"{self.in_day_start_time:%H:%M}-{self.in_day_end_time:%H:%M}"
+        )
+
+
 @receiver(post_save, sender="base.Department")
-def create_department_related(sender, instance, created, raw, **kwargs): # pylint: disable=unused-argument
+def create_department_related(
+    sender, instance, created, raw, **kwargs
+):  # pylint: disable=unused-argument
     if not created or raw:
         return
     mode_model = apps.get_model("base.Mode")

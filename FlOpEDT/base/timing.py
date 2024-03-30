@@ -54,38 +54,6 @@ class Day:
         (SUNDAY, _("sunday")),
     )
 
-    def __init__(self, day, week):
-        self.day = day
-        self.week = week
-
-    def __str__(self):
-        # return self.nom[:3]
-        return self.day + "_s" + str(self.week)
-
-    def __repr__(self):
-        return self.day + "_s" + str(self.week)
-
-    def equals(self, other):
-        if isinstance(other, Day):
-            return self.week == other.week and self.day == other.day
-        return False
-
-    def __lt__(self, other):
-        if isinstance(other, Day):
-            return days_index[self.day] < days_index[other.day]
-        return False
-
-    def __gt__(self, other):
-        if isinstance(other, Day):
-            return days_index[self.day] > days_index[other.day]
-        return False
-
-    def __le__(self, other):
-        return self.equals(other) or self < other
-
-    def __ge__(self, other):
-        return self.equals(other) or self > other
-
 
 days_list = [c[0] for c in Day.CHOICES]
 days_index = {}

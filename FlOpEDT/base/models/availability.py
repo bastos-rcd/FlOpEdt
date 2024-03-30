@@ -3,13 +3,11 @@ import datetime as dt
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from base.timing import days_list, get_default_date
+from base.timing import get_default_date
+from base.models.timing import Slot
 
 
-class Availability(models.Model):
-    start_time = models.DateTimeField(default=dt.datetime(1871, 3, 18))
-    date = models.DateField(default=dt.date(1, 1, 1))
-    duration = models.DurationField(default=dt.timedelta(0))
+class Availability(Slot):
     value = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(8)], default=8
     )
@@ -19,58 +17,14 @@ class Availability(models.Model):
         abstract = True
 
     def save(self, *args, **kwargs):
-        force_date = kwargs.pop("force_date") if "force_date" in kwargs else False
-        if force_date is False:
-            self.date = self.start_time.date()
+        super().save(*args, **kwargs)
         if self.date <= dt.date(1, 1, 7):
             self.is_default = True
-        super().save(*args, **kwargs)
-
-    @property
-    def in_day_start_time(self):
-        return self.start_time.time()
-
-    @property
-    def end_time(self):
-        return self.start_time + self.duration
-
-    @property
-    def in_day_end_time(self):
-        return self.end_time.time()
-
-    @property
-    def minutes(self):
-        return self.duration.seconds // 60
-
-    @property
-    def start_date(self):
-        return self.start_time.date()
-
-    def is_simultaneous_to(self, other):
-        return self.start_time < other.end_time and self.end_time > other.start_time
+        self.save()
 
     def __str__(self):
-        return (
-            f" - {self.date:%d/%m/%y}: "
-            + f"({self.in_day_start_time:%H:%M}-{self.in_day_end_time:%H:%M})"
-            + f" = {self.value}"
-        )
-
-    def __lt__(self, other):
-        if isinstance(other, Availability):
-            return self.end_time < other.start_time
-        raise NotImplementedError
-
-    def __gt__(self, other):
-        if isinstance(other, Availability):
-            return self.start_time > other.end_time
-        raise NotImplementedError
-
-    def weekday_is(self, weekday):
-        return days_list[self.date.weekday()] == weekday
-
-    def weekday__in(self, weekdays):
-        return days_list[self.date.weekday()] in weekdays
+        result = super().__str__()
+        return result + f" = {self.value}"
 
 
 class UserAvailability(Availability):
