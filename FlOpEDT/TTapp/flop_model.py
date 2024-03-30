@@ -285,12 +285,12 @@ class FlopModel:  # pylint: disable=too-many-instance-attributes, too-many-publi
         close_old_connections()
 
         local_max_major = ScheduledCourse.objects.filter(
-            course__module__train_prog__department=self.department,
+            course__type__department=self.department,
             course__period__in=self.periods,
         ).aggregate(Max("version__major"))["version__major__max"]
 
         if local_max_major is None:
-            local_max_major = 0
+            return 0
 
         return local_max_major + 1
 

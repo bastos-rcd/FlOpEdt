@@ -201,7 +201,7 @@ class ScheduledCourse(Slot):
     def __str__(self):
         return (
             f"{self.course}{self.number}:"
-            f"{self.date}-{self.start_time.time()}/{self.end_time.time()}-{self.room}"
+            f"{self.date}-{self.in_day_start_time}/{self.in_day_end_time}-{self.room}"
         )
 
     def unique_name(self):
