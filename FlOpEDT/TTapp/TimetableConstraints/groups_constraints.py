@@ -29,7 +29,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from base.timing import Day
+from base.timing import Day, Time
+from base.models import ScheduledCourse
 from people.models import GroupPreferences
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
 from TTapp.ilp_constraints.constraint import Constraint
@@ -89,7 +90,30 @@ class MinGroupsHalfDays(TimetableConstraint):
         return _("Minimize groups half-days")
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_min_half_days_groups = []
+        for basic_group in self.considered_basic_groups():
+            considered_courses = self.get_courses_queryset_by_parameters(
+                period=period, group=basic_group
+            )
+            considered_scheduled_courses = ScheduledCourse.objects.filter(
+                course__in=considered_courses, version=version
+            )
+            limit = MinHalfDaysHelperGroup.minimal_half_days_number(considered_courses)
+            busy_half_days = sum(
+                1
+                for date in period.dates()
+                for apm in [Time.AM, Time.PM]
+                if set(
+                    sched_course
+                    for sched_course in considered_scheduled_courses.filter(date=date)
+                    if sched_course.apm == apm
+                )
+            )
+            if busy_half_days > limit:
+                unsatisfied_min_half_days_groups.append(basic_group)
+        assert (
+            not unsatisfied_min_half_days_groups
+        ), f"Unsatisfied min half days groups: {unsatisfied_min_half_days_groups}"
 
 
 class MinNonPreferedTrainProgsSlot(TimetableConstraint):
