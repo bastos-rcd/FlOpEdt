@@ -21,7 +21,7 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-import datetime
+import datetime as dt
 
 from django.db.models import Case, Count, F, Q, When
 from django.utils.decorators import method_decorator
@@ -55,51 +55,37 @@ from people.models import Tutor
         manual_parameters=[
             dept_param(required=True),
             openapi.Parameter(
-                "de_semaine",
+                "from",
                 openapi.IN_QUERY,
-                description="semaine initiale",
-                type=openapi.TYPE_INTEGER,
+                description="initial date",
+                type=openapi.FORMAT_DATE,
                 required=True,
             ),
             openapi.Parameter(
-                "de_annee",
+                "to",
                 openapi.IN_QUERY,
-                description="année initiale",
-                type=openapi.TYPE_INTEGER,
+                description="final date",
+                type=openapi.FORMAT_DATE,
                 required=True,
             ),
             openapi.Parameter(
-                "a_semaine",
+                "train_prog",
                 openapi.IN_QUERY,
-                description="semaine finale",
-                type=openapi.TYPE_INTEGER,
-                required=True,
-            ),
-            openapi.Parameter(
-                "a_annee",
-                openapi.IN_QUERY,
-                description="année finale",
-                type=openapi.TYPE_INTEGER,
-                required=True,
-            ),
-            openapi.Parameter(
-                "promo",
-                openapi.IN_QUERY,
-                description="abbréviation de la promo",
+                description="training program abbreviation",
                 type=openapi.TYPE_STRING,
                 required=False,
             ),
             openapi.Parameter(
-                "pour",
+                "for",
                 openapi.IN_QUERY,
-                description="p : permanent·e·s ; v : vacataires" " ; t : tou·te·s",
+                description="f : full staff ; s : supply staff" " ; a : all",
                 type=openapi.TYPE_STRING,
                 required=True,
             ),
             openapi.Parameter(
-                "avec_formation_continue",
+                "with_contunuing_training",
                 openapi.IN_QUERY,
-                description="distinguer la formation continue?",
+                description="distinguish continuing training ?",
                 type=openapi.TYPE_BOOLEAN,
                 required=False,
             ),
@@ -115,14 +101,12 @@ class PayViewSet(viewsets.ViewSet):
 
     def list(self, request):
         param_exception = NotAcceptable(
-            detail=f"Usage : ?de_semaine=xx&de_annee=xy"
-            f"&a_semaine=yx&a_annee=yy"
-            f"&pour=p_ou_v_ou_t où "
-            f"p : permanent·e·s ; v : vacataires ; "
-            f"t : tou·te·s"
+            detail=f"Usage : ?from=YYYY-MM-DD&to=YYYY-MM-DD"
+            f"&for=f_or_s_or_a where "
+            f"f : full staff ; s : supply staff ; a : all"
         )
 
-        wanted_param = ["de_semaine", "de_annee", "a_semaine", "a_annee", "pour"]
+        wanted_param = ["from", "to", "for"]
         supp_filters = {}
 
         # check that all parameters are given
@@ -137,35 +121,12 @@ class PayViewSet(viewsets.ViewSet):
             except Department.DoesNotExist:
                 raise APIException(detail="Unknown department")
 
-        # clean week-year parameters
-        week_inter = [
-            {
-                "year": request.GET.get("de_annee"),
-                "min_week": request.GET.get("de_semaine"),
-                "max_week": 60,
-            },
-            {
-                "year": request.GET.get("a_annee"),
-                "min_week": 1,
-                "max_week": request.GET.get("a_semaine"),
-            },
-        ]
-        if week_inter[0]["year"] == week_inter[1]["year"]:
-            week_inter[0]["max_week"] = week_inter[1]["max_week"]
-            week_inter[1]["max_week"] = 0
-
-        Q_filter_week = Q(course__week__nb__gte=week_inter[0]["min_week"]) & Q(
-            course__week__nb__lte=week_inter[0]["max_week"]
-        ) & Q(course__week__year=week_inter[0]["year"]) | Q(
-            course__week__nb__gte=week_inter[1]["min_week"]
-        ) & Q(
-            course__week__nb__lte=week_inter[1]["max_week"]
-        ) & Q(
-            course__week__year=week_inter[1]["year"]
-        )
+        # clean dates
+        from_date = dt.date.fromisoformat(self.request.query_params.get("from"))
+        to_date = dt.date.fromisoformat(self.request.query_params.get("to"))
 
         # clean training programme
-        train_prog = self.request.query_params.get("promo", None)
+        train_prog = self.request.query_params.get("train_prog", None)
         if train_prog is not None:
             try:
                 train_prog = TrainingProgramme.objects.get(
@@ -177,23 +138,24 @@ class PayViewSet(viewsets.ViewSet):
 
         # clean status
         status_dict = {
-            "p": [Tutor.FULL_STAFF],
-            "v": [Tutor.SUPP_STAFF],
-            "t": [Tutor.FULL_STAFF, Tutor.SUPP_STAFF],
+            "f": [Tutor.FULL_STAFF],
+            "s": [Tutor.SUPP_STAFF],
+            "a": [Tutor.FULL_STAFF, Tutor.SUPP_STAFF],
         }
-        status_set = status_dict[request.GET.get("pour")]
+        status_set = status_dict[request.GET.get("for")]
 
-        # formation continue
-        avec_formation_contine = request.GET.get("avec_formation_continue", None)
+        # clean continuing training
+        with_continuing_training = self.request.query_params.get(
+            "with_contunuing_training", False
+        )
 
         volumes = (
-            ScheduledCourse.objects.select_related(
-                "course__week", "course__module__train_prog"
-            )
+            ScheduledCourse.objects.select_related("course__module__train_prog")
             .filter(
-                Q_filter_week,
-                course__module__train_prog__department=dept,
-                work_copy=0,
+                date__gte=from_date,
+                date__lte=to_date,
+                course__type__department=dept,
+                verion__major=0,
                 tutor__status__in=status_set,
                 **supp_filters,
             )
@@ -217,7 +179,7 @@ class PayViewSet(viewsets.ViewSet):
                         course__pay_module__isnull=True, then=F("course__module__ppn")
                     ),
                 ),
-                nom_matiere=Case(
+                module__name=Case(
                     When(
                         course__pay_module__isnull=False,
                         then=F("course__pay_module__name"),
@@ -228,11 +190,11 @@ class PayViewSet(viewsets.ViewSet):
                 ),
                 train_prog_abbrev=F("course__groups__train_prog__abbrev"),
                 group_name=F("course__groups__name"),
-                type_cours=F("course__type__name"),
+                course_type_name=F("course__type__name"),
                 type_id=F("course__type__id"),
-                abbrev_intervenant=F("tutor__username"),
-                prenom_intervenant=F("tutor__first_name"),
-                nom_intervenant=F("tutor__last_name"),
+                tutor_username=F("tutor__username"),
+                tutor_first_name=F("tutor__first_name"),
+                tutor_last_name=F("tutor__last_name"),
             )
             .values(
                 "id",
@@ -242,17 +204,18 @@ class PayViewSet(viewsets.ViewSet):
                 "tutor__id",
                 "course_type_id",
                 "tutor__username",
-                "nom_matiere",
-                "type_cours",
+                "course_type_name",
                 "type_id",
-                "nom_matiere",
-                "abbrev_intervenant",
-                "prenom_intervenant",
-                "nom_intervenant",
+                "module_name",
+                "tutor_username",
+                "tutor_first_name",
+                "tutor_last_name",
                 "train_prog_abbrev",
                 "group_name",
+                "duration",
+                "pay_duration",
             )
-            .annotate(nb_creneau=Count("id"))
+            .annotate(slots_nb=Count("id"))
             .order_by("module_id", "tutor__id", "course_type_id")
         )
 

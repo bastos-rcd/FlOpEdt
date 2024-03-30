@@ -27,21 +27,23 @@ from base.models import CourseType
 
 
 class VolumeAgrege:
-    conditions_pour_continue = []
-    facteur_continue = {}
+    conditions_for_continuous = []
+    continuous_factor = {}
 
     def __init__(self, agg_dict):
         self.module_id = agg_dict["module_id"]
         self.tutor_id = agg_dict["tutor__id"]
         self.course_type_id = agg_dict["course_type_id"]
         self.module_ppn = agg_dict["module_ppn"]
-        self.nom_matiere = agg_dict["nom_matiere"]
-        self.abbrev_intervenant = agg_dict["abbrev_intervenant"]
-        self.prenom_intervenant = agg_dict["prenom_intervenant"]
-        self.nom_intervenant = agg_dict["nom_intervenant"]
-        self.type_cours = agg_dict["type_cours"]
-        self.formation_reguliere = 0
-        self.formation_continue = 0
+        self.module_name = agg_dict["module_name"]
+        self.tutor_username = agg_dict["tutor_username"]
+        self.tutor_first_name = agg_dict["tutor_first_name"]
+        self.tutor_last_name = agg_dict["tutor_last_name"]
+        self.course_type_name = agg_dict["course_type_name"]
+        self.duration = agg_dict["duration"]
+        self.pay_duration = agg_dict["pay_duration"]
+        self.itinial_training = 0
+        self.continuous_training = 0
         self.conditional_add(agg_dict, True)
 
     def conditional_add(self, agg_dict, ok):
@@ -49,23 +51,22 @@ class VolumeAgrege:
             course_type_id = agg_dict["type_id"]
             course_type = CourseType.objects.get(id=course_type_id)
             dept_abbrev = course_type.department.abbrev
-            duree = course_type.pay_duration
-            if duree is None:
-                duree = course_type.duration
-            duree /= 60
-            volume = agg_dict["nb_creneau"] * duree
-            toadd_continue = 0
-            for cpc in self.conditions_pour_continue:
+            duration = agg_dict["pay_duration"]
+            if duration is None:
+                duration = agg_dict["duration"]
+            volume = agg_dict["slots_nb"] * duration
+            toadd_continuous = 0
+            for cpc in self.conditions_for_continuous:
                 if all(agg_dict[key] == cpc[key] for key in cpc):
                     ct_name = course_type.name
-                    toadd_continue = volume
-                    if dept_abbrev in self.facteur_continue:
-                        if ct_name in self.facteur_continue[dept_abbrev]:
-                            toadd_continue *= self.facteur_continue[dept_abbrev][
+                    toadd_continuous = volume
+                    if dept_abbrev in self.continuous_factor:
+                        if ct_name in self.continuous_factor[dept_abbrev]:
+                            toadd_continuous *= self.continuous_factor[dept_abbrev][
                                 ct_name
                             ]
-            self.formation_continue += toadd_continue
-            self.formation_reguliere += volume - toadd_continue
+            self.continuous_training += toadd_continuous
+            self.itinial_training += volume - toadd_continuous
             return None
         else:
             return VolumeAgrege(agg_dict)
@@ -79,18 +80,18 @@ class VolumeAgrege:
         )
 
     def __str__(self):
-        return f"{self.abbrev_intervenant} {self.module_ppn} {self.type_cours} ({self.formation_reguliere}|{self.formation_continue})"
+        return f"{self.tutor_username} {self.module_ppn} {self.course_type_name} ({self.itinial_training}|{self.continuous_training})"
 
 
 class ScheduledCoursePaySerializer(serializers.Serializer):
     module_ppn = serializers.CharField()
-    nom_matiere = serializers.CharField()
-    abbrev_intervenant = serializers.CharField()
-    prenom_intervenant = serializers.CharField()
-    nom_intervenant = serializers.CharField()
-    type_cours = serializers.CharField()
-    formation_reguliere = serializers.FloatField()
-    formation_continue = serializers.FloatField()
+    module_name = serializers.CharField()
+    tutor_username = serializers.CharField()
+    tutor_firs_name = serializers.CharField()
+    tutor_last_name = serializers.CharField()
+    course_type_name = serializers.CharField()
+    initial_training = serializers.FloatField()
+    continuous_training = serializers.FloatField()
 
 
 class DailyVolumeSerializer(serializers.Serializer):
