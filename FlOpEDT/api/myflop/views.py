@@ -23,7 +23,7 @@
 
 import datetime
 
-from django.db.models import Case, Count, F, Q, Sum, When
+from django.db.models import Case, Count, F, Q, When
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -44,10 +44,8 @@ from base.models import (
     Department,
     Room,
     ScheduledCourse,
-    SchedulingPeriod,
     TrainingProgramme,
 )
-from base.timing import Day, days_list, flopday_to_date, french_format
 from people.models import Tutor
 
 
@@ -356,17 +354,16 @@ class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
             department=dept,
             tutor=tutor,
         )
-        for dayschedcourse in sched_courses.distinct("start_time__date"):
+        for dayschedcourse in sched_courses.distinct("date"):
             sched_course_date = dayschedcourse.date
-            weekday = sched_course_date.weekday
             day_scheduled_courses = sched_courses.filter(date=sched_course_date)
             tds = day_scheduled_courses.filter(course__type__name="TD")
             tps = day_scheduled_courses.filter(course__type__name="TP")
             other = day_scheduled_courses.exclude(course__type__name__in=["TD", "TP"])
 
-            other = sum(sc.pay_duration for sc in other) / 60
-            td = sum(sc.pay_duration for sc in tds) / 60
-            tp = sum(sc.pay_duration for sc in tps) / 60
+            other = sum(sc.pay_duration for sc in other).seconds() // 60
+            td = sum(sc.pay_duration for sc in tds).seconds() // 60
+            tp = sum(sc.pay_duration for sc in tps).seconds() // 60
 
             day_volume = {
                 "month": sched_course_date.month,
@@ -454,12 +451,12 @@ class MonthlyByDayDuplicatesViewSet(viewsets.ViewSet):
         )
 
         for key in duplicates_sched_courses:
-            duplicate_tutor, date, course_type, start_time = key
+            duplicate_tutor, date, course_type, in_day_start_time = key
             day_duplicates = {
                 "tutor": duplicate_tutor.username,
                 "date": date.isoformat(),
                 "type": course_type,
-                "time": french_format(start_time),
+                "time": in_day_start_time.strftime("%H:%M"),
                 "nb": duplicates_sched_courses[key],
             }
 
@@ -548,19 +545,16 @@ class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
             department=dept,
             room=room,
         )
-        for dayschedcourse in sched_courses.distinct("course__week", "day"):
-            week = dayschedcourse.course.week
-            weekday = dayschedcourse.day
-            day_scheduled_courses = sched_courses.filter(course__week=week, day=weekday)
-            volume = sum(sc.pay_duration for sc in day_scheduled_courses) / 60
-
-            date = flopday_to_date(Day(week=week, day=weekday))
-
+        for dayschedcourse in sched_courses.distinct("date"):
+            date = dayschedcourse.date
+            day_scheduled_courses = sched_courses.filter(date=date)
+            volume = (
+                sum(sc.pay_duration for sc in day_scheduled_courses).seconds() // 60
+            )
             day_volume = {
                 "date": date.isoformat(),
                 "volume": volume,
             }
-
             day_volumes_list.append(day_volume)
             day_volumes_list.sort(key=lambda x: x["date"])
         serializer = RoomDailyVolumeSerializer(day_volumes_list, many=True)
@@ -582,7 +576,7 @@ def scheduled_courses_of_the_month(
     else:
         end_datetime = datetime.datetime(year, to_month + 1, 1) - datetime.timedelta(1)
 
-    relevant_scheduled_courses = ScheduledCourse.objects.filter(work_copy=0)
+    relevant_scheduled_courses = ScheduledCourse.objects.filter(version__major=0)
     if department is not None:
         relevant_scheduled_courses = relevant_scheduled_courses.filter(
             course__type__department=department
@@ -606,21 +600,17 @@ def duplicates_scheduled_courses_of_the_month(
     sorted_scheduled_courses = scheduled_courses_of_the_month(
         year, from_month, to_month, department, tutor
     )
-    for specimen in sorted_scheduled_courses.distinct(
-        "course__week", "day", "start_time", "tutor"
-    ):
+    for specimen in sorted_scheduled_courses.distinct("start_time", "tutor"):
         if specimen.tutor is not None:
             count = sorted_scheduled_courses.filter(
-                course__week=specimen.course.week,
-                day=specimen.day,
                 start_time=specimen.start_time,
                 tutor=specimen.tutor,
             ).count()
             if count > 1:
                 result_dict[
                     specimen.tutor,
-                    flopday_to_date(Day(week=specimen.course.week, day=specimen.day)),
+                    specimen.date,
                     specimen.course.type.name,
-                    specimen.start_time,
+                    specimen.in_day_start_time,
                 ] = count
     return result_dict
