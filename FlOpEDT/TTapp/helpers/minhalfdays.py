@@ -25,8 +25,9 @@
 
 import datetime as dt
 import logging
+from typing import Iterable
 
-from base.models import Time, TimeGeneralSettings
+from base.models import Time, Course
 from people.models import GroupPreferences
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -48,7 +49,8 @@ class MinHalfDaysHelperBase:
     def add_cost(self, cost):
         pass
 
-    def minimal_half_days_number(self, courses):
+    @staticmethod
+    def minimal_half_days_number(courses: Iterable[Course]):
         """
         Ce code (pas encore idéal) remplace le code suivant
             course_time = sum(c.duration for c in courses)
@@ -58,13 +60,18 @@ class MinHalfDaysHelperBase:
         de 3h (soit 9h en tout) ça impose de le faire tenir
         en 2 demies-journées... impossible !
         """
-        t = TimeGeneralSettings.objects.get(department=self.ttmodel.department)
+        if not courses:
+            return 0
+        try:
+            tgs = courses[0].type.department.timegeneralsettings
+        except AttributeError as exc:
+            raise AttributeError("TimeGeneralSettings not found") from exc
         today = dt.date.today()
         half_days_min_time = min(
-            dt.datetime.combine(today, t.morning_end_time)
-            - dt.datetime.combine(today, t.day_start_time),
-            dt.datetime.combine(today, t.day_end_time)
-            - dt.datetime.combine(today, t.afternoon_start_time),
+            dt.datetime.combine(today, tgs.morning_end_time)
+            - dt.datetime.combine(today, tgs.day_start_time),
+            dt.datetime.combine(today, tgs.day_end_time)
+            - dt.datetime.combine(today, tgs.afternoon_start_time),
         )
         considered_courses = list(courses)
         considered_courses.sort(key=lambda x: x.duration)

@@ -29,10 +29,10 @@
 import datetime as dt
 
 from django.utils.translation import gettext_lazy as _
-
 from django.apps import apps
 
 slot_pause = dt.timedelta(minutes=30)
+midday = dt.time(12, 0, 0)
 
 
 class Day:
@@ -118,6 +118,22 @@ class Time:
     AM = "AM"
     PM = "PM"
     HALF_DAY_CHOICES = ((AM, _("AM")), (PM, _("PM")))
+
+    @staticmethod
+    def get_apm(time, department=None):
+        pm_start = midday
+        if department is not None:
+            if hasattr(department, "timegeneralsettings"):
+                pm_start = department.timegeneralsettings.afternoon_start_time
+        if isinstance(time, dt.datetime):
+            start_time = time.time()
+        elif isinstance(time, dt.time):
+            start_time = time
+        else:
+            raise TypeError("time must be a datetime or time object, not: ", type(time))
+        if start_time >= pm_start:
+            return Time.PM
+        return Time.AM
 
 
 class TimeInterval:

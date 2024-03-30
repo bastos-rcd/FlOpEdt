@@ -25,15 +25,14 @@
 
 import datetime as dt
 
+from typing import Set, List
 from base.models import (
     CourseAvailability,
     ScheduledCourse,
-    TimeGeneralSettings,
     UserAvailability,
+    SchedulingPeriod,
 )
 from base.timing import Time, days_list, slot_pause
-
-midday = dt.time(12, 0, 0)
 
 basic_slot_duration = dt.timedelta(hours=1, minutes=30)
 
@@ -62,10 +61,7 @@ class Slot:
 
     @property
     def apm(self):
-        pm_start = midday
-        if self.start_time.time() >= pm_start:
-            return Time.PM
-        return Time.AM
+        return Time.get_apm(self.start_time, self.department)
 
     def __str__(self):
         return f"{self.date} de {self.start_time.time()} à {self.end_time.time()}"
@@ -133,17 +129,6 @@ class CourseSlot(Slot):
     ):
         Slot.__init__(self, start_time, start_time + duration, department)
 
-    @property
-    def apm(self):
-        if self.department is not None:
-            time = TimeGeneralSettings.objects.get(department=self.department)
-            pm_start = time.afternoon_start_time
-        else:
-            pm_start = midday
-        if self.start_time.time() >= pm_start:
-            return Time.PM
-        return Time.AM
-
     def __str__(self):
         return str(self.department) + "_" + str(self.start_time)
 
@@ -152,7 +137,7 @@ class CourseSlot(Slot):
 
 
 def slots_filter(
-    slot_set,
+    slot_set: Set[Slot],
     day=None,
     apm=None,
     duration=None,
@@ -160,7 +145,7 @@ def slots_filter(
     weekday=None,
     weekday_in=None,
     simultaneous_to=None,
-    period=None,
+    period: SchedulingPeriod = None,
     is_after=None,
     starts_after=None,
     starts_before=None,
@@ -168,7 +153,7 @@ def slots_filter(
     ends_after=None,
     day_in=None,
     same=None,
-    period__in=None,
+    period__in: List[SchedulingPeriod] = None,
     department=None,
     date=None,
     date_in=None,
