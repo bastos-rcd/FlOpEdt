@@ -130,7 +130,7 @@ class Course(models.Model):
         username_mod = self.tutor.username if self.tutor is not None else "-no_tut-"
         return (
             f"{self.type}-{self.duration}-{self.module}-{username_mod}-"
-            "{'|'.join([g.name for g in self.groups.all()])}"
+            f"{'|'.join([g.name for g in self.groups.all()])}"
         )
 
     def equals(self, other):
@@ -205,7 +205,7 @@ class ScheduledCourse(Slot):
     def __str__(self):
         return (
             f"{self.course}{self.number}:"
-            f"{self.day}-{self.start_time.time()}/{self.end_time.time()}-{self.room}"
+            f"{self.date}-{self.start_time.time()}/{self.end_time.time()}-{self.room}"
         )
 
     def unique_name(self):
@@ -213,6 +213,10 @@ class ScheduledCourse(Slot):
             f"{self.course.type}_{self.duration}_{self.room}_{self.tutor}"
             f"_{self.start_time}_{self.end_time}"
         )
+
+    @property
+    def duration(self):
+        return self.course.duration
 
     @property
     def pay_duration(self):

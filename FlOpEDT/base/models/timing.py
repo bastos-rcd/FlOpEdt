@@ -205,7 +205,6 @@ class Mode(models.Model):
 class Slot(models.Model):
     start_time = models.DateTimeField(default=dt.datetime(1871, 3, 18))
     date = models.DateField(default=dt.date(1, 1, 1))
-    duration = models.DurationField(default=dt.timedelta(0))
 
     def save(self, *args, **kwargs):
         force_date = kwargs.pop("force_date") if "force_date" in kwargs else False
@@ -242,6 +241,10 @@ class Slot(models.Model):
         return days_list[self.date.weekday()] in weekdays
 
     @property
+    def duration(self):
+        raise NotImplementedError
+
+    @property
     def in_day_start_time(self):
         return self.start_time.time()
 
@@ -264,6 +267,10 @@ class Slot(models.Model):
     @property
     def weekday(self):
         return days_list[self.date.weekday()]
+
+    @property
+    def apm(self):
+        return Time.get_apm(self.start_time)
 
     def __str__(self):
         return (

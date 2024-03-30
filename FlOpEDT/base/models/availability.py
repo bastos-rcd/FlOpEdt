@@ -8,6 +8,7 @@ from base.models.timing import Slot
 
 
 class Availability(Slot):
+    duration = models.DurationField(default=dt.timedelta(0))
     value = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(8)], default=8
     )
