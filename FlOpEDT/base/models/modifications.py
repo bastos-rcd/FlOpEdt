@@ -1,9 +1,6 @@
 from django.apps import apps
 from django.db import models
 
-from base import weeks
-from base.timing import Day, min_to_str
-
 
 class TimetableVersion(models.Model):
     department = models.ForeignKey(
@@ -36,9 +33,6 @@ class CourseModification(models.Model):
     room_old = models.ForeignKey(
         "Room", blank=True, null=True, on_delete=models.CASCADE
     )
-    day_old = models.CharField(
-        max_length=2, choices=Day.CHOICES, default=None, null=True
-    )
     start_time_old = models.DateTimeField(default=None, null=True)
     tutor_old = models.ForeignKey(
         "people.Tutor",
@@ -59,9 +53,8 @@ class CourseModification(models.Model):
             sched_course = scheduled_course_model.objects.get(
                 course=course, version__major=0
             )
-        department = course.type.department
         al = "\n  · "
-        same = f"- Cours {course.module.abbrev} semaine {course.period}"
+        same = f"- Cours {course.module.abbrev} période {course.period}"
         changed = ""
 
         tutor_old_name = (
@@ -98,35 +91,16 @@ class CourseModification(models.Model):
             )
             changed += al + f"Salle : {room_old_name} -> {cur_room_name}"
 
-        day_list = weeks.num_all_days(course.week.year, course.week.nb, department)
-        if (
-            sched_course.day == self.day_old
-            and sched_course.start_time == self.start_time_old
-        ):
-            for d in day_list:
-                if d["ref"] == sched_course.day:
-                    day = d
-            same += (
-                f', {day["name"]} {day["date"]} à {min_to_str(sched_course.start_time)}'
-            )
+        if sched_course.start_time == self.start_time_old:
+            same += f", le {sched_course.start_time}"
         else:
             changed += al + "Horaire : "
-            if self.day_old is None or self.start_time_old is None:
+            if self.start_time_old is None:
                 changed += "non placé"
             else:
-                for d in day_list:
-                    if d["ref"] == self.day_old:
-                        day = d
-                changed += (
-                    f'{day["name"]} {day["date"]} à {min_to_str(self.start_time_old)}'
-                )
-            changed += " -> "
-            for d in day_list:
-                if d["ref"] == sched_course.day:
-                    day = d
-            changed += (
-                f'{day["name"]} {day["date"]} à {min_to_str(sched_course.start_time)}'
-            )
+
+                changed += f"{self.start_time_old}"
+            changed += f" -> {sched_course.start_time}"
 
         return same, changed
 

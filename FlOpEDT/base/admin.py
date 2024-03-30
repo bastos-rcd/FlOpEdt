@@ -786,7 +786,6 @@ class CourseModificationAdmin(DepartmentModelAdmin):
         "tutor_old",
         "version_old",
         "room_old",
-        "day_old",
         "start_time_old",
         "updated_at",
         "initiator",
