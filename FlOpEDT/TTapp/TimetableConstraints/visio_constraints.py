@@ -29,7 +29,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from base.timing import Day, Time, min_to_str
+from base.timing import Day, Time
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
@@ -441,7 +441,7 @@ class Curfew(TimetableConstraint):
         verbose_name_plural = verbose_name
 
     def one_line_description(self):
-        return f"Curfew after {min_to_str(self.curfew_time)}"
+        return f"Curfew after {self.curfew_time}"
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=2):
         if not hasattr(self.department, "mode"):

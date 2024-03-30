@@ -26,7 +26,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from base.timing import french_format
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import slots_filter
@@ -225,7 +224,7 @@ class ParallelizeCourses(TimetableConstraint):
     def one_line_description(self):
         text = (
             "Tous les cours sont concentrés en "
-            f"{french_format(self.desired_busy_slots_duration)}"
+            f"{self.desired_busy_slots_duration}"
         )
 
         if self.course_type is not None:
