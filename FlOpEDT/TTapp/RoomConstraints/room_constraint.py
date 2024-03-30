@@ -22,16 +22,20 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-
+from typing import TYPE_CHECKING
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+
 
 from core.decorators import timer
 from TTapp.flop_constraint import FlopConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import slots_filter
+
+if TYPE_CHECKING:
+    from TTapp.timetable_model import TimetableModel
 
 
 class RoomConstraint(FlopConstraint):
@@ -518,7 +522,7 @@ class LocateAllCourses(RoomConstraint):
         verbose_name = _("Assign a room to the courses")
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
+    def enrich_ttmodel(self, ttmodel: "TimetableModel", period, ponderation=1):
         for c in self.considered_courses(period, ttmodel):
             for sl in ttmodel.data.compatible_slots[c]:
                 undesired_situation = ttmodel.scheduled[(sl, c)] - ttmodel.sum(

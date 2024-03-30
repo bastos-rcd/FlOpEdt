@@ -90,7 +90,9 @@ from TTapp.timetable_data import TimetableData
 from TTapp.timetable_utils import number_courses, print_differences
 
 
-class TimetableModel(FlopModel):  # pylint: disable=too-many-instance-attributes,too-many-public-methods
+class TimetableModel(
+    FlopModel
+):  # pylint: disable=too-many-instance-attributes,too-many-public-methods
     @timer
     def __init__(
         self,
@@ -599,7 +601,9 @@ class TimetableModel(FlopModel):  # pylint: disable=too-many-instance-attributes
 
         return physical_presence, has_visio
 
-    def add_to_slot_cost(self, slot, cost):
+    def add_to_slot_cost(
+        self, slot, cost, period=None  # pylint: disable=unused-argument
+    ):
         self.slot_cost[slot] += cost
 
     def add_to_inst_cost(self, instructor, cost, period=None):
