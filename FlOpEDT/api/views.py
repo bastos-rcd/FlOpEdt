@@ -42,10 +42,6 @@ from api.shared.params import dept_param, week_param, year_param
 # -- QUOTE -
 # ----------
 
-# pylint: disable=too-many-ancestors
-# I disable it because ModelViewSet is a class from Django Rest Framework and
-# it does not make sense to change the number of ancestors of this class.
-
 
 class QuoteTypeViewSet(viewsets.ModelViewSet):
     """

@@ -37,7 +37,7 @@ class GroupChoiceField(forms.ModelMultipleChoiceField):
         return obj.full_name
 
 
-class AddStudentForm(UserCreationForm):  # pylint: disable=too-many-ancestors
+class AddStudentForm(UserCreationForm):
     gps = GroupChoiceField(
         queryset=StructuralGroup.objects.filter(basic=True),
         widget=forms.CheckboxSelectMultiple,
@@ -78,7 +78,7 @@ class ChangeBIATOSTutorForm(UserChangeForm):
         model = BIATOS
 
 
-class AddFullStaffTutorForm(UserCreationForm):  # pylint: disable=too-many-ancestors
+class AddFullStaffTutorForm(UserCreationForm):
     pref_slots_per_day = forms.IntegerField(
         required=False, help_text="Nombre de créneaux préférés par jour"
     )
@@ -105,7 +105,7 @@ class AddFullStaffTutorForm(UserCreationForm):  # pylint: disable=too-many-ances
         return fs
 
 
-class AddSupplyStaffTutorForm(UserCreationForm):  # pylint: disable=too-many-ancestors
+class AddSupplyStaffTutorForm(UserCreationForm):
     employer = forms.CharField(max_length=50, help_text="Employeur")
     position = forms.CharField(max_length=50, help_text="Qualité")
     field = forms.CharField(max_length=50, help_text="Domaine")
@@ -132,7 +132,7 @@ class AddSupplyStaffTutorForm(UserCreationForm):  # pylint: disable=too-many-anc
         return sus
 
 
-class AddBIATOSTutorForm(UserCreationForm):  # pylint: disable=too-many-ancestors
+class AddBIATOSTutorForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = BIATOS
         fields = ("email", "username", "first_name", "last_name")
