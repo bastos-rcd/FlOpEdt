@@ -31,6 +31,9 @@ import base.models as bm
 from base.rules import can_push_user_availability
 from people.models import User
 
+# FIXME Define create and update methods for serializers
+# pylint: disable=abstract-method
+
 
 # -----------------
 # -- PREFERENCES --
@@ -50,7 +53,7 @@ class UserAvailabilitySerializer(AvailabilitySerializer):
     subject_type = serializers.SerializerMethodField()
 
     @extend_schema_field(OpenApiTypes.STR)
-    def get_subject_type(self, obj):
+    def get_subject_type(self, obj):  # pylint: disable=unused-argument
         return "user"
 
     class Meta:
@@ -63,7 +66,7 @@ class RoomAvailabilitySerializer(AvailabilitySerializer):
     subject_type = serializers.SerializerMethodField()
 
     @extend_schema_field(OpenApiTypes.STR)
-    def get_subject_type(self, obj):
+    def get_subject_type(self, obj):  # pylint: disable=unused-argument
         return "room"
 
     class Meta:
@@ -72,6 +75,10 @@ class RoomAvailabilitySerializer(AvailabilitySerializer):
 
 
 class AvailabilityFullDayModel:
+    subject_type = None
+    SubjectModel = None
+    AvailabilityModel = None
+
     def __init__(self, from_date, to_date, subject_id, intervals):
         self.from_date = from_date
         self.to_date = to_date
@@ -98,6 +105,7 @@ class RoomAvailabilityFullDayModel(AvailabilityFullDayModel):
 
 
 class AvailabilityFullDaySerializer(serializers.Serializer):
+    model = AvailabilityFullDayModel
     from_date = serializers.DateField()
     to_date = serializers.DateField()
     subject_id = serializers.IntegerField()
@@ -106,10 +114,10 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
     class Meta:
         abstract = True
 
-    def validate(self, value):
-        value = self.create_unsaved_models(value)
-        self.check_intervals(value)
-        return value
+    def validate(self, attrs):
+        attrs = self.create_unsaved_models(attrs)
+        self.check_intervals(attrs)
+        return attrs
 
     def check_intervals(self, value):
         super().validate(value)
@@ -174,13 +182,13 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                     id=value["subject_id"]
                 )
             }
-        except self.model.SubjectModel.DoesNotExist:
+        except self.model.SubjectModel.DoesNotExist as exc:
             raise exceptions.ValidationError(
                 detail={"subject_id": f"Unknown {self.model.subject_type}"}
-            )
+            ) from exc
         value["intervals"] = sorted(
             [
-                self.model.AvailabilityModel(
+                self.model.AvailabilityModel(  # pylint: disable=not-callable
                     start_time=interval["start_time"],
                     duration=interval["duration"],
                     value=interval["value"],
@@ -196,16 +204,16 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
                 self.context["request"].user, value["subject_id"]
             ):
                 raise exceptions.PermissionDenied(
-                    detail={"subject_id": f"Not your availability"}
+                    detail={"subject_id": "Not your availability"}
                 )
         elif self.model.subject_type == "room":
             if not self.context["request"].user.has_perm("base.push_roomavailability"):
                 raise exceptions.PermissionDenied(
-                    detail={"subject_id": f"You cannot push room availability."},
+                    detail={"subject_id": "You cannot push room availability."},
                 )
         return value
 
-    def save(self):
+    def save(self, *args, **kwargs):
         subject_dict = {
             self.model.subject_type: self.model.SubjectModel.objects.get(
                 id=self.validated_data["subject_id"]
@@ -217,7 +225,7 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
             **subject_dict,
         ).delete()
         for obj in self.validated_data["intervals"]:
-            obj.save()
+            obj.save(*args, **kwargs)
         return self.model(
             self.validated_data["from_date"],
             self.validated_data["to_date"],
@@ -227,27 +235,27 @@ class AvailabilityFullDaySerializer(serializers.Serializer):
 
 
 class AvailabilityDefaultWeekSerializer(AvailabilityFullDaySerializer):
-    def validate(self, value):
+    def validate(self, attrs):
         """
         Shift dates to default week
         """
-        value = super().validate(value)
+        attrs = super().validate(attrs)
 
-        if (value["to_date"] - value["from_date"]).days > 6:
+        if (attrs["to_date"] - attrs["from_date"]).days > 6:
             raise exceptions.ValidationError(
                 detail={"to_date": "Expected no more than a week!"}
             )
 
-        value["from_date"] = dt.date(1, 1, value["from_date"].isocalendar().weekday)
-        value["to_date"] = dt.date(1, 1, value["to_date"].isocalendar().weekday)
+        attrs["from_date"] = dt.date(1, 1, attrs["from_date"].isocalendar().weekday)
+        attrs["to_date"] = dt.date(1, 1, attrs["to_date"].isocalendar().weekday)
 
-        for a in value["intervals"]:
+        for a in attrs["intervals"]:
             a.start_time = dt.datetime.combine(
                 dt.date(1, 1, a.start_time.isocalendar().weekday),
                 a.start_time.time(),
             )
 
-        return value
+        return attrs
 
 
 class UserAvailabilityDefaultWeekSerializer(AvailabilityDefaultWeekSerializer):

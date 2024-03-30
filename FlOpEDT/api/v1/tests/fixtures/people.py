@@ -1,3 +1,6 @@
+# Fixtures use to unuse arguments...
+# pylint: disable=unused-argument
+
 import pytest
 
 from api.v1.tests.factories.people import UserAndAvFactory, UserFactory

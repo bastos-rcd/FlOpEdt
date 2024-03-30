@@ -1,3 +1,6 @@
+# Fixtures use to unuse arguments and variables...
+# pylint: disable=unused-argument, unused-variable
+
 import pytest
 
 from ..factories.course import (

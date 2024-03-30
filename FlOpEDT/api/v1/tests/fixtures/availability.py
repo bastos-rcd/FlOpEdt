@@ -1,3 +1,6 @@
+# Fixtures use to unuse arguments...
+# pylint: disable=unused-argument
+
 import datetime as dt
 
 import pytest

@@ -1,3 +1,6 @@
+# Tests use to unuse arguments...
+# pylint: disable=unused-argument
+
 import pytest
 from rest_framework.status import (
     HTTP_403_FORBIDDEN,

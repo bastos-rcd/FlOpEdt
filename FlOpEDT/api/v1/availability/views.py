@@ -22,7 +22,6 @@
 # without disclosing the source code of your own applications.
 
 import datetime as dt
-from distutils.util import strtobool
 
 import django_filters.rest_framework as filters
 from django.utils.decorators import method_decorator
@@ -51,6 +50,8 @@ class DatedAvailabilityListViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
+    AvailabilityModel = None
+
     class Meta:
         abstract = True
 
@@ -214,7 +215,8 @@ class UserDefaultAvailabilityUpdateViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     """
-    Update default availability. (Will be pushed in the default week based on the weekday of the dates from the query parameters)
+    Update default availability. (Will be pushed in the default week based
+    on the weekday of the dates from the query parameters)
     """
 
     AvailabilityModel = bm.UserAvailability
@@ -226,7 +228,8 @@ class RoomDefaultAvailabilityUpdateViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     """
-    Update default availability. (Will be pushed in the default week based on the weekday of the dates from the query parameters)
+    Update default availability. (Will be pushed in the default week
+    based on the weekday of the dates from the query parameters)
     """
 
     AvailabilityModel = bm.UserAvailability

@@ -10,7 +10,7 @@ def client():
 
 
 class TestUserAvailabilityActual:
-    endpoint = f"/fr/api/v1/"
+    endpoint = "/fr/api/v1/"
 
     def test_default_week_creation(self, client, make_default_week_user):
         pass

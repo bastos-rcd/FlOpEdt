@@ -22,7 +22,7 @@ class ModuleFactory(factory.django.DjangoModelFactory):
     # missing train_prog
     abbrev = factory.Sequence(lambda n: f"mod{n:02d}")
     name = factory.Sequence(lambda n: f"Module #{n:02d}")
-    training_period = factory.LazyFunction(lambda: TrainingPeriod.objects.first())
+    training_period = factory.LazyFunction(TrainingPeriod.objects.first)
 
 
 class CourseTypeFactory(factory.django.DjangoModelFactory):
@@ -45,6 +45,6 @@ class CourseRRGroup(factory.django.DjangoModelFactory):
 
     duration = dt.timedelta(minutes=90)
     group_helper = factory.Iterator(GenericGroup.objects.all())
-    module = factory.LazyFunction(lambda: Module.objects.first())
-    type = factory.LazyFunction(lambda: CourseType.objects.first())
+    module = factory.LazyFunction(Module.objects.first)
+    type = factory.LazyFunction(CourseType.objects.first)
     groups = PostGenerationWithCounter(go_groups)

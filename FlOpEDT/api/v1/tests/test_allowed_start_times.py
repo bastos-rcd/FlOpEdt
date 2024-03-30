@@ -9,6 +9,9 @@ from rest_framework.status import (
 from api.v1.tests.utils import add_user_permission, retrieve_elements
 from base.models import Department
 
+# disable unused-argument for fixtures
+# pylint: disable=unused-argument
+
 
 class TestAllowedStartTimes:
     endpoint = "/fr/api/v1/constraint/base/course_start_time/"

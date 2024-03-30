@@ -1,3 +1,6 @@
+# Tests use to unuse arguments...
+# pylint: disable=unused-argument
+
 import copy
 import datetime as dt
 
@@ -21,7 +24,7 @@ from .factories.availability import UserIUTEveningFactory, UserIUTMorningFactory
 
 
 class TestListUserAvailability:
-    endpoint = f"/fr/api/v1/availability/user/"
+    endpoint = "/fr/api/v1/availability/user/"
     target_dates = {
         "from_date": "0001-01-02",
         "to_date": "0001-01-04",
