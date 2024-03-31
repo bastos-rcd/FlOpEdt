@@ -428,7 +428,9 @@ class TimetableModel(
                 )
 
         tutor_busy_day_gte = {period: [] for period in self.periods}
-        max_days = len(TimeGeneralSettings.objects.get(department=self.department).days)
+        max_days = len(
+            TimeGeneralSettings.objects.get(department=self.department).weekdays
+        )
         for period in self.periods:
             for j in range(max_days + 1):
                 tutor_busy_day_gte[period].append({})

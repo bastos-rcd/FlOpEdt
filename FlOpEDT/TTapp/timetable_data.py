@@ -162,7 +162,7 @@ class TimetableData:  # pylint: disable=too-many-instance-attributes
                 all_days,
                 weekday_in=TimeGeneralSettings.objects.get(
                     department=self.department
-                ).days,
+                ).weekdays,
             )
         )
         days.sort()

@@ -365,7 +365,7 @@ def get_working_days(dept):
     """
     :return: list of abbreviated working days in dept
     """
-    return TimeGeneralSettings.objects.get(department=dept).days
+    return TimeGeneralSettings.objects.get(department=dept).weekdays
 
 
 def get_notification_preference(user):

@@ -180,7 +180,7 @@ def department_parameters(request, department_abbrev):
             "day_end_time": time_to_str(parameters.day_end_time),
             "morning_end_time": time_to_str(parameters.morning_end_time),
             "afternoon_start_time": time_to_str(parameters.afternoon_start_time),
-            "days": parameters.days,
+            "days": parameters.weekdays,
             "day_choices": Day.CHOICES,
             "list_departments": departments,
             "has_department_perm": request.user.has_department_perm(
@@ -225,7 +225,7 @@ def department_parameters_edit(request, department_abbrev):
             "day_end_time": time_to_str(parameters.day_end_time),
             "morning_end_time": time_to_str(parameters.morning_end_time),
             "afternoon_start_time": time_to_str(parameters.afternoon_start_time),
-            "days": parameters.days,
+            "days": parameters.weekdays,
             "day_choices": Day.CHOICES,
             "has_department_perm": request.user.has_department_perm(
                 department=department, admin=True
@@ -340,7 +340,7 @@ def ajax_edit_parameters(request, department_abbrev):
     )
     if response["status"] == OK_RESPONSE:
         parameters = get_object_or_404(TimeGeneralSettings, department=department)
-        parameters.days = days
+        parameters.weekdays = days
         parameters.day_start_time = day_start_time
         parameters.day_end_time = day_end_time
         parameters.morning_end_time = morning_end_time

@@ -147,10 +147,14 @@ class TimeGeneralSettings(models.Model):
     morning_end_time = models.TimeField(default=dt.time(12, 30, 0))
     afternoon_start_time = models.TimeField(default=dt.time(14, 15, 0))
     day_end_time = models.TimeField(default=dt.time(hour=19))
-    days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES))
+    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES))
     scheduling_period_mode = models.CharField(
         max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
     )
+
+    @property
+    def days(self):
+        return self.weekdays
 
     def __str__(self):
         return (
@@ -158,7 +162,7 @@ class TimeGeneralSettings(models.Model):
             + f"{self.day_start_time} - {self.morning_end_time}"
             + f" | {self.afternoon_start_time} - "
             + f"{self.day_end_time};"
-            + f" Days: {self.days}"
+            + f" Days: {self.weekdays}"
         )
 
 
