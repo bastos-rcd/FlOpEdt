@@ -98,20 +98,22 @@ class TimetableConstraint(FlopConstraint):
 
         # if tutor is not None, we have to reduce to the courses that are in possible_course[tutor]
         if tutor is not None:
-            if tutor in flopmodel.data.instructors:
-                return courses_qs.filter(
-                    id__in=[c.id for c in flopmodel.data.possible_courses[tutor]]
-                )
-            return courses_qs.filter(id__in=[])
+            if flopmodel is not None:
+                if tutor in flopmodel.data.instructors:
+                    courses_qs = courses_qs.filter(
+                        id__in=[c.id for c in flopmodel.data.possible_courses[tutor]]
+                    )
+                courses_qs = courses_qs.filter(id__in=[])
         if tutors:
             considered_tutors = set(tutors) & set(flopmodel.data.instructors)
-            return courses_qs.filter(
-                id__in=[
-                    c.id
-                    for tutor in considered_tutors
-                    for c in flopmodel.data.possible_courses[tutor]
-                ]
-            )
+            if flopmodel is not None:
+                courses_qs = courses_qs.filter(
+                    id__in=[
+                        c.id
+                        for tutor in considered_tutors
+                        for c in flopmodel.data.possible_courses[tutor]
+                    ]
+                )
 
         return courses_qs
 

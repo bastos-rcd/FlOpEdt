@@ -98,6 +98,7 @@ class MinModulesHalfDays(TimetableConstraint):
                 period, version, considered_courses
             ):
                 unsatisfied_min_half_days_modules.append(module)
-        assert (
-            not unsatisfied_min_half_days_modules
-        ), f"Unsatisfied min half days groups: {unsatisfied_min_half_days_modules}"
+        assert not unsatisfied_min_half_days_modules, (
+            f"{self} is not satisfied for period {period} and version {version} :"
+            f"{unsatisfied_min_half_days_modules}"
+        )

@@ -92,7 +92,7 @@ class NoCourseOnWeekDay(TimetableConstraint):
                 start_time__time__gte=self.time_settings().afternoon_start_time,
             )
         assert not unwanted_considered_scheduled_courses, (
-            f"Constraint {self} is not satisfied for period {period}"
+            f"{self} is not satisfied for period {period}"
             f"and version {version} : {unwanted_considered_scheduled_courses}"
         )
 

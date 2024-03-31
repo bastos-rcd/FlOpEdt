@@ -97,9 +97,10 @@ class MinTutorsHalfDays(TimetableConstraint):
                 period, version, considered_courses
             ):
                 unsatisfied_min_half_days_tutors.append(tutor)
-        assert (
-            not unsatisfied_min_half_days_tutors
-        ), f"Unsatisfied min half days groups: {unsatisfied_min_half_days_tutors}"
+        assert not unsatisfied_min_half_days_tutors, (
+            f"{self} is not satisfied for period {period} and version {version} : "
+            f"{unsatisfied_min_half_days_tutors}"
+        )
 
 
 class MinNonPreferedTutorsSlot(TimetableConstraint):
@@ -398,7 +399,26 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
                     )
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_tutor_day = []
+        tutor_to_consider = self.considered_tutors()
+        courses_to_consider = self.considered_courses(period)
+        for tutor in tutor_to_consider:
+            if not hasattr(tutor, "preferences"):
+                continue
+            for date in self.considered_dates(period):
+                date_time = sum(
+                    sc.duration
+                    for sc in ScheduledCourse.objects.filter(
+                        Q(tutor=tutor) | Q(course__supp_tutors=tutor),
+                        date=date,
+                        course__in=courses_to_consider,
+                    )
+                )
+                if date_time < tutor.preferences.min_time_per_day:
+                    unsatisfied_tutor_day.append((tutor, date))
+        assert (
+            not unsatisfied_tutor_day
+        ), f"{self} unsatisfied for : {unsatisfied_tutor_day}"
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()

@@ -29,6 +29,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from base.models import ScheduledCourse
 from base.timing import Day
 from people.models import GroupPreferences
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
@@ -98,9 +99,10 @@ class MinGroupsHalfDays(TimetableConstraint):
                 period, version, considered_courses
             ):
                 unsatisfied_min_half_days_groups.append(basic_group)
-        assert (
-            not unsatisfied_min_half_days_groups
-        ), f"Unsatisfied min half days groups: {unsatisfied_min_half_days_groups}"
+        assert not unsatisfied_min_half_days_groups, (
+            f"{self} is not satisfied for period {period} and version {version} : "
+            f"Unsatisfied min half days groups: {unsatisfied_min_half_days_groups}"
+        )
 
 
 class MinNonPreferedTrainProgsSlot(TimetableConstraint):
@@ -194,7 +196,7 @@ class MinNonPreferedTrainProgsSlot(TimetableConstraint):
         raise NotImplementedError
 
 
-class GroupsMinHoursPerDay(TimetableConstraint):
+class GroupsMinTimePerDay(TimetableConstraint):
     """
     Respect the min_time_per_day declared
     """
@@ -275,4 +277,21 @@ class GroupsMinHoursPerDay(TimetableConstraint):
         return "Groups min hours per day"
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_group_day = []
+        basic_groups = self.considered_basic_groups()
+        for basic_group in basic_groups:
+            courses_to_consider = self.get_courses_queryset_by_parameters(
+                period=period, group=basic_group, transversal_groups_included=True
+            )
+            for date in self.considered_dates(period):
+                date_time = sum(
+                    sc.duration
+                    for sc in ScheduledCourse.objects.filter(
+                        date=date, course__in=courses_to_consider
+                    )
+                )
+                if date_time < self.min_time:
+                    unsatisfied_group_day.append((basic_group, date))
+        assert (
+            not unsatisfied_group_day
+        ), f"GroupsMinTimePerDay constraint {self.id} unsatisfied for : {unsatisfied_group_day}"

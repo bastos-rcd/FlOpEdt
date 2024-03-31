@@ -54,7 +54,7 @@ from TTapp.TimetableConstraints.cosmo_style_constraints import (
     ModulesByBloc,
 )
 from TTapp.TimetableConstraints.groups_constraints import (
-    GroupsMinHoursPerDay,
+    GroupsMinTimePerDay,
     MinGroupsHalfDays,
     MinNonPreferedTrainProgsSlot,
 )

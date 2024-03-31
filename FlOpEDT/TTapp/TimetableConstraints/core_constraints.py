@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public
 # License along with this program. If not, see
-# <http://www.gnu.org/licenses/>.is_satisfied
+# <http://www.gnu.org/licenses/>
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
@@ -409,7 +409,7 @@ class NoSimultaneousGroupCourses(TimetableConstraint):
                         problematic_groups.append(bg)
         assert not problematic_groups, (
             f"{self} is not satisfied for period {period}, "
-            "version {version} and the following groups : {problematic_groups}"
+            f"version {version} and following groups : {problematic_groups}"
         )
 
 
@@ -748,10 +748,9 @@ class ConsiderModuleTutorRepartitions(TimetableConstraint):
                     )
                     if scheduled_courses.count() != mtr.courses_nb:
                         unsatisfied_mtr.append((module, course_type, mtr.tutor))
-        assert not unsatisfied_mtr, (
-            "The following ModuleTutorRepartitions are not satisfied "
-            f"for period {period} and version {version} : {unsatisfied_mtr}"
-        )
+        assert (
+            not unsatisfied_mtr
+        ), f"{self} is not satisfied for period {period} and version {version}  : {unsatisfied_mtr}"
 
 
 class ConsiderTutorsUnavailability(TimetableConstraint):

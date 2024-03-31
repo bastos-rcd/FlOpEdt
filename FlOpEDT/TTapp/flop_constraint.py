@@ -26,6 +26,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from TTapp.slots import days_filter
 
 from base.models import (
     Course,
@@ -76,6 +77,23 @@ class FlopConstraint(models.Model):
         Test if the constraint is satisfied for the given period and work copy
         """
         raise NotImplementedError
+
+    def considered_dates(self, period, ttmodel=None):
+        if ttmodel is None:
+            dates_to_consider = days_filter(
+                period.dates(), weekday=self.time_settings().weekdays
+            )
+        else:
+            dates_to_consider = days_filter(ttmodel.data.dates, period=period)
+        if hasattr(self, "dates"):
+            dates_to_consider &= set(self.dates)
+        if hasattr(self, "date"):
+            dates_to_consider &= {self.date}
+        if hasattr(self, "weekday"):
+            dates_to_consider = days_filter(dates_to_consider, weekday=self.weekday)
+        if hasattr(self, "weekdays"):
+            dates_to_consider = days_filter(dates_to_consider, weekday_in=self.weekdays)
+        return dates_to_consider
 
     def period_version_scheduled_courses_queryset(
         self, period: SchedulingPeriod, version: TimetableVersion
