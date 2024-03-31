@@ -411,6 +411,7 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
                     for sc in ScheduledCourse.objects.filter(
                         Q(tutor=tutor) | Q(course__supp_tutors=tutor),
                         date=date,
+                        version=version,
                         course__in=courses_to_consider,
                     )
                 )

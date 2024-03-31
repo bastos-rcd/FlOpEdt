@@ -1013,9 +1013,9 @@ class TimetableModel(
                         self.add_warning(
                             i,
                             (
-                                f"{avail_time.seconds / 3600} available hours "
-                                f"< {teaching_duration.seconds / 3600}"
-                                f"courses hours period {period.name}"
+                                f"{avail_time} available time "
+                                f"< {teaching_duration}"
+                                f"teaching time period {period.name}"
                             ),
                         )
 
@@ -1023,9 +1023,9 @@ class TimetableModel(
                         self.add_warning(
                             i,
                             (
-                                f"{avail_time.seconds / 3600} available hours < "
-                                f"{total_teaching_duration.seconds / 3600} "
-                                f"courses hours including other deps period {period.name}"
+                                f"{avail_time} available time < "
+                                f"{total_teaching_duration} "
+                                f"teaching time including other deps period {period.name}"
                             ),
                         )
 
@@ -1036,9 +1036,9 @@ class TimetableModel(
                         self.add_warning(
                             i,
                             (
-                                f"only {avail_time.seconds / 3600} available hours for "
-                                f"{teaching_duration.seconds / 3600} courses hours "
-                                "period {period.name}"
+                                f"only {avail_time} available time for "
+                                f"{teaching_duration} courses time "
+                                f"period {period.name}"
                             ),
                         )
                     maximum = max(a.value for a in period_tutor_availabilities)
