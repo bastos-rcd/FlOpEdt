@@ -1013,8 +1013,8 @@ class TimetableModel(
                         self.add_warning(
                             i,
                             (
-                                f"{avail_time} available time "
-                                f"< {teaching_duration}"
+                                f"{avail_time.total_seconds()/3600} available time "
+                                f"< {teaching_duration.total_seconds()/3600}"
                                 f"teaching time period {period.name}"
                             ),
                         )
@@ -1023,8 +1023,8 @@ class TimetableModel(
                         self.add_warning(
                             i,
                             (
-                                f"{avail_time} available time < "
-                                f"{total_teaching_duration} "
+                                f"{avail_time.total_seconds()/3600} available time < "
+                                f"{total_teaching_duration.total_seconds()/3600} "
                                 f"teaching time including other deps period {period.name}"
                             ),
                         )
@@ -1036,8 +1036,8 @@ class TimetableModel(
                         self.add_warning(
                             i,
                             (
-                                f"only {avail_time} available time for "
-                                f"{teaching_duration} courses time "
+                                f"only {avail_time.total_seconds()/3600} available time for "
+                                f"{teaching_duration.total_seconds()/3600} courses time "
                                 f"period {period.name}"
                             ),
                         )
@@ -1073,7 +1073,7 @@ class TimetableModel(
                             if availability_slot.is_simultaneous_to(a)
                         )
                         if not avail:
-                            print(
+                            self.add_warning(
                                 f"availability pbm for {i} availability_slot {availability_slot}"
                             )
                             unp_slot_cost[i][availability_slot] = 0
