@@ -30,7 +30,6 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import slots_filter
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
-from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 
 class NotAloneForTheseCouseTypes(TimetableConstraint):
@@ -115,7 +114,7 @@ class NotAloneForTheseCouseTypes(TimetableConstraint):
         considered_modules = set(ttmodel.data.modules)
         if self.modules.exists():
             considered_modules &= set(self.modules.all())
-        tutors_to_consider = considered_tutors(self, ttmodel)
+        tutors_to_consider = self.considered_tutors(ttmodel)
         guides_to_consider = set(ttmodel.data.instructors)
         if self.guide_tutors.exists():
             guides_to_consider &= set(self.guide_tutors.all())

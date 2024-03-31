@@ -955,10 +955,7 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
         return jsondict
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_tutors = set(ttmodel.data.instructors)
-        if self.tutors.exists():
-            considered_tutors &= set(self.tutors.all())
-        for tutor in considered_tutors:
+        for tutor in self.considered_tutors(ttmodel):
             if tutor.username == "---":
                 continue
             for sl in ttmodel.data.availability_slots:

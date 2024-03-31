@@ -302,15 +302,6 @@ class NoTutorCourseOnWeekDay(NoCourseOnWeekDay):
                 period,
             )
 
-    def considered_tutors(self, ttmodel):
-        if self.tutors.exists():
-            tutors = set(t for t in ttmodel.data.instructors if t in self.tutors.all())
-        else:
-            tutors = set(ttmodel.data.instructors)
-        if self.tutor_status is not None:
-            tutors = set(t for t in tutors if t.status == self.tutor_status)
-        return tutors
-
     def considered_sum(self, ttmodel, period):
         return ttmodel.sum(
             ttmodel.assigned[(sl, c, i)]

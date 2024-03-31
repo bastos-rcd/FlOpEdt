@@ -30,6 +30,8 @@ from django.utils.translation import gettext_lazy as _
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperModule
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
+from base.models import Module
+
 
 class MinModulesHalfDays(TimetableConstraint):
     """
@@ -42,12 +44,20 @@ class MinModulesHalfDays(TimetableConstraint):
         verbose_name = _("Minimize used half-days for modules")
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_modules = set(ttmodel.data.modules)
+    def considered_modules(self, ttmodel=None):
+        if ttmodel is not None:
+            modules_to_consider = set(ttmodel.data.modules)
+        else:
+            modules_to_consider = set(
+                Module.objects.filter(train_prog__department=self.department)
+            )
         if self.modules.exists():
-            considered_modules &= set(self.modules.all())
+            modules_to_consider &= set(self.modules.all())
+        return modules_to_consider
+
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         helper = MinHalfDaysHelperModule(ttmodel, self, period, ponderation)
-        for module in considered_modules:
+        for module in self.considered_modules(ttmodel):
             helper.enrich_model(module=module)
 
     def get_viewmodel(self):
@@ -79,4 +89,15 @@ class MinModulesHalfDays(TimetableConstraint):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_min_half_days_modules = []
+        for module in self.considered_modules():
+            considered_courses = self.get_courses_queryset_by_parameters(
+                period=period, module=module
+            )
+            if not MinHalfDaysHelperModule.is_satisfied_for_one_object(
+                period, version, considered_courses
+            ):
+                unsatisfied_min_half_days_modules.append(module)
+        assert (
+            not unsatisfied_min_half_days_modules
+        ), f"Unsatisfied min half days groups: {unsatisfied_min_half_days_modules}"

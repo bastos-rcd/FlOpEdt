@@ -26,20 +26,15 @@
 import datetime as dt
 
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
+from base.models import ScheduledCourse
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperTutor
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
-
-
-def considered_tutors(tutors_ttconstraint, ttmodel):
-    tutors_to_consider = set(ttmodel.data.instructors)
-    if tutors_ttconstraint.tutors.exists():
-        tutors_to_consider &= set(tutors_ttconstraint.tutors.all())
-    return tutors_to_consider
 
 
 class MinTutorsHalfDays(TimetableConstraint):
@@ -61,7 +56,7 @@ class MinTutorsHalfDays(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=5):
         helper = MinHalfDaysHelperTutor(ttmodel, self, period, ponderation)
-        for tutor in considered_tutors(self, ttmodel):
+        for tutor in self.considered_tutors(ttmodel):
             helper.enrich_model(tutor=tutor)
 
     def get_viewmodel(self):
@@ -88,7 +83,23 @@ class MinTutorsHalfDays(TimetableConstraint):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_min_half_days_tutors = []
+        for tutor in self.considered_tutors():
+            considered_courses = self.get_courses_queryset_by_parameters(period=period)
+            considered_scheduled_courses = ScheduledCourse.objects.filter(
+                (Q(tutor=tutor) | Q(course__supp_tutors=tutor)),
+                course__in=considered_courses,
+                version=version,
+            )
+            considered_courses = set(sc.course for sc in considered_scheduled_courses)
+
+            if not MinHalfDaysHelperTutor.is_satisfied_for_one_object(
+                period, version, considered_courses
+            ):
+                unsatisfied_min_half_days_tutors.append(tutor)
+        assert (
+            not unsatisfied_min_half_days_tutors
+        ), f"Unsatisfied min half days groups: {unsatisfied_min_half_days_tutors}"
 
 
 class MinNonPreferedTutorsSlot(TimetableConstraint):
@@ -115,7 +126,7 @@ class MinNonPreferedTutorsSlot(TimetableConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=None):
         if ponderation is None:
             ponderation = ttmodel.min_ups_i
-        tutors = considered_tutors(self, ttmodel)
+        tutors = self.considered_tutors(ttmodel)
         for sl in ttmodel.data.availability_slots:
             for tutor in tutors:
                 filtered_courses = set(
@@ -171,7 +182,7 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
         if ponderation is None:
             ponderation = ttmodel.min_bd_i
 
-        tutors = considered_tutors(self, ttmodel)
+        tutors = self.considered_tutors(ttmodel)
 
         for tutor in tutors:
             slot_by_day_cost = ttmodel.lin_expr()
@@ -266,7 +277,7 @@ class RespectTutorsMaxTimePerDay(TimetableConstraint):
         Minimize the number of busy days for tutor with cost
         (if it does not overcome the bound expressed in pref_time_per_day)
         """
-        tutors = considered_tutors(self, ttmodel)
+        tutors = self.considered_tutors(ttmodel)
 
         for tutor in tutors:
             for d in days_filter(ttmodel.data.days, period=period):
@@ -342,7 +353,7 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
         """
         avoid situations in which a teaching day has less time than min declared
         """
-        tutors = considered_tutors(self, ttmodel)
+        tutors = self.considered_tutors(ttmodel)
 
         for tutor in tutors:
             for d in days_filter(ttmodel.data.days, period=period):

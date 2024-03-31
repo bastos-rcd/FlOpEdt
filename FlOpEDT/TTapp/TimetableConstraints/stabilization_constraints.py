@@ -33,7 +33,6 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import slots_filter
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
-from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 
 class StabilizeTutorsCourses(TimetableConstraint):
@@ -63,7 +62,7 @@ class StabilizeTutorsCourses(TimetableConstraint):
         return attributes
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=5):
-        tutors_to_be_considered = considered_tutors(self, ttmodel)
+        tutors_to_be_considered = self.considered_tutors(ttmodel)
         ttmodel.data.sched_courses = ttmodel.data.sched_courses.filter(
             version=self.version
         )

@@ -29,6 +29,8 @@ from django.utils.translation import gettext_lazy as _
 
 
 from core.decorators import timer
+
+from people.models import Tutor
 from TTapp.flop_constraint import FlopConstraint
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -112,6 +114,16 @@ class RoomConstraint(FlopConstraint):
                     basic_groups |= g.basic_groups()
                 room_model_basic_groups &= basic_groups
         return room_model_basic_groups
+
+    def considered_tutors(self, room_model=None):
+        if room_model is not None:
+            tutors_to_consider = set(room_model.tutors)
+        else:
+            tutors_to_consider = set(Tutor.objects.filter(departments=self.department))
+        if hasattr(self, "tutors"):
+            if self.tutors.exists():
+                tutors_to_consider &= set(self.tutors.all())
+        return tutors_to_consider
 
 
 class LimitSimultaneousRoomCourses(RoomConstraint):

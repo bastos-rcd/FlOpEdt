@@ -115,11 +115,8 @@ class LimitHoles(TimetableConstraint):
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         end_of_block = {}
         holes_nb = {}
-        considered_tutors = set(ttmodel.data.instructors)
-        if self.tutors.exists():
-            considered_tutors &= set(self.tutors.all())
 
-        for i in considered_tutors:
+        for i in self.considered_tutors(ttmodel):
             for d in ttmodel.data.days:
                 possible_end_times = list(
                     set(

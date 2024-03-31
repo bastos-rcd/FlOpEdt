@@ -352,12 +352,7 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
         return expr
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1.0):
-        if self.tutors.exists():
-            considered_tutors = self.tutors.all()
-        else:
-            considered_tutors = ttmodel.data.instructors
-
-        for tutor in considered_tutors:
+        for tutor in self.considered_tutors(ttmodel):
             self.enrich_model_for_one_object(ttmodel, period, ponderation, tutor=tutor)
 
     @classmethod

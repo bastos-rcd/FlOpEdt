@@ -38,7 +38,6 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import Slot, days_filter, slots_filter
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
-from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 
 class GroupsLunchBreak(TimetableConstraint):
@@ -251,9 +250,7 @@ class TutorsLunchBreak(TimetableConstraint):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=100):
-        tutors_to_be_considered = considered_tutors(self, ttmodel)
-        if self.tutors.exists():
-            tutors_to_be_considered &= set(self.tutors.all())
+        tutors_to_be_considered = self.considered_tutors(ttmodel)
         days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
             days = days_filter(days, weekday_in=self.weekdays)

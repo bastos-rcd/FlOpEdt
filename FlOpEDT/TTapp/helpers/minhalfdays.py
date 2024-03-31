@@ -27,7 +27,7 @@ import datetime as dt
 import logging
 from typing import Iterable
 
-from base.models import Time, Course
+from base.models import Time, Course, ScheduledCourse
 from people.models import GroupPreferences
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
@@ -107,6 +107,24 @@ class MinHalfDaysHelperBase:
     def enrich_model(self, **args):
         expression, courses = self.build_variables()
         self.add_constraint(expression, courses)
+
+    @staticmethod
+    def is_satisfied_for_one_object(period, version, considered_courses) -> bool:
+        considered_scheduled_courses = ScheduledCourse.objects.filter(
+            course__in=considered_courses, version=version
+        )
+        limit = MinHalfDaysHelperBase.minimal_half_days_number(considered_courses)
+        busy_half_days = sum(
+            1
+            for date in period.dates()
+            for apm in [Time.AM, Time.PM]
+            if set(
+                sched_course
+                for sched_course in considered_scheduled_courses.filter(date=date)
+                if sched_course.apm == apm
+            )
+        )
+        return busy_half_days <= limit
 
 
 class MinHalfDaysHelperModule(MinHalfDaysHelperBase):

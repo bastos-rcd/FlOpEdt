@@ -27,11 +27,11 @@ from typing import TYPE_CHECKING
 
 from core.decorators import timer
 from TTapp.flop_constraint import FlopConstraint
-from base.models import StructuralGroup
+from base.models import StructuralGroup, SchedulingPeriod
+from people.models import Tutor
 
 if TYPE_CHECKING:
     from TTapp.timetable_model import TimetableModel
-    from base.models import SchedulingPeriod
 
 
 class TimetableConstraint(FlopConstraint):
@@ -151,3 +151,20 @@ class TimetableConstraint(FlopConstraint):
             if transversal_groups_included:
                 result |= bg.transversal_conflicting_groups()
         return result
+
+    def considered_tutors(self, ttmodel: "TimetableModel" = None):
+        if ttmodel is None:
+            tutors_to_consider = set(Tutor.objects.filter(departments=self.department))
+        else:
+            tutors_to_consider = set(ttmodel.data.instructors)
+        if hasattr(self, "tutors"):
+            if self.tutors.exists():
+                tutors_to_consider &= set(self.tutors.all())
+        if hasattr(self, "tutor_status"):
+            if self.tutor_status is not None:
+                tutors_to_consider &= set(
+                    t
+                    for t in tutors_to_consider
+                    if t.status == self.tutor_status  # pylint: disable=no-member
+                )
+        return tutors_to_consider

@@ -45,7 +45,6 @@ from TTapp.ilp_constraints.constraints.dependency_constraint import (
 from TTapp.slots import Slot, days_filter, slots_filter
 from TTapp.TimetableConstraints.core_constraints import ConsiderTutorsUnavailability
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
-from TTapp.TimetableConstraints.tutors_constraints import considered_tutors
 
 
 class SimultaneousCourses(TimetableConstraint):
@@ -1217,7 +1216,7 @@ class LimitUndesiredSlotsPerDayPeriod(TimetableConstraint):
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        tutor_to_be_considered = considered_tutors(self, ttmodel)
+        tutor_to_be_considered = self.considered_tutors(ttmodel)
         days = days_filter(ttmodel.data.days, period=period)
         undesired_slots = [
             Slot(
