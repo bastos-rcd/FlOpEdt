@@ -290,7 +290,7 @@ class RespectTutorsMaxTimePerDay(TimetableConstraint):
                     if sc.date == d
                 )
                 max_teaching_minutes = max(
-                    tutor.preferences.max_time_per_day.seconds // 60
+                    tutor.preferences.max_time_per_day.total_seconds() // 60
                     - other_departments_teaching_minutes,
                     0,
                 )
@@ -359,14 +359,14 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
         for tutor in tutors:
             for d in days_filter(ttmodel.data.days, period=period):
                 other_departments_teaching_minutes = sum(
-                    sc.course.minutes
+                    sc.minutes
                     for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[
                         tutor
                     ]
                     if sc.date == d
                 )
                 min_teaching_minutes = max(
-                    tutor.preferences.min_time_per_day.seconds // 60
+                    tutor.preferences.min_time_per_day.total_seconds() // 60
                     - other_departments_teaching_minutes,
                     0,
                 )

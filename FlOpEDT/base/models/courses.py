@@ -155,7 +155,7 @@ class Course(models.Model):
 
     @property
     def minutes(self):
-        return self.duration.seconds // 60
+        return self.duration.total_seconds() // 60
 
 
 class CourseAdditional(models.Model):
@@ -213,6 +213,10 @@ class ScheduledCourse(Slot):
     @property
     def duration(self):
         return self.course.duration
+
+    @property
+    def minutes(self):
+        return self.duration.total_seconds() // 60
 
     @property
     def pay_duration(self):

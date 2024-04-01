@@ -90,7 +90,7 @@ def read(department):
         for value in cstc.allowed_start_times:
             list_starts_times.append(value.strftime("%H:%M"))
 
-        values.append((cstc.duration.seconds // 60, list_starts_times))
+        values.append((cstc.duration.total_seconds() // 60, list_starts_times))
 
     return JsonResponse(
         {

@@ -324,9 +324,9 @@ class MonthlyVolumeByDayViewSet(viewsets.ViewSet):
             tps = day_scheduled_courses.filter(course__type__name="TP")
             other = day_scheduled_courses.exclude(course__type__name__in=["TD", "TP"])
 
-            other = sum(sc.pay_duration for sc in other).seconds() // 60
-            td = sum(sc.pay_duration for sc in tds).seconds() // 60
-            tp = sum(sc.pay_duration for sc in tps).seconds() // 60
+            other = sum(sc.pay_duration for sc in other).total_seconds() // 60
+            td = sum(sc.pay_duration for sc in tds).total_seconds() // 60
+            tp = sum(sc.pay_duration for sc in tps).total_seconds() // 60
 
             day_volume = {
                 "month": sched_course_date.month,
@@ -512,7 +512,7 @@ class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
             date = dayschedcourse.date
             day_scheduled_courses = sched_courses.filter(date=date)
             volume = (
-                sum(sc.pay_duration for sc in day_scheduled_courses).seconds() // 60
+                sum(sc.pay_duration for sc in day_scheduled_courses).total_seconds() // 60
             )
             day_volume = {
                 "date": date.isoformat(),

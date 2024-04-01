@@ -48,7 +48,7 @@ class RoomReservation(models.Model):
 
     @property
     def minutes(self):
-        return self.duration.seconds // 60
+        return self.duration.total_seconds() // 60
 
     @property
     def start_date(self):

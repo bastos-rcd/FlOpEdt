@@ -348,7 +348,7 @@ def make_filled_database_file(department, filename=None):
         sheet.cell(
             row=row,
             column=col,
-            value=course_start_time_constraint.duration.seconds // 60,
+            value=course_start_time_constraint.duration.total_seconds() // 60,
         )
         allowed_start_times = course_start_time_constraint.allowed_start_times
         allowed_start_times.sort()

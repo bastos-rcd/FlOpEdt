@@ -57,7 +57,7 @@ class Slot:
 
     @property
     def minutes(self):
-        return self.duration.seconds // 60
+        return self.duration.total_seconds() // 60
 
     @property
     def apm(self):

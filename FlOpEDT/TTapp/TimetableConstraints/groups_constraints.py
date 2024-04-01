@@ -235,7 +235,7 @@ class GroupsMinTimePerDay(TimetableConstraint):
                     for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day)
                 )
                 has_enough_time = ttmodel.add_floor(
-                    group_day_scheduled_minutes, min_time.seconds // 60, 100000
+                    group_day_scheduled_minutes, min_time.total_seconds() // 60, 100000
                 )
                 undesired_situation = (
                     ttmodel.group_busy_day[(basic_group, day)] - has_enough_time

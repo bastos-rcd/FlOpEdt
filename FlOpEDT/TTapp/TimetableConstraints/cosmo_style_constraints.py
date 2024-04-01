@@ -292,7 +292,7 @@ class LimitTutorTimePerWeeks(TimetableConstraint):
                         ttmodel.data.compatible_slots[c], period__in=considered_periods
                     )
                 ) + sum(
-                    sc.course.minutes
+                    sc.minutes
                     for sc in ttmodel.data.other_departments_scheduled_courses_for_tutor[
                         tutor
                     ]

@@ -200,7 +200,7 @@ class ParallelizeCourses(TimetableConstraint):
         on_delete=models.CASCADE,
         verbose_name=_("module"),
     )
-    desired_busy_slots_duration = models.PositiveSmallIntegerField(
+    desired_busy_slots_duration = models.DurationField(
         verbose_name=_("Desired busy slots duration")
     )
 
@@ -222,8 +222,7 @@ class ParallelizeCourses(TimetableConstraint):
 
     def one_line_description(self):
         text = (
-            "Tous les cours sont concentrés en "
-            f"{self.desired_busy_slots_duration}"
+            "Tous les cours sont concentrés en " f"{self.desired_busy_slots_duration}"
         )
 
         if self.course_type is not None:
@@ -233,6 +232,10 @@ class ParallelizeCourses(TimetableConstraint):
             text += " pour le module " + self.course_type.name
 
         return text
+
+    @property
+    def desired_busy_slots_minutes(self):
+        return self.desired_busy_slots_duration.total_seconds() / 60
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=10):
         considered_courses = self.considered_courses(ttmodel)
