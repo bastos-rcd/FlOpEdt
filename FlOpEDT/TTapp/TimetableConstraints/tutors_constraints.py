@@ -175,6 +175,14 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
         verbose_name = _("Minimize tutors busy days")
         verbose_name_plural = verbose_name
 
+    def minimal_number_of_days(self, tutor, teaching_time, nb_days):
+        minimal_number_of_days = nb_days
+        for d in range(nb_days, 0, -1):
+            if teaching_time > tutor.preferences.pref_time_per_day * (d - 1):
+                minimal_number_of_days = d
+                break
+        return minimal_number_of_days
+
     def enrich_ttmodel(self, ttmodel, period, ponderation=None):
         """
         Minimize the number of busy days for tutor with cost
@@ -200,7 +208,9 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
                 dt.timedelta(),
             )
             nb_days = len(days_filter(ttmodel.data.days, period=period))
-            minimal_number_of_days = nb_days
+            minimal_number_of_days = self.minimal_number_of_days(
+                tutor, teaching_time, nb_days
+            )
             # for any number of days inferior to nb_days
             for d in range(nb_days, 0, -1):
                 # if courses fit in d-1 days
@@ -210,7 +220,6 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
                     # add a cost for having d busy days
                     slot_by_day_cost += ttmodel.tutor_busy_day_gte[period][d][tutor]
                 else:
-                    minimal_number_of_days = d
                     break
             if self.weight is None:
                 if minimal_number_of_days < nb_days:
@@ -234,7 +243,24 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
                 )
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_tutors = []
+        for tutor in self.considered_tutors():
+            considered_scheduled_courses = ScheduledCourse.objects.filter(
+                Q(tutor=tutor) | Q(course__supp_tutors=tutor),
+                course__in=self.get_courses_queryset_by_parameters(period=period),
+                version=version,
+            )
+            busy_days_nb = considered_scheduled_courses.distinct("date").count()
+            teaching_time = sum(sc.duration for sc in considered_scheduled_courses)
+            minimal_number_of_days = self.minimal_number_of_days(
+                tutor, teaching_time, len(period.dates())
+            )
+            if busy_days_nb > minimal_number_of_days:
+                unsatisfied_tutors.append(tutor)
+        assert not unsatisfied_tutors, (
+            f"{self} is not satisfied for period {period} and version {version} : "
+            f"{unsatisfied_tutors}"
+        )
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()

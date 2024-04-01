@@ -29,12 +29,12 @@ import datetime as dt
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 import TTapp.global_pre_analysis.partition_with_constraints as partition_bis
-from base.models import CourseStartTimeConstraint, Dependency
+from base.models import CourseStartTimeConstraint, Dependency, ScheduledCourse
 from base.timing import Day, slot_pause
 from core.decorators import timer
 from TTapp.ilp_constraints.constraint import Constraint
@@ -396,7 +396,23 @@ class LimitStartTimeChoices(StartTimeConstraint):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        if not self.possible_week_days and not self.possible_start_times:
+            return
+
+        problematic_scheduled_courses = self.period_version_scheduled_courses_queryset(
+            period, version
+        )
+        if self.possible_week_days:
+            problematic_scheduled_courses = problematic_scheduled_courses.exclude(
+                date__weekday__in=self.possible_week_days
+            )
+        if self.possible_start_times:
+            problematic_scheduled_courses = problematic_scheduled_courses.exclude(
+                start_time__time__in=self.possible_start_times
+            )
+        assert (
+            not problematic_scheduled_courses.exists()
+        ), f"Following courses do not respect {self} : {problematic_scheduled_courses}"
 
 
 class AvoidStartTimes(StartTimeConstraint):
@@ -465,7 +481,23 @@ class AvoidStartTimes(StartTimeConstraint):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        if not self.forbidden_week_days and not self.forbidden_week_days:
+            return
+
+        problematic_scheduled_courses = self.period_version_scheduled_courses_queryset(
+            period, version
+        )
+        if self.forbidden_week_days:
+            problematic_scheduled_courses = problematic_scheduled_courses.filter(
+                date__weekday__in=self.forbidden_week_days
+            )
+        if self.forbidden_start_times:
+            problematic_scheduled_courses = problematic_scheduled_courses.filter(
+                start_time__time__in=self.forbidden_start_times
+            )
+        assert (
+            not problematic_scheduled_courses.exists()
+        ), f"Following courses do not respect {self} : {problematic_scheduled_courses}"
 
 
 ################    ConsiderDependencies FUNCTIONS      ################
@@ -1195,7 +1227,29 @@ class AvoidBothTimesSameDay(TimetableConstraint):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_basic_groups = []
+        considered_dates = period.dates()
+        if self.weekdays:
+            considered_dates = days_filter(considered_dates, weekday_in=self.weekdays)
+        for basic_group in self.considered_basic_groups():
+            considered_courses = self.get_courses_queryset_by_parameters(
+                period, group=basic_group
+            )
+            for date in considered_dates:
+                dated_scheduled_courses = ScheduledCourse.objects.filter(
+                    date=date, course__in=considered_courses, version=version
+                )
+                if dated_scheduled_courses.filter(
+                    start_time__time__lte=self.time1,
+                    start_time__time__gt=self.time1 - F("course__duration"),
+                ) and dated_scheduled_courses.filter(
+                    start_time__time__lte=self.time2,
+                    start_time__time__gt=self.time2 - F("course__duration"),
+                ):
+                    unsatisfied_basic_groups.append(basic_group)
+        assert (
+            not unsatisfied_basic_groups
+        ), f"Following groups do not respect {self} : {unsatisfied_basic_groups}"
 
 
 class LimitUndesiredSlotsPerDayPeriod(TimetableConstraint):
