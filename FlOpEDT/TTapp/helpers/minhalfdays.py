@@ -109,14 +109,17 @@ class MinHalfDaysHelperBase:
         self.add_constraint(expression, courses)
 
     @staticmethod
-    def is_satisfied_for_one_object(period, version, considered_courses) -> bool:
+    def is_satisfied_for_one_object(version, considered_courses) -> bool:
         considered_scheduled_courses = ScheduledCourse.objects.filter(
             course__in=considered_courses, version=version
         )
         limit = MinHalfDaysHelperBase.minimal_half_days_number(considered_courses)
+        considered_dates = set(
+            sc.date for sc in considered_scheduled_courses.distinct("date")
+        )
         busy_half_days = sum(
             1
-            for date in period.dates()
+            for date in considered_dates
             for apm in [Time.AM, Time.PM]
             if set(
                 sched_course

@@ -94,7 +94,7 @@ class MinTutorsHalfDays(TimetableConstraint):
             considered_courses = set(sc.course for sc in considered_scheduled_courses)
 
             if not MinHalfDaysHelperTutor.is_satisfied_for_one_object(
-                period, version, considered_courses
+                version, considered_courses
             ):
                 unsatisfied_min_half_days_tutors.append(tutor)
         assert not unsatisfied_min_half_days_tutors, (

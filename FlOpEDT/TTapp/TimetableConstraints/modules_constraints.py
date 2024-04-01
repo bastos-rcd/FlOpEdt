@@ -95,7 +95,7 @@ class MinModulesHalfDays(TimetableConstraint):
                 period=period, module=module
             )
             if not MinHalfDaysHelperModule.is_satisfied_for_one_object(
-                period, version, considered_courses
+                version, considered_courses
             ):
                 unsatisfied_min_half_days_modules.append(module)
         assert not unsatisfied_min_half_days_modules, (

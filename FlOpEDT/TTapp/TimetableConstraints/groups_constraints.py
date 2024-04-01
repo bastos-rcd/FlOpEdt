@@ -96,7 +96,7 @@ class MinGroupsHalfDays(TimetableConstraint):
                 period=period, group=basic_group
             )
             if not MinHalfDaysHelperGroup.is_satisfied_for_one_object(
-                period, version, considered_courses
+                version, considered_courses
             ):
                 unsatisfied_min_half_days_groups.append(basic_group)
         assert not unsatisfied_min_half_days_groups, (

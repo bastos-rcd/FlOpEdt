@@ -1074,7 +1074,8 @@ class TimetableModel(
                         )
                         if not avail:
                             self.add_warning(
-                                f"availability pbm for {i} availability_slot {availability_slot}"
+                                i,
+                                f"availability pbm for availability_slot {availability_slot}",
                             )
                             unp_slot_cost[i][availability_slot] = 0
                             avail_at_school_instr[i][availability_slot] = 1
