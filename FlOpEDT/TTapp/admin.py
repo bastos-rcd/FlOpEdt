@@ -105,7 +105,7 @@ class BasicTutorsConstraintAdmin(DepartmentModelAdmin):
 class LimitModulesTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = (
         "course_type",
-        "max_hours",
+        "max_time",
         "fhd_period",
         "comment",
         "weight",
@@ -123,7 +123,7 @@ class LimitModulesTimePerPeriodAdmin(DepartmentModelAdmin):
 class LimitGroupsTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = (
         "course_type",
-        "max_hours",
+        "max_time",
         "fhd_period",
         "comment",
         "weight",
@@ -141,7 +141,7 @@ class LimitGroupsTimePerPeriodAdmin(DepartmentModelAdmin):
 class LimitTutorsTimePerPeriodAdmin(DepartmentModelAdmin):
     list_display = (
         "course_type",
-        "max_hours",
+        "max_time",
         "fhd_period",
         "comment",
         "weight",

@@ -26,9 +26,11 @@
 from typing import TYPE_CHECKING
 
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from base.models import SchedulingPeriod
+from base.timing import Time
+from base.models import SchedulingPeriod, ScheduledCourse, Module
 from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
@@ -52,7 +54,7 @@ class LimitTimePerPeriod(TimetableConstraint):
     course_type = models.ForeignKey(
         "base.CourseType", on_delete=models.CASCADE, null=True, blank=True
     )
-    max_hours = models.PositiveSmallIntegerField()
+    max_time = models.DurationField(verbose_name=_("max_time"))
     FULL_DAY = "fd"
     HALF_DAY = "hd"
     PERIOD_CHOICES = ((FULL_DAY, "Full day"), (HALF_DAY, "Half day"))
@@ -63,11 +65,43 @@ class LimitTimePerPeriod(TimetableConstraint):
     class Meta:
         abstract = True
 
+    @property
+    def max_minutes(self):
+        return self.max_time.total_seconds() / 60
+
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         raise NotImplementedError
 
     def one_line_description(self):
         raise NotImplementedError
+
+    def is_satisfied_for_one_object(self, version, considered_courses):
+        considered_scheduled_courses = ScheduledCourse.objects.filter(
+            course__in=considered_courses, version=version
+        )
+        considered_dates = set(
+            sc.date for sc in considered_scheduled_courses.distinct("date")
+        )
+        for date in considered_dates:
+            date_considered_scheduled_courses = considered_scheduled_courses.filter(
+                date=date
+            )
+            if self.fhd_period == self.FULL_DAY:
+                total_minutes = sum(
+                    sc.minutes for sc in date_considered_scheduled_courses
+                )
+                if total_minutes > self.max_minutes:
+                    return False
+                return True
+            for apm in [Time.AM, Time.PM]:
+                total_minutes = sum(
+                    sc.minutes
+                    for sc in date_considered_scheduled_courses
+                    if sc.apm == apm
+                )
+                if total_minutes > self.max_minutes:
+                    return False
+            return False
 
     def is_satisfied_for(self, period, version):
         raise NotImplementedError
@@ -115,6 +149,9 @@ class LimitTimePerPeriod(TimetableConstraint):
         considered_courses,
         tutor=None,  # pylint: disable=unused-argument
     ):
+        """
+        Build the expression that represents the total number of minutes of considered_courses
+        """
         expr = ttmodel.lin_expr()
         for slot in build_fd_or_apm_period_slots(ttmodel, day, apm_period):
             for course in considered_courses & ttmodel.data.compatible_courses[slot]:
@@ -143,7 +180,7 @@ class LimitTimePerPeriod(TimetableConstraint):
             )
 
             if self.weight is not None:
-                var = ttmodel.add_floor(expr, int(self.max_hours * 60) + 1, 3600 * 24)
+                var = ttmodel.add_floor(expr, self.max_minutes + 1, 60 * 24)
                 ttmodel.add_to_generic_cost(
                     self.local_weight() * ponderation * var, period=period
                 )
@@ -151,7 +188,7 @@ class LimitTimePerPeriod(TimetableConstraint):
                 ttmodel.add_constraint(
                     expr,
                     "<=",
-                    self.max_hours * 60,
+                    self.max_minutes,
                     Constraint(
                         constraint_type=ConstraintType.MAX_HOURS,
                         days=day,
@@ -211,9 +248,9 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         return view_model
 
     def one_line_description(self):
-        text = "Pas plus de " + str(self.max_hours) + " heures "
+        text = "Pas plus de " + str(self.max_time)
         if self.course_type is not None:
-            text += "de " + str(self.course_type)
+            text += " de " + str(self.course_type)
         text += " par "
         if self.fhd_period == self.FULL_DAY:
             text += "jour"
@@ -234,7 +271,20 @@ class LimitGroupsTimePerPeriod(LimitTimePerPeriod):  # , pond):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_groups = []
+        for basic_group in self.considered_basic_groups():
+            considered_courses = self.get_courses_queryset_by_parameters(
+                period=period,
+                group=basic_group,
+                course_type=self.course_type,
+                transversal_groups_included=True,
+            )
+            if not self.is_satisfied_for_one_object(version, considered_courses):
+                unsatisfied_groups.append(basic_group)
+        assert not unsatisfied_groups, (
+            f"{self} is not satisfied for period {period} and version {version} :"
+            f"{unsatisfied_groups}"
+        )
 
 
 class LimitModulesTimePerPeriod(LimitTimePerPeriod):
@@ -254,17 +304,27 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         verbose_name = _("Limit modules busy time per period")
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, period, ponderation=1.0):
-        if self.modules.exists():
-            considered_modules = self.modules.filter(
-                train_prog__in=self.considered_train_progs(ttmodel)
+    def considered_modules(self, ttmodel: "TimetableModel" = None):
+        if ttmodel is None:
+            modules_to_consider = Module.objects.filter(
+                train_prog__department=self.department
             )
         else:
-            considered_modules = ttmodel.data.modules.filter(
+            modules_to_consider = ttmodel.data.modules
+
+        if self.train_progs.exists():
+            modules_to_consider = self.modules.filter(
                 train_prog__in=self.considered_train_progs(ttmodel)
             )
+        modules_to_consider = set(modules_to_consider)
 
-        for module in considered_modules:
+        if self.modules.exists():
+            modules_to_consider = modules_to_consider & set(self.modules.all())
+
+        return modules_to_consider
+
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1.0):
+        for module in self.considered_modules(ttmodel):
             for group in self.considered_basic_groups(ttmodel):
                 self.enrich_model_for_one_object(
                     ttmodel, period, ponderation, module=module, group=group
@@ -300,7 +360,7 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         return view_model
 
     def one_line_description(self):
-        text = "Pas plus de " + str(self.max_hours) + " heures"
+        text = "Pas plus de " + str(self.max_time)
         if self.course_type:
             text += " de " + str(self.course_type)
         text += " par "
@@ -322,7 +382,17 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_modules = []
+        for module in self.considered_modules():
+            considered_courses = self.get_courses_queryset_by_parameters(
+                period=period, module=module, course_type=self.course_type
+            )
+            if not self.is_satisfied_for_one_object(version, considered_courses):
+                unsatisfied_modules.append(module)
+        assert not unsatisfied_modules, (
+            f"{self} is not satisfied for period {period} and version {version} :"
+            f"{unsatisfied_modules}"
+        )
 
 
 class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
@@ -384,7 +454,7 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
         return view_model
 
     def one_line_description(self):
-        text = "Pas plus de " + str(self.max_hours) + " heures"
+        text = "Pas plus de " + str(self.max_time)
         if self.course_type:
             text += " de " + str(self.course_type)
         text += " par "
@@ -405,7 +475,19 @@ class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_tutors = []
+        for tutor in self.considered_tutors():
+            considered_courses = self.get_courses_queryset_by_parameters(period=period)
+            considered_scheduled_courses = ScheduledCourse.objects.filter(
+                (Q(tutor=tutor) | Q(course__supp_tutors=tutor)),
+                course__in=considered_courses,
+                version=version,
+            )
+            considered_courses = set(sc.course for sc in considered_scheduled_courses)
+        assert not unsatisfied_tutors, (
+            f"{self} is not satisfied for period {period} and version {version} :"
+            f"{unsatisfied_tutors}"
+        )
 
 
 class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
@@ -438,7 +520,7 @@ class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
         return view_model
 
     def one_line_description(self):
-        text = "Pas plus de " + str(self.max_hours) + " heures "
+        text = "Pas plus de " + str(self.max_time)
         if self.course_type is not None:
             text += "de " + str(self.course_type)
         text += " par "
@@ -455,4 +537,10 @@ class LimitCourseTypeTimePerPeriod(LimitTimePerPeriod):  # , pond):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        considered_courses = self.get_courses_queryset_by_parameters(
+            period=period, course_type=self.course_type
+        )
+        assert self.is_satisfied_for_one_object(version, considered_courses), (
+            f"{self} is not satisfied for period {period} and version {version} :"
+            f"{self.course_type}"
+        )
