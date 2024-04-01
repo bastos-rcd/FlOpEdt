@@ -257,7 +257,7 @@ class ScheduledCoursesHumanParamViewSet(ScheduledCoursesJoinedViewSet):
         return serializer.validated_data
 
 
-# FIXME Define create and update methods for serializers
+# We may define create and update methods for serializers
 # pylint: disable=abstract-method
 
 

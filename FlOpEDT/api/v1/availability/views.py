@@ -23,18 +23,11 @@
 
 import datetime as dt
 
-import django_filters.rest_framework as filters
-from django.utils.decorators import method_decorator
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import exceptions, mixins, parsers, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
-from rules.contrib.rest_framework import AutoPermissionViewSetMixin
-from rules.contrib.views import PermissionRequiredMixin
+from rest_framework import exceptions, mixins, viewsets
 
 import base.models as bm
-import people.models as pm
-from api.permissions import IsAdminOrReadOnly, IsTutor, IsTutorOrReadOnly
+
 from api.shared.params import (
     dept_id_param,
     from_date_param,
@@ -60,6 +53,8 @@ class DatedAvailabilityListViewSet(
         if getattr(self, "swagger_fake_view", False):
             return bm.RoomAvailability.objects.none()
 
+        # We may find another way to define attributes
+        # pylint: disable=attribute-defined-outside-init
         if not hasattr(self, "from_date"):
             self.from_date = dt.datetime.fromisoformat(
                 self.request.query_params.get("from_date")
@@ -189,6 +184,7 @@ class RoomDatedAvailabilityUpdateViewSet(
 )
 class UserDefaultAvailabilityListViewSet(UserDatedAvailabilityListViewSet):
     def get_queryset(self):
+        # pylint: disable=attribute-defined-outside-init
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
         return super().get_queryset()
@@ -206,6 +202,7 @@ class RoomDefaultAvailabilityListViewSet(RoomDatedAvailabilityListViewSet):
     """
 
     def list(self, request, *args, **kwargs):
+        # pylint: disable=attribute-defined-outside-init
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
         return super().list(request, *args, **kwargs)

@@ -1,7 +1,7 @@
 import pytest
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APIClient
 
-from api.v1.tests.utils import retrieve_elements
+# pylint: disable=redefined-outer-name
 
 
 @pytest.fixture

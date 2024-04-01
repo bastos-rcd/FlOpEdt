@@ -32,7 +32,9 @@ class CourseTypeFactory(factory.django.DjangoModelFactory):
     name = "Lab"
 
 
-def go_groups(self, step, create, extracted, **kwargs):
+def go_groups(
+    self, step, create, extracted, **kwargs  # pylint: disable=unused-argument
+):
     if not create:
         return
     self.groups.add(step.attributes.get("group_helper"))

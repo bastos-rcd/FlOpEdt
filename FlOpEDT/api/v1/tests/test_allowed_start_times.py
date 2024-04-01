@@ -1,12 +1,9 @@
 import pytest
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
-    HTTP_403_FORBIDDEN,
-    HTTP_406_NOT_ACCEPTABLE,
     is_success,
 )
 
-from api.v1.tests.utils import add_user_permission, retrieve_elements
 from base.models import Department
 
 # disable unused-argument for fixtures

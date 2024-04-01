@@ -1,12 +1,11 @@
-# Tests use to unuse arguments...
-# pylint: disable=unused-argument
+# Tests use to unuse and redefine arguments...
+# pylint: disable=unused-argument,redefined-outer-name
 
 import pytest
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from rest_framework.status import (
     HTTP_403_FORBIDDEN,
-    HTTP_406_NOT_ACCEPTABLE,
     is_success,
 )
 
@@ -100,7 +99,7 @@ class TestDjangoRules:
         user = User.objects.create(username="new")
         client.force_authenticate(user=user)
         response = client.post(
-            f"/fr/api/v1/people/themes/", data={"user": user.id, "theme": "azeaze"}
+            "/fr/api/v1/people/themes/", data={"user": user.id, "theme": "azeaze"}
         )
         assert is_success(response.status_code), response.content
 

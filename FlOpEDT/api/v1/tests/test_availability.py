@@ -5,12 +5,9 @@ import copy
 import datetime as dt
 
 import pytest
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
 from django.utils.duration import duration_string
 from rest_framework.status import (
     HTTP_403_FORBIDDEN,
-    HTTP_406_NOT_ACCEPTABLE,
     is_success,
 )
 
@@ -19,8 +16,6 @@ from base.models.availability import UserAvailability
 from base.models.groups import Department
 from base.models.rooms import Room
 from people.models import FullStaff, Tutor, User
-
-from .factories.availability import UserIUTEveningFactory, UserIUTMorningFactory
 
 
 class TestListUserAvailability:
@@ -31,7 +26,7 @@ class TestListUserAvailability:
     }
 
     def test_user_or_dept_required(self, client):
-        with pytest.raises(AssertionError) as e_info:
+        with pytest.raises(AssertionError):
             retrieve_elements(client.get(self.endpoint, self.target_dates))
 
     def test_list_date(self, client, make_default_week_user: None):
@@ -89,7 +84,7 @@ class TestListUserAvailability:
         response = client.get(self.endpoint, wanted)
         assert is_success(response.status_code), response
 
-    def test_perm_view_other_user_allowed(self, client, make_users):
+    def test_perm_view_other_user_denied(self, client, make_users):
         make_users(2)
         user = User.objects.first()
         other = User.objects.all().exclude(id=user.id)[0]
@@ -110,7 +105,7 @@ class TestListUserAvailability:
         response = client.get(self.endpoint, wanted)
         assert is_success(response.status_code), response
 
-    def test_perm_view_dept_allowed(self, client, make_users):
+    def test_perm_view_dept_denied(self, client, make_users):
         make_users(1)
         user = User.objects.first()
         d = Department.objects.create(abbrev="d")
@@ -130,7 +125,7 @@ class TestListUserAvailability:
 
 
 class TestUpdateUserAvailability:
-    endpoint = f"/fr/api/v1/availability/update_user/"
+    endpoint = "/fr/api/v1/availability/update_user/"
     from_date = "1871-03-20"
     to_date = "1871-03-20"
     wanted = {
@@ -254,7 +249,7 @@ class TestUpdateUserAvailability:
 
 
 class TestUpdateRoomAvailability:
-    endpoint = f"/fr/api/v1/availability/update_room/"
+    endpoint = "/fr/api/v1/availability/update_room/"
     from_date = "1848-04-17"
     to_date = "1848-04-18"
     wanted = {
@@ -318,7 +313,7 @@ class TestUpdateRoomAvailability:
 
 
 class TestListUserAvailabilityDefault:
-    endpoint = f"/fr/api/v1/availability/user-default-week/"
+    endpoint = "/fr/api/v1/availability/user-default-week/"
 
     def test_tutor_creation(self, client, make_default_week_user):
         user = User.objects.first()
@@ -376,7 +371,7 @@ class TestListUserAvailabilityDefault:
 
 
 class TestUpdateUserAvailabilityDefault:
-    endpoint = f"/fr/api/v1/availability/update_user-default-week/"
+    endpoint = "/fr/api/v1/availability/update_user-default-week/"
     from_date = "1929-10-29"
     to_date = "1929-10-29"
     wanted = {
@@ -470,4 +465,4 @@ class TestUpdateUserAvailabilityDefault:
 
 
 class TestRoomAvailabilityActual:
-    endpoint = f"/fr/api/v1/availability/room/"
+    endpoint = "/fr/api/v1/availability/room/"

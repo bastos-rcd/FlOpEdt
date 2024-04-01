@@ -1,22 +1,19 @@
-# Fixtures use to unuse arguments...
-# pylint: disable=unused-argument
+# Fixtures use to unuse and redefine arguments...
+# pylint: disable=unused-argument,redefined-outer-name
 
 import pytest
 
 from base.models import (
-    Course,
     CourseType,
     Department,
     Module,
-    ScheduledCourse,
     StructuralGroup,
     TrainingPeriod,
     TrainingProgramme,
 )
-from people.models import FullStaff, SupplyStaff, Tutor, UserDepartmentSettings
+from people.models import SupplyStaff, Tutor, UserDepartmentSettings
 
 from ..factories.group import DepartmentFactory
-from ..factories.people import UserFactory
 
 
 @pytest.fixture

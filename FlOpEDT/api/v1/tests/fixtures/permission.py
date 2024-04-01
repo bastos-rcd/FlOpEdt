@@ -1,5 +1,5 @@
-# Fixtures use to unuse arguments...
-# pylint: disable=unused-argument
+# Fixtures use to unuse and redefine arguments...
+# pylint: disable=unused-argument,redefined-outer-name
 
 import pytest
 from django.contrib.auth.models import Permission

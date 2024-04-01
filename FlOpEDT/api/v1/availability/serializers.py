@@ -31,7 +31,7 @@ import base.models as bm
 from base.rules import can_push_user_availability
 from people.models import User
 
-# FIXME Define create and update methods for serializers
+# We may define create and update methods for serializers
 # pylint: disable=abstract-method
 
 
