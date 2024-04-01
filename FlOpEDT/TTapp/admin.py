@@ -87,19 +87,19 @@ from TTapp.TimetableConstraints.orsay_constraints import GroupsLunchBreak
 class RoomConstraintAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
-    list_filter = (("weeks__nb", DropdownFilterAll),)
+    list_filter = (("periods", DropdownFilterAll),)
 
 
 class BasicConstraintAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
-    list_filter = (("train_progs", DropdownFilterRel), ("weeks__nb", DropdownFilterAll))
+    list_filter = (("train_progs", DropdownFilterRel), ("periods", DropdownFilterAll))
 
 
 class BasicTutorsConstraintAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
-    list_filter = (("tutors", DropdownFilterRel), ("weeks__nb", DropdownFilterAll))
+    list_filter = (("tutors", DropdownFilterRel), ("periods", DropdownFilterAll))
 
 
 class LimitModulesTimePerPeriodAdmin(DepartmentModelAdmin):
@@ -114,7 +114,7 @@ class LimitModulesTimePerPeriodAdmin(DepartmentModelAdmin):
     ordering = ()
     list_filter = (
         ("train_progs", DropdownFilterRel),
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("modules", DropdownFilterRel),
         ("course_type", DropdownFilterRel),
     )
@@ -132,7 +132,7 @@ class LimitGroupsTimePerPeriodAdmin(DepartmentModelAdmin):
     ordering = ()
     list_filter = (
         ("train_progs", DropdownFilterRel),
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("groups", DropdownFilterRel),
         ("course_type", DropdownFilterRel),
     )
@@ -150,7 +150,7 @@ class LimitTutorsTimePerPeriodAdmin(DepartmentModelAdmin):
     ordering = ()
     list_filter = (
         ("train_progs", DropdownFilterRel),
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("tutors", DropdownFilterRel),
         ("course_type", DropdownFilterRel),
     )
@@ -160,7 +160,7 @@ class StabilizeTutorsCoursesAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("train_progs", DropdownFilterRel),
         ("tutors", DropdownFilterRel),
     )
@@ -170,7 +170,7 @@ class StabilizeGroupsCoursesAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("train_progs", DropdownFilterRel),
         ("groups", DropdownFilterRel),
     )
@@ -180,7 +180,7 @@ class MinTutorsHalfDaysAdmin(DepartmentModelAdmin):
     list_display = ("join2courses", "comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("tutors", DropdownFilterRel),
         "join2courses",
     )
@@ -190,7 +190,7 @@ class MinModulesHalfDaysAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("modules", DropdownFilterRel),
     )
 
@@ -199,7 +199,7 @@ class MinGroupsHalfDaysAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("groups", DropdownFilterRel),
     )
 
@@ -216,7 +216,7 @@ class AvoidBothTimesAdmin(DepartmentModelAdmin):
     list_display = ("time1", "time2", "comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("train_progs", DropdownFilterRel),
         ("time1", DropdownFilterRel),
         ("time2", DropdownFilterRel),
@@ -227,7 +227,7 @@ class CoursesAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("courses", DropdownFilterRel),
     )
 
@@ -236,7 +236,7 @@ class LimitRoomChoicesAdmin(DepartmentModelAdmin):
     list_display = ("group", "tutor", "module", "course_type", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("group", DropdownFilterRel),
         ("tutor", DropdownFilterRel),
         ("module", DropdownFilterRel),
@@ -256,7 +256,7 @@ class StartTimeChoicesAdmin(DepartmentModelAdmin):
     )
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("train_progs", DropdownFilterRel),
         ("group", DropdownFilterRel),
         ("tutor", DropdownFilterRel),
@@ -267,18 +267,16 @@ class StartTimeChoicesAdmin(DepartmentModelAdmin):
 
 class LowerBoundBusyDaysAdmin(DepartmentModelAdmin):
     list_display = (
-        "tutor",
         "min_days_nb",
-        "lower_bound_hours",
+        "lower_bound_time",
         "comment",
         "weight",
         "is_active",
     )
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
-        ("train_progs", DropdownFilterRel),
-        ("tutor", DropdownFilterRel),
+        ("periods", DropdownFilterAll),
+        ("tutors", DropdownFilterRel),
     )
 
 
@@ -286,7 +284,7 @@ class GroupsLunchBreakAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("train_progs", DropdownFilterRel),
         ("groups", DropdownFilterRel),
     )
@@ -296,7 +294,7 @@ class GroupsConstraintAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("train_progs", DropdownFilterRel),
         ("groups", DropdownFilterRel),
     )
@@ -320,7 +318,7 @@ class NoCourseOnDayAdmin(DepartmentModelAdmin):
     list_display = ("weekday", "comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("train_progs", DropdownFilterRel),
     )
 
@@ -329,7 +327,7 @@ class ConsiderDependenciesAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("train_progs", DropdownFilterRel),
         ("modules", DropdownFilterRel),
     )
@@ -339,7 +337,7 @@ class ConsiderPivotsAdmin(DepartmentModelAdmin):
     list_display = ("comment", "weight", "is_active")
     ordering = ()
     list_filter = (
-        ("weeks__nb", DropdownFilterAll),
+        ("periods", DropdownFilterAll),
         ("train_progs", DropdownFilterRel),
         ("modules", DropdownFilterRel),
     )

@@ -24,7 +24,7 @@
 # without disclosing the source code of your own applications.
 
 import datetime as dt
-
+import logging
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
@@ -35,6 +35,8 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
 from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
+
+logger = logging.getLogger(__name__)
 
 
 class MinTutorsHalfDays(TimetableConstraint):
@@ -159,14 +161,12 @@ class MinNonPreferedTutorsSlot(TimetableConstraint):
         return text
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        logger.info("%s cannot be unsatisfied... skipping", self)
 
 
 class MinimizeTutorsBusyDays(TimetableConstraint):
     """
-    This class is a template for writing your own custom contraint.
-
-    The module can contains several custom constraints.
+    Minimize the number of busy days for tutors
     """
 
     tutors = models.ManyToManyField("people.Tutor", blank=True)
@@ -318,7 +318,27 @@ class RespectTutorsMaxTimePerDay(TimetableConstraint):
                     )
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_tutor_day = []
+        tutor_to_consider = self.considered_tutors()
+        courses_to_consider = self.considered_courses(period)
+        for tutor in tutor_to_consider:
+            if not hasattr(tutor, "preferences"):
+                continue
+            for date in self.considered_dates(period):
+                date_time = sum(
+                    sc.duration
+                    for sc in ScheduledCourse.objects.filter(
+                        Q(tutor=tutor) | Q(course__supp_tutors=tutor),
+                        date=date,
+                        version=version,
+                        course__in=courses_to_consider,
+                    )
+                )
+                if date_time > tutor.preferences.max_time_per_day:
+                    unsatisfied_tutor_day.append((tutor, date))
+        assert (
+            not unsatisfied_tutor_day
+        ), f"{self} unsatisfied for : {unsatisfied_tutor_day}"
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
@@ -442,12 +462,12 @@ class RespectTutorsMinTimePerDay(TimetableConstraint):
 
 class LowerBoundBusyDays(TimetableConstraint):
     """
-    Impose a minimum number of days if the number of hours is higher than a lower bound
+    Impose a minimum number of days if the teaching time is higher than a lower bound
     """
 
-    tutor = models.ForeignKey("people.Tutor", on_delete=models.CASCADE)
+    tutors = models.ManyToManyField("people.Tutor")
     min_days_nb = models.PositiveSmallIntegerField()
-    lower_bound_hours = models.PositiveSmallIntegerField()
+    lower_bound_time = models.DurationField()
 
     class Meta:
         verbose_name = _("Lower bound tutor busy days")
@@ -455,34 +475,63 @@ class LowerBoundBusyDays(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         relevant_courses = self.get_courses_queryset_by_attributes(period, ttmodel)
-
-        if sum(c.duration for c in relevant_courses) > self.lower_bound_hours:
-            ttmodel.add_constraint(
-                ttmodel.tutor_busy_day_gte[self.min_days_nb][self.tutor],
-                "==",
-                1,
-                Constraint(
-                    constraint_type=ConstraintType.LOWER_BOUND_BUSY_DAYS,
-                    instructors=self.tutor,
-                ),
-            )
+        for tutor in self.considered_tutors(ttmodel):
+            if sum(c.duration for c in relevant_courses) > self.lower_bound_time:
+                expression = (
+                    ttmodel.one_var
+                    - ttmodel.tutor_busy_day_gte[self.min_days_nb][tutor]
+                )
+                if self.weight is None:
+                    ttmodel.add_constraint(
+                        expression,
+                        "==",
+                        0,
+                        Constraint(
+                            constraint_type=ConstraintType.LOWER_BOUND_BUSY_DAYS,
+                            instructors=tutor,
+                        ),
+                    )
+                else:
+                    ttmodel.add_to_inst_cost(
+                        tutor,
+                        self.local_weight() * ponderation * expression,
+                        period=period,
+                    )
 
     def is_satisfied_for(self, period, version):
-        raise NotImplementedError
+        unsatisfied_tutors = []
+        for tutor in self.considered_tutors():
+            considered_scheduled_courses = ScheduledCourse.objects.filter(
+                (Q(tutor=tutor) | Q(course__supp_tutors=tutor)),
+                course__in=self.get_courses_queryset_by_parameters(period=period),
+                version=version,
+            )
+            if (
+                sum(sc.duration for sc in considered_scheduled_courses)
+                > self.lower_bound_time
+            ):
+                if (
+                    len(set(sc.date for sc in considered_scheduled_courses))
+                    < self.min_days_nb
+                ):
+                    unsatisfied_tutors.append(tutor)
+        assert not unsatisfied_tutors, (
+            f"{self} is not satisfied for period {period} and version {version} : "
+            f"{unsatisfied_tutors}"
+        )
 
     def one_line_description(self):
         return (
-            f"Si plus de {self.lower_bound_hours} heures pour "
-            f"{self.tutor}  alors au moins {self.min_days_nb} jours"
+            f"Si plus de {self.lower_bound_time} heures pour "
+            f"{', '.join(t.username for t in self.tutors.all())}  "
+            f"alors au moins {self.min_days_nb} jours"
         )
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
 
         view_model["details"].update(
-            {
-                "tutor": self.tutor.username,
-            }
+            {"tutors": ", ".join(t.username for t in self.tutors.all())}
         )
 
         return view_model
