@@ -299,6 +299,7 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
     modules = models.ManyToManyField(
         "base.Module", blank=True, related_name="Course_type_limits"
     )
+    groups = models.ManyToManyField("base.StructuralGroup", blank=True)
 
     class Meta:
         verbose_name = _("Limit modules busy time per period")
@@ -382,17 +383,22 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
         return text
 
     def is_satisfied_for(self, period, version):
-        unsatisfied_modules = []
-        for module in self.considered_modules():
-            considered_courses = self.get_courses_queryset_by_parameters(
-                period=period, module=module, course_type=self.course_type
+        unsatisfied_groups_and_modules = []
+        for basic_group in self.considered_basic_groups():
+            for module in self.considered_modules():
+                considered_courses = self.get_courses_queryset_by_parameters(
+                    period=period,
+                    module=module,
+                    course_type=self.course_type,
+                    group=basic_group,
+                    transversal_groups_included=True,
+                )
+                if not self.is_satisfied_for_one_object(version, considered_courses):
+                    unsatisfied_groups_and_modules.append((basic_group, module))
+            assert not unsatisfied_groups_and_modules, (
+                f"{self} is not satisfied for period {period} and version {version} :"
+                f"{unsatisfied_groups_and_modules}"
             )
-            if not self.is_satisfied_for_one_object(version, considered_courses):
-                unsatisfied_modules.append(module)
-        assert not unsatisfied_modules, (
-            f"{self} is not satisfied for period {period} and version {version} :"
-            f"{unsatisfied_modules}"
-        )
 
 
 class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
