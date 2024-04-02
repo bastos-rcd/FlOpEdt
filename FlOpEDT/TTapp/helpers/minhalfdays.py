@@ -25,7 +25,7 @@
 
 import datetime as dt
 import logging
-from typing import Iterable
+from typing import Iterable, TYPE_CHECKING
 
 from base.models import Time, Course, ScheduledCourse
 from people.models import GroupPreferences
@@ -33,11 +33,14 @@ from TTapp.ilp_constraints.constraint import Constraint
 from TTapp.ilp_constraints.constraint_type import ConstraintType
 from TTapp.slots import days_filter, slots_filter
 
+if TYPE_CHECKING:
+    from TTapp.timetable_model import TimetableModel
+
 logger = logging.Logger(__name__)
 
 
 class MinHalfDaysHelperBase:
-    def __init__(self, ttmodel, constraint, period, ponderation):
+    def __init__(self, ttmodel: "TimetableModel", constraint, period, ponderation):
         self.ttmodel = ttmodel
         self.constraint = constraint
         self.ponderation = ponderation
@@ -93,6 +96,7 @@ class MinHalfDaysHelperBase:
         }
         if self.constraint.weight is None:
             if limit + 1 in half_days:
+
                 self.ttmodel.add_constraint(
                     half_days[limit + 1],
                     "==",
@@ -315,7 +319,7 @@ class MinHalfDaysHelperTutor(MinHalfDaysHelperBase):
                             )
 
     def enrich_model(self, tutor=None, **args):
-        if tutor:
+        if tutor is not None:
             self.tutor = tutor  # pylint: disable=attribute-defined-outside-init
             super().enrich_model()
         else:

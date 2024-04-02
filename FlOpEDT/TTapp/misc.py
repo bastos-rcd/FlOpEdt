@@ -27,6 +27,7 @@
 from base.models import SchedulingPeriod, TimetableVersion
 from core.decorators import timer
 from TTapp.flop_constraint import FlopConstraint, all_subclasses
+from django.db.models import Q
 
 
 @timer
@@ -34,12 +35,17 @@ def are_all_flop_constraints_satisfied_for(
     period: SchedulingPeriod,
     version: TimetableVersion,
     strong_constraints_only: bool = False,
+    active_only: bool = True,
 ):
     errors = []
     for cl in all_subclasses(FlopConstraint):
-        considered_objects = cl.objects.filter(department__abbrev="INFO")
+        considered_objects = cl.objects.filter(
+            Q(periods__isnull=True) | Q(periods=period), department=version.department
+        )
         if strong_constraints_only:
             considered_objects = considered_objects.filter(weight=None)
+        if active_only:
+            considered_objects = considered_objects.filter(is_active=True)
         for a in considered_objects:
             try:
                 a.is_satisfied_for(period, version)
