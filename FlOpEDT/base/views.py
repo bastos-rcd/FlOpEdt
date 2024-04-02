@@ -530,9 +530,10 @@ def fetch_module(req, year, week):
         module__train_prog__department=department, week=week, year=year
     ).distinct()
     dataset = ModuleRessource().export(module)
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     response["week"] = week
     response["year"] = year
     return response
@@ -544,9 +545,10 @@ def fetch_tutor(req, year, week):
         module__train_prog__department=department, week=week, year=year
     ).distinct()
     dataset = TutorRessource().export(tutor)
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
+
     response["week"] = week
     response["year"] = year
     return response
@@ -582,9 +584,9 @@ def fetch_course_default_week(req, train_prog, course_type, **kwargs):
         )
     )
 
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     response["department"] = req.department.abbrev
     response["training_programme"] = train_prog
     response["course_type"] = course_type
@@ -615,9 +617,10 @@ def fetch_unavailable_rooms(req, year, week):
             room__departments=department, week=week, year=year, value=0
         )
     )
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.csv,  # pylint: disable=no-member
+        content_type="text/csv",
+    )
     # cache.set(cache_key, response)
 
     response["week"] = week
@@ -657,9 +660,9 @@ def fetch_room_default_week(req, room):
             week=None, room=room, day__in=queries.get_working_days(req.department)
         )
     )  # all())#
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 
@@ -778,9 +781,9 @@ def fetch_bknews(req, year, week):
     dataset = BreakingNewsResource().export(
         BreakingNews.objects.filter(department=req.department, year=year, week=week)
     )
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     response["week"] = week
     response["year"] = year
     return response
@@ -793,9 +796,9 @@ def fetch_all_versions(req):
     dataset = VersionResource().export(
         TimetableVersion.objects.filter(department=req.department)
     )
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.json, content_type="text/json")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.json, content_type="text/json"  # pylint: disable=no-member
+    )
     return response
 
 
@@ -876,9 +879,9 @@ def fetch_tutor_courses(req, year, week, tutor):  # pylint: disable=unused-argum
             course__tutor__username=tutor,
         )
     )
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 
@@ -905,9 +908,9 @@ def fetch_extra_sched(req, year, week):
             course__tutor__in=tutors,
         ).exclude(course__room_type__department=req.department)
     )
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 
@@ -931,9 +934,9 @@ def fetch_shared_rooms(req, year, week):
         .exclude(course__type__department=req.department)
     )
     dataset = SharedRoomsResource().export(courses)
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 
@@ -1581,9 +1584,9 @@ def fetch_group_preferred_links(req):
         "group__train_prog__department"
     ).filter(group__train_prog__department=req.department)
     dataset = GroupPreferredLinksResource().export(pref)
-    # pylint: disable=no-member
-    response = HttpResponse(dataset.csv, content_type="text/csv")
-    # pylint: enable=no-member
+    response = HttpResponse(
+        dataset.csv, content_type="text/csv"  # pylint: disable=no-member
+    )
     return response
 
 

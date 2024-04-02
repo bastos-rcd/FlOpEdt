@@ -23,11 +23,12 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from django.db.models import Q
+
 
 from base.models import SchedulingPeriod, TimetableVersion
 from core.decorators import timer
 from TTapp.flop_constraint import FlopConstraint, all_subclasses
-from django.db.models import Q
 
 
 @timer

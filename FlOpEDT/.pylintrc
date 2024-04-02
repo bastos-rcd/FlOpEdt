@@ -6,9 +6,9 @@ disable=
     C0114, #(missing-module-docstring)
     C0115, #(missing-class-docstring)
     C0116, #(missing-function-docstring)
-    C0302, #(too-many-lines),
-    R0901, #(too-many-ancestors), native in Django.....
     R0903, #(too-few-public-methods)
+    R0901, #(too-many-ancestors), native in Django.....
+    C0302, #(too-many-lines)
     R0912, #(too-many-branches),
     R0913, #(too-many-arguments),
     R0914, #(too-many-locals),

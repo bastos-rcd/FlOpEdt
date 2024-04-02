@@ -304,13 +304,10 @@ class FlopModel:  # pylint: disable=too-many-instance-attributes, too-many-publi
         close_old_connections()
         iis_filename = self.iis_filename()
         if write_iis:
-            # pylint: disable=import-outside-toplevel, no-name-in-module
-            from gurobipy import (
+            from gurobipy import (  # pylint: disable=import-outside-toplevel,no-name-in-module
                 GurobiError,
                 read,
             )
-
-            # pylint: enable=import-outside-toplevel, no-name-in-module
 
             lp = f"{self.solution_files_prefix()}-pulp.lp"
             m = read(lp)
