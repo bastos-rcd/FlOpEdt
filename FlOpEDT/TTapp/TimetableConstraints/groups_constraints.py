@@ -87,7 +87,7 @@ class MinGroupsHalfDays(TimetableConstraint):
         return text
 
     def __str__(self):
-        return _("Minimize groups half-days")
+        return "Minimize groups half-days"
 
     def is_satisfied_for(self, period, version):
         unsatisfied_min_half_days_groups = []
@@ -190,7 +190,7 @@ class MinNonPreferedTrainProgsSlot(TimetableConstraint):
         return text
 
     def __str__(self):
-        return _("Minimize groups non-preferred slots")
+        return f"Minimize groups non-preferred slots ({self.id})"
 
     def is_satisfied_for(self, period, version):
         raise NotImplementedError

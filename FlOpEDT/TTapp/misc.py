@@ -31,11 +31,16 @@ from TTapp.flop_constraint import FlopConstraint, all_subclasses
 
 @timer
 def are_all_flop_constraints_satisfied_for(
-    period: SchedulingPeriod, version: TimetableVersion
+    period: SchedulingPeriod,
+    version: TimetableVersion,
+    strong_constraints_only: bool = False,
 ):
     errors = []
     for cl in all_subclasses(FlopConstraint):
-        for a in cl.objects.filter(department__abbrev="INFO"):
+        considered_objects = cl.objects.filter(department__abbrev="INFO")
+        if strong_constraints_only:
+            considered_objects = considered_objects.filter(weight=None)
+        for a in considered_objects:
             try:
                 a.is_satisfied_for(period, version)
             except NotImplementedError:

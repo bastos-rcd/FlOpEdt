@@ -251,7 +251,9 @@ class MinimizeTutorsBusyDays(TimetableConstraint):
                 version=version,
             )
             busy_days_nb = considered_scheduled_courses.distinct("date").count()
-            teaching_time = sum(sc.duration for sc in considered_scheduled_courses)
+            teaching_time = sum(
+                (sc.duration for sc in considered_scheduled_courses), dt.timedelta()
+            )
             minimal_number_of_days = self.minimal_number_of_days(
                 tutor, teaching_time, len(period.dates())
             )

@@ -34,6 +34,7 @@ from base.models import (
     SchedulingPeriod,
     TimeGeneralSettings,
     TimetableVersion,
+    TrainingProgramme,
 )
 
 MAX_WEIGHT = 8
@@ -260,7 +261,12 @@ class FlopConstraint(models.Model):
         return self.get_courses_queryset_by_attributes(period, flopmodel)
 
     def considered_train_progs(self, flopmodel=None):
-        train_progs = set(flopmodel.train_prog)
+        if flopmodel is None:
+            train_progs = set(
+                TrainingProgramme.objects.filter(department=self.department)
+            )
+        else:
+            train_progs = set(flopmodel.train_prog)
         if hasattr(self, "train_progs"):
             if self.train_progs.exists():
                 train_progs &= set(self.train_progs.all())
