@@ -110,6 +110,8 @@ class MinHalfDaysHelperBase:
 
     @staticmethod
     def is_satisfied_for_one_object(version, considered_courses) -> bool:
+        if not considered_courses:
+            return True
         considered_scheduled_courses = ScheduledCourse.objects.filter(
             course__in=considered_courses, version=version
         )

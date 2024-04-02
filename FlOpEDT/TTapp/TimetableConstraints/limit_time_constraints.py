@@ -76,6 +76,8 @@ class LimitTimePerPeriod(TimetableConstraint):
         raise NotImplementedError
 
     def is_satisfied_for_one_object(self, version, considered_courses):
+        if not considered_courses:
+            return True
         considered_scheduled_courses = ScheduledCourse.objects.filter(
             course__in=considered_courses, version=version
         )
@@ -101,6 +103,7 @@ class LimitTimePerPeriod(TimetableConstraint):
                 )
                 if total_minutes > self.max_minutes:
                     return False
+                return True
             return False
 
     def is_satisfied_for(self, period, version):
@@ -395,10 +398,10 @@ class LimitModulesTimePerPeriod(LimitTimePerPeriod):
                 )
                 if not self.is_satisfied_for_one_object(version, considered_courses):
                     unsatisfied_groups_and_modules.append((basic_group, module))
-            assert not unsatisfied_groups_and_modules, (
-                f"{self} is not satisfied for period {period} and version {version} :"
-                f"{unsatisfied_groups_and_modules}"
-            )
+        assert not unsatisfied_groups_and_modules, (
+            f"{self} is not satisfied for period {period} and version {version} :"
+            f"{unsatisfied_groups_and_modules}"
+        )
 
 
 class LimitTutorsTimePerPeriod(LimitTimePerPeriod):
