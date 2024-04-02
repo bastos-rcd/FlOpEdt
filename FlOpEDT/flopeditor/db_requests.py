@@ -76,7 +76,7 @@ def create_departments_in_database(dept_name, dept_abbrev, tutors_id):
         day_end_time=18 * 60 + 45,
         morning_end_time=12 * 60 + 30,
         afternoon_start_time=14 * 60,
-        days=[
+        weekdays=[
             Day.MONDAY,
             Day.TUESDAY,
             Day.WEDNESDAY,

@@ -298,5 +298,5 @@ def create_department_related(
         day_end_time=dt.time(20),
         morning_end_time=dt.time(13),
         afternoon_start_time=dt.time(13),
-        days=days_list,
+        weekdays=days_list,
     )
