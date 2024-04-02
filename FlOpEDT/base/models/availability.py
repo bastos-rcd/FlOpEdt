@@ -12,16 +12,9 @@ class Availability(Slot):
     value = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(8)], default=8
     )
-    is_default = models.BooleanField(null=True)
 
     class Meta:
         abstract = True
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.date <= dt.date(1, 1, 7):
-            self.is_default = True
-        self.save()
 
     def __str__(self):
         result = super().__str__()
