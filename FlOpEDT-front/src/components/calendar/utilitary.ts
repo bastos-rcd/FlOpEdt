@@ -118,7 +118,7 @@ export function badgeStyles(
   if (timeStartPos) {
     s.top = timeStartPos(event.data?.start) + 'px'
     s.left = Math.round((preceedingWeight / totalWeight) * 100) + '%'
-    s.width = Math.round((100 * span.weight) / totalWeight) - 1 + '%'
+    s.width = Math.round((100 * span.weight) / totalWeight) + '%'
     s.height = timeDurationHeight(event.data?.duration) + 'px'
   }
   if (event.data.dataType === 'dropzone') {
@@ -129,6 +129,7 @@ export function badgeStyles(
   if (event.data.dataType === 'event') {
     s['border'] = '2px solid #000000'
     s['margin'] = '0'
+    s['box-sizing'] = 'border-box'
   } else if (event.data.dataType === 'avail') {
     if (isInEdit) s['resize'] = 'vertical'
     s['overflow'] = 'auto'

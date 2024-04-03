@@ -41,8 +41,8 @@ function handleClick(days: string[]) {
 
 <template>
   <CollapsibleRoot v-model:open="open">
-    <div>
-      <button class="ChoiceButtons" @click="calendarTypeModel = 'month'">
+    <div class="ChoiceButtons">
+      <button @click="calendarTypeModel = 'month'">
         {{ $t('periodPicker.typeMonth') }}
       </button>
       <button class="ChoiceButtons" @click="calendarTypeModel = 'week'">
