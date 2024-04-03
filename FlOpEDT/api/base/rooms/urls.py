@@ -27,7 +27,7 @@ from api.base.rooms import views
 routerRooms = routers.SimpleRouter()
 
 routerRooms.register(r"types", views.RoomTypesViewSet)
-routerRooms.register(r"names", views.RoomNameViewSet)
+routerRooms.register(r"names", views.RoomNameViewSet, basename="roomname")
 routerRooms.register(r"room", views.RoomViewSet)
 routerRooms.register(r"all", views.RoomAllViewSet, basename="all")
 routerRooms.register(r"sorts", views.RoomSortsViewSet)
