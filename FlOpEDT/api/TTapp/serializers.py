@@ -21,83 +21,19 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from collections import OrderedDict
+
 from django.contrib.postgres.fields.array import ArrayField
-from rest_framework.fields import empty
-from TTapp.FlopConstraint import FlopConstraint
+from django.db import models
+from rest_framework import serializers
+from rest_framework.fields import Field
+from rest_framework.serializers import ModelSerializer
+
 import TTapp.TimetableConstraints.tutors_constraints as ttt
 import TTapp.TimetableConstraints.visio_constraints as ttv
-from rest_framework import serializers
-from base.timing import all_possible_start_times
-
-from collections import OrderedDict
-from rest_framework.serializers import ModelSerializer
-from rest_framework.fields import Field
-from django.db import models
 from base.models import Department
+from TTapp.flop_constraint import FlopConstraint
 
-# ---------------
-# ---- TTAPP ----
-# ---------------
-
-""" 
-class TTCustomConstraintsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.CustomConstraint
-        fields = '__all__'
-
-
-class TTLimitCourseTypeTimePerPeriodsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.LimitCourseTypeTimePerPeriod
-        fields = '__all__'
-
-
-class TTReasonableDayssSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.ReasonableDays
-        fields = '__all__'
-
-
-class TTStabilizeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.Stabilize
-        fields = '__all__'
-
-
-class TTMinHalfDaysSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.MinHalfDays
-        fields = '__all__'
-
-
-class TTMinNonPreferedSlotsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.MinNonPreferedSlot
-        fields = '__all__'
-
-
-class TTAvoidBothTimesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.AvoidBothTimesSameDay
-        fields = '__all__'
-
-
-class TTSimultaneousCoursesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.SimultaneousCourses
-        fields = '__all__'
-
-
-class TTLimitedStartTimeChoicesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.LimitedStartTimeChoices
-        fields = '__all__'
-
-
-class TTLimitedRoomChoicesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ttm.LimitedRoomChoices
-        fields = '__all__' """
 
 def serializer_factory(mdl: models.Model, fields=None, **kwargss):
     """
@@ -112,9 +48,11 @@ def serializer_factory(mdl: models.Model, fields=None, **kwargss):
     """
 
     def _get_declared_fields(attrs):
-        declared_fields = [(field_name, attrs.pop(field_name))
-                           for field_name, obj in list(attrs.items())
-                           if isinstance(obj, Field)]
+        declared_fields = [
+            (field_name, attrs.pop(field_name))
+            for field_name, obj in list(attrs.items())
+            if isinstance(obj, Field)
+        ]
         declared_fields.sort(key=lambda x: x[1]._creation_counter)
         return OrderedDict(declared_fields)
 
@@ -136,24 +74,24 @@ def serializer_factory(mdl: models.Model, fields=None, **kwargss):
         def to_internal_value(self, data):
             formatted_data = {}
             # Replace department string by its id (i.e 'INFO' by 2)
-            data['department'] = Department.objects.get(abbrev=data['department']).id
+            data["department"] = Department.objects.get(abbrev=data["department"]).id
 
             meta_fields = getattr(self.Meta, "fields")
             for field in meta_fields:
                 if field in data:
                     formatted_data[field] = data[field]
-            parameters = data['parameters']
+            parameters = data["parameters"]
             for parameter in parameters:
-                if 'id_list' in parameter:
+                if "id_list" in parameter:
                     # Handle single value parameters
-                    if not parameter['multiple']:
-                        if not parameter['id_list']:
+                    if not parameter["multiple"]:
+                        if not parameter["id_list"]:
                             value = None
                         else:
-                            value = parameter['id_list'][0]
+                            value = parameter["id_list"][0]
                     else:
-                        value = parameter['id_list']
-                    formatted_data[parameter['name']] = value
+                        value = parameter["id_list"]
+                    formatted_data[parameter["name"]] = value
 
             return super().to_internal_value(formatted_data)
 
@@ -173,7 +111,7 @@ class FlopConstraintSerializer(serializers.ModelSerializer):
     class Meta:
         abstract = True
         model = FlopConstraint
-        fields = '__all__'
+        fields = "__all__"
 
     def get_name(self, obj):
         return obj.__class__.__name__
@@ -185,7 +123,7 @@ class FlopConstraintSerializer(serializers.ModelSerializer):
         for i in periods:
             periodlist.append(i)
 
-        return(periodlist)
+        return periodlist
 
     def get_parameters(self, obj):
         paramlist = []
@@ -201,7 +139,7 @@ class FlopConstraintSerializer(serializers.ModelSerializer):
                 if not field.many_to_one and not field.many_to_many:
                     typename = type(field).__name__
 
-                    if type(field)==ArrayField:
+                    if type(field) == ArrayField:
                         multiple = True
                         typename = type(field.base_field).__name__
                         # Remplace la liste vide par la liste des valeurs
@@ -213,21 +151,21 @@ class FlopConstraintSerializer(serializers.ModelSerializer):
 
                     else:
                         # Insère la valeur de l'attribut unitaire
-                        attr = getattr(obj,field.name)
+                        attr = getattr(obj, field.name)
                         id_list = [attr]
 
-                else :
-                    #Récupère le modele en relation avec un ManyToManyField ou un ForeignKey
+                else:
+                    # Récupère le modele en relation avec un ManyToManyField ou un ForeignKey
                     mod = field.related_model
-                    typenamesplit= str(mod)[8:-2].split(".")
-                    typename = typenamesplit[0]+"."+typenamesplit[2]
-                    attr = getattr(obj,field.name)
+                    typenamesplit = str(mod)[8:-2].split(".")
+                    typename = typenamesplit[0] + "." + typenamesplit[2]
+                    attr = getattr(obj, field.name)
 
-                    if(field.many_to_one):
-                        if( str(attr) != "None"):
+                    if field.many_to_one:
+                        if str(attr) != "None":
                             id_list.append(attr.id)
 
-                    if(field.many_to_many):
+                    if field.many_to_many:
                         multiple = True
                         listattr = attr.values("id")
                         for id in listattr:
@@ -251,12 +189,12 @@ class FlopConstraintTypeSerializer(serializers.Serializer):
 
     def get_parameters(self, obj):
         fields = []
-        for field in obj['parameters']:
+        for field in obj["parameters"]:
             multiple = False
             if not (field.many_to_one or field.many_to_many):
                 typename = type(field).__name__
 
-                if type(field) == ArrayField:
+                if isinstance(field, ArrayField):
                     multiple = True
                     typename = type(field.base_field).__name__
             else:
@@ -265,20 +203,36 @@ class FlopConstraintTypeSerializer(serializers.Serializer):
                 typename = typenamesplit[0] + "." + typenamesplit[2]
                 if field.many_to_many:
                     multiple = True
-            fields.append({'name': field.name, 'type': typename, 'multiple': multiple, 'required': not field.blank})
+            fields.append(
+                {
+                    "name": field.name,
+                    "type": typename,
+                    "multiple": multiple,
+                    "required": not field.blank,
+                }
+            )
         return fields
 
 
 class TimetableConstraintSerializer(FlopConstraintSerializer):
     class Meta:
         model = ttt.MinTutorsHalfDays
-        fields = ['id', 'title', 'name', 'weight', 'is_active', 'comment', "modified_at", 'parameters']
+        fields = [
+            "id",
+            "title",
+            "name",
+            "weight",
+            "is_active",
+            "comment",
+            "modified_at",
+            "parameters",
+        ]
 
 
 class NoVisioSerializer(serializers.ModelSerializer):
     class Meta:
         model = ttv.NoVisio
-        fields = '__all__'
+        fields = "__all__"
 
 
 class FlopConstraintFieldSerializer(serializers.Serializer):

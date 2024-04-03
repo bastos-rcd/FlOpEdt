@@ -27,11 +27,16 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
-from base.models import TrainingPeriod, PeriodEnum, SchedulingPeriod, Department
-from flopeditor.validator import OK_RESPONSE, ERROR_RESPONSE, validate_training_period_values
+
+from base.models import Department, SchedulingPeriod, TrainingPeriod
+from flopeditor.validator import (
+    ERROR_RESPONSE,
+    OK_RESPONSE,
+    validate_training_period_values,
+)
 
 
-def all_scheduling_periods(department:Department):
+def all_scheduling_periods(department: Department):
     """Return all scheduling periods for a department
     :param department: Department.
     :type department:  base.models.Department
@@ -42,9 +47,10 @@ def all_scheduling_periods(department:Department):
     periods = department.scheduling_periods()
 
     periods_list = list(periods)
-    periods_list.sort(key = lambda x:x.start_date)
+    periods_list.sort(key=lambda x: x.start_date)
 
     return [sp.name for sp in periods_list]
+
 
 def read(department):
     """Return all training periods for a department
@@ -59,24 +65,31 @@ def read(department):
 
     values = []
     for training_period in training_periods:
-        values.append((training_period.name, list(training_period.periods.values_list("name", flat=True))))
-    return JsonResponse({
-        "columns":  [{
-            'name': 'Id du semestre',
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Périodes de génération',
-            "type": "select-chips",
-            "options": {"values": all_scheduling_periods(department)}
-        }],
-        "values": values,
-        "options": {
-            "examples": [
-                ["S1", ['S2-2024', 'S3-2024']],
-            ]
+        values.append(
+            (
+                training_period.name,
+                list(training_period.periods.values_list("name", flat=True)),
+            )
+        )
+    return JsonResponse(
+        {
+            "columns": [
+                {"name": "Id du semestre", "type": "text", "options": {}},
+                {
+                    "name": "Périodes de génération",
+                    "type": "select-chips",
+                    "options": {"values": all_scheduling_periods(department)},
+                },
+            ],
+            "values": values,
+            "options": {
+                "examples": [
+                    ["S1", ["S2-2024", "S3-2024"]],
+                ]
+            },
         }
-    })
+    )
+
 
 def create(entries, department):
     """Create values for period
@@ -88,10 +101,10 @@ def create(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    for i in range(len(entries['new_values'])):
-        new_name = entries['new_values'][i][0]
-        new_period_names = entries['new_values'][i][1]
+    entries["result"] = []
+    for i in range(len(entries["new_values"])):
+        new_name = entries["new_values"][i][0]
+        new_period_names = entries["new_values"][i][1]
         if not validate_training_period_values(new_name, new_period_names, entries):
             pass
         elif TrainingPeriod.objects.filter(name=new_name, department=department):
@@ -102,16 +115,13 @@ def create(entries, department):
                 ]
             )
         else:
-            tp  = TrainingPeriod.objects.create(
+            tp = TrainingPeriod.objects.create(
                 name=new_name,
                 department=department,
             )
             tp.periods.set(SchedulingPeriod.objects.filter(name__in=new_period_names))
             entries["result"].append([OK_RESPONSE])
     return entries
-
-
-
 
 
 def update(entries, department):
@@ -124,14 +134,14 @@ def update(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    if len(entries['old_values']) != len(entries['new_values']):
+    entries["result"] = []
+    if len(entries["old_values"]) != len(entries["new_values"]):
         # old and new values must have same size
         return entries
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
-        new_name = entries['new_values'][i][0]
-        new_period_names = entries['new_values'][i][1]
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
+        new_name = entries["new_values"][i][0]
+        new_period_names = entries["new_values"][i][1]
         if not validate_training_period_values(new_name, new_period_names, entries):
             pass
 
@@ -148,7 +158,9 @@ def update(entries, department):
                     )
                 else:
                     period_to_update.name = new_name
-                    period_to_update.periods.set(SchedulingPeriod.objects.filter(name__in=new_period_names))
+                    period_to_update.periods.set(
+                        SchedulingPeriod.objects.filter(name__in=new_period_names)
+                    )
                     period_to_update.save()
                     entries["result"].append([OK_RESPONSE])
             except TrainingPeriod.DoesNotExist:

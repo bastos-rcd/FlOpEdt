@@ -1,17 +1,17 @@
-import pytest
+# Tests use to unuse and redefine arguments...
+# pylint: disable=unused-argument,redefined-outer-name
 
+import pytest
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from rest_framework.status import (
-    HTTP_406_NOT_ACCEPTABLE,
     HTTP_403_FORBIDDEN,
     is_success,
 )
 
 from api.v1.tests.factories.people import UserFactory
-
-from people.models import ThemesPreferences, User, Student
-
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
+from api.v1.tests.utils import add_user_permission
+from people.models import Student, ThemesPreferences, User
 
 
 @pytest.fixture
@@ -99,7 +99,7 @@ class TestDjangoRules:
         user = User.objects.create(username="new")
         client.force_authenticate(user=user)
         response = client.post(
-            f"/fr/api/v1/people/themes/", data={"user": user.id, "theme": "azeaze"}
+            "/fr/api/v1/people/themes/", data={"user": user.id, "theme": "azeaze"}
         )
         assert is_success(response.status_code), response.content
 
@@ -109,11 +109,13 @@ class TestDRFModelPermission:
 
     def test_put_allowed(self, db, client):
         u = Student.objects.create(username="stu", first_name="Georges")
+        u.is_staff = True
+        u.save()
         p, _ = Permission.objects.get_or_create(
             content_type=ContentType.objects.get(app_label="people", model="student"),
             codename="change_student",
         )
-        u.user_permissions.add(p)
+        add_user_permission(u, p)
         assert (
             "people.change_student" in u.get_all_permissions()
         ), u.user_permissions.all()
@@ -123,7 +125,7 @@ class TestDRFModelPermission:
         )
         assert is_success(response.status_code), response.content
         u.refresh_from_db()
-        assert u.first_name == "Georg", u.first_name
+        assert u.first_name == "Georg"
 
     def test_put_forbidden(self, db, client):
         u = Student.objects.create(username="stu", first_name="Georges")

@@ -17,7 +17,7 @@ class TrainingProgrammeFactory(factory.django.DjangoModelFactory):
 
     abbrev = factory.Sequence(lambda n: f"tp {n:02d}")
     name = factory.Sequence(lambda n: f"Training Programme #{n:02d}")
-    department = factory.LazyFunction(lambda: Department.objects.first())
+    department = factory.LazyFunction(Department.objects.first)
 
 
 class StructuralGroupDummyFactory(factory.django.DjangoModelFactory):

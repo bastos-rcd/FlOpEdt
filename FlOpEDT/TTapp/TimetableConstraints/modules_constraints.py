@@ -25,37 +25,49 @@
 
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from TTapp.helpers.minhalfdays import MinHalfDaysHelperModule
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
-from django.utils.translation import gettext_lazy as _
+from base.models import Module
 
 
 class MinModulesHalfDays(TimetableConstraint):
     """
     All courses will fit in a minimum of half days
     """
-    modules = models.ManyToManyField('base.Module', blank=True)
+
+    modules = models.ManyToManyField("base.Module", blank=True)
 
     class Meta:
-        verbose_name = _('Minimize used half-days for modules')
+        verbose_name = _("Minimize used half-days for modules")
         verbose_name_plural = verbose_name
 
-    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
-        considered_modules = set(ttmodel.data.modules)
+    def considered_modules(self, ttmodel=None):
+        if ttmodel is not None:
+            modules_to_consider = set(ttmodel.data.modules)
+        else:
+            modules_to_consider = set(
+                Module.objects.filter(train_prog__department=self.department)
+            )
         if self.modules.exists():
-            considered_modules &= set(self.modules.all())
+            modules_to_consider &= set(self.modules.all())
+        return modules_to_consider
+
+    def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         helper = MinHalfDaysHelperModule(ttmodel, self, period, ponderation)
-        for module in considered_modules:
+        for module in self.considered_modules(ttmodel):
             helper.enrich_model(module=module)
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.modules.exists():
-            details.update({'modules': ', '.join([module.abbrev for module in self.modules.all()])})
+            details.update(
+                {"modules": ", ".join([module.abbrev for module in self.modules.all()])}
+            )
 
         return view_model
 
@@ -63,13 +75,30 @@ class MinModulesHalfDays(TimetableConstraint):
         text = "Minimise les demie-journées"
 
         if self.modules.exists():
-            text += ' de : ' + ', '.join([str(module) for module in self.modules.all()])
+            text += " de : " + ", ".join([str(module) for module in self.modules.all()])
         else:
             text += "de chaque module"
 
         if self.train_progs.exists():
-            text += ' de ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+            text += " de " + ", ".join(
+                [train_prog.abbrev for train_prog in self.train_progs.all()]
+            )
         else:
-            text += ' pour toutes les promos.'
+            text += " pour toutes les promos."
 
         return text
+
+    def is_satisfied_for(self, period, version):
+        unsatisfied_min_half_days_modules = []
+        for module in self.considered_modules():
+            considered_courses = self.get_courses_queryset_by_parameters(
+                period=period, module=module
+            )
+            if not MinHalfDaysHelperModule.is_satisfied_for_one_object(
+                version, considered_courses
+            ):
+                unsatisfied_min_half_days_modules.append(module)
+        assert not unsatisfied_min_half_days_modules, (
+            f"{self} is not satisfied for period {period} and version {version} :"
+            f"{unsatisfied_min_half_days_modules}"
+        )

@@ -1,5 +1,5 @@
-from django.db import models
 from django.apps import apps
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
@@ -9,18 +9,20 @@ class Department(models.Model):
 
     @property
     def scheduling_mode(self):
-        return self.mode.scheduling_mode
-    
+        if hasattr(self, "mode"):
+            return self.mode.scheduling_mode
+        return None
 
     def scheduling_periods(self, exclude_empty=False):
-        scheduling_period_model = apps.get_model('base', 'SchedulingPeriod')
+        scheduling_period_model = apps.get_model("base", "SchedulingPeriod")
         result = scheduling_period_model.objects.filter(department=self)
         if not result.exists():
-            result =  scheduling_period_model.objects.filter(department=None, 
-                                                      mode=self.scheduling_mode)
+            result = scheduling_period_model.objects.filter(
+                department=None, mode=self.scheduling_mode
+            )
         if exclude_empty:
-            result = result.filter(course__type__department__abbrev='INFO').distinct()
-        return result.order_by('start_date')
+            result = result.filter(course__type__department__abbrev="INFO").distinct()
+        return result.order_by("start_date")
 
     class Meta:
         verbose_name = _("department")
@@ -57,7 +59,6 @@ class GroupType(models.Model):
 
 
 class GenericGroup(models.Model):
-    # TODO : should not include "-" nor "|"
     name = models.CharField(max_length=100)
     train_prog = models.ForeignKey("TrainingProgramme", on_delete=models.CASCADE)
     type = models.ForeignKey("GroupType", on_delete=models.CASCADE, null=True)
@@ -67,6 +68,11 @@ class GenericGroup(models.Model):
         unique_together = (("name", "train_prog"),)
         verbose_name = _("generic group")
         verbose_name_plural = _("generic groups")
+
+    def save(self, *args, **kwargs) -> None:
+        if "-" in self.name or "|" in self.name:
+            raise ValueError("The name of a group cannot contain '-' or '|'")
+        return super().save(*args, **kwargs)
 
     @property
     def full_name(self):
@@ -87,19 +93,11 @@ class GenericGroup(models.Model):
 
     @property
     def is_structural(self):
-        try:
-            self.structuralgroup
-            return True
-        except:
-            return False
+        return hasattr(self, "structuralgroup")
 
     @property
     def is_transversal(self):
-        try:
-            self.transversalgroup
-            return True
-        except:
-            return False
+        return hasattr(self, "transversalgroup")
 
 
 class StructuralGroup(GenericGroup):
@@ -118,7 +116,6 @@ class StructuralGroup(GenericGroup):
         ancestors = set(self.parent_groups.all())
 
         for gp in self.parent_groups.all():
-
             for new_gp in gp.ancestor_groups():
                 ancestors.add(new_gp)
 
@@ -148,7 +145,8 @@ class StructuralGroup(GenericGroup):
 
     def connected_groups(self):
         """
-        :return: the set of all StructuralGroup that have a non empty intersection with self (self included)
+        :return: the set of all StructuralGroup
+        that have a non empty intersection with self (self included)
         """
         return {self} | self.descendants_groups() | self.ancestor_groups()
 
@@ -156,9 +154,11 @@ class StructuralGroup(GenericGroup):
         """
         :return: the set of all TransversalGroup containing self
         """
-        return set(TransversalGroup.objects.filter(
-            conflicting_groups__in=self.connected_groups()
-        ))
+        return set(
+            TransversalGroup.objects.filter(
+                conflicting_groups__in=self.connected_groups()
+            )
+        )
 
     class Meta:
         verbose_name = _("structural group")
@@ -177,11 +177,11 @@ class TransversalGroup(GenericGroup):
         verbose_name_plural = _("transversal groups")
 
     def nb_of_courses(self, period):
-        course_model = apps.get_model('base', 'Course')
+        course_model = apps.get_model("base", "Course")
         return len(course_model.objects.filter(period=period, groups=self))
 
     def time_of_courses(self, period):
-        course_model = apps.get_model('base', 'Course')
+        course_model = apps.get_model("base", "Course")
         t = 0
         for c in course_model.objects.filter(period=period, groups=self):
             t += c.duration

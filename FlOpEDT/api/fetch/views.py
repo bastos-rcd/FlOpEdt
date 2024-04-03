@@ -22,39 +22,35 @@
 # without disclosing the source code of your own applications.
 
 import django_filters.rest_framework as filters
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets
-from rest_framework import exceptions
-from rest_framework.response import Response
-
-from django.http import HttpResponse, JsonResponse
-from django.utils.decorators import method_decorator
+from django.apps import apps
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
-
-from django.apps import apps
+from django.http import HttpResponse, JsonResponse
+from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import exceptions, viewsets
+from rest_framework.response import Response
 
 import base.models as bm
-from base import queries, weeks
-import people.models as pm
 import displayweb.models as dwm
+import people.models as pm
 import roomreservation.models as rrm
-
 from api.fetch import serializers
+from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
 from api.shared.params import (
     dept_param,
-    week_param,
-    year_param,
-    user_param,
-    work_copy_param,
     group_param,
-    train_prog_param,
     lineage_param,
+    train_prog_param,
     tutor_param,
+    user_param,
+    week_param,
+    work_copy_param,
+    year_param,
 )
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
-from base.timing import flopday_to_date, Day, days_list, time_to_floptime
+from base import queries, weeks
+from base.timing import Day, days_list, flopday_to_date
 
 
 class ScheduledCourseFilterSet(filters.FilterSet):
@@ -130,7 +126,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 "course__module__display",
             )
             .prefetch_related(
-                "course__groups__train_prog", "room", "course__supp_tutor"
+                "course__groups__train_prog", "room", "course__supp_tutorss"
             )
         )
         queryset = queryset.filter(work_copy=work_copy)
@@ -187,7 +183,7 @@ class ScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 )
             if self.tutor is not None:
                 queryset = queryset.filter(
-                    Q(tutor=self.tutor) | Q(course__supp_tutor=self.tutor)
+                    Q(tutor=self.tutor) | Q(course__supp_tutorss=self.tutor)
                 )
 
         return queryset
@@ -277,7 +273,7 @@ class NewApiScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 "course__module__display",
             )
             .prefetch_related(
-                "course__groups__train_prog", "room", "course__supp_tutor"
+                "course__groups__train_prog", "room", "course__supp_tutorss"
             )
         )
         queryset = queryset.filter(work_copy=work_copy)
@@ -334,7 +330,7 @@ class NewApiScheduledCoursesViewSet(viewsets.ReadOnlyModelViewSet):
                 )
             if self.tutor is not None:
                 queryset = queryset.filter(
-                    Q(tutor=self.tutor) | Q(course__supp_tutor=self.tutor)
+                    Q(tutor=self.tutor) | Q(course__supp_tutorss=self.tutor)
                 )
 
         return queryset
@@ -651,84 +647,6 @@ class BKNewsViewSet(viewsets.ModelViewSet):
     queryset = dwm.BreakingNews.objects.all()
     serializer_class = serializers.BKNewsSerializer
     filterset_class = BKNewsFilterSet
-
-
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        manual_parameters=[
-            week_param(required=True),
-            year_param(required=True),
-            dept_param(required=True),
-        ]
-    ),
-)
-class UnavailableRoomViewSet(viewsets.ViewSet):
-    """
-    Allow user to search for unavailable rooms for a given year, week and department
-
-    Each result contains room name, day, start_time, duration, and value (unavailable => 0)
-    """
-
-    permission_classes = [IsAdminOrReadOnly]
-
-    def list(self, req, format=None):
-
-        try:
-            week = int(req.query_params.get("week"))
-            year = int(req.query_params.get("year"))
-            department = req.query_params.get("dept")
-            if department == "None":
-                department = None
-        except ValueError:
-            return HttpResponse("KO")
-
-        # ----------------
-        # To be done later
-        # ----------------
-        #
-        # cache_key = get_key_unavailable_rooms(department.abbrev, week)
-        # cached = cache.get(cache_key)
-        # if cached is not None:
-        #     return cached
-
-        dataset_room_availability = bm.RoomAvailability.objects.filter(
-            room__departments__abbrev=department,
-            week__nb=week,
-            week__year=year,
-            value=0,
-        )
-        flop_week = bm.Week.objects.get(nb=week, year=year)
-        date_of_the_week = [
-            flopday_to_date(Day(week=flop_week, day=d)) for d in days_list
-        ]
-        dataset_room_reservations = rrm.RoomReservation.objects.filter(
-            room__departments__abbrev=department, date__in=date_of_the_week
-        )
-
-        # cache.set(cache_key, response)7
-        res_pref = [
-            {
-                "room": d.room.name,
-                "day": d.day,
-                "start_time": d.start_time,
-                "duration": d.duration,
-                "value": d.value,
-            }
-            for d in dataset_room_availability
-        ]
-        res_reservations = [
-            {
-                "room": d.room.name,
-                "day": days_list[d.date.isocalendar()[2] - 1],
-                "start_time": time_to_floptime(d.start_time),
-                "duration": d.duration,
-                "value": 0,
-            }
-            for d in dataset_room_reservations
-        ]
-
-        return Response(res_pref + res_reservations)
 
 
 @method_decorator(

@@ -20,27 +20,23 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-from django.utils.decorators import method_decorator
-import django_filters.rest_framework as filters
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
+from rest_framework.permissions import (
+    DjangoModelPermissions,
+    IsAuthenticated,
+)
 from rest_framework.response import Response
-
-from rest_framework.permissions import DjangoObjectPermissions, DjangoModelPermissions
-
+from rest_framework.views import APIView
 from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
 import people.models as pm
-import base.models as bm
+from api.permissions import IsAdminOrReadOnly
 from api.v1.people.serializers import (
-    UserSerializer,
     StudentSerializer,
     ThemePreferencesSerializer,
+    UserSerializer,
 )
-
-from api.permissions import IsAdminOrReadOnly
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -55,7 +51,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
-class getCurrentUserView(APIView):
+class GetCurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(responses=UserSerializer)

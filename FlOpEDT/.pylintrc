@@ -1,7 +1,17 @@
 [MASTER]
 load-plugins=pylint_django
 django-settings-module=FlOpEDT.settings.base
+ignore=migrations
 disable=
     C0114, #(missing-module-docstring)
     C0115, #(missing-class-docstring)
     C0116, #(missing-function-docstring)
+    R0903, #(too-few-public-methods)
+    R0901, #(too-many-ancestors), native in Django.....
+    C0302, #(too-many-lines)
+    R0912, #(too-many-branches),
+    R0913, #(too-many-arguments),
+    R0914, #(too-many-locals),
+    R0915, #(too-many-statements),
+    R1702, #(too-many-nested-blocks),
+    R0801, #(similar lines),

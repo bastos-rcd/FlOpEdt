@@ -28,11 +28,16 @@ without disclosing the source code of your own applications.
 """
 
 from django.http import JsonResponse
-from base.models import RoomAttribute, BooleanRoomAttribute, NumericRoomAttribute
-from flopeditor.validator import validate_room_attributes_values, OK_RESPONSE, ERROR_RESPONSE
+
+from base.models import BooleanRoomAttribute, NumericRoomAttribute, RoomAttribute
+from flopeditor.validator import (
+    ERROR_RESPONSE,
+    OK_RESPONSE,
+    validate_room_attributes_values,
+)
 
 
-def read(department):
+def read(department):  # pylint: disable=unused-argument
     """Return all room attributes
     :param department: Department.
     :type department:  base.models.Department
@@ -47,35 +52,29 @@ def read(department):
             values.append((attribute.name, attribute.description, "Booléen"))
         else:
             values.append((attribute.name, attribute.description, "Numérique"))
-    return JsonResponse({
-        "columns" :  [{
-            'name': "Nom de l'attribut",
-            "type": "text",
-            "options": {}
-        }, {
-            'name': 'Description',
-            "type": "text",
-            "options": {}
-        },
-            {
-                'name': "Type de l'attribut",
-                "type": "select",
-                "options": {
-                    "values": ["Booléen", "Numérique"]
-                }
-            }
-        ],
-        "values" : values,
-        "options": {
-            "examples": [
-                ("Vidéoproj", "Doté d'un vidéoprojecteur", "Boolean"),
-                ("Places", "Nombre de places assises", "Numeric")
-            ]
+    return JsonResponse(
+        {
+            "columns": [
+                {"name": "Nom de l'attribut", "type": "text", "options": {}},
+                {"name": "Description", "type": "text", "options": {}},
+                {
+                    "name": "Type de l'attribut",
+                    "type": "select",
+                    "options": {"values": ["Booléen", "Numérique"]},
+                },
+            ],
+            "values": values,
+            "options": {
+                "examples": [
+                    ("Vidéoproj", "Doté d'un vidéoprojecteur", "Boolean"),
+                    ("Places", "Nombre de places assises", "Numeric"),
+                ]
+            },
         }
-        })
+    )
 
 
-def create(entries, department):
+def create(entries, department):  # pylint: disable=unused-argument
     """Create values for room attributes
     :param entries: Values to create.
     :type entries:  django.http.JsonResponse
@@ -85,30 +84,34 @@ def create(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    for i in range(len(entries['new_values'])):
-        new_name = entries['new_values'][i][0]
-        new_description = entries['new_values'][i][1]
-        new_attribute_type = entries['new_values'][i][2]
+    entries["result"] = []
+    for i in range(len(entries["new_values"])):
+        new_name = entries["new_values"][i][0]
+        new_description = entries["new_values"][i][1]
+        new_attribute_type = entries["new_values"][i][2]
         if not validate_room_attributes_values(new_name, new_description, entries):
             pass
         elif RoomAttribute.objects.filter(name=new_name).exists():
-            entries['result'].append([
-                ERROR_RESPONSE,
-                "Un attribut portant ce nom est déjà présent dans la base de données."
-            ])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Un attribut portant ce nom est déjà présent dans la base de données.",
+                ]
+            )
         else:
             if new_attribute_type == "Booléen":
-                BooleanRoomAttribute.objects.create(name=new_name,
-                                                    description=new_description)
+                BooleanRoomAttribute.objects.create(
+                    name=new_name, description=new_description
+                )
             else:
-                NumericRoomAttribute.objects.create(name=new_name,
-                                                    description=new_description)
-            entries['result'].append([OK_RESPONSE])
+                NumericRoomAttribute.objects.create(
+                    name=new_name, description=new_description
+                )
+            entries["result"].append([OK_RESPONSE])
     return entries
 
 
-def update(entries, department):
+def update(entries, department):  # pylint: disable=unused-argument
     """Update values for rooms
     :param entries: Values to modify.
     :type entries:  django.http.JsonResponse
@@ -118,44 +121,52 @@ def update(entries, department):
     :rtype:  django.http.JsonResponse
     """
 
-    entries['result'] = []
-    if len(entries['old_values']) != len(entries['new_values']):
+    entries["result"] = []
+    if len(entries["old_values"]) != len(entries["new_values"]):
         # old and new values must have same size
         return entries
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
-        old_description = entries['old_values'][i][1]
-        old_attribute_type = entries['old_values'][i][2]
-        new_name = entries['new_values'][i][0]
-        new_description = entries['new_values'][i][1]
-        new_attribute_type = entries['new_values'][i][2]
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
+        old_description = entries["old_values"][i][1]
+        old_attribute_type = entries["old_values"][i][2]
+        new_name = entries["new_values"][i][0]
+        new_description = entries["new_values"][i][1]
+        new_attribute_type = entries["new_values"][i][2]
 
         if validate_room_attributes_values(new_name, new_description, entries):
             if old_attribute_type != new_attribute_type:
-                entries['result'].append(
-                    [ERROR_RESPONSE,
-                     "On ne peut pas changer le type d'un attribut. Supprimez-le et recréez-en un autre."])
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "On ne peut pas changer le type d'un attribut."
+                        "Supprimez-le et recréez-en un autre.",
+                    ]
+                )
             try:
-                attribute_to_update = RoomAttribute.objects.get(name=old_name,
-                                                                desbription=old_description)
-                if old_name != new_name and \
-                            RoomAttribute.objects.filter(name=new_name):
-                    entries['result'].append(
-                        [ERROR_RESPONSE,
-                         "Le nom de cet attribut est déjà utilisée."])
+                attribute_to_update = RoomAttribute.objects.get(
+                    name=old_name, desbription=old_description
+                )
+                if old_name != new_name and RoomAttribute.objects.filter(name=new_name):
+                    entries["result"].append(
+                        [ERROR_RESPONSE, "Le nom de cet attribut est déjà utilisée."]
+                    )
                 else:
                     attribute_to_update.name = new_name
                     attribute_to_update.description = new_description
                     attribute_to_update.save()
-                    entries['result'].append([OK_RESPONSE])
+                    entries["result"].append([OK_RESPONSE])
             except RoomAttribute.DoesNotExist:
-                entries['result'].append(
-                    [ERROR_RESPONSE,
-                     "Un attribut à modifier n'a pas été trouvée dans la base de données."])
+                entries["result"].append(
+                    [
+                        ERROR_RESPONSE,
+                        "Un attribut à modifier n'a pas été trouvée dans la base de données.",
+                    ]
+                )
 
     return entries
 
-def delete(entries, department):
+
+def delete(entries, department):  # pylint: disable=unused-argument
     """Delete values for rooms
     :param entries: Values to delete.
     :type entries:  django.http.JsonResponse
@@ -164,16 +175,20 @@ def delete(entries, department):
     :return: Server response for the request.
     :rtype:  django.http.JsonResponse
     """
-    entries['result'] = []
-    for i in range(len(entries['old_values'])):
-        old_name = entries['old_values'][i][0]
-        old_description = entries['old_values'][i][1]
+    entries["result"] = []
+    for i in range(len(entries["old_values"])):
+        old_name = entries["old_values"][i][0]
+        old_description = entries["old_values"][i][1]
         try:
-            RoomAttribute.objects.get(name=old_name,
-                                      description=old_description).delete()
-            entries['result'].append([OK_RESPONSE])
+            RoomAttribute.objects.get(
+                name=old_name, description=old_description
+            ).delete()
+            entries["result"].append([OK_RESPONSE])
         except RoomAttribute.DoesNotExist:
-            entries['result'].append(
-                [ERROR_RESPONSE,
-                 "Un attribut à supprimer n'a pas été trouvé dans la base de données."])
+            entries["result"].append(
+                [
+                    ERROR_RESPONSE,
+                    "Un attribut à supprimer n'a pas été trouvé dans la base de données.",
+                ]
+            )
     return entries

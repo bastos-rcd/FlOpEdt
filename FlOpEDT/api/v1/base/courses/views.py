@@ -21,36 +21,25 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import datetime as dt
+
 import django_filters.rest_framework as filters
-from drf_spectacular.utils import (
-    extend_schema,
-    OpenApiParameter,
-    PolymorphicProxySerializer,
-)
-import rest_framework as rf
-from rest_framework import viewsets
-from rest_framework import exceptions
-from rest_framework import serializers as rf_s
-from rest_framework import permissions
-
-from django.utils.decorators import method_decorator
-from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
-
-from django.apps import apps
+from drf_spectacular.utils import extend_schema
+from rest_framework import exceptions, permissions
+from rest_framework import serializers as rf_s
+from rest_framework import viewsets
 
 import base.models as bm
 import people.models as pm
+from api.permissions import IsAdminOrReadOnly
 
 from . import serializers
 
-from api.permissions import IsAdminOrReadOnly
 
-from base.timing import date_to_flopday, days_list, days_index
-import datetime as dt
-
-
-class ScheduledCourseHumanQueryParamsSerializer(rf_s.Serializer):
+class ScheduledCourseHumanQueryParamsSerializer(  # pylint: disable=abstract-method
+    rf_s.Serializer
+):
     from_date = rf_s.DateField()
     to_date = rf_s.DateField()
     tutor = rf_s.CharField(required=False)
@@ -60,59 +49,69 @@ class ScheduledCourseHumanQueryParamsSerializer(rf_s.Serializer):
     and_transversal = rf_s.BooleanField(required=False, default=True)
     lineage = rf_s.BooleanField(required=False)
 
-    def validate(self, value):
-        if "dept" in value:
+    def validate(self, attrs):
+        if "dept" in attrs:
             try:
-                value["dept_id"] = bm.Department.objects.get(abbrev=value["dept"]).id
-                del value["dept"]
-            except bm.Department.DoesNotExist:
-                raise exceptions.ValidationError(detail={"dept": "Unknown department"})
+                attrs["dept_id"] = bm.Department.objects.get(abbrev=attrs["dept"]).id
+                del attrs["dept"]
+            except bm.Department.DoesNotExist as exc:
+                raise exceptions.ValidationError(
+                    detail={"dept": "Unknown department"}
+                ) from exc
 
-        if "tutor" in value:
+        if "tutor" in attrs:
             try:
-                value["tutor_id"] = pm.Tutor.objects.get(username=value["tutor"])
-                del value["tutor"]
-            except pm.Tutor.DoesNotExist:
-                raise exceptions.ValidationError(detail={"tutor": "Unknown tutor"})
+                attrs["tutor_id"] = pm.Tutor.objects.get(username=attrs["tutor"])
+                del attrs["tutor"]
+            except pm.Tutor.DoesNotExist as exc:
+                raise exceptions.ValidationError(
+                    detail={"tutor": "Unknown tutor"}
+                ) from exc
 
-        if "train_prog" in value:
-            if "dept_id" not in value:
+        if "train_prog" in attrs:
+            if "dept_id" not in attrs:
                 raise exceptions.ValidationError(
                     detail={
-                        "train_prog": "If you provide a training programme, you should also provide a department"
+                        "train_prog": "If you provide a training programme, "
+                        "you should also provide a department"
                     }
                 )
             try:
-                value["train_prog_id"] = bm.TrainingProgramme.objects.get(
-                    abbrev=value["train_prog"], department=value["dept_id"]
+                attrs["train_prog_id"] = bm.TrainingProgramme.objects.get(
+                    abbrev=attrs["train_prog"], department=attrs["dept_id"]
                 )
-                del value["train_prog"]
-                del value["dept_id"]
-            except bm.TrainingProgramme.DoesNotExist:
+                del attrs["train_prog"]
+                del attrs["dept_id"]
+            except bm.TrainingProgramme.DoesNotExist as exc:
                 raise exceptions.ValidationError(
                     detail={"train_prog": "Unknown training programme"}
-                )
+                ) from exc
 
-        if "struct_group" in value:
-            if "train_prog_id" not in value:
+        if "struct_group" in attrs:
+            if "train_prog_id" not in attrs:
                 raise exceptions.ValidationError(
                     detail={
-                        "train_prog": "If you provide a group name, you should also provide a training programme (and a department if training programme name)"
+                        "train_prog": "If you provide a group name, you should also provide "
+                        "a training programme (and a department if training programme name)"
                     }
                 )
             try:
-                value["struct_group_id"] = bm.StructuralGroup.objects.get(
-                    name=value["struct_group"], train_prog=value["train_prog_id"]
+                attrs["struct_group_id"] = bm.StructuralGroup.objects.get(
+                    name=attrs["struct_group"], train_prog=attrs["train_prog_id"]
                 ).id
-                del value["train_prog_id"]
-            except bm.StructuralGroup.DoesNotExist:
-                raise exceptions.NotAcceptable(detail={"struct_group": "Unknown group"})
+                del attrs["train_prog_id"]
+            except bm.StructuralGroup.DoesNotExist as exc:
+                raise exceptions.NotAcceptable(
+                    detail={"struct_group": "Unknown group"}
+                ) from exc
 
-        value["version__major"] = 0
-        return value
+        attrs["version__major"] = 0
+        return attrs
 
 
-class ScheduledCourseQueryParamsSerializer(rf_s.Serializer):
+class ScheduledCourseQueryParamsSerializer(  # pylint: disable=abstract-method
+    rf_s.Serializer
+):
     from_date = rf_s.DateField(required=False)
     to_date = rf_s.DateField(required=False)
     period_id = rf_s.IntegerField(required=False)
@@ -125,73 +124,81 @@ class ScheduledCourseQueryParamsSerializer(rf_s.Serializer):
     and_transversal = rf_s.BooleanField(required=False, default=True)
     lineage = rf_s.BooleanField(required=False)
 
-    def validate(self, value):
-        value = super().validate(value)
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
 
         # period
-        if "period_id" not in value and (
-            "from_date" not in value or "to_date" not in value
+        if "period_id" not in attrs and (
+            "from_date" not in attrs or "to_date" not in attrs
         ):
             raise exceptions.ValidationError(
                 detail={
-                    "non_fields_error": f"No parameters on the period. Please choose a from_date and a to_date, or a preiod_id"
+                    "non_fields_error": "No parameters on the period. "
+                    "Please choose a from_date and a to_date, or a period_id"
                 }
             )
 
         group_keys = [
-            k for k in value if k in ["dept_id", "train_prog_id", "struct_group_id"]
+            k for k in attrs if k in ["dept_id", "train_prog_id", "struct_group_id"]
         ]
         if len(group_keys) > 1:
             raise exceptions.ValidationError(
                 detail={
-                    "non_fields_error": "At most 1 group parameter id allowed (department, training programme, group)"
+                    "non_fields_error": "At most 1 group parameter id allowed "
+                    "(department, training programme, group)"
                 }
             )
 
-        if "struct_group_id" in value:
+        if "struct_group_id" in attrs:
             try:
-                groups = {bm.StructuralGroup.objects.get(id=value["struct_group_id"])}
-                if groups is not None:
-                    if value["lineage"]:
-                        groups |= groups.ancestor_groups()
-                    value["group_ids"] = [gp.id for gp in groups]
+                group = bm.StructuralGroup.objects.get(id=attrs["struct_group_id"])
+                if attrs["lineage"]:
+                    groups = group.and_ancestors()
+                else:
+                    groups = {group}
+                attrs["group_ids"] = [gp.id for gp in groups]
 
-                if groups is not None and value["and_transversal"]:
+                if attrs["and_transversal"]:
                     tgroups = bm.TransversalGroup.objects.filter(
                         conflicting_groups__in=groups
                     ).distinct("id")
-                    value["group_ids"].extend([gp.id for gp in tgroups])
+                    attrs["group_ids"].extend([gp.id for gp in tgroups])
             except bm.StructuralGroup.DoesNotExist:
                 pass
-            del value["struct_group_id"]
+            del attrs["struct_group_id"]
 
         main_keys = [
             k
-            for k in value
+            for k in attrs
             if k in ["tutor_id", "dept_id", "train_prog_id", "group_ids"]
         ]
         if len(main_keys) == 0:
             raise exceptions.ValidationError(
                 detail={
-                    "non_fields_error": "You should provide a department or a tutor or a training programme or a group"
+                    "non_fields_error": "You should provide a department "
+                    "or a tutor or a training programme or a group"
                 }
             )
 
-        return value
+        return attrs
 
 
 class ScheduledCoursesJoinedViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Get a list of scheduled courses.
-    If several parameters apply on groups of people (department, training programme, structural groups),
-    only the finest grain filter is used and other group parameters are ignored (filters on structural
-    groups if provided, then on training programme if provided, then on department if provided).
+    If several parameters apply on groups of people
+    (department, training programme, structural groups),
+    only the finest grain filter is used and other group parameters are ignored
+    (filters on structural groups if provided, then on training programme if provided,
+    then on department if provided).
     """
 
     serializer_class = serializers.ScheduledCoursesSerializer
 
-    def get_queryset(self):
+    def get_params(self):
+        raise NotImplementedError
 
+    def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return bm.ScheduledCourse.objects.none()
 
@@ -207,7 +214,7 @@ class ScheduledCoursesJoinedViewSet(viewsets.ReadOnlyModelViewSet):
 
         if "tutor_id" in params:
             queryset = queryset.filter(
-                Q(tutor=params["tutor_id"]) | Q(course__supp_tutor=params["tutor_id"])
+                Q(tutor=params["tutor_id"]) | Q(course__supp_tutors=params["tutor_id"])
             )
 
         if "group_ids" in params:
@@ -250,26 +257,30 @@ class ScheduledCoursesHumanParamViewSet(ScheduledCoursesJoinedViewSet):
         return serializer.validated_data
 
 
+# We may define create and update methods for serializers
+# pylint: disable=abstract-method
+
+
 class ModuleQueryParamSerializer(rf_s.Serializer):
     dept_id = rf_s.IntegerField(required=False)
     train_prog_id = rf_s.IntegerField(required=False)
     training_period_id = rf_s.IntegerField(required=False)
 
-    def validate(self, value):
-        if "dept_id" in value and "train_prog_id" in value:
+    def validate(self, attrs):
+        if "dept_id" in attrs and "train_prog_id" in attrs:
             try:
-                tp = bm.TrainingProgramme.objects.get(id=value["train_prog_id"])
-            except bm.TrainingProgramme.DoesNotExist:
+                tp = bm.TrainingProgramme.objects.get(id=attrs["train_prog_id"])
+            except bm.TrainingProgramme.DoesNotExist as exc:
                 raise exceptions.ValidationError(
                     detail={"train_prog_id": "Unknown training programme."}
-                )
-            if tp.department.id != value["dept_id"]:
+                ) from exc
+            if tp.department.id != attrs["dept_id"]:
                 msg = "Unmatching department and training programme."
                 raise exceptions.ValidationError(
                     detail={"train_prog_id": msg, "dept_id": msg}
                 )
-            del value["dept_id"]
-        return value
+            del attrs["dept_id"]
+        return attrs
 
 
 class ModuleMixinViewSet:
@@ -322,7 +333,8 @@ class RoomsViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the rooms.
 
-    Can be filtered as wanted with parameter="dept"[required] of a Room object, with the function RoomsFilterSet
+    Can be filtered as wanted with parameter="dept"[required] of a Room object,
+    with the function RoomsFilterSet
     """
 
     permission_classes = [permissions.DjangoModelPermissions]
@@ -330,3 +342,19 @@ class RoomsViewSet(viewsets.ModelViewSet):
     queryset = bm.Room.objects.all()
     serializer_class = serializers.RoomsSerializer
     filterset_class = RoomFilterSet
+
+
+class TimetableVersionQPS(rf_s.Serializer):
+    ids = rf_s.ListField(child=rf_s.IntegerField())
+
+
+@extend_schema(parameters=[TimetableVersionQPS])
+class TimetableVersionViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = serializers.TimetableVersionSerializer
+
+    def get_queryset(self):
+        qp_serializer = TimetableVersionQPS(data=self.request.query_params)
+        qp_serializer.is_valid(raise_exception=True)
+        params = qp_serializer.validated_data
+
+        return bm.TimetableVersion.objects.filter(id__in=params["ids"])

@@ -129,7 +129,7 @@ export const api: FlopAPI = {
                 train_prog_id: number
                 number: number
                 course_type_id: number
-                supp_tutor_ids: number[]
+                supp_tutors_ids: number[]
                 group_ids: number[]
               }[]
             ) => {
@@ -145,7 +145,7 @@ export const api: FlopAPI = {
                   train_prog_id: number
                   number: number
                   course_type_id: number
-                  supp_tutor_ids: number[]
+                  supp_tutors_ids: number[]
                   group_ids: number[]
                 }) => {
                   const sc: ScheduledCourse = {
@@ -163,7 +163,7 @@ export const api: FlopAPI = {
                     no: d.number,
                     courseTypeId: d.course_type_id,
                   }
-                  d.supp_tutor_ids.forEach((sti: number) => {
+                  d.supp_tutors_ids.forEach((sti: number) => {
                     sc.suppTutorsIds.push(sti)
                   })
                   d.group_ids.forEach((gId: number) => {

@@ -20,24 +20,23 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.shortcuts import redirect
-from api.base import serializers
-from rest_framework import viewsets
 import django_filters.rest_framework as filters
-import base.models as bm
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import render
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.http import *
-from django.views.generic import TemplateView
-from django.conf import settings
+from django.shortcuts import redirect, render
 from django.utils.decorators import method_decorator
-from api.shared.params import week_param, year_param, dept_param
+from django.views.generic import TemplateView
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
+import base.models as bm
+from api.base import serializers
+from api.permissions import IsAdminOrReadOnly, IsTutorOrReadOnly
+from api.shared.params import dept_param, week_param, year_param
 
 # ------------
 # -- GROUPS --
@@ -317,7 +316,6 @@ class TrainingProgrammeViewSet(viewsets.ModelViewSet):
 
 
 class ContactView(APIView):
-
     # permission_classes = [IsAuthenticated]
 
     def post(self, request):

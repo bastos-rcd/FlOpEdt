@@ -1,12 +1,15 @@
+# Fixtures use to unuse arguments and variables...
+# pylint: disable=unused-argument, unused-variable
+
 import pytest
 
-from ..factories.group import DepartmentFactory, TrainingProgrammeFactory
 from ..factories.course import (
-    ModuleFactory,
-    CourseTypeFactory,
     CourseRRGroup,
+    CourseTypeFactory,
+    ModuleFactory,
     TrainingPeriodDummyFactory,
 )
+from ..factories.group import DepartmentFactory, TrainingProgrammeFactory
 
 
 @pytest.fixture

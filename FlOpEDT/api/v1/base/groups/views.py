@@ -21,20 +21,15 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from api.v1.permissions import DjangoModelPermissionsOrReadOnly
-
 import django_filters.rest_framework as filters
+from rest_framework import viewsets
 
-from django.http import HttpResponse, JsonResponse
-
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly
-from . import serializers
+from api.permissions import IsAdminOrReadOnly
+from api.v1.permissions import DjangoModelPermissionsOrReadOnly
 
 import base.models as bm
 
-from base import queries
+from . import serializers
 
 ### Groups ###
 
@@ -68,8 +63,7 @@ class GenericGroupsViewSet(viewsets.ModelViewSet):
         dept_abbrev = self.request.query_params.get("dept", None)
         if dept_abbrev is None:
             return self.queryset
-        else:
-            return self.queryset.filter(train_prog__department__abbrev=dept_abbrev)
+        return self.queryset.filter(train_prog__department__abbrev=dept_abbrev)
 
 
 class StructuralGroupsViewSet(GenericGroupsViewSet):
@@ -98,15 +92,15 @@ class TrainingProgramsViewSet(viewsets.ModelViewSet):
     """
     ViewSet to see all the training programs
 
-    Can be filtered as wanted with parameter="dept"[required] of a TrainingProgramme object, with the function TrainingProgramsFilterSet
+    Can be filtered as wanted with parameter="dept"[required]
+    of a TrainingProgramme object, with the function TrainingProgramsFilterSet
     """
 
     def get_queryset(self):
         dept_abbrev = self.request.query_params.get("dept", None)
         if dept_abbrev is None:
             return self.queryset
-        else:
-            return self.queryset.filter(department__abbrev=dept_abbrev)
+        return self.queryset.filter(department__abbrev=dept_abbrev)
 
     queryset = bm.TrainingProgramme.objects.all()
     serializer_class = serializers.TrainingProgrammesSerializer

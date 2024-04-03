@@ -21,15 +21,13 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from typing import List
+
 from rest_framework import serializers
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema_field
+
 import base.models as bm
 
 
 class StructuralGroupsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = bm.StructuralGroup
         fields = ("id", "name", "train_prog_id", "type_id", "parent_groups")

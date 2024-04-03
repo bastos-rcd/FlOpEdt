@@ -20,7 +20,8 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-from django.urls import path, re_path, include
+from django.urls import include, path
+
 from api.v1.base.courses.urls import routerCourse
 from api.v1.base.groups.urls import routerGroup
 from api.v1.base.modification.urls import routerModification

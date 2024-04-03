@@ -1,7 +1,5 @@
 import rules
 
-import logging
-
 
 @rules.predicate
 def is_theme_ok(user, theme) -> bool:

@@ -1,12 +1,15 @@
+# Fixtures use to unuse arguments...
+# pylint: disable=unused-argument
+
+import datetime as dt
+
 import pytest
 
-from api.v1.tests.factories.people import UserFactory
 from api.v1.tests.factories.availability import (
     UserAvailabilityFactory,
     UserHourlyAvailabilityFactory,
 )
-
-import datetime as dt
+from api.v1.tests.factories.people import UserFactory
 
 
 @pytest.fixture

@@ -25,10 +25,11 @@
 
 
 import django
+
 from notifications.notifications import backup, send_notifications
 
 
 def backup_and_notify():
-    django.utils.translation.activate('fr')
+    django.utils.translation.activate("fr")
     backup()
     send_notifications()

@@ -22,36 +22,37 @@
 # without disclosing the source code of your own applications.
 
 import os
-from .base import *
 
-LOGGING = {  
-    'version': 1,  
-    'disable_existing_loggers': False,
-    'formatters': {
-        'simple': {
-            'format': '[{asctime}] - {levelname} - {module} - {message}',
-            'style': '{',
+from .base import *  # pylint: disable=wildcard-import, unused-wildcard-import
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "[{asctime}] - {levelname} - {module} - {message}",
+            "style": "{",
         },
-    },    
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
         }
     },
-    'loggers': {
-        '': {
-            'handlers': ['console'],
-            'level': 'WARNING',
-            'propagate': True,
-        },        
-        'django.db.backends': {
-            'level':  os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
-            'handlers': ['console'],
-            'propagate': True,
-        }
-    }
+    "loggers": {
+        "": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": True,
+        },
+        "django.db.backends": {
+            "level": os.environ.get("DJANGO_LOG_LEVEL", "WARNING"),
+            "handlers": ["console"],
+            "propagate": True,
+        },
+    },
 }
 
 # SECURITY WARNING: don't run with debug turned on in production!

@@ -1,4 +1,8 @@
+# Fixtures use to unuse arguments...
+# pylint: disable=unused-argument
+
 import pytest
+
 from ..factories.room import RoomAndAvFactory
 
 

@@ -39,3 +39,4 @@ ics
 pylint
 pylint-django
 factory_boy
+drf_yasg

@@ -23,17 +23,16 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from base.models import UserAvailability, CourseAvailability
-
-from base.models import TimeGeneralSettings
-from base.timing import Time, days_index, Day, days_list
-from base.models import ScheduledCourse
-
 import datetime as dt
 
-from base.timing import slot_pause
-
-midday = dt.time(12, 0, 0)
+from typing import Set, List
+from base.models import (
+    CourseAvailability,
+    ScheduledCourse,
+    UserAvailability,
+    SchedulingPeriod,
+)
+from base.timing import Time, days_list, slot_pause
 
 basic_slot_duration = dt.timedelta(hours=1, minutes=30)
 
@@ -42,12 +41,12 @@ class Slot:
     def __init__(self, start_time: dt.datetime, end_time: dt.datetime, department=None):
         self.start_time = start_time
         self.end_time = end_time
-        self.department=department
+        self.department = department
 
     @property
     def date(self):
         return self.start_time.date()
-    
+
     @property
     def day(self):
         return self.date
@@ -55,40 +54,41 @@ class Slot:
     @property
     def duration(self):
         return self.end_time - self.start_time
-    
+
     @property
     def minutes(self):
-        return self.duration.seconds // 60
+        return self.duration.total_seconds() // 60
 
     @property
     def apm(self):
-        pm_start = midday
-        if self.start_time.time() >= pm_start:
-            return Time.PM
-        else:
-            return Time.AM
+        return Time.get_apm(self.start_time, self.department)
 
     def __str__(self):
-        return (f"{self.date} de {self.start_time.time()} à {self.end_time.time()}")
+        return f"{self.date} de {self.start_time.time()} à {self.end_time.time()}"
 
     def has_same_day(self, other):
-        if isinstance(other, (Slot, CourseSlot, ScheduledCourse, UserAvailability, CourseAvailability)):         
+        if isinstance(
+            other,
+            (Slot, CourseSlot, ScheduledCourse, UserAvailability, CourseAvailability),
+        ):
             return self.date == other.date
 
-        else:
-            raise TypeError(
-                "A slot can only have "
-                "same day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
-            )
+        raise TypeError(
+            "A slot can only have "
+            "same day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
+        )
 
     def has_previous_day_than(self, other):
-        if isinstance(other, (Slot, CourseSlot, ScheduledCourse, UserAvailability, CourseAvailability)):
+        if isinstance(
+            other,
+            (Slot, CourseSlot, ScheduledCourse, UserAvailability, CourseAvailability),
+        ):
             return self.date < other.date
-        else:
-            raise TypeError(
-                "A slot can only have "
-                "previous day than a ScheduledCourse, UserAvailability, CourseAvailability or another slot"
-            )
+        raise TypeError(
+            "A slot can only have "
+            "previous day than a ScheduledCourse, UserAvailability, "
+            "CourseAvailability or another slot"
+        )
 
     def is_simultaneous_to(self, other):
         return self.start_time < other.end_time and other.start_time < self.end_time
@@ -97,7 +97,7 @@ class Slot:
         return self.start_time >= other.end_time
 
     def is_successor_of(self, other):
-        other.end_time <= self.start_time <= other.end_time + slot_pause
+        return other.end_time <= self.start_time <= other.end_time + slot_pause
 
     def __lt__(self, other):
         return other.is_after(self) and not self.is_after(other)
@@ -107,54 +107,37 @@ class Slot:
 
     def get_day(self):
         return self.date
-    
+
     def same_through_periods(self, other):
         if isinstance(other, (Slot, ScheduledCourse)):
-            return self.date.weekday == other.date.weekday and self.start_time.time() == other.start_time.time() and self.duration == other.duration
-        else:
-            raise TypeError(
-                "A slot can only be compared to another slot or a ScheduledCourse"
+            return (
+                self.date.weekday == other.date.weekday
+                and self.start_time.time() == other.start_time.time()
+                and self.duration == other.duration
             )
-    
+        raise TypeError(
+            "A slot can only be compared to another slot or a ScheduledCourse"
+        )
+
     def get_periods(self):
         raise NotImplementedError
 
 
 class CourseSlot(Slot):
-    def __init__(self, start_time: dt.datetime, duration:dt.timedelta, department=None):
+    def __init__(
+        self, start_time: dt.datetime, duration: dt.timedelta, department=None
+    ):
         Slot.__init__(self, start_time, start_time + duration, department)
 
-
-    @property
-    def apm(self):
-        if self.department is not None:
-            time = TimeGeneralSettings.objects.get(department=self.department)
-            pm_start = time.afternoon_start_time
-        else:
-            pm_start = midday
-        if self.start_time.time() >= pm_start:
-            return Time.PM
-        else:
-            return Time.AM
-
-
     def __str__(self):
-        hours = self.start_time.hour
-        minuts = self.start_time.minute
-        if minuts == 0:
-            minuts = ""
-        return (
-            str(self.department)
-            + "_"
-            + str(self.start_time)
-        )
-    
+        return str(self.department) + "_" + str(self.start_time)
+
     def get_periods(self):
         return self.department.periods()
 
 
 def slots_filter(
-    slot_set,
+    slot_set: Set[Slot],
     day=None,
     apm=None,
     duration=None,
@@ -162,7 +145,7 @@ def slots_filter(
     weekday=None,
     weekday_in=None,
     simultaneous_to=None,
-    period=None,
+    period: SchedulingPeriod = None,
     is_after=None,
     starts_after=None,
     starts_before=None,
@@ -170,16 +153,24 @@ def slots_filter(
     ends_after=None,
     day_in=None,
     same=None,
-    period__in=None,
+    period__in: List[SchedulingPeriod] = None,
     department=None,
     date=None,
-    date_in=None
+    date_in=None,
 ):
     slots = slot_set
     if period is not None:
-        slots = set(sl for sl in slots if period.start_date <= sl.date <= period.end_date)
+        slots = set(
+            sl for sl in slots if period.start_date <= sl.date <= period.end_date
+        )
     if period__in is not None:
-        slots = set(sl for sl in slots if any(period.start_date <= sl.date <= period.end_date for period in period__in))
+        slots = set(
+            sl
+            for sl in slots
+            if any(
+                period.start_date <= sl.date <= period.end_date for period in period__in
+            )
+        )
     if day is not None:
         slots = set(sl for sl in slots if sl.date == day)
     if day_in is not None:
@@ -218,13 +209,23 @@ def slots_filter(
 
 
 def days_filter(
-    days_set, index=None, index_in=None, period=None, period_in=None, weekday=None, weekday_in=None
+    days_set,
+    index=None,
+    index_in=None,
+    period=None,
+    period_in=None,
+    weekday=None,
+    weekday_in=None,
 ):
     days = days_set
     if period is not None:
         days = set(d for d in days if period.start_date <= d <= period.end_date)
     if period_in is not None:
-        days = set(d for d in days if any(period.start_date <= d <= period.end_date for period in period_in))
+        days = set(
+            d
+            for d in days
+            if any(period.start_date <= d <= period.end_date for period in period_in)
+        )
     if index is not None:
         days = set(d for d in days if d.weekday() == index)
     if index_in is not None:

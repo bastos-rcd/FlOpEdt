@@ -23,42 +23,27 @@
 
 import datetime as dt
 
-from distutils.util import strtobool
-
-from rules.contrib.rest_framework import AutoPermissionViewSetMixin
-from rules.contrib.views import PermissionRequiredMixin
-
-from rest_framework import viewsets, exceptions, mixins, parsers
-from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
-from rest_framework.decorators import action
-
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-
-import django_filters.rest_framework as filters
-from django.utils.decorators import method_decorator
-
-from base.timing import date_to_flopday, Day
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import exceptions, mixins, viewsets
 
 import base.models as bm
-import people.models as pm
 
-from api.v1.availability import serializers
-from api.permissions import IsTutorOrReadOnly, IsAdminOrReadOnly, IsTutor
-from base.rules import can_view_user_availability
 from api.shared.params import (
-    user_id_param,
-    room_id_param,
-    dept_param,
     dept_id_param,
     from_date_param,
+    room_id_param,
     to_date_param,
+    user_id_param,
 )
+from api.v1.availability import serializers
+from base.rules import can_view_user_availability
 
 
 class DatedAvailabilityListViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
+    AvailabilityModel = None
 
     class Meta:
         abstract = True
@@ -68,6 +53,8 @@ class DatedAvailabilityListViewSet(
         if getattr(self, "swagger_fake_view", False):
             return bm.RoomAvailability.objects.none()
 
+        # We may find another way to define attributes
+        # pylint: disable=attribute-defined-outside-init
         if not hasattr(self, "from_date"):
             self.from_date = dt.datetime.fromisoformat(
                 self.request.query_params.get("from_date")
@@ -104,7 +91,6 @@ class RoomDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     serializer_class = serializers.RoomAvailabilitySerializer
 
     def get_queryset(self):
-
         if getattr(self, "swagger_fake_view", False):
             return bm.RoomAvailability.objects.none()
 
@@ -140,7 +126,6 @@ class UserDatedAvailabilityListViewSet(DatedAvailabilityListViewSet):
     serializer_class = serializers.UserAvailabilitySerializer
 
     def get_queryset(self):
-
         if getattr(self, "swagger_fake_view", False):
             return bm.UserAvailability.objects.none()
 
@@ -199,6 +184,7 @@ class RoomDatedAvailabilityUpdateViewSet(
 )
 class UserDefaultAvailabilityListViewSet(UserDatedAvailabilityListViewSet):
     def get_queryset(self):
+        # pylint: disable=attribute-defined-outside-init
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
         return super().get_queryset()
@@ -216,6 +202,7 @@ class RoomDefaultAvailabilityListViewSet(RoomDatedAvailabilityListViewSet):
     """
 
     def list(self, request, *args, **kwargs):
+        # pylint: disable=attribute-defined-outside-init
         self.from_date = dt.datetime(1, 1, 1)
         self.to_date = dt.datetime(1, 1, 8)
         return super().list(request, *args, **kwargs)
@@ -225,7 +212,8 @@ class UserDefaultAvailabilityUpdateViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     """
-    Update default availability. (Will be pushed in the default week based on the weekday of the dates from the query parameters)
+    Update default availability. (Will be pushed in the default week based
+    on the weekday of the dates from the query parameters)
     """
 
     AvailabilityModel = bm.UserAvailability
@@ -237,7 +225,8 @@ class RoomDefaultAvailabilityUpdateViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     """
-    Update default availability. (Will be pushed in the default week based on the weekday of the dates from the query parameters)
+    Update default availability. (Will be pushed in the default week
+    based on the weekday of the dates from the query parameters)
     """
 
     AvailabilityModel = bm.UserAvailability

@@ -28,22 +28,22 @@ import datetime
 
 from django.utils.translation import gettext_lazy as _
 
-import base.models
+from django.apps import apps
 
 days_infos = {
-    'm': {'shift': 0, 'slug': _('Mon.')},
-    'tu': {'shift': 1, 'slug': _('Tue.')},
-    'w': {'shift': 2, 'slug': _('Wed.')},
-    'th': {'shift': 3, 'slug': _('Thu.')},
-    'f': {'shift': 4, 'slug': _('Fri.')},
-    'sa': {'shift': 5, 'slug': _('Sat.')},
-    'su': {'shift': 6, 'slug': _('Sun.')}
+    "m": {"shift": 0, "slug": _("Mon.")},
+    "tu": {"shift": 1, "slug": _("Tue.")},
+    "w": {"shift": 2, "slug": _("Wed.")},
+    "th": {"shift": 3, "slug": _("Thu.")},
+    "f": {"shift": 4, "slug": _("Fri.")},
+    "sa": {"shift": 5, "slug": _("Sat.")},
+    "su": {"shift": 6, "slug": _("Sun.")},
 }
 
 
 def get_current_school_year():
     now = datetime.datetime.now()
-    # TODO find a alternative way to test the swap month
+    # find a alternative way to test the swap month
     if now.month <= 6:
         school_year = now.year - 1
     else:
@@ -72,32 +72,36 @@ def current_week():
     if now.weekday() > 4:
         now = now + datetime.timedelta(2)
     delta = now - mond
-    return {'week': 2 + (delta.days // 7), 'year': now.year}
+    return {"week": 2 + (delta.days // 7), "year": now.year}
 
 
 # list of days
 def num_all_days(y, w, dept=None):
+    time_general_settings_model = apps.get_model("base.TimeGeneralSettings")
     if w == 0:
         return []
     monday = monday_w2(y) + datetime.timedelta(7 * (w - 2))
     day_list = []
     if dept is None:
         depts_day_set = set()
-        for dept_tgs in base.models.TimeGeneralSettings.objects.all():
+        for dept_tgs in time_general_settings_model.objects.all():
             depts_day_set |= set(dept_tgs.days)
         dept_day_list = list(depts_day_set)
     else:
-        dept_day_list = base.models.TimeGeneralSettings.objects.get(
-            department=dept).days
+        dept_day_list = time_general_settings_model.objects.get(department=dept).days
 
-    dept_day_list.sort(key=lambda x: days_infos[x]['shift'])
+    dept_day_list.sort(key=lambda x: days_infos[x]["shift"])
     iday = 0
     for d_ref in dept_day_list:
-        cur_day = monday + datetime.timedelta(days_infos[d_ref]['shift'])
-        day_list.append({'num': iday,
-                         'date': f"{cur_day.day:02d}/{cur_day.month:02d}",
-                         'ref': d_ref,
-                         'name': days_infos[d_ref]['slug']})
+        cur_day = monday + datetime.timedelta(days_infos[d_ref]["shift"])
+        day_list.append(
+            {
+                "num": iday,
+                "date": f"{cur_day.day:02d}/{cur_day.month:02d}",
+                "ref": d_ref,
+                "name": days_infos[d_ref]["slug"],
+            }
+        )
         iday += 1
     return day_list
 
@@ -108,16 +112,15 @@ def num_all_days(y, w, dept=None):
 def week_list():
     li = []
     for i in list(range(1, 53)):
-        li.append({'week': i, 'year': actual_year-1})
+        li.append({"week": i, "year": actual_year - 1})
     for i in list(range(1, 53)):
-        li.append({'week': i, 'year': actual_year})
+        li.append({"week": i, "year": actual_year})
     for i in list(range(1, 53)):
-        li.append({'week': i, 'year': actual_year + 1})
+        li.append({"week": i, "year": actual_year + 1})
     return li
 
 
 def year_by_week(week):
     if week > 36:
         return current_year
-    else:
-        return current_year + 1
+    return current_year + 1

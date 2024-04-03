@@ -1,7 +1,8 @@
 from rest_framework import serializers
-import base.models as bm
 
 from api.v1.base.timing.serializers import SchedulingPeriodSerializer
+
+import base.models as bm
 
 
 class TimetableVersionShortSerializer(serializers.ModelSerializer):

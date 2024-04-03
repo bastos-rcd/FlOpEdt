@@ -1,14 +1,13 @@
 import pytest
-
 from rest_framework.status import (
-    HTTP_406_NOT_ACCEPTABLE,
-    HTTP_403_FORBIDDEN,
     HTTP_400_BAD_REQUEST,
     is_success,
 )
-from api.v1.tests.utils import retrieve_elements, add_user_permission
 
 from base.models import Department
+
+# disable unused-argument for fixtures
+# pylint: disable=unused-argument
 
 
 class TestAllowedStartTimes:

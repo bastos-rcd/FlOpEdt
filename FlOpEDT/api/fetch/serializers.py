@@ -21,18 +21,20 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+from datetime import timedelta
+
 from rest_framework import serializers
+
 import base.models as bm
 import displayweb.models as dwm
 import people.models as pm
-from base.timing import Day, flopdate_to_datetime
-from datetime import timedelta
 from api.base.courses.serializers import (
     CoursesSerializer,
+    Department_TC_Serializer,
     Group_SC_Serializer,
     Module_SC_Serializer,
-    Department_TC_Serializer,
 )
+from base.timing import Day
 
 #    --------------------------------------------------------------------------------
 #   |                                                                                |
@@ -112,8 +114,8 @@ class NewApiScheduledCoursesSerializer(serializers.Serializer):
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
     course = CoursesSerializer()
-    tutor = serializers.IntegerField(source='tutor.id', allow_null=True)
-    id_visio = serializers.IntegerField(source='additional.link.id', allow_null=True)
+    tutor = serializers.IntegerField(source="tutor.id", allow_null=True)
+    id_visio = serializers.IntegerField(source="additional.link.id", allow_null=True)
     number = serializers.IntegerField()
 
     # Mise en forme des données
@@ -129,20 +131,6 @@ class NewApiScheduledCoursesSerializer(serializers.Serializer):
             "id_visio",
             "number",
         ]
-
-    def get_start_time(self, obj):
-        flop_week, flop_weekday, flop_start_time = (
-            obj.course.week,
-            obj.day,
-            obj.start_time,
-        )
-        flop_day = Day(flop_weekday, flop_week)
-        return flopdate_to_datetime(flop_day, flop_start_time)
-
-    def get_end_time(self, obj):
-        start_time = self.get_start_time(obj)
-        duration = obj.course.type.duration
-        return start_time + timedelta(seconds=duration * 60)
 
 
 class ModuleCosmo_SC_Serializer(serializers.Serializer):
@@ -272,7 +260,7 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
     groups = Group_PP_Serializer(many=True)
     type = CourseType_PP_Serializer()
     is_graded = serializers.BooleanField()
-    supp_tutor = Tutor_Serializer(many=True)
+    supp_tutors = Tutor_Serializer(many=True)
 
     class Meta:
         model = bm.Course
@@ -283,7 +271,7 @@ class UnscheduledCoursesSerializer(serializers.Serializer):
             "module",
             "groups",
             "is_graded",
-            "supp_tutor",
+            "supp_tutors",
         ]
 
 

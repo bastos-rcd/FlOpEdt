@@ -1,15 +1,6 @@
-import datetime as dt
-import copy
+# Tests use to unuse arguments...
+# pylint: disable=unused-argument
 
-import pytest
-
-
-from rest_framework.status import (
-    HTTP_406_NOT_ACCEPTABLE,
-    HTTP_403_FORBIDDEN,
-    is_success,
-)
-from api.v1.tests.utils import retrieve_elements, add_user_permission
 
 from base.models import Course, StructuralGroup
 

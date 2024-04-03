@@ -748,9 +748,9 @@ function translate_cours_pl_from_json(d, result) {
   }
 
 
-  if (department_settings.mode.cosmo===0 && Array.isArray(d.course.supp_tutor)) {
+  if (department_settings.mode.cosmo===0 && Array.isArray(d.course.supp_tutors)) {
       // pre-process supplementary tutors
-      d.tutors = d.course.supp_tutor.map(function (st) {
+      d.tutors = d.course.supp_tutors.map(function (st) {
         return st.username;
       });
   }
@@ -856,7 +856,7 @@ function course_pp_canevas_json_to_obj(d) {
 function translate_cours_pp_from_json(d, result) {
   if (department_settings.mode.cosmo==0) {
     // pre-process supplementary tutors
-    d.tutors = d.supp_tutor.map(function(st) {
+    d.tutors = d.supp_tutors.map(function(st) {
       return st.username ;
     });
   } else {
@@ -1146,41 +1146,6 @@ function translate_gp_name(gp) {
    ------ ROOMS ------
    --------------------*/
 
-function fetch_room_preferences_unavailability() {
-  fetch_room_preferences();
-  fetch_room_extra_unavailability();
-}
-
-// fetch room preferences
-function fetch_room_preferences() {
-  fetch_status.ongoing_un_rooms = true;
-
-  var exp_week = wdw_weeks.get_selected() ;
-
-  show_loader(true);
-  $.ajax({
-    type: "GET", //rest Type
-    headers: {Accept: 'text/csv'},
-    dataType: 'text',
-    url: build_url(url_unavailable_rooms, context_dept, exp_week.as_context()),
-    async: true,
-    success: function (msg, ts, req) {
-      var sel_week = wdw_weeks.get_selected();
-      if (Week.compare(exp_week, sel_week) == 0) {
-        clean_unavailable_rooms();
-        d3.csvParse(msg, translate_unavailable_rooms);
-        sort_preferences(unavailable_rooms);
-      }
-      show_loader(false);
-      fetch_status.ongoing_un_rooms = false;
-      fetch_ended(false);
-    },
-    error: function (msg) {
-      console.log("error");
-      show_loader(false);
-    }
-  });
-}
 
 function translate_unavailable_rooms(d) {
   var i;
@@ -1308,7 +1273,6 @@ function fetch_all(first, fetch_work_copies) {
   }
   if (ckbox["edt-mod"].cked) {
     fetch_tutor_extra_unavailability();
-    fetch_room_preferences_unavailability();
     if (department_settings.mode.cosmo) {
       fetch_side_weeks();
     }

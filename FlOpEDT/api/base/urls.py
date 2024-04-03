@@ -20,8 +20,9 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-from rest_framework import routers
 from django.urls import path
+from rest_framework import routers
+
 from api.base import views
 
 routerBase = routers.SimpleRouter()

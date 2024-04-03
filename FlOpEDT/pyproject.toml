@@ -1,0 +1,5 @@
+[tool.isort]
+skip_glob = ["*/migrations/*"]
+
+[tool.black]
+exclude = "migrations/*"

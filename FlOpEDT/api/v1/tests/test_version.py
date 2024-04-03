@@ -1,12 +1,13 @@
-import pytest
+# pylint: disable=unused-import
 
+import pytest
 from rest_framework.status import (
-    HTTP_406_NOT_ACCEPTABLE,
     HTTP_403_FORBIDDEN,
+    HTTP_406_NOT_ACCEPTABLE,
     is_success,
 )
-from api.v1.tests.utils import retrieve_elements, add_user_permission
 
+from api.v1.tests.utils import add_user_permission, retrieve_elements
 from base.models import TimetableVersion
 
 
@@ -22,7 +23,7 @@ class TestTimetableVersion:
         pass
 
     def test_perm_read_everybody_allowed(self, client, make_users):
-        min_param = {"from_date": "2024-01-01", "to_date": "2025-01-01"}
+        min_param = {"ids": [1, 2]}
         response = client.get(self.endpoint, min_param)
         assert is_success(response.status_code), response.content
         u = make_users(1)[0]

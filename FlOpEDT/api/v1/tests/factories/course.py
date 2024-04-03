@@ -1,8 +1,8 @@
-import factory
-
 import datetime as dt
 
-from base.models import GenericGroup, TrainingPeriod, Module, CourseType
+import factory
+
+from base.models import CourseType, GenericGroup, Module, TrainingPeriod
 
 from .shared import PostGenerationWithCounter
 
@@ -22,7 +22,7 @@ class ModuleFactory(factory.django.DjangoModelFactory):
     # missing train_prog
     abbrev = factory.Sequence(lambda n: f"mod{n:02d}")
     name = factory.Sequence(lambda n: f"Module #{n:02d}")
-    training_period = factory.LazyFunction(lambda: TrainingPeriod.objects.first())
+    training_period = factory.LazyFunction(TrainingPeriod.objects.first)
 
 
 class CourseTypeFactory(factory.django.DjangoModelFactory):
@@ -32,7 +32,9 @@ class CourseTypeFactory(factory.django.DjangoModelFactory):
     name = "Lab"
 
 
-def go_groups(self, step, create, extracted, **kwargs):
+def go_groups(
+    self, step, create, extracted, **kwargs  # pylint: disable=unused-argument
+):
     if not create:
         return
     self.groups.add(step.attributes.get("group_helper"))
@@ -45,6 +47,6 @@ class CourseRRGroup(factory.django.DjangoModelFactory):
 
     duration = dt.timedelta(minutes=90)
     group_helper = factory.Iterator(GenericGroup.objects.all())
-    module = factory.LazyFunction(lambda: Module.objects.first())
-    type = factory.LazyFunction(lambda: CourseType.objects.first())
+    module = factory.LazyFunction(Module.objects.first)
+    type = factory.LazyFunction(CourseType.objects.first)
     groups = PostGenerationWithCounter(go_groups)

@@ -23,97 +23,32 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
-from django.db import models
-from base.models import StructuralGroup
-from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
-from base.timing import Day
-from TTapp.slots import slots_filter, days_filter
-from TTapp.TimetableConstraints.TimetableConstraint import TimetableConstraint
-from people.models import GroupPreferences
-from django.contrib.postgres.fields import ArrayField
-
-
-from TTapp.ilp_constraints.constraint_type import ConstraintType
-from TTapp.ilp_constraints.constraint import Constraint
-
-from django.utils.translation import gettext_lazy as _
-
 import datetime as dt
 
-def pre_analysis_considered_basic_groups(group_ttconstraint):
-    
-    """
-    Returns a set of groups which are basic_group concerned by the constraint group_ttconstraint
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-    :param group_ttconstraint: A constraint we want to analyze.
-    :type group_ttconstraint: TimetableConstraint
-    :return: A set of groups which are basic_group and concerned by the constraint.
-    :rtype: A set of StructuralGroup
-
-    """
-    
-    groups = set(StructuralGroup.objects.filter(train_prog__in=group_ttconstraint.train_progs.all()))
-    basic_groups = set()
-    
-    for g in groups :
-        if len(g.descendants_groups()) == 0 :
-            basic_groups.add(g)
-    
-    if group_ttconstraint.groups.exists():
-        
-        basic_groups_constraint = set()
-        
-        for g in group_ttconstraint.groups.all():
-            
-            basic_groups_constraint.add(g)
-        
-        basic_groups &= basic_groups_constraint
-        
-    return basic_groups
-
-'''
-    basic_groups_to_consider = set()
-    for g in basic_groups:
-        if ttmodel.data.courses_for_basic_group[g]:
-            basic_groups_to_consider.add(g)
-'''
-
-
-def considered_basic_groups(group_ttconstraint, ttmodel=None):
-    if ttmodel is None:
-        basic_groups = StructuralGroup.objects.filter(train_prog__department=group_ttconstraint.department,
-                                                      basic=True)
-    else:
-        basic_groups = ttmodel.data.basic_groups
-    if group_ttconstraint.train_progs.exists():
-        basic_groups = set(basic_groups.filter(train_prog__in=group_ttconstraint.train_progs.all()))
-    else:
-        basic_groups = set(basic_groups)
-    if group_ttconstraint.groups.exists():
-        constraint_basic_groups = set()
-        for g in group_ttconstraint.groups.all():
-            constraint_basic_groups |= g.basic_groups()
-        basic_groups &= constraint_basic_groups
-    if ttmodel is None:
-        return basic_groups
-    else:
-        ttmodel_basic_groups_to_consider = set()
-        for g in basic_groups:
-            if ttmodel.data.courses_for_basic_group[g]:
-                ttmodel_basic_groups_to_consider.add(g)
-        return ttmodel_basic_groups_to_consider
+from base.models import ScheduledCourse
+from base.timing import Day
+from people.models import GroupPreferences
+from TTapp.helpers.minhalfdays import MinHalfDaysHelperGroup
+from TTapp.ilp_constraints.constraint import Constraint
+from TTapp.ilp_constraints.constraint_type import ConstraintType
+from TTapp.slots import days_filter, slots_filter
+from TTapp.TimetableConstraints.timetable_constraint import TimetableConstraint
 
 
 class MinGroupsHalfDays(TimetableConstraint):
     """
     All courses will fit in a minimum of half days
     """
-    train_progs = models.ManyToManyField('base.TrainingProgramme',
-                                         blank=True)
-    groups = models.ManyToManyField('base.StructuralGroup', blank=True)
+
+    train_progs = models.ManyToManyField("base.TrainingProgramme", blank=True)
+    groups = models.ManyToManyField("base.StructuralGroup", blank=True)
 
     class Meta:
-        verbose_name = _('Minimize busy half-days for groups')
+        verbose_name = _("Minimize busy half-days for groups")
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
@@ -123,10 +58,12 @@ class MinGroupsHalfDays(TimetableConstraint):
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.groups.exists():
-            details.update({'groups': ', '.join([group.name for group in self.groups.all()])})
+            details.update(
+                {"groups": ", ".join([group.name for group in self.groups.all()])}
+            )
 
         return view_model
 
@@ -134,19 +71,38 @@ class MinGroupsHalfDays(TimetableConstraint):
         text = "Minimise les demie-journées"
 
         if self.groups.exists():
-            text += ' des groupes ' + ', '.join([group.name for group in self.groups.all()])
+            text += " des groupes " + ", ".join(
+                [group.name for group in self.groups.all()]
+            )
         else:
             text += " de tous les groupes"
 
         if self.train_progs.exists():
-            text += ' de ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+            text += " de " + ", ".join(
+                [train_prog.abbrev for train_prog in self.train_progs.all()]
+            )
         else:
             text += " de toutes les promos."
 
         return text
 
     def __str__(self):
-        return _("Minimize groups half-days")
+        return "Minimize groups half-days"
+
+    def is_satisfied_for(self, period, version):
+        unsatisfied_min_half_days_groups = []
+        for basic_group in self.considered_basic_groups():
+            considered_courses = self.get_courses_queryset_by_parameters(
+                period=period, group=basic_group
+            )
+            if not MinHalfDaysHelperGroup.is_satisfied_for_one_object(
+                version, considered_courses
+            ):
+                unsatisfied_min_half_days_groups.append(basic_group)
+        assert not unsatisfied_min_half_days_groups, (
+            f"{self} is not satisfied for period {period} and version {version} : "
+            f"Unsatisfied min half days groups: {unsatisfied_min_half_days_groups}"
+        )
 
 
 class MinNonPreferedTrainProgsSlot(TimetableConstraint):
@@ -154,24 +110,26 @@ class MinNonPreferedTrainProgsSlot(TimetableConstraint):
     Minimize the use of unprefered Slots for groups.
     Make impossible the use of forbidden slots.
     """
-    train_progs = models.ManyToManyField('base.TrainingProgramme',
-                                         blank=True)
-    
+
+    train_progs = models.ManyToManyField("base.TrainingProgramme", blank=True)
+
     class Meta:
-        verbose_name = _('Minimize undesired slots for groups')
+        verbose_name = _("Minimize undesired slots for groups")
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=None):
         if ponderation is None:
             ponderation = ttmodel.min_ups_c
         if self.train_progs.exists():
-            train_progs = set(tp for tp in self.train_progs.all() if tp in ttmodel.train_prog)
+            train_progs = set(
+                tp for tp in self.train_progs.all() if tp in ttmodel.train_prog
+            )
         else:
             train_progs = set(ttmodel.train_prog)
         for train_prog in train_progs:
             basic_groups = ttmodel.data.basic_groups.filter(train_prog=train_prog)
             for g in basic_groups:
-                g_pref, created = GroupPreferences.objects.get_or_create(group=g)
+                g_pref, _ = GroupPreferences.objects.get_or_create(group=g)
                 g_pref.calculate_fields()
                 morning_weight = 2 * g_pref.get_morning_weight()
                 evening_weight = 2 * g_pref.get_evening_weight()
@@ -184,13 +142,19 @@ class MinNonPreferedTrainProgsSlot(TimetableConstraint):
                         day_time_ponderation *= evening_weight
 
                     for c in ttmodel.data.courses_for_basic_group[g]:
-                        slot_vars_sum = ttmodel.sum(ttmodel.scheduled[(sl2, c)]
-                                                    for sl2 in slots_filter(ttmodel.data.compatible_slots[c],
-                                                                            simultaneous_to=sl))
-                        cost = self.local_weight() * ponderation * slot_vars_sum \
-                            * ttmodel.unp_slot_cost_course[c.type,
-                                                           train_prog][sl]
-                        cost *= (day_time_ponderation + 1)
+                        slot_vars_sum = ttmodel.sum(
+                            ttmodel.scheduled[(sl2, c)]
+                            for sl2 in slots_filter(
+                                ttmodel.data.compatible_slots[c], simultaneous_to=sl
+                            )
+                        )
+                        cost = (
+                            self.local_weight()
+                            * ponderation
+                            * slot_vars_sum
+                            * ttmodel.unp_slot_cost_course[c.type, train_prog][sl]
+                        )
+                        cost *= day_time_ponderation + 1
                         ttmodel.add_to_group_cost(g, cost, period=period)
 
             if self.weight is None:
@@ -198,42 +162,56 @@ class MinNonPreferedTrainProgsSlot(TimetableConstraint):
                     for sl in ttmodel.data.availability_slots:
                         if ttmodel.avail_course[(course_type, train_prog)][sl] == 0:
                             ttmodel.add_constraint(
-                                ttmodel.sum(ttmodel.scheduled[(sl2, c)]
-                                            for g in basic_groups
-                                            for c in ttmodel.data.courses_for_basic_group[g]
-                                            for sl2 in slots_filter(ttmodel.data.compatible_slots[c],
-                                                                    simultaneous_to=sl)),
-                                '==',
+                                ttmodel.sum(
+                                    ttmodel.scheduled[(sl2, c)]
+                                    for g in basic_groups
+                                    for c in ttmodel.data.courses_for_basic_group[g]
+                                    for sl2 in slots_filter(
+                                        ttmodel.data.compatible_slots[c],
+                                        simultaneous_to=sl,
+                                    )
+                                ),
+                                "==",
                                 0,
-                                Constraint(constraint_type=ConstraintType.TRAIN_PROG_FORBIDDEN_SLOT,
-                                           slots=sl)
+                                Constraint(
+                                    constraint_type=ConstraintType.TRAIN_PROG_FORBIDDEN_SLOT,
+                                    slots=sl,
+                                ),
                             )
-
 
     def one_line_description(self):
         text = "Respecte les préférences"
         if self.train_progs.exists():
-            text += ' des groupes de ' + ', '.join([train_prog.abbrev for train_prog in self.train_progs.all()])
+            text += " des groupes de " + ", ".join(
+                [train_prog.abbrev for train_prog in self.train_progs.all()]
+            )
         else:
-            text += ' de toutes les promos.'
+            text += " de toutes les promos."
         return text
 
     def __str__(self):
-        return _("Minimize groups non-preferred slots")
+        return f"Minimize groups non-preferred slots ({self.id})"
+
+    def is_satisfied_for(self, period, version):
+        raise NotImplementedError
 
 
-class GroupsMinHoursPerDay(TimetableConstraint):
+class GroupsMinTimePerDay(TimetableConstraint):
     """
     Respect the min_time_per_day declared
     """
-    train_progs = models.ManyToManyField('base.TrainingProgramme',
-                                         blank=True)
-    groups = models.ManyToManyField('base.StructuralGroup', blank=True)
-    min_time = models.DurationField(default=dt.timedelta(hours=3), verbose_name=_('min_time'))
-    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True)
+
+    train_progs = models.ManyToManyField("base.TrainingProgramme", blank=True)
+    groups = models.ManyToManyField("base.StructuralGroup", blank=True)
+    min_time = models.DurationField(
+        default=dt.timedelta(hours=3), verbose_name=_("min_time")
+    )
+    weekdays = ArrayField(
+        models.CharField(max_length=2, choices=Day.CHOICES), blank=True, null=True
+    )
 
     class Meta:
-        verbose_name = _('Respect groups min time per day bounds')
+        verbose_name = _("Respect groups min time per day bounds")
         verbose_name_plural = verbose_name
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
@@ -248,35 +226,48 @@ class GroupsMinHoursPerDay(TimetableConstraint):
 
         days = days_filter(ttmodel.data.days, period=period)
         if self.weekdays:
-            days = days_filter(days, day_in=self.weekdays)
+            days = days_filter(days, weekday_in=self.weekdays)
         for basic_group in considered_groups:
             for day in days:
-                group_day_scheduled_minutes = ttmodel.sum(ttmodel.scheduled[sl, c] * sl.minutes
-                                             for c in ttmodel.data.courses_for_basic_group[basic_group]
-                                             for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day))
-                has_enough_time = ttmodel.add_floor(group_day_scheduled_minutes,
-                                                    min_time.seconds//60,
-                                                    100000)
-                undesired_situation = ttmodel.GBD[(basic_group, day)] - has_enough_time
+                group_day_scheduled_minutes = ttmodel.sum(
+                    ttmodel.scheduled[sl, c] * sl.minutes
+                    for c in ttmodel.data.courses_for_basic_group[basic_group]
+                    for sl in slots_filter(ttmodel.data.compatible_slots[c], day=day)
+                )
+                has_enough_time = ttmodel.add_floor(
+                    group_day_scheduled_minutes, min_time.total_seconds() // 60, 100000
+                )
+                undesired_situation = (
+                    ttmodel.group_busy_day[(basic_group, day)] - has_enough_time
+                )
                 if self.weight is None:
-                    ttmodel.add_constraint(undesired_situation,
-                                           '==',
-                                           0,
-                                           Constraint(constraint_type=ConstraintType.MIN_HOURS_PER_DAY,
-                                                      groups=basic_group,
-                                                      days=day))
+                    ttmodel.add_constraint(
+                        undesired_situation,
+                        "==",
+                        0,
+                        Constraint(
+                            constraint_type=ConstraintType.MIN_HOURS_PER_DAY,
+                            groups=basic_group,
+                            days=day,
+                        ),
+                    )
                 else:
-                    ttmodel.add_to_group_cost(basic_group, self.local_weight() * ponderation * undesired_situation,
-                                              period=period)
+                    ttmodel.add_to_group_cost(
+                        basic_group,
+                        self.local_weight() * ponderation * undesired_situation,
+                        period=period,
+                    )
 
     def get_viewmodel(self):
         view_model = super().get_viewmodel()
-        details = view_model['details']
+        details = view_model["details"]
 
         if self.groups.exists():
-            details.update({'groups': ', '.join([group.full_name for group in self.groups.all()])})
+            details.update(
+                {"groups": ", ".join([group.full_name for group in self.groups.all()])}
+            )
         else:
-            details.update({'groups': 'All'})
+            details.update({"groups": "All"})
         return view_model
 
     def one_line_description(self):
@@ -284,3 +275,23 @@ class GroupsMinHoursPerDay(TimetableConstraint):
         You can give a contextual explanation about what this constraint doesnt
         """
         return "Groups min hours per day"
+
+    def is_satisfied_for(self, period, version):
+        unsatisfied_group_day = []
+        basic_groups = self.considered_basic_groups()
+        for basic_group in basic_groups:
+            courses_to_consider = self.get_courses_queryset_by_parameters(
+                period=period, group=basic_group, transversal_groups_included=True
+            )
+            for date in self.considered_dates(period):
+                date_time = sum(
+                    sc.duration
+                    for sc in ScheduledCourse.objects.filter(
+                        date=date, course__in=courses_to_consider
+                    )
+                )
+                if date_time < self.min_time:
+                    unsatisfied_group_day.append((basic_group, date))
+        assert (
+            not unsatisfied_group_day
+        ), f"GroupsMinTimePerDay constraint {self.id} unsatisfied for : {unsatisfied_group_day}"

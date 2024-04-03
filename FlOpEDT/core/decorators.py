@@ -29,12 +29,16 @@ import time
 from functools import wraps
 from urllib.parse import urlparse
 
+from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.views import redirect_to_login
 from django.shortcuts import resolve_url
-from django.conf import settings
 
-def request_passes_test(test_func, login_url=None, redirect_field_name=REDIRECT_FIELD_NAME):
+
+def request_passes_test(
+    test_func, login_url=None, redirect_field_name=REDIRECT_FIELD_NAME
+):
     """
     Decorator for views that checks that the request passes the given test,
     redirecting to the log-in page if necessary. The test should be a callable
@@ -53,35 +57,40 @@ def request_passes_test(test_func, login_url=None, redirect_field_name=REDIRECT_
             # use the path as the "next" url.
             login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
             current_scheme, current_netloc = urlparse(path)[:2]
-            if ((not login_scheme or login_scheme == current_scheme) and
-                    (not login_netloc or login_netloc == current_netloc)):
+            if (not login_scheme or login_scheme == current_scheme) and (
+                not login_netloc or login_netloc == current_netloc
+            ):
                 path = request.get_full_path()
-            from django.contrib.auth.views import redirect_to_login
-            return redirect_to_login(
-                path, resolved_login_url, redirect_field_name)
+
+            return redirect_to_login(path, resolved_login_url, redirect_field_name)
+
         return _wrapped_view
+
     return decorator
 
 
-def dept_admin_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
-                        login_url='people:login'):
+def dept_admin_required(
+    view_func=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url="people:login"
+):
     """
     Decorator for views that checks that the user is logged in and is an admin
     of the department, redirecting to the login page if necessary.
     """
 
     actual_decorator = request_passes_test(
-        lambda r: not r.user.is_anonymous and r.user.has_department_perm(r.department, admin=True),
+        lambda r: not r.user.is_anonymous
+        and r.user.has_department_perm(r.department, admin=True),
         login_url=login_url,
-        redirect_field_name=redirect_field_name
+        redirect_field_name=redirect_field_name,
     )
     if view_func:
         return actual_decorator(view_func)
     return actual_decorator
 
 
-def tutor_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
-                   login_url='people:login'):
+def tutor_required(
+    view_func=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url="people:login"
+):
     """
     Decorator for views that checks that the user is a tutor,
     redirecting to the login page if necessary.
@@ -89,33 +98,33 @@ def tutor_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
     actual_decorator = user_passes_test(
         lambda u: not u.is_anonymous and u.is_tutor,
         login_url=login_url,
-        redirect_field_name=redirect_field_name
+        redirect_field_name=redirect_field_name,
     )
     if view_func:
         return actual_decorator(view_func)
     return actual_decorator
 
 
-def tutor_or_superuser_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
-                                login_url='people:login'):
+def tutor_or_superuser_required(
+    view_func=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url="people:login"
+):
     """
     Decorator for views that checks that the user is a tutor,
     redirecting to the login page if necessary.
     """
     actual_decorator = user_passes_test(
-        lambda u: not u.is_anonymous and (
-            u.is_superuser or u.is_tutor
-        ),
+        lambda u: not u.is_anonymous and (u.is_superuser or u.is_tutor),
         login_url=login_url,
-        redirect_field_name=redirect_field_name
+        redirect_field_name=redirect_field_name,
     )
     if view_func:
         return actual_decorator(view_func)
     return actual_decorator
 
 
-def superuser_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
-                       login_url='people:login'):
+def superuser_required(
+    view_func=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url="people:login"
+):
     """
     Decorator for views that checks that the user is a superuser,
     redirecting to the login page if necessary.
@@ -123,23 +132,26 @@ def superuser_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
     actual_decorator = user_passes_test(
         lambda u: u.is_superuser,
         login_url=login_url,
-        redirect_field_name=redirect_field_name
+        redirect_field_name=redirect_field_name,
     )
     if view_func:
         return actual_decorator(view_func)
     return actual_decorator
 
-a_mesurer = True
+
+ACTIVATE_TIMER = True
+
 
 def timer(fonction):
-    if a_mesurer:
+    if ACTIVATE_TIMER:
+
         def pre_analyse_timer(*args, **kwargs):
             start_time = time.time()
             result = fonction(*args, **kwargs)
             stop_time = time.time()
             total = stop_time - start_time
-            print("%s : %.5fs" % (fonction.__name__, total))
+            print(f"{fonction.__name__} : {total:.3f}s")
             return result
+
         return pre_analyse_timer
-    else:
-        return fonction
+    return fonction

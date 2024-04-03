@@ -84,7 +84,7 @@ export class Course {
     type: { department: { name: string }; name: string }
     room_type: { name: string }
     tutor: string
-    supp_tutor: string
+    supp_tutors: string
     groups: Array<{ name: string }>
     module: { abbrev: string }
     modulesupp: { abbrev: string }
@@ -98,7 +98,7 @@ export class Course {
         this.type = { department: { name: '' }, name: '' }
         this.room_type = { name: '' }
         this.tutor = ''
-        this.supp_tutor = ''
+        this.supp_tutors = ''
         this.groups = []
         this.module = { abbrev: '' }
         this.modulesupp = { abbrev: '' }
@@ -125,7 +125,7 @@ export class ScheduledCourse {
                 is_structural: boolean
             }
         ]
-        supp_tutor: []
+        supp_tutors: []
         module: {
             name: string
             abbrev: string
@@ -162,7 +162,7 @@ export class ScheduledCourse {
                     is_structural: false,
                 },
             ],
-            supp_tutor: [],
+            supp_tutors: [],
             module: {
                 name: '',
                 abbrev: '',

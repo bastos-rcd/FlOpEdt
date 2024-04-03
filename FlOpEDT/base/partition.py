@@ -23,33 +23,28 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import copy
+import datetime as dt
+
+from django.db.models import Q
+
 from base.models import (
     ModulePossibleTutors,
     ScheduledCourse,
+    SchedulingPeriod,
     TimeGeneralSettings,
-    UserAvailability,
-    SchedulingPeriod
 )
 from base.models.availability import period_actual_availabilities
-from base.timing import (
-    TimeInterval,
-    Day,
-    days_index,
-    flopdate_to_datetime,
-    time_to_floptime,
-)
-import datetime as dt
-from django.db.models import Q
+from base.timing import Day, TimeInterval, days_index
 from TTapp.TimetableConstraints.no_course_constraints import NoTutorCourseOnWeekDay
-import copy
 
 
-class Partition(object):
+class Partition:  # pylint: disable=too-many-public-methods
     """Partition class to analyse data related by time"""
 
     def __init__(
         self,
-        type,
+        partition_type,
         date_start,
         date_end,
         day_start_time=None,
@@ -62,14 +57,16 @@ class Partition(object):
             type (str): the type of data the Partition is going to hold
             date_start (datetime): the beginning of its time interval
             date_end (datetime): the end of its time interval
-            day_start_time (int) [Optionnal]: the starting time in minutes of the schedule time each day
-            day_end_time (int) [Optionnal]: the ending time in minutes of the schedule time each day
+            day_start_time (int) [Optionnal]: the starting time in minutes
+            of the schedule time each day
+            day_end_time (int) [Optionnal]: the ending time in minutes
+            of the schedule time each day
 
         If one of the optionnal parameters is missing no day time will be set."""
         self.intervals = []
-        self.type = type
+        self.type = partition_type
         self.weekend = []
-        self.tutor_supp = False  # TODO : explain
+        self.tutor_supp = False
         self.day_start_time = day_start_time
         self.day_end_time = day_end_time
         self.intervals.append(
@@ -128,9 +125,12 @@ class Partition(object):
         return self.weekend
 
     def __str__(self):
-        return_string = f"Partition starts at {self.intervals[0][0].start} and ends at {self.intervals[self.nb_intervals-1][0].end}\n"
+        return_string = (
+            f"Partition starts at {self.intervals[0][0].start}"
+            f"and ends at {self.intervals[self.nb_intervals-1][0].end}\n"
+        )
         return_string += f"It contains {self.available_duration} available minutes.\n"
-        return_string += f"The intervals are :\n"
+        return_string += "The intervals are :\n"
         for interval in self.intervals:
             return_string += f"{interval[0]}, {interval[1]}\n"
         return_string += "end."
@@ -155,7 +155,9 @@ class Partition(object):
                     dt.datetime(
                         day.year, day.month, day.day, start_hours, start_minutes, 0
                     ),
-                    dt.datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
+                    dt.datetime(
+                        day.year, day.month, day.day, end_hours, end_minutes, 0
+                    ),
                 ),
                 "lunch_break",
                 {"forbidden": True, "lunch_break": True},
@@ -167,7 +169,9 @@ class Partition(object):
                     dt.datetime(
                         day.year, day.month, day.day, start_hours, start_minutes, 0
                     ),
-                    dt.datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
+                    dt.datetime(
+                        day.year, day.month, day.day, end_hours, end_minutes, 0
+                    ),
                 ),
                 "lunch_break",
                 {"forbidden": True, "lunch_break": True},
@@ -213,7 +217,8 @@ class Partition(object):
         number_of_day_week_end = (
             weekend_indexes[len(weekend_indexes) - 1] - weekend_indexes[0]
         )
-        # Manque le dernier jour si self.intervals[0][0].start > self.intervals[len(self.intervals)-1][0].end
+        # Manque le dernier jour si self.intervals[0][0].start >
+        # self.intervals[len(self.intervals)-1][0].end
         while day < self.intervals[len(self.intervals) - 1][0].end:
             if day.weekday() == weekend_indexes[0]:
                 self.add_slot(
@@ -243,7 +248,8 @@ class Partition(object):
             day_start_time (int) [Optionnal]: the starting time of the day in minutes since midnight
             day_end_time (int) [Optionnal]: the ending time of the day in minutes since midnight
 
-        If the parameters are set they are changing the value of the start and/or end time of the partition
+        If the parameters are set they are changing the value
+        of the start and/or end time of the partition
         """
 
         if day_start_time:
@@ -268,7 +274,9 @@ class Partition(object):
             self.add_slot(
                 TimeInterval(
                     dt.datetime(day.year, day.month, day.day, 0, 0, 0),
-                    dt.datetime(day.year, day.month, day.day, start_hours, start_minutes),
+                    dt.datetime(
+                        day.year, day.month, day.day, start_hours, start_minutes
+                    ),
                 ),
                 "night_time",
                 {"forbidden": True, "night_time": True},
@@ -276,7 +284,9 @@ class Partition(object):
         while day < self.intervals[len(self.intervals) - 1][0].end:
             self.add_slot(
                 TimeInterval(
-                    dt.datetime(day.year, day.month, day.day, end_hours, end_minutes, 0),
+                    dt.datetime(
+                        day.year, day.month, day.day, end_hours, end_minutes, 0
+                    ),
                     dt.datetime(
                         (day + dt.timedelta(days=1)).year,
                         (day + dt.timedelta(days=1)).month,
@@ -314,29 +324,32 @@ class Partition(object):
         return int(nb_slots)
 
     def nb_slots_available_of_duration_beginning_at(self, duration, start_times):
-        """Calculates the number of available time in the partition of minimum consecutive duration and with specific starting times
+        """Calculates the number of available time in the partition of minimum
+        consecutive duration and with specific starting times
 
         Parameters:
             duration (int): the minimum duration of one slot of time
-            start_times (list(int)): the list of times in minutes from midnight when the slots can start
+            start_times (list(int)): the list of times in minutes from midnight
+            when the slots can start
 
         Returns:
-            (int): the number of times it founds an available time of minimum duration starting at a starting time
+            (int): the number of times it founds an available time
+            of minimum duration starting at a starting time
         """
 
-        # Here we consider that one night necessarily exists i.e. an interval that makes us pass from one day to another
+        # Here we consider that one night necessarily exists
+        # i.e. an interval that makes us pass from one day to another
 
         start_times.sort()
         slot_duration = 0
         nb_slots = 0
 
         for interval in self.intervals:
-
             # For each start time we look for a slot
 
             if interval[1]["available"] and not interval[1]["forbidden"]:
-                start = time_to_floptime(interval[0].start.time())
-                end = time_to_floptime(interval[0].end.time())
+                start = interval[0].start.time()
+                end = interval[0].end.time()
 
                 # We need to know times already used for a slot in an interval
 
@@ -344,18 +357,18 @@ class Partition(object):
 
                 if slot_duration == 0:
                     for st in start_times:
-
                         # We look if the current start time is not in a slot already computed
 
                         if start + st > time_already_use:
-                            if start <= st and end > st:
+                            if start <= st < end:
                                 slot_duration = interval[0].duration - (st - start)
                                 time_already_use += duration
                                 if slot_duration >= duration:
                                     nb_slots += 1
                                     slot_duration = 0
 
-                                # slot_duration < duration implies no more time useful in the interval
+                                # slot_duration < duration implies no more
+                                # time useful in the interval
                                 # We keep it to look if there is enough time in the next interval.
 
                                 else:
@@ -367,7 +380,7 @@ class Partition(object):
                         nb_slots += 1
                     for st in start_times:
                         if end - st > time_already_use:
-                            if start <= st and end > st:
+                            if start <= st < end:
                                 slot_duration = interval[0].duration - (st - start)
                                 time_already_use += duration
                                 if slot_duration >= duration:
@@ -381,7 +394,8 @@ class Partition(object):
         return int(nb_slots)
 
     def nb_slots_not_forbidden_of_duration(self, duration):
-        """Calculates the number of time not forbidden in the partition of minimum consecutive duration
+        """Calculates the number of time not forbidden in the partition
+        of minimum consecutive duration
 
         Parameters:
             duration (int): the minimum duration of one slot of time
@@ -402,14 +416,17 @@ class Partition(object):
         return int(nb_slots)
 
     def nb_slots_not_forbidden_of_duration_beginning_at(self, duration, start_times):
-        """Calculates the number of time not forbidden in the partition of minimum consecutive duration and with specific starting times
+        """Calculates the number of time not forbidden in the partition
+        of minimum consecutive duration and with specific starting times
 
         Parameters:
             duration (int): the minimum duration of one slot of time
-            start_times (list(int)): the list of times in minutes from midnight when the slots can start
+            start_times (list(int)): the list of times in minutes from midnight
+            when the slots can start
 
         Returns:
-            (int): the number of times it founds a non forbidden slot time of minimum duration starting at a starting time
+            (int): the number of times it founds a non forbidden slot time
+            of minimum duration starting at a starting time
         """
 
         start_times.sort()
@@ -417,12 +434,11 @@ class Partition(object):
         nb_slots = 0
 
         for interval in self.intervals:
-
             # For each start time we look for a slot
 
             if not interval[1]["forbidden"]:
-                start = time_to_floptime(interval[0].start.time())
-                end = time_to_floptime(interval[0].end.time())
+                start = interval[0].start.time()
+                end = interval[0].end.time()
 
                 # We need to know times already used for a slot in an interval
 
@@ -430,18 +446,18 @@ class Partition(object):
 
                 if slot_duration == 0:
                     for st in start_times:
-
                         # We look if the current start time is not in a slot already computed
 
                         if start + st > time_already_use:
-                            if start <= st and end > st:
+                            if start <= st < end:
                                 slot_duration = interval[0].duration - (st - start)
                                 time_already_use += duration
                                 if slot_duration >= duration:
                                     nb_slots += 1
                                     slot_duration = 0
 
-                                # slot_duration < duration implies no more time useful in the interval
+                                # slot_duration < duration implies
+                                # no more time useful in the interval
                                 # We keep it to look if there is enough time in the next interval.
 
                                 else:
@@ -453,7 +469,7 @@ class Partition(object):
                         nb_slots += 1
                     for st in start_times:
                         if end - st > time_already_use:
-                            if start <= st and end > st:
+                            if start <= st < end:
                                 slot_duration = interval[0].duration - (st - start)
                                 time_already_use += duration
                                 if slot_duration >= duration:
@@ -503,7 +519,7 @@ class Partition(object):
         start = None
         i = 0
         intervalle = None
-        while i < len(self.intervals) and intervalle == None:
+        while i < len(self.intervals) and intervalle is None:
             if key in self.intervals[i][1]:
                 start = self.intervals[i][0].start
                 while i < len(self.intervals) and key in self.intervals[i][1]:
@@ -544,7 +560,7 @@ class Partition(object):
                 ):
                     current_duration += self.intervals[i][0].duration
                     i += 1
-                if duration == None or current_duration > duration:
+                if duration is None or current_duration > duration:
                     result.append(TimeInterval(start, self.intervals[i - 1][0].end))
             i += 1
         return result
@@ -552,12 +568,15 @@ class Partition(object):
     def find_all_available_timeinterval_with_key_starting_at(
         self, key, start_times, duration=None
     ):
-        """Find all time intervals in the partition with a specific key in their data and with specific starting times
+        """
+        Find all time intervals in the partition with a specific key
+        in their data and with specific starting times
 
         Parameters:
             key (any): the key searched in the data dictionary of the intervals
             duration (int) [Optionnal]: the minimum duration of the time intervals we want to find
-            start_times (list(int)): the list of times in minutes from midnight when the slots can start
+            start_times (list(int)): the list of times in minutes from midnight
+            when the slots can start
 
         Returns:
             (list(TimeInterval)): the time intervals found"""
@@ -572,10 +591,11 @@ class Partition(object):
             ):
                 for st in start_times:
                     if (
-                        time_to_floptime(self.intervals[i][0].start.time()) <= st
-                        and time_to_floptime(self.intervals[i][0].end.time()) > st
+                        self.intervals[i][0].start.time()
+                        <= st
+                        < self.intervals[i][0].end.time()
                     ):
-                        dif = st - time_to_floptime(self.intervals[i][0].start.time())
+                        dif = st - self.intervals[i][0].start.time()
                         datetime_start = self.intervals[i][0].start + dt.timedelta(
                             hours=dif / 60
                         )
@@ -585,7 +605,7 @@ class Partition(object):
                     i += 1
                     continue
                 current_duration = self.intervals[i][0].duration - (
-                    start - time_to_floptime(self.intervals[i][0].start.time())
+                    start - self.intervals[i][0].start.time()
                 )
                 i += 1
                 while (
@@ -596,7 +616,7 @@ class Partition(object):
                 ):
                     current_duration += self.intervals[i][0].duration
                     i += 1
-                if duration == None or current_duration >= duration:
+                if duration is None or current_duration >= duration:
                     result.append(
                         TimeInterval(datetime_start, self.intervals[i - 1][0].end)
                     )
@@ -605,12 +625,15 @@ class Partition(object):
         return result
 
     def find_all_available_timeinterval_starting_at(self, start_times, duration=None):
-        """Find all time intervals in the partition with a specific key in their data and with specific starting times
+        """
+        Find all time intervals in the partition with a specific key in their data
+        and with specific starting times
 
         Parameters:
             key (any): the key searched in the data dictionary of the intervals
             duration (int) [Optionnal]: the minimum duration of the time intervals we want to find
-            start_times (list(int)): the list of times in minutes from midnight when the slots can start
+            start_times (list(int)): the list of times in minutes from midnight
+            when the slots can start
 
         Returns:
             (list(TimeInterval)): the time intervals found"""
@@ -624,10 +647,11 @@ class Partition(object):
             ):
                 for st in start_times:
                     if (
-                        time_to_floptime(self.intervals[i][0].start.time()) <= st
-                        and time_to_floptime(self.intervals[i][0].end.time()) > st
+                        self.intervals[i][0].start.time()
+                        <= st
+                        < self.intervals[i][0].end.time()
                     ):
-                        dif = st - time_to_floptime(self.intervals[i][0].start.time())
+                        dif = st - self.intervals[i][0].start.time()
                         datetime_start = self.intervals[i][0].start + dt.timedelta(
                             hours=dif / 60
                         )
@@ -637,7 +661,7 @@ class Partition(object):
                     i += 1
                     continue
                 current_duration = self.intervals[i][0].duration - (
-                    start - time_to_floptime(self.intervals[i][0].start.time())
+                    start - self.intervals[i][0].start.time()
                 )
                 i += 1
                 while (
@@ -647,7 +671,7 @@ class Partition(object):
                 ):
                     current_duration += self.intervals[i][0].duration
                     i += 1
-                if duration == None or current_duration >= duration:
+                if duration is None or current_duration >= duration:
                     result.append(
                         TimeInterval(datetime_start, self.intervals[i - 1][0].end)
                     )
@@ -775,14 +799,10 @@ class Partition(object):
             and data_type != "all"
             and data_type != "scheduled_course"
         ):
-            self.intervals[interval_index][1][data_type] = dict()
+            self.intervals[interval_index][1][data_type] = {}
         if data_type == "user_preference":
             self.intervals[interval_index][1][data_type][data["tutor"]] = data["value"]
-        elif (
-            data_type == "night_time"
-            or data_type == "lunch_break"
-            or data_type == "week_end"
-        ):
+        elif data_type in ("night_time", "lunch_break", "week_end"):
             self.intervals[interval_index][1][data_type] = data[data_type]
         elif data_type == "no_course_tutor":
             if "period" in self.intervals[interval_index][1][data_type]:
@@ -813,18 +833,23 @@ class Partition(object):
             self.intervals[interval_index][1][data_type].append(data[data_type])
         elif data_type == "all":
             for key, value in data.items():
-                if key != "available" and key != "forbidden":
+                if key not in ("available", "forbidden"):
                     self.intervals[interval_index][1][key] = value
 
     @staticmethod
-    def get_partition_of_period(period:SchedulingPeriod, department, with_day_time=False, available=False):
-        """Considering a period and a department we built and return a partition with minimum data in it
-        Complexity on O(1)
+    def get_partition_of_period(
+        period: SchedulingPeriod, department, with_day_time=False, available=False
+    ):
+        """Considering a period and a department we built and return a partition
+        with minimum data in it Complexity on O(1)
 
         Parameters:
-            period (SchedulingPeriod): the period we want to consider to build the partition
-            department (Department): the department we're gonna get the TimeGeneralSettings data from
-            with_day_time (boolean): determine if the partition will contain lunch breaks and night times
+            period (SchedulingPeriod): the period we want to consider
+            to build the partition
+            department (Department): the department we're gonna get
+            the TimeGeneralSettings data from
+            with_day_time (boolean): determine if the partition will contain
+            lunch breaks and night times
 
         Returns:
             (None)"""
@@ -848,13 +873,17 @@ class Partition(object):
         self, period, department, tutor=None, forbidden=False
     ):
         """Add all scheduled courses of other department to the partition.
-        Complexity on O(s*i) s being the number of scheduled courses and i being the number of interval inside the partition.
+        Complexity on O(s*i) s being the number of scheduled courses
+        and i being the number of interval inside the partition.
 
         Parameters:
-            period (SchedulingPeriod): the period we want to consider to get the scheduled courses from
+            period (SchedulingPeriod): the period we want to consider
+            to get the scheduled courses from
             department (Department): the department from which we don't want any courses
-            tutor (Tutor) [Optionnal]: the tutor teaching the scheduled courses, if None takes all scheduled courses
-            forbidden (boolean) [Optionnal]: whether we want to consider all intervals as being forbidden or not
+            tutor (Tutor) [Optionnal]: the tutor teaching the scheduled courses,
+            if None takes all scheduled courses
+            forbidden (boolean) [Optionnal]: whether we want to consider all intervals
+            as being forbidden or not
 
         Returns:
             (None)"""
@@ -872,40 +901,49 @@ class Partition(object):
             )
 
     @staticmethod
-    def get_other_department_scheduled_courses(period:SchedulingPeriod, department, tutor=None, room=None):
+    def get_other_department_scheduled_courses(
+        period: SchedulingPeriod, department, tutor=None, room=None
+    ):
         """Retrieve all scheduled courses for the other departments
         Complexity on O(1)
 
         Parameters:
-            period (SchedulingPeriod): the period we want to consider to get the scheduled courses from
+            period (SchedulingPeriod): the period we want to consider
+            to get the scheduled courses from
             department (Department): the department from which we don't want any courses
-            tutor (Tutor) [Optionnal]: the tutor teaching the scheduled courses, if None takes all scheduled courses
+            tutor (Tutor) [Optionnal]: the tutor teaching the scheduled courses,
+            if None takes all scheduled courses
+            room (Room) [Optionnal]: the room where the scheduled courses is located,
+            if None takes all scheduled courses
 
         Returns:
             (Queryset(ScheduledCourses)): The scheduled courses we want as a queryset"""
+        result = ScheduledCourse.objects.filter(
+            course__period=period, version__major=0
+        ).exclude(course__type__department=department)
         if tutor:
-            return ScheduledCourse.objects.filter(
-                Q(tutor=tutor) | Q(course__supp_tutor=tutor),
-                course__period=period,
-                version__major=0,
-            ).exclude(course__type__department=department)
-        else:
-            return ScheduledCourse.objects.filter(
-                course__period=period, version__major=0
-            ).exclude(course__type__department=department)
+            result = result.filter(Q(tutor=tutor) | Q(course__supp_tutors=tutor))
+        if room:
+            result = result.filter(room=room)
+        return result
 
     @staticmethod
-    def get_available_partition_for_course(course, period:SchedulingPeriod, department):
-        """Build and returns a partition with all available intervals and data for a specific course.
+    def get_available_partition_for_course(
+        course, period: SchedulingPeriod, department
+    ):
+        """Build and returns a partition with all available intervals
+        and data for a specific course.
         Complexity on O(i) with i being the size of the partition.
 
         Parameters:
             course (Course): the course we want to retrieve data for
             period (SchedulingPerion): the period we want to consider
-            department (Department): the department we're gonna get the TimeGeneralSettings data from
+            department (Department): the department we're gonna get
+            the TimeGeneralSettings data from
 
         Returns:
-            (Partition): None if there is no tutor's availability for the course and the correct partition otherwise
+            (Partition): None if there is no tutor's availability for the course
+            and the correct partition otherwise
 
         """
         period_partition = Partition.get_partition_of_period(period, department, True)
@@ -927,12 +965,18 @@ class Partition(object):
                 mod.possible_tutors.all() for mod in mods_possible_tutor
             )
 
-        if course.supp_tutor is not None:
-            required_supp_1 = set(course.supp_tutor.all())
+        if course.supp_tutors is not None:
+            required_supp_1 = set(course.supp_tutors.all())
 
-        D1 = set(ua for possible_tutor in possible_tutors_1 for ua in period_actual_availabilities(period, possible_tutor, avail_only=True) )
+        d1 = set(
+            ua
+            for possible_tutor in possible_tutors_1
+            for ua in period_actual_availabilities(
+                period, possible_tutor, avail_only=True
+            )
+        )
 
-        if D1:
+        if d1:
             # Retrieving constraints for days were tutors shouldn't be working
             no_course_tutor1 = NoTutorCourseOnWeekDay.objects.filter(
                 Q(tutors__in=required_supp_1.union(possible_tutors_1))
@@ -955,9 +999,9 @@ class Partition(object):
                 )
 
             # Adding all user preferences to the partition
-            for up in D1:
+            for up in d1:
                 period_partition.add_slot(
-                    TimeInterval(up.start_time,up.end_time),
+                    TimeInterval(up.start_time, up.end_time),
                     "user_preference",
                     {"value": up.value, "available": True, "tutor": up.user},
                 )
@@ -977,9 +1021,11 @@ class Partition(object):
 
             if required_supp_1:
                 # Retrieving and adding user preferences for the required tutors
-                RUS1 = period_actual_availabilities(period, required_supp_1, avail_only=True)
+                rus1 = period_actual_availabilities(
+                    period, required_supp_1, avail_only=True
+                )
 
-                for up in RUS1:
+                for up in rus1:
                     period_partition.add_slot(
                         TimeInterval(up.start_time, up.end_time),
                         "user_preference",

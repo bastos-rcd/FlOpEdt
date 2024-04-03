@@ -1,13 +1,13 @@
 import datetime as dt
 
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.contrib.postgres.fields import ArrayField
-from django.dispatch import receiver
-from django.db.models.signals import post_save
 from django.apps import apps
-from base.timing import Day, Time, min_to_str, days_list
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
+
+from base.timing import Day, Time, days_list, slot_pause
 
 
 class Holiday(models.Model):
@@ -54,7 +54,10 @@ class TrainingPeriod(models.Model):
     def __str__(self):
         result = f"Period {self.name}: {self.department}"
         if self.periods.exists():
-            result += f", {min(sp.start_date for sp in self.periods.all())} -> {max(sp.end_date for sp in self.periods.all())}"
+            result += (
+                f", {min(sp.start_date for sp in self.periods.all())}"
+                "-> {max(sp.end_date for sp in self.periods.all())}"
+            )
         else:
             result += ", no period"
         return result
@@ -95,28 +98,32 @@ class SchedulingPeriod(models.Model):
         return self.name
 
     def __lte__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.start_date <= other.start_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.start_date <= other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def __lt__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.end_date < other.start_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.end_date < other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def __gt__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.start_date > other.end_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.start_date > other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def __gte__(self, other):
-        if type(other) is SchedulingPeriod:
+        if isinstance(other, SchedulingPeriod):
             return self.end_date >= other.end_date
-        elif type(other) is dt.date:
+        if isinstance(other, dt.date):
             return self.end_date >= other
+        raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
 
     def dates(self):
         return [
@@ -130,11 +137,8 @@ class SchedulingPeriod(models.Model):
     def related_departments(self):
         if self.department:
             return [self.department]
-        else:
-            department_model = apps.get_model("base.Department")
-            return list(
-                department_model.objects.filter(mode__scheduling_mode=self.mode)
-            )
+        department_model = apps.get_model("base.Department")
+        return list(department_model.objects.filter(mode__scheduling_mode=self.mode))
 
 
 class TimeGeneralSettings(models.Model):
@@ -143,10 +147,14 @@ class TimeGeneralSettings(models.Model):
     morning_end_time = models.TimeField(default=dt.time(12, 30, 0))
     afternoon_start_time = models.TimeField(default=dt.time(14, 15, 0))
     day_end_time = models.TimeField(default=dt.time(hour=19))
-    days = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES))
+    weekdays = ArrayField(models.CharField(max_length=2, choices=Day.CHOICES))
     scheduling_period_mode = models.CharField(
         max_length=1, choices=PeriodEnum.CHOICES, default=PeriodEnum.WEEK
     )
+
+    @property
+    def days(self):
+        return self.weekdays
 
     def __str__(self):
         return (
@@ -154,7 +162,7 @@ class TimeGeneralSettings(models.Model):
             + f"{self.day_start_time} - {self.morning_end_time}"
             + f" | {self.afternoon_start_time} - "
             + f"{self.day_end_time};"
-            + f" Days: {self.days}"
+            + f" Days: {self.weekdays}"
         )
 
 
@@ -198,8 +206,87 @@ class Mode(models.Model):
         return text
 
 
+class Slot(models.Model):
+    start_time = models.DateTimeField(default=dt.datetime(1871, 3, 18))
+    date = models.DateField(default=dt.date(1, 1, 1))
+
+    def save(self, *args, **kwargs):
+        force_date = kwargs.pop("force_date") if "force_date" in kwargs else False
+        if force_date is False:
+            self.date = self.start_time.date()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+
+    def is_simultaneous_to(self, other: "Slot"):
+        return self.start_time < other.end_time and self.end_time > other.start_time
+
+    def __lt__(self, other):
+        if isinstance(other, Slot):
+            return self.end_time < other.start_time
+        raise NotImplementedError
+
+    def __gt__(self, other):
+        if isinstance(other, Slot):
+            return self.start_time > other.end_time
+        raise NotImplementedError
+
+    def has_same_date(self, other: "Slot"):
+        return self.date == other.date
+
+    def is_successor_of(self, other: "Slot"):
+        return other.end_time <= self.start_time <= other.end_time + slot_pause
+
+    def weekday_is(self, weekday):
+        return days_list[self.date.weekday()] == weekday
+
+    def weekday__in(self, weekdays):
+        return days_list[self.date.weekday()] in weekdays
+
+    @property
+    def duration(self):
+        raise NotImplementedError
+
+    @property
+    def in_day_start_time(self):
+        return self.start_time.time()
+
+    @property
+    def end_time(self):
+        return self.start_time + self.duration
+
+    @property
+    def in_day_end_time(self):
+        return self.end_time.time()
+
+    @property
+    def minutes(self):
+        return self.duration.total_seconds() // 60
+
+    @property
+    def start_date(self):
+        return self.date
+
+    @property
+    def weekday(self):
+        return days_list[self.date.weekday()]
+
+    @property
+    def apm(self):
+        return Time.get_apm(self.start_time)
+
+    def __str__(self):
+        return (
+            f"{self.date:%d/%m/%y}: "
+            + f"{self.in_day_start_time:%H:%M}-{self.in_day_end_time:%H:%M}"
+        )
+
+
 @receiver(post_save, sender="base.Department")
-def create_department_related(sender, instance, created, raw, **kwargs):
+def create_department_related(
+    sender, instance, created, raw, **kwargs
+):  # pylint: disable=unused-argument
     if not created or raw:
         return
     mode_model = apps.get_model("base.Mode")
@@ -211,5 +298,5 @@ def create_department_related(sender, instance, created, raw, **kwargs):
         day_end_time=dt.time(20),
         morning_end_time=dt.time(13),
         afternoon_start_time=dt.time(13),
-        days=days_list,
+        weekdays=days_list,
     )

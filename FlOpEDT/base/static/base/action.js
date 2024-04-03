@@ -1577,40 +1577,6 @@ function array_to_msg(a) {
 
 
 
-function send_edt_change(changes) {
-  var cur_week = wdw_weeks.get_selected();
-  var sent_data = {};
-  sent_data['version'] = JSON.stringify(version);
-  sent_data['week'] = JSON.stringify(cur_week.week);
-  sent_data['year'] = JSON.stringify(cur_week.year);
-  sent_data['work_copy'] = JSON.stringify(num_copie);
-  sent_data['tab'] = JSON.stringify(changes);
-
-  var sel_week = wdw_weeks.get_selected();
-
-  show_loader(true);
-  $.ajax({
-    url: url_edt_changes,
-    type: 'POST',
-    //        contentType: 'application/json; charset=utf-8',
-    data: sent_data,
-    dataType: 'json',
-    success: function (msg) {
-      edt_change_ack(msg);
-      show_loader(false);
-    },
-    error: function (xhr, ajaxOptions, thrownError) {
-      console.log(xhr);
-      console.log(ajaxOptions);
-      console.log(thrownError);
-      edt_change_ack({
-        status: 'KO',
-        more: 'Pb de communication avec le serveur'
-      });
-      show_loader(false);
-    }
-  });
-}
 
 
 //
@@ -1975,7 +1941,7 @@ function select_pref_links_change() {
     switch(link_type) {
     case 'users':
       pref_links = preferred_links.users ;
-      //TBD supp_tutor
+      //TBD supp_tutors
       key = Object.keys(pref_links)[0];
       if (pending.wanted_course.tutors.length > 0) {
         key = pending.wanted_course.tutors[0] ;
@@ -2201,7 +2167,7 @@ function show_detailed_courses(cours) {
     tutinfo.name = 'Pas de prof attitré·e';
   }
   
-  // TBD supp_tutor
+  // TBD supp_tutors
   let tutor = null ;
   if (cours.tutors.length > 0) {
     tutor = cours.tutors[0] ;

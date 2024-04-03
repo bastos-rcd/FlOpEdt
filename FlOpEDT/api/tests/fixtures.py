@@ -1,16 +1,17 @@
 import pytest
+
 from base.models import (
+    CourseType,
     Department,
-    Course,
-    ScheduledCourse,
-    Week,
     Module,
     StructuralGroup,
-    TrainingProgramme,
     TrainingPeriod,
-    CourseType,
+    TrainingProgramme,
+    SchedulingPeriod,
 )
-from people.models import Tutor, UserDepartmentSettings, FullStaff, SupplyStaff
+from people.models import SupplyStaff, Tutor, UserDepartmentSettings
+
+# pylint: disable=unused-argument,redefined-outer-name
 
 
 @pytest.fixture
@@ -61,8 +62,14 @@ def basic_group_a(
 
 
 @pytest.fixture
-def week_2021_11(db, department_a: Department) -> Week:
-    return Week.objects.create(nb=11, year=2021)
+def week_2021_11(db, department_a: Department) -> SchedulingPeriod:
+    return SchedulingPeriod.objects.create(
+        name="W2021-11",
+        mode="w",
+        departlent=department_a,
+        start_date="2021-03-15",
+        end_date="2021-03-21",
+    )
 
 
 @pytest.fixture

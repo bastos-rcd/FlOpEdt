@@ -1,13 +1,15 @@
 import rest_framework.serializers as rf_s
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, viewsets
 
-from drf_spectacular.utils import extend_schema
-
-from . import serializers
 import base.models as bm
 
+from . import serializers
 
-class TimetableVersionQueryParamsSerializer(rf_s.Serializer):
+
+class TimetableVersionQueryParamsSerializer(  # pylint: disable=abstract-method
+    rf_s.Serializer
+):
     from_date = rf_s.DateField()
     to_date = rf_s.DateField()
     dept_id = rf_s.IntegerField(required=False)
@@ -23,11 +25,13 @@ class TimetableVersionViewSet(viewsets.ReadOnlyModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return bm.TimetableVersion.objects.none()
 
-        qp_serializer = TimetableVersionQueryParamsSerializer(data=self.request.query_params)
+        qp_serializer = TimetableVersionQueryParamsSerializer(
+            data=self.request.query_params
+        )
         qp_serializer.is_valid(raise_exception=True)
         qp_params = qp_serializer.validated_data
 
-        params = dict()
+        params = {}
         params["period__start_date__gte"] = qp_params.pop("from_date")
         params["period__end_date__lte"] = qp_params.pop("to_date")
         if "dept_id" in params:
