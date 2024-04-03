@@ -35,7 +35,9 @@ routerPeople.register(
 routerPeople.register(r"tutor", views.TutorViewSet, basename="tutor")
 routerPeople.register(r"supplystaff", views.SupplyStaffsViewSet)
 routerPeople.register(r"students", views.StudentsViewSet)
-routerPeople.register(r"studentsinfo", views.StudentInfoViewSet)
+routerPeople.register(
+    r"studentsinfo", views.StudentInfoViewSet, basename="student-info"
+)
 # routerPeople.register(r'coursepreferences', views_preferences.CoursePreferencesViewSet)
 
 url_user_patterns = [
