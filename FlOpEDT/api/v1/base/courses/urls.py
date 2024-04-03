@@ -34,7 +34,7 @@ routerCourse.register(
 routerCourse.register(
     r"scheduled_courses__human",
     courses_views.ScheduledCoursesHumanParamViewSet,
-    basename="scheduled_courses",
+    basename="scheduled_courses_human",
 )
 
 routerCourse.register(r"module", courses_views.ModuleViewSet, basename="module")
