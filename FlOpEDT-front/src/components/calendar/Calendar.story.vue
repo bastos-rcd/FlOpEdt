@@ -10,6 +10,8 @@
         :workcopy="3"
         :interval-minutes="15"
         :is-in-edit="false"
+        calendar-type="month"
+        :weekdays-string="['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']"
         @dragstart="onDragStart"
       />
     </Variant>
@@ -23,6 +25,8 @@
         :workcopy="3"
         :interval-minutes="60"
         :is-in-edit="false"
+        calendar-type="month"
+        :weekdays-string="['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']"
         @dragstart="onDragStart"
         @weekdays="(wd: number[]) => (weekdays = wd)"
       />
@@ -36,6 +40,8 @@
         :workcopy="3"
         :interval-minutes="30"
         :is-in-edit="true"
+        calendar-type="month"
+        :weekdays-string="['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']"
         @dragstart="onDragStart"
       />
     </Variant>
@@ -50,6 +56,8 @@
         :workcopy="3"
         :interval-minutes="15"
         :is-in-edit="true"
+        calendar-type="month"
+        :weekdays-string="['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']"
         @dragstart="onDragStart"
       />
     </Variant>
