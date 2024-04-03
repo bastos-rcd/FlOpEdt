@@ -41,7 +41,7 @@ routerTTapp.register(
     r"constraint", views.FlopConstraintListViewSet, basename="constraint"
 )
 routerTTapp.register(
-    "constraint/(?P<name>\w+)", views.FlopConstraintViewSet, basename="constraint"
+    "constraint/(?P<name>\w+)", views.FlopConstraintViewSet, basename="constraint-name"
 )
 routerTTapp.register(
     r"constraint_types", views.FlopConstraintTypeViewSet, basename="constraint_types"
@@ -52,5 +52,5 @@ routerTTapp.register(
     views.FlopConstraintFieldViewSet,
     basename="constraints_fields",
 )
-routerTTapp.register("docu/(?P<name>\w+\.\D{1,4})", views.FlopDocVisu, basename="")
-routerTTapp.register("images/(?P<name>\w+\.\D{1,4})", views.FlopImgVisu, basename="")
+routerTTapp.register("docu/(?P<name>\w+\.\D{1,4})", views.FlopDocVisu, basename="docu")
+routerTTapp.register("images/(?P<name>\w+\.\D{1,4})", views.FlopImgVisu, basename="img")
