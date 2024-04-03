@@ -15,6 +15,7 @@ export const usePermanentStore = defineStore('permanent', () => {
   const loadingError = ref<Error | null>(null)
   const departmentStore = useDepartmentStore()
   const timeSettings: Ref<Map<number, TimeSetting>> = ref(new Map<number, TimeSetting>())
+  const calendarType: Ref<string> = ref('week')
   const areTimeSettingsFetched = ref<boolean>(false)
   const modulesSelected = ref<Module[]>([])
   const moduleColor = computed(() => {
@@ -141,5 +142,6 @@ export const usePermanentStore = defineStore('permanent', () => {
     timeSettings,
     intervalMinutes,
     modulesSelected,
+    calendarType,
   }
 })

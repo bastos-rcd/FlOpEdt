@@ -11,7 +11,7 @@
       v-model="selectedDate"
       :locale="locale"
       :selected-dates="selectedDates"
-      :view="typeCalendar"
+      :view="calendarTypeModel"
       bordered
       hoverable
       animated
@@ -194,6 +194,7 @@ const props = defineProps<{
   intervalMinutes: number
   isInEdit: boolean
   weekdaysString: string[]
+  calendarType: string
 }>()
 
 const emits = defineEmits<{
@@ -204,6 +205,7 @@ const emits = defineEmits<{
   (e: 'event:details', value: number): void
   (e: 'update:event', value: InputCalendarEvent): void
   (e: 'delete:event', value: number): void
+  (e: 'update:calendarType', value: string): void
 }>()
 
 const preWeight = computed(() => {
@@ -274,7 +276,14 @@ const weekdays = computed(() => {
   })
 })
 const selectedDates = ref<string[]>([today()])
-const typeCalendar = ref<string>('week')
+const calendarTypeModel = computed({
+  get() {
+    return props.calendarType
+  },
+  set(v: string) {
+    emits('update:calendarType', v)
+  },
+})
 const dayStart = ref<{ min: number; max: number }>()
 
 watch(dayStart, () => {
@@ -285,9 +294,9 @@ watch(dayStart, () => {
       else newValue.push(i)
     }
   if (weekdays.value.length === 1) {
-    typeCalendar.value = 'day'
+    calendarTypeModel.value = 'day'
   } else {
-    typeCalendar.value = 'week'
+    calendarTypeModel.value = 'week'
   }
   const newSelectedDates = []
   let now_date = parseTimestamp(selectedDate.value)

@@ -8,6 +8,7 @@
         v-model:availChecked="availabilityToggle"
         v-model:isInEdit="isInEditMode"
         v-model:tutor-as="tutorSelectedForAvail"
+        v-model:calendar-type="calendarTypeModel"
         :rooms="roomsFetched"
         :tutors="tutors"
         :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)"
@@ -18,6 +19,7 @@
     <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
       <Calendar
         v-model:events="calendarEvents"
+        v-model:calendar-type="calendarTypeModel"
         :columns="columnsToDisplay"
         :dropzones="dropzonesToDisplay"
         :start-of-day="timeSettings.get(current.id)!.dayStartTime"
@@ -101,7 +103,7 @@ const { daysSelected, calendarEvents, dropzonesIds } = storeToRefs(eventStore)
 const { roomsFetched } = storeToRefs(roomStore)
 const { tutors } = storeToRefs(tutorStore)
 const { fetchedStructuralGroups } = storeToRefs(groupStore)
-const { timeSettings, intervalMinutes } = storeToRefs(permanentStore)
+const { timeSettings, intervalMinutes, calendarType } = storeToRefs(permanentStore)
 const selectedGroups = ref<Group[]>([])
 const dropzonesToDisplay = ref<CalendarEvent[]>([])
 const isInEditMode = ref<boolean>(false)
@@ -110,6 +112,14 @@ const sunday = ref<Timestamp>()
 const monday = ref<Timestamp>()
 const workcopySelected = ref<number>(-1)
 const tutorSelectedForAvail = ref<User>()
+const calendarTypeModel = computed({
+  get() {
+    return calendarType.value
+  },
+  set(v: string) {
+    calendarType.value = v
+  },
+})
 
 watch(selectedGroups, () => {
   groupStore.clearSelected()

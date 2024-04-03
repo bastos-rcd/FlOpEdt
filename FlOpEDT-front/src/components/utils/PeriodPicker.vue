@@ -4,9 +4,11 @@ import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 const props = defineProps<{
   toggled: string[]
+  calendarType: string
 }>()
 const emits = defineEmits<{
   (e: 'update:days', v: string[]): void
+  (e: 'update:calendarType', v: string): void
 }>()
 const open = ref(false)
 const toggledModel = computed({
@@ -14,7 +16,18 @@ const toggledModel = computed({
     return props.toggled
   },
   set(value: string[]) {
+    if (value.length === 0) {
+      value.push('mo')
+    }
     emits('update:days', value)
+  },
+})
+const calendarTypeModel = computed({
+  get() {
+    return props.calendarType
+  },
+  set(value: string) {
+    emits('update:calendarType', value)
   },
 })
 
@@ -28,6 +41,14 @@ function handleClick(days: string[]) {
 
 <template>
   <CollapsibleRoot v-model:open="open">
+    <div>
+      <button class="ChoiceButtons" @click="calendarTypeModel = 'month'">
+        {{ $t('periodPicker.typeMonth') }}
+      </button>
+      <button class="ChoiceButtons" @click="calendarTypeModel = 'week'">
+        {{ $t('periodPicker.typeWeek') }}
+      </button>
+    </div>
     <div class="ChoiceButtons">
       <button @click="handleClick(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'])">
         {{ $t('periodPicker.allWeek') }}

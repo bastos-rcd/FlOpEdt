@@ -2,7 +2,7 @@
   <div class="side-panel" :class="{ open: authStore.sidePanelToggle }">
     <div class="SelectDays">
       <Separator class="Separator" />
-      <PeriodPicker v-model:toggled="weekdaysModel" />
+      <PeriodPicker v-model:toggled="weekdaysModel" v-model:calendar-type="calendarTypeModel" />
     </div>
     <div>
       <h3>{{ $t('side.availabilityTitle') }}</h3>
@@ -20,23 +20,27 @@
       <h3>{{ $t('side.editModeTitle') }}</h3>
       <Separator class="Separator" orientation="horizontal" />
       <div class="avail-div">
-        <CheckboxRoot v-model:checked="editCheckBox" class="CheckboxRoot" :default-checked="editCheckBox">
-          <CheckboxIndicator class="CheckboxIndicator">
-            <Icon icon="iconoir:check"></Icon>
-          </CheckboxIndicator>
-        </CheckboxRoot>
-        {{ $t('side.editModeLabel') }}
-        <div class="RevertButton">
-          <span>Revert Changes</span>
-          <button :disabled="!revert" @click="handleClick"><Icon icon="iconoir:undo-circle" /></button>
-        </div>
-        <FilterSelector
-          v-model:selectedItems="tutorAsModel"
-          :multiple="false"
-          :items="props.tutors.filter((user) => user.id !== authStore.getUser.id)"
-          :filter-selector-undefined-label="$t('side.choseTutorAvail')"
-          item-variable-name="username"
-        />
+        <CollapsibleRoot v-model:open="editCheckBox">
+          <div style="display: flex; flex-direction: column; align-items: center">
+            <CollapsibleTrigger class="CollapsibleTrigger">
+              <Icon v-if="editCheckBox" icon="iconoir:check"></Icon>
+            </CollapsibleTrigger>
+            {{ $t('side.editModeLabel') }}
+          </div>
+          <CollapsibleContent>
+            <div class="RevertButton">
+              <span>Revert Changes</span>
+              <button :disabled="!revert" @click="handleClick"><Icon icon="iconoir:undo-circle" /></button>
+            </div>
+            <FilterSelector
+              v-model:selectedItems="tutorAsModel"
+              :multiple="false"
+              :items="props.tutors.filter((user) => user.id !== authStore.getUser.id)"
+              :filter-selector-undefined-label="$t('side.choseTutorAvail')"
+              item-variable-name="username"
+            />
+          </CollapsibleContent>
+        </CollapsibleRoot>
       </div>
     </div>
     <div class="workcopy-div">
@@ -162,6 +166,9 @@ import {
   RadioGroupItem,
   RadioGroupIndicator,
   Separator,
+  CollapsibleContent,
+  CollapsibleRoot,
+  CollapsibleTrigger,
 } from 'radix-vue'
 import { Icon } from '@iconify/vue'
 import { useAuth } from '@/stores/auth'
@@ -220,6 +227,14 @@ const tutorAsModel = computed({
     emits('update:tutorAs', v)
   },
 })
+const calendarTypeModel = computed({
+  get() {
+    return props.calendarType
+  },
+  set(v: string) {
+    emits('update:calendarType', v)
+  },
+})
 const { roomsSelected, tutorsSelected, colorSelect, courseTypesSelected } = storeToRefs(eventStore)
 const { modules, modulesSelected } = storeToRefs(permanentStore)
 const { groupsSelected } = storeToRefs(groupStore)
@@ -234,6 +249,7 @@ const props = defineProps<{
   isInEdit: boolean
   weekdays: string[]
   tutorAs: User | undefined
+  calendarType: string
 }>()
 const emits = defineEmits<{
   (e: 'update:availChecked', v: boolean): void
@@ -243,6 +259,7 @@ const emits = defineEmits<{
   (e: 'update:isInEdit', v: boolean): void
   (e: 'update:weekdays', v: string[]): void
   (e: 'update:tutorAs', v: User | undefined): void
+  (e: 'update:calendarType', v: string): void
 }>()
 
 function handleClick() {
@@ -283,7 +300,11 @@ h3 {
 .CheckboxRoot:focus {
   box-shadow: 0 0 0 2px white;
 }
-
+.CollapsibleTrigger {
+  padding: 0;
+  width: 30px;
+  height: 30px;
+}
 .CheckboxIndicator {
   color: rgb(120, 120, 50);
 }

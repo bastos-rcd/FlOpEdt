@@ -94,6 +94,8 @@
   },
   "periodPicker": {
     "allWeek": "Semaine entière",
-    "mondayToFriday": "Lundi-Vendredi"
+    "mondayToFriday": "Lundi-Vendredi",
+    "typeMonth": "mois",
+    "typeWeek": "semaine"
   }
 }

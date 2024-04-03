@@ -94,6 +94,8 @@
   },
   "periodPicker": {
     "allWeek": "",
-    "mondayToFriday": ""
+    "mondayToFriday": "",
+    "typeMonth": "",
+    "typeWeek": ""
   }
 }
