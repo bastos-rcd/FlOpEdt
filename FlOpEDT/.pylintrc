@@ -8,6 +8,7 @@ disable=
     C0116, #(missing-function-docstring)
     R0903, #(too-few-public-methods)
     R0901, #(too-many-ancestors), native in Django.....
+    ###### To be removed ######
     C0302, #(too-many-lines)
     R0912, #(too-many-branches),
     R0913, #(too-many-arguments),

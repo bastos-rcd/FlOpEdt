@@ -36,7 +36,7 @@ def are_all_flop_constraints_satisfied_for(
     period: SchedulingPeriod,
     version: TimetableVersion,
     strong_constraints_only: bool = False,
-    active_only: bool = True,
+    active_constraints_only: bool = True,
 ):
     errors = []
     for cl in all_subclasses(FlopConstraint):
@@ -45,7 +45,7 @@ def are_all_flop_constraints_satisfied_for(
         )
         if strong_constraints_only:
             considered_objects = considered_objects.filter(weight=None)
-        if active_only:
+        if active_constraints_only:
             considered_objects = considered_objects.filter(is_active=True)
         for a in considered_objects:
             try:
