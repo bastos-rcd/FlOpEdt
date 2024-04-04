@@ -57,6 +57,8 @@ import {
   updateFormatted,
   updateMinutes,
   parsed,
+  getStartOfMonth,
+  getEndOfMonth,
 } from '@quasar/quasar-ui-qcalendar'
 import { filter } from 'lodash'
 import { useRoomStore } from '@/stores/timetable/room'
@@ -108,8 +110,8 @@ const selectedGroups = ref<Group[]>([])
 const dropzonesToDisplay = ref<CalendarEvent[]>([])
 const isInEditMode = ref<boolean>(false)
 const daysToDisplay = ref<string[]>(['mo', 'tu', 'we', 'th', 'fr'])
-const sunday = ref<Timestamp>()
-const monday = ref<Timestamp>()
+const last = ref<Timestamp>()
+const first = ref<Timestamp>()
 const workcopySelected = ref<number>(-1)
 const tutorSelectedForAvail = ref<User>()
 const calendarTypeModel = computed({
@@ -128,8 +130,8 @@ watch(selectedGroups, () => {
 
 watch(tutorSelectedForAvail, () => {
   if (tutorSelectedForAvail.value)
-    fetchAvailCurrentWeek(makeDate(monday.value!), makeDate(sunday.value!), tutorSelectedForAvail.value.id)
-  else fetchAvailCurrentWeek(makeDate(monday.value!), makeDate(sunday.value!))
+    fetchCurrentAvail(makeDate(first.value!), makeDate(last.value!), tutorSelectedForAvail.value.id)
+  else fetchCurrentAvail(makeDate(first.value!), makeDate(last.value!))
 })
 
 function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
@@ -162,22 +164,49 @@ function onDragStart(eventId: number, allEvents: CalendarEvent[]) {
   }
 }
 
-function fetchScheduledCurrentWeek(from: Date, to: Date) {
+function fetchCurrentScheduled(from: Date, to: Date) {
   void scheduledCourseStore.fetchScheduledCourses(from, to, -1, deptStore.current)
 }
 
-function fetchAvailCurrentWeek(from: Date, to: Date, tutorId?: number) {
+function fetchCurrentAvail(from: Date, to: Date, tutorId?: number) {
   void availabilityStore.fetchUserAvailabilitiesBack(tutorId ? tutorId : authStore.getUser.id, from, to)
 }
 
 function changeDate(newDate: Timestamp) {
-  monday.value = updateFormatted(getStartOfWeek(newDate, [1, 2, 3, 4, 5, 6, 0]))
-  sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
-  fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
-  fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
-  let currentDate = copyTimestamp(monday.value)
+  if (calendarTypeModel.value === 'week') {
+    first.value = updateFormatted(getStartOfWeek(newDate, [1, 2, 3, 4, 5, 6, 0]))
+    last.value = updateFormatted(getEndOfWeek(first.value, [1, 2, 3, 4, 5, 6, 0]))
+  } else if (calendarTypeModel.value === 'month') {
+    first.value = updateFormatted(getStartOfMonth(newDate))
+    last.value = updateFormatted(getEndOfMonth(newDate))
+  }
+  fetchCurrentScheduled(makeDate(first.value!), makeDate(last.value!))
+  fetchCurrentAvail(makeDate(first.value!), makeDate(last.value!))
+  let currentDate = copyTimestamp(first.value!)
   daysSelected.value = []
-  while (currentDate.weekday !== sunday.value.weekday) {
+  while (currentDate.date !== last.value!.date) {
+    daysSelected.value.push(copyTimestamp(currentDate))
+    currentDate = updateFormatted(nextDay(currentDate))
+  }
+}
+
+watch(calendarTypeModel, () => {
+  if (calendarTypeModel.value === 'week') {
+    fetchCurrentScheduled(makeDate(first.value!), makeDate(last.value!))
+    fetchCurrentAvail(makeDate(first.value!), makeDate(last.value!))
+  } else if (calendarTypeModel.value === 'month') {
+    first.value = updateFormatted(getStartOfMonth(first.value!))
+    last.value = updateFormatted(getEndOfMonth(last.value!))
+    fetchCurrentScheduled(makeDate(first.value), makeDate(last.value))
+    fetchCurrentAvail(makeDate(first.value), makeDate(last.value))
+    updateDaysSelected()
+  }
+})
+
+function updateDaysSelected() {
+  let currentDate = copyTimestamp(first.value!)
+  daysSelected.value = []
+  while (currentDate.date !== last.value!.date) {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
   }
@@ -271,18 +300,23 @@ function handleUpdateEvents(newCalendarEvents: InputCalendarEvent[]): void {
  */
 onBeforeMount(() => {
   let todayDate: Timestamp = updateFormatted(parsed(today()) as Timestamp)
-  monday.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
-  sunday.value = updateFormatted(getEndOfWeek(monday.value, [1, 2, 3, 4, 5, 6, 0]))
-  let currentDate = copyTimestamp(monday.value)
+  if (calendarTypeModel.value === 'week') {
+    first.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
+    last.value = updateFormatted(getEndOfWeek(first.value, [1, 2, 3, 4, 5, 6, 0]))
+  } else if (calendarTypeModel.value === 'month') {
+    first.value = updateFormatted(getStartOfMonth(todayDate))
+    last.value = updateFormatted(getEndOfMonth(todayDate))
+  }
+  let currentDate = copyTimestamp(first.value!)
   daysSelected.value = []
-  while (currentDate.weekday !== sunday.value.weekday) {
+  while (currentDate.date !== last.value!.date) {
     daysSelected.value.push(copyTimestamp(currentDate))
     currentDate = updateFormatted(nextDay(currentDate))
   }
   if (!deptStore.isCurrentDepartmentSelected) deptStore.getDepartmentFromURL()
   void groupStore.fetchGroups(deptStore.current)
-  fetchScheduledCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
-  fetchAvailCurrentWeek(makeDate(monday.value), makeDate(sunday.value))
+  fetchCurrentScheduled(makeDate(first.value!), makeDate(last.value!))
+  fetchCurrentAvail(makeDate(first.value!), makeDate(last.value!))
 })
 </script>
 
