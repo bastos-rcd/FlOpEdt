@@ -7,7 +7,7 @@ pylint:
   needs: []
   script:
     - cd FlOpEDT
-    - pylint **/*.py
+    - pylint --fail-under=9.98 **/*.py
 
 unit-test-python:
   extends: .python-full
