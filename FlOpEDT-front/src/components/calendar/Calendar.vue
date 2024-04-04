@@ -18,10 +18,10 @@
       transition-next="slide-left"
       transition-prev="slide-right"
       no-active-date
-      :interval-start="props.startOfDay / props.intervalMinutes - 1"
+      :interval-start="props.startOfDay / props.intervalMinutes"
       :interval-count="(props.endOfDay - props.startOfDay) / props.intervalMinutes + 2"
       :interval-minutes="props.intervalMinutes"
-      :interval-height="20"
+      :interval-height="intervalHeight"
       time-clicks-clamped
       :weekdays="weekdays"
       :drag-over-func="onDragOver"
@@ -56,7 +56,7 @@
         </div>
       </template>
 
-      <template #day-body="{ scope: { timestamp, timeStartPos } }">
+      <template #day-body="{ scope: { timestamp } }">
         <!-- events to display -->
         <template v-for="event in eventsByDate.get(timestamp.date)" :key="event.id">
           <template
@@ -77,14 +77,15 @@
                   badgeStyles(
                     event,
                     span,
-                    timeStartPos,
                     preWeight,
                     totalWeight,
                     props.columns,
-                    calendar!.timeDurationHeight,
                     closestStartTime,
                     currentTime,
-                    props.isInEdit
+                    props.isInEdit,
+                    intervalHeight,
+                    props.startOfDay / props.intervalMinutes,
+                    props.intervalMinutes
                   )
                 "
                 @mousedown="onMouseDown($event, event.id)"
@@ -218,6 +219,7 @@ const preWeight = computed(() => {
   return map
 })
 
+const intervalHeight = ref<number>(30)
 const calendar: Ref<QCalendar | null> = ref(null)
 /**
  * QCalendar DATA TO DISPLAY

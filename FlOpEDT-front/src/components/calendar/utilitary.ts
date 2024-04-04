@@ -9,7 +9,6 @@ import {
   updateFormatted,
   updateMinutes,
   diffTimestamp,
-  Timestamp,
 } from '@quasar/quasar-ui-qcalendar'
 import { useScheduledCourseStore } from '@/stores/timetable/course'
 import { Course } from '@/stores/declarations'
@@ -97,30 +96,42 @@ export function updateEventsOverlap(events: CalendarEvent[]): CalendarEvent[] {
   return newEvents
 }
 
+function eventTopAttribute(
+  event: CalendarEvent,
+  intervalHeight: number,
+  intervalStart: number,
+  intervalMinutes: number
+): number {
+  const startEvent = parseTime(event.data.start)
+  return Math.floor((startEvent - intervalStart * 15) / intervalMinutes) * (intervalHeight + 1)
+}
+
+function eventHeightAttribute(event: CalendarEvent, intervalHeight: number, intervalMinutes: number): number {
+  return (event.data.duration! / intervalMinutes) * (intervalHeight + 1)
+}
+
 export function badgeStyles(
   event: CalendarEvent,
   span: { istart: number; weight: number; columnIds: number[] },
-  timeStartPos: (arg0: Timestamp) => number,
   preWeight: Record<number, number>,
   totalWeight: number,
   columns: CalendarColumn[],
-  timeDurationHeight: (arg0: number | undefined) => number,
   closestStartTime: string,
   currentTime: TimestampOrNull,
-  isInEdit: boolean = false
+  isInEdit: boolean = false,
+  intervalHeight: number,
+  intervalStart: number,
+  intervalMinutes: number
 ) {
   const preceedingWeight = preWeight[columns[span.istart].id]
-
   const s: Record<string, string> = {
     top: '',
     height: '',
   }
-  if (timeStartPos) {
-    s.top = timeStartPos(event.data?.start) + 'px'
-    s.left = Math.round((preceedingWeight / totalWeight) * 100) + '%'
-    s.width = Math.round((100 * span.weight) / totalWeight) + '%'
-    s.height = timeDurationHeight(event.data?.duration) + 'px'
-  }
+  s.top = eventTopAttribute(event, intervalHeight, intervalStart, intervalMinutes) + 'px'
+  s.left = Math.round((preceedingWeight / totalWeight) * 100) + '%'
+  s.width = Math.round((100 * span.weight) / totalWeight) + '%'
+  s.height = eventHeightAttribute(event, intervalHeight, intervalMinutes) + 'px'
   if (event.data.dataType === 'dropzone') {
     s['background-color'] = 'transparent'
   } else {
