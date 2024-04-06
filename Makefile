@@ -71,6 +71,9 @@ init: ## Initialize database with basic datas contained in dump.json for tests p
 		-e START_SERVER=off \
 		backend
 
+install-node-deps: ## Hacky script to install node dependencies on the host machine through Docker
+	docker compose -f docker-compose.development.yml run --entrypoint "yarn --frozen-lockfile" vue
+
 build-vue: ## builds edt's vuejs service
 	docker compose -f docker-compose.production.yml --profile vue up
 
@@ -83,12 +86,10 @@ build: ## builds edt's docker services
 
 
 start: ## starts edt's docker services
-	stop
 	docker compose -f docker-compose.$(CONFIG).yml --profile full up -d
 
 
 start_verbose: ## starts edt's docker services in terminal
-	stop
 	docker compose -f docker-compose.$(CONFIG).yml --profile full up
 
 

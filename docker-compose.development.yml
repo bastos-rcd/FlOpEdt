@@ -12,7 +12,7 @@ services:
     volumes:
       - flop-db-data:/var/lib/postgresql/data
     # ports:
-    #   - "5432:5432"
+    #   - "5432:5432"
 
   redis:
     image: redis:latest
@@ -28,7 +28,7 @@ services:
         CONFIG: development
     profiles:
       - full
-    env_file: 
+    env_file:
       - ./docker/env/db.env
       - ./docker/env/web.env
     environment:
@@ -41,7 +41,7 @@ services:
       - EMAIL_HOST=maildev
       - EMAIL_PORT=1025
       - POSTGRES_HOST=db
-    entrypoint: /code/docker/script/init.sh      
+    entrypoint: /code/docker/script/init.sh
     volumes:
       - .:/code
       - ./config_file:/etc/flopedt
@@ -64,9 +64,9 @@ services:
     ports:
       - "5173:5173"
     # - "8080:8000"
-    entrypoint: ["yarn", "dev", "--host"]
+    entrypoint: [ "yarn", "dev", "--host" ]
     # entrypoint: /code/docker/script/init-vue.sh
-    
+
   maildev:
     image: maildev/maildev:2.1.0
     profiles:
