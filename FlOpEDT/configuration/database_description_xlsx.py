@@ -375,13 +375,13 @@ def parse_settings(sheet):
         val = parse_time(sheet, row + 4, col + 1)
         result["afternoon_start_time"] = val
 
-    days = []
+    weekdays = []
     row, col = find_marker_cell(sheet, "Jours ouvrables")
     if row is not None:
         for index, choice in enumerate(Day.CHOICES):
             if parse_string(sheet, row + 2, col + index) != "":
-                days.append(choice[0])
-    result["days"] = days
+                weekdays.append(choice[0])
+    result["weekdays"] = weekdays
 
     row, col = find_marker_cell(sheet, "Modes")
     visio_mode_str = parse_string(sheet, row + 1, col)
@@ -626,10 +626,10 @@ def database_description_save_xlsx_file(filename, database_dict):
     )
 
     row, col = find_marker_cell(sheet, "Jours ouvrables")
-    days = database_dict["settings"]["days"]
+    weekdays = database_dict["settings"]["weekdays"]
     cols = {"m": 0, "tu": 1, "w": 2, "th": 3, "f": 4, "sa": 5, "su": 6}
-    for day, delta in cols.items():
-        if day in days:
+    for weekday, delta in cols.items():
+        if weekday in weekdays:
             sheet.cell(row=row + 2, column=col + delta, value="X")
         else:
             sheet.cell(row=row + 2, column=col + delta, value=None)

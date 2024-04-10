@@ -215,7 +215,7 @@ def read_planif_scheduling_period(
 
             all_comments = comments + local_comments
 
-            if isinstance(groups_names, int, float):
+            if isinstance(groups_names, (int, float)):
                 groups_names = str(int(groups_names))
             if not groups_names:
                 groups_names = []

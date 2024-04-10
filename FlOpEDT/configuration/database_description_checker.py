@@ -78,7 +78,7 @@
 #   - 'day_start_time', 'day_end_time', 'morning_start_time' and
 #     'afternoon_start_time' : integers with explicit meaning
 #
-#   - 'days': a list of strings among 'm', 'tu', 'w', 'th', 'f', 'sa'
+#   - 'weekdays': a list of strings among 'm', 'tu', 'w', 'th', 'f', 'sa'
 #     and 'su' (fixme)
 #
 #   - 'periods': a dictionary where a key is a period identifier, and
@@ -310,7 +310,7 @@ def check_settings(settings):
         "day_end_time",
         "morning_end_time",
         "afternoon_start_time",
-        "days",
+        "weekdays",
         "training_periods",
         "mode",
     }:
@@ -334,11 +334,13 @@ def check_settings(settings):
             "Afternoon start time in settings",
         )
     )
-    if isinstance(settings["days"], list):
-        if not set(settings["days"]).issubset({"m", "tu", "w", "th", "f", "sa", "su"}):
-            result.append("D: the days in settings contain invalid values")
+    if isinstance(settings["weekdays"], list):
+        if not set(settings["weekdays"]).issubset(
+            {"m", "tu", "w", "th", "f", "sa", "su"}
+        ):
+            result.append("D: the weekdays in settings contain invalid values")
     else:
-        result.append("D: the days in settings should be a 'set'")
+        result.append("D: the weekdays in settings should be a 'set'")
 
     if isinstance(settings["training_periods"], dict):
         for id_, val in settings["training_periods"].items():
@@ -516,9 +518,9 @@ def check_settings_sheet(database_dict):
             )
 
     #
-    # check days
+    # check weekdays
     #
-    if len(database_dict["settings"]["days"]) == 0:
+    if len(database_dict["settings"]["weekdays"]) == 0:
         result.append(f"Aucun jour ouvrable déclaré dans '{SETTINGS_SHEET}'")
 
     #
