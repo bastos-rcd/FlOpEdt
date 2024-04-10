@@ -102,19 +102,19 @@ def read_planif_scheduling_period(
     ).delete()
     after_type_dependencies = []
     # lookup period column
-
+    short_period_name = period.name.split("-")[0]
     wc = 7
     for wr in [1]:
         while wc < 100:
             wc += 1
-            short_period_name = sheet.cell(row=wr, column=wc).value
-            if short_period_name is None or short_period_name == "VERIF":
-                print(f"Pas de période {period.name} en {sheet_name}")
+            col_period_name = sheet.cell(row=wr, column=wc).value
+            if col_period_name is None or col_period_name == "VERIF":
+                print(f"Pas de période {short_period_name} en {sheet_name}")
                 return
-            if period.name.startswith(short_period_name):
+            if short_period_name == col_period_name:
                 period_col = wc
                 break
-    print(f"Période {period.name} de {sheet_name} : colonne {period_col}")
+    print(f"Période {short_period_name} de {sheet_name} : colonne {period_col}")
 
     row = 4
     module_col = 1
@@ -151,7 +151,7 @@ def read_planif_scheduling_period(
                 nominal = int(courses_number)
                 if courses_number != nominal:
                     print(
-                        f"Valeur decimale ligne {row} de {sheet_name}, période {period.name} : "
+                        f"Valeur decimale ligne {row} de {sheet_name}, période {col_period_name} : "
                         f" on la met a 1 !"
                     )
                     nominal = 1
@@ -235,7 +235,7 @@ def read_planif_scheduling_period(
             )
             if not groups:
                 raise ValueError(
-                    f"Group(s) do(es) not exist {row}, period {period.name} of {sheet_name}\n"
+                    f"Group(s) do(es) not exist {row}, period {col_period_name} of {sheet_name}\n"
                 )
 
             courses_number = int(courses_number)
@@ -341,7 +341,7 @@ def read_planif_scheduling_period(
 
         except Exception as e:
             raise ValueError(
-                f"Exception ligne {row}, période {period.name} de {sheet_name}: {e} \n"
+                f"Exception ligne {row}, période {col_period_name} de {sheet_name}: {e} \n"
             ) from e
 
     # Add after_type dependecies
