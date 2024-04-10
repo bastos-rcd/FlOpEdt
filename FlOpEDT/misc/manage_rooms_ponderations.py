@@ -78,21 +78,21 @@ def register_ponderations_in_database(
     RoomPonderation.objects.filter(department=department).delete()
     room_types_query_set = RoomType.objects.filter(department=department)
     room_types_to_update = room_types_query_set
+
     if only_used_room_types:
         room_types_to_update = room_types_query_set.exclude(course__isnull=True)
 
-    for rtswp, ponderations in room_types_subsets_with_ponderations_for_constraints(
+    rtswpfc = room_types_subsets_with_ponderations_for_constraints(
         all_room_types_subsets_with_corresponding_basic_rooms(room_types_to_update)
-    ).items():
+    )
+
+    for rtswp, ponderations in rtswpfc.items():
         room_ponderation = RoomPonderation.objects.create(
             department=department, room_types=[rt.id for rt in rtswp]
         )
         room_ponderation.ponderations = ponderations
         room_ponderation.save()
-    print(
-        f"{len(room_types_subsets_with_ponderations_for_constraints)} "
-        "rooms ponderations created in database"
-    )
+    print(f"{len(rtswpfc)} rooms ponderations created in database")
     if delete_unused_room_types:
         room_types_to_delete = room_types_query_set.filter(course__isnull=True)
         room_types_to_delete.delete()
