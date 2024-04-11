@@ -112,7 +112,7 @@ class ConstraintManager:
         return occurs
 
     def set_index_courses(self):
-        courses = list(self.occurs["courses"].keys())
+        courses = self.occurs["courses"]
 
         for index_course1, course1 in enumerate(courses):
             for index_course2 in range(index_course1 + 1, len(courses)):

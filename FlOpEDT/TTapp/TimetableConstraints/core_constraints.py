@@ -958,19 +958,18 @@ class ConsiderTutorsUnavailability(TimetableConstraint):
             if tutor.username == "---":
                 continue
             for sl in ttmodel.data.availability_slots:
+                simultaneous_slots = slots_filter(
+                    ttmodel.data.courses_slots, simultaneous_to=sl
+                )
                 tutor_relevant_sum = ttmodel.sum(
                     ttmodel.assigned[(sl2, c2, tutor)]
-                    for sl2 in slots_filter(
-                        ttmodel.data.courses_slots, simultaneous_to=sl
-                    )
+                    for sl2 in simultaneous_slots
                     for c2 in ttmodel.data.possible_courses[tutor]
                     & ttmodel.data.compatible_courses[sl2]
                 )
                 supp_tutors_relevant_sum = ttmodel.sum(
                     ttmodel.scheduled[(sl2, c2)]
-                    for sl2 in slots_filter(
-                        ttmodel.data.courses_slots, simultaneous_to=sl
-                    )
+                    for sl2 in simultaneous_slots
                     for c2 in ttmodel.data.courses_for_supp_tutors[tutor]
                     & ttmodel.data.compatible_courses[sl2]
                 )
