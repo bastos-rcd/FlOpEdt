@@ -50,7 +50,7 @@ from pulp import (
     lpSum,
 )
 
-from base.models import Department, ScheduledCourse
+from base.models import Department, ScheduledCourse, SchedulingPeriod
 from core.decorators import timer
 from TTapp.flop_constraint import all_subclasses
 from TTapp.ilp_constraints.constraint import Constraint
@@ -90,7 +90,16 @@ class FlopModel:  # pylint: disable=too-many-instance-attributes, too-many-publi
     ):
         self.use_flop_vars = use_flop_vars
         self.department = Department.objects.get(abbrev=department_abbrev)
-        self.periods = periods
+        try:
+            iter(periods)
+        except TypeError as exc:
+            if isinstance(periods, SchedulingPeriod):
+                self.periods = [periods]
+            else:
+                raise TypeError("periods must be SchedulingPeriod or iterable") from exc
+        else:
+            self.periods = list(periods)
+
         self.model = LpProblem(self.solution_files_prefix(), LpMinimize)
         self.keep_many_solution_files = keep_many_solution_files
         self.var_nb = 0
