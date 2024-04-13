@@ -20,19 +20,20 @@
 # a commercial license. Buying such a license is mandatory as soon as
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
-from django.urls import include, path
 
-from api.v1.base.courses.urls import routerCourse
-from api.v1.base.groups.urls import routerGroup
-from api.v1.base.modification.urls import routerModification
-from api.v1.base.timing.urls import routerTiming
+from rest_framework import viewsets
 
-url_base_patterns = [
-    path("courses/", include((routerCourse.urls, "api"), namespace="course")),
-    path("groups/", include((routerGroup.urls, "api"), namespace="groups")),
-    path(
-        "modification/",
-        include((routerModification.urls, "api"), namespace="modifications"),
-    ),
-    path("timing/", include((routerTiming.urls, "api"), namespace="timing")),
-]
+from base.models import SchedulingPeriod
+from api.v1.base.timing.serializers import SchedulingPeriodSerializer
+
+from api.permissions import IsAdminOrReadOnly
+
+
+class SchedulingPeriodsViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet to see all the SchedulingPeriod
+    """
+
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = SchedulingPeriod.objects.all()
+    serializer_class = SchedulingPeriodSerializer
