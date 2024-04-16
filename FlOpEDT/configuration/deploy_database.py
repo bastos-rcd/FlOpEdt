@@ -75,12 +75,6 @@ def extract_database_file(
     department, created = Department.objects.get_or_create(
         name=department_name, abbrev=department_abbrev
     )
-    if created:
-        try:
-            admin = Tutor.objects.get(username="admin")
-            UserDepartmentSettings(user=admin, department=department).save()
-        except Tutor.DoesNotExist:
-            pass
 
     if not created:
         logger.info(
@@ -89,6 +83,7 @@ def extract_database_file(
             department_abbrev,
             department_name,
         )
+
     if book is None:
         if bookname is None:
             bookname = f"{ds.MEDIA_ROOT}/database_file_{department_abbrev}.xlsx"
