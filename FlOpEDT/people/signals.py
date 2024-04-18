@@ -36,6 +36,9 @@ from people.models import Tutor
 def create_tutor_default_availability(sender, instance, created, **kwargs):
     # pylint: disable=unused-argument
     if isinstance(instance, Tutor) and created:
+        # disable if instance comes from loaddata
+        if kwargs.get("raw") is True:
+            return
         for d in range(1, 8):
             UserAvailability.objects.create(
                 user=instance,

@@ -97,6 +97,9 @@ class User(AbstractUser):
             return self.themes_preference.theme
         return "White"
 
+    def natural_key(self):
+        return (self.username,)
+
     class Meta:
         ordering = [
             "username",
