@@ -31,13 +31,13 @@ from api.fetch.serializers import DepartmentAbbrevSerializer
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.User
-        fields = "__all__"
+        exclude = ("password",)
 
 
 class ShortUsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.User
-        fields = ("username", "first_name", "last_name", "email", "id")
+        fields = ("username", "first_name", "last_name", "email")
 
 
 class UserDepartmentSettingsSerializer(serializers.ModelSerializer):
@@ -63,13 +63,13 @@ class TutorUsernameSerializer(serializers.ModelSerializer):
 class SupplyStaffsSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.SupplyStaff
-        fields = "__all__"
+        exclude = ("password",)
 
 
 class StudentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.Student
-        fields = "__all__"
+        exclude = ("password",)
 
 
 class StudentPreferencesSerializer(serializers.Serializer):
