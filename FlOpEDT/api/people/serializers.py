@@ -31,7 +31,11 @@ from api.fetch.serializers import DepartmentAbbrevSerializer
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.User
+<<<<<<< Updated upstream
         fields = '__all__'
+=======
+        exclude = ("password",)
+>>>>>>> Stashed changes
 
 
 class ShortUsersSerializer(serializers.ModelSerializer):
@@ -63,13 +67,21 @@ class TutorUsernameSerializer(serializers.ModelSerializer):
 class SupplyStaffsSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.SupplyStaff
+<<<<<<< Updated upstream
         fields = '__all__'
+=======
+        exclude = ("password",)
+>>>>>>> Stashed changes
 
 
 class StudentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.Student
+<<<<<<< Updated upstream
         fields = '__all__'
+=======
+        exclude = ("password",)
+>>>>>>> Stashed changes
 
 
 class StudentPreferencesSerializer(serializers.Serializer):
