@@ -31,57 +31,45 @@ from api.fetch.serializers import DepartmentAbbrevSerializer
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.User
-<<<<<<< Updated upstream
-        fields = '__all__'
-=======
         exclude = ("password",)
->>>>>>> Stashed changes
 
 
 class ShortUsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.User
-        fields = ('username', 'first_name', 'last_name', 'email')
+        fields = ("username", "first_name", "last_name", "email")
 
 
 class UserDepartmentSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.UserDepartmentSettings
-        fields = '__all__'
+        fields = "__all__"
 
 
 class TutorSerializer(serializers.ModelSerializer):
     departments = DepartmentAbbrevSerializer(many=True)
+
     class Meta:
         model = pm.Tutor
-        fields = ['username', 'first_name', 'last_name', 'email',
-                  'departments']
+        fields = ["username", "first_name", "last_name", "email", "departments"]
 
 
 class TutorUsernameSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.Tutor
-        fields = ['username']
+        fields = ["username"]
 
 
 class SupplyStaffsSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.SupplyStaff
-<<<<<<< Updated upstream
-        fields = '__all__'
-=======
         exclude = ("password",)
->>>>>>> Stashed changes
 
 
 class StudentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.Student
-<<<<<<< Updated upstream
-        fields = '__all__'
-=======
         exclude = ("password",)
->>>>>>> Stashed changes
 
 
 class StudentPreferencesSerializer(serializers.Serializer):
@@ -91,13 +79,14 @@ class StudentPreferencesSerializer(serializers.Serializer):
 
     class Meta:
         model = pm.Preferences
-        fields = ['student', 'morning_weight', 'free_half_day_weight']
+        fields = ["student", "morning_weight", "free_half_day_weight"]
 
 
 class GroupPreferencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = pm.Preferences
-        fields = ['group', 'morning_weight', 'free_half_day_weight']
+        fields = ["group", "morning_weight", "free_half_day_weight"]
+
 
 class StudentInfoSerializer(serializers.Serializer):
     id = serializers.CharField()
@@ -123,6 +112,6 @@ class StudentInfoSerializer(serializers.Serializer):
 
     def get_groups(self, obj):
         if obj.generic_groups.exists():
-            return [{'id':g.id, 'name':g.name} for g in obj.generic_groups.all()]
+            return [{"id": g.id, "name": g.name} for g in obj.generic_groups.all()]
         else:
             return
