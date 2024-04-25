@@ -21,8 +21,10 @@
 # you develop activities involving the F*lOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+
+# pylint: disable=abstract-method, unused-argument, invalid-name, too-many-public-methods
+
 from rest_framework import serializers
-from base.timing import floptime_to_time
 from base.models import ScheduledCourse, Module, GenericGroup, Room
 from people.models import Tutor
 
@@ -79,23 +81,22 @@ class CelcatExportSerializer(serializers.Serializer):
             "sa": "Sat",
             "su": "Sun",
         }
-        return local_day_dict[obj.day]
+        return local_day_dict[obj.weekday]
 
     @sched_course_else_null
     def get__start_time(self, obj):
-        return floptime_to_time(obj.start_time).strftime("%H:%M")
+        return obj.in_day_start_time.strftime("%H:%M")
 
     @sched_course_else_null
     def get__end_time(self, obj):
-        return floptime_to_time(obj.end_time).strftime("%H:%M")
+        return obj.in_day_end_time.strftime("%H:%M")
 
     @sched_course_else_null
     def get__weeks(self, obj):
-        real_week_nb = obj.course.week.nb
+        real_week_nb = obj.week_number
         if real_week_nb < 34:
             return real_week_nb + 18
-        else:
-            return real_week_nb - 33
+        return real_week_nb - 33
 
     def get__event_name(self, obj):
         return ""

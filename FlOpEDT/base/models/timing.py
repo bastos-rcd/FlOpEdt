@@ -276,6 +276,10 @@ class Slot(models.Model):
     def apm(self):
         return Time.get_apm(self.start_time)
 
+    @property
+    def week_number(self):
+        return self.date.isocalendar()[1]
+
     def __str__(self):
         return (
             f"{self.date:%d/%m/%y}: "
