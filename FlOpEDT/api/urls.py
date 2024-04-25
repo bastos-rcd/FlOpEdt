@@ -41,6 +41,7 @@ from api.base.rooms.urls import routerRooms
 from api.base.urls import routerBase
 from api.fetch.urls import routerFetch
 from api.myflop.urls import routerMyFlop
+from api.celcat.urls import routerCelcat
 from api.people.urls import routerPeople
 from api.preferences.urls import routerPreferences
 from api.roomreservation.urls import routerRoomReservation
