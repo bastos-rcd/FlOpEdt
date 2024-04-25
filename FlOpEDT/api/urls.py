@@ -100,4 +100,5 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="api:schema"),
         name="swagger-ui",
     ),
+    path("celcat/", include((routerCelcat.urls, "api"), namespace="celcat")),
 ]
