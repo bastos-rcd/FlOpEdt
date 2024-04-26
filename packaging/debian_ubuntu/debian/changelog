@@ -1,3 +1,10 @@
+flopedt (0.5.7) unstable; urgency=medium
+
+  * celcat export 
+  * minor debugs
+
+ -- Pablo Seban <pablo@univ-tlse2.fr>  Fri, 26 Apr 2024 11:18:54 +0200
+
 flopedt (0.5.6) unstable; urgency=medium
 
   * ics with location

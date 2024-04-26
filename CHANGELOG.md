@@ -12,8 +12,15 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.6] -- 2024-??
+## [0.5.7] -- 2024-04-26
 **Note:** `0.5` is the last `0.*` version.
+### Changed
+- first celcat export try
+- remove passwords in public api
+- Debugs:
+  * minor fix in configuration
+
+## [0.5.6] -- 2024-02-17
 ### Changed
 - ics with location
 - margin between AM and PM when no breaking new declared
