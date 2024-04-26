@@ -26,13 +26,29 @@ from api.base.rooms import views
 
 routerRooms = routers.SimpleRouter()
 
-routerRooms.register(r'types', views.RoomTypesViewSet)
-routerRooms.register(r'names', views.RoomNameViewSet)
-routerRooms.register(r'room', views.RoomViewSet)
-routerRooms.register(r'all', views.RoomAllViewSet, basename='all')
-routerRooms.register(r'sorts', views.RoomSortsViewSet)
-routerRooms.register(r'attributes', views.RoomAttributeViewSet)
-routerRooms.register(r'booleanattributes', views.BooleanRoomAttributeViewSet)
-routerRooms.register(r'numericattributes', views.NumericRoomAttributeViewSet)
-routerRooms.register(r'booleanattributevalues', views.BooleanRoomAttributeValuesViewSet)
-routerRooms.register(r'numericattributevalues', views.NumericRoomAttributeValuesViewSet)
+routerRooms.register(r"types", views.RoomTypesViewSet, basename="roomtype")
+routerRooms.register(r"names", views.RoomNameViewSet, basename="roomname")
+routerRooms.register(r"room", views.RoomViewSet, basename="room")
+routerRooms.register(r"all", views.RoomAllViewSet, basename="all")
+routerRooms.register(r"sorts", views.RoomSortsViewSet, basename="sorts")
+routerRooms.register(r"attributes", views.RoomAttributeViewSet, basename="attributes")
+routerRooms.register(
+    r"booleanattributes",
+    views.BooleanRoomAttributeViewSet,
+    basename="booleanattributes",
+)
+routerRooms.register(
+    r"numericattributes",
+    views.NumericRoomAttributeViewSet,
+    basename="numericattributes",
+)
+routerRooms.register(
+    r"booleanattributevalues",
+    views.BooleanRoomAttributeValuesViewSet,
+    basename="booleanattributevalues",
+)
+routerRooms.register(
+    r"numericattributevalues",
+    views.NumericRoomAttributeValuesViewSet,
+    basename="numericattributevalues",
+)

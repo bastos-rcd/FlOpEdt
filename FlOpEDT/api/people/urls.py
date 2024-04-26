@@ -27,11 +27,19 @@ import api.preferences.views as views_preferences
 
 routerPeople = routers.SimpleRouter()
 
-routerPeople.register(r'users', views.UsersViewSet)
-routerPeople.register(r'userdepartmentsettings', views.UserDepartmentSettingsViewSet)
-routerPeople.register(r'tutor/username', views.TutorUsernameViewSet, basename='tutor_username')
-routerPeople.register(r'tutor', views.TutorViewSet, basename='tutor')
-routerPeople.register(r'supplystaff', views.SupplyStaffsViewSet)
-routerPeople.register(r'students', views.StudentsViewSet)
-routerPeople.register(r'studentsinfo', views.StudentInfoViewSet)
-#routerPeople.register(r'coursepreferences', views_preferences.CoursePreferencesViewSet)
+routerPeople.register(r"users", views.UsersViewSet)
+routerPeople.register(
+    r"userdepartmentsettings",
+    views.UserDepartmentSettingsViewSet,
+    basename="userdepartmentsettings",
+)
+routerPeople.register(
+    r"tutor/username", views.TutorUsernameViewSet, basename="tutor_username"
+)
+routerPeople.register(r"tutor", views.TutorViewSet, basename="tutor")
+routerPeople.register(r"supplystaff", views.SupplyStaffsViewSet, basename="supplystaff")
+routerPeople.register(r"students", views.StudentsViewSet, basename="students")
+routerPeople.register(
+    r"studentsinfo", views.StudentInfoViewSet, basename="student-info"
+)
+# routerPeople.register(r'coursepreferences', views_preferences.CoursePreferencesViewSet)
