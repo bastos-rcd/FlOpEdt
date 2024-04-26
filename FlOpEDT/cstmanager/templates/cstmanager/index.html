@@ -8,7 +8,7 @@
     <script>
         const department = "{{ dept }}";
         const urlAcceptableValues = "{% url 'api:ttapp:constraints_fields-list' %}";
-        const urlConstraints = "{% url 'api:ttapp:constraint-list' %}";
+        const urlConstraints = "{% url 'api:ttapp:all_constraints-list' %}";
         const urlDetailConstraint = "{% url 'api:ttapp:constraint-detail' 'a' 0 %}".replace('/a/0', '');
         const urlDepartments = "{% url 'api:fetch:dept-list' %}";
         const urlGroups = "{% url 'api:fetch:idgroup-list' %}";
