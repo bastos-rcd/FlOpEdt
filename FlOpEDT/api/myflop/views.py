@@ -23,7 +23,7 @@
 
 import datetime as dt
 
-from django.db.models import Case, Count, F, Q, When
+from django.db.models import Case, Count, F, When
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -101,9 +101,9 @@ class PayViewSet(viewsets.ViewSet):
 
     def list(self, request):
         param_exception = NotAcceptable(
-            detail=f"Usage : ?from=YYYY-MM-DD&to=YYYY-MM-DD"
-            f"&for=f_or_s_or_a where "
-            f"f : full staff ; s : supply staff ; a : all"
+            detail="Usage : ?from=YYYY-MM-DD&to=YYYY-MM-DD"
+            "&for=f_or_s_or_a where "
+            "f : full staff ; s : supply staff ; a : all"
         )
 
         wanted_param = ["from", "to", "for"]
@@ -118,8 +118,8 @@ class PayViewSet(viewsets.ViewSet):
         if dept is not None:
             try:
                 dept = Department.objects.get(abbrev=dept)
-            except Department.DoesNotExist:
-                raise APIException(detail="Unknown department")
+            except Department.DoesNotExist as exc:
+                raise APIException(detail="Unknown department") from exc
 
         # clean dates
         from_date = dt.date.fromisoformat(self.request.query_params.get("from"))
@@ -133,8 +133,8 @@ class PayViewSet(viewsets.ViewSet):
                     department=dept, abbrev=train_prog
                 )
                 supp_filters["course__module__train_prog"] = train_prog
-            except TrainingProgramme.DoesNotExist:
-                raise APIException(detail="Unknown training programme")
+            except TrainingProgramme.DoesNotExist as exc:
+                raise APIException(detail="Unknown training programme") from exc
 
         # clean status
         status_dict = {
@@ -512,7 +512,8 @@ class RoomMonthlyVolumeByDayViewSet(viewsets.ViewSet):
             date = dayschedcourse.date
             day_scheduled_courses = sched_courses.filter(date=date)
             volume = (
-                sum(sc.pay_duration for sc in day_scheduled_courses).total_seconds() // 60
+                sum(sc.pay_duration for sc in day_scheduled_courses).total_seconds()
+                // 60
             )
             day_volume = {
                 "date": date.isoformat(),

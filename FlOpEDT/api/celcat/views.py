@@ -21,6 +21,8 @@
 # you develop activities involving the FlOpEDT/FlOpScheduler software
 # without disclosing the source code of your own applications.
 
+import datetime as dt
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import NotAcceptable, APIException
@@ -43,37 +45,23 @@ from api.celcat.serializers import CelcatExportSerializer
         manual_parameters=[
             dept_param(required=True),
             openapi.Parameter(
-                "de_semaine",
+                "from",
                 openapi.IN_QUERY,
-                description="semaine initiale",
-                type=openapi.TYPE_INTEGER,
+                description="initial date",
+                type=openapi.FORMAT_DATE,
                 required=True,
             ),
             openapi.Parameter(
-                "de_annee",
+                "to",
                 openapi.IN_QUERY,
-                description="année initiale",
-                type=openapi.TYPE_INTEGER,
+                description="final date",
+                type=openapi.FORMAT_DATE,
                 required=True,
             ),
             openapi.Parameter(
-                "a_semaine",
+                "train_prog",
                 openapi.IN_QUERY,
-                description="semaine finale",
-                type=openapi.TYPE_INTEGER,
-                required=True,
-            ),
-            openapi.Parameter(
-                "a_annee",
-                openapi.IN_QUERY,
-                description="année finale",
-                type=openapi.TYPE_INTEGER,
-                required=True,
-            ),
-            openapi.Parameter(
-                "promo",
-                openapi.IN_QUERY,
-                description="abbréviation de la promo",
+                description="training program abbreviation",
                 type=openapi.TYPE_STRING,
                 required=False,
             ),
@@ -82,18 +70,16 @@ from api.celcat.serializers import CelcatExportSerializer
 )
 class CelcatExportViewSet(viewsets.ViewSet):
     """
-    Gestion de la création de fichiers d'export pour Celcat
+    Creation of a Celcat export file
     """
 
     permission_classes = [IsTutorOrReadOnly]
 
     def list(self, request):
 
-        param_exception = NotAcceptable(
-            detail=f"Usage : ?de_semaine=xx&de_annee=xy" f"&a_semaine=yx&a_annee=yy"
-        )
+        param_exception = NotAcceptable(detail="Usage : ?from=YYYY-MM-DD&to=YYYY-MM-DD")
 
-        wanted_param = ["de_semaine", "de_annee", "a_semaine", "a_annee"]
+        wanted_param = ["from", "to"]
         supp_filters = {}
 
         # check that all parameters are given
@@ -105,51 +91,30 @@ class CelcatExportViewSet(viewsets.ViewSet):
         if dept is not None:
             try:
                 dept = Department.objects.get(abbrev=dept)
-            except Department.DoesNotExist:
-                raise APIException(detail="Unknown department")
+            except Department.DoesNotExist as exc:
+                raise APIException(detail="Unknown department") from exc
 
-        # clean week-year parameters
-        week_inter = [
-            {
-                "year": request.GET.get("de_annee"),
-                "min_week": request.GET.get("de_semaine"),
-                "max_week": 60,
-            },
-            {
-                "year": request.GET.get("a_annee"),
-                "min_week": 1,
-                "max_week": request.GET.get("a_semaine"),
-            },
-        ]
-        if week_inter[0]["year"] == week_inter[1]["year"]:
-            week_inter[0]["max_week"] = week_inter[1]["max_week"]
-            week_inter[1]["max_week"] = 0
-
-        Q_filter_week = Q(course__week__nb__gte=week_inter[0]["min_week"]) & Q(
-            course__week__nb__lte=week_inter[0]["max_week"]
-        ) & Q(course__week__year=week_inter[0]["year"]) | Q(
-            course__week__nb__gte=week_inter[1]["min_week"]
-        ) & Q(
-            course__week__nb__lte=week_inter[1]["max_week"]
-        ) & Q(
-            course__week__year=week_inter[1]["year"]
-        )
+        # clean dates
+        from_date = dt.date.fromisoformat(self.request.query_params.get("from"))
+        to_date = dt.date.fromisoformat(self.request.query_params.get("to"))
 
         # clean training programme
-        train_prog = self.request.query_params.get("promo", None)
+        train_prog = self.request.query_params.get("train_prog", None)
         if train_prog is not None:
             try:
                 train_prog = TrainingProgramme.objects.get(
                     department=dept, abbrev=train_prog
                 )
                 supp_filters["course__module__train_prog"] = train_prog
-            except TrainingProgramme.DoesNotExist:
-                raise APIException(detail="Unknown training programme")
+            except TrainingProgramme.DoesNotExist as exc:
+                raise APIException(detail="Unknown training programme") from exc
+
         considered_scheduled_courses = ScheduledCourse.objects.select_related(
-            "course__week", "course__module__train_prog"
+            "course__module__train_prog", "course__type", "room", "tutor"
         ).filter(
-            Q_filter_week,
-            course__module__train_prog__department=dept,
+            date__gte=from_date,
+            date__lte=to_date,
+            course__type__department=dept,
             work_copy=0,
             **supp_filters,
         )
