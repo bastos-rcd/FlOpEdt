@@ -238,11 +238,6 @@ def rooms_extract(department, room_groups, room_categories, rooms):
 
 
 def groups_extract(department, promotions, group_types, groups, transversal_groups):
-    if GenericGroup.objects.exists():
-        available_generic_group_id = GenericGroup.objects.latest("id").id + 1
-    else:
-        available_generic_group_id = 0
-
     logger.info("Groups extraction : start")
     for id_, name in promotions.items():
         verif = TrainingProgramme.objects.filter(abbrev=id_, department=department)
@@ -295,10 +290,8 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
                     size=0,
                     train_prog=promotion,
                     type=group_type,
-                    id=available_generic_group_id,
                 )
                 group.save()
-                available_generic_group_id += 1
 
             except IntegrityError as ie:
                 logger.warning(
@@ -350,10 +343,8 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
                     name=id_,
                     size=0,
                     train_prog=promotion,
-                    id=available_generic_group_id,
                 )
                 trans_group.save()
-                available_generic_group_id += 1
 
             except IntegrityError as ie:
                 logger.warning(
