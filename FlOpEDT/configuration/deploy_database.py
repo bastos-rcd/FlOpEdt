@@ -255,7 +255,6 @@ def rooms_extract(department, room_groups, room_categories, rooms):
 
 
 def groups_extract(department, promotions, group_types, groups, transversal_groups):
-
     logger.info("Groups extraction : start")
     for id_, name in promotions.items():
 
@@ -304,14 +303,14 @@ def groups_extract(department, promotions, group_types, groups, transversal_grou
                 promotion = TrainingProgramme.objects.get(
                     abbrev=promotion_id, department=department
                 )
-                groupType = GroupType.objects.get(
+                group_type = GroupType.objects.get(
                     name=group["group_type"], department=department
                 )
                 group = StructuralGroup(
                     name=id_,
                     size=0,
                     train_prog=promotion,
-                    type=groupType,
+                    type=group_type,
                 )
                 group.save()
 
