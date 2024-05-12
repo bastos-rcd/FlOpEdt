@@ -172,7 +172,7 @@ class CelcatExportSerializer(serializers.Serializer):
         elif isinstance(obj, ScheduledCourse):
             return ""
         elif isinstance(obj, Module):
-            return obj.abbrev
+            return obj.ppn
         elif isinstance(obj, GenericGroup):
             return obj.name
         elif isinstance(obj, Tutor):
