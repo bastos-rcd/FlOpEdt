@@ -232,9 +232,7 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                 GenericGroup.objects.filter(name__in=groups, train_prog=PROMO)
             )
             if not GROUPS:
-                raise Exception(
-                    f"Group(s) do(es) not exist {row}, week {week.nb} of {feuille}\n"
-                )
+                raise Exception("Group(s) do(es) not exist")
 
             N = int(N)
 
@@ -332,7 +330,8 @@ def ReadPlanifWeek(department, book, feuille, week, courses_to_stabilize=None):
                     P.save()
 
         except Exception as e:
-            result[row] = e
+            if str(e):
+                result[row] = str(e)
             continue
 
     # Add after_type dependecies
@@ -391,7 +390,8 @@ def extract_period(
             department, book, period.name, week, courses_to_stabilize
         )
         if planif_week_result:
-            result[week] = planif_week_result
+            for row, exception_value in planif_week_result.items():
+                result[row] = exception_value
 
     if stabilize_courses:
         for courses_list in courses_to_stabilize.values():
@@ -437,11 +437,10 @@ def extract_planif(
             until_week=until_week,
         )
         if planif_period_result:
-            result[period] = planif_period_result
+            result[period.name] = planif_period_result
 
     if assign_colors:
         assign_module_color(department, overwrite=True)
-
     return result
 
 
@@ -456,12 +455,15 @@ def extract_planif_weeks(week_year_list, department, bookname=None, periods=None
     periods = define_periods(department, book, periods)
     result = {}
     for period in periods:
+        result[period.name] = {}
         for s in week_year_list:
             w = s["week"]
             y = s["year"]
             planif_week_result = ReadPlanifWeek(department, book, period.name, w, y)
-            if planif_week_result:
-                result[w] = planif_week_result
+            for row, exception_value in planif_week_result.items():
+                result[period.name][row] = exception_value
+        if not result[period.name]:
+            del result[period.name]
     return result
 
 

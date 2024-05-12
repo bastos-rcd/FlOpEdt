@@ -327,7 +327,12 @@ def import_planif_file(req, **kwargs):
                     response = {"status": "ok", "data": rep}
                 else:
                     os.remove(path)
-                    response = {"status": "error", "data": result}
+                    rep = ""
+                    for period_name in result:
+                        rep += f"{period_name} : \n"
+                        for row in result[period_name]:
+                            rep += f"- Row {row}: {result[period_name][row]} \n"
+                    response = {"status": "error", "data": rep}
         else:
             response = {"status": "error", "data": "Invalid format"}
     else:
