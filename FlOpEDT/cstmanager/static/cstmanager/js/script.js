@@ -364,7 +364,7 @@ let changeEvents = {
         // Send new constraints
         await Promise.all(toAdd.map(async (constraint) => {
             constraint.department = department;
-            await postData(urlConstraints, constraint).then(r => console.log(r), reason => {
+            await postData(urlConstraint, constraint).then(r => console.log(r), reason => {
                 failed(constraint, reason);
             });
         }));
@@ -372,7 +372,7 @@ let changeEvents = {
         // Send existing constraints updates
         await Promise.all(toEdit.map(async (constraint) => {
             constraint.department = department;
-            await putData(urlConstraints, constraint).then(r => console.log(r), reason => {
+            await putData(urlConstraint, constraint).then(r => console.log(r), reason => {
                 failed(constraint, reason);
             });
         }));
