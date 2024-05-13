@@ -176,7 +176,7 @@ class CelcatExportSerializer(serializers.Serializer):
         elif isinstance(obj, GenericGroup):
             return obj.name
         elif isinstance(obj, Tutor):
-            return obj.username
+            return obj.id
         elif isinstance(obj, Room):
             return obj.name
         else:

@@ -12,8 +12,14 @@ This version will include incompatible changes. More specifically:
 - the time management will be fundamentally changed to land on standard formats
 - the `API` will hence be refactored as well
 
-## [0.5.7] -- 2024-04-26
+## [0.5.8] -- 2024-05-13
 **Note:** `0.5` is the last `0.*` version.
+### Changed
+- debug in constraint manager HMI
+- planif file extraction with many errors raised once
+- minor in celcat Serializer
+
+## [0.5.7] -- 2024-04-26
 ### Changed
 - first celcat export try
 - remove passwords in public api

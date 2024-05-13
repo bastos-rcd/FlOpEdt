@@ -1,3 +1,11 @@
+flopedt (0.5.8) unstable; urgency=medium
+
+  * debug in constraint manager HMI
+  * planif file extraction with many errors raised once
+  * minor in celcat Serializer
+
+ -- Pablo Seban <pablo@univ-tlse2.fr>  Mon, 13 May 2024 22:48:02 +0200
+
 flopedt (0.5.7) unstable; urgency=medium
 
   * celcat export 
