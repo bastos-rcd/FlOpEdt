@@ -40,7 +40,7 @@ fi
 
 if [ "$DJANGO_LOADDATA" = 'on' ]; then
   echo "manage.py loaddata..."
-  /code/FlOpEDT/manage.py loaddata /code/dump_anonyme.json.bz2
+  /code/FlOpEDT/manage.py loaddata /code/dump.json.bz2
 fi
 
 if [ "$DJANGO_COLLECTSTATIC" = 'on' ]; then
