@@ -25,6 +25,8 @@ import os
 
 from .base import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
