@@ -67,6 +67,23 @@ services:
     entrypoint: [ "yarn", "dev", "--host" ]
     # entrypoint: /code/docker/script/init-vue.sh
 
+
+  vue-story:
+    image: node:20
+    working_dir: /front
+    profiles:
+      - full
+    environment:
+      - CONFIG=development
+      - FLOP_BACKEND_URL=http://backend:8000
+    volumes:
+      - ./FlOpEDT-front:/front
+    ports:
+      - "6006:6006"
+    entrypoint: [ "yarn", "story:dev" ]
+
+
+
   maildev:
     image: maildev/maildev:2.1.0
     profiles:
