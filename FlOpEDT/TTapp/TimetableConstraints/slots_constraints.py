@@ -1338,6 +1338,9 @@ class LimitSimultaneousCoursesNumber(TimetableConstraint):
     """
 
     limit = models.PositiveSmallIntegerField()
+    train_progs = models.ManyToManyField(
+        "base.TrainingProgramme", null=True, blank=True
+    )
     course_type = models.ForeignKey(
         "base.CourseType", on_delete=models.CASCADE, null=True, blank=True
     )
@@ -1357,6 +1360,10 @@ class LimitSimultaneousCoursesNumber(TimetableConstraint):
 
     def enrich_ttmodel(self, ttmodel, period, ponderation=1):
         relevant_courses = ttmodel.data.courses
+        if self.train_progs.exists():
+            relevant_courses = relevant_courses.filter(
+                module__train_prog__in=self.train_progs.all()
+            )
         if self.course_type is not None:
             relevant_courses = relevant_courses.filter(type=self.course_type)
         if self.modules.exists():
