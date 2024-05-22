@@ -37,7 +37,6 @@ from base.models import (
     CourseStartTimeConstraint,
     CourseType,
     Department,
-    GenericGroup,
     GroupType,
     Mode,
     Module,

@@ -37,13 +37,14 @@ const csrfToken = getCookie('csrftoken')
 
 function submitAction() {
   console.log(getCookie('sessionid'))
+  const requestHeaders: HeadersInit = new Headers()
+  if (csrfToken) {
+    requestHeaders.set('X-CSRFToken', csrfToken)
+  }
   fetch('/fr/accounts/login-vue/', {
     method: 'POST',
     credentials: 'include',
-    headers: {
-      //'Content-Type': 'application/json',
-      'X-CSRFToken': csrfToken,
-    },
+    headers: requestHeaders,
     body: JSON.stringify({ username: username.value, password: password.value }),
   })
     .then((response) => {
