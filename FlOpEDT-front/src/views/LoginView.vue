@@ -48,7 +48,7 @@ function submitAction() {
   })
     .then((response) => {
       if (!response.ok) {
-        authMessage.value = "L'authentification a échoué."
+        throw new Error('Response not ok')
       }
       return response.json()
     })
@@ -58,8 +58,7 @@ function submitAction() {
         authMessage.value = 'Authentification réussie.'
         return authStore.fetchAuthUser()
       } else {
-        authMessage.value = "L'authentification a échoué."
-        throw new Error('Invalid credentials')
+        throw new Error(data.message)
       }
     })
     .then(() => {
@@ -67,6 +66,7 @@ function submitAction() {
     })
     .catch((error) => {
       console.log(error)
+      authMessage.value = "L'authentification a échoué."
     })
   // console.log(route.query.redirect)
   // if (route.query.meta !== null) window.location.href = route.query.redirect as string
