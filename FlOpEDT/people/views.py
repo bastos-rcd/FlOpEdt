@@ -34,6 +34,7 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext as _
 from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import csrf_exempt
 
 
 from base import queries
@@ -58,6 +59,7 @@ from people.models import (
 )
 
 
+@csrf_exempt
 def login_vue_view(request):
     if request.method == "POST":
         data = json.loads(request.body)
