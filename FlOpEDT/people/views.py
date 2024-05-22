@@ -33,6 +33,8 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import gettext as _
+from django.contrib.auth import authenticate, login, logout
+
 
 from base import queries
 from base.models import Theme
@@ -54,6 +56,25 @@ from people.models import (
     User,
     UserPreferredLinks,
 )
+
+
+def login_vue_view(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        username = data.get("username")
+        password = data.get("password")
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse({"message": "Login successful"})
+        return JsonResponse({"message": "Invalid credentials"}, status=400)
+    return JsonResponse({"message": "What are you trying to do?"})
+
+
+def logout_vue_view(request):
+    logout(request)
+    return JsonResponse({"message": "Logged out"})
+
 
 logger = logging.getLogger(__name__)
 

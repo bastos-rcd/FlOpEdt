@@ -51,7 +51,7 @@ const urls = {
   getStartTimes: 'v1/constraint/base/course_start_time',
 }
 
-function getCookie(name: string) {
+export function getCookie(name: string) {
   if (!document.cookie) {
     return null
   }
