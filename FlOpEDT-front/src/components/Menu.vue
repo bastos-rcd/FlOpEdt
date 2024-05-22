@@ -72,6 +72,13 @@
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
         <a :href="`/${locale}/admin/`">{{ $t('navbar.admin') }}</a>
       </li>
+      <li v-if="!authStore.isUserAuthenticated" style="float: right">
+        <a :href="`/login/`">Se connecter</a>
+      </li>
+      <li v-else style="float: right">
+        <span @click="logout">Se déconnecter</span>
+        <!-- <a :href="`/${locale}/accounts/logout-vue/`"></a> -->
+      </li>
     </ul>
   </nav>
 </template>
@@ -80,6 +87,7 @@
 import { useAuth } from '@/stores/auth'
 import { useDepartmentStore } from '@/stores/department'
 import { routeNames } from '@/router'
+import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
@@ -87,6 +95,7 @@ import { Icon } from '@iconify/vue'
 const authStore = useAuth()
 const deptStore = useDepartmentStore()
 const { locale } = useI18n()
+const router = useRouter()
 onMounted(() => {
   if (!deptStore.isCurrentDepartmentSelected) {
     deptStore.getDepartmentFromURL()
@@ -95,6 +104,22 @@ onMounted(() => {
 
 function toggleSideBar() {
   authStore.toggleSidePanel()
+}
+
+function logout() {
+  console.log('logout')
+  fetch(`/${locale.value}/accounts/logout-vue`, { method: 'GET', credentials: 'include' })
+    .then((response) => {
+      if (response.ok) {
+        return authStore.fetchAuthUser()
+      }
+    })
+    .then(() => {
+      return router.push('/')
+    })
+    .catch((error) => {
+      console.log(error)
+    })
 }
 </script>
 
@@ -114,7 +139,8 @@ a {
   min-width: 85px;
   min-height: 50px;
 }
-#menu-links li a {
+#menu-links li a,
+#menu-links li span {
   color: white;
   display: block;
   text-align: center;
