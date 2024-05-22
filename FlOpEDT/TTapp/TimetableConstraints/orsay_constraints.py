@@ -87,7 +87,7 @@ class GroupsLunchBreak(TimetableConstraint):
 
             for group in considered_groups:
                 considered_courses = self.get_courses_queryset_by_parameters(
-                    period, ttmodel, group=group
+                    period, ttmodel, group=group, transversal_groups_included=True
                 )
                 for local_slot in local_slots:
                     # Je veux que slot_vars[group, local_slot] soit à 1
