@@ -1,6 +1,6 @@
 <template>
-  <h3>{{ $t('authentication.title') }}</h3>
-  <p>{{ $t('authentication.message') }}</p>
+  <!-- <h3>{{ $t('authentication.title') }}</h3>
+  <p>{{ $t('authentication.message') }}</p> -->
   <fieldset class="login">
     <legend>Authentification</legend>
     <div class="form-row">
@@ -12,23 +12,64 @@
       <input id="password" v-model="password" class="form-right" placeholder="" type="password" />
     </div>
     <div class="form-row">
-      <span class="form-left">
+      <!-- <span class="form-left">
         <a href=""> Mot de passe oublié ? </a>
-      </span>
+      </span> -->
       <input class="submit form-right" type="button" value="Connexion" @click="submitAction" />
     </div>
   </fieldset>
+  <span> {{ authMessage }}</span>
 </template>
+
+
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { getCookie } from '@/utils/api'
+import { useAuth } from '@/stores/auth'
 const username = ref('')
 const password = ref('')
-const route = useRoute()
+const authMessage = ref('')
+const router = useRouter()
+
+const authStore = useAuth()
+const csrfToken = getCookie('csrftoken')
 
 function submitAction() {
-  console.log(route.query.redirect)
-  if (route.query.meta !== null) window.location.href = route.query.redirect as string
+  console.log(getCookie('sessionid'))
+  fetch('/fr/accounts/login-vue/', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      //'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken,
+    },
+    body: JSON.stringify({ username: username.value, password: password.value }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        authMessage.value = "L'authentification a échoué."
+      }
+      return response.json()
+    })
+    .then((data) => {
+      console.log(data)
+      if (data.message === 'Login successful') {
+        authMessage.value = 'Authentification réussie.'
+        return authStore.fetchAuthUser()
+      } else {
+        authMessage.value = "L'authentification a échoué."
+        throw new Error('Invalid credentials')
+      }
+    })
+    .then(() => {
+      return router.push('/')
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+  // console.log(route.query.redirect)
+  // if (route.query.meta !== null) window.location.href = route.query.redirect as string
 }
 </script>
 
@@ -39,13 +80,17 @@ h3 {
 }
 legend {
   position: relative;
-  top: -10px;
-  left: 20px;
+  /* top: -10px; */
+  /* left: 20px; */
   height: 20px;
   width: 120px;
-  background: rgb(214, 214, 214);
+  background: rgb(90, 89, 89);
   text-align: center;
   font-size: medium;
+}
+label,
+span {
+  color: black;
 }
 fieldset {
   border: 3px black;

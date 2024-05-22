@@ -25,8 +25,8 @@
 
 SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
-echo "Wait until Postgres is definitely ready to start migrations"
-$SCRIPT_PATH/wait-for-it.sh $POSTGRES_HOST:5432 -- echo "Postgres is up - continuing"
+# Wait for the database to be ready
+/code/FlOpEDT/manage.py wait_for_db
 
 if [ "$DJANGO_MIGRATE" = 'on' ]; then
     echo "manage.py migrate..."
