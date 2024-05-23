@@ -32,3 +32,6 @@ config_file/*
 !config_file/flopedt.ini
 !config_file/flopedt-system.ini
 !config_file/flopedt-docker.ini
+
+# Ignore le fichier caché sur macOS
+.DS_Store
