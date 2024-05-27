@@ -7,6 +7,7 @@ Please check if your Merge Request (MR) fulfills the following requirements:
 - [ ] We added some insights in the `CHANGELOG.md` file
 - [ ] New needed python modules have been added to `requirements.txt`, if any
 - [ ] Tests for the changes have been added (for bug fixes / features)
+- [ ] The CI is still successful
 - [ ] Docs have been reviewed and added / updated if needed (for bug fixes / features). The wiki page of FlOpEDT may be merge requested as in https://stackoverflow.com/a/38537453
 - [ ] No additional printing (neither in django (`print`) or in javascript (`console.log`))
 
@@ -15,8 +16,13 @@ Please check if your Merge Request (MR) fulfills the following requirements:
 
 ### Have new dependencies been added?
 
-- [ ] Yes
-- [ ] No
+- Back-end
+  - [ ] Yes
+  - [ ] No
+- Front-end
+  - [ ] Yes
+  - [ ] No
+
 
 If yes, which dependencies?
 
@@ -38,6 +44,7 @@ If no, which alternative(s) ?
 Please check the type of change your MR introduces:
 - [ ] Bugfix
 - [ ] Feature
+- [ ] Upgrade from v0 to v1
 - [ ] Code style update (formatting, renaming)
 - [ ] Refactoring (no functional changes, no api changes)
 - [ ] Build related changes
