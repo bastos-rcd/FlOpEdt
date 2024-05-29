@@ -2,7 +2,7 @@
   <nav id="menu-links">
     <div class="mobile-menu-button">
       <Icon icon="iconoir:menu" class="IconMenu" @click="toggleMobileMenu"></Icon>
-      <label class="mobile-button" @click="toggleMobileMenu">Se déconnecter</label>
+      <label class="mobile-button" @click="toggleMobileMenu">{{ page.name }}</label>
       <button class="sidebar-button" @click="toggleSideBar()">
         <Icon icon="iconoir:filter" class="IconMenu"></Icon>
         FILTRES
@@ -23,6 +23,7 @@
               locale: locale,
             },
           }"
+          @click="page.name = $t('navbar.home')"
           >{{ $t('navbar.home') }}</router-link
         >
       </li>
@@ -35,17 +36,26 @@
               locale: locale,
             },
           }"
+          @click="page.name = $t('navbar.schedule')"
           >{{ $t('navbar.schedule') }}</router-link
         >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/semaine-type`">{{ $t('navbar.preferences') }}</a>
+        <a
+          :href="`/${locale}/edt/${deptStore.current.abbrev}/semaine-type`"
+          @click="page.name = $t('navbar.preferences')"
+          >{{ $t('navbar.preferences') }}</a
+        >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/ics/${deptStore.current.abbrev}/`">{{ $t('navbar.iCal') }}</a>
+        <a :href="`/${locale}/ics/${deptStore.current.abbrev}/`" @click="page.name = $t('navbar.iCal')">{{
+          $t('navbar.iCal')
+        }}</a>
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/aide`">{{ $t('navbar.help') }}</a>
+        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/aide`" @click="page.name = $t('navbar.help')">{{
+          $t('navbar.help')
+        }}</a>
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
         <router-link
@@ -56,29 +66,44 @@
               locale: locale,
             },
           }"
+          @click="page.name = $t('navbar.messages')"
           >{{ $t('navbar.messages') }}</router-link
         >
       </li>
       <li v-if="deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/modules`">{{ $t('navbar.modules') }}</a>
+        <a :href="`/${locale}/edt/${deptStore.current.abbrev}/modules`" @click="page.name = $t('navbar.modules')">{{
+          $t('navbar.modules')
+        }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/edt/INFO/decale`">{{ $t('navbar.move-cancel') }}</a>
+        <a :href="`/${locale}/edt/INFO/decale`" @click="page.name = $t('navbar.move-cancel')">{{
+          $t('navbar.move-cancel')
+        }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/cstmanager/manager/`">{{ $t('navbar.constraints') }}</a>
+        <a :href="`/${locale}/cstmanager/manager/`" @click="page.name = $t('navbar.constraints')">{{
+          $t('navbar.constraints')
+        }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/solve-board/${deptStore.current.abbrev}/main/`">{{ $t('navbar.generate') }}</a>
+        <a
+          :href="`/${locale}/solve-board/${deptStore.current.abbrev}/main/`"
+          @click="page.name = $t('navbar.generate')"
+          >{{ $t('navbar.generate') }}</a
+        >
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/flopeditor/${deptStore.current.abbrev}/parameters`">{{ $t('navbar.flop-editor') }}</a>
+        <a
+          :href="`/${locale}/flopeditor/${deptStore.current.abbrev}/parameters`"
+          @click="page.name = $t('navbar.flop-editor')"
+          >{{ $t('navbar.flop-editor') }}</a
+        >
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/configuration/`">{{ $t('navbar.import') }}</a>
+        <a :href="`/${locale}/configuration/`" @click="page.name = $t('navbar.import')">{{ $t('navbar.import') }}</a>
       </li>
       <li v-if="authStore.isUserAuthenticated && deptStore.isCurrentDepartmentSelected">
-        <a :href="`/${locale}/admin/`">{{ $t('navbar.admin') }}</a>
+        <a :href="`/${locale}/admin/`" @click="page.name = $t('navbar.admin')">{{ $t('navbar.admin') }}</a>
       </li>
       <li v-if="!authStore.isUserAuthenticated" style="float: right">
         <a :href="`/login/`">Se connecter</a>
@@ -100,11 +125,13 @@ import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
 import { ref } from 'vue'
+import { usePageStore } from '@/stores/page'
 
 const authStore = useAuth()
 const deptStore = useDepartmentStore()
 const { locale } = useI18n()
 const router = useRouter()
+const page = usePageStore()
 
 const isMobileMenuOpen = ref(false)
 
