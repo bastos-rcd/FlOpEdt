@@ -27,4 +27,8 @@ h3 {
 h4 {
   font-size: 16px;
 }
+body {
+  margin: 0;
+  padding: 0;
+}
 </style>
