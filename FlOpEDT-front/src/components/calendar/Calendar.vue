@@ -145,7 +145,7 @@ import { forEach, includes, cloneDeep, remove, sortBy, find, sumBy, filter } fro
 
 import { CalendarColumn, CalendarEvent, InputCalendarEvent } from './declaration'
 
-import { Ref, computed, ref } from 'vue'
+import { Ref, computed, onBeforeMount, ref } from 'vue'
 import {
   today,
   QCalendarDay,
@@ -872,6 +872,18 @@ function updateResizedDownEvents(
     return availToUpdate
   }
 }
+
+onBeforeMount(updateCalendarTypeOnResize)
+
+function updateCalendarTypeOnResize() {
+  if (window.innerWidth < 768) {
+    calendarTypeModel.value = 'day'
+  } else {
+    calendarTypeModel.value = 'week'
+  }
+}
+
+window.addEventListener('resize', updateCalendarTypeOnResize)
 </script>
 
 <style lang="sass" scoped>
