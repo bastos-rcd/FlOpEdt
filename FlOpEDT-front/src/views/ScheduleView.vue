@@ -184,7 +184,7 @@ function fetchCurrentAvail(from: Date, to: Date, tutorId?: number) {
 }
 
 function changeDate(newDate: Timestamp) {
-  if (calendarTypeModel.value === 'week') {
+  if (calendarTypeModel.value === 'week' || calendarTypeModel.value === 'day') {
     first.value = updateFormatted(getStartOfWeek(newDate, [1, 2, 3, 4, 5, 6, 0]))
     last.value = updateFormatted(getEndOfWeek(first.value, [1, 2, 3, 4, 5, 6, 0]))
   } else if (calendarTypeModel.value === 'month') {
@@ -202,7 +202,7 @@ function changeDate(newDate: Timestamp) {
 }
 
 watch(calendarTypeModel, () => {
-  if (calendarTypeModel.value === 'week') {
+  if (calendarTypeModel.value === 'week' || calendarTypeModel.value === 'day') {
     fetchCurrentScheduled(makeDate(first.value!), makeDate(last.value!))
     fetchCurrentAvail(makeDate(first.value!), makeDate(last.value!))
   } else if (calendarTypeModel.value === 'month') {
@@ -311,7 +311,7 @@ function handleUpdateEvents(newCalendarEvents: InputCalendarEvent[]): void {
  */
 onBeforeMount(() => {
   let todayDate: Timestamp = updateFormatted(parsed(today()) as Timestamp)
-  if (calendarTypeModel.value === 'week') {
+  if (calendarTypeModel.value === 'week' || calendarTypeModel.value === 'day') {
     first.value = updateFormatted(getStartOfWeek(todayDate, [1, 2, 3, 4, 5, 6, 0]))
     last.value = updateFormatted(getEndOfWeek(first.value, [1, 2, 3, 4, 5, 6, 0]))
   } else if (calendarTypeModel.value === 'month') {
