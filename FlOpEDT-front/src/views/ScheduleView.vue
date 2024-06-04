@@ -1,6 +1,10 @@
 <template>
   <div class="content">
-    <div v-if="authStore.sidePanelToggle" class="side-panel" :class="{ open: authStore.sidePanelToggle }">
+    <div
+      v-if="authStore.sidePanelToggle"
+      class="side-panel"
+      :class="{ open: authStore.sidePanelToggle, stacked: isStacked }"
+    >
       <SidePanel
         v-if="authStore.sidePanelToggle"
         v-model:workcopy="workcopySelected"
@@ -122,6 +126,13 @@ const calendarTypeModel = computed({
     calendarType.value = v
   },
 })
+
+const isStacked = ref(false)
+const checkScreenWidth = () => {
+  isStacked.value = window.innerWidth < 768
+}
+
+window.addEventListener('resize', checkScreenWidth)
 
 watch(selectedGroups, () => {
   groupStore.clearSelected()
@@ -317,6 +328,8 @@ onBeforeMount(() => {
   void groupStore.fetchGroups(deptStore.current)
   fetchCurrentScheduled(makeDate(first.value!), makeDate(last.value!))
   fetchCurrentAvail(makeDate(first.value!), makeDate(last.value!))
+
+  checkScreenWidth()
 })
 </script>
 
@@ -346,5 +359,20 @@ onBeforeMount(() => {
 }
 .content {
   display: flex;
+  flex-direction: row;
+}
+@media (max-width: 767px) {
+  .content {
+    flex-direction: column; /* En colonne sur petits écrans */
+  }
+  .side-panel {
+    width: 100%;
+    left: 0;
+    position: relative;
+    margin-bottom: 10px; /* Espacement entre le panneau et le calendrier */
+  }
+  .main-content.open {
+    width: 100%;
+  }
 }
 </style>

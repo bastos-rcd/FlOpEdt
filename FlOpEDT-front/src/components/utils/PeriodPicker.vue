@@ -41,7 +41,7 @@ function handleClick(days: string[]) {
 
 <template>
   <CollapsibleRoot v-model:open="open">
-    <div class="ChoiceButtons">
+    <div class="hide-on-small-screen ChoiceButtons">
       <button @click="calendarTypeModel = 'month'">
         {{ $t('periodPicker.typeMonth') }}
       </button>
@@ -142,5 +142,10 @@ function handleClick(days: string[]) {
 }
 .Icon {
   color: #9b6325;
+}
+@media (max-width: 768px) {
+  .hide-on-small-screen {
+    display: none;
+  }
 }
 </style>
