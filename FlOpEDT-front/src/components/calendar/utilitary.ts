@@ -138,7 +138,6 @@ export function badgeStyles(
     s['background-color'] = event.bgcolor
   }
   if (event.data.dataType === 'event') {
-    s['border'] = '2px solid #000000'
     s['margin'] = '0'
     s['box-sizing'] = 'border-box'
   } else if (event.data.dataType === 'avail') {
