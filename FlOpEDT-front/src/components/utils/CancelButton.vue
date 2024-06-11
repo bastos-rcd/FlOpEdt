@@ -31,4 +31,16 @@ function onClick() {
 .cancel-button:hover {
   background-color: #fff;
 }
+@media screen and (max-width: 768px) {
+  .cancel-button {
+    padding: 15px;
+    background-color: #ffffff;
+    border: 1px solid #e3e3e3;
+    border-radius: 10px;
+  }
+  .cancel-button:hover {
+    color: #4747b2;
+    background-color: #e5e5ff;
+  }
+}
 </style>

@@ -1,8 +1,8 @@
 <template>
   <div class="content">
-    <div style="display: flex; justify-content: center; flex-direction: column">
-      <CancelButton style="align-self: flex-end" @cancel-click="clearSelect" />
+    <div class="selector-header">
       <label>{{ props.filterSelectorUndefinedLabel }}</label>
+      <CancelButton style="align-self: flex-end" @cancel-click="clearSelect" />
     </div>
     <div v-if="!multiple" class="simple-select">
       <select
@@ -94,6 +94,11 @@ function clearSelect() {
 label {
   font-weight: bolder;
 }
+.selector-header {
+  display: flex;
+  justify-content: center;
+  flex-direction: column-reverse;
+}
 .select:hover {
   background-color: rgb(255, 255, 220);
 }
@@ -126,5 +131,45 @@ label {
 }
 .dropdown-menu label input[type='checkbox'] {
   margin-right: 4px;
+}
+@media screen and (max-width: 768px) {
+  label {
+    font-weight: normal;
+  }
+  .content {
+    border: 1px solid #e3e3e3;
+    border-radius: 10px;
+    background-color: #ffffff;
+    padding: 5px;
+  }
+  .selector-header {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    padding: 10px;
+    align-items: center;
+    border-bottom: 1px solid #e3e3e3;
+  }
+  .custom-dropdown {
+    margin: 10px;
+  }
+  .select:hover {
+    background-color: transparent;
+  }
+  .selected-items {
+    background-color: #ffffff;
+    border: 1px solid #e3e3e3;
+    color: #000000;
+  }
+  .selected-items:hover {
+    background-color: #e5e5ff;
+    border: 1px solid #4747b2;
+    color: #4747b2;
+  }
+  .dropdown-menu {
+    margin-top: 10px;
+    color: #000000;
+    border: 1px solid #e3e3e3;
+  }
 }
 </style>
