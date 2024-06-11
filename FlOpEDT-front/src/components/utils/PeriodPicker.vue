@@ -144,6 +144,51 @@ function handleClick(days: string[]) {
   color: #9b6325;
 }
 @media (max-width: 768px) {
+  .ChoiceButtons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  .ChoiceButtons button {
+    width: 40%;
+    height: auto;
+    background-color: #ffffff;
+    border: 1px solid #e3e3e3;
+    color: #000000;
+    padding: 10px;
+  }
+  .ChoiceButtons button:hover {
+    background-color: #e5e5ff;
+    color: #4747b2;
+    border: 1px solid #4747b2;
+  }
+  .CollapsibleTrigger {
+    background-color: #ffffff;
+    border: 1px solid #e3e3e3;
+    padding: auto;
+  }
+  .Icon {
+    color: #000000;
+    text-align: center;
+  }
+  .ToggleGroup {
+    border: 1px solid #e3e3e3;
+  }
+  .ToggleGroupItem {
+    background-color: white;
+    color: #000000;
+    height: 30px;
+    width: 30px;
+    font-size: 12px;
+    margin-left: 0;
+  }
+  .ToggleGroupItem:hover {
+    background-color: #e5e5ff;
+  }
+  .ToggleGroupItem[data-state='on'] {
+    background-color: #e5e5ff;
+    color: #4747b2;
+  }
   .hide-on-small-screen {
     display: none;
   }

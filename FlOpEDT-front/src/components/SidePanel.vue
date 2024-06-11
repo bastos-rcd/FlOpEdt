@@ -5,8 +5,8 @@
       <PeriodPicker v-model:toggled="weekdaysModel" v-model:calendar-type="calendarTypeModel" />
     </div>
     <div>
-      <h3>{{ $t('side.availabilityTitle') }}</h3>
       <Separator class="Separator" orientation="horizontal" />
+      <h3>{{ $t('side.availabilityTitle') }}</h3>
       <div class="avail-div">
         <CheckboxRoot v-model:checked="availCheckBox" class="CheckboxRoot" :default-checked="availCheckBox">
           <CheckboxIndicator class="CheckboxIndicator">
@@ -16,11 +16,11 @@
         {{ $t('side.availabilityLabel') }}
       </div>
     </div>
-    <div>
-      <h3>{{ $t('side.editModeTitle') }}</h3>
+    <div class="hide-on-small-screen">
       <Separator class="Separator" orientation="horizontal" />
+      <h3>{{ $t('side.editModeTitle') }}</h3>
       <div class="avail-div">
-        <CollapsibleRoot v-model:open="editCheckBox">
+        <CollapsibleRoot v-model:open="editCheckBox" class="CollapsibleRoot">
           <div style="display: flex; flex-direction: column; align-items: center">
             <CollapsibleTrigger class="CollapsibleTrigger">
               <Icon v-if="editCheckBox" icon="iconoir:check"></Icon>
@@ -44,8 +44,8 @@
       </div>
     </div>
     <div class="workcopy-div">
-      <h3>{{ $t('side.workcopyTitle') }}</h3>
       <Separator class="Separator" />
+      <h3>{{ $t('side.workcopyTitle') }}</h3>
       <SelectRoot v-model="workcopy">
         <SelectTrigger class="SelectTrigger">
           <SelectValue :placeholder="$t('side.workcopyPlaceholder')" />
@@ -442,5 +442,75 @@ h3 {
 }
 .RevertButton span {
   margin-right: 5px;
+}
+@media screen and (max-width: 800px) {
+  .side-panel {
+    border-top: none;
+    border-bottom: 1px solid #000000;
+    min-width: 15%;
+    color: #000000;
+    background-color: transparent;
+    z-index: 5;
+  }
+  .Separator {
+    background-color: #000000;
+  }
+  .avail-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  .CheckboxRoot {
+    background-color: white;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgb(230, 230, 230);
+  }
+  .CheckboxRoot:hover {
+    background-color: #e5e5ff;
+  }
+  .SelectTrigger {
+    border: 1px solid #e3e3e3;
+    color: #000000;
+  }
+  .SelectTrigger:hover {
+    background-color: #e5e5ff;
+    color: #4747b2;
+  }
+  .SelectLabel {
+    color: #4747b2;
+  }
+  .SelectItem {
+    color: #000000;
+  }
+  .SelectItem[data-highlighted] {
+    outline: none;
+    background-color: #e5e5ff;
+    color: #4747b2;
+  }
+  .RadioGroupItem {
+    background-color: #ffffff;
+    width: 20px;
+    height: 20px;
+  }
+  .RadioGroupItem:focus {
+    border: none;
+    box-shadow: none;
+  }
+  .RadioGroupItem:hover {
+    background-color: #e5e5ff;
+  }
+  .RadioGroupIndicator::after {
+    background-color: #4747b2;
+  }
+  .Label {
+    color: #000000;
+  }
+  .hide-on-small-screen {
+    display: none;
+  }
 }
 </style>
