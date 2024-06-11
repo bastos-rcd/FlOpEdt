@@ -39,4 +39,7 @@ span {
   font-weight: bold;
   color: white;
 }
+.title {
+  border-radius: 5px;
+}
 </style>

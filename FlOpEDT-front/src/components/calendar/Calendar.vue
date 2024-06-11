@@ -9,6 +9,7 @@
     <QCalendarDay
       ref="calendar"
       v-model="selectedDate"
+      class="calendar-day"
       :locale="locale"
       :selected-dates="selectedDates"
       :view="calendarTypeModel"
@@ -32,6 +33,11 @@
         <span>{{ selectedDate.substring(5, 7) }}/{{ selectedDate.substring(0, 4) }}</span>
       </template>
       <template #head-day-event>
+        <div class="header-mobile">
+          <button class="btn-nav" @click="onPrev">&lt;</button>
+          <button class="btn-nav" @click="onToday">Today</button>
+          <button class="btn-nav" @click="onNext">&gt;</button>
+        </div>
         <div style="display: flex">
           <template v-for="column in props.columns" :key="column.id">
             <div
@@ -102,7 +108,7 @@
                     @delete:event="(id: number) => emits('delete:event', id)"
                   >
                     <template #trigger>
-                      <CourseCard :event-id="event.data.dataId" />
+                      <CourseCard class="course-class" :event-id="event.data.dataId" />
                     </template>
                   </EditEvent>
                 </slot>
@@ -873,17 +879,19 @@ function updateResizedDownEvents(
   }
 }
 
-onBeforeMount(updateCalendarTypeOnResize)
+onBeforeMount(updateCalendarOnResize)
 
-function updateCalendarTypeOnResize() {
+function updateCalendarOnResize() {
   if (window.innerWidth < 768) {
     calendarTypeModel.value = 'day'
+    intervalHeight.value = 15
   } else {
     calendarTypeModel.value = 'week'
+    intervalHeight.value = 30
   }
 }
 
-window.addEventListener('resize', updateCalendarTypeOnResize)
+window.addEventListener('resize', updateCalendarOnResize)
 </script>
 
 <style lang="sass" scoped>
@@ -916,4 +924,28 @@ window.addEventListener('resize', updateCalendarTypeOnResize)
 .header button
   padding: 1px
   margin: 3px
+.course-class
+  border-radius: 5px
+.header-mobile
+  display: none
+
+@media screen and (max-width: 768px)
+  .event-span
+    border-radius: 5px
+  .header
+    display: none
+  .header-mobile
+    display: flex
+    justify-content: space-between
+    margin: 5px
+    button
+      padding: 5px
+      margin: 0
+  .calendar-day
+    border-radius: 10px
+  .btn-nav
+    width: 60px
+    border: 1px solid #4747B2
+    background-color: #E5E5FF
+    color: #4747B2
 </style>

@@ -21,6 +21,11 @@
       />
     </div>
     <div class="main-content" :class="{ open: authStore.sidePanelToggle }">
+      <dialog v-if="showDialog" class="modal">
+        <Modal :groups="fetchedStructuralGroups.filter((g) => g.columnIds.length === 1)" />
+        <br />
+        <button @click="closeDialog">OK</button>
+      </dialog>
       <Calendar
         v-model:events="calendarEvents"
         v-model:calendar-type="calendarTypeModel"
@@ -77,6 +82,7 @@ import { createDropzonesForEvent } from '@/components/calendar/utilitary'
 import { usePermanentStore } from '@/stores/timetable/permanent'
 import { useUndoredo } from '@/composables/undoredo'
 import { AvailabilityData, CourseData } from '@/composables/declaration'
+import Modal from '@/components/Modal.vue'
 /**
  * Data translated to be passed to components
  */
@@ -306,6 +312,14 @@ function handleUpdateEvents(newCalendarEvents: InputCalendarEvent[]): void {
   undoRedo.addUpdateBlock(updatesData)
 }
 
+const showDialog = ref(true)
+function closeDialog() {
+  if (columnsToDisplay.value.length === 1) {
+    showDialog.value = false
+  } else {
+    alert('Veuillez sélectionner un groupe avant de fermer le modal.')
+  }
+}
 /**
  * Fetching data required on mount
  */
@@ -361,6 +375,9 @@ onBeforeMount(() => {
   display: flex;
   flex-direction: row;
 }
+.modal {
+  display: none;
+}
 @media (max-width: 767px) {
   .content {
     flex-direction: column; /* En colonne sur petits écrans */
@@ -373,6 +390,22 @@ onBeforeMount(() => {
   }
   .main-content.open {
     width: 100%;
+  }
+  .modal {
+    display: inline-flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5e5ff;
+    color: white;
+    z-index: 1;
   }
 }
 </style>
