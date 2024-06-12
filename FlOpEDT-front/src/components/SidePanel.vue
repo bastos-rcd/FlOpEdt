@@ -80,7 +80,7 @@
       <Separator class="Separator" />
       <FilterSelector
         v-model:selectedItems="groupsSelected"
-        :multiple="true"
+        :multiple="!isOnMobile"
         :items="props.groups"
         filter-selector-undefined-label="Groups to display"
         item-variable-name="name"
@@ -172,7 +172,7 @@ import {
 } from 'radix-vue'
 import { Icon } from '@iconify/vue'
 import { useAuth } from '@/stores/auth'
-import { computed } from 'vue'
+import { computed, onBeforeMount, ref } from 'vue'
 import FilterSelector from './utils/FilterSelector.vue'
 import { Group, Room, User } from '@/stores/declarations'
 import { useEventStore } from '@/stores/display/event'
@@ -265,6 +265,17 @@ const emits = defineEmits<{
 function handleClick() {
   emits('revertUpdate')
 }
+
+const isOnMobile = ref(true)
+const checkScreenWidth = () => {
+  isOnMobile.value = window.innerWidth < 768
+}
+
+window.addEventListener('resize', checkScreenWidth)
+
+onBeforeMount(() => {
+  checkScreenWidth()
+})
 </script>
 <style>
 h3 {
@@ -443,7 +454,7 @@ h3 {
 .RevertButton span {
   margin-right: 5px;
 }
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 768px) {
   .side-panel {
     border-top: none;
     border-bottom: 1px solid #000000;
@@ -461,7 +472,7 @@ h3 {
     justify-content: space-around;
   }
   .CheckboxRoot {
-    background-color: white;
+    background-color: #ffffff;
     width: 30px;
     height: 30px;
     display: flex;
@@ -471,6 +482,9 @@ h3 {
   }
   .CheckboxRoot:hover {
     background-color: #e5e5ff;
+  }
+  .CheckboxIndicator {
+    color: #000000;
   }
   .SelectTrigger {
     border: 1px solid #e3e3e3;
