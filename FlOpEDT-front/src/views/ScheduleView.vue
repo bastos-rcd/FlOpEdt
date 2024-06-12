@@ -380,13 +380,15 @@ onBeforeMount(() => {
 }
 @media (max-width: 767px) {
   .content {
-    flex-direction: column; /* En colonne sur petits écrans */
+    flex-direction: column;
   }
   .side-panel {
     width: 100%;
     left: 0;
     position: relative;
-    margin-bottom: 10px; /* Espacement entre le panneau et le calendrier */
+    margin-bottom: 10px;
+    background-color: transparent;
+    border: none;
   }
   .main-content.open {
     width: 100%;
