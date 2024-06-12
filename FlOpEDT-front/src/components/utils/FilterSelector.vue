@@ -135,6 +135,7 @@ label {
 @media screen and (max-width: 768px) {
   label {
     font-weight: normal;
+    color: #000000;
   }
   .content {
     border: 1px solid #e3e3e3;
@@ -149,6 +150,15 @@ label {
     padding: 10px;
     align-items: center;
     border-bottom: 1px solid #e3e3e3;
+  }
+  .select-content {
+    width: 30%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #000000;
+    margin: 10px;
   }
   .custom-dropdown {
     margin: 10px;
